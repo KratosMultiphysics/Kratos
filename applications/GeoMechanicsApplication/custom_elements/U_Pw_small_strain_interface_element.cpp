@@ -46,7 +46,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    const PropertiesType& Prop = this->GetProperties();
+    const PropertiesType& r_properties = this->GetProperties();
 
     KRATOS_ERROR_IF(this->Id() < 1)
         << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
@@ -56,37 +56,37 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     if (ierr != 0) return ierr;
 
     // Verify specific properties
-    if (Prop.Has(MINIMUM_JOINT_WIDTH) == false || Prop[MINIMUM_JOINT_WIDTH] <= 0.0)
+    if (!r_properties.Has(MINIMUM_JOINT_WIDTH) || r_properties[MINIMUM_JOINT_WIDTH] <= 0.0)
         KRATOS_ERROR << "MINIMUM_JOINT_WIDTH has Key zero, is not defined or "
                         "has an invalid value at element"
                      << this->Id() << std::endl;
 
     // Verify specific properties
-    if (!Prop[IGNORE_UNDRAINED]) {
-        if (Prop.Has(TRANSVERSAL_PERMEABILITY) == false || Prop[TRANSVERSAL_PERMEABILITY] < 0.0)
+    if (!r_properties[IGNORE_UNDRAINED]) {
+        if (!r_properties.Has(TRANSVERSAL_PERMEABILITY) || r_properties[TRANSVERSAL_PERMEABILITY] < 0.0)
             KRATOS_ERROR << "TRANSVERSAL_PERMEABILITY has Key zero, is not "
                             "defined or has an invalid value at element"
                          << this->Id() << std::endl;
 
-        if (Prop.Has(BULK_MODULUS_FLUID) == false || Prop[BULK_MODULUS_FLUID] <= 0.0)
+        if (!r_properties.Has(BULK_MODULUS_FLUID) || r_properties[BULK_MODULUS_FLUID] <= 0.0)
             KRATOS_ERROR << "BULK_MODULUS_FLUID has Key zero, is not defined "
                             "or has an invalid value at element"
                          << this->Id() << std::endl;
 
-        if (Prop.Has(DYNAMIC_VISCOSITY) == false || Prop[DYNAMIC_VISCOSITY] <= 0.0)
+        if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] <= 0.0)
             KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero, is not defined or "
                             "has an invalid value at element"
                          << this->Id() << std::endl;
     }
 
     // Verify the constitutive law
-    KRATOS_ERROR_IF_NOT(Prop.Has(CONSTITUTIVE_LAW))
+    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
         << "CONSTITUTIVE_LAW has Key zero or is not defined at element " << this->Id() << std::endl;
 
-    if (Prop[CONSTITUTIVE_LAW]) {
+    if (r_properties[CONSTITUTIVE_LAW]) {
         // Verify compatibility of the element with the constitutive law
         ConstitutiveLaw::Features LawFeatures;
-        Prop[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
+        r_properties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
         bool correct_strain_measure = false;
         for (unsigned int i = 0; i < LawFeatures.mStrainMeasures.size(); ++i) {
             if (LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
@@ -98,13 +98,13 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
             << this->Id() << std::endl;
 
         // Check constitutive law
-        ierr = Prop[CONSTITUTIVE_LAW]->Check(Prop, this->GetGeometry(), rCurrentProcessInfo);
+        ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the "
                         "element "
                      << this->Id() << std::endl;
 
-    const SizeType strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    const SizeType strain_size = r_properties.GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     if (TDim == 2) {
         KRATOS_ERROR_IF_NOT(strain_size == 2)
             << "Wrong constitutive law used. This is a 2D element! expected "

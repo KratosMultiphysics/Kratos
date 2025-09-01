@@ -42,31 +42,38 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType&   Geom = this->GetGeometry();
+    const PropertiesType& r_properties = this->GetProperties();
+    const GeometryType&   r_geometry   = this->GetGeometry();
 
     // Base class checks for positive area and Id > 0
     int ierr = Element::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    CheckUtilities::CheckDomainSize(Geom.DomainSize(), this->Id());
+    CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
     // Verify generic variables
     ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
     // Verify specific properties
-    if (Prop.Has(BULK_MODULUS_FLUID) == false || Prop[BULK_MODULUS_FLUID] < 0.0)
+    if (!r_properties.Has(BULK_MODULUS_FLUID) || r_properties[BULK_MODULUS_FLUID] < 0.0)
         KRATOS_ERROR << "BULK_MODULUS_FLUID has Key zero, is not defined or "
                         "has an invalid value at element "
                      << this->Id() << std::endl;
 
     // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(this->GetProperties().Has(CONSTITUTIVE_LAW))
-        << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
+    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+        << "Constitutive law not provided for property " << r_properties.Id() << std::endl;
+
+    if (r_properties[CONSTITUTIVE_LAW]) {
+        ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the "
+                        "element "
+                     << this->Id() << std::endl;
 
     // Verify that the constitutive law has the correct dimension
-    const SizeType strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+    const SizeType strain_size = r_properties[CONSTITUTIVE_LAW]->GetStrainSize();
     if (TDim == 2) {
         KRATOS_ERROR_IF(strain_size < 3 || strain_size > 4)
             << "Wrong constitutive law used. This is a 2D element! expected "
@@ -77,11 +84,6 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
             << "Wrong constitutive law used. This is a 3D element! expected "
                "strain size is 6 (el id = ) "
             << this->Id() << std::endl;
-    }
-
-    // Check constitutive law
-    if (!mConstitutiveLawVector.empty()) {
-        return mConstitutiveLawVector[0]->Check(Prop, Geom, rCurrentProcessInfo);
     }
 
     return ierr;

@@ -89,7 +89,7 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
                         "element "
                      << this->Id() << std::endl;
 
-    if (r_properties[CONSTITUTIVE_LAW] != NULL) {
+    if (r_properties[CONSTITUTIVE_LAW]) {
         // Check constitutive law
         ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
     } else
