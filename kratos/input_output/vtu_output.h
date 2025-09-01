@@ -102,13 +102,12 @@ public:
         BINARY  /// Binary format.
     };
 
-    struct ModelPartData
+    struct UnstructuredGridData
     {
         const bool                                    UsePointsForDataFieldOutput;
         ModelPart * const                             mpModelPart;
         const ModelPart::NodesContainerType::Pointer  mpPoints;
         const std::optional<CellContainerPointerType> mpCells;
-        const std::shared_ptr<VtuOutput::IndicesMap>  mpIndicesMap;
         std::map<std::string, FieldPointerType>       mPointFields;
         std::map<std::string, FieldPointerType>       mCellFields;
     };
@@ -156,18 +155,7 @@ public:
 
     void AddTensorAdaptor(
         const std::string& rTensorAdaptorName,
-        SupportedTensorAdaptorPointerType pTensorAdaptor,
-        const bool Copy = true);
-
-    void ClearFlags(Globals::DataLocation DataLocation);
-
-    void ClearVariables(Globals::DataLocation DataLocation);
-
-    void ClearIntegrationPointVariables(Globals::DataLocation DataLocation);
-
-    void ClearPointFields();
-
-    void ClearCellFields();
+        SupportedTensorAdaptorPointerType pTensorAdaptor);
 
     /**
     * @brief Returns the model part.
@@ -219,7 +207,7 @@ private:
 
     DataMap<SupportedVariablePointerType> mIntegrationPointVariables;
 
-    std::vector<ModelPartData> mListOfModelPartData;
+    std::vector<UnstructuredGridData> mListOfUnstructuredGridData;
 
     std::vector<std::pair<IndexType, double>> mStepInfo;
 
@@ -230,13 +218,13 @@ private:
     template<class TXmlDataElementWrapper>
     std::pair<std::string, std::string> WriteUnstructuredGridData(
         const std::string& rOutputPrefix,
-        ModelPartData& rModelPartData,
+        UnstructuredGridData& rUnstructuredGridData,
         TXmlDataElementWrapper& rXmlDataElementWrapper) const;
 
     template<class TXmlDataElementWrapper>
     std::pair<std::string, std::string> WriteIntegrationPointData(
         const std::string& rOutputPrefix,
-        ModelPartData& rModelPartData,
+        UnstructuredGridData& rUnstructuredGridData,
         TXmlDataElementWrapper& rXmlDataElementWrapper) const;
 
     ///@}
