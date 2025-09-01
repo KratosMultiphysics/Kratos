@@ -1154,21 +1154,44 @@ void VtuOutput::UpdateContainerExpression(
     std::visit([this, &rExpressionName](auto p_container_expression) {
         [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(p_container_expression->GetContainer(), this->mListOfUnstructuredGridData);
 
-        // switch (mesh_type) {
-        //     case UnstructuredGridMeshType::Conditions:
-        //     case UnstructuredGridMeshType::Elements: {
-        //         auto& r_unstructured_grid_data = *itr;
-        //         auto data_field_itr = r_unstructured_grid_data.mCellFields.find(rExpressionName);
+        switch (mesh_type) {
+            case UnstructuredGridMeshType::Conditions:
+            case UnstructuredGridMeshType::Elements: {
+                auto data_field_itr = itr->mCellFields.find(rExpressionName);
 
-        //         KRATOS_ERROR_IF(data_field_itr == r_unstructured_grid_data.mCellFields.end())
-        //             << "Datafield not found. Update can only used to update "
-        //                "existing data fields [ expression name = "
-        //             << rExpressionName
-        //             << ", expression = " << *p_container_expression << " ].\n";
+                KRATOS_ERROR_IF(data_field_itr == itr->mCellFields.end())
+                    << "Expression name = \""
+                    << rExpressionName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
+                    << *this;
 
-        //         // data_field_itr.second=
-        //     }
-        // }
+                data_field_itr->second = GetNDData(p_container_expression->GetExpression());
+                break;
+            }
+            case UnstructuredGridMeshType::NodesNormal:
+            case UnstructuredGridMeshType::NodesLocal: {
+                auto data_field_itr = itr->mPointFields.find(rExpressionName);
+
+                KRATOS_ERROR_IF(data_field_itr == itr->mPointFields.end())
+                    << "Expression name = \""
+                    << rExpressionName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
+                    << *this;
+
+                if constexpr(std::is_same_v<BareType<decltype(p_container_expression->GetContainer())>, ModelPart::NodesContainerType>) {
+                    data_field_itr->second = GetNDData(*p_container_expression);
+                } else {
+                    KRATOS_ERROR << "Unsupported container type.";
+                }
+                break;
+            }
+            default:
+                KRATOS_ERROR
+                    << "The container in the ContainerExpression is not referring to any of the containers "
+                    << "written by this Vtu output [ container expression name = " << rExpressionName
+                    << ", tensor_adaptor = " << *p_container_expression << " ]\n"
+                    << *this;
+                break;
+
+        }
     }, pContainerExpression);
 
 
@@ -1180,6 +1203,71 @@ void VtuOutput::UpdateTensorAdaptor(
     SupportedTensorAdaptorPointerType pTensorAdaptor)
 {
     KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(mStepInfo.empty())
+        << "TensorAdaptors can be added only before the first call to the PrintOutput [ tensor adaptor name = "
+        << rTensorAdaptorName << " ].\n";
+
+    std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
+        using tensor_adaptor_type = BareType<decltype(*p_tensor_adaptor)>;
+        using storage_type = typename tensor_adaptor_type::Storage;
+        auto shape = p_tensor_adaptor->Shape();
+        auto ta_span = p_tensor_adaptor->ViewData();
+
+        // the tensor adaptors may have different number of components in dimensions from 2 to N [Eg.
+        // tensor adaptors created from dynamic variables, having zero entities. ] Hence doing
+        // communication to correctly size the number of components in higher dimensions.
+        std::vector<unsigned int> local_data_shape(shape.begin() + 1, shape.end());
+        const auto& max_data_shape = this->mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_data_shape);
+        if (shape[0] == 0) std::copy(max_data_shape.begin(), max_data_shape.end(), shape.begin() + 1);
+
+        std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &ta_span, &shape](auto pContainer){
+            [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mListOfUnstructuredGridData);
+
+            switch (mesh_type) {
+                case UnstructuredGridMeshType::Conditions:
+                case UnstructuredGridMeshType::Elements: {
+                    auto data_field_itr = itr->mCellFields.find(rTensorAdaptorName);
+
+                    KRATOS_ERROR_IF(data_field_itr == itr->mCellFields.end())
+                        << "TensorAdaptor name = \""
+                        << rTensorAdaptorName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
+                        << *this;
+
+                    data_field_itr->second = Kratos::make_shared<storage_type>(ta_span.data(), shape);
+                    break;
+                }
+                case UnstructuredGridMeshType::NodesNormal: {
+                    auto data_field_itr = itr->mPointFields.find(rTensorAdaptorName);
+
+                    KRATOS_ERROR_IF(data_field_itr == itr->mPointFields.end())
+                        << "TensorAdaptor name = \""
+                        << rTensorAdaptorName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
+                        << *this;
+
+                    data_field_itr->second = Kratos::make_shared<storage_type>(ta_span.data(), shape);
+                    break;
+                } case UnstructuredGridMeshType::NodesLocal: {
+                    auto data_field_itr = itr->mPointFields.find(rTensorAdaptorName);
+
+                    KRATOS_ERROR_IF(data_field_itr == itr->mPointFields.end())
+                        << "TensorAdaptor name = \""
+                        << rTensorAdaptorName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
+                        << *this;
+
+                    data_field_itr->second = GetNDData(*p_tensor_adaptor, shape, *itr->mpModelPart);
+                    break;
+                }
+                default:
+                    KRATOS_ERROR
+                        << "The container in the TensorAdaptor is not referring to any of the containers "
+                        << "written by this Vtu output [ tensor adaptor name = " << rTensorAdaptorName
+                        << ", tensor_adaptor = " << *p_tensor_adaptor << " ]\n"
+                        << *this;
+                    break;
+            }
+        }, p_tensor_adaptor->GetContainer());
+    }, pTensorAdaptor);
 
     KRATOS_CATCH("");
 }
