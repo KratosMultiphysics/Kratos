@@ -16,10 +16,13 @@
 
 // Project includes
 #include "trilinos_space.h"
-#include "linear_solvers/amgcl_solver_impl.hpp"
 #include "amgcl_mpi_solver.h"
-
 #include "custom_utilities/trilinos_solver_utilities.h"
+
+#define KRATOS_AMGCL_MPI
+#include "linear_solvers/amgcl_solver_impl.hpp"
+#undef KRATOS_AMGCL_MPI
+
 
 
 namespace Kratos {
