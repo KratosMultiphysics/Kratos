@@ -139,6 +139,8 @@ void NurbsGeometryModelerCutSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
     if (mParameters.Has("number_of_inner_loops"))
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
+    if (mParameters.Has("number_internal_divisions"))
+        snake_parameters.AddDouble("number_internal_divisions", mParameters["number_internal_divisions"].GetInt());
 
     // Create the surrogate_sub_model_part for inner and outer
     SnakeCutSbmProcess snake_sbm_process(*mpModel, snake_parameters);
@@ -289,6 +291,7 @@ const Parameters NurbsGeometryModelerCutSbm::GetDefaultParameters() const
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0,
+        "number_internal_divisions": 1,
         "cut_element_name": "",
         "cut_interface_condition_name": ""
     })");
@@ -309,6 +312,7 @@ const Parameters NurbsGeometryModelerCutSbm::GetValidParameters() const
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0,
+        "number_internal_divisions": 1,
         "skin_model_part_inner_initial_name": "skin_model_part_inner_initial",
         "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
         "skin_model_part_name": "skin_model_part",
