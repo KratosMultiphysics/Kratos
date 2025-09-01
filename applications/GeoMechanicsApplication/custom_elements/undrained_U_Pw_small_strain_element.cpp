@@ -13,6 +13,7 @@
 // Application includes
 #include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
 #include "custom_utilities/check_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -65,26 +66,15 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
         << "Constitutive law not provided for property " << r_properties.Id() << std::endl;
 
-    if (r_properties[CONSTITUTIVE_LAW]) {
-        ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
-    } else
+    if (!r_properties[CONSTITUTIVE_LAW])
         KRATOS_ERROR << "A constitutive law needs to be specified for the "
                         "element "
                      << this->Id() << std::endl;
 
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strain_size = r_properties[CONSTITUTIVE_LAW]->GetStrainSize();
-    if (TDim == 2) {
-        KRATOS_ERROR_IF(strain_size < 3 || strain_size > 4)
-            << "Wrong constitutive law used. This is a 2D element! expected "
-               "strain size is 3 or 4 (el id = ) "
-            << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 6)
-            << "Wrong constitutive law used. This is a 3D element! expected "
-               "strain size is 6 (el id = ) "
-            << this->Id() << std::endl;
-    }
+    ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
+
+    const auto expected_sizes = (TDim == 2 ? std::vector<std::size_t>{3, 4} : std::vector<std::size_t>{6});
+    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_sizes, TDim, this->Id());
 
     return ierr;
 

@@ -112,4 +112,24 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
     return result;
 }
 
+void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rMaterialProperties,
+                                               const std::vector<std::size_t>& rAllowableStrainSizes,
+                                               std::size_t Dim,
+                                               std::size_t ElementId)
+{
+    const std::size_t strain_size = rMaterialProperties[CONSTITUTIVE_LAW]->GetStrainSize();
+    const auto        size_exists = std::any_of(
+        rAllowableStrainSizes.begin(), rAllowableStrainSizes.end(),
+        [strain_size](std::size_t allowable_size) { return strain_size == allowable_size; });
+    if (!size_exists) {
+        std::stringstream ss;
+        std::copy(rAllowableStrainSizes.begin(), rAllowableStrainSizes.end(),
+                  std::ostream_iterator<int>(ss, " "));
+        KRATOS_ERROR_IF_NOT(strain_size == 2)
+            << "Wrong constitutive law used. This is a " << Dim
+            << "D element! Expected strain size is "
+            << ss.str() << " (element Id = " << ElementId << ")" << std::endl;
+    }
+}
+
 } // namespace Kratos

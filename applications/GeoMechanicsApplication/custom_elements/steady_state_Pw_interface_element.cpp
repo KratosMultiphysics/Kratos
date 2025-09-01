@@ -88,14 +88,13 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
         KRATOS_ERROR << "CONSTITUTIVE_LAW has Key zero or is not defined at "
                         "element "
                      << this->Id() << std::endl;
-
-    if (r_properties[CONSTITUTIVE_LAW]) {
-        // Check constitutive law
-        ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
-    } else
+    if (!r_properties[CONSTITUTIVE_LAW])
         KRATOS_ERROR << "A constitutive law needs to be specified for the "
                         "element "
                      << this->Id() << std::endl;
+
+    // Check constitutive law
+    ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
 
     return ierr;
 

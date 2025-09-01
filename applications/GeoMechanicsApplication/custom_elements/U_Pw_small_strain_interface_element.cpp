@@ -82,40 +82,25 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     // Verify the constitutive law
     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
         << "CONSTITUTIVE_LAW has Key zero or is not defined at element " << this->Id() << std::endl;
-
-    if (r_properties[CONSTITUTIVE_LAW]) {
-        // Verify compatibility of the element with the constitutive law
-        ConstitutiveLaw::Features LawFeatures;
-        r_properties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-        bool correct_strain_measure = false;
-        for (unsigned int i = 0; i < LawFeatures.mStrainMeasures.size(); ++i) {
-            if (LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-                correct_strain_measure = true;
-        }
-        KRATOS_ERROR_IF_NOT(correct_strain_measure)
-            << "constitutive law is not compatible with the element type "
-               "StrainMeasure_Infinitesimal "
-            << this->Id() << std::endl;
-
-        // Check constitutive law
-        ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
-    } else
+    if (!r_properties[CONSTITUTIVE_LAW])
         KRATOS_ERROR << "A constitutive law needs to be specified for the "
                         "element "
                      << this->Id() << std::endl;
 
-    const SizeType strain_size = r_properties[CONSTITUTIVE_LAW]->GetStrainSize();
-    if (TDim == 2) {
-        KRATOS_ERROR_IF_NOT(strain_size == 2)
-            << "Wrong constitutive law used. This is a 2D element! expected "
-               "strain size is 2 (el id = ) "
-            << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 3)
-            << "Wrong constitutive law used. This is a 3D element! expected "
-               "strain size is 3 (el id = ) "
-            << this->Id() << std::endl;
+    // Check constitutive law
+    ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
+
+    // Verify compatibility of the element with the constitutive law
+    ConstitutiveLaw::Features LawFeatures;
+    r_properties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
+    bool correct_strain_measure = false;
+    for (unsigned int i = 0; i < LawFeatures.mStrainMeasures.size(); ++i) {
+        if (LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
+            correct_strain_measure = true;
     }
+
+    const auto expected_size = (TDim == 2 ? std::vector<std::size_t>{2} : std::vector<std::size_t>{3});
+    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, TDim, this->Id());
 
     return ierr;
 
