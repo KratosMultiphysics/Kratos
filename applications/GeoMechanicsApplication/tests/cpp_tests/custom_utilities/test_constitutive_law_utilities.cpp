@@ -146,11 +146,16 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMec
     ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<StubConstitutiveLaw2>();
     properties.GetValue(CONSTITUTIVE_LAW)     = constitutive_law;
 
-    const std::vector<std::size_t> expected_sizes{2, 3};
+    // Act and Assert
+    std::vector<std::size_t> expected_sizes{2, 3};
     constexpr std::size_t          dimension   = 2;
     constexpr std::size_t          element_id  = 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ConstitutiveLawUtilities::CheckStrainSize(properties, expected_sizes, dimension, element_id), "Wrong constitutive law used. This is a 2D element! Expected strain size is 2 3  (element Id = 1).");
+
+    expected_sizes.push_back(properties[CONSTITUTIVE_LAW]->GetStrainSize());
+    EXPECT_NO_THROW(
+        ConstitutiveLawUtilities::CheckStrainSize(properties, expected_sizes, dimension, element_id));
 }
 
 } // namespace Kratos::Testing
