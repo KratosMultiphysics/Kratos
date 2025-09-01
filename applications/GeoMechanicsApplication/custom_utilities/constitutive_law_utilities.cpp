@@ -112,12 +112,12 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
     return result;
 }
 
-void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rMaterialProperties,
+void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties,
                                                const std::vector<std::size_t>& rAllowableStrainSizes,
                                                std::size_t Dim,
                                                std::size_t ElementId)
 {
-    const std::size_t strain_size = rMaterialProperties[CONSTITUTIVE_LAW]->GetStrainSize();
+    const std::size_t strain_size = rProperties[CONSTITUTIVE_LAW]->GetStrainSize();
     const auto        size_exists = std::any_of(
         rAllowableStrainSizes.begin(), rAllowableStrainSizes.end(),
         [strain_size](std::size_t allowable_size) { return strain_size == allowable_size; });
@@ -130,6 +130,21 @@ void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rMaterialProper
             << "D element! Expected strain size is "
             << ss.str() << " (element Id = " << ElementId << ")" << std::endl;
     }
+}
+
+void ConstitutiveLawUtilities::CheckStrainMeasures(const Properties& rProperties, std::size_t ElementId)
+{
+    ConstitutiveLaw::Features LawFeatures;
+    rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
+    bool correct_strain_measure = false;
+    for (const auto & strain_measure: LawFeatures.mStrainMeasures) {
+        if (strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal)
+            correct_strain_measure = true;
+    }
+    KRATOS_ERROR_IF_NOT(correct_strain_measure)
+        << "Constitutive law is not compatible with the element type "
+           "StrainMeasure_Infinitesimal at element "
+        << ElementId << std::endl;
 }
 
 } // namespace Kratos
