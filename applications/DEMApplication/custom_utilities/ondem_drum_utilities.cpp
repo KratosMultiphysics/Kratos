@@ -18,7 +18,7 @@ namespace Kratos {
   void ONDEMDrumUtilities::ExecuteInitialize(ModelPart& particlesMP, ModelPart& wallsMP) {
     // Open permanent files
     mFile_Contact.open("data_contact.txt", std::ios::out);
-    mFile_Contact << "1 - TIME | " << "2 - ALL | " << "3 - P-P | " << "4 - PL-PL | " << "5 - PS-PS | " << "6 - PL-PS | " << "7 - P-W | " << "8 - PL-W | " << "9 - PS-W | " << "10 - CN_ALL | " << "11 - CN_LARGE | " << "12 - CN_SMALL" << std::endl;
+    mFile_Contact << "1 - TIME | " << "2 - ALL | " << "3 - P-P | " << "4 - PL-PL | " << "5 - PS-PS | " << "6 - PL-PS | " << "7 - P-W | " << "8 - PL-W | " << "9 - PS-W | " << "10 - CN_ALL | " << "11 - CN_LARGE | " << "12 - CN_SMALL | " << "13 - OVERLAP_RATIO_R | " << "14 - OVERLAP_RATIO_D" << std::endl;
 
     mFile_Velocity.open("data_velocity.txt", std::ios::out);
     mFile_Velocity << "1 - TIME | " << "2 - AVG TRANSLATION (ALL) | " << "3 - AVG TRANSLATION (LARGE) | " << "4 - AVG TRANSLATION (SMALL) | " << "5 - AVG ROTATION (ALL) | " << "6 - AVG ROTATION (LARGE) | " << "7 - AVG ROTATION (SMALL)" << std::endl;
@@ -63,15 +63,21 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ONDEMDrumUtilities::Calculate(ModelPart& particlesMP, ModelPart& wallsMP) {
-    // Check if it is time to execute
+  void ONDEMDrumUtilities::Calculate(ModelPart& particlesMP, ModelPart& wallsMP, bool force_execute) {
     const ProcessInfo& r_process_info = particlesMP.GetProcessInfo();
     const double time = r_process_info[TIME];
     double resid_1 = std::fmod(time, FREQUENCY_TIME_1);
     double resid_2 = std::fmod(time, FREQUENCY_TIME_2);
     bool execute_1 = !((resid_1 > FREQUENCY_TOL && std::fabs(resid_1 - FREQUENCY_TIME_1) > FREQUENCY_TOL));
     bool execute_2 = !((resid_2 > FREQUENCY_TOL && std::fabs(resid_2 - FREQUENCY_TIME_2) > FREQUENCY_TOL));
-    if (!execute_1 && !execute_2) return;
+    if (force_execute || execute_1 || execute_2)
+      ExecuteCalculations(particlesMP, wallsMP);
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ONDEMDrumUtilities::ExecuteCalculations(ModelPart& particlesMP, ModelPart& wallsMP) {
+    const ProcessInfo& r_process_info = particlesMP.GetProcessInfo();
+    const double time = r_process_info[TIME];
 
     // Initialize variables
     int num_contacts_all   = 0;
@@ -85,6 +91,8 @@ namespace Kratos {
     double coord_num_all   = 0.0;
     double coord_num_pl    = 0.0;
     double coord_num_ps    = 0.0;
+    double overlap_ratio_r = 0.0;
+    double overlap_ratio_d = 0.0;
     double vel_trl_all_avg = 0.0;
     double vel_trl_pl_avg  = 0.0;
     double vel_trl_ps_avg  = 0.0;
@@ -224,7 +232,16 @@ namespace Kratos {
 
         // Check if neighbor is in contact
         const double dist = std::sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) + (z2-z1)*(z2-z1));
-        if (dist < (r1 + r2)) {
+        const double overlap = (r1 + r2) - dist;
+        if (overlap > 0.0) {
+          // Update overlap ratios
+          const double overlap_ratio_r1 = overlap / r1;
+          const double overlap_ratio_d1 = overlap / (2.0 * r1);
+          const double overlap_ratio_r2 = overlap / r2;
+          const double overlap_ratio_d2 = overlap / (2.0 * r2);
+          overlap_ratio_r += overlap_ratio_r1 + overlap_ratio_r2;
+          overlap_ratio_d += overlap_ratio_d1 + overlap_ratio_d2;
+
           // Update contact statistics
           num_contacts_all++;
           num_contacts_p_p++;
@@ -278,6 +295,8 @@ namespace Kratos {
     coord_num_all   /= mNumParticlesAll;
     coord_num_pl    /= mNumParticlesLarge;
     coord_num_ps    /= mNumParticlesSmall;
+    overlap_ratio_r /= 2.0 * num_contacts_p_p;
+    overlap_ratio_d /= 2.0 * num_contacts_p_p;
     vel_trl_all_avg /= mNumParticlesAll;
     vel_trl_pl_avg  /= mNumParticlesLarge;
     vel_trl_ps_avg  /= mNumParticlesSmall;
@@ -338,9 +357,11 @@ namespace Kratos {
       << num_contacts_pl_w  << " "
       << num_contacts_ps_w  << " "
       << std::fixed << std::setprecision(15)
-      << coord_num_all << " "
-      << coord_num_pl  << " "
-      << coord_num_ps  << " "
+      << coord_num_all   << " "
+      << coord_num_pl    << " "
+      << coord_num_ps    << " "
+      << overlap_ratio_r << " "
+      << overlap_ratio_d << " "
       << std::endl;
     }
     if (mFile_Velocity.is_open()) {

@@ -60,6 +60,7 @@ class AnalysisStage(object):
         It can be overridden by derived classes
         """
         self._GetSolver().ResetPrescribedMotionFlagsRespectingImposedDofs()
+        self._GetSolver().CalculateInitialFinalState()
         while self.KeepAdvancingSolutionLoop():
             self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
@@ -67,6 +68,7 @@ class AnalysisStage(object):
             is_converged = self._GetSolver().SolveSolutionStep()
             #self.FinalizeSolutionStep()
             self.OutputSolutionStep()
+        self._GetSolver().CalculateInitialFinalState()
 
     def Initialize(self):
         """This function initializes the AnalysisStage

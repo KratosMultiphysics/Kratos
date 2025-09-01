@@ -467,12 +467,15 @@ class ExplicitStrategy():
     def Check(self):
         pass
 
+    def CalculateInitialFinalState(self):
+        self.ondem_drum_utils.Calculate(self.spheres_model_part, self.fem_model_part, True)
+
     def Solve(self): # deprecated
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
         self.cplusplus_strategy.SolveSolutionStep()
-        self.ondem_drum_utils.Calculate(self.spheres_model_part, self.fem_model_part)
+        self.ondem_drum_utils.Calculate(self.spheres_model_part, self.fem_model_part, False)
         return True
 
     def AdvanceInTime(self, time):

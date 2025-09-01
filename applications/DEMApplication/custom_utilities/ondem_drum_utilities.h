@@ -17,7 +17,8 @@ namespace Kratos
       ONDEMDrumUtilities() {}
       ~ONDEMDrumUtilities() {}
       void ExecuteInitialize(ModelPart& particlesMP, ModelPart& wallsMP);
-      void Calculate(ModelPart& particlesMP, ModelPart& wallsMP);
+      void Calculate(ModelPart& particlesMP, ModelPart& wallsMP, bool force_execute);
+      void ExecuteCalculations(ModelPart& particlesMP, ModelPart& wallsMP);
       void ExecuteFinalize(ModelPart& particlesMP, ModelPart& wallsMP);
       void InitializeCellsMaps_0100(void);
       void InitializeCellsMaps_0125(void);
