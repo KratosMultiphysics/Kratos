@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiChar, KratosCoreF
         span[i]= local_index++;
     }
 
-    XmlAsciiNDDataElement<unsigned char> element("data_1", p_data, p_data->Shape(), 4);
+    XmlAsciiNDDataElement<unsigned char> element("data_1", p_data, 4);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -137,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiInt, KratosCoreFa
         span[i]= local_index++;
     }
 
-    XmlAsciiNDDataElement<int> element("data_1", p_data, p_data->Shape(), 4);
+    XmlAsciiNDDataElement<int> element("data_1", p_data, 4);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -165,7 +165,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiDouble, KratosCor
         span[i]= local_index++;
     }
 
-    XmlAsciiNDDataElement<double> element("data_1", p_data, p_data->Shape(), 1);
+    XmlAsciiNDDataElement<double> element("data_1", p_data, 1);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -193,7 +193,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryChar, KratosCore
         span[i]= local_index++;
     }
 
-    XmlBase64BinaryNDDataElement<unsigned char> element("data_1", p_data, p_data->Shape());
+    XmlBase64BinaryNDDataElement<unsigned char> element("data_1", p_data);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -221,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryInt, KratosCoreF
         span[i]= local_index++;
     }
 
-    XmlBase64BinaryNDDataElement<int> element("data_1", p_data, p_data->Shape());
+    XmlBase64BinaryNDDataElement<int> element("data_1", p_data);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -248,7 +248,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryDouble, KratosCo
     for (IndexType i = 6; i < 15; ++i) {
         span[i]= local_index++;
     }
-    XmlBase64BinaryNDDataElement<double> element("data_1", p_data, p_data->Shape());
+    XmlBase64BinaryNDDataElement<double> element("data_1", p_data);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;

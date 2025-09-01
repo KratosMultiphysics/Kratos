@@ -56,8 +56,7 @@ struct XmlAsciiNDDataElementWrapper
         NDDataTypePointer pNDData)
     {
         using data_type = typename BareType<decltype(*pNDData)>::DataType;
-        return Kratos::make_shared<XmlAsciiNDDataElement<data_type>>(
-            rDataArrayName, pNDData, pNDData->Shape(), mPrecision);
+        return Kratos::make_shared<XmlAsciiNDDataElement<data_type>>(rDataArrayName, pNDData, mPrecision);
     }
 };
 
@@ -69,8 +68,7 @@ struct XmlBase64BinaryNDDataElementWrapper
         NDDataTypePointer pNDData)
     {
         using data_type = typename BareType<decltype(*pNDData)>::DataType;
-        return Kratos::make_shared<XmlBase64BinaryNDDataElement<data_type>>(
-            rDataArrayName, pNDData, pNDData->Shape());
+        return Kratos::make_shared<XmlBase64BinaryNDDataElement<data_type>>(rDataArrayName, pNDData);
     }
 };
 
