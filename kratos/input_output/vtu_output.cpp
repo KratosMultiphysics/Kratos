@@ -692,8 +692,8 @@ std::string WritePartitionedUnstructuredGridData(
     return p_vtu_file_name;
 }
 
-template<class TShapeType>
-NDData<double>::Pointer GetNodalNDData(
+template<class TDataType, class TShapeType>
+typename NDData<TDataType>::Pointer GetNodalNDData(
     ModelPart::NodesContainerType& rNodes,
     const TShapeType& rDataShape)
 {
@@ -703,7 +703,7 @@ NDData<double>::Pointer GetNodalNDData(
     nd_data_shape[0] = rNodes.size();
     std::copy(rDataShape.begin(), rDataShape.end(), nd_data_shape.begin() + 1);
 
-    auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
+    auto p_nd_data = Kratos::make_shared<NDData<TDataType>>(nd_data_shape);
     const auto nd_data_span = p_nd_data->ViewData();
 
     // now read the variable data back to the nd_data
@@ -711,7 +711,7 @@ NDData<double>::Pointer GetNodalNDData(
         const auto& r_values = (rNodes.begin() + Index)->GetValue(TENSOR_ADAPTOR_SYNC);
         const auto data_begin_index = Index * r_values.size();
         for (IndexType i = 0; i < r_values.size(); ++i) {
-            nd_data_span[data_begin_index + i] = r_values[i];
+            nd_data_span[data_begin_index + i] = static_cast<TDataType>(r_values[i]);
         }
     });
 
@@ -815,6 +815,104 @@ std::pair<UnstructuredGridMeshType, std::vector<VtuOutput::UnstructuredGridData>
     }
 
     return std::make_pair(UnstructuredGridMeshType::NONE, rUnstructuredGridDataList.end());
+}
+
+NDData<double>::Pointer GetNDData(const Expression& rExpression)
+{
+    const auto& data_shape = rExpression.GetItemShape();
+    DenseVector<unsigned int> shape(data_shape.size() + 1);
+    shape[0] = rExpression.NumberOfEntities();
+    std::copy(data_shape.begin(), data_shape.end(), shape.begin() + 1);
+
+    const auto number_of_components = rExpression.GetItemComponentCount();
+    auto p_nd_data = Kratos::make_shared<NDData<double>>(shape);
+    auto span = p_nd_data->ViewData();
+
+    IndexPartition<IndexType>(shape[0]).for_each([&span, &rExpression, number_of_components](const auto Index) {
+        const auto data_begin_index = Index * number_of_components;
+        for (IndexType i = 0; i < number_of_components; ++i) {
+            span[data_begin_index + i] = rExpression.Evaluate(Index, data_begin_index, i);
+        }
+    });
+
+    return p_nd_data;
+}
+
+NDData<double>::Pointer GetNDData(const ContainerExpression<ModelPart::NodesContainerType>& rContainerExpression)
+{
+    auto p_model_part = rContainerExpression.pGetModelPart();
+    const auto& r_expression = rContainerExpression.GetExpression();
+
+    const auto& data_shape = r_expression.GetItemShape();
+    DenseVector<unsigned int> shape(data_shape.size() + 1);
+    shape[0] = p_model_part->Nodes().size();
+    std::copy(data_shape.begin(), data_shape.end(), shape.begin() + 1);
+
+    auto p_nd_data = Kratos::make_shared<NDData<double>>(shape);
+    auto span = p_nd_data->ViewData();
+
+    const auto number_of_data_components = rContainerExpression.GetItemComponentCount();
+    auto& r_expression_container = rContainerExpression.GetContainer();
+
+    // since expressions are created from local mesh nodes
+    // we need to synchronize the values so that ghost mesh nodes
+    // will be correctly filled.
+
+    // first clear the TENSOR_ADAPTOR_SYNC.
+    VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, p_model_part->Nodes());
+
+    // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
+    IndexPartition<IndexType>(rContainerExpression.GetContainer().size()).for_each(Vector{number_of_data_components}, [&r_expression_container, &r_expression, number_of_data_components](const auto Index, auto& rTLS) {
+        const auto data_begin_index = Index * number_of_data_components;
+        auto& r_node = *(r_expression_container.begin() + Index);
+        for (IndexType i = 0; i < number_of_data_components; ++i) {
+            rTLS[i] = r_expression.Evaluate(Index, data_begin_index, i);
+        }
+        r_node.SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
+    });
+
+    // the p_nd_data is now correctly filled. Add it to the
+    // map and then exit the for loop since, the given container expression
+    // is already found.
+    p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
+    return GetNodalNDData<double>(p_model_part->Nodes(), data_shape);
+
+    return p_nd_data;
+}
+
+template<class TDataType>
+typename NDData<TDataType>::Pointer GetNDData(
+    const TensorAdaptor<TDataType>& rTensorAdaptor,
+    const DenseVector<unsigned int>& rMaxShape,
+    ModelPart& rModelPart)
+{
+    return std::visit([&rTensorAdaptor, &rMaxShape, &rModelPart](auto pContainer) {
+        using container_type = BareType<decltype(*pContainer)>;
+
+        if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
+            const auto number_of_data_components = std::accumulate(rMaxShape.begin() + 1, rMaxShape.end(), 1u, std::multiplies<unsigned int>{});
+            const auto ta_span = rTensorAdaptor.ViewData();
+
+            // first clear the TENSOR_ADAPTOR_SYNC.
+            VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, *pContainer);
+
+            // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
+            IndexPartition<IndexType>(pContainer->size()).for_each(Vector{number_of_data_components}, [&pContainer, &ta_span, number_of_data_components](const auto Index, auto& rTLS) {
+                const auto data_begin_index = Index * number_of_data_components;
+                std::copy(ta_span.begin() + data_begin_index, ta_span.begin() + data_begin_index + number_of_data_components, rTLS.begin());
+                (pContainer->begin() + Index)->SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
+            });
+
+            // the p_nd_data is now correctly filled. Add it to the
+            // map and then exit the for loop since, the given container expression
+            // is already found.
+            rModelPart.GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
+            return GetNodalNDData<TDataType>(rModelPart.Nodes(), rMaxShape);
+        } else {
+            KRATOS_ERROR << "Unsupported container type.";
+            return Kratos::make_shared<NDData<TDataType>>(DenseVector<unsigned int>(0));
+        }
+    }, rTensorAdaptor.GetContainer());
 }
 
 } // namespace
@@ -941,14 +1039,8 @@ void VtuOutput::AddContainerExpression(
         << rExpressionName << " ].\n";
 
     std::visit([this, &rExpressionName](auto p_container_expression) {
-        const auto& r_expression = p_container_expression->GetExpression();
 
-        const auto number_of_data_components = r_expression.GetItemComponentCount();
-        const auto& data_shape = r_expression.GetItemShape();
-
-        auto& r_expression_container = p_container_expression->GetContainer();
-
-        [[maybe_unused]] const auto& [mesh_type, itr] = FindUnstructuredGridData(p_container_expression->GetContainer(), this->mListOfUnstructuredGridData);
+        [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(p_container_expression->GetContainer(), this->mListOfUnstructuredGridData);
 
         switch (mesh_type) {
             case UnstructuredGridMeshType::Conditions:
@@ -958,28 +1050,7 @@ void VtuOutput::AddContainerExpression(
                 // check for existing field names
                 CheckDataArrayName(rExpressionName, {GetGlobalDataLocation(mesh_type)}, mFlags, mVariables);
                 CheckDataArrayName(rExpressionName, GetGlobalDataLocation(mesh_type), r_unstructured_grid_data);
-
-                // construct the nd_data shape
-                DenseVector<unsigned int> nd_data_shape(data_shape.size() + 1);
-                // vtu output always write data for local and ghost nodes.
-                nd_data_shape[0] = r_expression_container.size();
-                std::copy(data_shape.begin(), data_shape.end(), nd_data_shape.begin() + 1);
-
-                auto p_nd_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
-                const auto nd_data_span = p_nd_data->ViewData();
-
-                IndexPartition<IndexType>(r_expression_container.size()).for_each([&nd_data_span, &r_expression, number_of_data_components](auto Index){
-                    const auto data_begin_index = Index * number_of_data_components;
-                    for (IndexType i = 0; i < number_of_data_components; ++i) {
-                        nd_data_span[data_begin_index + i] = r_expression.Evaluate(Index, data_begin_index, i);
-                    }
-                });
-
-                KRATOS_ERROR_IF_NOT(r_unstructured_grid_data.mCellFields.find(rExpressionName) == r_unstructured_grid_data.mCellFields.end())
-                    << "Found an existing data array with the same expression name = \"" << rExpressionName << "\" [ "
-                    << "expression : " << r_expression << " ]\n" << *this;
-
-                r_unstructured_grid_data.mCellFields[rExpressionName] = p_nd_data;
+                r_unstructured_grid_data.mCellFields[rExpressionName] = GetNDData(p_container_expression->GetExpression());
                 break;
             }
             case UnstructuredGridMeshType::NodesNormal:
@@ -989,29 +1060,11 @@ void VtuOutput::AddContainerExpression(
                 CheckDataArrayName(rExpressionName, {Globals::DataLocation::NodeHistorical, Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
                 // now check if the rExpressionName is found in the mPointFields of this model part
                 CheckDataArrayName(rExpressionName, Globals::DataLocation::NodeNonHistorical, r_unstructured_grid_data);
-
-                // since expressions are created from local mesh nodes
-                // we need to synchronize the values so that ghost mesh nodes
-                // will be correctly filled.
-
-                // first clear the TENSOR_ADAPTOR_SYNC.
-                VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, r_unstructured_grid_data.mpModelPart->Nodes());
-
-                // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
-                IndexPartition<IndexType>(r_expression_container.size()).for_each(Vector{number_of_data_components}, [&r_expression_container, &r_expression, number_of_data_components](const auto Index, auto& rTLS) {
-                    const auto data_begin_index = Index * number_of_data_components;
-                    auto& r_node = *(r_expression_container.begin() + Index);
-                    for (IndexType i = 0; i < number_of_data_components; ++i) {
-                        rTLS[i] = r_expression.Evaluate(Index, data_begin_index, i);
-                    }
-                    r_node.SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
-                });
-
-                // the p_nd_data is now correctly filled. Add it to the
-                // map and then exit the for loop since, the given container expression
-                // is already found.
-                r_unstructured_grid_data.mpModelPart->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
-                r_unstructured_grid_data.mPointFields[rExpressionName] = GetNodalNDData(*r_unstructured_grid_data.mpPoints, data_shape);
+                if constexpr(std::is_same_v<BareType<decltype(p_container_expression->GetContainer())>, ModelPart::NodesContainerType>) {
+                    r_unstructured_grid_data.mPointFields[rExpressionName] = GetNDData(*p_container_expression);
+                } else {
+                    KRATOS_ERROR << "Unsupported container type.";
+                }
                 break;
             }
             default:
@@ -1051,7 +1104,7 @@ void VtuOutput::AddTensorAdaptor(
         if (shape[0] == 0) std::copy(max_data_shape.begin(), max_data_shape.end(), shape.begin() + 1);
 
         std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &ta_span, &shape](auto pContainer){
-            [[maybe_unused]] const auto& [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mListOfUnstructuredGridData);
+            [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mListOfUnstructuredGridData);
 
             switch (mesh_type) {
                 case UnstructuredGridMeshType::Conditions:
@@ -1068,7 +1121,6 @@ void VtuOutput::AddTensorAdaptor(
                     // check for existing field names
                     CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
                     CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, r_unstructured_grid_data);
-
                     r_unstructured_grid_data.mPointFields[rTensorAdaptorName] = Kratos::make_shared<storage_type>(ta_span.data(), shape);
                     break;
                 } case UnstructuredGridMeshType::NodesLocal: {
@@ -1076,27 +1128,7 @@ void VtuOutput::AddTensorAdaptor(
                     // check for existing field names
                     CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
                     CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, r_unstructured_grid_data);
-
-                    auto& p_model_part = r_unstructured_grid_data.mpModelPart;
-                    const auto number_of_data_components = std::accumulate(shape.begin() + 1, shape.end(), 1u, std::multiplies<unsigned int>{});
-
-                    // first clear the TENSOR_ADAPTOR_SYNC.
-                    VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, p_model_part->Nodes());
-
-                    auto& container = r_unstructured_grid_data.mpModelPart->GetCommunicator().LocalMesh().Nodes();
-
-                    // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
-                    IndexPartition<IndexType>(container.size()).for_each(Vector{number_of_data_components}, [&container, &ta_span, number_of_data_components](const auto Index, auto& rTLS) {
-                        const auto data_begin_index = Index * number_of_data_components;
-                        std::copy(ta_span.begin() + data_begin_index, ta_span.begin() + data_begin_index + number_of_data_components, rTLS.begin());
-                        (container.begin() + Index)->SetValue(TENSOR_ADAPTOR_SYNC, rTLS);
-                    });
-
-                    // the p_nd_data is now correctly filled. Add it to the
-                    // map and then exit the for loop since, the given container expression
-                    // is already found.
-                    p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
-                    r_unstructured_grid_data.mPointFields[rTensorAdaptorName] = GetNodalNDData(*r_unstructured_grid_data.mpPoints, shape);
+                    r_unstructured_grid_data.mPointFields[rTensorAdaptorName] = GetNDData(*p_tensor_adaptor, shape, *r_unstructured_grid_data.mpModelPart);
                     break;
                 }
                 default:
@@ -1118,6 +1150,27 @@ void VtuOutput::UpdateContainerExpression(
     SupportedContainerExpressionPointerType pContainerExpression)
 {
     KRATOS_TRY
+
+    std::visit([this, &rExpressionName](auto p_container_expression) {
+        [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(p_container_expression->GetContainer(), this->mListOfUnstructuredGridData);
+
+        // switch (mesh_type) {
+        //     case UnstructuredGridMeshType::Conditions:
+        //     case UnstructuredGridMeshType::Elements: {
+        //         auto& r_unstructured_grid_data = *itr;
+        //         auto data_field_itr = r_unstructured_grid_data.mCellFields.find(rExpressionName);
+
+        //         KRATOS_ERROR_IF(data_field_itr == r_unstructured_grid_data.mCellFields.end())
+        //             << "Datafield not found. Update can only used to update "
+        //                "existing data fields [ expression name = "
+        //             << rExpressionName
+        //             << ", expression = " << *p_container_expression << " ].\n";
+
+        //         // data_field_itr.second=
+        //     }
+        // }
+    }, pContainerExpression);
+
 
     KRATOS_CATCH("");
 }
