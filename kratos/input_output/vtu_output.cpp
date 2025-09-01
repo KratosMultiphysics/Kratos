@@ -303,19 +303,20 @@ void AddConnectivityData(
         }
 
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting Vtk geometry type info...\n";
-        rCellElement.AddElement(rXmlDataElementWrapper.Get("types", GetGeometryTypes(rIgnoredIndices, *p_container, EchoLevel)));
+        auto p_connectivity_nd_data = GetGeometryTypes(rIgnoredIndices, *p_container, EchoLevel);
 
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2)
-            << "------ Ignored " << rIgnoredIndices.size() << "/"
-            << p_container->size() << " " << GetEntityName(p_container) << "(s).\n";
+        << "------ Ignored " << rIgnoredIndices.size() << "/"
+        << p_container->size() << " " << GetEntityName(p_container) << "(s).\n";
 
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting geometry offsets info...\n";
         auto p_offsets = GetOffsets(rIgnoredIndices, *p_container);
 
-        rCellElement.AddElement(rXmlDataElementWrapper.Get("offsets", p_offsets));
 
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting geometry connectivity info...\n";
         rCellElement.AddElement(rXmlDataElementWrapper.Get("connectivity", GetConnectivities(*p_offsets, *p_container, indices_map, rIgnoredIndices)));
+        rCellElement.AddElement(rXmlDataElementWrapper.Get("offsets", p_offsets));
+        rCellElement.AddElement(rXmlDataElementWrapper.Get("types", p_connectivity_nd_data));
     }, pCells);
 }
 
