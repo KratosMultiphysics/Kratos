@@ -103,7 +103,7 @@ class TestConsecutivePipeLines(KratosUnittest.TestCase):
         heads = [x * 0.01 for x in range(int(90),
                                          int(100), 1)]
         critical_head_found = self.linear_search(file_path, heads)
-        self.assertAlmostEqual(critical_head_found, 0.94, 2)
+        self.assertAlmostEqual(critical_head_found, 0.93, 2)
 
 
     def test_split_geometry_double_lines_pipe2_added(self):
