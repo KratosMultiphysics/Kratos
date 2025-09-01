@@ -23,7 +23,7 @@
 #include "includes/model_part.h"
 
 // Linear solvers
-#include "linear_solvers/linear_solver.h"
+#include "custom_utilities/linear_solver_trilinos.h"
 #include "linear_solvers/fallback_linear_solver.h"
 #include "custom_factories/trilinos_linear_solver_factory.h"
 
