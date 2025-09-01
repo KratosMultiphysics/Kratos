@@ -1,4 +1,6 @@
-
+import math
+import shutil
+from pathlib import Path
 import KratosMultiphysics as Kratos
 
 # Import KratosUnittest
@@ -33,11 +35,13 @@ class TestVtuOutputBase:
         cls.SetSolution()
 
     def WriteVtu(self, output_format: Kratos.VtuOutput.WriterFormat):
-        vtu_output = Kratos.VtuOutput(self.model_part, True, output_format, 9, echo_level=0, output_sub_model_parts=self.output_sub_model_parts)
+        vtu_output = Kratos.VtuOutput(self.model_part, True, output_format, 9, echo_level=3, output_sub_model_parts=self.output_sub_model_parts)
         vtu_output.AddVariable(Kratos.PRESSURE, Kratos.Globals.DataLocation.NodeHistorical)
         vtu_output.AddVariable(Kratos.VELOCITY, Kratos.Globals.DataLocation.NodeHistorical)
         vtu_output.AddVariable(Kratos.DISPLACEMENT, Kratos.Globals.DataLocation.NodeHistorical)
         vtu_output.AddVariable(Kratos.DETERMINANT, Kratos.Globals.DataLocation.Element)
+        vtu_output.AddVariable(Kratos.DENSITY, Kratos.Globals.DataLocation.Condition)
+        vtu_output.AddVariable(Kratos.YOUNG_MODULUS, Kratos.Globals.DataLocation.Condition)
 
         a = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.VariableExpressionIO.Read(a, Kratos.PRESSURE, True)
@@ -49,13 +53,24 @@ class TestVtuOutputBase:
         a *= 3
         vtu_output.AddContainerExpression("elem_exp", a)
 
+        ta_1 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        ta_1.CollectData()
+        ta_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DETERMINANT)
+        ta_2.CollectData()
+
+        ta_1.data *= 3
+        ta_2.data *= 3
+
+        vtu_output.AddTensorAdaptor("hist_ta", ta_1)
+        vtu_output.AddTensorAdaptor("elem_ta", ta_2)
+
         with kratos_unittest.WorkFolderScope("./auxiliar_files_for_python_unittest/vtk_output_process_ref_files", __file__, True):
             if output_format == Kratos.VtuOutput.ASCII:
                 output_file_prefix = "ascii" + self.output_prefix + "/Main"
             else:
                 output_file_prefix = "binary" + self.output_prefix + "/Main"
             vtu_output.PrintOutput(output_file_prefix + "_temp")
-            self.Check(output_file_prefix + "_temp.vtu",  output_file_prefix + ".vtu")
+            self.Check(output_file_prefix + "_temp",  output_file_prefix)
 
     def test_WriteMeshAscii(self):
         self.WriteVtu(Kratos.VtuOutput.ASCII)
@@ -63,16 +78,25 @@ class TestVtuOutputBase:
     def test_WriteMeshBinary(self):
         self.WriteVtu(Kratos.VtuOutput.BINARY)
 
-    def Check(self, output_file, reference_file):
-        ## Settings string in json format
-        params = Kratos.Parameters("""{
-            "reference_file_name" : "",
-            "output_file_name"    : "",
-            "comparison_type"     : "deterministic"
-        }""")
-        params["reference_file_name"].SetString(reference_file)
-        params["output_file_name"].SetString(output_file)
-        # CompareTwoFilesCheckProcess(params).Execute()
+    def Check(self, output_prefix, reference_prefix):
+        def check_file(output_file_name: str, reference_file_name: str):
+            ## Settings string in json format
+            params = Kratos.Parameters("""{
+                "reference_file_name" : "",
+                "output_file_name"    : "",
+                "comparison_type"     : "deterministic"
+            }""")
+            params["reference_file_name"].SetString(reference_file_name)
+            params["output_file_name"].SetString(output_file_name)
+            CompareTwoFilesCheckProcess(params).Execute()
+
+        for file_path in Path(reference_prefix).iterdir():
+            self.assertTrue((Path(output_prefix) / file_path.name).is_file())
+            check_file(f"{output_prefix}/{file_path.name}", str(file_path))
+        check_file(f"{output_prefix}.pvd", f"{reference_prefix}.pvd")
+
+        if Path(output_prefix).is_dir():
+            shutil.rmtree(Path(output_prefix))
 
 class TestVtuOutput(kratos_unittest.TestCase):
     @classmethod
@@ -119,8 +143,6 @@ class TestVtuOutput(kratos_unittest.TestCase):
                 else:
                     if (i % ((l_1 + 1) * (l_2 + 1) * (l_3 + 1)) == 1):
                         model_part.AddElement(cls.model_part.GetElement(i + 1))
-
-
 
         # now recursively fill the nodes
         def fill_nodes(model_part: Kratos.ModelPart):
@@ -208,8 +230,6 @@ class TestVtuOutput(kratos_unittest.TestCase):
         with self.assertRaises(RuntimeError):
             vtu_output.AddContainerExpression("PRESSURE_2", exp)
         vtu_output.AddContainerExpression("PRESSURE_4", exp)
-
-        # print(vtu_output)
 
     def test_CellVariableAddition(self):
         vtu_output = Kratos.VtuOutput(self.model_part)
