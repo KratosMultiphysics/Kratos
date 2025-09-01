@@ -96,7 +96,7 @@ struct AMGCLSolver<TSparse,TDense>::Impl
         amgcl::runtime::solver::wrapper<TBackend>
     >>;
 
-    #if defined(KRATOS_USING_MPI) and defined(KRATOS_AMGCL_MPI)
+    #if defined(KRATOS_USING_MPI) && defined(KRATOS_AMGCL_MPI)
     template <class TBackend>
     using MakeDistributedSolver = std::unique_ptr<amgcl::mpi::make_solver<
         amgcl::runtime::mpi::preconditioner<TBackend>,
@@ -108,7 +108,7 @@ struct AMGCLSolver<TSparse,TDense>::Impl
         TSparse::IsDistributed(),
         std::variant<
             std::monostate
-            #if defined(KRATOS_USING_MPI) and defined(KRATOS_AMGCL_MPI)
+            #if defined(KRATOS_USING_MPI) && defined(KRATOS_AMGCL_MPI)
                 ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<1>>>
                 ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<2>>>
                 ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<3>>>
