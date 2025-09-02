@@ -386,18 +386,19 @@ void AddFieldsFromTensorAdaptor(
 
                         // construct the correct data_shape
                         std::vector<unsigned int> data_shape(data_type_traits::Dimension, 0);
-                        data_type value;
                         if (!pContainer->empty()) {
+                            data_type value;
                             if constexpr(std::is_same_v<TTensorAdaptorType, HistoricalVariableTensorAdaptor>) {
                                 value = static_cast<const entity_type&>(pContainer->front()).FastGetSolutionStepValue(*p_variable);
                             } else if constexpr(std::is_same_v<TTensorAdaptorType, VariableTensorAdaptor>) {
                                 value = static_cast<const entity_type&>(pContainer->front()).GetValue(*p_variable);
                             } else {
                                 KRATOS_ERROR << "Unsupported tensor adaptor type.";
+                                value = data_type{};
                             }
                             data_type_traits::Shape(value, data_shape.data(), data_shape.data() + data_type_traits::Dimension);
                         }
-                        const auto max_data_shape = rDataCommunicator.MaxAll(data_shape);
+                        const auto& max_data_shape = rDataCommunicator.MaxAll(data_shape);
                         DenseVector<unsigned int> nd_shape(max_data_shape.size() + 1);
                         std::copy(max_data_shape.begin(), max_data_shape.end(), nd_shape.begin() + 1);
                         nd_shape[0] = pContainer->size();
@@ -464,15 +465,18 @@ void AddUnstructuredGridData(
     ModelPart& rModelPart,
     const IndexType EchoLevel)
 {
-    const bool has_elements   = rModelPart.GetCommunicator().GlobalNumberOfElements() > 0;
-    const bool has_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions() > 0;
+    const std::vector<char> entity_availability{rModelPart.NumberOfNodes() > 0, rModelPart.NumberOfConditions() > 0, rModelPart.NumberOfElements() > 0};
+    const auto& max_entity_availability = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(entity_availability);
+    const bool has_nodes = max_entity_availability[0];
+    const bool has_conditions = max_entity_availability[1];
+    const bool has_elements   = max_entity_availability[2];
 
     if (has_elements) {
         // Model part has elements. Hence add a separate output
         // for elements.
 
         // now check if it has proper nodes
-        if (rModelPart.NumberOfNodes() > 0) {
+        if (has_nodes) {
             KRATOS_INFO_IF("VtuOutput", EchoLevel > 0)
                 << "Configuring output for \"" << rModelPart.FullName() << "\" elements with existing nodes container.\n";
             VtuOutput::UnstructuredGridData model_part_data{true, &rModelPart, rModelPart.pNodes(), rModelPart.pElements()};
@@ -491,7 +495,7 @@ void AddUnstructuredGridData(
         // Model part has conditions. Hence add a separate output
         // for conditions.
 
-        if (!has_elements && rModelPart.NumberOfNodes() > 0) {
+        if (!has_elements && has_nodes) {
             KRATOS_INFO_IF("VtuOutput", EchoLevel > 0)
                 << "Configuring output for \"" << rModelPart.FullName() << "\" conditions with existing nodes container.\n";
             VtuOutput::UnstructuredGridData model_part_data{true, &rModelPart, rModelPart.pNodes(), rModelPart.pConditions()};
