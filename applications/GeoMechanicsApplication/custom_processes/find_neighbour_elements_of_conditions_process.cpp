@@ -59,8 +59,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                                    [](const Node& rNode) { return rNode.Id(); });
 
             auto itFace = FacesMap.find(FaceIds);
-            if (itFace == FacesMap.end() &&
-                r_boundary_geometry.LocalSpaceDimension() == 2) {
+            if (itFace == FacesMap.end() && r_boundary_geometry.LocalSpaceDimension() == 2) {
                 // condition is not found but might be a problem of ordering in 3D geometries!
                 DenseVector<int> FaceIdsSorted = FaceIds;
                 std::ranges::sort(FaceIdsSorted);
@@ -98,20 +97,11 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         // Now try point loads:
         for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
             const auto& rGeometryElement = itElem->GetGeometry();
-            const auto  rPointGeometries = rGeometryElement.GeneratePoints();
-
-            for (IndexType iPoint = 0; iPoint < rPointGeometries.size(); ++iPoint) {
-                DenseVector<IndexType> PointIds(rPointGeometries[iPoint].size());
-
-                // Points
-                for (IndexType iNode = 0; iNode < PointIds.size(); ++iNode) {
-                    PointIds[iNode] = rPointGeometries[iPoint][iNode].Id();
-                }
-
-                auto itFace = FacesMap.find(PointIds);
+            for (const auto& r_node : rGeometryElement) {
+                DenseVector<IndexType> PointIds(1);
+                PointIds[0]       = r_node.Id();
+                const auto itFace = FacesMap.find(PointIds);
                 if (itFace != FacesMap.end()) {
-                    // condition is found!
-                    // but check if there are more than one condition on the element
                     CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
                 }
             }
@@ -218,16 +208,16 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
 }
 
 void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnElement(
-    hashmap& rFacesMap, hashmap::iterator& rItFace, PointerVector<Element>::iterator pItElem)
+    hashmap& rFacesMap, const hashmap::iterator& rItFace, PointerVector<Element>::iterator pItElem)
 {
-    const std::pair<hashmap::iterator, hashmap::iterator> face_pair = rFacesMap.equal_range(rItFace->first);
-    for (hashmap::iterator it = face_pair.first; it != face_pair.second; ++it) {
-        std::vector<Condition::Pointer>& r_conditions = it->second;
-        GlobalPointersVector<Element>    vector_of_neighbours;
+    const auto face_pair = rFacesMap.equal_range(rItFace->first);
+    for (auto it = face_pair.first; it != face_pair.second; ++it) {
+        auto&                         r_conditions = it->second;
+        GlobalPointersVector<Element> vector_of_neighbours;
         vector_of_neighbours.resize(1);
         vector_of_neighbours(0) = Element::WeakPointer(*pItElem.base());
 
-        for (Condition::Pointer p_condition : r_conditions) {
+        for (auto& p_condition : r_conditions) {
             p_condition->Set(VISITED, true);
             p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
         }
