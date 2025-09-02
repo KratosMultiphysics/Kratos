@@ -46,6 +46,12 @@ struct AMGCLAdaptor<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>
         }
     }
 
+    template <class TStaticMatrix>
+    std::size_t BlockSystemSize(const Epetra_FECrsMatrix& rMatrix) const noexcept
+    {
+        return rMatrix.RowMap().NumMyElements() / AMGCLStaticVectorTraits<TStaticMatrix>::value;
+    }
+
     auto MakeVectorIterator(const Epetra_FEVector& rVector) const
     {
         return rVector.Values();

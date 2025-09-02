@@ -59,6 +59,12 @@ struct AMGCLAdaptor<TUblasSparseSpace<TValue>>
         }
     }
 
+    template <class TStaticMatrix>
+    std::size_t BlockSystemSize(const typename TUblasSparseSpace<TValue>::MatrixType& rMatrix) const noexcept
+    {
+        return TUblasSparseSpace<TValue>::Size1(rMatrix) / AMGCLStaticVectorTraits<TStaticMatrix>::value;
+    }
+
     auto MakeVectorIterator(const typename TUblasSparseSpace<TValue>::VectorType& rVector) const
     {
         KRATOS_ERROR_IF(rVector.empty());

@@ -688,7 +688,7 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
     KRATOS_TRY
 
     const auto [iteration_count, residual_norm] = std::visit(
-        [&rSolution, &rRhs] (auto& rp_solver) -> std::pair<std::size_t,typename TSparse::DataType> {
+        [&rSolution, &rRhs, &rLhs] (auto& rp_solver) -> std::pair<std::size_t,typename TSparse::DataType> {
             using ElementType = std::remove_reference_t<decltype(rp_solver)>;
 
             if constexpr (std::is_same_v<ElementType,std::monostate>) {
@@ -702,7 +702,7 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
                 using StaticVectorType = typename AMGCLStaticVectorTraits<StaticMatrixType>::type;
 
                 if constexpr (std::is_same_v<BackendType,amgcl::backend::builtin<StaticMatrixType>>) {
-                    const int block_system_size = TSparse::Size(rSolution) / AMGCLStaticVectorTraits<StaticMatrixType>::value;
+                    const std::size_t block_system_size = AMGCLAdaptor<TSparse>().template BlockSystemSize<StaticMatrixType>(rLhs);
 
                     auto it_solution_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rSolution));
                     const auto it_rhs_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rRhs));
@@ -721,7 +721,7 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
 
                     using StaticMatrixType = typename SolverType::backend_type::value_type;
                     using StaticVectorType = typename AMGCLStaticVectorTraits<StaticMatrixType>::type;
-                    const int block_system_size = TSparse::Size(rSolution) / AMGCLStaticVectorTraits<StaticMatrixType>::value;
+                    const std::size_t block_system_size = AMGCLAdaptor<TSparse>().template BlockSystemSize<StaticMatrixType>(rLhs);
 
                     auto it_solution_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rSolution));
                     const auto it_rhs_begin = reinterpret_cast<const StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rRhs));
