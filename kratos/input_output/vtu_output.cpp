@@ -328,12 +328,16 @@ void AddFieldsFromTensorAdaptor(
     TXmlDataElementWrapper& rXmlDataElementWrapper,
     const DataCommunicator& rDataCommunicator,
     const std::set<IndexType>& rIgnoredIndices,
+    const IndexType EchoLevel,
     TArgs&&... rArgs)
 {
     KRATOS_TRY
 
     for (const auto& r_pair : rMap) {
         using data_type = BareType<decltype(r_pair.second)>;
+
+        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting " << r_pair.first << " data...\n";
+
         if constexpr(std::is_same_v<data_type, Flags>) {
             // the map is of type flags
             // here we don't need to do any communication because Flags are always having a static data shape.
@@ -427,9 +431,11 @@ void AddFields(
     XmlElementsArray& rXmlElement,
     const std::map<std::string, VtuOutput::FieldPointerType>& rMap,
     TXmlDataElementWrapper& rXmlDataElementWrapper,
-    const std::set<IndexType>& rIgnoredIndices)
+    const std::set<IndexType>& rIgnoredIndices,
+    const IndexType EchoLevel)
 {
     for (const auto& r_pair : rMap) {
+        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting " << r_pair.first << " data...\n";
         std::visit([&rXmlElement, &r_pair, &rXmlDataElementWrapper, &rIgnoredIndices](auto pNDData) {
             rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetNonIgnoredNDData(rIgnoredIndices, pNDData)));
         }, r_pair.second);
@@ -1333,10 +1339,10 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 2) << "--- Collecting nodal data fields...\n";
         // generate and add point field data
         std::set<IndexType> empty_ignored_indices;
-        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mFlags), rXmlDataElementWrapper, r_data_communicator, empty_ignored_indices);
-        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mVariables), rXmlDataElementWrapper, r_data_communicator, empty_ignored_indices);
-        AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeHistorical, mVariables), rXmlDataElementWrapper, r_data_communicator, empty_ignored_indices, 0);
-        AddFields(*point_data_element, rUnstructuredGridData.mPointFields, rXmlDataElementWrapper, empty_ignored_indices);
+        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mFlags), rXmlDataElementWrapper, r_data_communicator, empty_ignored_indices, mEchoLevel);
+        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mVariables), rXmlDataElementWrapper, r_data_communicator, empty_ignored_indices, mEchoLevel);
+        AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeHistorical, mVariables), rXmlDataElementWrapper, r_data_communicator, empty_ignored_indices, mEchoLevel, 0);
+        AddFields(*point_data_element, rUnstructuredGridData.mPointFields, rXmlDataElementWrapper, empty_ignored_indices, mEchoLevel);
     }
 
     // create cell data
@@ -1347,10 +1353,10 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     if (rUnstructuredGridData.mpCells.has_value()) {
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 2) << "--- Collecting " << GetEntityName(rUnstructuredGridData.mpCells) << " data fields...\n";
         std::visit([this, &rUnstructuredGridData, &cell_data_element, &rXmlDataElementWrapper, &r_data_communicator, &ignored_indices](auto p_container){
-            AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mVariables, rUnstructuredGridData.mpCells.value()), rXmlDataElementWrapper, r_data_communicator, ignored_indices);
-            AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mFlags, rUnstructuredGridData.mpCells.value()), rXmlDataElementWrapper, r_data_communicator, ignored_indices);
+            AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mVariables, rUnstructuredGridData.mpCells.value()), rXmlDataElementWrapper, r_data_communicator, ignored_indices, mEchoLevel);
+            AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mFlags, rUnstructuredGridData.mpCells.value()), rXmlDataElementWrapper, r_data_communicator, ignored_indices, mEchoLevel);
         }, rUnstructuredGridData.mpCells.value());
-        AddFields(*cell_data_element, rUnstructuredGridData.mCellFields, rXmlDataElementWrapper, ignored_indices);
+        AddFields(*cell_data_element, rUnstructuredGridData.mCellFields, rXmlDataElementWrapper, ignored_indices, mEchoLevel);
     }
 
     std::stringstream output_vtu_file_name;
