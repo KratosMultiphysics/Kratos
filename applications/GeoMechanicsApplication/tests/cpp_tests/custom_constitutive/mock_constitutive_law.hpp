@@ -13,6 +13,7 @@
 
 #include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
+#include <gmock/gmock.h>
 
 namespace Kratos::Testing
 {
