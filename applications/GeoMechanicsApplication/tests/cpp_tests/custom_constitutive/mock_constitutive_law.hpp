@@ -11,8 +11,8 @@
 //                   Gennady Markelov
 //
 
-#include "includes/constitutive_law.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos::Testing
 {
@@ -27,7 +27,7 @@ public:
 
     [[nodiscard]] SizeType GetStrainSize() const override { return 4; }
 
-        void GetLawFeatures(Features& rFeatures) override
+    void GetLawFeatures(Features& rFeatures) override
     {
         mNumberOfCalls++;
         if (mNumberOfCalls == 2) rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);

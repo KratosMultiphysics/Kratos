@@ -13,8 +13,8 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
