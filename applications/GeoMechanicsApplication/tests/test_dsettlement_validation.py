@@ -109,6 +109,10 @@ def get_nodal_vertical_stress_component_at_time(stress_item_name, time_in_second
     return [-1.0 * (stress_vectors_by_node_id[node_id][1] / 1000.0) for node_id in node_ids]
 
 
+def get_nodal_vertical_effective_stress_at_time(time_in_seconds, output_data, node_ids=None):
+    return get_nodal_vertical_stress_component_at_time("CAUCHY_STRESS_TENSOR", time_in_seconds, output_data, node_ids=node_ids)
+
+
 def get_nodal_water_pressures_at_time(time_in_seconds, output_data, node_ids=None):
     water_pressures_by_node_id = test_helper.GiDOutputFileReader.nodal_values_at_time2("WATER_PRESSURE", time_in_seconds, output_data, node_ids=node_ids)
     # Invert the sign of the water pressure such that compression becomes positive. Also convert Pa to kPa.
@@ -343,13 +347,10 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         coordinates = test_helper.read_coordinates_from_post_msh_file(project_path / "stage5.post.msh", node_ids=left_side_corner_node_ids)
         ys = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
 
-        total_displacement_by_node_id_map = reader.nodal_values_at_time2("TOTAL_DISPLACEMENT", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
-        ys = [y + total_displacement_by_node_id_map[node_id][1] for y, node_id in zip(ys, left_side_corner_node_ids)]
-
         water_pressures = get_nodal_water_pressures_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         graph_series.append(PlotDataSeries(water_pressures, ys, 'P_w [Kratos]', linestyle=':', marker='+'))
 
-        effective_vertical_stresses = get_nodal_vertical_stress_component_at_time("CAUCHY_STRESS_TENSOR", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
+        effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
 
         make_stress_plot(graph_series, project_path / "test_case_3_stress_plot_after_10000_days.svg")
