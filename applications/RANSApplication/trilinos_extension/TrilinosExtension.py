@@ -1,3 +1,0 @@
-
-import KratosMultiphysics.TrilinosApplication
-from KratosRANSTrilinosExtension import *

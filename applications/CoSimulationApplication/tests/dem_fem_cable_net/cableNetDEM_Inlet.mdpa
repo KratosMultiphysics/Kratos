@@ -1,9 +1,0 @@
-Begin ModelPartData
-// VARIABLE_NAME value
-End ModelPartData
-
-Begin Table 0 TIME VELOCITY
-0.0  0.0
-1.0  0.0
-End Table
-

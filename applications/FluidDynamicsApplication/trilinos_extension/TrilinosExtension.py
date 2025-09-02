@@ -1,3 +1,0 @@
-
-import KratosMultiphysics.TrilinosApplication
-from KratosFluidDynamicsTrilinosExtension import *

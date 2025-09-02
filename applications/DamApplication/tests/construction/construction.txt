@@ -1,2 +1,0 @@
-7200 Parts_Auto3 2 18.5
-14400 Parts_Auto3 3 22.5
