@@ -1644,6 +1644,13 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
         }
     }
 
+    // clear the temporary variables
+    block_for_each(mrModelPart.Nodes(), [](Node& rNode) {
+        if (rNode.Has(TENSOR_ADAPTOR_SYNC)) {
+            rNode.GetData().Erase(TENSOR_ADAPTOR_SYNC);
+        }
+    });
+
     // now generate the *.pvd file
     if (mrModelPart.GetCommunicator().MyPID() == 0) {
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 1)
