@@ -2,7 +2,10 @@ import math
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.KratosUnittest as kratos_unittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
+from pathlib import Path
 class TestVtuOutput(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -164,6 +167,24 @@ class TestVtuOutput(kratos_unittest.TestCase):
             elif isinstance(variable, Kratos.MatrixVariable):
                 setter(entity, variable, Kratos.Matrix([[entity_id + 1, entity_id + 2], [entity_id + 3, entity_id + 4], [entity.Id + 5, entity_id + 6]]))
 
+    def __CheckFile(self, file_name: str):
+        data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
+
+        if data_communicator.Size() == 2:
+            ## Settings string in json format
+            params = Kratos.Parameters("""{
+                "reference_file_name" : "",
+                "output_file_name"    : "",
+                "comparison_type"     : "deterministic"
+            }""")
+            params["reference_file_name"].SetString(str(Path(f"auxiliar_files_for_python_unittest/reference_files/{file_name}")))
+            params["output_file_name"].SetString(file_name)
+            CompareTwoFilesCheckProcess(params).Execute()
+        else:
+            if data_communicator.Rank() == 0:
+                self.assertTrue(Path(file_name).is_file())
+                kratos_utils.DeleteFileIfExisting(file_name)
+
     def test_OutputASCII(self):
         vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, output_sub_model_parts=True, echo_level=3)
         for data_location in [Kratos.Globals.DataLocation.NodeNonHistorical, Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]:
@@ -264,6 +285,26 @@ class TestVtuOutput(kratos_unittest.TestCase):
             AddTensorAdaptor("non_hist_interface", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().InterfaceMesh().Elements, Kratos.PRESSURE)
 
         vtu_output.PrintOutput("vtu_output/ascii_output")
+
+        # now check the files
+        data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
+        n_procs = data_communicator.Size()
+
+        for step_id in range(1):
+            for proc_id in range(n_procs):
+                self.__CheckFile(f"vtu_output/ascii_output/test_conditions_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/ascii_output/test_elements_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/ascii_output/test.sub_1_conditions_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/ascii_output/test.sub_1_elements_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/ascii_output/test.sub_2_conditions_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/ascii_output/test.sub_2.sub_1_conditions_{step_id}_{proc_id}.vtu")
+
+            self.__CheckFile(f"vtu_output/ascii_output/test_conditions_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/ascii_output/test_elements_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/ascii_output/test.sub_1_conditions_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/ascii_output/test.sub_1_elements_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/ascii_output/test.sub_2_conditions_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/ascii_output/test.sub_2.sub_1_conditions_{step_id}.pvtu")
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.INFO)
