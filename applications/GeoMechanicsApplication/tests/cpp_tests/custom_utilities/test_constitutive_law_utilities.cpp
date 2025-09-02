@@ -150,6 +150,17 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds
         "Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 3 is not in range [1, 2]");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetStateVariableIndex, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto                     properties       = Properties{};
+    ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<StubConstitutiveLaw2>();
+    properties.GetValue(CONSTITUTIVE_LAW)     = constitutive_law;
+
+    // Act and Assert
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::GetStateVariableIndex(STATE_VARIABLE_2), 2);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
