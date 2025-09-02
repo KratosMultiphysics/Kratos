@@ -148,7 +148,6 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::vector<std::size_t>{2, 1, 4, 3, 9, 12, 11, 10},
                                            std::vector<std::size_t>{3, 2, 1, 4, 10, 9, 12, 11}));
 
-
 class ParametrizedFindInterfaceNeighbourElementsOfConditions
     : public ::testing::TestWithParam<std::vector<std::size_t>>
 {
@@ -180,5 +179,23 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                          ::testing::Values(std::vector<std::size_t>{1, 2, 3}, // Not completely sure yet why this order is the other way around
                                            std::vector<std::size_t>{3, 1, 2},
                                            std::vector<std::size_t>{2, 3, 1}));
+
+TEST(FindNeighbourElementsOfConditionsProcessTest, TestPointCondition)
+{
+    Model model;
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(model);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.pGetNode(1));
+
+    auto p_condition = ElementSetupUtilities::Create3D1NCondition(nodes);
+    r_model_part.AddCondition(p_condition);
+
+    FindNeighbourElementsOfConditionsProcess process(r_model_part);
+
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+    process.Execute();
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+}
 
 } // namespace Kratos::Testing
