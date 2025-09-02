@@ -363,10 +363,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
 
-        # node_id_to_effective_stress_map = reader.nodal_values_at_time2("CAUCHY_STRESS_TENSOR", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
-        # effective_vertical_stresses = [-1.0 * (node_id_to_effective_stress_map[node_id][1] / 1000.0) for node_id in left_side_corner_node_ids]
-        # graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
-
         make_stress_plot(graph_series, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
 
         if test_helper.want_test_plots():
