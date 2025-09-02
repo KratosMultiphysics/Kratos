@@ -86,29 +86,7 @@ class TestVtuOutput(kratos_unittest.TestCase):
             partition_index = TestVtuOutput.__CreateEntities(model_part, my_pid, num_proc - 1)
 
         model_part.SetBufferSize(1)
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DISPLACEMENT, lambda x, y, z : x.SetSolutionStepValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.PRESSURE, lambda x, y, z : x.SetSolutionStepValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetSolutionStepValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetSolutionStepValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetSolutionStepValue(y, z))
-
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z))
-
-        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z))
-
-        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z))
-        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z))
+        TestVtuOutput.__SetAllVariables(model_part)
 
         # Write PARTITION_INDEX
         for node in model_part.Nodes:
@@ -149,10 +127,12 @@ class TestVtuOutput(kratos_unittest.TestCase):
         model_part.ProcessInfo[Kratos.TIME] = 1.2345 # float
 
     @staticmethod
-    def __SetVariable(container, variable, setter):
+    def __SetVariable(container, variable, setter, offset = 0):
         for entity in container:
-            entity_id = entity.Id
-            if isinstance(variable, Kratos.DoubleVariable):
+            entity_id = entity.Id + offset
+            if isinstance(variable, Kratos.IntegerVariable):
+                setter(entity, variable, entity_id + 1)
+            elif isinstance(variable, Kratos.DoubleVariable):
                 setter(entity, variable, entity_id + 1)
             elif isinstance(variable, Kratos.Array1DVariable3):
                 setter(entity, variable, [entity_id + 1, entity_id + 2, entity_id + 3])
@@ -167,10 +147,36 @@ class TestVtuOutput(kratos_unittest.TestCase):
             elif isinstance(variable, Kratos.MatrixVariable):
                 setter(entity, variable, Kratos.Matrix([[entity_id + 1, entity_id + 2], [entity_id + 3, entity_id + 4], [entity.Id + 5, entity_id + 6]]))
 
+    @staticmethod
+    def __SetAllVariables(model_part: Kratos.ModelPart, offset = 0):
+        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DISPLACEMENT, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.PRESSURE, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
+
+        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z), offset)
+
+        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z), offset)
+
+        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z), offset)
+
     def __CheckFile(self, file_name: str):
         data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
 
-        if data_communicator.Size() == 2:
+        if data_communicator.Size() == 2 and file_name.rfind("ascii") != -1:
             ## Settings string in json format
             params = Kratos.Parameters("""{
                 "reference_file_name" : "",
@@ -185,8 +191,12 @@ class TestVtuOutput(kratos_unittest.TestCase):
                 self.assertTrue(Path(file_name).is_file())
                 kratos_utils.DeleteFileIfExisting(file_name)
 
-    def test_OutputASCII(self):
-        vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, output_sub_model_parts=True, echo_level=3)
+    def __OutputTest(self, output_type: str):
+        if output_type == "ascii":
+            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, output_sub_model_parts=True, echo_level=0)
+        elif output_type == "binary":
+            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.BINARY, output_sub_model_parts=True, echo_level=0)
+
         for data_location in [Kratos.Globals.DataLocation.NodeNonHistorical, Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]:
             vtu_output.AddVariable(Kratos.DISPLACEMENT, data_location)
             vtu_output.AddVariable(Kratos.PRESSURE, data_location)
@@ -194,117 +204,140 @@ class TestVtuOutput(kratos_unittest.TestCase):
             vtu_output.AddVariable(Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, data_location)
             vtu_output.AddVariable(Kratos.CONSTITUTIVE_MATRIX, data_location)
 
-        def AddExpression(exp_name_prefix, exp_type, variable, *args):
-            c_exp = exp_type(self.model_part)
-            Kratos.Expression.VariableExpressionIO.Read(c_exp, variable, *args)
-            vtu_output.AddContainerExpression(f"exp_{exp_name_prefix}_{variable.Name()}", c_exp)
+        for i in range(2):
+            self.model_part.ProcessInfo[Kratos.TIME] += i
+            self.__SetAllVariables(self.model_part, i)
+            def AddExpression(exp_name_prefix, exp_type, variable, *args):
+                c_exp = exp_type(self.model_part)
+                Kratos.Expression.VariableExpressionIO.Read(c_exp, variable, *args)
+                if (i == 0):
+                    vtu_output.AddContainerExpression(f"exp_{exp_name_prefix}_{variable.Name()}", c_exp)
+                else:
+                    vtu_output.UpdateContainerExpression(f"exp_{exp_name_prefix}_{variable.Name()}", c_exp)
 
-        AddExpression("hist", Kratos.Expression.NodalExpression, Kratos.PRESSURE, True)
-        AddExpression("hist", Kratos.Expression.NodalExpression, Kratos.DISPLACEMENT, True)
-        AddExpression("hist", Kratos.Expression.NodalExpression, Kratos.ACTIVATION_LEVEL, True)
-        AddExpression("hist", Kratos.Expression.NodalExpression, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, True)
-        AddExpression("hist", Kratos.Expression.NodalExpression, Kratos.CONSTITUTIVE_MATRIX, True)
-        AddExpression("non_hist", Kratos.Expression.NodalExpression, Kratos.PRESSURE, False)
-        AddExpression("non_hist", Kratos.Expression.NodalExpression, Kratos.DISPLACEMENT, False)
-        AddExpression("non_hist", Kratos.Expression.NodalExpression, Kratos.ACTIVATION_LEVEL, False)
-        AddExpression("non_hist", Kratos.Expression.NodalExpression, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, False)
-        AddExpression("non_hist", Kratos.Expression.NodalExpression, Kratos.CONSTITUTIVE_MATRIX, False)
+            AddExpression("hist", Kratos.Expression.NodalExpression, Kratos.PRESSURE, True)
+            AddExpression("hist", Kratos.Expression.NodalExpression, Kratos.DISPLACEMENT, True)
+            AddExpression("hist", Kratos.Expression.NodalExpression, Kratos.ACTIVATION_LEVEL, True)
+            AddExpression("hist", Kratos.Expression.NodalExpression, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, True)
+            AddExpression("hist", Kratos.Expression.NodalExpression, Kratos.CONSTITUTIVE_MATRIX, True)
+            AddExpression("non_hist", Kratos.Expression.NodalExpression, Kratos.PRESSURE, False)
+            AddExpression("non_hist", Kratos.Expression.NodalExpression, Kratos.DISPLACEMENT, False)
+            AddExpression("non_hist", Kratos.Expression.NodalExpression, Kratos.ACTIVATION_LEVEL, False)
+            AddExpression("non_hist", Kratos.Expression.NodalExpression, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, False)
+            AddExpression("non_hist", Kratos.Expression.NodalExpression, Kratos.CONSTITUTIVE_MATRIX, False)
 
-        AddExpression("var", Kratos.Expression.ConditionExpression, Kratos.PRESSURE)
-        AddExpression("var", Kratos.Expression.ConditionExpression, Kratos.DISPLACEMENT)
-        AddExpression("var", Kratos.Expression.ConditionExpression, Kratos.ACTIVATION_LEVEL)
-        AddExpression("var", Kratos.Expression.ConditionExpression, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
-        AddExpression("var", Kratos.Expression.ConditionExpression, Kratos.CONSTITUTIVE_MATRIX)
+            AddExpression("var", Kratos.Expression.ConditionExpression, Kratos.PRESSURE)
+            AddExpression("var", Kratos.Expression.ConditionExpression, Kratos.DISPLACEMENT)
+            AddExpression("var", Kratos.Expression.ConditionExpression, Kratos.ACTIVATION_LEVEL)
+            AddExpression("var", Kratos.Expression.ConditionExpression, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
+            AddExpression("var", Kratos.Expression.ConditionExpression, Kratos.CONSTITUTIVE_MATRIX)
 
-        AddExpression("var", Kratos.Expression.ElementExpression, Kratos.PRESSURE)
-        AddExpression("var", Kratos.Expression.ElementExpression, Kratos.DISPLACEMENT)
-        AddExpression("var", Kratos.Expression.ElementExpression, Kratos.ACTIVATION_LEVEL)
-        AddExpression("var", Kratos.Expression.ElementExpression, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
-        AddExpression("var", Kratos.Expression.ElementExpression, Kratos.CONSTITUTIVE_MATRIX)
+            AddExpression("var", Kratos.Expression.ElementExpression, Kratos.PRESSURE)
+            AddExpression("var", Kratos.Expression.ElementExpression, Kratos.DISPLACEMENT)
+            AddExpression("var", Kratos.Expression.ElementExpression, Kratos.ACTIVATION_LEVEL)
+            AddExpression("var", Kratos.Expression.ElementExpression, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
+            AddExpression("var", Kratos.Expression.ElementExpression, Kratos.CONSTITUTIVE_MATRIX)
 
-        def AddTensorAdaptor(ta_name_prefix, ta_type, container, variable):
-            ta = ta_type(container, variable)
-            ta.Check()
-            ta.CollectData()
-            vtu_output.AddTensorAdaptor(f"ta_{ta_name_prefix}_{variable.Name()}", ta)
+            def AddTensorAdaptor(ta_name_prefix, ta_type, container, variable):
+                ta = ta_type(container, variable)
+                ta.Check()
+                ta.CollectData()
+                if i == 0:
+                    vtu_output.AddTensorAdaptor(f"ta_{ta_name_prefix}_{variable.Name()}", ta)
+                else:
+                    vtu_output.UpdateTensorAdaptor(f"ta_{ta_name_prefix}_{variable.Name()}", ta)
 
-        AddTensorAdaptor("hist", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.Nodes, Kratos.PRESSURE)
-        AddTensorAdaptor("hist", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.Nodes, Kratos.DISPLACEMENT)
-        AddTensorAdaptor("hist", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
-        AddTensorAdaptor("hist", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX)
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Nodes, Kratos.PRESSURE)
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Nodes, Kratos.DISPLACEMENT)
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX)
+            AddTensorAdaptor("hist", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.Nodes, Kratos.PRESSURE)
+            AddTensorAdaptor("hist", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.Nodes, Kratos.DISPLACEMENT)
+            AddTensorAdaptor("hist", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
+            AddTensorAdaptor("hist", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Nodes, Kratos.PRESSURE)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Nodes, Kratos.DISPLACEMENT)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX)
 
-        AddTensorAdaptor("hist_local", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.PRESSURE)
-        AddTensorAdaptor("hist_local", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.DISPLACEMENT)
-        AddTensorAdaptor("hist_local", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
-        AddTensorAdaptor("hist_local", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.CONSTITUTIVE_MATRIX)
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.PRESSURE)
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.DISPLACEMENT)
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.CONSTITUTIVE_MATRIX)
+            AddTensorAdaptor("hist_local", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.PRESSURE)
+            AddTensorAdaptor("hist_local", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.DISPLACEMENT)
+            AddTensorAdaptor("hist_local", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
+            AddTensorAdaptor("hist_local", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.CONSTITUTIVE_MATRIX)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.PRESSURE)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.DISPLACEMENT)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Nodes, Kratos.CONSTITUTIVE_MATRIX)
 
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Conditions, Kratos.PRESSURE)
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Conditions, Kratos.DISPLACEMENT)
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Conditions, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Conditions, Kratos.CONSTITUTIVE_MATRIX)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Conditions, Kratos.PRESSURE)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Conditions, Kratos.DISPLACEMENT)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Conditions, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Conditions, Kratos.CONSTITUTIVE_MATRIX)
 
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Conditions, Kratos.PRESSURE)
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Conditions, Kratos.DISPLACEMENT)
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Conditions, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Conditions, Kratos.CONSTITUTIVE_MATRIX)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Conditions, Kratos.PRESSURE)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Conditions, Kratos.DISPLACEMENT)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Conditions, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Conditions, Kratos.CONSTITUTIVE_MATRIX)
 
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Elements, Kratos.PRESSURE)
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Elements, Kratos.DISPLACEMENT)
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Elements, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
-        AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Elements, Kratos.CONSTITUTIVE_MATRIX)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Elements, Kratos.PRESSURE)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Elements, Kratos.DISPLACEMENT)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Elements, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
+            AddTensorAdaptor("non_hist", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.Elements, Kratos.CONSTITUTIVE_MATRIX)
 
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Elements, Kratos.PRESSURE)
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Elements, Kratos.DISPLACEMENT)
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Elements, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
-        AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Elements, Kratos.CONSTITUTIVE_MATRIX)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Elements, Kratos.PRESSURE)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Elements, Kratos.DISPLACEMENT)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Elements, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
+            AddTensorAdaptor("non_hist_local", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().LocalMesh().Elements, Kratos.CONSTITUTIVE_MATRIX)
 
-        with self.assertRaises(RuntimeError):
-            AddTensorAdaptor("non_hist_ghost", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().GhostMesh().Nodes, Kratos.PRESSURE)
+            with self.assertRaises(RuntimeError):
+                AddTensorAdaptor("non_hist_ghost", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().GhostMesh().Nodes, Kratos.PRESSURE)
 
-        with self.assertRaises(RuntimeError):
-            AddTensorAdaptor("non_hist_interface", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().InterfaceMesh().Nodes, Kratos.PRESSURE)
+            with self.assertRaises(RuntimeError):
+                AddTensorAdaptor("non_hist_interface", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().InterfaceMesh().Nodes, Kratos.PRESSURE)
 
-        with self.assertRaises(RuntimeError):
-            AddTensorAdaptor("non_hist_ghost", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().GhostMesh().Conditions, Kratos.PRESSURE)
+            with self.assertRaises(RuntimeError):
+                AddTensorAdaptor("non_hist_ghost", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().GhostMesh().Conditions, Kratos.PRESSURE)
 
-        with self.assertRaises(RuntimeError):
-            AddTensorAdaptor("non_hist_interface", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().InterfaceMesh().Conditions, Kratos.PRESSURE)
+            with self.assertRaises(RuntimeError):
+                AddTensorAdaptor("non_hist_interface", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().InterfaceMesh().Conditions, Kratos.PRESSURE)
 
-        with self.assertRaises(RuntimeError):
-            AddTensorAdaptor("non_hist_ghost", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().GhostMesh().Elements, Kratos.PRESSURE)
+            with self.assertRaises(RuntimeError):
+                AddTensorAdaptor("non_hist_ghost", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().GhostMesh().Elements, Kratos.PRESSURE)
 
-        with self.assertRaises(RuntimeError):
-            AddTensorAdaptor("non_hist_interface", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().InterfaceMesh().Elements, Kratos.PRESSURE)
+            with self.assertRaises(RuntimeError):
+                AddTensorAdaptor("non_hist_interface", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().InterfaceMesh().Elements, Kratos.PRESSURE)
 
-        vtu_output.PrintOutput("vtu_output/ascii_output")
+            vtu_output.PrintOutput(f"vtu_output/{output_type}_output")
 
         # now check the files
         data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
         n_procs = data_communicator.Size()
 
-        for step_id in range(1):
+        for step_id in range(2):
             for proc_id in range(n_procs):
-                self.__CheckFile(f"vtu_output/ascii_output/test_conditions_{step_id}_{proc_id}.vtu")
-                self.__CheckFile(f"vtu_output/ascii_output/test_elements_{step_id}_{proc_id}.vtu")
-                self.__CheckFile(f"vtu_output/ascii_output/test.sub_1_conditions_{step_id}_{proc_id}.vtu")
-                self.__CheckFile(f"vtu_output/ascii_output/test.sub_1_elements_{step_id}_{proc_id}.vtu")
-                self.__CheckFile(f"vtu_output/ascii_output/test.sub_2_conditions_{step_id}_{proc_id}.vtu")
-                self.__CheckFile(f"vtu_output/ascii_output/test.sub_2.sub_1_conditions_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/{output_type}_output/test_conditions_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/{output_type}_output/test_elements_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_1_conditions_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_1_elements_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_2_conditions_{step_id}_{proc_id}.vtu")
+                self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_2.sub_1_conditions_{step_id}_{proc_id}.vtu")
 
-            self.__CheckFile(f"vtu_output/ascii_output/test_conditions_{step_id}.pvtu")
-            self.__CheckFile(f"vtu_output/ascii_output/test_elements_{step_id}.pvtu")
-            self.__CheckFile(f"vtu_output/ascii_output/test.sub_1_conditions_{step_id}.pvtu")
-            self.__CheckFile(f"vtu_output/ascii_output/test.sub_1_elements_{step_id}.pvtu")
-            self.__CheckFile(f"vtu_output/ascii_output/test.sub_2_conditions_{step_id}.pvtu")
-            self.__CheckFile(f"vtu_output/ascii_output/test.sub_2.sub_1_conditions_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/{output_type}_output/test_conditions_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/{output_type}_output/test_elements_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_1_conditions_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_1_elements_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_2_conditions_{step_id}.pvtu")
+            self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_2.sub_1_conditions_{step_id}.pvtu")
+
+        # checking the collection file
+        self.__CheckFile(f"vtu_output/{output_type}_output.pvd")
+
+    def test_OutputASCII(self):
+        self.__OutputTest("ascii")
+
+    def test_OutputBinary(self):
+        self.__OutputTest("binary")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+        kratos_utils.DeleteDirectoryIfExisting("vtu_output")
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.INFO)
