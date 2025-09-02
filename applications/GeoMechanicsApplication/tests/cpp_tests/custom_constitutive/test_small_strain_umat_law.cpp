@@ -14,10 +14,6 @@
 #include "custom_constitutive/three_dimensional.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
-#include <string>
-
-using namespace std::string_literals;
-
 namespace Kratos::Testing
 {
 
