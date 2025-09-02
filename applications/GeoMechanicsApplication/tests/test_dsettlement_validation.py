@@ -61,10 +61,10 @@ def plot_settlement_results(series_collection, figure_filename):
     axes.set_ylabel('Settlement [m]')
     figure.legend(loc='outside center right')
 
-    #plt.show()
-    png_file_path = figure_filename
-    print(f"Save plot to {png_file_path}")
-    plt.savefig(png_file_path)
+    if isinstance(figure_filename, pathlib.Path):
+        figure_filename = str(figure_filename.resolve())
+    print(f"Save plot to {figure_filename}")
+    plt.savefig(figure_filename)
 
 def plot_water_pressure_results(series_collection, figure_filename):
     figure, axes = plt.subplots(layout="constrained")
@@ -76,10 +76,10 @@ def plot_water_pressure_results(series_collection, figure_filename):
     axes.set_ylabel('y [m]')
     figure.legend(loc='outside center right')
 
-    #plt.show()
-    png_file_path = figure_filename
-    print(f"Save plot to {png_file_path}")
-    plt.savefig(png_file_path)
+    if isinstance(figure_filename, pathlib.Path):
+        figure_filename = str(figure_filename.resolve())
+    print(f"Save plot to {figure_filename}")
+    plt.savefig(figure_filename)
 
 
 def get_data_points_from(file_path):
@@ -139,14 +139,16 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         )
         self.assertEqual(status, 0)
 
+        os.chdir(original_working_dir)
+
+        project_path = pathlib.Path(project_path)
+
         reader = test_helper.GiDOutputFileReader()
 
-        output_data = reader.read_output_from(
-            os.path.join(project_path, "stage3.post.res")
-        )
+        output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
         top_middle_node_id = 104
         actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_data, [top_middle_node_id]
+            "TOTAL_DISPLACEMENT", 8640000, output_stage_3, [top_middle_node_id]
         )[0][1]
         expected_settlement_after_one_hundred_days = -3.22
 
@@ -160,11 +162,9 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             < 0.01
         )
 
-        output_data = reader.read_output_from(
-            os.path.join(project_path, "stage5.post.res")
-        )
+        output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
         actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_data, [top_middle_node_id]
+            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [top_middle_node_id]
         )[0][1]
 
         expected_settlement_after_ten_thousand_days = -8.01
@@ -179,7 +179,10 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             < 0.01
         )
 
-        os.chdir(original_working_dir)
+        if test_helper.want_test_plots():
+            output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
+            top_node_ids = [2, 3, 104]
+            make_settlement_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_1_settlement_plot.svg")
 
     def test_settlement_fully_saturated_column(self):
         """
@@ -206,25 +209,30 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         )
         self.assertEqual(status, 0)
 
+        os.chdir(cwd)
+
+        project_path = pathlib.Path(project_path)
+
         reader = test_helper.GiDOutputFileReader()
 
-        output_data = reader.read_output_from(
-            os.path.join(project_path, "stage2.post.res")
-        )
+        output_stage_2 = reader.read_output_from(project_path / "stage2.post.res")
         actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_data, [104]
+            "TOTAL_DISPLACEMENT", 8640000, output_stage_2, [104]
         )[0][1]
         self.assertAlmostEqual(actual_settlement_after_one_hundred_days, -1.71094, 4)
 
-        output_data = reader.read_output_from(
-            os.path.join(project_path, "stage5.post.res")
-        )
+        output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
+
         actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_data, [104]
+            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [104]
         )[0][1]
         self.assertAlmostEqual(actual_settlement_after_ten_thousand_days, -8.63753, 4)
 
-        os.chdir(cwd)
+        if test_helper.want_test_plots():
+            output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
+            output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
+            top_node_ids = [2, 3, 104]
+            make_settlement_plot((output_stage_2, output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_2_settlement_plot.svg")
 
     def test_settlement_phreatic_line_below_surface(self):
         """
@@ -297,7 +305,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         # effective_vertical_stresses = [-1.0 * (node_id_to_effective_stress_map[node_id][1] / 1000.0) for node_id in left_side_corner_node_ids]
         # graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
 
-        plot_water_pressure_results(graph_series, "test_case_3_stress_plot_after_100.1_days.png")
+        plot_water_pressure_results(graph_series, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
 
         time_in_sec = 10000.0 * 86400.0
         reference_points = get_data_points_from(project_path / "ref_water_pressures_after_10000_days.txt")
@@ -311,6 +319,10 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         coordinates = test_helper.read_coordinates_from_post_msh_file(project_path / "stage5.post.msh", node_ids=left_side_corner_node_ids)
         ys = [(coord[1] - 50.0) for coord in coordinates]
+
+        total_displacement_by_node_id_map = reader.nodal_values_at_time2("TOTAL_DISPLACEMENT", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
+        ys = [y + total_displacement_by_node_id_map[node_id][1] for y, node_id in zip(ys, left_side_corner_node_ids)]
+
         node_id_to_water_pressure_map = reader.nodal_values_at_time2("WATER_PRESSURE", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         water_pressures = [-1.0 * (node_id_to_water_pressure_map[node_id] / 1000.0) for node_id in left_side_corner_node_ids]
         graph_series.append(PlotDataSeries(water_pressures, ys, 'P_w [Kratos]', linestyle=':', marker='+'))
@@ -319,10 +331,10 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         effective_vertical_stresses = [-1.0 * (node_id_to_effective_stress_map[node_id][1] / 1000.0) for node_id in left_side_corner_node_ids]
         graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
 
-        plot_water_pressure_results(graph_series, "test_case_3_stress_plot_after_10000_days.png")
+        plot_water_pressure_results(graph_series, project_path / "test_case_3_stress_plot_after_10000_days.svg")
 
         if test_helper.want_test_plots():
-            make_settlement_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", "test_case_3_settlement_plot.png")
+            make_settlement_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_3_settlement_plot.svg")
 
       
 if __name__ == "__main__":
