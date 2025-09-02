@@ -327,8 +327,8 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         coordinates = test_helper.read_coordinates_from_post_msh_file(project_path / "stage5.post.msh", node_ids=left_side_corner_node_ids)
         ys = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
-        node_id_to_water_pressure_map = reader.nodal_values_at_time2("WATER_PRESSURE", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
-        water_pressures = [-1.0 * (node_id_to_water_pressure_map[node_id] / 1000.0) for node_id in left_side_corner_node_ids]
+
+        water_pressures = get_nodal_water_pressures_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         graph_series.append(PlotDataSeries(water_pressures, ys, 'P_w [Kratos]', linestyle=':', marker='+'))
 
         effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
