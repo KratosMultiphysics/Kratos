@@ -68,12 +68,18 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 std::ranges::sort(FaceIdsSorted);
                 auto itFaceSorted = FacesMapSorted.find(FaceIdsSorted);
                 if (itFaceSorted != FacesMapSorted.end()) {
-                    // try different orderings
-                    using enum GeometryData::KratosGeometryOrderType;
-                    if (r_boundary_geometry.GetGeometryOrderType() == Kratos_Linear_Order)
+                    switch (r_boundary_geometry.GetGeometryOrderType())
+                    {
+                        using enum GeometryData::KratosGeometryOrderType;
+                    case Kratos_Linear_Order:
                         itFace = FindPermutations(FaceIds, FacesMap);
-                    else if (r_boundary_geometry.GetGeometryOrderType() == Kratos_Quadratic_Order)
+                        break;
+                    case Kratos_Quadratic_Order:
                         itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
+                        break;
+                    default:
+                        break;
+                    }
                 }
             }
 
