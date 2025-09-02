@@ -115,6 +115,13 @@ def get_nodal_water_pressures_at_time(time_in_seconds, output_data, node_ids=Non
     return [-1.0 * (water_pressures_by_node_id[node_id] / 1000.0) for node_id in node_ids]
 
 
+def shift_y_of_kratos_model(y):
+    # The top edge of the soil column in the Kratos model is at y = 50.0. In the corresponding "old" D-Settlement model,
+    # the same edge is located at y = 0.0. This function transforms the y coordinate of the Kratos model to the
+    # corresponding one of the "old" D-Settlement model.
+    return y - 50.0
+
+
 def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figure_filename):
     data_points_by_node = {node_id : [] for node_id in node_ids}
     for output_data in stage_outputs:
@@ -312,7 +319,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         graph_series.append(make_water_pressure_plot_data(reference_points, 'ref P_w', marker='+'))
 
         coordinates = test_helper.read_coordinates_from_post_msh_file(project_path / "stage5.post.msh", node_ids=left_side_corner_node_ids)
-        ys = [(coord[1] - 50.0) for coord in coordinates]
+        ys = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
         node_id_to_water_pressure_map = reader.nodal_values_at_time2("WATER_PRESSURE", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         water_pressures = [-1.0 * (node_id_to_water_pressure_map[node_id] / 1000.0) for node_id in left_side_corner_node_ids]
         graph_series.append(PlotDataSeries(water_pressures, ys, 'P_w [Kratos]', linestyle=':', marker='+'))
@@ -334,7 +341,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         graph_series.append(make_water_pressure_plot_data(reference_points, 'ref sigma_yy;eff', marker='+'))
 
         coordinates = test_helper.read_coordinates_from_post_msh_file(project_path / "stage5.post.msh", node_ids=left_side_corner_node_ids)
-        ys = [(coord[1] - 50.0) for coord in coordinates]
+        ys = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
 
         total_displacement_by_node_id_map = reader.nodal_values_at_time2("TOTAL_DISPLACEMENT", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         ys = [y + total_displacement_by_node_id_map[node_id][1] for y, node_id in zip(ys, left_side_corner_node_ids)]
