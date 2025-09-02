@@ -322,11 +322,17 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         graph_series = []
         graph_series.append(make_water_pressure_plot_data(reference_points, 'ref P_w', marker='+'))
 
+        reference_points = get_data_points_from(project_path / "ref_effective_vertical_stresses_after_100.1_days.txt")
+        graph_series.append(make_water_pressure_plot_data(reference_points, 'ref sigma_yy;eff', marker='+'))
+
         coordinates = test_helper.read_coordinates_from_post_msh_file(project_path / "stage5.post.msh", node_ids=left_side_corner_node_ids)
         ys = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
         node_id_to_water_pressure_map = reader.nodal_values_at_time2("WATER_PRESSURE", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         water_pressures = [-1.0 * (node_id_to_water_pressure_map[node_id] / 1000.0) for node_id in left_side_corner_node_ids]
         graph_series.append(PlotDataSeries(water_pressures, ys, 'P_w [Kratos]', linestyle=':', marker='+'))
+
+        effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
+        graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
 
         # node_id_to_effective_stress_map = reader.nodal_values_at_time2("CAUCHY_STRESS_TENSOR", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         # effective_vertical_stresses = [-1.0 * (node_id_to_effective_stress_map[node_id][1] / 1000.0) for node_id in left_side_corner_node_ids]
