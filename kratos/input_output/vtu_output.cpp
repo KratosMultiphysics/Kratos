@@ -1593,7 +1593,22 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
         << "TIME variable is not found in the process info of " << mrModelPart.FullName() << ".\n";
 
     // Add the time step info.
-    mTimeStepList.push_back(r_process_info[TIME]);
+    // check if a similar time has been already printed to vtu.
+    const double process_time = r_process_info[TIME];
+    std::stringstream s_process_time;
+    s_process_time << std::scientific << std::setprecision(mPrecision) << process_time;
+    const auto& str_process_time = s_process_time.str();
+    for (const auto check_time : mTimeStepList) {
+        std::stringstream s_check_process_time;
+        s_check_process_time << std::scientific << std::setprecision(mPrecision) << check_time;
+        KRATOS_ERROR_IF(s_check_process_time.str() == str_process_time)
+            << "The TIME values in process info of " << mrModelPart.FullName()
+            << " should be unique for the given precision = " << mPrecision
+            << " [ formatted current time = " << str_process_time
+            << ", current_time = " << process_time
+            << ", checking time = " << check_time << " ].\n";
+    }
+    mTimeStepList.push_back(process_time);
 
     std::filesystem::create_directories(rOutputFileNamePrefix);
 
