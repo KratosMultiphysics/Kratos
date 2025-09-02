@@ -343,33 +343,18 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         # for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
         #     self.assertAlmostEqual(total_displacement_vector[1], -8.64, 4, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
 
-        left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
-
-        reference_points = get_data_points_from(project_path / "ref_water_pressures_after_100.1_days.txt")
-
-        time_in_sec = days_to_seconds(100.1) + 1.0
-        graph_series = []
-        graph_series.append(make_water_pressure_plot_data(reference_points, 'ref P_w', marker='+'))
-
-        reference_points = get_data_points_from(project_path / "ref_effective_vertical_stresses_after_100.1_days.txt")
-        graph_series.append(make_water_pressure_plot_data(reference_points, 'ref sigma_yy;eff', marker='+'))
-
-        coordinates = test_helper.read_coordinates_from_post_msh_file(project_path / "stage5.post.msh", node_ids=left_side_corner_node_ids)
-        ys = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
-
-        water_pressures = get_nodal_water_pressures_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
-        graph_series.append(PlotDataSeries(water_pressures, ys, 'P_w [Kratos]', linestyle=':', marker='+'))
-
-        effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
-        graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
-
-        make_stress_plot(graph_series, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
-
         if test_helper.want_test_plots():
+            left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
             make_settlement_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_3_settlement_plot.svg")
 
-            # Make stress plot at time = 10,000 days
+            # Make stress plot immediately after applying the surface load
+            time_in_seconds = days_to_seconds(100.1) + 1.0
             ref_data = StressPlotDataFilePaths()
+            ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100.1_days.txt"
+            ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100.1_days.txt"
+            make_stress_over_depth_plot(output_stage_5, time_in_seconds, project_path / "stage5.post.msh", left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
+
+            # Make stress plot when consolidation is supposed to be finished
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_10000_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_10000_days.txt"
             make_stress_over_depth_plot(output_stage_5, days_to_seconds(10000), project_path / "stage5.post.msh", left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_10000_days.svg")
