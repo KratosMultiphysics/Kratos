@@ -5,6 +5,7 @@ import KratosMultiphysics as Kratos
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 from test_vtk_output_process import SetupModelPart2D, SetupModelPart3D
 
@@ -95,8 +96,8 @@ class TestVtuOutputBase:
             check_file(f"{output_prefix}/{file_path.name}", str(file_path))
         check_file(f"{output_prefix}.pvd", f"{reference_prefix}.pvd")
 
-        if Path(output_prefix).parent.parent.is_dir():
-            shutil.rmtree(Path(output_prefix).parent.parent)
+
+        kratos_utils.DeleteDirectoryIfExisting("temp")
 
 class TestVtuOutput(kratos_unittest.TestCase):
     @classmethod
@@ -234,7 +235,7 @@ class TestVtuOutput(kratos_unittest.TestCase):
         vtu_output.AddContainerExpression("PRESSURE_4", exp)
 
     def test_CellVariableAddition(self):
-        vtu_output = Kratos.VtuOutput(self.model_part)
+        vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Condition)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.NodeHistorical)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Element)
@@ -246,6 +247,14 @@ class TestVtuOutput(kratos_unittest.TestCase):
         vtu_output.AddVariable(Kratos.DISPLACEMENT, self.data_location.Condition)
         vtu_output.AddIntegrationPointVariable(Kratos.DISPLACEMENT, self.data_location.Condition)
         vtu_output.AddIntegrationPointVariable(Kratos.DISPLACEMENT, self.data_location.Element)
+
+        vtu_output.PrintOutput("temp/vtu_output/time_step_test")
+        with self.assertRaises(RuntimeError):
+            vtu_output.PrintOutput("temp/vtu_output/time_step_test")
+        vtu_output.GetModelPart().ProcessInfo[Kratos.TIME] += 1e-9
+        vtu_output.PrintOutput("temp/vtu_output/time_step_test")
+
+        kratos_utils.DeleteDirectoryIfExisting("temp")
 
 class TestVtuOutput2D(TestVtuOutputBase, kratos_unittest.TestCase):
     @classmethod
