@@ -762,13 +762,13 @@ void PrintDataLocationData(
 
 enum UnstructuredGridMeshType
 {
-    NodesNormal,
-    NodesLocal,
-    NodesGhost,
-    NodesInterface,
-    Conditions,
-    Elements,
-    NONE
+    NodesNormal = 0,
+    NodesLocal = 1,
+    NodesGhost = 2,
+    NodesInterface = 3,
+    Conditions = 4,
+    Elements = 5,
+    NONE = 6
 };
 
 Globals::DataLocation GetGlobalDataLocation(const UnstructuredGridMeshType MeshType)
@@ -808,15 +808,27 @@ std::pair<UnstructuredGridMeshType, std::vector<VtuOutput::UnstructuredGridData>
                 }
             }
         } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+            // since Kratos is doing partitioning based on elements, and there are no conditions
+            // on the ghost meshes. so normal mesh and the local mesh should be having identical entities.
             if (itr->mpCells.has_value() &&
                 std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(itr->mpCells.value()) &&
-                &rContainer == &*std::get<ModelPart::ConditionsContainerType::Pointer>(itr->mpCells.value())) {
+                (
+                    &rContainer == &*std::get<ModelPart::ConditionsContainerType::Pointer>(itr->mpCells.value()) ||
+                    &rContainer == &p_model_part->GetCommunicator().LocalMesh().Conditions()
+                )
+            ) {
                 return std::make_pair(UnstructuredGridMeshType::Conditions, itr);
             }
         } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+            // since Kratos is doing partitioning based on elements, and there are no elements
+            // on the ghost meshes. so normal mesh and the local mesh should be having identical entities.
             if (itr->mpCells.has_value() &&
                 std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(itr->mpCells.value()) &&
-                &rContainer == &*std::get<ModelPart::ElementsContainerType::Pointer>(itr->mpCells.value())) {
+                (
+                    &rContainer == &*std::get<ModelPart::ElementsContainerType::Pointer>(itr->mpCells.value()) ||
+                    &rContainer == &p_model_part->GetCommunicator().LocalMesh().Elements()
+                )
+            ) {
                 return std::make_pair(UnstructuredGridMeshType::Elements, itr);
             }
         } else {
@@ -1079,7 +1091,7 @@ void VtuOutput::AddContainerExpression(
                 KRATOS_ERROR
                     << "The container in the ContainerExpression is not referring to any of the containers "
                     << "written by this Vtu output [ container expression name = " << rExpressionName
-                    << ", tensor_adaptor = " << *p_container_expression << " ]\n"
+                    << ", container expression = " << *p_container_expression << " ]\n"
                     << *this;
                 break;
         }
