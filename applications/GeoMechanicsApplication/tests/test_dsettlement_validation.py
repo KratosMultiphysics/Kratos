@@ -66,7 +66,7 @@ def plot_settlement_results(series_collection, figure_filename):
     print(f"Save plot to {figure_filename}")
     plt.savefig(figure_filename)
 
-def plot_water_pressure_results(series_collection, figure_filename):
+def make_stress_plot(series_collection, figure_filename):
     figure, axes = plt.subplots(layout="constrained")
     for series in series_collection:
         axes.plot(series.x_values, series.y_values, label=series.label, linestyle=series.linestyle, marker=series.marker)
@@ -305,7 +305,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         # effective_vertical_stresses = [-1.0 * (node_id_to_effective_stress_map[node_id][1] / 1000.0) for node_id in left_side_corner_node_ids]
         # graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
 
-        plot_water_pressure_results(graph_series, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
+        make_stress_plot(graph_series, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
 
         time_in_sec = 10000.0 * 86400.0
         reference_points = get_data_points_from(project_path / "ref_water_pressures_after_10000_days.txt")
@@ -331,7 +331,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         effective_vertical_stresses = [-1.0 * (node_id_to_effective_stress_map[node_id][1] / 1000.0) for node_id in left_side_corner_node_ids]
         graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
 
-        plot_water_pressure_results(graph_series, project_path / "test_case_3_stress_plot_after_10000_days.svg")
+        make_stress_plot(graph_series, project_path / "test_case_3_stress_plot_after_10000_days.svg")
 
         if test_helper.want_test_plots():
             make_settlement_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_3_settlement_plot.svg")
