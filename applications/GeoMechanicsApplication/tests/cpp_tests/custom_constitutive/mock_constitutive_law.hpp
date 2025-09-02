@@ -70,7 +70,6 @@ public:
 
     using ConstitutiveLaw::Has;
 
-private:
     Vector mStateVariables;
     bool   mAdd_StrainMeasure_Infinitesimal = false;
 };
