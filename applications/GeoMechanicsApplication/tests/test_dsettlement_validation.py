@@ -14,8 +14,12 @@ class PlotDataSeries():
         self.linestyle = linestyle
         self.marker = marker
 
-def sec_to_day(time_in_sec):
-    return time_in_sec / (24.0 * 60.0 * 60.0)
+def seconds_to_days(duration_in_seconds):
+    return duration_in_seconds / (24.0 * 60.0 * 60.0)
+
+
+def days_to_seconds(duration_in_days):
+    return duration_in_days * 24.0 * 60.0 * 60.0
 
 
 def make_plot_data(points, label='', linestyle='-', marker=None):
@@ -36,7 +40,7 @@ def extract_nodal_settlement_over_time(output_data, node_id):
         if item["location"] != "OnNodes":
             continue
 
-        time_in_days = sec_to_day(item["time"])
+        time_in_days = seconds_to_days(item["time"])
 
         total_y_displacement = None
         for value_item in item["values"]:
@@ -263,14 +267,14 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         reader = test_helper.GiDOutputFileReader()
         project_path = pathlib.Path(project_path)
         output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
-        time_in_sec = 0.1 * 86400.0 + 1.0
+        time_in_sec = days_to_seconds(0.1) + 1.0
         actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
             "TOTAL_DISPLACEMENT", time_in_sec, output_stage_3, top_node_ids
         )
         # for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
         #     self.assertAlmostEqual(total_displacement_vector[1], 0.0, 4, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
 
-        time_in_sec = 100.0 * 86400.0
+        time_in_sec = days_to_seconds(100)
         actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
             "TOTAL_DISPLACEMENT", time_in_sec, output_stage_3, top_node_ids
         )
@@ -280,7 +284,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
 
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
-        time_in_sec = 10000.0 * 86400.0
+        time_in_sec = days_to_seconds(10000)
         actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
             "TOTAL_DISPLACEMENT", time_in_sec, output_stage_5, top_node_ids
         )
@@ -291,7 +295,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         reference_points = get_data_points_from(project_path / "ref_water_pressures_after_100.1_days.txt")
 
-        time_in_sec = 100.1 * 86400.0 + 1.0
+        time_in_sec = days_to_seconds(100.1) + 1.0
         graph_series = []
         graph_series.append(make_water_pressure_plot_data(reference_points, 'ref P_w', marker='+'))
 
@@ -307,7 +311,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         make_stress_plot(graph_series, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
 
-        time_in_sec = 10000.0 * 86400.0
+        time_in_sec = days_to_seconds(10000)
         reference_points = get_data_points_from(project_path / "ref_water_pressures_after_10000_days.txt")
 
         graph_series = []
