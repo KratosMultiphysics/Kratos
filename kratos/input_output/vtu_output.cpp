@@ -1223,10 +1223,6 @@ void VtuOutput::UpdateTensorAdaptor(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
-        << "TensorAdaptors can be added only before the first call to the PrintOutput [ tensor adaptor name = "
-        << rTensorAdaptorName << " ].\n";
-
     std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
         using tensor_adaptor_type = BareType<decltype(*p_tensor_adaptor)>;
         using storage_type = typename tensor_adaptor_type::Storage;
