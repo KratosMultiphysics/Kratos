@@ -216,6 +216,7 @@ void Define3DWakeProcess::MarkTrailingEdgeAndBluntNodes()
         ModelPart& blunt_te_surface_model_part = root_model_part.GetSubModelPart(mBluntTESurfaceModelPartName);
         for (auto& r_node : blunt_te_surface_model_part.Nodes()) {
             mBluntIds.insert(r_node.Id());
+            r_node.SetValue(TRAILING_EDGE, true);
         }
     }
     KRATOS_CATCH("");
@@ -796,6 +797,12 @@ void Define3DWakeProcess::RecomputeDistance(NodeType::Pointer& pClosest_te_node,
         }
         rNode.SetValue(WAKE_DISTANCE, distance);
     }
+
+    if (rNode.GetValue(TRAILING_EDGE))
+    {
+        rNode.SetValue(WAKE_DISTANCE, mTolerance);
+    }
+
     KRATOS_CATCH("");
 }
 
