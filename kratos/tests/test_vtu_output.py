@@ -255,6 +255,9 @@ class TestVtuOutput2D(TestVtuOutputBase, kratos_unittest.TestCase):
 class TestVtuOutput3D(TestVtuOutputBase, kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        # the method SetupModelPart3D does not create sub model parts
+        # with nodes which do not include nodes from its conditions or elements. It uses
+        # some random nodes. Hence sub_model_part output is disabled.
         super().setUpClass("3D", SetupModelPart3D, output_sub_model_parts = False)
 
 if __name__ == "__main__":

@@ -932,10 +932,10 @@ VtuOutput::VtuOutput(
 {
     if (OutputSubModelParts) {
         // Collect all model part data recursively.
-        AddUnstructuredGridDataRecursively(mListOfUnstructuredGridData, rModelPart, mEchoLevel);
+        AddUnstructuredGridDataRecursively(mUnstructuredGridDataList, rModelPart, mEchoLevel);
     } else {
         // Only collect the data from the Passed model part
-        AddUnstructuredGridData(mListOfUnstructuredGridData, rModelPart, mEchoLevel);
+        AddUnstructuredGridData(mUnstructuredGridDataList, rModelPart, mEchoLevel);
     }
 }
 
@@ -951,7 +951,7 @@ void VtuOutput::AddFlag(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mStepInfo.empty())
+    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
         << "Flags can be added only before the first call to the PrintOutput [ flag name = "
         << rFlagName << " ].\n";
 
@@ -962,7 +962,7 @@ void VtuOutput::AddFlag(
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
             CheckDataArrayName(rFlagName, {DataLocation}, mFlags, mVariables);
-            CheckDataArrayName(rFlagName, DataLocation, mListOfUnstructuredGridData);
+            CheckDataArrayName(rFlagName, DataLocation, mUnstructuredGridDataList);
             mFlags[DataLocation][rFlagName] = &rFlagVariable;
             break;
         default:
@@ -979,7 +979,7 @@ void VtuOutput::AddVariable(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mStepInfo.empty())
+    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
         << "Variables can be added only before the first call to the PrintOutput [ variable name = "
         << GetName(pVariable) << " ].\n";
 
@@ -993,7 +993,7 @@ void VtuOutput::AddVariable(
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
             CheckDataArrayName(GetName(pVariable), {DataLocation}, mFlags, mVariables);
-            CheckDataArrayName(GetName(pVariable), DataLocation, mListOfUnstructuredGridData);
+            CheckDataArrayName(GetName(pVariable), DataLocation, mUnstructuredGridDataList);
             mVariables[DataLocation][GetName(pVariable)] = pVariable;
             break;
         default:
@@ -1010,7 +1010,7 @@ void VtuOutput::AddIntegrationPointVariable(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mStepInfo.empty())
+    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
         << "Integration point variables can be added only before the first call to the PrintOutput [ integration point variable name = "
         << GetName(pVariable) << " ].\n";
 
@@ -1034,13 +1034,13 @@ void VtuOutput::AddContainerExpression(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mStepInfo.empty())
+    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
         << "Expressions can be added only before the first call to the PrintOutput [ expression name = "
         << rExpressionName << " ].\n";
 
     std::visit([this, &rExpressionName](auto p_container_expression) {
 
-        [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(p_container_expression->GetContainer(), this->mListOfUnstructuredGridData);
+        [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(p_container_expression->GetContainer(), this->mUnstructuredGridDataList);
 
         switch (mesh_type) {
             case UnstructuredGridMeshType::Conditions:
@@ -1086,7 +1086,7 @@ void VtuOutput::AddTensorAdaptor(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mStepInfo.empty())
+    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
         << "TensorAdaptors can be added only before the first call to the PrintOutput [ tensor adaptor name = "
         << rTensorAdaptorName << " ].\n";
 
@@ -1104,7 +1104,7 @@ void VtuOutput::AddTensorAdaptor(
         if (shape[0] == 0) std::copy(max_data_shape.begin(), max_data_shape.end(), shape.begin() + 1);
 
         std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &ta_span, &shape](auto pContainer){
-            [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mListOfUnstructuredGridData);
+            [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mUnstructuredGridDataList);
 
             switch (mesh_type) {
                 case UnstructuredGridMeshType::Conditions:
@@ -1152,7 +1152,7 @@ void VtuOutput::UpdateContainerExpression(
     KRATOS_TRY
 
     std::visit([this, &rExpressionName](auto p_container_expression) {
-        [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(p_container_expression->GetContainer(), this->mListOfUnstructuredGridData);
+        [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(p_container_expression->GetContainer(), this->mUnstructuredGridDataList);
 
         switch (mesh_type) {
             case UnstructuredGridMeshType::Conditions:
@@ -1204,7 +1204,7 @@ void VtuOutput::UpdateTensorAdaptor(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mStepInfo.empty())
+    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
         << "TensorAdaptors can be added only before the first call to the PrintOutput [ tensor adaptor name = "
         << rTensorAdaptorName << " ].\n";
 
@@ -1222,7 +1222,7 @@ void VtuOutput::UpdateTensorAdaptor(
         if (shape[0] == 0) std::copy(max_data_shape.begin(), max_data_shape.end(), shape.begin() + 1);
 
         std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &ta_span, &shape](auto pContainer){
-            [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mListOfUnstructuredGridData);
+            [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mUnstructuredGridDataList);
 
             switch (mesh_type) {
                 case UnstructuredGridMeshType::Conditions:
@@ -1362,7 +1362,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     const std::string pvd_data_set_name = rUnstructuredGridData.mpModelPart->FullName() + suffix;
 
     // append with the step value and rank and extension
-    output_vtu_file_name << suffix << "_" << mrModelPart.GetProcessInfo()[STEP]
+    output_vtu_file_name << suffix << "_" << mTimeStepList.size() - 1
                          << (r_data_communicator.IsDistributed()
                                  ? "_" + std::to_string(r_data_communicator.Rank())
                                  : "")
@@ -1539,7 +1539,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
         output_vtu_file_name
             << rOutputFileNamePrefix << "/" << rUnstructuredGridData.mpModelPart->FullName() << "_"
             << GetEntityName(rUnstructuredGridData.mpCells)
-            << "_gauss_" << mrModelPart.GetProcessInfo()[STEP]
+            << "_gauss_" << mTimeStepList.size() - 1
             << (r_data_communicator.IsDistributed()
                     ? "_" + std::to_string(r_data_communicator.Rank())
                     : "")
@@ -1572,22 +1572,19 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
 
     const auto& r_process_info = mrModelPart.GetProcessInfo();
 
-    // check if the step and time variables are there. These
-    // are must for the *.pvd file and step file writing.
-    KRATOS_ERROR_IF_NOT(r_process_info.Has(STEP))
-        << "STEP variable is not found in the process info of " << mrModelPart.FullName() << ".\n";
-
+    // check if the time variables is there. It
+    // must exist for the *.pvd file and time step file writing.
     KRATOS_ERROR_IF_NOT(r_process_info.Has(TIME))
         << "TIME variable is not found in the process info of " << mrModelPart.FullName() << ".\n";
 
-    // Add the step info.
-    mStepInfo.push_back(std::make_pair(r_process_info[STEP], r_process_info[TIME]));
+    // Add the time step info.
+    mTimeStepList.push_back(r_process_info[TIME]);
 
     std::filesystem::create_directories(rOutputFileNamePrefix);
 
     std::vector<std::pair<std::string, std::string>> pvd_file_name_info;
 
-    for (auto& r_model_part_data : mListOfUnstructuredGridData) {
+    for (auto& r_model_part_data : mUnstructuredGridDataList) {
         switch (mOutputFormat) {
             case ASCII:
             {
@@ -1648,7 +1645,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
 
         // now iterate through all the time steps and correctly write
         // the file names for each time step.
-        for (auto& [current_step, current_time] : mStepInfo) {
+        for (IndexType step = 0; step < mTimeStepList.size(); ++step) {
             IndexType local_index = 0;
             for (IndexType i = 0; i < pvd_file_name_info.size(); ++i) {
                 if (pvd_file_name_info[i].second != "") {
@@ -1656,7 +1653,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
 
                     // write the time with the specified precision.
                     std::stringstream str_time;
-                    str_time << std::scientific << std::setprecision(mPrecision) << current_time;
+                    str_time << std::scientific << std::setprecision(mPrecision) << mTimeStepList[step];
 
                     // linking file name. This file name is the vtu file name of
                     // the current step. We need to adjust the filename accordingly
@@ -1665,7 +1662,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
                     // remove the appended step.
                     const auto vtu_file_name = pvd_file_name_info[i].second;
                     auto current_vtu_file_name = vtu_file_name.substr(0, vtu_file_name.rfind("_"));
-                    current_vtu_file_name += "_" + std::to_string(current_step);
+                    current_vtu_file_name += "_" + std::to_string(step);
                     // now we need to add back the correct extension
                     current_vtu_file_name += vtu_file_name.substr(vtu_file_name.rfind("."));
 
@@ -1723,7 +1720,7 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
     rOStream << "\n";
 
     rOStream << "List of model part info:";
-    for (const auto& r_model_part_data : mListOfUnstructuredGridData) {
+    for (const auto& r_model_part_data : mUnstructuredGridDataList) {
         rOStream << "\n\tModel part: \"" << r_model_part_data.mpModelPart->FullName() << "\""
                  << " with " << GetEntityName(r_model_part_data.mpCells) << "s"
                  << ", used for point fields = " << (r_model_part_data.UsePointsForDataFieldOutput ? "yes" : "no");

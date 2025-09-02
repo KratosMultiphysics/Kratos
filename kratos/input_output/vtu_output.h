@@ -215,9 +215,9 @@ private:
 
     DataMap<SupportedVariablePointerType> mIntegrationPointVariables;
 
-    std::vector<UnstructuredGridData> mListOfUnstructuredGridData;
+    std::vector<UnstructuredGridData> mUnstructuredGridDataList;
 
-    std::vector<std::pair<IndexType, double>> mStepInfo;
+    std::vector<double> mTimeStepList;
 
     ///@}
     ///@name Private operations
