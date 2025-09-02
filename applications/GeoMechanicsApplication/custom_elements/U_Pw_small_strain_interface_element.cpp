@@ -90,7 +90,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     // Check constitutive law
     ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
 
-    ConstitutiveLawUtilities::CheckStrainMeasures(r_properties, this->Id());
+    ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(r_properties, this->Id());
 
     const auto expected_size = (TDim == 2 ? std::vector<std::size_t>{2} : std::vector<std::size_t>{3});
     ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, TDim, this->Id());

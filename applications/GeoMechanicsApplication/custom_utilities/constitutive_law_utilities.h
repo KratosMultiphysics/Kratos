@@ -52,7 +52,7 @@ public:
                                 std::size_t                     Dim,
                                 std::size_t                     ElementId);
 
-    static void CheckStrainMeasures(const Properties& rProperties, std::size_t ElementId);
+    static void CheckAvailabilityOfStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
 
 }; /* Class ConstitutiveLawUtilities*/
 

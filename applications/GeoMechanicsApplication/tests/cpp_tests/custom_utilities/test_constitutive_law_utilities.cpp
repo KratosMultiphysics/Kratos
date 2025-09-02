@@ -177,9 +177,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGe
 
     // Act and Assert
     constexpr std::size_t element_id = 1;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::CheckStrainMeasures(properties, element_id), " Constitutive law is not compatible with the element type StrainMeasure_Infinitesimal at element 1.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(properties, element_id), " Constitutive law is not compatible with the element type StrainMeasure_Infinitesimal at element 1.");
 
-    EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckStrainMeasures(properties, element_id));
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(properties, element_id));
 }
 
 } // namespace Kratos::Testing

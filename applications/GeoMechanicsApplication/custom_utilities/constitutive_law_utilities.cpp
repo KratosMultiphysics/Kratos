@@ -130,7 +130,8 @@ void ConstitutiveLawUtilities::CheckStrainSize(const Properties&               r
     }
 }
 
-void ConstitutiveLawUtilities::CheckStrainMeasures(const Properties& rProperties, std::size_t ElementId)
+void ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(const Properties& rProperties,
+                                                                              std::size_t ElementId)
 {
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
