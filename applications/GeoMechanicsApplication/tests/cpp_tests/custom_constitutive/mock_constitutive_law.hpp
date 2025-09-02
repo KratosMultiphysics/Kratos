@@ -28,12 +28,16 @@ public:
 
     [[nodiscard]] SizeType GetStrainSize() const override { return 4; }
 
+    void AddStrainMeasure_Infinitesimal(bool Add_StrainMeasure_Infinitesimal)
+    {
+        mAdd_StrainMeasure_Infinitesimal = Add_StrainMeasure_Infinitesimal;
+    }
+
     void GetLawFeatures(Features& rFeatures) override
     {
-        mNumberOfCalls++;
-        if (mNumberOfCalls == 2) rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-        if (mNumberOfCalls == 1)
-            rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+        if (mAdd_StrainMeasure_Infinitesimal)
+            rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
+        rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
     }
 
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override
@@ -68,6 +72,6 @@ public:
 
 private:
     Vector mStateVariables;
-    int    mNumberOfCalls = 0;
+    bool   mAdd_StrainMeasure_Infinitesimal = false;
 };
 } // namespace Kratos::Testing
