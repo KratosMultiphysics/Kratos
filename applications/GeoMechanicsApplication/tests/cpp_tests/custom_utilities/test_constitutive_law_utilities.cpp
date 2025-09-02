@@ -25,6 +25,17 @@ class StubConstitutiveLaw2 : public ConstitutiveLaw
 {
 public:
     [[nodiscard]] SizeType GetStrainSize() const override { return 4; }
+
+    void GetLawFeatures(Features& rFeatures) override
+    {
+        mNumberOfCalls++;
+        if (mNumberOfCalls == 2) rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
+        if (mNumberOfCalls == 1)
+            rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+    }
+
+private:
+    int mNumberOfCalls = 0;
 };
 } // namespace
 
@@ -148,14 +159,28 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMec
 
     // Act and Assert
     std::vector<std::size_t> expected_sizes{2, 3};
-    constexpr std::size_t          dimension   = 2;
-    constexpr std::size_t          element_id  = 1;
+    constexpr std::size_t    dimension  = 2;
+    constexpr std::size_t    element_id = 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ConstitutiveLawUtilities::CheckStrainSize(properties, expected_sizes, dimension, element_id), "Wrong constitutive law used. This is a 2D element! Expected strain size is 2 3  (element Id = 1).");
 
     expected_sizes.push_back(properties[CONSTITUTIVE_LAW]->GetStrainSize());
-    EXPECT_NO_THROW(
-        ConstitutiveLawUtilities::CheckStrainSize(properties, expected_sizes, dimension, element_id));
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckStrainSize(properties, expected_sizes, dimension, element_id));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto                     properties       = Properties{};
+    ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<StubConstitutiveLaw2>();
+    properties.GetValue(CONSTITUTIVE_LAW)     = constitutive_law;
+
+    // Act and Assert
+    constexpr std::size_t element_id = 1;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::CheckStrainMeasures(properties, element_id), 
+        " Constitutive law is not compatible with the element type StrainMeasure_Infinitesimal at element 1.");
+
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckStrainMeasures(properties, element_id));
 }
 
 } // namespace Kratos::Testing
