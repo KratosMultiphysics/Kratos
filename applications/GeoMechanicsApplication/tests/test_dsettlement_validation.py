@@ -103,6 +103,18 @@ def get_data_points_from(file_path):
     return result
 
 
+def get_nodal_vertical_stress_component_at_time(stress_item_name, time_in_seconds, output_data, node_ids=None):
+    stress_vectors_by_node_id = test_helper.GiDOutputFileReader.nodal_values_at_time2(stress_item_name, time_in_seconds, output_data, node_ids=node_ids)
+    # Invert the sign of the vertical stress component such that compression becomes positive. Also convert Pa to kPa.
+    return [-1.0 * (stress_vectors_by_node_id[node_id][1] / 1000.0) for node_id in node_ids]
+
+
+def get_nodal_water_pressures_at_time(time_in_seconds, output_data, node_ids=None):
+    water_pressures_by_node_id = test_helper.GiDOutputFileReader.nodal_values_at_time2("WATER_PRESSURE", time_in_seconds, output_data, node_ids=node_ids)
+    # Invert the sign of the water pressure such that compression becomes positive. Also convert Pa to kPa.
+    return [-1.0 * (water_pressures_by_node_id[node_id] / 1000.0) for node_id in node_ids]
+
+
 def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figure_filename):
     data_points_by_node = {node_id : [] for node_id in node_ids}
     for output_data in stage_outputs:
@@ -327,12 +339,10 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         total_displacement_by_node_id_map = reader.nodal_values_at_time2("TOTAL_DISPLACEMENT", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         ys = [y + total_displacement_by_node_id_map[node_id][1] for y, node_id in zip(ys, left_side_corner_node_ids)]
 
-        node_id_to_water_pressure_map = reader.nodal_values_at_time2("WATER_PRESSURE", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
-        water_pressures = [-1.0 * (node_id_to_water_pressure_map[node_id] / 1000.0) for node_id in left_side_corner_node_ids]
+        water_pressures = get_nodal_water_pressures_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         graph_series.append(PlotDataSeries(water_pressures, ys, 'P_w [Kratos]', linestyle=':', marker='+'))
 
-        node_id_to_effective_stress_map = reader.nodal_values_at_time2("CAUCHY_STRESS_TENSOR", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
-        effective_vertical_stresses = [-1.0 * (node_id_to_effective_stress_map[node_id][1] / 1000.0) for node_id in left_side_corner_node_ids]
+        effective_vertical_stresses = get_nodal_vertical_stress_component_at_time("CAUCHY_STRESS_TENSOR", time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
         graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
 
         make_stress_plot(graph_series, project_path / "test_case_3_stress_plot_after_10000_days.svg")
