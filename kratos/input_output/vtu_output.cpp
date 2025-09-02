@@ -1567,13 +1567,13 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
 
         if (r_data_communicator.IsDistributed()) {
             return std::make_pair(
-                rUnstructuredGridData.mpModelPart->FullName() + "_gauss",
+                rUnstructuredGridData.mpModelPart->FullName() + "_" + GetEntityName(rUnstructuredGridData.mpCells) + "_gauss",
                 WritePartitionedUnstructuredGridData(
                     *point_data_element, *Kratos::make_shared<XmlElementsArray>(""),
                     output_vtu_file_name.str(), r_data_communicator));
         }
 
-        return std::make_pair(rUnstructuredGridData.mpModelPart->FullName() + "_gauss",
+        return std::make_pair(rUnstructuredGridData.mpModelPart->FullName() + "_" + GetEntityName(rUnstructuredGridData.mpCells) + "_gauss",
                               output_vtu_file_name.str());
     }
     else {
