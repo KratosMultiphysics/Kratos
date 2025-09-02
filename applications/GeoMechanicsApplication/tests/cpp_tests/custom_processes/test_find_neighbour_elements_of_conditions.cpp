@@ -253,4 +253,35 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                          ::testing::Values(std::vector<std::size_t>{1, 2, 9},
                                            std::vector<std::size_t>{7, 8, 19}));
 
+class ParametrizedFindNeighbourElementsOfConditionsThrowsWhenNotFound
+    : public ::testing::TestWithParam<std::vector<std::size_t>>
+{
+};
+
+TEST_P(ParametrizedFindNeighbourElementsOfConditionsThrowsWhenNotFound, ProcessThrowsWhenNoNeighboringElementsAreFound)
+{
+    Model model;
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
+
+    PointerVector<Node> nodes;
+    const auto&         order = GetParam();
+    for (const auto& r_node_id : order) {
+        nodes.push_back(r_model_part.pGetNode(r_node_id));
+    }
+
+    auto p_condition = ElementSetupUtilities::Create3D3NCondition(nodes);
+    r_model_part.AddCondition(p_condition);
+
+    FindNeighbourElementsOfConditionsProcess process(r_model_part);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Execute(),
+                                      "Some conditions found without any corresponding element");
+}
+
+INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
+                         ParametrizedFindNeighbourElementsOfConditionsThrowsWhenNotFound,
+                         ::testing::Values(std::vector<std::size_t>{1, 2, 3},
+                                           std::vector<std::size_t>{4, 2, 1},
+                                           std::vector<std::size_t>{1, 3, 4}));
+
 } // namespace Kratos::Testing
