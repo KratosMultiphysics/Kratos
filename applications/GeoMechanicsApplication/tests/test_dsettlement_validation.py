@@ -347,14 +347,14 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
             make_settlement_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_3_settlement_plot.svg")
 
-            # Make stress plot immediately after applying the surface load
-            time_in_seconds = days_to_seconds(100.1) + 1.0
+            # Make a stress plot at the start of the fifth stage
             ref_data = StressPlotDataFilePaths()
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100.1_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100.1_days.txt"
+            time_in_seconds = days_to_seconds(100.1) + 1.0
             make_stress_over_depth_plot(output_stage_5, time_in_seconds, project_path / "stage5.post.msh", left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
 
-            # Make stress plot when consolidation is supposed to be finished
+            # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_10000_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_10000_days.txt"
             make_stress_over_depth_plot(output_stage_5, days_to_seconds(10000), project_path / "stage5.post.msh", left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_10000_days.svg")
