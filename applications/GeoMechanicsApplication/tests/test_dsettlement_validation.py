@@ -140,6 +140,35 @@ def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figur
     plot_settlement_results(graph_series, figure_filename)
 
 
+class StressPlotDataFilePaths:
+    def __init__(self):
+        self.path_to_water_pressure_data = None
+        self.path_to_vertical_effective_stress_data = None
+
+
+def make_stress_over_depth_plot(output_data, time_in_sec, post_msh_file_path, node_ids_over_depth, ref_data, plot_file_path):
+    graph_series = []
+
+    # Extract reference data points from files
+    data_points = get_data_points_from(ref_data.path_to_water_pressure_data)
+    graph_series.append(make_water_pressure_plot_data(data_points, 'ref P_w', marker='+'))
+
+    data_points = get_data_points_from(ref_data.path_to_vertical_effective_stress_data)
+    graph_series.append(make_water_pressure_plot_data(data_points, 'ref sigma_yy;eff', marker='+'))
+
+    # Extract data points from the Kratos analysis results
+    coordinates = test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=node_ids_over_depth)
+    y_coordinates = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
+
+    water_pressures = get_nodal_water_pressures_at_time(time_in_sec, output_data, node_ids=node_ids_over_depth)
+    graph_series.append(PlotDataSeries(water_pressures, y_coordinates, 'P_w [Kratos]', linestyle=':', marker='+'))
+
+    effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_data, node_ids=node_ids_over_depth)
+    graph_series.append(PlotDataSeries(effective_vertical_stresses, y_coordinates, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
+
+    make_stress_plot(graph_series, plot_file_path)
+
+
 class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
     def test_settlement_dry_column(self):
         """
@@ -340,29 +369,14 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         make_stress_plot(graph_series, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
 
-        time_in_sec = days_to_seconds(10000)
-        reference_points = get_data_points_from(project_path / "ref_water_pressures_after_10000_days.txt")
-
-        graph_series = []
-        graph_series.append(make_water_pressure_plot_data(reference_points, 'ref P_w', marker='+'))
-
-        reference_points = get_data_points_from(project_path / "ref_effective_vertical_stresses_after_10000_days.txt")
-
-        graph_series.append(make_water_pressure_plot_data(reference_points, 'ref sigma_yy;eff', marker='+'))
-
-        coordinates = test_helper.read_coordinates_from_post_msh_file(project_path / "stage5.post.msh", node_ids=left_side_corner_node_ids)
-        ys = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
-
-        water_pressures = get_nodal_water_pressures_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
-        graph_series.append(PlotDataSeries(water_pressures, ys, 'P_w [Kratos]', linestyle=':', marker='+'))
-
-        effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_stage_5, node_ids=left_side_corner_node_ids)
-        graph_series.append(PlotDataSeries(effective_vertical_stresses, ys, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
-
-        make_stress_plot(graph_series, project_path / "test_case_3_stress_plot_after_10000_days.svg")
-
         if test_helper.want_test_plots():
             make_settlement_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_3_settlement_plot.svg")
+
+            # Make stress plot at time = 10,000 days
+            ref_data = StressPlotDataFilePaths()
+            ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_10000_days.txt"
+            ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_10000_days.txt"
+            make_stress_over_depth_plot(output_stage_5, days_to_seconds(10000), project_path / "stage5.post.msh", left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_10000_days.svg")
 
       
 if __name__ == "__main__":
