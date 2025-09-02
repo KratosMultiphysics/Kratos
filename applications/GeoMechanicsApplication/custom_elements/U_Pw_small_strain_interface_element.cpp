@@ -149,8 +149,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(con
 {
     KRATOS_TRY
 
-    // Defining necessary variables
-    const PropertiesType& r_properties = this->GetProperties();
     const GeometryType&   r_geometry   = this->GetGeometry();
     const Matrix&         NContainer   = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
     array_1d<double, TNumNodes * TDim> DisplacementVector;
@@ -168,7 +166,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(con
     Matrix GradNpT(TNumNodes, TDim);
     Matrix F    = identity_matrix<double>(TDim);
     double detF = 1.0;
-    ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, r_properties, rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, this->GetProperties(), rCurrentProcessInfo);
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
     ConstitutiveParameters.SetStrainVector(StrainVector);
     ConstitutiveParameters.SetShapeFunctionsValues(Np);
@@ -179,7 +177,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(con
 
     // Auxiliary output variables
     unsigned int        NumGPoints = mConstitutiveLawVector.size();
-    std::vector<double> JointWidthContainer(NumGPoints);
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -203,7 +200,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
 {
     KRATOS_TRY
 
-    // Defining necessary variables
     const PropertiesType& r_properties = this->GetProperties();
     const GeometryType&   r_geometry   = this->GetGeometry();
     const Matrix&         NContainer   = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
