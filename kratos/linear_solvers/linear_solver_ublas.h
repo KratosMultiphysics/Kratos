@@ -5,7 +5,7 @@
 namespace Kratos {
 
 
-    KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) LinearSolver<
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) LinearSolver<
     TUblasSparseSpace<double>,
     TUblasDenseSpace<double>
 >;
