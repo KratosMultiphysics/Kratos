@@ -23,6 +23,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     KRATOS_TRY
 
+    if (mrModelPart.Conditions().empty()) return;
+
     // Next check that the conditions are oriented accordingly
     // to do so begin by putting all of the conditions in a map
     hashmap FacesMap;
@@ -37,10 +39,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
         // adds to the map
         FacesMap.insert(hashmap::value_type(Ids, std::vector<Condition::Pointer>({*itCond.base()})));
-
     }
-    if (FacesMap.empty()) return;
-    
+
     hashmap FacesMapSorted;
     std::ranges::transform(FacesMap, std::inserter(FacesMapSorted, FacesMapSorted.end()),
                            [](const auto& rPair) {
