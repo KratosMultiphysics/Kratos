@@ -297,8 +297,11 @@ public:
 
     using ConstitutiveLaw::SetValue;
     void SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
-
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
+
+    using ConstitutiveLaw::Has;
+    bool Has(const Variable<Vector>& rThisVariable) override;
+
 
     ///@}
     ///@name Inquiry

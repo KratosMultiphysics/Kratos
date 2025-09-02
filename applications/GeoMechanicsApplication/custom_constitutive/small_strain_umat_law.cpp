@@ -776,6 +776,12 @@ void SmallStrainUMATLaw<TVoigtSize>::SetValue(const Variable<Vector>& rVariable,
     }
 }
 
+template <SizeType TVoigtSize>
+bool SmallStrainUMATLaw<TVoigtSize>::Has(const Variable<Vector>& rThisVariable)
+{
+    return rThisVariable == STATE_VARIABLES || rThisVariable == CAUCHY_STRESS_VECTOR;
+}
+
 template class SmallStrainUMATLaw<VOIGT_SIZE_3D>;
 template class SmallStrainUMATLaw<VOIGT_SIZE_2D_INTERFACE>;
 template class SmallStrainUMATLaw<VOIGT_SIZE_3D_INTERFACE>;
