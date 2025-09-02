@@ -3,7 +3,7 @@
 ## Introduction
 
 The `Scheme` class in Kratos is used to create time integration schemes. It is a base class, for which Geomechanics
-has implemented a number of flavors, subdivided in the Backward Euler and the Generalized Newmark families.
+has implemented a number of flavors, subdivided in Static, the Backward Euler and the Generalized Newmark families.
 
 ## Code Structure
 
@@ -38,10 +38,16 @@ The exceptions are the `NewmarkQuasistaticUPwScheme`, which has functionality fo
 to another location) and the damped and dynamic UPw schemes. More info on these can be found in
 the [Dynamic and damped schemes](#dynamic-and-damped-schemes) section.
 
+## Static
+
+The simplest scheme is the static scheme, which does not update any time derivatives. It can be found in the
+`GeoMechanicsStaticScheme` class. This scheme is derived from the `GeoMechanicsTimeIntegrationScheme` class, such that 
+activation and deactivation of elements, conditions and nodes is handled properly.
+
 ## Backward Euler
 
-The most straight-forward scheme type is called Backward Euler. The functionality described in this section can be found
-in the `BackwardEulerScheme` class. The first and second time derivatives are simply calculated by dividing the
+A relatively straight-forward scheme type is called Backward Euler. The functionality described in this section can be 
+found in the `BackwardEulerScheme` class. The first and second time derivatives are simply calculated by dividing the
 difference in their integrated variables by the time step. This results in the following equations for the scalar and
 vector derivatives.
 

@@ -31,111 +31,17 @@
 namespace Kratos {
 
 template<class TDataType>
-TensorAdaptor<TDataType>::Storage::Storage(
+TensorAdaptor<TDataType>::TensorAdaptor(
     ContainerPointerType pContainer,
-    const DenseVector<unsigned int>& rShape)
-    : mpContainer(pContainer),
-      mShape(rShape)
+    typename NDData<TDataType>::Pointer pData,
+    const bool Copy)
 {
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF(mShape.empty())
-        << "The tensor data shape cannot be empty. It requires at least one dimension representing the number of items in the container [ tensor data = "
-        << this->Info() << " ].\n";
-
-    std::visit([this](auto pContainer){
-        KRATOS_ERROR_IF_NOT(mShape[0] == pContainer->size())
-            << "The value of the first dimension should be equal to the number of items in the pContainer [ container size = "
-            << pContainer->size() << ", tensor data = " << this->Info() << " ].\n";
-    }, mpContainer);
-
-    // allocate new memory
-    mpData = new TDataType[this->Size()];
-
-    KRATOS_CATCH("");
-}
-
-template<class TDataType>
-TensorAdaptor<TDataType>::Storage::~Storage()
-{
-    if (mpData) {
-        delete[] mpData;
+    if (!Copy) {
+        this->mpStorage = pData;
+    } else {
+        this->mpStorage = Kratos::make_shared<NDData<TDataType>>(pData->ViewData().data(), pData->Shape(), Copy);
     }
-}
-
-template<class TDataType>
-typename TensorAdaptor<TDataType>::Storage::Pointer TensorAdaptor<TDataType>::Storage::Copy() const
-{
-    auto p_tensor_data = Kratos::make_intrusive<Storage>(this->GetContainer(), this->Shape());
-    const auto& destination_span = p_tensor_data->ViewData();
-    const auto& origin_span = this->ViewData();
-
-    IndexPartition<IndexType>(destination_span.size()).for_each([&destination_span, &origin_span](const auto Index) {
-        destination_span[Index] = origin_span[Index];
-    });
-
-    return p_tensor_data;
-}
-
-template<class TDataType>
-Kratos::span<TDataType> TensorAdaptor<TDataType>::Storage::MoveData()
-{
-    KRATOS_ERROR_IF_NOT(mpData) << "The data is already moved [ " << this->Info() << " ].\n";
-    auto p_data = mpData;
-    mpData = nullptr;
-    return Kratos::span<TDataType>(p_data, p_data + this->Size());
-}
-
-template<class TDataType>
-Kratos::span<const TDataType>  TensorAdaptor<TDataType>::Storage::ViewData() const
-{
-    KRATOS_ERROR_IF_NOT(mpData) << "The data is already moved [ " << this->Info() << " ].\n";
-    return Kratos::span<const TDataType>(mpData, mpData + this->Size());
-}
-
-template<class TDataType>
-Kratos::span<TDataType> TensorAdaptor<TDataType>::Storage::ViewData()
-{
-    KRATOS_ERROR_IF_NOT(mpData) << "The data is already moved [ " << this->Info() << " ].\n";
-    return Kratos::span<TDataType>(mpData, mpData + this->Size());
-}
-
-template<class TDataType>
-DenseVector<unsigned int> TensorAdaptor<TDataType>::Storage::Shape() const
-{
-    return mShape;
-};
-
-template<class TDataType>
-DenseVector<unsigned int> TensorAdaptor<TDataType>::Storage::DataShape() const
-{
-    const auto& shape = this->Shape();
-    DenseVector<unsigned int> data_shape(shape.size() - 1);
-    std::copy(shape.begin() + 1, shape.end(), data_shape.begin());
-    return data_shape;
-}
-
-template<class TDataType>
-unsigned int TensorAdaptor<TDataType>::Storage::Size() const
-{
-    return std::accumulate(mShape.data().begin(), mShape.data().end(), 1u, std::multiplies<unsigned int>{});
-}
-
-template<class TDataType>
-typename TensorAdaptor<TDataType>::Storage::ContainerPointerType TensorAdaptor<TDataType>::Storage::GetContainer() const
-{
-    return mpContainer;
-}
-
-template<class TDataType>
-std::string TensorAdaptor<TDataType>::Storage::Info() const
-{
-    std::stringstream info;
-    std::visit([&info, this](auto pContainer) {
-        using container_type = std::remove_cv_t<std::decay_t<decltype(*pContainer)>>;
-        info << "Storage with " << pContainer->size() << " " << ModelPart::Container<container_type>::GetEntityName() << "(s) with shape = " << this->Shape();
-    }, mpContainer);
-    return info.str();
+    this->mpContainer = pContainer;
 }
 
 template<class TDataType>
@@ -143,21 +49,12 @@ TensorAdaptor<TDataType>::TensorAdaptor(
     const TensorAdaptor& rOther,
     const bool Copy)
 {
-    KRATOS_TRY
-
     if (!Copy) {
         this->mpStorage = rOther.mpStorage;
     } else {
-        this->mpStorage = Kratos::make_intrusive<Storage>(rOther.GetContainer(), rOther.Shape());
-
-        const auto& r_current_span = this->ViewData();
-        const auto& r_origin_span = rOther.ViewData();
-        IndexPartition<IndexType>(rOther.Size()).for_each([&r_current_span, &r_origin_span](const auto Index) {
-            r_current_span[Index] = r_origin_span[Index];
-        });
+        this->mpStorage = Kratos::make_shared<NDData<TDataType>>(rOther.ViewData().data(), rOther.Shape());
     }
-
-    KRATOS_CATCH("");
+    this->mpContainer = rOther.mpContainer;
 }
 
 template<class TDataType>
@@ -188,15 +85,25 @@ void TensorAdaptor<TDataType>::StoreData()
 }
 
 template<class TDataType>
-typename TensorAdaptor<TDataType>::Storage::ContainerPointerType TensorAdaptor<TDataType>::GetContainer() const
+typename TensorAdaptor<TDataType>::ContainerPointerType TensorAdaptor<TDataType>::GetContainer() const
 {
-    return mpStorage->GetContainer();
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(mpContainer.has_value())
+        << "Tensor adaptor is created without a container [ tensor adaptor = " << this->Info() << " ].\n";
+    return mpContainer.value();
+
+    KRATOS_CATCH("");
 }
 
 template<class TDataType>
-Kratos::span<TDataType> TensorAdaptor<TDataType>::MoveData()
+bool TensorAdaptor<TDataType>::HasContainer() const
 {
-    return mpStorage->MoveData();
+    KRATOS_TRY
+
+    return mpContainer.has_value();
+
+    KRATOS_CATCH("");
 }
 
 template<class TDataType>
@@ -221,7 +128,10 @@ DenseVector<unsigned int> TensorAdaptor<TDataType>::Shape() const
 template<class TDataType>
 DenseVector<unsigned int> TensorAdaptor<TDataType>::DataShape() const
 {
-    return mpStorage->DataShape();
+    const auto& r_shape = this->Shape();
+    DenseVector<unsigned int> data_shape(r_shape.size() - 1);
+    std::copy(r_shape.begin() + 1, r_shape.end(), data_shape.begin());
+    return data_shape;
 }
 
 template<class TDataType>
@@ -231,9 +141,25 @@ unsigned int TensorAdaptor<TDataType>::Size() const
 }
 
 template<class TDataType>
+typename TensorAdaptor<TDataType>::Storage::Pointer TensorAdaptor<TDataType>::pGetStorage()
+{
+    return mpStorage;
+}
+
+template<class TDataType>
 std::string TensorAdaptor<TDataType>::Info() const
 {
-    return mpStorage->Info();
+    std::stringstream info;
+
+    if (mpContainer.has_value()) {
+        std::visit([&info, this](auto pContainer) {
+            using container_type = std::remove_cv_t<std::decay_t<decltype(*pContainer)>>;
+            info << "Storage with " << pContainer->size() << " " << ModelPart::Container<container_type>::GetEntityName() << "(s) with shape = " << this->Shape();
+        }, mpContainer.value());
+    } else {
+        info << "Storage with with shape = " << this->Shape();
+    }
+    return info.str();
 }
 
 // template instantiations

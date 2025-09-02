@@ -70,6 +70,7 @@
 #include "add_parallel_environment_to_python.h"
 #include "add_global_pointers_to_python.h"
 #include "add_dofs_to_python.h"
+#include "add_dof_utilities_to_python.h"
 #include "add_mapper_to_python.h"
 #include "add_sparse_matrices_to_python.h"
 #include "add_registry_to_python.h"
@@ -137,6 +138,7 @@ PYBIND11_MODULE(Kratos, m)
     AddAMGCLSolverToPython(m);
     AddStrategiesToPython(m);
     AddConvergenceAcceleratorsToPython(m);
+    AddDofUtilitiesToPython(m);
     AddGeometricalUtilitiesToPython(m);
     AddOtherUtilitiesToPython(m);
     AddVariableUtilsToPython(m);

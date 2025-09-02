@@ -237,8 +237,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.builder_and_solver = self._CreateBuilderAndSolver()
 
         # Solution scheme creation
-        self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
-                                            self.settings["solution_type"].GetString())
+        self.scheme = self._BaseConstructScheme()
 
         # Get the convergence criterion
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
@@ -456,6 +455,14 @@ class GeoMechanicalSolver(PythonSolver):
             return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
         return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
+
+    def _BaseConstructScheme(self):
+        if (self.settings["solution_type"].GetString().lower() == "static"):
+            return GeoMechanicsApplication.GeoStaticScheme()
+        else:
+            return self._ConstructScheme(self.settings["scheme_type"].GetString(),
+                                         self.settings["solution_type"].GetString())
+
 
     def _create_solving_strategy(self, builder_and_solver, strategy_type):
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.IS_CONVERGED, True)
