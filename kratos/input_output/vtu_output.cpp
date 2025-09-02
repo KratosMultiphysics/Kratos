@@ -850,6 +850,8 @@ NDData<double>::Pointer GetNDData(const Expression& rExpression)
 
 NDData<double>::Pointer GetNDData(const ContainerExpression<ModelPart::NodesContainerType>& rContainerExpression)
 {
+    KRATOS_TRY
+
     auto p_model_part = rContainerExpression.pGetModelPart();
     const auto& r_expression = rContainerExpression.GetExpression();
 
@@ -858,9 +860,6 @@ NDData<double>::Pointer GetNDData(const ContainerExpression<ModelPart::NodesCont
     shape[0] = p_model_part->Nodes().size();
     std::copy(data_shape.begin(), data_shape.end(), shape.begin() + 1);
 
-    auto p_nd_data = Kratos::make_shared<NDData<double>>(shape);
-    auto span = p_nd_data->ViewData();
-
     const auto number_of_data_components = rContainerExpression.GetItemComponentCount();
     auto& r_expression_container = rContainerExpression.GetContainer();
 
@@ -868,8 +867,7 @@ NDData<double>::Pointer GetNDData(const ContainerExpression<ModelPart::NodesCont
     // we need to synchronize the values so that ghost mesh nodes
     // will be correctly filled.
 
-    // first clear the TENSOR_ADAPTOR_SYNC.
-    VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, p_model_part->Nodes());
+    VariableUtils().SetNonHistoricalVariable(TENSOR_ADAPTOR_SYNC, Vector{number_of_data_components}, p_model_part->GetCommunicator().GhostMesh().Nodes());
 
     // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
     IndexPartition<IndexType>(rContainerExpression.GetContainer().size()).for_each(Vector{number_of_data_components}, [&r_expression_container, &r_expression, number_of_data_components](const auto Index, auto& rTLS) {
@@ -884,10 +882,10 @@ NDData<double>::Pointer GetNDData(const ContainerExpression<ModelPart::NodesCont
     // the p_nd_data is now correctly filled. Add it to the
     // map and then exit the for loop since, the given container expression
     // is already found.
-    p_model_part->GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
+    p_model_part->GetCommunicator().SynchronizeNonHistoricalVariable(TENSOR_ADAPTOR_SYNC);
     return GetNodalNDData<double>(p_model_part->Nodes(), data_shape);
 
-    return p_nd_data;
+    KRATOS_CATCH("");
 }
 
 template<class TDataType>
