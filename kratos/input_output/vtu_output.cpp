@@ -878,8 +878,7 @@ NDData<double>::Pointer GetNDData(const ContainerExpression<ModelPart::NodesCont
     // since expressions are created from local mesh nodes
     // we need to synchronize the values so that ghost mesh nodes
     // will be correctly filled.
-
-    VariableUtils().SetNonHistoricalVariable(TENSOR_ADAPTOR_SYNC, Vector{number_of_data_components}, p_model_part->GetCommunicator().GhostMesh().Nodes());
+    VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, p_model_part->GetCommunicator().GhostMesh().Nodes());
 
     // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
     IndexPartition<IndexType>(rContainerExpression.GetContainer().size()).for_each(Vector{number_of_data_components}, [&r_expression_container, &r_expression, number_of_data_components](const auto Index, auto& rTLS) {
@@ -914,7 +913,7 @@ typename NDData<TDataType>::Pointer GetNDData(
             const auto ta_span = rTensorAdaptor.ViewData();
 
             // first clear the TENSOR_ADAPTOR_SYNC.
-            VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, *pContainer);
+            VariableUtils().SetNonHistoricalVariableToZero(TENSOR_ADAPTOR_SYNC, rModelPart.GetCommunicator().GhostMesh().Nodes());
 
             // secondly fill in the local nodal values to the temporary variable TENSOR_ADAPTOR_SYNC
             IndexPartition<IndexType>(pContainer->size()).for_each(Vector{number_of_data_components}, [&pContainer, &ta_span, number_of_data_components](const auto Index, auto& rTLS) {
@@ -926,7 +925,7 @@ typename NDData<TDataType>::Pointer GetNDData(
             // the p_nd_data is now correctly filled. Add it to the
             // map and then exit the for loop since, the given container expression
             // is already found.
-            rModelPart.GetCommunicator().SynchronizeVariable(TENSOR_ADAPTOR_SYNC);
+            rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(TENSOR_ADAPTOR_SYNC);
             return GetNodalNDData<TDataType>(rModelPart.Nodes(), rMaxShape);
         } else {
             KRATOS_ERROR << "Unsupported container type.";
