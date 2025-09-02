@@ -466,7 +466,7 @@ void AddUnstructuredGridData(
     const IndexType EchoLevel)
 {
     const std::vector<char> entity_availability{rModelPart.NumberOfNodes() > 0, rModelPart.NumberOfConditions() > 0, rModelPart.NumberOfElements() > 0};
-    const auto& max_entity_availability = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(entity_availability);
+    const auto& max_entity_availability = rModelPart.GetRootModelPart().GetCommunicator().GetDataCommunicator().MaxAll(entity_availability);
     const bool has_nodes = max_entity_availability[0];
     const bool has_conditions = max_entity_availability[1];
     const bool has_elements   = max_entity_availability[2];
