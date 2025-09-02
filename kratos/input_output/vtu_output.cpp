@@ -926,7 +926,7 @@ typename NDData<TDataType>::Pointer GetNDData(
             // map and then exit the for loop since, the given container expression
             // is already found.
             rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(TENSOR_ADAPTOR_SYNC);
-            return GetNodalNDData<TDataType>(rModelPart.Nodes(), rMaxShape);
+            return GetNodalNDData<TDataType>(rModelPart.Nodes(), std::vector<unsigned int>{rMaxShape.begin() + 1, rMaxShape.end()});
         } else {
             KRATOS_ERROR << "Unsupported container type.";
             return Kratos::make_shared<NDData<TDataType>>(DenseVector<unsigned int>(0));
