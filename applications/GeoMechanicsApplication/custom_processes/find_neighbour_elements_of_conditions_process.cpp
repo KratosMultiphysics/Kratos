@@ -60,9 +60,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
             auto itFace = FacesMap.find(FaceIds);
             if (itFace == FacesMap.end() &&
-                (rGeometryElement.LocalSpaceDimension() == 3 ||
-                 (rGeometryElement.LocalSpaceDimension() == 2 &&
-                  dynamic_cast<const InterfaceElement*>(std::to_address(itElem))))) {
+                r_boundary_geometry.LocalSpaceDimension() == 2) {
                 // condition is not found but might be a problem of ordering in 3D geometries!
                 DenseVector<int> FaceIdsSorted = FaceIds;
                 std::ranges::sort(FaceIdsSorted);
