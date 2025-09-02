@@ -110,9 +110,7 @@ using f_UMATMod = void (*)(double*       STRESS,
 #endif
 
 template <SizeType TVoigtSize>
-SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw()
-{
-}
+SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw()=default;
 
 template <SizeType TVoigtSize>
 SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
@@ -205,7 +203,7 @@ int SmallStrainUMATLaw<TVoigtSize>::Check(const Properties&   rMaterialPropertie
                                           const ProcessInfo&  rCurrentProcessInfo) const
 {
     // Verify Properties variables
-    if (!rMaterialProperties.Has(UDSM_NAME) || rMaterialProperties[UDSM_NAME] == "")
+    if (!rMaterialProperties.Has(UDSM_NAME) || rMaterialProperties[UDSM_NAME].empty())
         KRATOS_ERROR << "UDSM_NAME has Key zero, is not defined for property"
                      << rMaterialProperties.Id() << std::endl;
 
@@ -323,7 +321,7 @@ bool SmallStrainUMATLaw<TVoigtSize>::loadUMAT(const Properties& rMaterialPropert
 }
 
 template <SizeType TVoigtSize>
-bool SmallStrainUMATLaw<TVoigtSize>::loadUMATLinux(const Properties& rMaterialProperties)
+bool SmallStrainUMATLaw<TVoigtSize>::loadUMATLinux(const Properties& rMaterialProperties) const
 {
 #ifdef KRATOS_COMPILED_IN_LINUX
     void* lib_handle;
@@ -770,9 +768,9 @@ void SmallStrainUMATLaw<TVoigtSize>::SetValue(const Variable<Vector>& rVariable,
                                               const ProcessInfo&      rCurrentProcessInfo)
 {
     if ((rVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
-        std::copy(rValue.begin(), rValue.end(), mStateVariablesFinalized.begin());
+        std::ranges::copy(rValue, mStateVariablesFinalized.begin());
     } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == TVoigtSize)) {
-        std::copy_n(rValue.begin(), TVoigtSize, mStressVectorFinalized.begin());
+        std::ranges::copy_n(rValue.begin(), TVoigtSize, mStressVectorFinalized.begin());
     }
 }
 

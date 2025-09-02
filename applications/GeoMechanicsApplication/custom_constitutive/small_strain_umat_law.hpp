@@ -403,7 +403,7 @@ private:
     // to load UMAT and functions
     bool loadUMAT(const Properties& rMaterialProperties);
     bool loadUMATWindows(const Properties& rMaterialProperties);
-    bool loadUMATLinux(const Properties& rMaterialProperties);
+    [[nodiscard]] bool loadUMATLinux(const Properties& rMaterialProperties) const;
 
     // Set number of MaterialParameters
     void CallUMAT(ConstitutiveLaw::Parameters& rValues);
