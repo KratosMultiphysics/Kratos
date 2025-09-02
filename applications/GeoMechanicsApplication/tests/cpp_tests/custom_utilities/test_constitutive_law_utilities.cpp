@@ -14,30 +14,11 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
-
-namespace
-{
-class StubConstitutiveLaw2 : public ConstitutiveLaw
-{
-public:
-    [[nodiscard]] SizeType GetStrainSize() const override { return 4; }
-
-    void GetLawFeatures(Features& rFeatures) override
-    {
-        mNumberOfCalls++;
-        if (mNumberOfCalls == 2) rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-        if (mNumberOfCalls == 1)
-            rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-    }
-
-private:
-    int mNumberOfCalls = 0;
-};
-} // namespace
 
 namespace Kratos::Testing
 {
@@ -154,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetStateVariableIndex, Kratos
 {
     // Arrange
     auto                     properties       = Properties{};
-    ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<StubConstitutiveLaw2>();
+    ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<MockConstitutiveLaw>();
     properties.GetValue(CONSTITUTIVE_LAW)     = constitutive_law;
 
     // Act and Assert
@@ -166,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMec
 {
     // Arrange
     auto                     properties       = Properties{};
-    ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<StubConstitutiveLaw2>();
+    ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<MockConstitutiveLaw>();
     properties.GetValue(CONSTITUTIVE_LAW)     = constitutive_law;
 
     // Act and Assert
@@ -184,7 +165,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGe
 {
     // Arrange
     auto                     properties       = Properties{};
-    ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<StubConstitutiveLaw2>();
+    ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<MockConstitutiveLaw>();
     properties.GetValue(CONSTITUTIVE_LAW)     = constitutive_law;
 
     // Act and Assert

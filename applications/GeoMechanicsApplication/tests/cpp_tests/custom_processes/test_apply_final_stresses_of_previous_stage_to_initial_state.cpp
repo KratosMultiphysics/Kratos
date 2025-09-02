@@ -23,6 +23,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -30,12 +31,6 @@ namespace
 {
 
 using namespace Kratos;
-
-class StubConstitutiveLaw : public ConstitutiveLaw
-{
-public:
-    [[nodiscard]] SizeType GetStrainSize() const override { return 4; }
-};
 
 class StubElementForResetDisplacementTest : public Element
 {
@@ -45,12 +40,14 @@ public:
     StubElementForResetDisplacementTest(IndexType NewId, const GeometryType::Pointer& pGeometry)
         : Element(NewId, pGeometry, std::make_shared<Properties>())
     {
-        mConstitutiveLaws = std::vector<ConstitutiveLaw::Pointer>(3, make_shared<StubConstitutiveLaw>());
+        mConstitutiveLaws =
+            std::vector<ConstitutiveLaw::Pointer>(3, make_shared<Testing::MockConstitutiveLaw>());
     }
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        mConstitutiveLaws = std::vector<ConstitutiveLaw::Pointer>(3, make_shared<StubConstitutiveLaw>());
+        mConstitutiveLaws =
+            std::vector<ConstitutiveLaw::Pointer>(3, make_shared<Testing::MockConstitutiveLaw>());
     }
 
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>&,
