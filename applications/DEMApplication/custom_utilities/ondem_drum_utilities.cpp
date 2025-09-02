@@ -18,7 +18,7 @@ namespace Kratos {
   void ONDEMDrumUtilities::ExecuteInitialize(ModelPart& particlesMP, ModelPart& wallsMP) {
     // Open permanent files
     mFile_Contact.open("data_contact.txt", std::ios::out);
-    mFile_Contact << "1 - TIME | " << "2 - ALL | " << "3 - P-P | " << "4 - PL-PL | " << "5 - PS-PS | " << "6 - PL-PS | " << "7 - P-W | " << "8 - PL-W | " << "9 - PS-W | " << "10 - CN_ALL | " << "11 - CN_LARGE | " << "12 - CN_SMALL | " << "13 - OVERLAP_RATIO_R | " << "14 - OVERLAP_RATIO_D" << std::endl;
+    mFile_Contact << "1 - TIME | " << "2 - ALL | " << "3 - P-P | " << "4 - PL-PL | " << "5 - PL-PS | " << "6 - PS-PS | " << "7 - P-W | " << "8 - PL-W | " << "9 - PS-W | " << "10 - CN_ALL | " << "11 - CN_LARGE | " << "12 - CN_SMALL | " << "13 - OVERLAP_RATIO_R | " << "14 - OVERLAP_RATIO_D" << std::endl;
 
     mFile_Velocity.open("data_velocity.txt", std::ios::out);
     mFile_Velocity << "1 - TIME | " << "2 - AVG TRANSLATION (ALL) | " << "3 - AVG TRANSLATION (LARGE) | " << "4 - AVG TRANSLATION (SMALL) | " << "5 - AVG ROTATION (ALL) | " << "6 - AVG ROTATION (LARGE) | " << "7 - AVG ROTATION (SMALL)" << std::endl;
