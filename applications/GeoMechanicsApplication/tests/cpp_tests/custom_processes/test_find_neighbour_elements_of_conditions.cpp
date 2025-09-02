@@ -221,4 +221,36 @@ TEST(FindNeighbourElementsOfConditionsProcessTest, TestMultipleConditionsOnTheSa
     EXPECT_EQ(p_condition2->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
+class ParametrizedFindQuadraticHexaNeighbourElementsOfLineConditions
+    : public ::testing::TestWithParam<std::vector<std::size_t>>
+{
+};
+
+TEST_P(ParametrizedFindQuadraticHexaNeighbourElementsOfLineConditions,
+       NeighboringQuadraticHexaElementsAreFoundForDifferentNodeOrderings)
+{
+    Model model;
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D20NElement(model);
+
+    PointerVector<Node> nodes;
+    const auto&         order = GetParam();
+    for (const auto& r_node_id : order) {
+        nodes.push_back(r_model_part.pGetNode(r_node_id));
+    }
+
+    auto p_condition = ElementSetupUtilities::Create3D3NLineCondition(nodes);
+    r_model_part.AddCondition(p_condition);
+
+    FindNeighbourElementsOfConditionsProcess process(r_model_part);
+
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+    process.Execute();
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+}
+
+INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
+                         ParametrizedFindQuadraticHexaNeighbourElementsOfLineConditions,
+                         ::testing::Values(std::vector<std::size_t>{1, 2, 9},
+                                           std::vector<std::size_t>{7, 8, 19}));
+
 } // namespace Kratos::Testing

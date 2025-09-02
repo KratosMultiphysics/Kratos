@@ -32,7 +32,6 @@ public:
     static std::vector<Kratos::Point> CreatePointsFor3D10NElement();
     static std::vector<Kratos::Point> CreatePointsFor3D6NInterfaceElement();
 
-
     static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
     static Element::Pointer Create2D3NElement();
@@ -45,6 +44,7 @@ public:
 
     static Condition::Pointer Create3D8NCondition(const PointerVector<Node>& rNodes);
     static Condition::Pointer Create3D1NCondition(const PointerVector<Node>& rNodes);
+    static Condition::Pointer Create3D3NLineCondition(const PointerVector<Node>& rNodes);
 
     static Element::Pointer Create2D6NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
@@ -63,7 +63,7 @@ public:
     static Element::Pointer Create2D15NElement();
 
     static Element::Pointer Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
-                                               const Properties::Pointer& rProperties);
+                                                       const Properties::Pointer& rProperties);
 
     static Element::Pointer Create3D10NElement(const PointerVector<Node>& rNodes,
                                                const Properties::Pointer& rProperties);

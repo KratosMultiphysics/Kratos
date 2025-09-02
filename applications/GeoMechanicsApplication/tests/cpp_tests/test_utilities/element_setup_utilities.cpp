@@ -140,6 +140,11 @@ Condition::Pointer ElementSetupUtilities::Create3D1NCondition(const PointerVecto
     return make_intrusive<PwPointFluxCondition<3, 1>>(1, Kratos::make_shared<Point3D<Node>>(rNodes));
 }
 
+Condition::Pointer ElementSetupUtilities::Create3D3NLineCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 3>>(1, Kratos::make_shared<Line3D3<Node>>(rNodes));
+}
+
 Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {

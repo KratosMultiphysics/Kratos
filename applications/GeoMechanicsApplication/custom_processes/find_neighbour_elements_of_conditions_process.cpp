@@ -68,8 +68,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 std::ranges::sort(FaceIdsSorted);
                 auto itFaceSorted = FacesMapSorted.find(FaceIdsSorted);
                 if (itFaceSorted != FacesMapSorted.end()) {
-                    switch (r_boundary_geometry.GetGeometryOrderType())
-                    {
+                    switch (r_boundary_geometry.GetGeometryOrderType()) {
                         using enum GeometryData::KratosGeometryOrderType;
                     case Kratos_Linear_Order:
                         itFace = FindPermutations(FaceIds, FacesMap);
@@ -226,8 +225,7 @@ void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnEleme
     const std::pair<hashmap::iterator, hashmap::iterator> face_pair = rFacesMap.equal_range(rItFace->first);
     for (hashmap::iterator it = face_pair.first; it != face_pair.second; ++it) {
         std::vector<Condition::Pointer>& r_conditions = it->second;
-
-        GlobalPointersVector<Element> vector_of_neighbours;
+        GlobalPointersVector<Element>    vector_of_neighbours;
         vector_of_neighbours.resize(1);
         vector_of_neighbours(0) = Element::WeakPointer(*pItElem.base());
 
