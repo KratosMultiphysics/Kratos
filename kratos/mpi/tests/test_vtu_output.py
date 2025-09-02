@@ -193,9 +193,9 @@ class TestVtuOutput(kratos_unittest.TestCase):
 
     def __OutputTest(self, output_type: str):
         if output_type == "ascii":
-            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, output_sub_model_parts=True, echo_level=0)
+            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, output_sub_model_parts=True, echo_level=3)
         elif output_type == "binary":
-            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.BINARY, output_sub_model_parts=True, echo_level=0)
+            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.BINARY, output_sub_model_parts=True, echo_level=3)
 
         for data_location in [Kratos.Globals.DataLocation.NodeNonHistorical, Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]:
             vtu_output.AddVariable(Kratos.DISPLACEMENT, data_location)
@@ -203,6 +203,12 @@ class TestVtuOutput(kratos_unittest.TestCase):
             vtu_output.AddVariable(Kratos.ACTIVATION_LEVEL, data_location)
             vtu_output.AddVariable(Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, data_location)
             vtu_output.AddVariable(Kratos.CONSTITUTIVE_MATRIX, data_location)
+
+        for data_location in [Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]:
+            vtu_output.AddIntegrationPointVariable(Kratos.DISPLACEMENT, data_location)
+            vtu_output.AddIntegrationPointVariable(Kratos.PRESSURE, data_location)
+            vtu_output.AddIntegrationPointVariable(Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, data_location)
+            vtu_output.AddIntegrationPointVariable(Kratos.CONSTITUTIVE_MATRIX, data_location)
 
         for i in range(2):
             self.model_part.ProcessInfo[Kratos.TIME] += i
