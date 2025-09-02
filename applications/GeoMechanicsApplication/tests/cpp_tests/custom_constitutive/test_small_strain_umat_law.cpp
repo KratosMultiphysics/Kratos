@@ -21,8 +21,7 @@ using namespace std::string_literals;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(SmallStrainUMATLaw_HasReturnsTrueForCauchyStress,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUMATLaw_HasReturnsTrueForCauchyStress, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto umat_law = SmallStrainUMAT2DPlaneStrainLaw{std::make_unique<ThreeDimensional>()};
@@ -32,7 +31,5 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUMATLaw_HasReturnsTrueForCauchyStress,
     KRATOS_EXPECT_TRUE(umat_law.Has(CAUCHY_STRESS_VECTOR));
     KRATOS_EXPECT_FALSE(umat_law.Has(TOTAL_STRESS_VECTOR));
 }
-
-
 
 } // namespace Kratos::Testing

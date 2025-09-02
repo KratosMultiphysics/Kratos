@@ -302,7 +302,6 @@ public:
     using ConstitutiveLaw::Has;
     bool Has(const Variable<Vector>& rThisVariable) override;
 
-
     ///@}
     ///@name Inquiry
     ///@{
