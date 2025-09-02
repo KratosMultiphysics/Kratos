@@ -198,4 +198,27 @@ TEST(FindNeighbourElementsOfConditionsProcessTest, TestPointCondition)
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
+TEST(FindNeighbourElementsOfConditionsProcessTest, TestMultipleConditionsOnTheSameNodes)
+{
+    Model model;
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(model);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.pGetNode(1));
+
+    auto p_condition1 = ElementSetupUtilities::Create3D1NCondition(nodes);
+    auto p_condition2 = ElementSetupUtilities::Create3D1NCondition(nodes);
+    r_model_part.AddCondition(p_condition1);
+    p_condition2->SetId(2);
+    r_model_part.AddCondition(p_condition2);
+
+    FindNeighbourElementsOfConditionsProcess process(r_model_part);
+
+    EXPECT_EQ(p_condition1->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+    EXPECT_EQ(p_condition2->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+    process.Execute();
+    EXPECT_EQ(p_condition1->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    EXPECT_EQ(p_condition2->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+}
+
 } // namespace Kratos::Testing

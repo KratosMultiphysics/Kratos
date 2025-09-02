@@ -137,7 +137,7 @@ Condition::Pointer ElementSetupUtilities::Create3D8NCondition(const PointerVecto
 
 Condition::Pointer ElementSetupUtilities::Create3D1NCondition(const PointerVector<Node>& rNodes)
 {
-    return make_intrusive<PwPointFluxCondition<3, 1>>(0, Kratos::make_shared<Point3D<Node>>(rNodes));
+    return make_intrusive<PwPointFluxCondition<3, 1>>(1, Kratos::make_shared<Point3D<Node>>(rNodes));
 }
 
 Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
