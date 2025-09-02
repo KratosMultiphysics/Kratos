@@ -134,11 +134,11 @@ void ConstitutiveLawUtilities::CheckStrainMeasures(const Properties& rProperties
 {
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-    bool correct_strain_measure = false;
-    for (const auto& strain_measure : LawFeatures.mStrainMeasures) {
-        if (strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-            correct_strain_measure = true;
-    }
+    const bool correct_strain_measure = std::any_of(
+        LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
+        return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
+    });
+
     KRATOS_ERROR_IF_NOT(correct_strain_measure)
         << "Constitutive law is not compatible with the element type "
            "StrainMeasure_Infinitesimal at element "
