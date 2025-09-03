@@ -183,6 +183,15 @@ private:
         const std::string& rGeometryType,
         const Parameters rParameters,
         ModelPart& rModelPart) const;
+    
+    ///@}
+    ///@name Assign information needed for the master slave to the coupling model part
+    ///@{
+    
+    void AssignMasterSlaveToModelPart(
+        GeometriesArrayType& rGeometryList,
+        const Parameters rParameters,
+        ModelPart& rModelPart) const;
 
     ///@}
     ///@name Utility

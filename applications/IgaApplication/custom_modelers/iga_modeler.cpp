@@ -94,6 +94,10 @@ namespace Kratos
                 || geometry_type == "GeometryCurveVariationNodes") {
                 GetPointsAt(geometry_list, geometry_type, rParameters["parameters"], sub_model_part);
             }
+            else if (geometry_type == "GeometrySurfaceEdgeSurfaceEdge")
+            {
+                AssignMasterSlaveToModelPart(geometry_list, rParameters["parameters"], sub_model_part);
+            }
             else {
                 CreateQuadraturePointGeometries(
                     geometry_list, sub_model_part, rParameters["parameters"], geometry_type);
@@ -423,6 +427,22 @@ namespace Kratos
                     }
                 }
             }
+        }
+    }
+
+    ///@}
+    ///@name Assign information needed for the master slave to the coupling model part
+    ///@{
+
+    void IgaModeler::AssignMasterSlaveToModelPart(
+        GeometriesArrayType& rGeometryList,
+        const Parameters rParameters,
+        ModelPart& rModelPart) const
+    {
+        for (std::size_t i = 0; i < rGeometryList.size(); ++i) {
+
+            auto pGeom = rGeometryList(i);
+            rModelPart.AddGeometry(pGeom);
         }
     }
 
