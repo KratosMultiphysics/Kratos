@@ -487,6 +487,14 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             top_node_ids = [2, 3, 104]
             make_settlement_plot((output_stage_2, output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_4_settlement_plot.svg")
 
+            ref_data = StressPlotDataFilePaths()
+            left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
+
+            # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
+            ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_10000_days.txt"
+            ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_10000_days.txt"
+            make_stress_over_depth_plot(output_stage_5, days_to_seconds(10000), project_path / "stage5.post.msh", left_side_corner_node_ids, ref_data, project_path / "test_case_4_stress_plot_after_10000_days.svg")
+
       
 if __name__ == "__main__":
     KratosUnittest.main()
