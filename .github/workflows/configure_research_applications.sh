@@ -20,27 +20,7 @@ export PYTHON_EXECUTABLE="/usr/bin/python3.10"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
-add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
-add_app ${KRATOS_APP_DIR}/CableNetApplication;
-add_app ${KRATOS_APP_DIR}/ChimeraApplication;
-add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
-add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
-add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
-add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
-add_app ${KRATOS_APP_DIR}/DEMApplication;
-add_app ${KRATOS_APP_DIR}/DamApplication;
-add_app ${KRATOS_APP_DIR}/FSIApplication;
-add_app ${KRATOS_APP_DIR}/FluidDynamicsBiomedicalApplication;
-add_app ${KRATOS_APP_DIR}/FluidDynamicsHydraulicsApplication;
-add_app ${KRATOS_APP_DIR}/IgaApplication;
-add_app ${KRATOS_APP_DIR}/MPMApplication;
-add_app ${KRATOS_APP_DIR}/OptimizationApplication;
-add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
-add_app ${KRATOS_APP_DIR}/RANSApplication;
-add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
-add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
-add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
-add_app ${KRATOS_APP_DIR}/SystemIdentificationApplication;
+
 
 # Clean
 clear
