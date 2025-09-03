@@ -371,15 +371,15 @@ private:
     }
 
     static void perform_matrix_scaling_row(
-        std::size_t kkk, // Current row index
+        std::size_t CurrentRowIndex,
         int number_of_entries_in_row,
-        IndexIteratorType row_it, // Should be index1_data().begin() + kkk
+        IndexIteratorType row_it, // Should be index1_data().begin() + CurrentRowIndex
         IndexIteratorType index2_begin,
         ValueIteratorType value_begin,
         const VectorType& weights
     )
     {
-        const typename TSparseSpaceType::DataType row_weight = weights[kkk];
+        const typename TSparseSpaceType::DataType row_weight = weights[CurrentRowIndex];
 
         for(int i = 0; i < number_of_entries_in_row; i++) {
             const typename TSparseSpaceType::DataType col_weight = weights[*index2_begin];
@@ -411,7 +411,7 @@ private:
     }
 
     static void GS2weights_row(
-        std::size_t kkk, // Current row index
+        std::size_t CurrentRowIndex,
         int number_of_entries_in_row,
         ConstIndexIteratorType row_it,
         ConstIndexIteratorType index2_begin, // Not used in original GS2weights, but kept for consistency if needed later
@@ -427,8 +427,8 @@ private:
             t += tmp*tmp;
             value_begin++;
         }
-        t = std::sqrt(t); // Corrected from sqrt(t) to std::sqrt(t)
-        weights[kkk] = t;
+        t = std::sqrt(t);
+        weights[CurrentRowIndex] = t;
     }
 
     ///@}
