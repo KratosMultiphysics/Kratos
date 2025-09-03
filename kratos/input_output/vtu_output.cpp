@@ -262,6 +262,10 @@ NDData<int>::Pointer GetConnectivities(
     const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap,
     const std::set<IndexType>& rIgnoredIndices)
 {
+    if (rOffsets.Size() == 0) {
+        return Kratos::make_shared<NDData<int>>(DenseVector<unsigned int>(1, 0));
+    }
+
     const auto offsets_span = rOffsets.ViewData();
     auto p_connectivities = Kratos::make_shared<NDData<int>>(DenseVector<unsigned int>(1, offsets_span.back()));
     auto connectivities_span = p_connectivities->ViewData();
@@ -605,8 +609,6 @@ std::string WritePartitionedUnstructuredGridData(
         rDataCommunicator.Send(list_of_file_names.str(), writing_rank);
     }
 
-    rDataCommunicator.Barrier();
-
     // remove the rank from the rOutputVtuFileName.
     const auto& p_vtu_file_name = rOutputVtuFileName.substr(0, rOutputVtuFileName.rfind("_"))  + ".pvtu";
 
@@ -646,10 +648,10 @@ std::string WritePartitionedUnstructuredGridData(
 
         // offsets element
         auto p_offsets_element = Kratos::make_shared<XmlElementsArray>("PDataArray");
-        p_offsets_element->AddAttribute("type", "Int32");
-        p_offsets_element->AddAttribute("Name", "offsets");
-        p_offsets_element->AddAttribute("NumberOfComponents", "1");
-        p_cells_element->AddElement(p_offsets_element);
+       p_offsets_element->AddAttribute("type", "Int32");
+       p_offsets_element->AddAttribute("Name", "offsets");
+       p_offsets_element->AddAttribute("NumberOfComponents", "1");
+       p_cells_element->AddElement(p_offsets_element);
 
         // types element
         auto p_types_element = Kratos::make_shared<XmlElementsArray>("PDataArray");
@@ -697,7 +699,8 @@ std::string WritePartitionedUnstructuredGridData(
         std::ofstream output_file;
         output_file.open(p_vtu_file_name, std::ios::out | std::ios::trunc);
         p_vtu_file_element.Write(output_file);
-    }
+
+   }
 
     return p_vtu_file_name;
 }
@@ -1436,25 +1439,23 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
         // resize the offsets
         offsets.resize(p_container->size(), false);
 
-        // first entity gp offset is zero.
-        offsets[0] = 0;
+        IndexType total_number_of_gauss_points = 0;
 
         // now compute the offsets for each entity. This allows
         // having different number of gps in different entities.
         // which is the case if we have a model part with mixed type
         // of elements.
-        for (IndexType i = 1; i < p_container->size(); ++i) {
+        for (IndexType i = 0; i < p_container->size(); ++i) {
             const auto& r_entity = *(p_container->begin() + i);
             const auto number_of_gps = r_entity.GetGeometry().IntegrationPointsNumber(r_entity.GetIntegrationMethod());
-            offsets[i] = offsets[i - 1] + number_of_gps;
+            total_number_of_gauss_points += number_of_gps;
+            offsets[i] = total_number_of_gauss_points - number_of_gps;
         }
 
-        // now add the number of gps of the first entity.
-        const auto& r_entity = *(p_container->begin());
-        return offsets[offsets.size() - 1] + r_entity.GetGeometry().IntegrationPointsNumber(r_entity.GetIntegrationMethod());
+        return total_number_of_gauss_points;
     }, rUnstructuredGridData.mpCells.value());
 
-    // create the piece element
+   // create the piece element
     auto piece_element = Kratos::make_shared<XmlElementsArray>("Piece");
     piece_element->AddAttribute("NumberOfPoints", std::to_string(total_gauss_points));
     piece_element->AddAttribute("NumberOfCells", "0");
@@ -1467,8 +1468,8 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     auto gauss_point_positions = Kratos::make_shared<NDData<double>>(gauss_point_nd_data_shape);
     const auto span = gauss_point_positions->ViewData();
 
-    std::visit([&span, &offsets](auto p_container){
-        IndexPartition<IndexType>(p_container->size()).for_each(array_1d<double, 3>{}, [&span, &p_container, &offsets](const auto Index, auto& rTLS) {
+   std::visit([&span, &offsets](auto p_container){
+       IndexPartition<IndexType>(p_container->size()).for_each(array_1d<double, 3>{}, [&span, &p_container, &offsets](const auto Index, auto& rTLS) {
             const auto& r_entity = *(p_container->begin() + Index);
             const auto number_of_gauss_points = r_entity.GetGeometry().IntegrationPointsNumber(r_entity.GetIntegrationMethod());
             for (IndexType i = 0; i < number_of_gauss_points; ++i) {
@@ -1491,10 +1492,12 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     auto point_data_element = Kratos::make_shared<XmlElementsArray>("PointData");
     piece_element->AddElement(point_data_element);
 
+    const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
+
     // add the gauss point data
     bool is_gauss_point_data_available = false;
     for (const auto& r_pair : integration_point_vars) {
-        std::visit([&offsets, &point_data_element, &rXmlDataElementWrapper, &rUnstructuredGridData, &is_gauss_point_data_available, total_gauss_points](auto pVariable, auto pContainer) {
+        std::visit([&offsets, &point_data_element, &rXmlDataElementWrapper, &rUnstructuredGridData, &is_gauss_point_data_available, &r_data_communicator, total_gauss_points](auto pVariable, auto pContainer) {
             // type information of the variable
             using data_type = typename BareType<decltype(*pVariable)>::Type;
             using data_type_traits = DataTypeTraits<data_type>;
@@ -1522,7 +1525,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
                 }
 
                 // now do the communication between ranks to get the correct size
-                const auto& max_local_shape = rUnstructuredGridData.mpModelPart->GetCommunicator().GetDataCommunicator().MaxAll(local_shape);
+                const auto& max_local_shape = r_data_communicator.MaxAll(local_shape);
 
                 // now we construct the nd_data_shape
                 DenseVector<unsigned int> nd_data_shape(local_shape.size() + 1);
@@ -1534,20 +1537,18 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
                 auto p_gauss_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
                 auto span = p_gauss_data->ViewData();
 
-                if (span.size() > 0) {
-                    is_gauss_point_data_available = true;
+                if (r_data_communicator.SumAll(span.size()) > 0) {
+                   is_gauss_point_data_available = true;
                     IndexPartition<IndexType>(pContainer->size()).for_each(output, [&span, &pContainer, &pVariable, &rUnstructuredGridData, &offsets, total_number_of_components](const auto Index, auto& rTLS) {
                         auto& r_entity = *(pContainer->begin() + Index);
                         r_entity.CalculateOnIntegrationPoints(*pVariable, rTLS, rUnstructuredGridData.mpModelPart->GetProcessInfo());
                         DataTypeTraits<std::vector<data_type>>::CopyToContiguousData(span.begin() + offsets[Index] * total_number_of_components, rTLS);
                     });
                     point_data_element->AddElement(rXmlDataElementWrapper.Get(pVariable->Name(), p_gauss_data));
-                }
-            }
+               }
+           }
         }, r_pair.second, rUnstructuredGridData.mpCells.value());
     }
-
-    const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
 
     if (r_data_communicator.OrReduceAll(is_gauss_point_data_available)) {
         std::stringstream output_vtu_file_name;
@@ -1685,7 +1686,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
         for (IndexType step = 0; step < mTimeStepList.size(); ++step) {
             IndexType local_index = 0;
             for (IndexType i = 0; i < pvd_file_name_info.size(); ++i) {
-                if (pvd_file_name_info[i].second != "") {
+               if (pvd_file_name_info[i].second != "") {
                     auto current_element = Kratos::make_shared<XmlElementsArray>("DataSet");
 
                     // write the time with the specified precision.
@@ -1720,7 +1721,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
         output_file.open(rOutputFileNamePrefix + ".pvd", std::ios::out | std::ios::trunc);
         pvd_file_element.Write(output_file);
         output_file.close();
-    }
+   }
 
     KRATOS_CATCH("");
 }
