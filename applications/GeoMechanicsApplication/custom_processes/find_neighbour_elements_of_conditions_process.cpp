@@ -32,7 +32,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         itCond->Set(VISITED, false);
         GeometryType& rGeometry = itCond->GetGeometry();
 
-        DenseVector<IndexType> Ids(rGeometry.size());
+        std::vector<IndexType> Ids(rGeometry.size());
         std::ranges::transform(rGeometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
         for (auto& rNode : rGeometry)
             rNode.Set(BOUNDARY, true);
@@ -56,14 +56,14 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         const auto  rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
 
         for (const auto& r_boundary_geometry : rBoundaryGeometries) {
-            DenseVector<IndexType> FaceIds(r_boundary_geometry.size());
+            std::vector<IndexType> FaceIds(r_boundary_geometry.size());
             std::ranges::transform(r_boundary_geometry, FaceIds.begin(),
                                    [](const Node& rNode) { return rNode.Id(); });
 
             auto itFace = FacesMap.find(FaceIds);
             if (itFace == FacesMap.end() && r_boundary_geometry.LocalSpaceDimension() == 2) {
                 // condition is not found but might be a problem of ordering in 3D geometries!
-                DenseVector<int> FaceIdsSorted = FaceIds;
+                std::vector<std::size_t> FaceIdsSorted = FaceIds;
                 std::ranges::sort(FaceIdsSorted);
                 if (FacesMapSorted.contains(FaceIdsSorted)) {
                     switch (r_boundary_geometry.GetGeometryOrderType()) {
@@ -99,7 +99,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
             const auto& rGeometryElement = itElem->GetGeometry();
             for (const auto& r_node : rGeometryElement) {
-                DenseVector<IndexType> PointIds(1);
+                std::vector<IndexType> PointIds(1);
                 PointIds[0]       = r_node.Id();
                 const auto itFace = FacesMap.find(PointIds);
                 if (itFace != FacesMap.end()) {
@@ -124,7 +124,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 const auto rBoundaryGeometries = rGeometryElement.GenerateEdges();
 
                 for (IndexType iEdge = 0; iEdge < rBoundaryGeometries.size(); ++iEdge) {
-                    DenseVector<IndexType> EdgeIds(rBoundaryGeometries[iEdge].size());
+                    std::vector<IndexType> EdgeIds(rBoundaryGeometries[iEdge].size());
 
                     // edges for 3D elements
                     for (IndexType iNode = 0; iNode < EdgeIds.size(); ++iNode) {
@@ -188,7 +188,7 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
             const auto rBoundaryGeometries = PointerVector(r_geometry_element.GenerateEdges());
 
             for (IndexType iFace = 0; iFace < rBoundaryGeometries.size(); ++iFace) {
-                DenseVector<int> FaceIds(rBoundaryGeometries[iFace].size());
+                std::vector<std::size_t> FaceIds(rBoundaryGeometries[iFace].size());
 
                 const auto& r_nodes = rBoundaryGeometries[iFace];
 
@@ -225,7 +225,7 @@ void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnEleme
     }
 }
 
-hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutations(DenseVector<int> FaceIds,
+hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutations(std::vector<std::size_t> FaceIds,
                                                                              hashmap& FacesMap) const
 {
     for (std::size_t i = 0; i < FaceIds.size() - 1; ++i) {
@@ -237,7 +237,7 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutations(Den
     return FacesMap.end();
 }
 
-hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(DenseVector<int> FaceIds,
+hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(std::vector<std::size_t> FaceIds,
                                                                                       hashmap& FacesMap) const
 {
     for (std::size_t i = 0; i < FaceIds.size() / 2 - 1; ++i) {

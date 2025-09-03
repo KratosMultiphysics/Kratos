@@ -21,7 +21,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 using hashmap =
-    std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>>>;
+    std::unordered_multimap<std::vector<std::size_t>, std::vector<Condition::Pointer>, KeyHasherRange<std::vector<std::size_t>>, KeyComparorRange<std::vector<std::size_t>>>;
 
 ///@}
 ///@name Kratos Classes
@@ -101,8 +101,8 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
-    hashmap::iterator FindPermutations(DenseVector<int> FaceIds, hashmap& FacesMap) const;
-    hashmap::iterator FindPermutationsQuadratic(DenseVector<int> FaceIds, hashmap& FacesMap) const;
+    hashmap::iterator FindPermutations(std::vector<std::size_t> FaceIds, hashmap& FacesMap) const;
+    hashmap::iterator FindPermutationsQuadratic(std::vector<std::size_t> FaceIds, hashmap& FacesMap) const;
 
     ///@}
     ///@name Member Variables
