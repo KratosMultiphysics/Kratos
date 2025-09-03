@@ -49,8 +49,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     });
 
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
-    for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
-        const auto& rGeometryElement    = itElem->GetGeometry();
+    for (auto& rElement : mrModelPart.Elements()) {
+        const auto& rGeometryElement    = rElement.GetGeometry();
         const auto  rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
 
         for (const auto& r_boundary_geometry : rBoundaryGeometries) {
@@ -81,7 +81,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             if (itFace != FacesMap.end()) {
                 // condition is found!
                 // but check if there are more than one condition on the element
-                CheckForMultipleConditionsOnElement(FacesMap, itFace, std::to_address(itElem));
+                CheckForMultipleConditionsOnElement(FacesMap, itFace, &rElement);
             }
         }
     }
@@ -89,13 +89,13 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     if (AllConditionsAreVisited()) return;
 
     // Now try point loads:
-    for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
-        const auto& rGeometryElement = itElem->GetGeometry();
+    for (auto& rElement : mrModelPart.Elements()) {
+        const auto& rGeometryElement = rElement.GetGeometry();
         for (const auto& r_node : rGeometryElement) {
             std::vector PointIds = {r_node.Id()};
             const auto  itFace   = FacesMap.find(PointIds);
             if (itFace != FacesMap.end()) {
-                CheckForMultipleConditionsOnElement(FacesMap, itFace, std::to_address(itElem));
+                CheckForMultipleConditionsOnElement(FacesMap, itFace, &rElement);
             }
         }
     }
@@ -104,8 +104,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
     // check edges of 3D geometries:
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
-    for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
-        const auto& rGeometryElement = itElem->GetGeometry();
+    for (auto& rElement : mrModelPart.Elements()) {
+        const auto& rGeometryElement = rElement.GetGeometry();
         if (rGeometryElement.LocalSpaceDimension() == 3) {
             const auto rBoundaryGeometries = rGeometryElement.GenerateEdges();
 
@@ -124,7 +124,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 if (itFace != FacesMap.end()) {
                     // condition is found!
                     // but check if there are more than one condition on the element
-                    CheckForMultipleConditionsOnElement(FacesMap, itFace, std::to_address(itElem));
+                    CheckForMultipleConditionsOnElement(FacesMap, itFace, &rElement);
                 }
             }
         }
@@ -159,8 +159,8 @@ bool FindNeighbourElementsOfConditionsProcess::AllConditionsAreVisited() const
 void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashmap& rFacesMap)
 {
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
-    for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
-        const auto& r_geometry_element = itElem->GetGeometry();
+    for (auto& rElement : mrModelPart.Elements()) {
+        const auto& r_geometry_element = rElement.GetGeometry();
 
         // for 1D elements, the edge geometry is the same as the element geometry
         if (r_geometry_element.LocalSpaceDimension() == 1) {
@@ -180,7 +180,7 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
                 if (itFace != rFacesMap.end()) {
                     // condition is found!
                     // but check if there are more than one condition on the element
-                    CheckForMultipleConditionsOnElement(rFacesMap, itFace, std::to_address(itElem));
+                    CheckForMultipleConditionsOnElement(rFacesMap, itFace, &rElement);
                 }
             }
         }
