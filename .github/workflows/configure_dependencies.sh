@@ -20,12 +20,6 @@ export PYTHON_EXECUTABLE="/usr/bin/python3.10"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set applications to compile
-add_app ${KRATOS_APP_DIR}/HDF5Application;
-add_app ${KRATOS_APP_DIR}/MedApplication;
-add_app ${KRATOS_APP_DIR}/MappingApplication;
-add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
-add_app ${KRATOS_APP_DIR}/MeshingApplication;
-add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 
 
 # Clean
