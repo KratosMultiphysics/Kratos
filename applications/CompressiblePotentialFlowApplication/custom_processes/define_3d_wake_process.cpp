@@ -1171,7 +1171,7 @@ void Define3DWakeProcess::AddTrailingEdgeConditionsAndFindRootAndTipNodes() cons
                 for (std::size_t i = 1; i < group.size(); ++i) {
                     ++reference_id;
                     std::vector<ModelPart::IndexType> cond{group[i - 1]->Id(), group[i]->Id()};
-                    mrTrailingEdgeModelPart.CreateNewCondition("PotentialWallCondition3D2N", reference_id, cond, pCondProp);
+                    mrTrailingEdgeModelPart.CreateNewCondition("LineCondition3D2N", reference_id, cond, pCondProp);
                 }
             }
         }
