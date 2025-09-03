@@ -2091,7 +2091,7 @@ Begin SubModelPart SoilExcludingBoundary
   End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart LineLoad4
+Begin SubModelPart LineLoad
   Begin SubModelPartTables
     1
   End SubModelPartTables
@@ -2103,19 +2103,4 @@ Begin SubModelPart LineLoad4
   Begin SubModelPartConditions
     171
   End SubModelPartConditions
-End SubModelPart 
-
-Begin SubModelPart LineLoad5
-  Begin SubModelPartTables
-    1
-  End SubModelPartTables
-  Begin SubModelPartNodes
-    2
-    3
-    104
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    171
-  End SubModelPartConditions
-End SubModelPart 
-
+End SubModelPart

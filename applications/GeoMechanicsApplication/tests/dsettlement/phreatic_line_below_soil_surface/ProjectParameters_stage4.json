@@ -51,7 +51,7 @@
             "scaling": true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list": ["TopWaterPressure", "Bottom", "LeftSide", "RightSide", "SoilExcludingBoundary", "LineLoad4"],
+        "processes_sub_model_part_list": ["TopWaterPressure", "Bottom", "LeftSide", "RightSide", "SoilExcludingBoundary", "LineLoad"],
         "body_domain_sub_model_part_list": ["Soil"],
         "move_mesh_flag": false
     },
@@ -182,7 +182,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.LineLoad4",
+                    "model_part_name": "PorousDomain.LineLoad",
                     "variable_name": "LINE_LOAD",
                     "active": [false, true, false],
                     "value": [0.0, 0.0, 0.0],
