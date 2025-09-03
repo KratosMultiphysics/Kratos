@@ -22,6 +22,23 @@
 namespace Kratos
 {
 
+void SetConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                               Matrix&                      rConstitutiveMatrix,
+                               Vector&                      rStrainVector,
+                               const Vector&                rNp,
+                               const Matrix&                rGradNpT,
+                               const double&                rDetF,
+                               const Matrix&                rF)
+{
+    rConstitutiveParameters.SetConstitutiveMatrix(rConstitutiveMatrix);
+    rConstitutiveParameters.SetStrainVector(rStrainVector);
+    rConstitutiveParameters.SetShapeFunctionsValues(rNp);
+    rConstitutiveParameters.SetShapeFunctionsDerivatives(rGradNpT);
+    rConstitutiveParameters.SetDeterminantF(rDetF);
+    rConstitutiveParameters.SetDeformationGradientF(rF);
+    rConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+}
+
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                          NodesArrayType const& ThisNodes,
@@ -149,8 +166,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(con
 {
     KRATOS_TRY
 
-    const GeometryType&   r_geometry   = this->GetGeometry();
-    const Matrix&         NContainer   = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+    const GeometryType& r_geometry = this->GetGeometry();
+    const Matrix&       NContainer = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
     array_1d<double, TNumNodes * TDim> DisplacementVector;
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, r_geometry, DISPLACEMENT);
     BoundedMatrix<double, TDim, TDim> RotationMatrix;
@@ -167,16 +184,10 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeSolutionStep(con
     Matrix F    = identity_matrix<double>(TDim);
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, this->GetProperties(), rCurrentProcessInfo);
-    ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-    ConstitutiveParameters.SetStrainVector(StrainVector);
-    ConstitutiveParameters.SetShapeFunctionsValues(Np);
-    ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-    ConstitutiveParameters.SetDeterminantF(detF);
-    ConstitutiveParameters.SetDeformationGradientF(F);
-    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    SetConstitutiveParameters(ConstitutiveParameters, ConstitutiveMatrix, StrainVector, Np, GradNpT, detF, F);
 
     // Auxiliary output variables
-    unsigned int        NumGPoints = mConstitutiveLawVector.size();
+    unsigned int NumGPoints = mConstitutiveLawVector.size();
 
     // Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -221,13 +232,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
     Matrix F    = identity_matrix<double>(TDim);
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, r_properties, rCurrentProcessInfo);
-    ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-    ConstitutiveParameters.SetStrainVector(StrainVector);
-    ConstitutiveParameters.SetShapeFunctionsValues(Np);
-    ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-    ConstitutiveParameters.SetDeterminantF(detF);
-    ConstitutiveParameters.SetDeformationGradientF(F);
-    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    SetConstitutiveParameters(ConstitutiveParameters, ConstitutiveMatrix, StrainVector, Np, GradNpT, detF, F);
 
     // Auxiliary output variables
     unsigned int        NumGPoints = mConstitutiveLawVector.size();
