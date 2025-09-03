@@ -1,0 +1,17 @@
+<VTKFile byte_order="LittleEndian" type="UnstructuredGrid" version="0.1">
+   <UnstructuredGrid>
+      <Piece NumberOfCells="0" NumberOfPoints="2">
+         <Points>
+            <DataArray Name="Position" NumberOfComponents="3" format="binary" type="Float64">
+              MAAAAP7//////8+/CkR3qj9qjTwAAAAAAAAAAP7//////88/C9DF7jKIdzwAAAAAAAAAAA==
+            </DataArray>
+         </Points>
+         <Cells/>
+         <PointData>
+            <DataArray Name="PRESSURE" NumberOfComponents="1" format="binary" type="Float64">
+              EAAAAKG+bohLVgAAAAAAAAAAAAA=
+            </DataArray>
+         </PointData>
+      </Piece>
+   </UnstructuredGrid>
+</VTKFile>

@@ -1,0 +1,28 @@
+<VTKFile byte_order="LittleEndian" type="Collection" version="1.0">
+   <Collection>
+      <DataSet file="binary_output/test_elements_0.pvtu" name="test_elements" part="0" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test_element_gauss_0.pvtu" name="test_element_gauss" part="1" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test_conditions_0.pvtu" name="test_conditions" part="2" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test_condition_gauss_0.pvtu" name="test_condition_gauss" part="3" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_2_conditions_0.pvtu" name="test.sub_2_conditions" part="4" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_2_condition_gauss_0.pvtu" name="test.sub_2_condition_gauss" part="5" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_2.sub_1_conditions_0.pvtu" name="test.sub_2.sub_1_conditions" part="6" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_2.sub_1_condition_gauss_0.pvtu" name="test.sub_2.sub_1_condition_gauss" part="7" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_1_elements_0.pvtu" name="test.sub_1_elements" part="8" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_1_element_gauss_0.pvtu" name="test.sub_1_element_gauss" part="9" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_1_conditions_0.pvtu" name="test.sub_1_conditions" part="10" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_1_condition_gauss_0.pvtu" name="test.sub_1_condition_gauss" part="11" timestep="2.234500000e+00"/>
+      <DataSet file="binary_output/test_elements_1.pvtu" name="test_elements" part="0" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test_element_gauss_1.pvtu" name="test_element_gauss" part="1" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test_conditions_1.pvtu" name="test_conditions" part="2" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test_condition_gauss_1.pvtu" name="test_condition_gauss" part="3" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_2_conditions_1.pvtu" name="test.sub_2_conditions" part="4" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_2_condition_gauss_1.pvtu" name="test.sub_2_condition_gauss" part="5" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_2.sub_1_conditions_1.pvtu" name="test.sub_2.sub_1_conditions" part="6" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_2.sub_1_condition_gauss_1.pvtu" name="test.sub_2.sub_1_condition_gauss" part="7" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_1_elements_1.pvtu" name="test.sub_1_elements" part="8" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_1_element_gauss_1.pvtu" name="test.sub_1_element_gauss" part="9" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_1_conditions_1.pvtu" name="test.sub_1_conditions" part="10" timestep="3.234500000e+00"/>
+      <DataSet file="binary_output/test.sub_1_condition_gauss_1.pvtu" name="test.sub_1_condition_gauss" part="11" timestep="3.234500000e+00"/>
+   </Collection>
+</VTKFile>

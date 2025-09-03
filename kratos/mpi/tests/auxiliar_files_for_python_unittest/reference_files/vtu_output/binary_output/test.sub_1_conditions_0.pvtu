@@ -1,0 +1,22 @@
+<VTKFile byte_order="LittleEndian" type="PUnstructuredGrid" version="0.1">
+   <PUnstructuredGrid GhostLevel="0">
+      <PPoints>
+         <PDataArray Name="Position" NumberOfComponents="3" type="Float64"/>
+      </PPoints>
+      <PCells>
+         <PDataArray Name="connectivity" NumberOfComponents="1" type="Int32"/>
+         <PDataArray Name="offsets" NumberOfComponents="1" type="Int32"/>
+         <PDataArray Name="types" NumberOfComponents="1" type="Int32"/>
+      </PCells>
+      <PPointData/>
+      <PCellData>
+         <PDataArray Name="ACTIVATION_LEVEL" NumberOfComponents="1" format="binary" type="Int32"/>
+         <PDataArray Name="CONSTITUTIVE_MATRIX" NumberOfComponents="6" format="binary" type="Float64"/>
+         <PDataArray Name="DETERMINANTS_OF_JACOBIAN_PARENT" NumberOfComponents="7" format="binary" type="Float64"/>
+         <PDataArray Name="DISPLACEMENT" NumberOfComponents="3" format="binary" type="Float64"/>
+         <PDataArray Name="PRESSURE" NumberOfComponents="1" format="binary" type="Float64"/>
+      </PCellData>
+      <Piece Source="test.sub_1_conditions_0_0.vtu"/>
+      <Piece Source="test.sub_1_conditions_0_1.vtu"/>
+   </PUnstructuredGrid>
+</VTKFile>

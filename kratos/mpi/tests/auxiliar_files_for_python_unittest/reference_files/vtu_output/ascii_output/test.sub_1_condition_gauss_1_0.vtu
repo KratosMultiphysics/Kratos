@@ -1,0 +1,17 @@
+<VTKFile byte_order="LittleEndian" type="UnstructuredGrid" version="0.1">
+   <UnstructuredGrid>
+      <Piece NumberOfCells="0" NumberOfPoints="6">
+         <Points>
+            <DataArray Name="Position" NumberOfComponents="3" format="ascii" type="Float64">
+              -2.500000000e-01  5.102694996e-17  0.000000000e+00  -1.666666667e-01  5.102694996e-17  0.000000000e+00  -4.635148189e-01  7.754133093e-17  0.000000000e+00  -5.468481522e-01  9.148215292e-17  0.000000000e+00  5.468481522e-01  2.451256900e-17  0.000000000e+00  4.635148189e-01  2.077713700e-17  0.000000000e+00
+            </DataArray>
+         </Points>
+         <Cells/>
+         <PointData>
+            <DataArray Name="PRESSURE" NumberOfComponents="1" format="ascii" type="Float64">
+              4.687814037e-310  0.000000000e+00  4.313603248e-80  1.976348163e+166  4.887254957e+199  3.554258793e+150
+            </DataArray>
+         </PointData>
+      </Piece>
+   </UnstructuredGrid>
+</VTKFile>

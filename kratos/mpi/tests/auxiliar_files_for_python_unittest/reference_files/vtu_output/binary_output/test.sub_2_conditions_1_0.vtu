@@ -1,0 +1,56 @@
+<VTKFile byte_order="LittleEndian" type="UnstructuredGrid" version="0.1">
+   <UnstructuredGrid>
+      <Piece NumberOfCells="2" NumberOfPoints="4">
+         <Points>
+            <DataArray Name="Position" NumberOfComponents="3" format="binary" type="Float64">
+              YAAAAAAAAAAAAOA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAOg/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAOC/B1wUMyamkTwAAAAAAAAAAAAAAAAAAOi/CoqeTDl5mjwAAAAAAAAAAA==
+            </DataArray>
+         </Points>
+         <Cells>
+            <DataArray Name="connectivity" NumberOfComponents="1" format="binary" type="Int32">
+              GAAAAAAAAAADAAAAAgAAAAIAAAABAAAAAAAAAA==
+            </DataArray>
+            <DataArray Name="offsets" NumberOfComponents="1" format="binary" type="Int32">
+              CAAAAAMAAAAGAAAA
+            </DataArray>
+            <DataArray Name="types" NumberOfComponents="1" format="binary" type="UInt8">
+              AgAAAAUF
+            </DataArray>
+         </Cells>
+         <PointData>
+            <DataArray Name="ACTIVATION_LEVEL" NumberOfComponents="1" format="binary" type="Int32">
+              EAAAAAMAAAAEAAAABgAAAAcAAAA=
+            </DataArray>
+            <DataArray Name="CONSTITUTIVE_MATRIX" NumberOfComponents="6" format="binary" type="Float64">
+              wAAAAAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAABhAAAAAAAAAGEAAAAAAAAAgQAAAAAAAABBAAAAAAAAAFEAAAAAAAAAYQAAAAAAAABxAAAAAAAAAHEAAAAAAAAAiQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQAAAAAAAACJAAAAAAAAAIkAAAAAAAAAmQAAAAAAAABxAAAAAAAAAIEAAAAAAAAAiQAAAAAAAACRAAAAAAAAAJEAAAAAAAAAoQA==
+            </DataArray>
+            <DataArray Name="DETERMINANTS_OF_JACOBIAN_PARENT" NumberOfComponents="7" format="binary" type="Float64">
+              4AAAAAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQAAAAAAAACJAAAAAAAAAEEAAAAAAAAAUQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQAAAAAAAACJAAAAAAAAAJEAAAAAAAAAYQAAAAAAAABxAAAAAAAAAIEAAAAAAAAAiQAAAAAAAACRAAAAAAAAAJkAAAAAAAAAoQAAAAAAAABxAAAAAAAAAIEAAAAAAAAAiQAAAAAAAACRAAAAAAAAAJkAAAAAAAAAoQAAAAAAAACpA
+            </DataArray>
+            <DataArray Name="DISPLACEMENT" NumberOfComponents="3" format="binary" type="Float64">
+              YAAAAAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAUQAAAAAAAABBAAAAAAAAAFEAAAAAAAAAYQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQAAAAAAAABxAAAAAAAAAIEAAAAAAAAAiQA==
+            </DataArray>
+            <DataArray Name="PRESSURE" NumberOfComponents="1" format="binary" type="Float64">
+              IAAAAAAAAAAAAAhAAAAAAAAAEEAAAAAAAAAYQAAAAAAAABxA
+            </DataArray>
+         </PointData>
+         <CellData>
+            <DataArray Name="ACTIVATION_LEVEL" NumberOfComponents="1" format="binary" type="Int32">
+              CAAAAAQAAAAHAAAA
+            </DataArray>
+            <DataArray Name="CONSTITUTIVE_MATRIX" NumberOfComponents="6" format="binary" type="Float64">
+              YAAAAAAAAAAAABBAAAAAAAAAFEAAAAAAAAAYQAAAAAAAABxAAAAAAAAAHEAAAAAAAAAiQAAAAAAAABxAAAAAAAAAIEAAAAAAAAAiQAAAAAAAACRAAAAAAAAAJEAAAAAAAAAoQA==
+            </DataArray>
+            <DataArray Name="DETERMINANTS_OF_JACOBIAN_PARENT" NumberOfComponents="7" format="binary" type="Float64">
+              cAAAAAAAAAAAABBAAAAAAAAAFEAAAAAAAAAYQAAAAAAAABxAAAAAAAAAIEAAAAAAAAAiQAAAAAAAACRAAAAAAAAAHEAAAAAAAAAgQAAAAAAAACJAAAAAAAAAJEAAAAAAAAAmQAAAAAAAAChAAAAAAAAAKkA=
+            </DataArray>
+            <DataArray Name="DISPLACEMENT" NumberOfComponents="3" format="binary" type="Float64">
+              MAAAAAAAAAAAABBAAAAAAAAAFEAAAAAAAAAYQAAAAAAAABxAAAAAAAAAIEAAAAAAAAAiQA==
+            </DataArray>
+            <DataArray Name="PRESSURE" NumberOfComponents="1" format="binary" type="Float64">
+              EAAAAAAAAAAAABBAAAAAAAAAHEA=
+            </DataArray>
+         </CellData>
+      </Piece>
+   </UnstructuredGrid>
+</VTKFile>
