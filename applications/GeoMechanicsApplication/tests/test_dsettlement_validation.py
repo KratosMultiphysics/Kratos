@@ -1,10 +1,12 @@
 from KratosMultiphysics.GeoMechanicsApplication import run_multiple_stages
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.GeoMechanicsApplication import geo_plot_utilities
 import os
 import pathlib
 
 import test_helper
+
+if test_helper.want_test_plots():
+    from KratosMultiphysics.GeoMechanicsApplication import geo_plot_utilities
 
 class PlotDataSeries():
     def __init__(self, x_values, y_values, label='', linestyle='-', marker=None):
