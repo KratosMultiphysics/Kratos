@@ -89,15 +89,12 @@ protected:
         const IndexType Level) const;
 
     ///@}
-    ///@name Protected member variables
-    ///@{
 
-    std::map<std::string, std::string> mAttributes;
-
-    ///@}
 private:
     ///@name Private member variables
     ///@{
+
+    std::map<std::string, std::string> mAttributes;
 
     const std::string mTagName;
 

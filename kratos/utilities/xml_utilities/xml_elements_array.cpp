@@ -43,6 +43,8 @@ void XmlElementsArray:: Write(
     std::ostream& rOStream,
     const IndexType Level) const
 {
+    KRATOS_TRY
+
     if (mElementsArray.empty()) {
         WriteEmptyElementTag(rOStream, Level);
     } else {
@@ -54,6 +56,8 @@ void XmlElementsArray:: Write(
 
         WriteElementTagEnd(rOStream, Level);
     }
+
+    KRATOS_CATCH("");
 }
 
 } // namespace Kratos

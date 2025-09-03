@@ -32,24 +32,32 @@ XmlNDDataElement<TDataType>::XmlNDDataElement(
     : BaseType("DataArray"),
       mpNDData(pNDData)
 {
+    KRATOS_TRY
+
     // add the data array name
-    mAttributes["Name"] = rDataArrayName;
+    this->AddAttribute("Name", rDataArrayName);
 
     // add the data type information
     if constexpr(std::is_same_v<TDataType, unsigned char>) {
-        mAttributes["type"] = "UInt" + std::to_string(sizeof(TDataType) * 8);
+        this->AddAttribute("type", "UInt" + std::to_string(sizeof(TDataType) * 8));
     } else if constexpr(std::is_same_v<TDataType, bool>) {
-        mAttributes["type"] = "UInt" + std::to_string(sizeof(TDataType) * 8);
+        this->AddAttribute("type", "UInt" + std::to_string(sizeof(TDataType) * 8));
     } else if constexpr(std::is_same_v<TDataType, int>) {
-        mAttributes["type"] = "Int" + std::to_string(sizeof(TDataType) * 8);
+        this->AddAttribute("type", "Int" + std::to_string(sizeof(TDataType) * 8));
     } else if constexpr(std::is_same_v<TDataType, double>) {
-        mAttributes["type"] = "Float" + std::to_string(sizeof(TDataType) * 8);
+        this->AddAttribute("type", "Float" + std::to_string(sizeof(TDataType) * 8));
     } else {
         KRATOS_ERROR << "Unsupported data type.";
     }
 
     const auto& shape = pNDData->Shape();
-    mAttributes["NumberOfComponents"] = std::to_string(std::accumulate(shape.begin() + 1, shape.end(), 1u, std::multiplies<unsigned int>{}));
+
+    KRATOS_ERROR_IF(shape.size() == 0)
+        << "NDData must have at least one dimension representing number of entities.\n";
+
+    this->AddAttribute("NumberOfComponents", std::to_string(std::accumulate(shape.begin() + 1, shape.end(), 1u, std::multiplies<unsigned int>{})));
+
+    KRATOS_CATCH("");
 }
 
 // template instantiations

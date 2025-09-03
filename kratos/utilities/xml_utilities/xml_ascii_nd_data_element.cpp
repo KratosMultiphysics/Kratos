@@ -34,7 +34,7 @@ XmlAsciiNDDataElement<TDataType>::XmlAsciiNDDataElement(
       mPrecision(Precision)
 {
     // add the format information
-    this->mAttributes["format"] = "ascii";
+    this->AddAttribute("format", "ascii");
 }
 
 template<class TDataType>
@@ -42,6 +42,8 @@ void XmlAsciiNDDataElement<TDataType>::Write(
     std::ostream& rOStream,
     const IndexType Level) const
 {
+    KRATOS_TRY
+
     rOStream << std::scientific << std::setprecision(mPrecision);
 
     const auto span = this->mpNDData->ViewData();
@@ -67,6 +69,8 @@ void XmlAsciiNDDataElement<TDataType>::Write(
 
         this->WriteElementTagEnd(rOStream, Level);
     }
+
+    KRATOS_CATCH("");
 }
 
 // template instantiations

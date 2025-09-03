@@ -30,7 +30,7 @@ XmlBase64BinaryNDDataElement<TDataType>::XmlBase64BinaryNDDataElement(
     : BaseType(rDataArrayName, pNDData)
 {
     // modify the format information
-    this->mAttributes["format"] = "binary";
+    this->AddAttribute("format", "binary");
 }
 
 template<class TDataType>
@@ -38,6 +38,8 @@ void XmlBase64BinaryNDDataElement<TDataType>::Write(
     std::ostream& rOStream,
     const IndexType Level) const
 {
+    KRATOS_TRY
+
     const auto span = this->mpNDData->ViewData();
 
     if (span.size() == 0) {
@@ -64,6 +66,8 @@ void XmlBase64BinaryNDDataElement<TDataType>::Write(
 
         this->WriteElementTagEnd(rOStream, Level);
     }
+
+    KRATOS_CATCH("");
 }
 
 // template instantiations
