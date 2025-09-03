@@ -1,7 +1,9 @@
+import typing
 import math
-import shutil
+import numpy as np
 from pathlib import Path
 import KratosMultiphysics as Kratos
+import xml.etree.ElementTree as ET
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
@@ -176,7 +178,7 @@ class TestVtuOutput(kratos_unittest.TestCase):
         add_variables(cls.model_part.Elements, lambda x, y, z: x.SetValue(y, z))
 
     def test_PointVariableAddition(self):
-        vtu_output = Kratos.VtuOutput(self.model_part)
+        vtu_output = Kratos.VtuOutput(self.model_part, output_sub_model_parts=True)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.NodeHistorical)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Condition)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Element)
@@ -189,7 +191,8 @@ class TestVtuOutput(kratos_unittest.TestCase):
         with self.assertRaises(RuntimeError):
             vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.NodeNonHistorical)
 
-        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Nodes, Kratos.DoubleNDData([2, 3]))
+        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Nodes, Kratos.DoubleNDData([51, 5]))
+        ta.Check()
         with self.assertRaises(RuntimeError):
             vtu_output.AddTensorAdaptor("PRESSURE", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_1", ta)
@@ -208,14 +211,16 @@ class TestVtuOutput(kratos_unittest.TestCase):
             vtu_output.AddTensorAdaptor("PRESSURE_2", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_3", ta)
 
-        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Conditions, Kratos.DoubleNDData([4,5]))
+        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Conditions, Kratos.DoubleNDData([50,2,4]))
+        ta.Check()
         with self.assertRaises(RuntimeError):
             vtu_output.AddTensorAdaptor("PRESSURE", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_1", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_2", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_3", ta)
 
-        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Elements, Kratos.DoubleNDData([4,5]))
+        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(self.model_part.Elements, Kratos.DoubleNDData([50,2,5]))
+        ta.Check()
         with self.assertRaises(RuntimeError):
             vtu_output.AddTensorAdaptor("PRESSURE", ta)
         vtu_output.AddTensorAdaptor("PRESSURE_1", ta)
@@ -234,8 +239,67 @@ class TestVtuOutput(kratos_unittest.TestCase):
             vtu_output.AddContainerExpression("PRESSURE_2", exp)
         vtu_output.AddContainerExpression("PRESSURE_4", exp)
 
+        vtu_output.PrintOutput("temp/vtu_output/variable_test")
+
+        model_part = vtu_output.GetModelPart()
+        unstructured_grid_list = self.GetUnstructuredGridList(model_part, model_part.GetCommunicator().GetDataCommunicator(), True)
+        for model_part, use_nodes, container in unstructured_grid_list:
+            vtu_file_name = TestVtuOutput.GetUnstructuredGridName((model_part, use_nodes, container), "temp/vtu_output/variable_test", 0, model_part.GetCommunicator().GetDataCommunicator())
+            if use_nodes:
+                TestVtuOutput.CheckVtuFile(self, vtu_file_name, TestVtuOutput.GetNodes(model_part, use_nodes, container), container, "binary",
+                                        {
+                                            "PRESSURE": (1, "Float64", None)
+                                        },
+                                        {
+                                            "PRESSURE": (1, "Float64", None)
+                                        })
+            else:
+                TestVtuOutput.CheckVtuFile(self, vtu_file_name, TestVtuOutput.GetNodes(model_part, use_nodes, container), container, "binary",
+                                        {},
+                                        {
+                                            "PRESSURE": (1, "Float64", None)
+                                        })
+
+            if model_part.FullName() == "test":
+                if use_nodes:
+                    TestVtuOutput.CheckVtuFile(self, vtu_file_name, TestVtuOutput.GetNodes(model_part, use_nodes, container), container, "binary",
+                                            {
+                                                "PRESSURE": (1, "Float64", None),
+                                                "PRESSURE_1": (5, "Float64", None),
+                                                "PRESSURE_2": (1, "Float64", None),
+                                                "PRESSURE_3": (5, "Float64", None)
+                                            },
+                                            {
+                                                "PRESSURE": (1, "Float64", None)
+                                            })
+                elif isinstance(container, Kratos.ConditionsArray):
+                    TestVtuOutput.CheckVtuFile(self, vtu_file_name, TestVtuOutput.GetNodes(model_part, use_nodes, container), container, "binary",
+                                            {},
+                                            {
+                                                "PRESSURE": (1, "Float64", None),
+                                                "PRESSURE_1": (8, "Float64", None),
+                                                "PRESSURE_2": (8, "Float64", None),
+                                                "PRESSURE_3": (8, "Float64", None)
+                                            })
+                elif isinstance(container, Kratos.ElementsArray):
+                    TestVtuOutput.CheckVtuFile(self, vtu_file_name, TestVtuOutput.GetNodes(model_part, use_nodes, container), container, "binary",
+                                            {
+                                                "PRESSURE": (1, "Float64", None),
+                                                "PRESSURE_1": (5, "Float64", None),
+                                                "PRESSURE_2": (1, "Float64", None),
+                                                "PRESSURE_3": (5, "Float64", None)
+                                            },
+                                            {
+                                                "PRESSURE": (1, "Float64", None),
+                                                "PRESSURE_1": (10, "Float64", None),
+                                                "PRESSURE_2": (10, "Float64", None),
+                                                "PRESSURE_3": (10, "Float64", None)
+                                            })
+
+        kratos_utils.DeleteDirectoryIfExisting("temp/vtu_output/variable_test")
+
     def test_CellVariableAddition(self):
-        vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII)
+        vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, output_sub_model_parts=True)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Condition)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.NodeHistorical)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Element)
@@ -254,7 +318,158 @@ class TestVtuOutput(kratos_unittest.TestCase):
         vtu_output.GetModelPart().ProcessInfo[Kratos.TIME] += 1e-9
         vtu_output.PrintOutput("temp/vtu_output/time_step_test")
 
-        kratos_utils.DeleteDirectoryIfExisting("temp")
+        model_part = vtu_output.GetModelPart()
+        unstructured_grid_list = self.GetUnstructuredGridList(model_part, model_part.GetCommunicator().GetDataCommunicator(), True)
+        for step in range(2):
+            for model_part, use_nodes, container in unstructured_grid_list:
+                vtu_file_name = TestVtuOutput.GetUnstructuredGridName((model_part, use_nodes, container), "temp/vtu_output/time_step_test", step, model_part.GetCommunicator().GetDataCommunicator())
+                if use_nodes:
+                    TestVtuOutput.CheckVtuFile(self, vtu_file_name, TestVtuOutput.GetNodes(model_part, use_nodes, container), container, "ascii",
+                                            {
+                                                "PRESSURE": (1, "Float64", None),
+                                                "DISPLACEMENT": (3, "Float64", None)
+                                            },
+                                            {
+                                                "PRESSURE": (1, "Float64", None),
+                                                "DISPLACEMENT": (3, "Float64", None)
+                                            })
+                else:
+                    TestVtuOutput.CheckVtuFile(self, vtu_file_name, TestVtuOutput.GetNodes(model_part, use_nodes, container), container, "ascii",
+                                            {
+                                            },
+                                            {
+                                                "PRESSURE": (1, "Float64", None),
+                                                "DISPLACEMENT": (3, "Float64", None)
+                                            })
+
+        kratos_utils.DeleteDirectoryIfExisting("temp/vtu_output/time_step_test")
+
+    @staticmethod
+    def GetUnstructuredGridList(model_part: Kratos.ModelPart, data_communicator: Kratos.DataCommunicator, recursively: bool) -> 'list[tuple[Kratos.ModelPart, bool, typing.Optional[typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray]]]]':
+        unstructured_grid_list: 'list[tuple[Kratos.ModelPart, bool, typing.Optional[typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray]]]]' = []
+        TestVtuOutput.__GetUnstructuredGridList(unstructured_grid_list, model_part, data_communicator, recursively)
+        return unstructured_grid_list
+
+    @staticmethod
+    def GetUnstructuredGridName(unstructured_grid: 'tuple[Kratos.ModelPart, bool, typing.Optional[typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray]]]', prefix: str, step: int, data_communicator: Kratos.DataCommunicator) -> str:
+        if data_communicator.IsDistributed():
+            rank_suffix = f"_{data_communicator.Rank()}"
+        else:
+            rank_suffix = ""
+
+        if unstructured_grid[2] is None:
+            entity_type = "nodes"
+        elif isinstance(unstructured_grid[2], Kratos.ConditionsArray):
+            entity_type = "conditions"
+        elif isinstance(unstructured_grid[2], Kratos.ElementsArray):
+            entity_type = "elements"
+        return f"{prefix}/{unstructured_grid[0].FullName()}_{entity_type}_{step}{rank_suffix}.vtu"
+
+    @staticmethod
+    def GetNodes(model_part: Kratos.ModelPart, use_model_part_nodes: bool, container: 'typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray]') -> 'list[Kratos.Node]':
+        if use_model_part_nodes:
+            return model_part.Nodes
+        else:
+            temp = []
+            for entity in container:
+                for node in entity.GetGeometry():
+                    temp.append(node.Id)
+            return [model_part.GetNode(node_id) for node_id in list(sorted(set(temp)))]
+
+    @staticmethod
+    def CheckVtuFile(
+        test_class: kratos_unittest.TestCase,
+        vtu_file_name: str,
+        nodes: 'list[Kratos.Node]',
+        container: 'typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray, list[int]]',
+        data_format : str,
+        point_data_fields: 'dict[str, tuple[int, str, typing.Any]]',
+        cell_data_fields: 'dict[str, tuple[int, str, typing.Any]]'):
+
+        def check_data_array(xml_element: ET.Element, number_of_components: int, name: str, data_type: str, data_format: str, data: 'typing.Optional[np.ndarray]' = None, tolerance = 1e-9):
+            test_class.assertEqual(xml_element.tag, "DataArray")
+            test_class.assertEqual(xml_element.get("NumberOfComponents"), str(number_of_components))
+            test_class.assertEqual(xml_element.get("format"), data_format)
+            test_class.assertEqual(xml_element.get("type"), data_type)
+            test_class.assertEqual(xml_element.get("Name"), name)
+            if data_format == "ascii" and not data is None:
+                np_array = np.fromstring(xml_element.text, sep=" ")
+                test_class.assertTrue(np.linalg.norm(data.ravel() - np_array) < tolerance)
+
+        test_class.assertTrue(Path(vtu_file_name).is_file(), f"The file {vtu_file_name} not found.")
+        tree = ET.parse(vtu_file_name)
+        root = tree.getroot()
+
+        test_class.assertEqual(root.tag, "VTKFile")
+        test_class.assertEqual(root.get("type"), "UnstructuredGrid")
+        test_class.assertEqual(root.get("version"), "0.1")
+
+        unstructured_grid = root.find("UnstructuredGrid")
+        piece = unstructured_grid.find("Piece")
+
+        test_class.assertEqual(piece.get("NumberOfCells"), f"{len(container)}", f"Vtu file name = {vtu_file_name}")
+        np_positions = np.zeros((len(nodes), 3), dtype=np.float64)
+        for i, node in enumerate(nodes):
+            np_positions[i, 0] = node.X0
+            np_positions[i, 1] = node.Y0
+            np_positions[i, 2] = node.Z0
+
+        test_class.assertEqual(piece.get("NumberOfPoints"), f"{np_positions.shape[0]}", f"Vtu file name = {vtu_file_name}")
+
+        points = piece.find("Points")
+        check_data_array(points.find("DataArray"), 3, "Position", "Float64", data_format, np_positions)
+
+        cells = piece.find("Cells")
+        data_arrays = cells.findall("DataArray")
+        np_offsets = np.zeros(len(container))
+        total_connectivities = 0
+        for i, entity in enumerate(container):
+            total_connectivities += len(entity.GetGeometry())
+            np_offsets[i] = total_connectivities
+        check_data_array(data_arrays[1], 1, "offsets", "Int32", data_format, np_offsets)
+
+        # now checking for point data
+        point_data = piece.find("PointData")
+        for data_field_name, (data_field_number_of_components, data_field_data_type, data) in point_data_fields.items():
+            found = False
+            for point_data_array in point_data.findall("DataArray"):
+                if point_data_array.get("Name") == data_field_name:
+                    check_data_array(point_data_array, data_field_number_of_components, data_field_name, data_field_data_type, data_format, data)
+                    found = True
+                    break
+            test_class.assertTrue(found, f"Point data field \"{data_field_name}\" not found in the \"{vtu_file_name}\"")
+
+        # now checking for cell data
+        cell_data = piece.find("CellData")
+        if container is not None:
+            for data_field_name, (data_field_number_of_components, data_field_data_type, data) in cell_data_fields.items():
+                found = False
+                for point_data_array in cell_data.findall("DataArray"):
+                    if point_data_array.get("Name") == data_field_name:
+                        check_data_array(point_data_array, data_field_number_of_components, data_field_name, data_field_data_type, data_format, data)
+                        found = True
+                        break
+                test_class.assertTrue(found, f"Cell data field \"{data_field_name}\" not found in the \"{vtu_file_name}\"")
+
+    @staticmethod
+    def __GetUnstructuredGridList(unstructured_grid_list: 'list[tuple[Kratos.ModelPart, bool, typing.Optional[typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray]]]]', model_part: Kratos.ModelPart, data_communicator: Kratos.DataCommunicator, recursively: bool) -> None:
+        availability = data_communicator.MaxAll(Kratos.Array3([model_part.NumberOfNodes(), model_part.NumberOfConditions(), model_part.NumberOfElements()]))
+        has_nodes = availability[0] > 0
+        has_conditions = availability[1] > 0
+        has_elements = availability[2] > 0
+
+        if has_elements:
+            unstructured_grid_list.append((model_part, has_nodes, model_part.Elements))
+
+        if has_conditions:
+            unstructured_grid_list.append((model_part, not has_elements and has_nodes, model_part.Conditions))
+
+        if not has_elements and not has_conditions:
+            unstructured_grid_list.append((model_part, has_nodes, None))
+
+        if recursively:
+            for sub_model_part in model_part.SubModelParts:
+                TestVtuOutput.__GetUnstructuredGridList(unstructured_grid_list, sub_model_part, data_communicator, recursively)
 
 class TestVtuOutput2D(TestVtuOutputBase, kratos_unittest.TestCase):
     @classmethod
