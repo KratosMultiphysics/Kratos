@@ -24,7 +24,15 @@
 
 #include "constraints/linear_master_slave_constraint.h"
 
+#include "solving_strategies/builder_and_solvers/p_multigrid/linear_multifreedom_constraint.hpp"
+
 #include "geometries/coupling_geometry.h"
+
+#include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
+
+#include "integration/integration_info.h"
+
+#include "utilities/tessellation_utilities/curve_tessellation.h"
 
 namespace Kratos
 {
@@ -47,6 +55,11 @@ public:
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
+
+    typedef Geometry<Node> GeometryType;
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+    typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -91,13 +104,33 @@ public:
     }
 
 private:
+    // Obtain IDs master, IDs slave, and relation matrix for linear master constraints
+    void GetRelationMatrix(
+        const std::unordered_map<int, std::unordered_map<int, double>>& MasterSlaveConstraints,
+        std::vector<IndexType>& SlaveIds,
+        std::vector<IndexType>& MasterIds,
+        Matrix& RelationMatrix
+    );
+
+    // Execute linear master slave constraint
+    void LinearMasterSlaveConstraints(
+        const std::vector<IndexType>& SlaveIds,
+        const std::vector<IndexType>& MasterIds,
+        const Matrix& RelationMatrix,
+        const Variable<double>& ConstraintVariable,
+        const IndexType ConstraintIndex
+    );
+
     ///@name Member Variables
     ///@{
 
     /// Model part and different settings
     Model& mrModel;             /// The main model part
     Parameters mThisParameters; /// The parameters (can be used for general pourposes)
-    ModelPart* mpModelPart;
+    ModelPart* mpConstraintsModelPart;     /// Constraints model part
+    ModelPart* mpAnalysisModelPart; /// Analysis model part
+    std::vector<std::string> mConstraintsList; // Constraints
+    bool mMasterSlaveFlag; // Determine whether the first coupled geometry is master (true) or slave (false)
 
     ///@}
 

@@ -29,213 +29,219 @@ MasterSlaveProcess::MasterSlaveProcess(
 {
     mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 
-    std::string model_part_name = mThisParameters["model_part_name"].GetString();
-    mpModelPart = &rModel.GetModelPart(model_part_name);
+    std::string constraints_model_part_name = mThisParameters["constraints_model_part_name"].GetString();
+    mpConstraintsModelPart = &rModel.GetModelPart(constraints_model_part_name);
+
+    std::string analysis_model_part_name = mThisParameters["analysis_model_part_name"].GetString();
+    mpAnalysisModelPart = &rModel.GetModelPart(analysis_model_part_name);
+
+    std::vector<std::string> constraints_list = mThisParameters["variables"].GetStringArray();
+    mConstraintsList = constraints_list;
+
+    bool master_slave_flag = mThisParameters["master_slave_flag"].GetBool();
+    mMasterSlaveFlag = master_slave_flag;
 }
 
 void MasterSlaveProcess::ExecuteBeforeSolutionLoop()
 {
-    // // Input (hard-code) for KL
-    // std::vector<Dof<double>*> dofs_master;
-    // dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_X));
-    // dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_Y));
-    // dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_Z));
+    //0) Trick: create quadrature point geometries (TO DO)
+    bool is_the_first_geometry_master = mMasterSlaveFlag; 
 
-    // dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_X));
-    // dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_Y));
-    // dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_Z));
+    auto& r_brep_curve_on_surface_master = mpConstraintsModelPart->GeometriesBegin()->GetGeometryPart(!is_the_first_geometry_master);
+    auto& r_brep_curve_on_surface_slave = mpConstraintsModelPart->GeometriesBegin()->GetGeometryPart(is_the_first_geometry_master); 
+    
+    GeometriesArrayType slave_quadrature_points;
+    IntegrationInfo integration_info = r_brep_curve_on_surface_slave.GetDefaultIntegrationInfo();
+    r_brep_curve_on_surface_slave.CreateQuadraturePointGeometries(slave_quadrature_points, 2, integration_info);
+      
+    //1) Get node_id slave
+    std::vector<IndexType> node_id;
+    for (auto& geom : slave_quadrature_points) {
+        auto& r_N = geom.ShapeFunctionsValues();
 
-    // dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_X));
-    // dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_Y));
-    // dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_Z));
+        for (IndexType i = 0; i<r_N.size2();++i)
+        {
+            if(r_N(0,i) > 1e-6)
+            {
+                mpConstraintsModelPart->AddNode(geom.pGetPoint(i));
+            }
+        }
+    }
+    
+    for (auto& node : mpConstraintsModelPart->Nodes()) {
+        node_id.push_back(node.Id());
+    }
 
-    // dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_X));
-    // dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_Y));
-    // dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_Z));
+    //2) Construct and apply the constraints for each individual slave node
+    const auto& p_nurbs_surface_master = mpConstraintsModelPart->GeometriesBegin()->GetGeometryPart(!is_the_first_geometry_master).pGetGeometryPart(std::numeric_limits<IndexType>::max());
+    const auto& p_nurbs_surface_slave = mpConstraintsModelPart->GeometriesBegin()->GetGeometryPart(is_the_first_geometry_master).pGetGeometryPart(std::numeric_limits<IndexType>::max());
 
-    // dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_X));
-    // dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_Y));
-    // dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_Z));
+    std::unordered_map<int, std::unordered_map<int, double>> master_slave_constraints;
 
-    // dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_X));
-    // dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_Y));
-    // dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_Z));
+    for (auto& id : node_id) {
+        CoordinatesArrayType local_coords_master = ZeroVector(3);
+        CoordinatesArrayType local_coords_slave = ZeroVector(3); 
+        CoordinatesArrayType global_coords_master = ZeroVector(3);
+        CoordinatesArrayType global_coords_slave = ZeroVector(3); 
 
-    // dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_X));
-    // dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_Y));
-    // dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_Z));
+        //a) ProjectionPointGlobalToLocalSpace of the slave (TO DO: Check!)
+        int success_slave = p_nurbs_surface_slave->ProjectionPointGlobalToLocalSpace(
+            mpConstraintsModelPart->GetNode(id), local_coords_slave);
 
-    // dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_X));
-    // dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_Y));
-    // dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_Z));
+        p_nurbs_surface_slave->GlobalCoordinates(global_coords_slave, local_coords_slave);
 
-    // std::vector<Dof<double>*> dofs_slave;
-    // dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_X));
-    // dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_Y));
-    // dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_Z));
+        CurveTessellation<PointerVector<Node>> curve_tesselation;
+        curve_tesselation.Tessellate(*(p_nurbs_surface_master.get()), 1e-2, p_nurbs_surface_master->PolynomialDegree(0));
 
-    // dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_X));
-    // dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_Y));
-    // dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_Z));
+        curve_tesselation.GetClosestPoint(
+            global_coords_slave,
+            global_coords_master,
+            local_coords_master);
 
-    // dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_X));
-    // dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_Y));
-    // dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_Z));
+        p_nurbs_surface_master->ProjectionPointGlobalToLocalSpace(
+            global_coords_slave,
+            local_coords_master);
 
-    // Matrix relation_matrix = ZeroMatrix(9, 24);
-    // for (IndexType i = 0; i < 3; i++)
-    // {
-    //     for (IndexType j = 0; j < 2; j++)
-    //     {
-    //         relation_matrix(i,j*3+i) = 0.5;
+        p_nurbs_surface_master->GlobalCoordinates(global_coords_master, local_coords_master);
+
+        //b) Evaluate the shape function and obtain the corresponding control points via master's quadrature points
+
+        GeometriesArrayType master_quadrature_points;
+        IntegrationPointsArrayType master_integration_points(1);
+        master_integration_points[0] = IntegrationPoint<3>(local_coords_master, 1.0); //dummy weight
+
+        IntegrationInfo integration_info_master = p_nurbs_surface_master->GetDefaultIntegrationInfo();
+        p_nurbs_surface_master->CreateQuadraturePointGeometries(
+                        master_quadrature_points, 2, master_integration_points, integration_info_master);
+
+        //c) Data Structure (TO DO: make it more efficient)
+        std::unordered_map<int, double> master_constraints;
+
+        for (auto& geom : master_quadrature_points)
+        {
+            auto& r_N = geom.ShapeFunctionsValues();
+
+            for (IndexType i = 0; i<r_N.size2();++i)
+            {
+                if(r_N(0,i) > 1e-6)
+                {
+                    master_constraints.emplace(geom.pGetPoint(i)->Id(), r_N(0,i));
+                }
+            }
+        }
+        master_slave_constraints.emplace(id, master_constraints);
+    }
+
+    //// Print the master slave constraints for debugging
+    // for (const auto& [slave_id, constraints] : master_slave_constraints) {
+    //     std::cout << "slave_id: " << slave_id << ":\n";
+    //     for (const auto& [master_id, value] : constraints) {
+    //         std::cout << "master_id: " << master_id << " => " << value << '\n';
     //     }
     // }
 
-    // for (IndexType ii = 3; ii < 6; ii++)
-    // {
-    //     for (IndexType jj = 2; jj < 6; jj++)
-    //     {
-    //         relation_matrix(ii,jj*3+(ii-3)) = 0.25;
-    //     }
-    // }
+    //3) Version 1 : Linear master slave constraints
+    Matrix relation_matrix;
+    std::vector<IndexType> slave_ids;
+    std::vector<IndexType> master_ids;
+    GetRelationMatrix(master_slave_constraints, slave_ids, master_ids, relation_matrix);
 
-    // for (IndexType iii = 6; iii < 9; iii++)
-    // {
-    //     for (IndexType jjj = 6; jjj < 8; jjj++)
-    //     {
-    //         relation_matrix(iii,jjj*3+(iii-6)) = 0.5;
-    //     }
-    // }
+    IndexType constraint_index = 55; //TO DO
 
-    // Vector constraint_vector = ZeroVector(24);
+    for (IndexType i = 0; i < mConstraintsList.size(); i++) 
+    {
+        LinearMasterSlaveConstraints(slave_ids, master_ids, relation_matrix, KratosComponents<Variable<double>>::Get(mConstraintsList[i]), constraint_index);
+        constraint_index++;
+    }
 
-    // Input (hard-code) for RM
-    std::vector<Dof<double>*> dofs_master;
-    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_X));
-    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_Y));
-    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(DISPLACEMENT_Z));
-    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(ROTATION_X));
-    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(ROTATION_Y));
-    dofs_master.push_back(mpModelPart->GetNode(35).pGetDof(ROTATION_Z));
+    //4) Version 2 : Linear multi freedom constraints (TO DO)
+}
 
-    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_X));
-    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_Y));
-    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(DISPLACEMENT_Z));
-    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(ROTATION_X));
-    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(ROTATION_Y));
-    dofs_master.push_back(mpModelPart->GetNode(36).pGetDof(ROTATION_Z));
+void MasterSlaveProcess::GetRelationMatrix(
+    const std::unordered_map<int, std::unordered_map<int, double>>& MasterSlaveConstraints,
+    std::vector<IndexType>& SlaveIds,
+    std::vector<IndexType>& MasterIds,
+    Matrix& RelationMatrix
+)
+{
+    // a) collect and sort unique slave and master ids
+    std::set<int> slave_set, master_set;
+    for (const auto& [slave_id, constraints] : MasterSlaveConstraints) {
+        slave_set.insert(slave_id); 
+        for (const auto& [master_id, value] : constraints) {
+            master_set.insert(master_id);
+        }
+    }
+    std::vector<IndexType> slaves(slave_set.begin(), slave_set.end());
+    std::vector<IndexType> masters(master_set.begin(), master_set.end());
 
-    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_X));
-    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_Y));
-    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(DISPLACEMENT_Z));
-    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(ROTATION_X));
-    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(ROTATION_Y));
-    dofs_master.push_back(mpModelPart->GetNode(39).pGetDof(ROTATION_Z));
+    SlaveIds = slaves;
+    MasterIds = masters;
 
-    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_X));
-    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_Y));
-    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(DISPLACEMENT_Z));
-    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(ROTATION_X));
-    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(ROTATION_Y));
-    dofs_master.push_back(mpModelPart->GetNode(40).pGetDof(ROTATION_Z));
+    // b) index maps (master id -> column, slave id -> row)
+    std::unordered_map<IndexType,IndexType> row, col;
+    for (IndexType r = 0; r < slaves.size(); ++r)
+    {
+        row[slaves[r]] = r;
+    } 
+    for (IndexType c = 0; c < masters.size(); ++c) 
+    {
+        col[masters[c]] = c;   
+    }
 
-    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_X));
-    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_Y));
-    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(DISPLACEMENT_Z));
-    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(ROTATION_X));
-    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(ROTATION_Y));
-    dofs_master.push_back(mpModelPart->GetNode(43).pGetDof(ROTATION_Z));
+    // c) build the relation matrix
+    RelationMatrix = ZeroMatrix(slaves.size(), masters.size());
+    for (const auto& [slave_id, constraints] : MasterSlaveConstraints) {
+        auto r = row[slave_id];
+        for (const auto& [master_id, value] : constraints) {
+            auto c = col[master_id];
+            RelationMatrix(r,c) = value;
+        }
+    }
+}
 
-    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_X));
-    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_Y));
-    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(DISPLACEMENT_Z));
-    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(ROTATION_X));
-    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(ROTATION_Y));
-    dofs_master.push_back(mpModelPart->GetNode(44).pGetDof(ROTATION_Z));
-
-    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_X));
-    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_Y));
-    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(DISPLACEMENT_Z));
-    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(ROTATION_X));
-    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(ROTATION_Y));
-    dofs_master.push_back(mpModelPart->GetNode(47).pGetDof(ROTATION_Z));
-
-    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_X));
-    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_Y));
-    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(DISPLACEMENT_Z));
-    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(ROTATION_X));
-    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(ROTATION_Y));
-    dofs_master.push_back(mpModelPart->GetNode(48).pGetDof(ROTATION_Z));
-
+void MasterSlaveProcess::LinearMasterSlaveConstraints(
+    const std::vector<IndexType>& SlaveIds,
+    const std::vector<IndexType>& MasterIds,
+    const Matrix& RelationMatrix,
+    const Variable<double>& ConstraintVariable,
+    const IndexType ConstraintIndex
+)
+{
     std::vector<Dof<double>*> dofs_slave;
-    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_X));
-    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_Y));
-    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(DISPLACEMENT_Z));
-    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(ROTATION_X));
-    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(ROTATION_Y));
-    dofs_slave.push_back(mpModelPart->GetNode(3).pGetDof(ROTATION_Z));
-
-    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_X));
-    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_Y));
-    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(DISPLACEMENT_Z));
-    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(ROTATION_X));
-    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(ROTATION_Y));
-    dofs_slave.push_back(mpModelPart->GetNode(4).pGetDof(ROTATION_Z));
-
-    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_X));
-    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_Y));
-    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(DISPLACEMENT_Z));
-    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(ROTATION_X));
-    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(ROTATION_Y));
-    dofs_slave.push_back(mpModelPart->GetNode(5).pGetDof(ROTATION_Z));
-
-    Matrix relation_matrix = ZeroMatrix(18, 48);
-    for (IndexType i = 0; i < 6; i++)
+    for(IndexType slave_id = 0; slave_id < SlaveIds.size(); slave_id++)
     {
-        for (IndexType j = 0; j < 2; j++)
-        {
-            relation_matrix(i,j*6+i) = 0.5;
-        }
+        dofs_slave.push_back(mpAnalysisModelPart->GetNode(SlaveIds[slave_id]).pGetDof(ConstraintVariable));
     }
 
-    for (IndexType ii = 6; ii < 12; ii++)
+    std::vector<Dof<double>*> dofs_master;
+    for(IndexType master_id = 0; master_id < MasterIds.size(); master_id++)
     {
-        for (IndexType jj = 2; jj < 6; jj++)
-        {
-            relation_matrix(ii,jj*6+(ii-6)) = 0.25;
-        }
+        dofs_master.push_back(mpAnalysisModelPart->GetNode(MasterIds[master_id]).pGetDof(ConstraintVariable));
     }
 
-    for (IndexType iii = 12; iii < 18; iii++)
-    {
-        for (IndexType jjj = 6; jjj < 8; jjj++)
-        {
-            relation_matrix(iii,jjj*6+(iii-12)) = 0.5;
-        }
-    }
+    Vector constraint_vector = ZeroVector(RelationMatrix.size2());
 
-    Vector constraint_vector = ZeroVector(48);
-
-    // Get random constraint_id
-    const std::size_t constraint_id = 55;
-
-    mpModelPart->AddMasterSlaveConstraint(LinearMasterSlaveConstraint::Pointer(
+    mpAnalysisModelPart->AddMasterSlaveConstraint(LinearMasterSlaveConstraint::Pointer(
         new LinearMasterSlaveConstraint(
-            constraint_id,
+            ConstraintIndex,
             dofs_master,
             dofs_slave,
-            relation_matrix,
+            RelationMatrix,
             constraint_vector
         )
     ));
 }
 
+
 const Parameters MasterSlaveProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
-        "output_file_name"           : "",
-        "model_part_name"            : ""
+        "constraints_model_part_name"          : "",
+        "analysis_model_part_name"             : "",
+        "variables"                            : [],
+        "master_slave_flag"                    : true
     })" );
     return default_parameters;
 }
