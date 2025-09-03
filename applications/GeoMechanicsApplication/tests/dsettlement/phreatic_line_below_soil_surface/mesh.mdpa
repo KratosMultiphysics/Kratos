@@ -1,5 +1,11 @@
 Begin Properties 0
 End Properties
+
+Begin Table 1 X LINE_LOAD_Y
+   0.0000000000 -20000.0000000000
+   1.0000000000 -20000.0000000000
+End Table
+
 Begin Nodes
   1  1.0000000000 0.0000000000 0.0000000000
   2  1.0000000000 50.0000000000 0.0000000000
@@ -2085,13 +2091,9 @@ Begin SubModelPart SoilExcludingBoundary
   End SubModelPartElements
 End SubModelPart
 
-Begin Table 4 X LINE_LOAD_Y
-   0.0000000000 -20000.0000000000 
-   1.0000000000 -20000.0000000000 
-End Table
 Begin SubModelPart LineLoad4
   Begin SubModelPartTables
-    4
+    1
   End SubModelPartTables
   Begin SubModelPartNodes
     2
@@ -2103,13 +2105,9 @@ Begin SubModelPart LineLoad4
   End SubModelPartConditions
 End SubModelPart 
 
-Begin Table 5 X LINE_LOAD_Y
-   0.0000000000 -20000.0000000000 
-   1.0000000000 -20000.0000000000 
-End Table
 Begin SubModelPart LineLoad5
   Begin SubModelPartTables
-    5
+    1
   End SubModelPartTables
   Begin SubModelPartNodes
     2
