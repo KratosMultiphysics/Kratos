@@ -1,5 +1,6 @@
 from KratosMultiphysics.GeoMechanicsApplication import run_multiple_stages
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication import geo_plot_utilities
 import os
 import matplotlib.pyplot as plt
 import pathlib
@@ -86,23 +87,6 @@ def make_stress_plot(series_collection, figure_filename):
     plt.savefig(figure_filename)
 
 
-def get_data_points_from(file_path):
-    result = []
-    with open(file_path, "r") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-
-            if line.startswith("#"):
-                continue
-
-            _, x, y = line.split()  # ignore the row number
-            result.append((float(x), float(y)))
-
-    return result
-
-
 def get_nodal_vertical_stress_component_at_time(stress_item_name, time_in_seconds, output_data, node_ids=None):
     stress_vectors_by_node_id = test_helper.GiDOutputFileReader.nodal_values_at_time2(stress_item_name, time_in_seconds, output_data, node_ids=node_ids)
     # Invert the sign of the vertical stress component such that compression becomes positive. Also convert Pa to kPa.
@@ -133,7 +117,7 @@ def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figur
             data_points_by_node[node_id].extend(extract_nodal_settlement_over_time(output_data, node_id))
 
     graph_series = []
-    graph_series.append(make_plot_data(get_data_points_from(path_to_ref_data_points), 'ref', marker='+'))
+    graph_series.append(make_plot_data(geo_plot_utilities.get_data_points_from_file(path_to_ref_data_points), 'ref', marker='+'))
     for node_id in node_ids:
         graph_series.append(make_plot_data(data_points_by_node[node_id], f'node {node_id}', linestyle=':', marker='+'))
 
@@ -151,11 +135,11 @@ def make_stress_over_depth_plot(output_data, time_in_sec, post_msh_file_path, no
 
     # Extract reference data points from files
     if ref_data.path_to_water_pressure_data:
-        data_points = get_data_points_from(ref_data.path_to_water_pressure_data)
+        data_points = geo_plot_utilities.get_data_points_from_file(ref_data.path_to_water_pressure_data)
         graph_series.append(make_water_pressure_plot_data(data_points, 'ref P_w', marker='+'))
 
     if ref_data.path_to_vertical_effective_stress_data:
-        data_points = get_data_points_from(ref_data.path_to_vertical_effective_stress_data)
+        data_points = geo_plot_utilities.get_data_points_from_file(ref_data.path_to_vertical_effective_stress_data)
         graph_series.append(make_water_pressure_plot_data(data_points, 'ref sigma_yy;eff', marker='+'))
 
     # Extract data points from the Kratos analysis results
