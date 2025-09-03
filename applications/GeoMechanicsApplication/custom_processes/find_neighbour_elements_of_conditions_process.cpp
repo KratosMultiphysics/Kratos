@@ -61,7 +61,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     }
 
     if (AllConditionsAreVisited()) {
-        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess") << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
+        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess")
+            << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
         return;
     }
 
@@ -75,7 +76,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     }
 
     if (AllConditionsAreVisited()) {
-        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess") << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
+        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess")
+            << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
         return;
     }
 
@@ -93,14 +95,16 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     }
 
     if (AllConditionsAreVisited()) {
-        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess") << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
+        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess")
+            << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
         return;
     }
     // check 1D elements, note that this has to happen after procedures to find 2 and 3d neighbours are already performed, such that 1D elements are only added
     // as neighbours when the condition is not neighbouring 2D or 3D elements
     this->CheckIf1DElementIsNeighbour(condition_node_ids_to_condition);
 
-    KRATOS_INFO("FindNeighbourElementsOfConditionsProcess") << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
+    KRATOS_INFO("FindNeighbourElementsOfConditionsProcess")
+        << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
 
     // check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     auto all_conditions_visited = true;
@@ -123,16 +127,21 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
         std::vector<IndexType> element_boundary_node_ids(r_boundary_geometry.size());
         std::ranges::transform(r_boundary_geometry, element_boundary_node_ids.begin(),
                                [](const Node& rNode) { return rNode.Id(); });
-
+        std::vector<std::size_t> adjacent_condition_node_ids;
         auto itFace = FacesMap.find(element_boundary_node_ids);
+        if (itFace != FacesMap.end()) {
+            adjacent_condition_node_ids = itFace->first;
+        }
+
+
         if (itFace == FacesMap.end() && r_boundary_geometry.LocalSpaceDimension() == 2) {
             // condition is not found but might be a problem of ordering in 2D boundary geometries!
             std::vector<std::size_t> face_ids_sorted = element_boundary_node_ids;
             std::ranges::sort(face_ids_sorted);
 
             auto it = FacesMapSorted.find(face_ids_sorted);
-            bool permutations_found = false;
             if (it != FacesMapSorted.end()) {
+                bool permutations_found = false;
                 switch (r_boundary_geometry.GetGeometryOrderType()) {
                     using enum GeometryData::KratosGeometryOrderType;
                 case Kratos_Linear_Order:
@@ -145,15 +154,15 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
                     break;
                 }
                 if (permutations_found) {
-                    itFace = FacesMap.find(it->second);
+                    adjacent_condition_node_ids = it->second;
                 }
             }
         }
 
-        if (itFace != FacesMap.end()) {
+        if (!adjacent_condition_node_ids.empty()) {
             // condition is found!
             // but check if there are more than one condition on the element
-            CheckForMultipleConditionsOnElement(FacesMap, itFace->first, &rElement);
+            CheckForMultipleConditionsOnElement(FacesMap, adjacent_condition_node_ids, &rElement);
         }
     }
 }
@@ -195,9 +204,8 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
     }
 }
 
-void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnElement(hashmap& rFacesMap,
-                                                                                   const std::vector<std::size_t>& key,
-                                                                                   Element* pElement)
+void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnElement(
+    hashmap& rFacesMap, const std::vector<std::size_t>& key, Element* pElement)
 {
     const auto face_pair = rFacesMap.equal_range(key);
     for (auto it = face_pair.first; it != face_pair.second; ++it) {
