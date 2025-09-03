@@ -2,7 +2,6 @@ from KratosMultiphysics.GeoMechanicsApplication import run_multiple_stages
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.GeoMechanicsApplication import geo_plot_utilities
 import os
-import matplotlib.pyplot as plt
 import pathlib
 
 import test_helper
@@ -21,6 +20,20 @@ def seconds_to_days(duration_in_seconds):
 
 def days_to_seconds(duration_in_days):
     return duration_in_days * 24.0 * 60.0 * 60.0
+
+
+def get_data_points_from_file(file_path):
+    result = []
+    with open(file_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+
+            _, x, y = line.split()  # ignore the row number
+            result.append((float(x), float(y)))
+
+    return result
 
 
 def make_plot_data(points, label='', linestyle='-', marker=None):
@@ -54,38 +67,6 @@ def extract_nodal_settlement_over_time(output_data, node_id):
 
     return result
 
-def plot_settlement_results(series_collection, figure_filename):
-    figure, axes = plt.subplots(layout="constrained")
-    axes.set_xscale('log')
-    for series in series_collection:
-        axes.plot(series.x_values, series.y_values, label=series.label, linestyle=series.linestyle, marker=series.marker)
-    axes.grid()
-    axes.grid(which="minor", color="0.9")
-    axes.yaxis.set_inverted(True)
-    axes.set_xlabel('Time [day]')
-    axes.set_ylabel('Settlement [m]')
-    figure.legend(loc='outside center right')
-
-    if isinstance(figure_filename, pathlib.Path):
-        figure_filename = str(figure_filename.resolve())
-    print(f"Save plot to {figure_filename}")
-    plt.savefig(figure_filename)
-
-def make_stress_plot(series_collection, figure_filename):
-    figure, axes = plt.subplots(layout="constrained")
-    for series in series_collection:
-        axes.plot(series.x_values, series.y_values, label=series.label, linestyle=series.linestyle, marker=series.marker)
-    axes.grid()
-    axes.grid(which="minor", color="0.9")
-    axes.set_xlabel('Stress [kPa]')
-    axes.set_ylabel('y [m]')
-    figure.legend(loc='outside center right')
-
-    if isinstance(figure_filename, pathlib.Path):
-        figure_filename = str(figure_filename.resolve())
-    print(f"Save plot to {figure_filename}")
-    plt.savefig(figure_filename)
-
 
 def get_nodal_vertical_stress_component_at_time(stress_item_name, time_in_seconds, output_data, node_ids=None):
     stress_vectors_by_node_id = test_helper.GiDOutputFileReader.nodal_values_at_time2(stress_item_name, time_in_seconds, output_data, node_ids=node_ids)
@@ -117,11 +98,11 @@ def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figur
             data_points_by_node[node_id].extend(extract_nodal_settlement_over_time(output_data, node_id))
 
     graph_series = []
-    graph_series.append(make_plot_data(geo_plot_utilities.get_data_points_from_file(path_to_ref_data_points), 'ref', marker='+'))
+    graph_series.append(make_plot_data(get_data_points_from_file(path_to_ref_data_points), 'ref', marker='+'))
     for node_id in node_ids:
         graph_series.append(make_plot_data(data_points_by_node[node_id], f'node {node_id}', linestyle=':', marker='+'))
 
-    plot_settlement_results(graph_series, figure_filename)
+    geo_plot_utilities.plot_settlement_results(graph_series, figure_filename)
 
 
 class StressPlotDataFilePaths:
@@ -135,11 +116,11 @@ def make_stress_over_depth_plot(output_data, time_in_sec, post_msh_file_path, no
 
     # Extract reference data points from files
     if ref_data.path_to_water_pressure_data:
-        data_points = geo_plot_utilities.get_data_points_from_file(ref_data.path_to_water_pressure_data)
+        data_points = get_data_points_from_file(ref_data.path_to_water_pressure_data)
         graph_series.append(make_water_pressure_plot_data(data_points, 'ref P_w', marker='+'))
 
     if ref_data.path_to_vertical_effective_stress_data:
-        data_points = geo_plot_utilities.get_data_points_from_file(ref_data.path_to_vertical_effective_stress_data)
+        data_points = get_data_points_from_file(ref_data.path_to_vertical_effective_stress_data)
         graph_series.append(make_water_pressure_plot_data(data_points, 'ref sigma_yy;eff', marker='+'))
 
     # Extract data points from the Kratos analysis results
@@ -152,7 +133,7 @@ def make_stress_over_depth_plot(output_data, time_in_sec, post_msh_file_path, no
     effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_data, node_ids=node_ids_over_depth)
     graph_series.append(PlotDataSeries(effective_vertical_stresses, y_coordinates, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
 
-    make_stress_plot(graph_series, plot_file_path)
+    geo_plot_utilities.make_stress_plot(graph_series, plot_file_path)
 
 
 class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
