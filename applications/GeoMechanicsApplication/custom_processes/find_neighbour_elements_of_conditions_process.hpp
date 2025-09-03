@@ -24,7 +24,10 @@ using hashmap = std::unordered_multimap<std::vector<std::size_t>,
                                         std::vector<Condition::Pointer>,
                                         KeyHasherRange<std::vector<std::size_t>>,
                                         KeyComparorRange<std::vector<std::size_t>>>;
-
+using hashmap2 = std::unordered_multimap<std::vector<std::size_t>,
+                                        std::vector<std::size_t>,
+                                        KeyHasherRange<std::vector<std::size_t>>,
+                                        KeyComparorRange<std::vector<std::size_t>>>;
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -80,7 +83,7 @@ public:
 
     void AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         hashmap&                                   FacesMap,
-        const hashmap&                             FacesMapSorted,
+        const hashmap2&                             FacesMapSorted,
         Element&                                   rElement,
         const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
     /// Finds neighbour elements of conditions
@@ -111,8 +114,9 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
-    hashmap::iterator FindPermutations(std::vector<std::size_t> FaceIds, hashmap& FacesMap) const;
-    hashmap::iterator FindPermutationsQuadratic(std::vector<std::size_t> FaceIds, hashmap& FacesMap) const;
+    bool FindPermutations(std::vector<std::size_t> FaceIds, std::vector<std::size_t> condition_node_ids) const;
+    bool FindPermutationsQuadratic(std::vector<std::size_t> FaceIds,
+                                   std::vector<std::size_t> condition_node_ids) const;
 
     ///@}
     ///@name Member Variables

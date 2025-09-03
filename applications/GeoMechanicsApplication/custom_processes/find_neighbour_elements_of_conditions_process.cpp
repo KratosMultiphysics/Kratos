@@ -15,6 +15,8 @@
 #include "custom_elements/interface_element.h"
 #include "geometries/geometry.h"
 #include "includes/kratos_flags.h"
+#include "utilities/builtin_timer.h"
+
 #include <memory>
 
 namespace Kratos
@@ -23,6 +25,8 @@ namespace Kratos
 void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     KRATOS_TRY
+
+    BuiltinTimer timer;
 
     if (mrModelPart.Conditions().empty()) return;
 
@@ -39,14 +43,14 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         condition_node_ids_to_condition.insert(hashmap::value_type(Ids, {&r_condition}));
     }
 
-    hashmap sorted_condition_node_ids_to_condition;
+    hashmap2 sorted_condition_node_ids_to_condition;
     std::ranges::transform(condition_node_ids_to_condition,
                            std::inserter(sorted_condition_node_ids_to_condition,
                                          sorted_condition_node_ids_to_condition.end()),
                            [](const auto& rPair) {
         auto sorted_ids = rPair.first;
         std::ranges::sort(sorted_ids);
-        return std::make_pair(sorted_ids, rPair.second);
+        return std::make_pair(sorted_ids, rPair.first);
     });
 
     for (auto& r_element : mrModelPart.Elements()) {
@@ -56,7 +60,10 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, rBoundaryGeometries);
     }
 
-    if (AllConditionsAreVisited()) return;
+    if (AllConditionsAreVisited()) {
+        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess") << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
+        return;
+    }
 
     // Now try point loads:
     for (auto& r_element : mrModelPart.Elements()) {
@@ -67,7 +74,10 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, rBoundaryGeometries);
     }
 
-    if (AllConditionsAreVisited()) return;
+    if (AllConditionsAreVisited()) {
+        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess") << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
+        return;
+    }
 
     // check edges of 3D geometries:
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
@@ -82,11 +92,15 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         }
     }
 
-    if (AllConditionsAreVisited()) return;
-
+    if (AllConditionsAreVisited()) {
+        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess") << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
+        return;
+    }
     // check 1D elements, note that this has to happen after procedures to find 2 and 3d neighbours are already performed, such that 1D elements are only added
     // as neighbours when the condition is not neighbouring 2D or 3D elements
     this->CheckIf1DElementIsNeighbour(condition_node_ids_to_condition);
+
+    KRATOS_INFO("FindNeighbourElementsOfConditionsProcess") << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
 
     // check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     auto all_conditions_visited = true;
@@ -103,7 +117,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 }
 
 void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-    hashmap& FacesMap, const hashmap& FacesMapSorted, Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
+    hashmap& FacesMap, const hashmap2& FacesMapSorted, Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         std::vector<IndexType> element_boundary_node_ids(r_boundary_geometry.size());
@@ -115,17 +129,23 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
             // condition is not found but might be a problem of ordering in 2D boundary geometries!
             std::vector<std::size_t> face_ids_sorted = element_boundary_node_ids;
             std::ranges::sort(face_ids_sorted);
-            if (FacesMapSorted.contains(face_ids_sorted)) {
+
+            auto it = FacesMapSorted.find(face_ids_sorted);
+            bool permutations_found = false;
+            if (it != FacesMapSorted.end()) {
                 switch (r_boundary_geometry.GetGeometryOrderType()) {
                     using enum GeometryData::KratosGeometryOrderType;
                 case Kratos_Linear_Order:
-                    itFace = FindPermutations(element_boundary_node_ids, FacesMap);
+                    permutations_found = FindPermutations(element_boundary_node_ids, it->second);
                     break;
                 case Kratos_Quadratic_Order:
-                    itFace = FindPermutationsQuadratic(element_boundary_node_ids, FacesMap);
+                    permutations_found = FindPermutationsQuadratic(element_boundary_node_ids, it->second);
                     break;
                 default:
                     break;
+                }
+                if (permutations_found) {
+                    itFace = FacesMap.find(it->second);
                 }
             }
         }
@@ -193,29 +213,27 @@ void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnEleme
     }
 }
 
-hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutations(std::vector<std::size_t> FaceIds,
-                                                                             hashmap& FacesMap) const
+bool FindNeighbourElementsOfConditionsProcess::FindPermutations(std::vector<std::size_t> FaceIds,
+                                                                std::vector<std::size_t> condition_node_ids) const
 {
     for (std::size_t i = 0; i < FaceIds.size() - 1; ++i) {
         std::ranges::rotate(FaceIds, FaceIds.begin() + 1);
 
-        auto itFace = FacesMap.find(FaceIds);
-        if (itFace != FacesMap.end()) return itFace;
+        if (FaceIds == condition_node_ids) return true;
     }
-    return FacesMap.end();
+    return false;
 }
 
-hashmap::iterator FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(std::vector<std::size_t> FaceIds,
-                                                                                      hashmap& FacesMap) const
+bool FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(std::vector<std::size_t> FaceIds,
+                                                                         std::vector<std::size_t> condition_node_ids) const
 {
     for (std::size_t i = 0; i < FaceIds.size() / 2 - 1; ++i) {
         std::rotate(FaceIds.begin(), FaceIds.begin() + 1, FaceIds.begin() + FaceIds.size() / 2);
         std::rotate(FaceIds.begin() + FaceIds.size() / 2, FaceIds.begin() + FaceIds.size() / 2 + 1,
                     FaceIds.end());
 
-        auto itFace = FacesMap.find(FaceIds);
-        if (itFace != FacesMap.end()) return itFace;
+        if (FaceIds == condition_node_ids) return true;
     }
-    return FacesMap.end();
+    return false;
 }
 } // namespace Kratos
