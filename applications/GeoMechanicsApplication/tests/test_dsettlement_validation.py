@@ -452,21 +452,21 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         )
         self.assertEqual(status, 0)
 
+        os.chdir(original_working_directory)
+
+        project_path = pathlib.Path(project_path)
+
         reader = test_helper.GiDOutputFileReader()
 
-        output_data = reader.read_output_from(
-            os.path.join(project_path, "stage2.post.res")
-        )
+        output_stage_2 = reader.read_output_from(project_path / "stage2.post.res")
         actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_data, [104]
+            "TOTAL_DISPLACEMENT", 8640000, output_stage_2, [104]
         )[0][1]
         self.assertAlmostEqual(actual_settlement_after_one_hundred_days, -0.496382, 4) # Regression value
 
-        output_data = reader.read_output_from(
-            os.path.join(project_path, "stage5.post.res")
-        )
+        output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
         actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_data, [104]
+            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [104]
         )[0][1]
 
         # Assert the value to be within 1% of the analytical solution
@@ -479,7 +479,11 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             < 0.01
         )
 
-        os.chdir(original_working_directory)
+        if test_helper.want_test_plots():
+            output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
+            output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
+            top_node_ids = [2, 3, 104]
+            make_settlement_plot((output_stage_2, output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_4_settlement_plot.svg")
 
       
 if __name__ == "__main__":
