@@ -70,16 +70,14 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 hashmap::iterator itFaceSorted = FacesMapSorted.find(FaceIdsSorted);
                 if (itFaceSorted != FacesMapSorted.end()) {
                     // try different orderings
-                    if (rGeometryElement.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10) {
+                    using enum GeometryData::KratosGeometryType;
+                    if (rGeometryElement.GetGeometryType() == Kratos_Tetrahedra3D10) {
                         itFace = FindFaceReorderingTetrahedra3D10(FaceIds, FacesMap);
-                    } else if (rGeometryElement.GetGeometryType() ==
-                               GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) {
+                    } else if (rGeometryElement.GetGeometryType() == Kratos_Tetrahedra3D4) {
                         itFace = FindFaceReorderingTetrahedra3D4(FaceIds, FacesMap);
-                    } else if (rGeometryElement.GetGeometryType() ==
-                               GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) {
+                    } else if (rGeometryElement.GetGeometryType() == Kratos_Hexahedra3D8) {
                         itFace = FindFaceReorderingHexahedra3D8(FaceIds, FacesMap);
-                    } else if (rGeometryElement.GetGeometryType() ==
-                               GeometryData::KratosGeometryType::Kratos_Hexahedra3D20) {
+                    } else if (rGeometryElement.GetGeometryType() == Kratos_Hexahedra3D20) {
                         itFace = FindFaceReorderingHexahedra3D20(FaceIds, FacesMap);
                     }
                 }
@@ -87,16 +85,17 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                        dynamic_cast<const InterfaceElement*>(&(*itElem))) {
                 // A surface interface element requires the same permutations per face as a tetrahedron
                 switch (rGeometryElement.GetGeometryType()) {
-                case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
+                    using enum GeometryData::KratosGeometryType;
+                case Kratos_Triangle3D3:
                     itFace = FindFaceReorderingTetrahedra3D4(FaceIds, FacesMap);
                     break;
-                case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4:
+                case Kratos_Quadrilateral3D4:
                     itFace = FindFaceReorderingHexahedra3D8(FaceIds, FacesMap);
                     break;
-                case GeometryData::KratosGeometryType::Kratos_Triangle3D6:
+                case Kratos_Triangle3D6:
                     itFace = FindFaceReorderingTetrahedra3D10(FaceIds, FacesMap);
                     break;
-                case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8:
+                case Kratos_Quadrilateral3D8:
                     itFace = FindFaceReorderingHexahedra3D20(FaceIds, FacesMap);
                     break;
                 default:

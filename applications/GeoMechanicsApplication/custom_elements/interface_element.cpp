@@ -298,8 +298,7 @@ std::vector<Vector> InterfaceElement::CalculateTractionsAtIntegrationPoints(cons
     };
     auto result = std::vector<Vector>{};
     result.reserve(rRelativeDisplacements.size());
-    std::transform(rRelativeDisplacements.begin(), rRelativeDisplacements.end(),
-                   mConstitutiveLaws.begin(), std::back_inserter(result), calculate_traction);
+    std::ranges::transform(rRelativeDisplacements, mConstitutiveLaws, std::back_inserter(result), calculate_traction);
 
     return result;
 }

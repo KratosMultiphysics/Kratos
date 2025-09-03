@@ -71,13 +71,14 @@ EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
     ProcessInfo::Pointer pProcessInfo)
     : mpProcessInfo(pProcessInfo)
 {
+    this->mpContainer = pContainer;
+
     const auto& r_getter = [pProcessInfo](auto& rEquationIde, const auto& rEntity){
         rEntity.EquationIdVector(rEquationIde, *pProcessInfo);
     };
 
-    this->mpStorage = Kratos::make_intrusive<Storage>(
-        pContainer, TensorAdaptorUtils::GetTensorShape<std::vector<IndexType>>(
-                        *pContainer, r_getter));
+    this->mpStorage = Kratos::make_shared<Storage>(
+        TensorAdaptorUtils::GetTensorShape<std::vector<IndexType>>(*pContainer, r_getter));
 }
 
 EquationIdsTensorAdaptor::EquationIdsTensorAdaptor(
@@ -112,7 +113,7 @@ void EquationIdsTensorAdaptor::CollectData()
 
             EquationIdsTensorAdaptorCollectData(this->ViewData(), this->Shape()[1], *pContainer, *(this->mpProcessInfo));
         }
-    }, this->mpStorage->GetContainer());
+    }, this->GetContainer());
 
     KRATOS_CATCH("");
 }
@@ -126,7 +127,7 @@ std::string EquationIdsTensorAdaptor::Info() const
 {
     std::stringstream info;
     info << "EquationIdsTensorAdaptor:";
-    info << " " << this->mpStorage->Info();
+    info << " " << BaseType::Info();
     return info.str();
 }
 

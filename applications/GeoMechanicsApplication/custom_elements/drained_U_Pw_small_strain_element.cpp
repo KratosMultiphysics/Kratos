@@ -38,16 +38,6 @@ Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void DrainedUPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(rCurrentProcessInfo);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -95,7 +85,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                        ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
 
@@ -107,7 +97,7 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorTyp
                                                                        ElementVariables& rVariables,
                                                                        unsigned int      GPoint)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector,
                                                                           rVariables, GPoint);

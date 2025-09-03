@@ -16,6 +16,7 @@
 #include <string>
 #include <atomic>
 #include <variant>
+#include <optional>
 
 // External includes
 #include <span/span.hpp>
@@ -23,6 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "containers/nd_data.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
 
 namespace Kratos {
@@ -96,172 +98,53 @@ namespace Kratos {
  */
 template<class TDataType>
 class KRATOS_API(KRATOS_CORE) TensorAdaptor {
-protected:
-
-    /**
-     * @class Storage
-     * @brief Manages the storage and lifetime of tensor adaptor data associated with various containers in @ref ModelPart.
-     *
-     * @p Storage encapsulates a pointer to a container (such as nodes, elements, conditions, etc.) and manages
-     * the associated tensor data. It provides mechanisms for copying, moving, and viewing the internal data, as well as
-     * querying the shape and size of the tensor.
-     *
-     * @tparam TDataType The type of the data stored in the tensor adaptor.
-     */
-    class Storage
-    {
-    public:
-        ///@name Type definitions
-        ///@{
-
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Storage);
-
-        using ContainerPointerType = std::variant<
-                                            ModelPart::DofsArrayType::Pointer,
-                                            ModelPart::NodesContainerType::Pointer,
-                                            ModelPart::ConditionsContainerType::Pointer,
-                                            ModelPart::ElementsContainerType::Pointer,
-                                            ModelPart::PropertiesContainerType::Pointer,
-                                            ModelPart::MasterSlaveConstraintContainerType::Pointer,
-                                            ModelPart::GeometryContainerType::Pointer
-                                        >;
-
-        ///@}
-        ///@name Life cycle
-        ///@{
-
-        Storage(
-            ContainerPointerType pContainer,
-            const DenseVector<unsigned int>& rShape);
-
-        /**
-         * @brief Destroy the Tensor Adaptor storage
-         * @details This method destroys the TensorAdaptorStorage and
-         *          the internal data as well if it is still owned by @p Storage.
-         *
-         */
-        ~Storage();
-
-        ///@}
-        ///@name Public operations
-        ///@{
-
-        /**
-         * @brief Creates a copy of the current storage object.
-         * @details This method returns a pointer to a new @p Storage which is having the copied internal data and the copied
-         *          pointer to the container.
-         */
-        Storage::Pointer Copy() const;
-
-        /**
-         * @brief Moves the internal data.
-         * @warning The TensorAdaptor should not be used after the move is called.
-         *          The management of the data should be carried out by the owner of the
-         *          returned Kratos::span. Otherwise, there will be memory leaks.
-         * @throws std::runtime_error If the internal data is already moved.
-         * @return Returns a span containing the internal data.
-         */
-        Kratos::span<TDataType> MoveData();
-
-        /**
-         * @brief Return a view of the internal data structure.
-         * @throws std::runtime_error If the internal data was moved via @ref Storage::MoveData.
-         */
-        Kratos::span<const TDataType>  ViewData() const;
-
-        /**
-         * @brief Return a view of the internal data structure.
-         * @throws std::runtime_error If the internal data is already moved.
-         */
-        Kratos::span<TDataType> ViewData();
-
-        /**
-         * @brief Returns the shape of the tensor.
-         * @details This function provides the dimensions of the tensor, where each element in the returned
-         *          array corresponds to the size of the tensor in that particular dimension. The first
-         *          dimension always represents the number of entities stored in the container.
-         *
-         * @return A vector containing the size of each dimension of the tensor.
-         */
-        DenseVector<unsigned int> Shape() const;
-
-        /**
-         * @brief Returns the shape of the underlying tensor data.
-         * @details This method returns the shape of the data which may be collected and stored
-         *          in each entity of the specified container. This is always one dimension less
-         *          than the @ref Storage::Shape method.
-         * @return A vector containing the dimensions of the tensor.
-         */
-        DenseVector<unsigned int> DataShape() const;
-
-
-        /**
-         * @brief Returns the number of elements in the tensor adaptor.
-         */
-        unsigned int Size() const;
-
-        /**
-         * @brief Returns a pointer to the underlying container.
-         * @details This method provides access to the internal container used by the tensor adaptor.
-         *          The returned pointer allows read-only operations on the container.
-         */
-        ContainerPointerType GetContainer() const;
-
-
-        /**
-         * @brief Returns a string containing information about the tensor adaptor.
-         * @return A std::string with descriptive information about the current state or properties of the tensor adaptor.
-         */
-        std::string Info() const;
-        ///@}
-
-    private:
-        ///@name private member variables
-        ///@{
-
-        const ContainerPointerType mpContainer;
-
-        const DenseVector<unsigned int> mShape;
-
-        TDataType * mpData = nullptr; // nullptr is used to indicate there is no owning data.
-
-        ///@}
-        ///@name Private operations
-        ///@{
-
-        //*********************************************
-        // this block is needed for refcounting in the @ref intrusive ptr
-        mutable std::atomic<int> mReferenceCounter{0};
-
-        friend void intrusive_ptr_add_ref(const Storage* x)
-        {
-            x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
-        }
-
-        friend void intrusive_ptr_release(const Storage* x)
-        {
-            if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
-                std::atomic_thread_fence(std::memory_order_acquire);
-                delete x;
-            }
-        }
-
-        //*********************************************
-
-        ///@}
-    };
-
 public:
 
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TensorAdaptor);
+    KRATOS_CLASS_POINTER_DEFINITION(TensorAdaptor);
+
+    using ContainerPointerType = std::variant<
+                                        ModelPart::DofsArrayType::Pointer,
+                                        ModelPart::NodesContainerType::Pointer,
+                                        ModelPart::ConditionsContainerType::Pointer,
+                                        ModelPart::ElementsContainerType::Pointer,
+                                        ModelPart::PropertiesContainerType::Pointer,
+                                        ModelPart::MasterSlaveConstraintContainerType::Pointer,
+                                        ModelPart::GeometryContainerType::Pointer
+                                    >;
+
+    using Storage = NDData<TDataType>;
 
     ///@}
     ///@name Life cycle
     ///@{
 
+    /**
+     * @brief Construct a new Tensor Adaptor from a given @p pContainer and a @p pData
+     * @details This constructor creates an instance of @ref TensorAdaptor using the @p pContainer
+     *          as the container and the data in the @p pData .
+     *              - Copying the internal storage of @p pData if @p Copy is true.
+     *              - Sharing the internal storage of @p pData if @p Copy is false.
+     * @param pContainer    Container to use in the @ref TensorAdaptor.
+     * @param pData         Data to be used in the @ref TensorAdaptor.
+     * @param Copy          If true, the internal storage will be copied. Otherwise, internal storage will be shared.
+     */
+    TensorAdaptor(
+        ContainerPointerType pContainer,
+        typename NDData<TDataType>::Pointer pData,
+        const bool Copy = true);
+
+    /**
+     * @brief Copy constructor doubling up as an optional deep copy.
+     * @details This constructor will construct an instance of a @ref TensorAdaptor by:
+     *              - Copying the internal storage of @p rOther if @p Copy is true, and assigning the container pointer from @p rOther to the new instance.
+     *              - Sharing the internal storage of @p rOther if @p Copy is false, and assigning the container pointer from @p rOther to the new instance.
+     *
+     * @param rOther    Other @ref TensorAdaptor instance.
+     * @param Copy      If true, the internal storage will be copied. Otherwise, internal storage will be shared.
+     */
     TensorAdaptor(
         const TensorAdaptor& rOther,
         const bool Copy = true);
@@ -294,18 +177,18 @@ public:
 
     /**
      * @brief Get the entity container which is associated with the @p TensorAdaptor instance.
+     * @throws std::runtime_error if the @ref HasContainer() method returns false.
      */
-    typename Storage::ContainerPointerType GetContainer() const;
+    ContainerPointerType GetContainer() const;
 
     /**
-     * @brief Moves the internal data.
-     * @warning The TensorAdaptor should not be used after the move is called.
-     *          The management of the data should be carried out by the owner of the
-     *          returned @ref Kratos::span "span". Otherwise, there will be memory leaks.
-     * @throws std::runtime_error If the internal data is already moved as defined in @ref Storage::MoveData.
-     * @return Kratos::span<TDataType>  Returns a span containing the internal data.
+     * @brief Returns whether this tensor adaptor has an associated valid underlying container.
+     * @details If the underlying tensor adaptor does not have a valid container representation, then
+     *          this method will return false. Example is @ref CombinedTensorAdaptor, where
+     *          there is no valid representation of the container, so in this case this method
+     *          returns false.
      */
-    Kratos::span<TDataType> MoveData();
+    bool HasContainer() const;
 
     /**
      * @brief Return a view of the internal data structure.
@@ -342,6 +225,15 @@ public:
      */
     unsigned int Size() const;
 
+    /**
+     * @brief Returns the internal data storage.
+     * @details This returns the internal storage which is a @ref NDData. This
+     *          does not allow changing the internal storage, and the shape of the internal storage
+     *          since @ref NDData does not have interfaces to change the shape or
+     *          to change the array which it points data to.
+     */
+    typename Storage::Pointer pGetStorage();
+
     ///@}
     ///@name Input and output
     ///@{
@@ -362,30 +254,7 @@ protected:
 
     typename Storage::Pointer mpStorage;
 
-    ///@}
-
-private:
-    ///@name Private operations
-    ///@{
-
-    //*********************************************
-    // this block is needed for refcounting in the @ref intrusive ptr
-    mutable std::atomic<int> mReferenceCounter{0};
-
-    friend void intrusive_ptr_add_ref(const TensorAdaptor* x)
-    {
-        x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
-    }
-
-    friend void intrusive_ptr_release(const TensorAdaptor* x)
-    {
-        if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
-            std::atomic_thread_fence(std::memory_order_acquire);
-            delete x;
-        }
-    }
-
-    //*********************************************
+    std::optional<ContainerPointerType> mpContainer;
 
     ///@}
 };

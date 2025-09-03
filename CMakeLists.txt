@@ -394,6 +394,11 @@ if(DEFINED ENV{PYTHON_EXECUTABLE})
   set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
 endif(DEFINED ENV{PYTHON_EXECUTABLE})
 
+# Try to use python library from env variable
+if(DEFINED ENV{PYTHON_LIBRARY})
+  set(PYTHON_LIBRARY $ENV{PYTHON_LIBRARY})
+endif(DEFINED ENV{PYTHON_LIBRARY})
+
 include(pybind11Tools)
 
 # Reset pybind11 config and remove -LTO since it gives multiple problems.

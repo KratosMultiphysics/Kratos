@@ -88,29 +88,9 @@ int UPwSmallStrainFICElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(rCurrentProcessInfo);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(rCurrentProcessInfo);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     // Defining necessary variables
     const GeometryType& Geom       = this->GetGeometry();
@@ -170,7 +150,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     // Defining necessary variables
     const GeometryType& Geom       = this->GetGeometry();
@@ -223,7 +203,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPConstitutiveTensor(array_1
                                                                          const Matrix& ConstitutiveMatrix,
                                                                          const unsigned int& GPoint)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     for (unsigned int i = 0; i < TDim; ++i) {
         for (unsigned int j = 0; j < ConstitutiveMatrix.size1(); j++) {
@@ -876,7 +856,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddLHSStabilization(
     MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, FICElementVariables& rFICVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateAndAddStrainGradientMatrix(rLeftHandSideMatrix, rVariables, rFICVariables);
 
@@ -943,7 +923,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientMatrix(
     MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables, FICElementVariables& rFICVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateConstitutiveTensorGradients(rFICVariables, rVariables);
 
@@ -1244,7 +1224,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientMatrix(
     MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables, const FICElementVariables& rFICVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const double SignBiotCoefficient = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient;
 
@@ -1267,7 +1247,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddRHSStabilization(
     VectorType& rRightHandSideVector, ElementVariables& rVariables, FICElementVariables& rFICVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateAndAddStrainGradientFlow(rRightHandSideVector, rVariables, rFICVariables);
 
@@ -1338,7 +1318,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddDtStressGradientFlow(
     VectorType& rRightHandSideVector, const ElementVariables& rVariables, FICElementVariables& rFICVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateDtStressGradients(rFICVariables, rVariables);
 
@@ -1360,7 +1340,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateDtStressGradients(FICElementVariables& rFICVariables,
                                                                            const ElementVariables& Variables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     for (unsigned int i = 0; i < TDim; ++i) {
         for (unsigned int j = 0; j < TDim; j++) {
@@ -1396,7 +1376,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientFlow(
     VectorType& rRightHandSideVector, const ElementVariables& rVariables, const FICElementVariables& rFICVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     double SignBiotCoefficient    = -PORE_PRESSURE_SIGN_FACTOR * rVariables.BiotCoefficient;
     double StabilizationParameter = rFICVariables.ElementLength * rFICVariables.ElementLength *

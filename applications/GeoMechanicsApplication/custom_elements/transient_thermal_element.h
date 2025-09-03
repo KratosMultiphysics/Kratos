@@ -110,14 +110,15 @@ public:
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
         switch (this->GetGeometry().GetGeometryOrderType()) {
-        case GeometryData::Kratos_Cubic_Order:
-            return this->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D10
-                       ? GeometryData::IntegrationMethod::GI_GAUSS_4
-                       : GeometryData::IntegrationMethod::GI_GAUSS_3;
-        case GeometryData::Kratos_Quartic_Order:
-            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+            using enum GeometryData::KratosGeometryOrderType;
+            using enum GeometryData::KratosGeometryType;
+            using enum GeometryData::IntegrationMethod;
+        case Kratos_Cubic_Order:
+            return this->GetGeometry().GetGeometryType() == Kratos_Triangle2D10 ? GI_GAUSS_4 : GI_GAUSS_3;
+        case Kratos_Quartic_Order:
+            return GI_GAUSS_5;
         default:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+            return GI_GAUSS_2;
         }
     }
 
@@ -204,8 +205,8 @@ private:
     {
         if constexpr (TDim == 2) {
             const auto& r_geometry = GetGeometry();
-            auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
-                                                  [](const auto& node) { return node.Z() != 0.0; });
+            auto        pos =
+                std::ranges::find_if(r_geometry, [](const auto& node) { return node.Z() != 0.0; });
             KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
                 << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
         }
@@ -279,7 +280,7 @@ private:
     {
         auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
-        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
+        std::ranges::transform(r_geometry, result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;

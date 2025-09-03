@@ -16,6 +16,29 @@
 
 using namespace Kratos;
 
+namespace
+{
+
+Line2D2<Node> CreatLineGeometryWithoutVariables()
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(make_intrusive<Node>(0, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(1, 1.0, 0.0, 0.0));
+    return Line2D2<Node>(nodes);
+}
+
+Line2D2<Node> CreatLineGeometryWithVariables()
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("ModelPart", 1);
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    return Line2D2<Node>(nodes);
+}
+} // namespace
+
 namespace Kratos::Testing
 {
 
@@ -46,4 +69,47 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckDomainSize, KratosGeoMechanicsFast
         "DomainSize (0) is smaller than 1e-15 for element 1")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto line_geometry = CreatLineGeometryWithoutVariables();
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CheckUtilities::CheckHasNodalSolutionStepData(
+            line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
+        "Missing variable WATER_PRESSURE on nodes 0 1")
+
+    // Arrange 2
+    line_geometry = CreatLineGeometryWithVariables();
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CheckUtilities::CheckHasNodalSolutionStepData(
+            line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
+        "Missing variable VOLUME_ACCELERATION on nodes 0 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalDof, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto line_geometry = CreatLineGeometryWithoutVariables();
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CheckUtilities::CheckHasDofs(line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
+        "Missing the DoF for the variable WATER_PRESSURE on nodes 0 1")
+
+    // Arrange 2
+    line_geometry = CreatLineGeometryWithVariables();
+
+    for (auto& r_node : line_geometry) {
+        r_node.AddDof(WATER_PRESSURE);
+    }
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CheckUtilities::CheckHasDofs(line_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)}),
+        "Missing the DoF for the variable VOLUME_ACCELERATION on nodes 0 1")
+}
 } // namespace Kratos::Testing

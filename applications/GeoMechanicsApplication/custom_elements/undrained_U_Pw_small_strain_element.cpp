@@ -93,7 +93,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                          ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
 
@@ -109,7 +109,7 @@ void UndrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorT
                                                                          ElementVariables& rVariables,
                                                                          unsigned int GPoint)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector,
                                                                           rVariables, GPoint);
