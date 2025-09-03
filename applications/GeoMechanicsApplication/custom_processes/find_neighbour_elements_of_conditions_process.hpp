@@ -118,9 +118,9 @@ private:
 
     void CheckIf1DElementIsNeighbour(hashmap& rFacesMap);
 
-    static void CheckForMultipleConditionsOnElement(hashmap&                         rFacesMap,
-                                                    const hashmap::iterator&         rItFace,
-                                                    PointerVector<Element>::iterator pItElem);
+    static void CheckForMultipleConditionsOnElement(hashmap&                 rFacesMap,
+                                                    const hashmap::iterator& rItFace,
+                                                    Element*                 pElement);
 
     ///@}
 }; // Class Process

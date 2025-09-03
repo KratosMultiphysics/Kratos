@@ -81,7 +81,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             if (itFace != FacesMap.end()) {
                 // condition is found!
                 // but check if there are more than one condition on the element
-                CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
+                CheckForMultipleConditionsOnElement(FacesMap, itFace, std::to_address(itElem));
             }
         }
     }
@@ -95,7 +95,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             std::vector PointIds = {r_node.Id()};
             const auto  itFace   = FacesMap.find(PointIds);
             if (itFace != FacesMap.end()) {
-                CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
+                CheckForMultipleConditionsOnElement(FacesMap, itFace, std::to_address(itElem));
             }
         }
     }
@@ -124,7 +124,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 if (itFace != FacesMap.end()) {
                     // condition is found!
                     // but check if there are more than one condition on the element
-                    CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
+                    CheckForMultipleConditionsOnElement(FacesMap, itFace, std::to_address(itElem));
                 }
             }
         }
@@ -180,22 +180,23 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
                 if (itFace != rFacesMap.end()) {
                     // condition is found!
                     // but check if there are more than one condition on the element
-                    CheckForMultipleConditionsOnElement(rFacesMap, itFace, itElem);
+                    CheckForMultipleConditionsOnElement(rFacesMap, itFace, std::to_address(itElem));
                 }
             }
         }
     }
 }
 
-void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnElement(
-    hashmap& rFacesMap, const hashmap::iterator& rItFace, PointerVector<Element>::iterator pItElem)
+void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnElement(hashmap& rFacesMap,
+                                                                                   const hashmap::iterator& rItFace,
+                                                                                   Element* pElement)
 {
     const auto face_pair = rFacesMap.equal_range(rItFace->first);
     for (auto it = face_pair.first; it != face_pair.second; ++it) {
         auto&                         r_conditions = it->second;
         GlobalPointersVector<Element> vector_of_neighbours;
         vector_of_neighbours.resize(1);
-        vector_of_neighbours(0) = Element::WeakPointer(*pItElem.base());
+        vector_of_neighbours(0) = Element::WeakPointer(pElement);
 
         for (auto& p_condition : r_conditions) {
             p_condition->Set(VISITED, true);
