@@ -25,12 +25,10 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
     if (mrModelPart.Conditions().empty()) return;
 
-    // Next check that the conditions are oriented accordingly
-    // to do so begin by putting all of the conditions in a map
     hashmap FacesMap;
     for (auto itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); ++itCond) {
         itCond->Set(VISITED, false);
-        GeometryType& rGeometry = itCond->GetGeometry();
+        auto& rGeometry = itCond->GetGeometry();
 
         std::vector<IndexType> Ids(rGeometry.size());
         std::ranges::transform(rGeometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
@@ -48,7 +46,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         return std::make_pair(SortedIds, rPair.second);
     });
 
-    // Now loop over all elements and check if one of the faces is in the "FacesMap"
     for (auto& rElement : mrModelPart.Elements()) {
         const auto& rGeometryElement    = rElement.GetGeometry();
         const auto  rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
