@@ -1133,13 +1133,17 @@ void Define3DWakeProcess::AddTrailingEdgeConditionsAndFingRootAndTipNodes() cons
                     }
                 );
                 
-                if (mTipPointsModelPartName == "")
+                if (mTipPointsModelPartName == ""    &&
+                    !((*max_it)->GetValue(WING_TIP)) &&
+                    !((*max_it)->GetValue(WING_ROOT)))
                 {
                     (*max_it)->SetValue(WING_TIP, true);
                     tip_nodes += 1;
                 }
                 
-                if (mRootPointsModelPartName == "")
+                if (mRootPointsModelPartName == ""   &&
+                    !((*min_it)->GetValue(WING_TIP)) &&
+                    !((*min_it)->GetValue(WING_ROOT)))
                 {
                     (*min_it)->SetValue(WING_ROOT, true);
                     root_nodes += 1;

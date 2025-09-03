@@ -2,6 +2,7 @@
 import KratosMultiphysics
 from KratosMultiphysics import *
 from KratosMultiphysics.CompressiblePotentialFlowApplication import *
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 ##### SMALL TESTS #####
 from potential_flow_test_factory import PotentialFlowTests
@@ -52,4 +53,5 @@ if __name__ == '__main__':
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
+    kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
