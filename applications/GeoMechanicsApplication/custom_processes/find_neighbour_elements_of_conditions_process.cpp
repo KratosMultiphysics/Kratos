@@ -153,7 +153,7 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
         if (itFace != FacesMap.end()) {
             // condition is found!
             // but check if there are more than one condition on the element
-            CheckForMultipleConditionsOnElement(FacesMap, itFace, &rElement);
+            CheckForMultipleConditionsOnElement(FacesMap, itFace->first, &rElement);
         }
     }
 }
@@ -188,7 +188,7 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
                 if (itFace != rFacesMap.end()) {
                     // condition is found!
                     // but check if there are more than one condition on the element
-                    CheckForMultipleConditionsOnElement(rFacesMap, itFace, &r_element);
+                    CheckForMultipleConditionsOnElement(rFacesMap, itFace->first, &r_element);
                 }
             }
         }
@@ -196,10 +196,10 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
 }
 
 void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnElement(hashmap& rFacesMap,
-                                                                                   const hashmap::iterator& rItFace,
+                                                                                   const std::vector<std::size_t>& key,
                                                                                    Element* pElement)
 {
-    const auto face_pair = rFacesMap.equal_range(rItFace->first);
+    const auto face_pair = rFacesMap.equal_range(key);
     for (auto it = face_pair.first; it != face_pair.second; ++it) {
         auto&                         r_conditions = it->second;
         GlobalPointersVector<Element> vector_of_neighbours;

@@ -133,7 +133,7 @@ private:
     void CheckIf1DElementIsNeighbour(hashmap& rFacesMap);
 
     static void CheckForMultipleConditionsOnElement(hashmap&                 rFacesMap,
-                                                    const hashmap::iterator& rItFace,
+                                                    const std::vector<std::size_t>& key,
                                                     Element*                 pElement);
 
     ///@}
