@@ -65,8 +65,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 // condition is not found but might be a problem of ordering in 3D geometries!
                 DenseVector<int> FaceIdsSorted = FaceIds;
                 std::ranges::sort(FaceIdsSorted);
-                auto itFaceSorted = FacesMapSorted.find(FaceIdsSorted);
-                if (itFaceSorted != FacesMapSorted.end()) {
+                if (FacesMapSorted.contains(FaceIdsSorted)) {
                     switch (r_boundary_geometry.GetGeometryOrderType()) {
                         using enum GeometryData::KratosGeometryOrderType;
                     case Kratos_Linear_Order:
