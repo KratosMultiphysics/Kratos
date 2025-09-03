@@ -40,30 +40,38 @@ public:
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckRetentionwVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckEmptyRetentionwVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     std::vector<RetentionLaw::Pointer> retention_law_vector;
-    const auto                         properties           = Properties();
-    const auto                         current_process_info = ProcessInfo();
 
     // Act and Assert
-    KRATOS_EXPECT_EQ(RetentionLaw::Check(retention_law_vector, properties, current_process_info), 0);
+    KRATOS_EXPECT_EQ(RetentionLaw::Check(retention_law_vector, Properties{}, ProcessInfo{}), 0);
+}
 
+KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckRetentionwVectorReturnsOne, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
     // Arrange
+    std::vector<RetentionLaw::Pointer> retention_law_vector;
     const auto mock_retention_law = std::make_shared<MockRetentionLaw>();
     retention_law_vector.push_back(mock_retention_law);
     retention_law_vector.push_back(mock_retention_law);
     EXPECT_CALL(*mock_retention_law, Check(_, _)).WillOnce(Return(1));
 
     // Act and Assert
-    KRATOS_EXPECT_EQ(RetentionLaw::Check(retention_law_vector, properties, current_process_info), 1);
+    KRATOS_EXPECT_EQ(RetentionLaw::Check(retention_law_vector, Properties{}, ProcessInfo{}), 1);
+}
 
+KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckRetentionwVectorReturnsZero, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
     // Arrange
+    std::vector<RetentionLaw::Pointer> retention_law_vector;
+    const auto mock_retention_law = std::make_shared<MockRetentionLaw>();
+    retention_law_vector.push_back(mock_retention_law);
+    retention_law_vector.push_back(mock_retention_law);
     EXPECT_CALL(*mock_retention_law, Check(_, _)).WillOnce(Return(0));
 
     // Act and Assert
-    KRATOS_EXPECT_EQ(RetentionLaw::Check(retention_law_vector, properties, current_process_info), 0);
+    KRATOS_EXPECT_EQ(RetentionLaw::Check(retention_law_vector, Properties{}, ProcessInfo{}), 0);
 }
-
 } // namespace Kratos::Testing
