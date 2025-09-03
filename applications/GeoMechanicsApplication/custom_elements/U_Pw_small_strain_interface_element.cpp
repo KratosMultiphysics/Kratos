@@ -142,7 +142,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessIn
         mStressVector.resize(NumGPoints);
         for (unsigned int i = 0; i < mStressVector.size(); ++i) {
             mStressVector[i].resize(VoigtSize);
-            std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
+            std::ranges::fill(mStressVector[i], 0.0);
         }
     }
 
