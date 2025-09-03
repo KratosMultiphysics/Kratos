@@ -706,7 +706,6 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
 
                     auto it_solution_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rSolution));
                     const auto it_rhs_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rRhs));
-                    KRATOS_WATCH(block_system_size);
                     const auto [iteration_count, residual_norm] = r_solver(
                         boost::make_iterator_range(it_rhs_begin, it_rhs_begin + block_system_size),
                         boost::make_iterator_range(it_solution_begin, it_solution_begin + block_system_size));
