@@ -693,9 +693,9 @@ namespace Kratos
         double inv_dA3 = 1 / std::pow(rKinematicVariables.dA, 3);
 
         //compute da3
-        array_1d<double, 3> da1_d1;
-        array_1d<double, 3> da1_d2; //da1_d2 = da2_d1
-        array_1d<double, 3> da2_d2;
+        array_1d<double, 3> da1_d1 = ZeroVector(3);
+        array_1d<double, 3> da1_d2 = ZeroVector(3); //da1_d2 = da2_d1
+        array_1d<double, 3> da2_d2 = ZeroVector(3);
 
         for (SizeType i=0;i<number_of_control_points;++i){
             da1_d1[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
@@ -1210,9 +1210,9 @@ namespace Kratos
             rValues[index] = displacement[0];
             rValues[index + 1] = displacement[1];
             rValues[index + 2] = displacement[2];
-            rValues[index + 3] = rotation[3];
-            rValues[index + 4] = rotation[4];
-            rValues[index + 5] = rotation[5];
+            rValues[index + 3] = rotation[0];
+            rValues[index + 4] = rotation[1];
+            rValues[index + 5] = rotation[2];
         }
     }
 
