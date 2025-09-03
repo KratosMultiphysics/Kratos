@@ -41,12 +41,6 @@ struct AMGCLAdaptor<TUblasSparseSpace<TValue>>
             >;
 
             KRATOS_TRY
-            // amgcl::adapter::block_matrix constructs a class
-            // that stores a reference to the "matrix" passed
-            // into it, which in this case means the tuple
-            // defined below. We need to keep it alive until
-            // the hierarchy construction finishes, hence the
-            // convoluted member variable.
             mIntermediateAdaptor.emplace(std::tuple_cat(
                 std::tuple<std::size_t>(rMatrix.size1()),
                 std::tie(rMatrix.index1_data(),
@@ -80,6 +74,12 @@ struct AMGCLAdaptor<TUblasSparseSpace<TValue>>
 private:
     using TMatrix = typename TUblasSparseSpace<TValue>::MatrixType;
 
+    // amgcl::adapter::block_matrix constructs a class
+    // that stores a reference to the "matrix" passed
+    // into it, which in this case means the tuple
+    // defined below. We need to keep it alive until
+    // the hierarchy construction finishes, hence the
+    // convoluted member variable.
     std::optional<std::tuple<
         std::size_t,
         const typename TMatrix::index_array_type&,

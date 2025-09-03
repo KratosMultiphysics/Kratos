@@ -23,6 +23,9 @@
 #include "linear_solvers/amgcl_solver_impl.hpp"
 #undef KRATOS_AMGCL_MPI
 
+// System includes
+#include <optional>
+
 
 
 namespace Kratos {
@@ -32,17 +35,18 @@ template <>
 struct AMGCLAdaptor<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>
 {
     template <int BlockSize>
-    auto MakeMatrixAdaptor(const Epetra_FECrsMatrix& rMatrix) const
+    auto MakeMatrixAdaptor(const Epetra_FECrsMatrix& rMatrix)
     {
+        mAdaptor.emplace(amgcl::adapter::map(rMatrix));
         if constexpr (BlockSize == 1) {
-            return amgcl::adapter::map(rMatrix);
+            return mAdaptor.value();
         } else {
             using BlockType = amgcl::static_matrix<
                 double,
                 BlockSize,
                 BlockSize
             >;
-            return amgcl::adapter::block_matrix<BlockType>(amgcl::adapter::map(rMatrix));
+            return amgcl::adapter::block_matrix<BlockType>(mAdaptor.value());
         }
     }
 
@@ -66,6 +70,15 @@ struct AMGCLAdaptor<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>>
     {
         return TrilinosSolverUtilities::GetMPICommFromEpetraComm(rMatrix.Comm());
     }
+
+private:
+    // amgcl::adapter::block_matrix constructs a class
+    // that stores a reference to the "matrix" passed
+    // into it, which in this case means the adaptor
+    // defined below. We need to keep it alive until
+    // the hierarchy construction finishes, hence the
+    // convoluted member variable.
+    std::optional<amgcl::adapter::epetra_map> mAdaptor;
 };
 
 
