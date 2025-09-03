@@ -92,7 +92,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override { return "FindNeighbourElementsOfConditionsProcess"; }
+    [[nodiscard]] std::string Info() const override { return "FindNeighbourElementsOfConditionsProcess"; }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override { this->PrintInfo(rOStream); }
@@ -114,7 +114,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    bool CheckIfAllConditionsAreVisited() const;
+    [[nodiscard]] bool AllConditionsAreVisited() const;
 
     void CheckIf1DElementIsNeighbour(hashmap& rFacesMap);
 

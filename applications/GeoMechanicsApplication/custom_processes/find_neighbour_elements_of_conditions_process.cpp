@@ -38,17 +38,15 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             rNode.Set(BOUNDARY, true);
 
         // adds to the map
-        FacesMap.insert(hashmap::value_type(Ids, std::vector<Condition::Pointer>({*itCond.base()})));
+        FacesMap.insert(hashmap::value_type(Ids, {*itCond.base()}));
     }
 
     hashmap FacesMapSorted;
-    std::ranges::transform(FacesMap, std::inserter(FacesMapSorted, FacesMapSorted.end()),
-                           [](const auto& rPair) {
-                               auto SortedIds = rPair.first;
-                               std::ranges::sort(SortedIds);
-                               return std::make_pair(SortedIds, rPair.second);
-                           });
-
+    std::ranges::transform(FacesMap, std::inserter(FacesMapSorted, FacesMapSorted.end()), [](const auto& rPair) {
+        auto SortedIds = rPair.first;
+        std::ranges::sort(SortedIds);
+        return std::make_pair(SortedIds, rPair.second);
+    });
 
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
     for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
@@ -88,77 +86,58 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         }
     }
 
-    // check that all of the conditions belong to at least an element.
-    bool all_conditions_visited = CheckIfAllConditionsAreVisited();
+    if (AllConditionsAreVisited()) return;
 
-    if (all_conditions_visited) {
-        // if all conditions are found, no need for further checks:
-        return;
-    } else {
-        // Now try point loads:
-        for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
-            const auto& rGeometryElement = itElem->GetGeometry();
-            for (const auto& r_node : rGeometryElement) {
-                std::vector<IndexType> PointIds(1);
-                PointIds[0]       = r_node.Id();
-                const auto itFace = FacesMap.find(PointIds);
+    // Now try point loads:
+    for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
+        const auto& rGeometryElement = itElem->GetGeometry();
+        for (const auto& r_node : rGeometryElement) {
+            std::vector PointIds = {r_node.Id()};
+            const auto  itFace   = FacesMap.find(PointIds);
+            if (itFace != FacesMap.end()) {
+                CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
+            }
+        }
+    }
+
+    if (AllConditionsAreVisited()) return;
+
+    // check edges of 3D geometries:
+    // Now loop over all elements and check if one of the faces is in the "FacesMap"
+    for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
+        const auto& rGeometryElement = itElem->GetGeometry();
+        if (rGeometryElement.LocalSpaceDimension() == 3) {
+            const auto rBoundaryGeometries = rGeometryElement.GenerateEdges();
+
+            for (IndexType iEdge = 0; iEdge < rBoundaryGeometries.size(); ++iEdge) {
+                std::vector<IndexType> EdgeIds(rBoundaryGeometries[iEdge].size());
+
+                // edges for 3D elements
+                for (IndexType iNode = 0; iNode < EdgeIds.size(); ++iNode) {
+                    EdgeIds[iNode] = rBoundaryGeometries[iEdge][iNode].Id();
+                }
+
+                auto itFace = FacesMap.find(EdgeIds);
+                // There might be a need to check this for different types of 3D elements
+                // as the ordering numbers might be inconsistent
+
                 if (itFace != FacesMap.end()) {
+                    // condition is found!
+                    // but check if there are more than one condition on the element
                     CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
                 }
             }
         }
     }
 
-    // check that all of the conditions belong to at least an element.
-    all_conditions_visited = CheckIfAllConditionsAreVisited();
+    if (AllConditionsAreVisited()) return;
 
-    if (all_conditions_visited) {
-        // if all conditions are found, no need for further checks:
-        return;
-    } else {
-        // check edges of 3D geometries:
-        // Now loop over all elements and check if one of the faces is in the "FacesMap"
-        for (auto itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem) {
-            const auto& rGeometryElement = itElem->GetGeometry();
-            if (rGeometryElement.LocalSpaceDimension() == 3) {
-                const auto rBoundaryGeometries = rGeometryElement.GenerateEdges();
-
-                for (IndexType iEdge = 0; iEdge < rBoundaryGeometries.size(); ++iEdge) {
-                    std::vector<IndexType> EdgeIds(rBoundaryGeometries[iEdge].size());
-
-                    // edges for 3D elements
-                    for (IndexType iNode = 0; iNode < EdgeIds.size(); ++iNode) {
-                        EdgeIds[iNode] = rBoundaryGeometries[iEdge][iNode].Id();
-                    }
-
-                    auto itFace = FacesMap.find(EdgeIds);
-                    // There might be a need to check this for different types of 3D elements
-                    // as the ordering numbers might be inconsistent
-
-                    if (itFace != FacesMap.end()) {
-                        // condition is found!
-                        // but check if there are more than one condition on the element
-                        CheckForMultipleConditionsOnElement(FacesMap, itFace, itElem);
-                    }
-                }
-            }
-        }
-    }
-
-    // check that all of the conditions belong to at least an element.
-    all_conditions_visited = CheckIfAllConditionsAreVisited();
-
-    if (all_conditions_visited) {
-        // if all conditions are found, no need for further checks:
-        return;
-    }
-
-    // check 1D elements, note that this has to happen after procedures to find 2 and 3d neighbours are alredy performed, such that 1D elements are only added
+    // check 1D elements, note that this has to happen after procedures to find 2 and 3d neighbours are already performed, such that 1D elements are only added
     // as neighbours when the condition is not neighbouring 2D or 3D elements
     this->CheckIf1DElementIsNeighbour(FacesMap);
 
     // check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
-    all_conditions_visited = true;
+    auto all_conditions_visited = true;
     for (const auto& rCond : mrModelPart.Conditions()) {
         if (rCond.IsNot(VISITED)) {
             all_conditions_visited = false;
@@ -171,7 +150,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     KRATOS_CATCH("")
 }
 
-bool FindNeighbourElementsOfConditionsProcess::CheckIfAllConditionsAreVisited() const
+bool FindNeighbourElementsOfConditionsProcess::AllConditionsAreVisited() const
 {
     return std::ranges::all_of(mrModelPart.Conditions(),
                                [](const auto& r_cond) { return r_cond.Is(VISITED); });
