@@ -38,14 +38,17 @@ MasterSlaveProcess::MasterSlaveProcess(
     std::vector<std::string> constraints_list = mThisParameters["variables"].GetStringArray();
     mConstraintsList = constraints_list;
 
-    bool master_slave_flag = mThisParameters["master_slave_flag"].GetBool();
-    mMasterSlaveFlag = master_slave_flag;
+    bool master_or_slave_flag = mThisParameters["master_or_slave_flag"].GetBool();
+    mMasterOrSlaveFlag = master_or_slave_flag;
+
+    bool multi_freedom_constraint_flag = mThisParameters["multi_freedom_constraint_flag"].GetBool();
+    mMultiFreedomConstraintFlag = multi_freedom_constraint_flag;
 }
 
 void MasterSlaveProcess::ExecuteBeforeSolutionLoop()
 {
     //0) Trick: create quadrature point geometries (TO DO)
-    bool is_the_first_geometry_master = mMasterSlaveFlag; 
+    bool is_the_first_geometry_master = mMasterOrSlaveFlag; 
 
     auto& r_brep_curve_on_surface_master = mpConstraintsModelPart->GeometriesBegin()->GetGeometryPart(!is_the_first_geometry_master);
     auto& r_brep_curve_on_surface_slave = mpConstraintsModelPart->GeometriesBegin()->GetGeometryPart(is_the_first_geometry_master); 
@@ -76,7 +79,7 @@ void MasterSlaveProcess::ExecuteBeforeSolutionLoop()
     const auto& p_nurbs_surface_master = mpConstraintsModelPart->GeometriesBegin()->GetGeometryPart(!is_the_first_geometry_master).pGetGeometryPart(std::numeric_limits<IndexType>::max());
     const auto& p_nurbs_surface_slave = mpConstraintsModelPart->GeometriesBegin()->GetGeometryPart(is_the_first_geometry_master).pGetGeometryPart(std::numeric_limits<IndexType>::max());
 
-    std::unordered_map<int, std::unordered_map<int, double>> master_slave_constraints;
+    std::unordered_map<int, std::unordered_map<int, double>> master_slave_constraints; //TO DO: std::unordered_map<std::unordered_map<int, double>, std::unordered_map<int, double>>
 
     for (auto& id : node_id) {
         CoordinatesArrayType local_coords_master = ZeroVector(3);
@@ -139,22 +142,39 @@ void MasterSlaveProcess::ExecuteBeforeSolutionLoop()
     //         std::cout << "master_id: " << master_id << " => " << value << '\n';
     //     }
     // }
-
-    //3) Version 1 : Linear master slave constraints
-    Matrix relation_matrix;
-    std::vector<IndexType> slave_ids;
-    std::vector<IndexType> master_ids;
-    GetRelationMatrix(master_slave_constraints, slave_ids, master_ids, relation_matrix);
-
-    IndexType constraint_index = 55; //TO DO
-
-    for (IndexType i = 0; i < mConstraintsList.size(); i++) 
+    
+    if(mMultiFreedomConstraintFlag != true)
     {
-        LinearMasterSlaveConstraints(slave_ids, master_ids, relation_matrix, KratosComponents<Variable<double>>::Get(mConstraintsList[i]), constraint_index);
-        constraint_index++;
-    }
+        //3a) Version 1 : Linear master slave constraints
+        Matrix relation_matrix;
+        std::vector<IndexType> slave_ids;
+        std::vector<IndexType> master_ids;
+        GetRelationMatrix(master_slave_constraints, slave_ids, master_ids, relation_matrix);
+        IndexType constraint_index = 55; //TO DO
 
-    //4) Version 2 : Linear multi freedom constraints (TO DO)
+        for (IndexType i = 0; i < mConstraintsList.size(); i++) 
+        {
+            LinearMasterSlaveConstraints(slave_ids, master_ids, relation_matrix, KratosComponents<Variable<double>>::Get(mConstraintsList[i]), constraint_index);
+            constraint_index++;
+        }
+    }
+    else
+    {
+        //3b) Version 2 : Linear multi freedom constraints 
+        IndexType constraint_index = 55; //TO DO
+        for (const auto& [slave_id, constraints] : master_slave_constraints) 
+        {
+            Matrix constraint_gradients_matrix; 
+            std::vector<IndexType> dofs_ids;
+            GetConstraintGradientsMatrix(slave_id, constraints, constraint_gradients_matrix, dofs_ids);
+
+            for (IndexType i = 0; i < mConstraintsList.size(); i++) 
+            {
+                LinearMultiFreedomConstraints(slave_id, dofs_ids, constraint_gradients_matrix, KratosComponents<Variable<double>>::Get(mConstraintsList[i]), constraint_index);
+                constraint_index++;
+            }
+        }
+    }
 }
 
 void MasterSlaveProcess::GetRelationMatrix(
@@ -233,6 +253,59 @@ void MasterSlaveProcess::LinearMasterSlaveConstraints(
     ));
 }
 
+void MasterSlaveProcess::GetConstraintGradientsMatrix(
+    const IndexType SlaveId,
+    const std::unordered_map<int, double>& Constraints,
+    Matrix& ConstraintGradientsMatrix,
+    std::vector<IndexType>& DofsIds
+)
+{
+    // a) collect and sort master constraints
+    std::vector<std::pair<int,double>> master_constraints(Constraints.begin(), Constraints.end());
+    std::sort(master_constraints.begin(), master_constraints.end(), [](const auto& a, const auto& b){ return a.first < b.first;});
+
+    // b) assign the dofs ids and the entry of the constraint gradient matrix
+    DofsIds.push_back(SlaveId);
+    ConstraintGradientsMatrix = ZeroMatrix(1, master_constraints.size() + 1);
+    ConstraintGradientsMatrix(0,0) = 1.0;
+
+    IndexType entry = 1;
+    for (const auto& [m, w] : master_constraints)
+    {
+        DofsIds.push_back(m);
+        ConstraintGradientsMatrix(0, entry) = -w;
+        entry++;
+    } 
+}
+
+void MasterSlaveProcess::LinearMultiFreedomConstraints(
+    const IndexType& SlaveId,
+    const std::vector<IndexType>& DofsIds,
+    const Matrix& ConstraintGradientsMatrix,
+    const Variable<double>& ConstraintVariable,
+    const IndexType ConstraintIndex
+)
+{
+    std::vector<Dof<double>*> dofs;
+    for(IndexType dof_id = 0; dof_id < DofsIds.size(); dof_id++)
+    {
+        dofs.push_back(mpAnalysisModelPart->GetNode(DofsIds[dof_id]).pGetDof(ConstraintVariable));
+    }
+
+    Dof<double>* p_slave = mpAnalysisModelPart->GetNode(SlaveId).pGetDof(ConstraintVariable);
+    const std::vector<std::size_t> constraint_labels{p_slave->EquationId()}; // TO DO
+    Vector constraint_gaps = ZeroVector(1);
+
+    mpAnalysisModelPart->AddMasterSlaveConstraint(LinearMultifreedomConstraint::Pointer(
+        new LinearMultifreedomConstraint(
+            ConstraintIndex,
+            std::move(dofs),
+            constraint_labels,
+            ConstraintGradientsMatrix,
+            constraint_gaps
+        )
+    ));
+}
 
 const Parameters MasterSlaveProcess::GetDefaultParameters() const
 {
@@ -241,7 +314,8 @@ const Parameters MasterSlaveProcess::GetDefaultParameters() const
         "constraints_model_part_name"          : "",
         "analysis_model_part_name"             : "",
         "variables"                            : [],
-        "master_slave_flag"                    : true
+        "master_or_slave_flag"                 : true,
+        "multi_freedom_constraint_flag"        : true
     })" );
     return default_parameters;
 }

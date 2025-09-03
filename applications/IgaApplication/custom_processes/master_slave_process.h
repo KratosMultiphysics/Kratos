@@ -17,21 +17,13 @@
 
 // Project includes
 #include "containers/model.h"
-
 #include "processes/process.h"
-
 #include "includes/dof.h"
-
 #include "constraints/linear_master_slave_constraint.h"
-
 #include "solving_strategies/builder_and_solvers/p_multigrid/linear_multifreedom_constraint.hpp"
-
 #include "geometries/coupling_geometry.h"
-
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
-
 #include "integration/integration_info.h"
-
 #include "utilities/tessellation_utilities/curve_tessellation.h"
 
 namespace Kratos
@@ -121,6 +113,23 @@ private:
         const IndexType ConstraintIndex
     );
 
+    // Obtain constant gradients matrix for linear multi freedom constraints
+    void GetConstraintGradientsMatrix(
+        const IndexType SlaveId,
+        const std::unordered_map<int, double>& Constraints,
+        Matrix& ConstraintGradientsMatrix,
+        std::vector<IndexType>& DofsIds
+    );
+
+    // Execute linear multi freedom constraint
+    void LinearMultiFreedomConstraints(
+        const IndexType& SlaveId,
+        const std::vector<IndexType>& DofsIds,
+        const Matrix& ConstraintGradientsMatrix,
+        const Variable<double>& ConstraintVariable,
+        const IndexType ConstraintIndex
+    );
+
     ///@name Member Variables
     ///@{
 
@@ -130,7 +139,8 @@ private:
     ModelPart* mpConstraintsModelPart;     /// Constraints model part
     ModelPart* mpAnalysisModelPart; /// Analysis model part
     std::vector<std::string> mConstraintsList; // Constraints
-    bool mMasterSlaveFlag; // Determine whether the first coupled geometry is master (true) or slave (false)
+    bool mMasterOrSlaveFlag; // Determine whether the first coupled geometry is master (true) or slave (false)
+    bool mMultiFreedomConstraintFlag; // Determine whether we use MFC (true) or Master-Slave Constraint (false)
 
     ///@}
 
