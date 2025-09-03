@@ -8,8 +8,11 @@
          </Points>
          <Cells/>
          <PointData>
+            <DataArray Name="DISPLACEMENT" NumberOfComponents="3" format="binary" type="Float64">
+              kAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+            </DataArray>
             <DataArray Name="PRESSURE" NumberOfComponents="1" format="binary" type="Float64">
-              MAAAAL0LfIhLVgAAAAAAAAAAAAB5X291dHB1dC90ZXN0LnN1Yl8xX2NvbmRpdGlvbnNfMA==
+              MAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
             </DataArray>
          </PointData>
       </Piece>

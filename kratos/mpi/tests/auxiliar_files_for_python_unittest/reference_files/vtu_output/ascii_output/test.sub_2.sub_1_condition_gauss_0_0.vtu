@@ -8,8 +8,11 @@
          </Points>
          <Cells/>
          <PointData>
+            <DataArray Name="DISPLACEMENT" NumberOfComponents="3" format="ascii" type="Float64">
+              0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
+            </DataArray>
             <DataArray Name="PRESSURE" NumberOfComponents="1" format="ascii" type="Float64">
-              4.687814046e-310  0.000000000e+00
+              0.000000000e+00  0.000000000e+00
             </DataArray>
          </PointData>
       </Piece>

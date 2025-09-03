@@ -6,6 +6,7 @@
          </Points>
          <Cells/>
          <PointData>
+            <DataArray Name="DISPLACEMENT" NumberOfComponents="3" format="ascii" type="Float64"/>
             <DataArray Name="PRESSURE" NumberOfComponents="1" format="ascii" type="Float64"/>
          </PointData>
       </Piece>

@@ -9,6 +9,7 @@
          <PDataArray Name="types" NumberOfComponents="1" type="Int32"/>
       </PCells>
       <PPointData>
+         <PDataArray Name="DISPLACEMENT" NumberOfComponents="3" format="ascii" type="Float64"/>
          <PDataArray Name="PRESSURE" NumberOfComponents="1" format="ascii" type="Float64"/>
       </PPointData>
       <PCellData/>
