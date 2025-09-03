@@ -196,9 +196,6 @@ void ModelPart::Reset()
     if (!IsSubModelPart()) {
         mpProcessInfo = Kratos::make_shared<ProcessInfo>();
     }
-    else {
-        mpProcessInfo = nullptr;
-    }
     mBufferSize = 0;
 
     KRATOS_CATCH("");
