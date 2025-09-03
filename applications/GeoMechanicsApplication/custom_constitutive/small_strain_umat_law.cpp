@@ -321,7 +321,7 @@ bool SmallStrainUMATLaw<TVoigtSize>::loadUMAT(const Properties& rMaterialPropert
 }
 
 template <SizeType TVoigtSize>
-bool SmallStrainUMATLaw<TVoigtSize>::loadUMATLinux(const Properties& rMaterialProperties) const
+bool SmallStrainUMATLaw<TVoigtSize>::loadUMATLinux(const Properties& rMaterialProperties)
 {
 #ifdef KRATOS_COMPILED_IN_LINUX
     void* lib_handle;
