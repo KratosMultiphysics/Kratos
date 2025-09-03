@@ -19,6 +19,7 @@
 
 namespace Kratos
 {
+
 void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     KRATOS_TRY
@@ -49,52 +50,19 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     for (auto& rElement : mrModelPart.Elements()) {
         const auto& rGeometryElement    = rElement.GetGeometry();
         const auto  rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
-
-        for (const auto& r_boundary_geometry : rBoundaryGeometries) {
-            std::vector<IndexType> FaceIds(r_boundary_geometry.size());
-            std::ranges::transform(r_boundary_geometry, FaceIds.begin(),
-                                   [](const Node& rNode) { return rNode.Id(); });
-
-            auto itFace = FacesMap.find(FaceIds);
-            if (itFace == FacesMap.end() && r_boundary_geometry.LocalSpaceDimension() == 2) {
-                // condition is not found but might be a problem of ordering in 2D boundary geometries!
-                std::vector<std::size_t> FaceIdsSorted = FaceIds;
-                std::ranges::sort(FaceIdsSorted);
-                if (FacesMapSorted.contains(FaceIdsSorted)) {
-                    switch (r_boundary_geometry.GetGeometryOrderType()) {
-                        using enum GeometryData::KratosGeometryOrderType;
-                    case Kratos_Linear_Order:
-                        itFace = FindPermutations(FaceIds, FacesMap);
-                        break;
-                    case Kratos_Quadratic_Order:
-                        itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
-                        break;
-                    default:
-                        break;
-                    }
-                }
-            }
-
-            if (itFace != FacesMap.end()) {
-                // condition is found!
-                // but check if there are more than one condition on the element
-                CheckForMultipleConditionsOnElement(FacesMap, itFace, &rElement);
-            }
-        }
+        AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+            FacesMap, FacesMapSorted, rElement, rBoundaryGeometries);
     }
 
     if (AllConditionsAreVisited()) return;
 
     // Now try point loads:
     for (auto& rElement : mrModelPart.Elements()) {
-        const auto& rGeometryElement = rElement.GetGeometry();
-        for (const auto& r_node : rGeometryElement) {
-            std::vector PointIds = {r_node.Id()};
-            const auto  itFace   = FacesMap.find(PointIds);
-            if (itFace != FacesMap.end()) {
-                CheckForMultipleConditionsOnElement(FacesMap, itFace, &rElement);
-            }
-        }
+        const auto& rGeometryElement    = rElement.GetGeometry();
+        const auto  rBoundaryGeometries = rGeometryElement.GeneratePoints();
+
+        AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+            FacesMap, FacesMapSorted, rElement, rBoundaryGeometries);
     }
 
     if (AllConditionsAreVisited()) return;
@@ -106,24 +74,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         if (rGeometryElement.LocalSpaceDimension() == 3) {
             const auto rBoundaryGeometries = rGeometryElement.GenerateEdges();
 
-            for (IndexType iEdge = 0; iEdge < rBoundaryGeometries.size(); ++iEdge) {
-                std::vector<IndexType> EdgeIds(rBoundaryGeometries[iEdge].size());
-
-                // edges for 3D elements
-                for (IndexType iNode = 0; iNode < EdgeIds.size(); ++iNode) {
-                    EdgeIds[iNode] = rBoundaryGeometries[iEdge][iNode].Id();
-                }
-
-                auto itFace = FacesMap.find(EdgeIds);
-                // There might be a need to check this for different types of 3D elements
-                // as the ordering numbers might be inconsistent
-
-                if (itFace != FacesMap.end()) {
-                    // condition is found!
-                    // but check if there are more than one condition on the element
-                    CheckForMultipleConditionsOnElement(FacesMap, itFace, &rElement);
-                }
-            }
+            AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+                FacesMap, FacesMapSorted, rElement, rBoundaryGeometries);
         }
     }
 
@@ -145,6 +97,42 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         << "Some conditions found without any corresponding element" << std::endl;
 
     KRATOS_CATCH("")
+}
+
+void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+    hashmap& FacesMap, const hashmap& FacesMapSorted, Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
+{
+    for (const auto& r_boundary_geometry : rBoundaryGeometries) {
+        std::vector<IndexType> FaceIds(r_boundary_geometry.size());
+        std::ranges::transform(r_boundary_geometry, FaceIds.begin(),
+                               [](const Node& rNode) { return rNode.Id(); });
+
+        auto itFace = FacesMap.find(FaceIds);
+        if (itFace == FacesMap.end() && r_boundary_geometry.LocalSpaceDimension() == 2) {
+            // condition is not found but might be a problem of ordering in 2D boundary geometries!
+            std::vector<std::size_t> FaceIdsSorted = FaceIds;
+            std::ranges::sort(FaceIdsSorted);
+            if (FacesMapSorted.contains(FaceIdsSorted)) {
+                switch (r_boundary_geometry.GetGeometryOrderType()) {
+                    using enum GeometryData::KratosGeometryOrderType;
+                case Kratos_Linear_Order:
+                    itFace = FindPermutations(FaceIds, FacesMap);
+                    break;
+                case Kratos_Quadratic_Order:
+                    itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+
+        if (itFace != FacesMap.end()) {
+            // condition is found!
+            // but check if there are more than one condition on the element
+            CheckForMultipleConditionsOnElement(FacesMap, itFace, &rElement);
+        }
+    }
 }
 
 bool FindNeighbourElementsOfConditionsProcess::AllConditionsAreVisited() const

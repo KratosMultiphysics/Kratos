@@ -20,8 +20,10 @@ namespace Kratos
 {
 ///@name Type Definitions
 ///@{
-using hashmap =
-    std::unordered_multimap<std::vector<std::size_t>, std::vector<Condition::Pointer>, KeyHasherRange<std::vector<std::size_t>>, KeyComparorRange<std::vector<std::size_t>>>;
+using hashmap = std::unordered_multimap<std::vector<std::size_t>,
+                                        std::vector<Condition::Pointer>,
+                                        KeyHasherRange<std::vector<std::size_t>>,
+                                        KeyComparorRange<std::vector<std::size_t>>>;
 
 ///@}
 ///@name Kratos Classes
@@ -76,6 +78,11 @@ public:
     ///@name Operations
     ///@{
 
+    void AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+        hashmap&                                   FacesMap,
+        const hashmap&                             FacesMapSorted,
+        Element&                                   rElement,
+        const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
     /// Finds neighbour elements of conditions
     void Execute() override;
 
@@ -92,7 +99,10 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    [[nodiscard]] std::string Info() const override { return "FindNeighbourElementsOfConditionsProcess"; }
+    [[nodiscard]] std::string Info() const override
+    {
+        return "FindNeighbourElementsOfConditionsProcess";
+    }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override { this->PrintInfo(rOStream); }
