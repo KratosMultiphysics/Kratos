@@ -26,56 +26,55 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
     if (mrModelPart.Conditions().empty()) return;
 
-    hashmap FacesMap;
-    for (auto itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); ++itCond) {
-        itCond->Set(VISITED, false);
-        auto& rGeometry = itCond->GetGeometry();
+    hashmap condition_node_ids_to_condition;
+    for (auto& r_condition : mrModelPart.Conditions()) {
+        r_condition.Set(VISITED, false);
+        auto& r_geometry = r_condition.GetGeometry();
 
-        std::vector<IndexType> Ids(rGeometry.size());
-        std::ranges::transform(rGeometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
-        for (auto& rNode : rGeometry)
+        std::vector<IndexType> Ids(r_geometry.size());
+        std::ranges::transform(r_geometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
+        for (auto& rNode : r_geometry)
             rNode.Set(BOUNDARY, true);
 
-        // adds to the map
-        FacesMap.insert(hashmap::value_type(Ids, {*itCond.base()}));
+        condition_node_ids_to_condition.insert(hashmap::value_type(Ids, {&r_condition}));
     }
 
-    hashmap FacesMapSorted;
-    std::ranges::transform(FacesMap, std::inserter(FacesMapSorted, FacesMapSorted.end()), [](const auto& rPair) {
-        auto SortedIds = rPair.first;
-        std::ranges::sort(SortedIds);
-        return std::make_pair(SortedIds, rPair.second);
+    hashmap sorted_condition_node_ids_to_condition;
+    std::ranges::transform(condition_node_ids_to_condition, std::inserter(sorted_condition_node_ids_to_condition, sorted_condition_node_ids_to_condition.end()), [](const auto& rPair) {
+        auto sorted_ids = rPair.first;
+        std::ranges::sort(sorted_ids);
+        return std::make_pair(sorted_ids, rPair.second);
     });
 
-    for (auto& rElement : mrModelPart.Elements()) {
-        const auto& rGeometryElement    = rElement.GetGeometry();
+    for (auto& r_element : mrModelPart.Elements()) {
+        const auto& rGeometryElement    = r_element.GetGeometry();
         const auto  rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
         AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-            FacesMap, FacesMapSorted, rElement, rBoundaryGeometries);
+            condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, rBoundaryGeometries);
     }
 
     if (AllConditionsAreVisited()) return;
 
     // Now try point loads:
-    for (auto& rElement : mrModelPart.Elements()) {
-        const auto& rGeometryElement    = rElement.GetGeometry();
+    for (auto& r_element : mrModelPart.Elements()) {
+        const auto& rGeometryElement    = r_element.GetGeometry();
         const auto  rBoundaryGeometries = rGeometryElement.GeneratePoints();
 
         AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-            FacesMap, FacesMapSorted, rElement, rBoundaryGeometries);
+            condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, rBoundaryGeometries);
     }
 
     if (AllConditionsAreVisited()) return;
 
     // check edges of 3D geometries:
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
-    for (auto& rElement : mrModelPart.Elements()) {
-        const auto& rGeometryElement = rElement.GetGeometry();
-        if (rGeometryElement.LocalSpaceDimension() == 3) {
-            const auto rBoundaryGeometries = rGeometryElement.GenerateEdges();
+    for (auto& r_element : mrModelPart.Elements()) {
+        const auto& r_geometry_element = r_element.GetGeometry();
+        if (r_geometry_element.LocalSpaceDimension() == 3) {
+            const auto& r_boundary_geometries = r_geometry_element.GenerateEdges();
 
             AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-                FacesMap, FacesMapSorted, rElement, rBoundaryGeometries);
+                condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, r_boundary_geometries);
         }
     }
 
@@ -83,14 +82,14 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
     // check 1D elements, note that this has to happen after procedures to find 2 and 3d neighbours are already performed, such that 1D elements are only added
     // as neighbours when the condition is not neighbouring 2D or 3D elements
-    this->CheckIf1DElementIsNeighbour(FacesMap);
+    this->CheckIf1DElementIsNeighbour(condition_node_ids_to_condition);
 
     // check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     auto all_conditions_visited = true;
-    for (const auto& rCond : mrModelPart.Conditions()) {
-        if (rCond.IsNot(VISITED)) {
+    for (const auto& r_condition : mrModelPart.Conditions()) {
+        if (r_condition.IsNot(VISITED)) {
             all_conditions_visited = false;
-            KRATOS_INFO("Condition without any corresponding element, ID ") << rCond.Id() << std::endl;
+            KRATOS_INFO("Condition without any corresponding element, ID ") << r_condition.Id() << std::endl;
         }
     }
     KRATOS_ERROR_IF_NOT(all_conditions_visited)
@@ -103,23 +102,23 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
     hashmap& FacesMap, const hashmap& FacesMapSorted, Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
-        std::vector<IndexType> FaceIds(r_boundary_geometry.size());
-        std::ranges::transform(r_boundary_geometry, FaceIds.begin(),
+        std::vector<IndexType> face_ids(r_boundary_geometry.size());
+        std::ranges::transform(r_boundary_geometry, face_ids.begin(),
                                [](const Node& rNode) { return rNode.Id(); });
 
-        auto itFace = FacesMap.find(FaceIds);
+        auto itFace = FacesMap.find(face_ids);
         if (itFace == FacesMap.end() && r_boundary_geometry.LocalSpaceDimension() == 2) {
             // condition is not found but might be a problem of ordering in 2D boundary geometries!
-            std::vector<std::size_t> FaceIdsSorted = FaceIds;
-            std::ranges::sort(FaceIdsSorted);
-            if (FacesMapSorted.contains(FaceIdsSorted)) {
+            std::vector<std::size_t> face_ids_sorted = face_ids;
+            std::ranges::sort(face_ids_sorted);
+            if (FacesMapSorted.contains(face_ids_sorted)) {
                 switch (r_boundary_geometry.GetGeometryOrderType()) {
                     using enum GeometryData::KratosGeometryOrderType;
                 case Kratos_Linear_Order:
-                    itFace = FindPermutations(FaceIds, FacesMap);
+                    itFace = FindPermutations(face_ids, FacesMap);
                     break;
                 case Kratos_Quadratic_Order:
-                    itFace = FindPermutationsQuadratic(FaceIds, FacesMap);
+                    itFace = FindPermutationsQuadratic(face_ids, FacesMap);
                     break;
                 default:
                     break;
@@ -138,23 +137,23 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
 bool FindNeighbourElementsOfConditionsProcess::AllConditionsAreVisited() const
 {
     return std::ranges::all_of(mrModelPart.Conditions(),
-                               [](const auto& r_cond) { return r_cond.Is(VISITED); });
+                               [](const auto& rCondition) { return rCondition.Is(VISITED); });
 }
 
 void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashmap& rFacesMap)
 {
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
-    for (auto& rElement : mrModelPart.Elements()) {
-        const auto& r_geometry_element = rElement.GetGeometry();
+    for (auto& r_element : mrModelPart.Elements()) {
+        const auto& r_geometry_element = r_element.GetGeometry();
 
         // for 1D elements, the edge geometry is the same as the element geometry
         if (r_geometry_element.LocalSpaceDimension() == 1) {
-            const auto rBoundaryGeometries = PointerVector(r_geometry_element.GenerateEdges());
+            const auto boundary_geometries = PointerVector(r_geometry_element.GenerateEdges());
 
-            for (IndexType iFace = 0; iFace < rBoundaryGeometries.size(); ++iFace) {
-                std::vector<std::size_t> FaceIds(rBoundaryGeometries[iFace].size());
+            for (IndexType iFace = 0; iFace < boundary_geometries.size(); ++iFace) {
+                std::vector<std::size_t> FaceIds(boundary_geometries[iFace].size());
 
-                const auto& r_nodes = rBoundaryGeometries[iFace];
+                const auto& r_nodes = boundary_geometries[iFace];
 
                 // get face node IDs
                 std::transform(r_nodes.begin(), r_nodes.end(), FaceIds.begin(),
@@ -165,7 +164,7 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
                 if (itFace != rFacesMap.end()) {
                     // condition is found!
                     // but check if there are more than one condition on the element
-                    CheckForMultipleConditionsOnElement(rFacesMap, itFace, &rElement);
+                    CheckForMultipleConditionsOnElement(rFacesMap, itFace, &r_element);
                 }
             }
         }
