@@ -623,10 +623,6 @@ Begin Conditions LineLoadDiffOrderCondition2D3N
   171  0  2 3 104
 End Conditions
 
-Begin Conditions LineNormalLoadDiffOrderCondition2D3N
-  172  0  2 3 104
-End Conditions
-
 Begin SubModelPart Soil
   Begin SubModelPartNodes
     1
