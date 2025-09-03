@@ -655,7 +655,7 @@ std::string WritePartitionedUnstructuredGridData(
 
         // types element
         auto p_types_element = Kratos::make_shared<XmlElementsArray>("PDataArray");
-        p_types_element->AddAttribute("type", "Int32");
+        p_types_element->AddAttribute("type", "UInt8");
         p_types_element->AddAttribute("Name", "types");
         p_types_element->AddAttribute("NumberOfComponents", "1");
         p_cells_element->AddElement(p_types_element);

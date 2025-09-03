@@ -5,8 +5,11 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
+with kratos_unittest.WorkFolderScope("../../tests", __file__, True):
+    import test_vtu_output
+
 from pathlib import Path
-class TestVtuOutput(kratos_unittest.TestCase):
+class TestMPIVtuOutput(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
@@ -83,10 +86,10 @@ class TestVtuOutput(kratos_unittest.TestCase):
 
         # the last rank is kept empty for empty rank check
         if my_pid != num_proc - 1:
-            partition_index = TestVtuOutput.__CreateEntities(model_part, my_pid, num_proc - 1)
+            partition_index = TestMPIVtuOutput.__CreateEntities(model_part, my_pid, num_proc - 1)
 
         model_part.SetBufferSize(1)
-        TestVtuOutput.__SetAllVariables(model_part)
+        TestMPIVtuOutput.__SetAllVariables(model_part)
 
         # Write PARTITION_INDEX
         for node in model_part.Nodes:
@@ -149,29 +152,29 @@ class TestVtuOutput(kratos_unittest.TestCase):
 
     @staticmethod
     def __SetAllVariables(model_part: Kratos.ModelPart, offset = 0):
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DISPLACEMENT, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.PRESSURE, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Nodes, Kratos.DISPLACEMENT, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Nodes, Kratos.PRESSURE, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Nodes, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetSolutionStepValue(y, z), offset)
 
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Nodes, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Nodes, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Nodes, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Nodes, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Nodes, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z), offset)
 
-        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Conditions, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Conditions, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Conditions, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Conditions, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Conditions, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Conditions, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z), offset)
 
-        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z), offset)
-        TestVtuOutput.__SetVariable(model_part.Elements, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Elements, Kratos.DISPLACEMENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Elements, Kratos.PRESSURE, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Elements, Kratos.ACTIVATION_LEVEL, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Elements, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z), offset)
+        TestMPIVtuOutput.__SetVariable(model_part.Elements, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z), offset)
 
     def __CheckFile(self, file_name: str):
         data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
@@ -188,14 +191,15 @@ class TestVtuOutput(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(params).Execute()
         else:
             if data_communicator.Rank() == 0:
+                print(file_name)
                 self.assertTrue(Path(file_name).is_file())
-                kratos_utils.DeleteFileIfExisting(file_name)
+                # kratos_utils.DeleteFileIfExisting(file_name)
 
     def __OutputTest(self, output_type: str):
         if output_type == "ascii":
-            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, output_sub_model_parts=True, echo_level=3)
+            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, output_sub_model_parts=True, echo_level=0)
         elif output_type == "binary":
-            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.BINARY, output_sub_model_parts=True, echo_level=3)
+            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.BINARY, output_sub_model_parts=True, echo_level=0)
 
         for data_location in [Kratos.Globals.DataLocation.NodeNonHistorical, Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]:
             vtu_output.AddVariable(Kratos.DISPLACEMENT, data_location)
@@ -309,30 +313,67 @@ class TestVtuOutput(kratos_unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 AddTensorAdaptor("non_hist_interface", Kratos.TensorAdaptors.VariableTensorAdaptor, self.model_part.GetCommunicator().InterfaceMesh().Elements, Kratos.PRESSURE)
 
-            vtu_output.PrintOutput(f"vtu_output/{output_type}_output")
+            vtu_output.PrintOutput(f"temp/vtu_output/{output_type}_output")
 
         # now check the files
         data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
-        n_procs = data_communicator.Size()
+        proc_id = data_communicator.Rank()
+
+        def check(model_part: Kratos.ModelPart, number_of_nodes: int, number_of_cells: int, step_id: int, suffix: str, point_fields, cell_fields):
+            file_name = f"temp/vtu_output/{output_type}_output/{model_part.FullName()}_{suffix}_{step_id}_{proc_id}.vtu"
+            test_vtu_output.TestVtuOutput.CheckVtuFile(
+                self,
+                file_name,
+                number_of_nodes, number_of_cells, output_type, point_fields, cell_fields)
+            kratos_utils.DeleteFileIfExisting(file_name)
+
+        def check_gauss(model_part: Kratos.ModelPart, container, step_id: int, point_fields, cell_fields):
+            number_of_points = 0
+            for entity in container:
+                if len(entity.GetGeometry()) == 4:
+                    number_of_points += 4
+                elif len(entity.GetGeometry()) == 3:
+                    number_of_points += 1
+                elif len(entity.GetGeometry()) == 2:
+                    number_of_points += 1
+                else:
+                    raise RuntimeError("Unsupported geometry")
+
+            if isinstance(container, Kratos.ConditionsArray):
+                suffix = "condition"
+            elif isinstance(container, Kratos.ElementsArray):
+                suffix = "element"
+            else:
+                raise RuntimeError("Unsupported container type.")
+
+            file_name = f"temp/vtu_output/{output_type}_output/{model_part.FullName()}_{suffix}_gauss_{step_id}_{proc_id}.vtu"
+            test_vtu_output.TestVtuOutput.CheckVtuFile(
+                self,
+                file_name,
+                number_of_points, None, output_type, point_fields, cell_fields)
+            kratos_utils.DeleteFileIfExisting(file_name)
 
         for step_id in range(2):
-            for proc_id in range(n_procs):
-                self.__CheckFile(f"vtu_output/{output_type}_output/test_conditions_{step_id}_{proc_id}.vtu")
-                self.__CheckFile(f"vtu_output/{output_type}_output/test_elements_{step_id}_{proc_id}.vtu")
-                self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_1_conditions_{step_id}_{proc_id}.vtu")
-                self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_1_elements_{step_id}_{proc_id}.vtu")
-                self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_2_conditions_{step_id}_{proc_id}.vtu")
-                self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_2.sub_1_conditions_{step_id}_{proc_id}.vtu")
+            check(self.model["test"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test"].Conditions), len(self.model["test"].Conditions), step_id, "conditions", {}, {})
+            check(self.model["test"], self.model["test"].NumberOfNodes(), len(
+                self.model["test"].Elements), step_id, "elements", {}, {})
+            check(self.model["test.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test.sub_1"].Conditions), len(self.model["test.sub_1"].Conditions), step_id, "conditions", {}, {})
+            check(self.model["test.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test.sub_1"].Elements), len(self.model["test.sub_1"].Elements), step_id, "elements", {}, {})
+            check(self.model["test.sub_2"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test.sub_2"].Conditions), len(self.model["test.sub_2"].Conditions), step_id, "conditions", {}, {})
+            check(self.model["test.sub_2.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test.sub_2.sub_1"].Conditions), len(self.model["test.sub_2.sub_1"].Conditions), step_id, "conditions", {}, {})
 
-            self.__CheckFile(f"vtu_output/{output_type}_output/test_conditions_{step_id}.pvtu")
-            self.__CheckFile(f"vtu_output/{output_type}_output/test_elements_{step_id}.pvtu")
-            self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_1_conditions_{step_id}.pvtu")
-            self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_1_elements_{step_id}.pvtu")
-            self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_2_conditions_{step_id}.pvtu")
-            self.__CheckFile(f"vtu_output/{output_type}_output/test.sub_2.sub_1_conditions_{step_id}.pvtu")
-
-        # checking the collection file
-        self.__CheckFile(f"vtu_output/{output_type}_output.pvd")
+            # gauss points
+            check_gauss(self.model["test"], self.model["test"].Conditions, step_id, {}, {})
+            check_gauss(self.model["test"], self.model["test"].Elements, step_id, {}, {})
+            check_gauss(self.model["test.sub_1"], self.model["test.sub_1"].Conditions, step_id, {}, {})
+            check_gauss(self.model["test.sub_1"], self.model["test.sub_1"].Elements, step_id, {}, {})
+            check_gauss(self.model["test.sub_2"], self.model["test.sub_2"].Conditions, step_id, {}, {})
+            check_gauss(self.model["test.sub_2.sub_1"], self.model["test.sub_2.sub_1"].Conditions, step_id, {}, {})
 
     def test_OutputASCII(self):
         self.__OutputTest("ascii")
@@ -340,10 +381,10 @@ class TestVtuOutput(kratos_unittest.TestCase):
     def test_OutputBinary(self):
         self.__OutputTest("binary")
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.model_part.GetCommunicator().GetDataCommunicator().Barrier()
-        kratos_utils.DeleteDirectoryIfExisting("vtu_output")
+    # @classmethod
+    # def tearDownClass(cls):
+    #     cls.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+    #     kratos_utils.DeleteDirectoryIfExisting("vtu_output")
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.INFO)
