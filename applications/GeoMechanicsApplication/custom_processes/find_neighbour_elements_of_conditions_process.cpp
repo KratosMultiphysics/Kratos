@@ -102,23 +102,23 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
     hashmap& FacesMap, const hashmap& FacesMapSorted, Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
-        std::vector<IndexType> face_ids(r_boundary_geometry.size());
-        std::ranges::transform(r_boundary_geometry, face_ids.begin(),
+        std::vector<IndexType> element_boundary_node_ids(r_boundary_geometry.size());
+        std::ranges::transform(r_boundary_geometry, element_boundary_node_ids.begin(),
                                [](const Node& rNode) { return rNode.Id(); });
 
-        auto itFace = FacesMap.find(face_ids);
+        auto itFace = FacesMap.find(element_boundary_node_ids);
         if (itFace == FacesMap.end() && r_boundary_geometry.LocalSpaceDimension() == 2) {
             // condition is not found but might be a problem of ordering in 2D boundary geometries!
-            std::vector<std::size_t> face_ids_sorted = face_ids;
+            std::vector<std::size_t> face_ids_sorted = element_boundary_node_ids;
             std::ranges::sort(face_ids_sorted);
             if (FacesMapSorted.contains(face_ids_sorted)) {
                 switch (r_boundary_geometry.GetGeometryOrderType()) {
                     using enum GeometryData::KratosGeometryOrderType;
                 case Kratos_Linear_Order:
-                    itFace = FindPermutations(face_ids, FacesMap);
+                    itFace = FindPermutations(element_boundary_node_ids, FacesMap);
                     break;
                 case Kratos_Quadratic_Order:
-                    itFace = FindPermutationsQuadratic(face_ids, FacesMap);
+                    itFace = FindPermutationsQuadratic(element_boundary_node_ids, FacesMap);
                     break;
                 default:
                     break;
