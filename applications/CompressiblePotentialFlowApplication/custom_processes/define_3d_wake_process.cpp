@@ -108,7 +108,7 @@ void Define3DWakeProcess::ExecuteInitialize()
     
     ComputeWingLowerSurfaceNormals();
     
-    AddTrailingEdgeConditionsAndFingRootAndTipNodes();
+    AddTrailingEdgeConditionsAndFindRootAndTipNodes();
 
     ComputeAndSaveLocalWakeNormal();
     
@@ -116,6 +116,8 @@ void Define3DWakeProcess::ExecuteInitialize()
     // Auxiliar model and model part for loading a STL mesh or building an automatic mesh
     ModelPart& StlWakeModelPart = aux_model.CreateModelPart("wake_model_part");
     
+    KRATOS_WARNING_IF("Define3DWakeProcess", mWakeSTLFileName == "") << "Generating wake automatically. Set \'wake_stl_file_name\' instead" << std::endl;
+
     if(mShedWakeFromTrailingEdge || mWakeSTLFileName == ""){
         ShedWakeSurfaceFromTheTrailingEdge(StlWakeModelPart);
     }else
@@ -246,6 +248,7 @@ void Define3DWakeProcess::ComputeWingLowerSurfaceNormals() const
         }
     }else
     {
+        KRATOS_WARNING("Define3DWakeProcess") << "Marking Upper Surface automatically. Set \'upper_surface_model_part_name\' instead." << std::endl;
         KRATOS_INFO_IF("Define3DWakeProcess", mEchoLevel > 0) << "...Marking Upper Surface" << std::endl;
         for (auto& r_cond : mrBodyModelPart.Conditions()) {
             auto& r_geometry = r_cond.GetGeometry();
@@ -287,6 +290,7 @@ void Define3DWakeProcess::ComputeWingLowerSurfaceNormals() const
         }
     }else
     {
+        KRATOS_WARNING("Define3DWakeProcess") << "Marking Lower Surface automatically. Set \'lower_surface_model_part_name\' instead." << std::endl;
         KRATOS_INFO_IF("Define3DWakeProcess", mEchoLevel > 0) << "...Marking Lower Surface" << std::endl;
         for (auto& r_cond : mrBodyModelPart.Conditions()) {
             auto& r_geometry = r_cond.GetGeometry();
@@ -1064,7 +1068,7 @@ class TrueKdTree
 
 // This function adds conditions to the trailing edge model part and
 // finds the tip and root nodes, if necessary
-void Define3DWakeProcess::AddTrailingEdgeConditionsAndFingRootAndTipNodes() const
+void Define3DWakeProcess::AddTrailingEdgeConditionsAndFindRootAndTipNodes() const
 {
     KRATOS_TRY;
     bool assign_conditions = (mrTrailingEdgeModelPart.NumberOfConditions() < 1);
@@ -1072,6 +1076,10 @@ void Define3DWakeProcess::AddTrailingEdgeConditionsAndFingRootAndTipNodes() cons
         mTipPointsModelPartName == "" ||
         mRootPointsModelPartName == "")
     {
+        KRATOS_WARNING_IF("Define3DWakeProcess", assign_conditions) << "Assigning conditions automatically. Check the trailing edge model part" << std::endl;
+        KRATOS_WARNING_IF("Define3DWakeProcess", mTipPointsModelPartName == "")  << "Detecting tip nodes automatically. Set \'tip_points_model_part_name\' instead" << std::endl;
+        KRATOS_WARNING_IF("Define3DWakeProcess", mRootPointsModelPartName == "") << "Detecting root nodes automatically. Set \'root_points_model_part_name\' instead" << std::endl;
+
         const double constant_threshold = 3.0;
         const double distance_threshold = constant_threshold * mShedWakeElementSize;
         ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();

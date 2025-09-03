@@ -129,7 +129,7 @@ private:
 
     void MarkTrailingEdgeAndBluntNodes();
 
-    void AddTrailingEdgeConditionsAndFingRootAndTipNodes() const;
+    void AddTrailingEdgeConditionsAndFindRootAndTipNodes() const;
 
     void ComputeWingLowerSurfaceNormals() const;
 
