@@ -1,11 +1,10 @@
 import typing
 import math
 import numpy as np
-from pathlib import Path
-import KratosMultiphysics as Kratos
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
-# Import KratosUnittest
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
@@ -295,6 +294,22 @@ class TestVtuOutput(kratos_unittest.TestCase):
                                                 "PRESSURE_2": (10, "Float64", None),
                                                 "PRESSURE_3": (10, "Float64", None)
                                             })
+            else:
+                if use_nodes:
+                    TestVtuOutput.CheckVtuFile(self, vtu_file_name, TestVtuOutput.GetNodes(model_part, use_nodes, container), container, "binary",
+                                            {
+                                                "PRESSURE": (1, "Float64", None)
+                                            },
+                                            {
+                                                "PRESSURE": (1, "Float64", None)
+                                            })
+                else:
+                   TestVtuOutput.CheckVtuFile(self, vtu_file_name, TestVtuOutput.GetNodes(model_part, use_nodes, container), container, "binary",
+                                            {
+                                            },
+                                            {
+                                                "PRESSURE": (1, "Float64", None)
+                                            })
 
         kratos_utils.DeleteDirectoryIfExisting("temp/vtu_output/variable_test")
 
@@ -450,6 +465,12 @@ class TestVtuOutput(kratos_unittest.TestCase):
                         found = True
                         break
                 test_class.assertTrue(found, f"Cell data field \"{data_field_name}\" not found in the \"{vtu_file_name}\"")
+
+    @staticmethod
+    def CheckPvdFile(test_class: kratos_unittest.TestCase, pvt_file_name: str):
+        test_class.assertTrue(Path(pvt_file_name).is_file(), f"The file {pvt_file_name} not found.")
+        tree = ET.parse(pvt_file_name)
+        root = tree.getroot()
 
     @staticmethod
     def __GetUnstructuredGridList(unstructured_grid_list: 'list[tuple[Kratos.ModelPart, bool, typing.Optional[typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray]]]]', model_part: Kratos.ModelPart, data_communicator: Kratos.DataCommunicator, recursively: bool) -> None:
