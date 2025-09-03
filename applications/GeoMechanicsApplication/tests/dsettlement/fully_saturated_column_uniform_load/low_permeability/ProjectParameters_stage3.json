@@ -1,8 +1,8 @@
 {
   "problem_data": {
     "problem_name"                    : "mesh",
-    "start_time"                      : -0.001,
-    "end_time"                        : 0,
+    "start_time"                      : 8640000.0,
+    "end_time"                        : 8640008.64,
     "echo_level"                      : 1,
     "parallel_type"                   : "OpenMP",
     "number_of_threads"               : 1
@@ -16,11 +16,11 @@
       "input_filename"                : "mesh"
     },
     "material_import_settings": {
-      "materials_filename"            : "MaterialParameters_linear.json"
+      "materials_filename"            : "MaterialParameters_abc.json"
     },
     "time_stepping": {
-      "time_step"                     : 0.001,
-      "max_delta_time_factor"         : 86400000000
+      "time_step"                     : 8.64,
+      "max_delta_time_factor"         : 86400000
     },
     "buffer_size"                     : 2,
     "echo_level"                      : 1,
@@ -31,14 +31,14 @@
     "block_builder"                   : true,
     "solution_type"                   : "Quasi-Static",
     "scheme_type"                     : "Backward_Euler",
-    "reset_displacements"             : true,
+    "reset_displacements"             : false,
     "strategy_type"                   : "line_search",
     "convergence_criterion"           : "displacement_criterion",
     "displacement_relative_tolerance" : 0.001,
     "displacement_absolute_tolerance" : 1.0E-9,
     "min_iterations"                  : 6,
     "max_iterations"                  : 30,
-    "number_cycles"                   : 1,
+    "number_cycles"                   : 100,
     "reduction_factor"                : 0.5,
     "increase_factor"                 : 2.0,
     "calculate_reactions"             : true,
@@ -54,16 +54,14 @@
     },
     "problem_domain_sub_model_part_list": ["Soil-0"],
     "processes_sub_model_part_list"   : ["gravity",
-                                         "PhreaticLineContactStress0",
+                                         "PhreaticLineContactStress2",
                                          "TopWaterPressure",
                                          "Bottom1",
                                          "BottomWaterPressure",
                                          "LeftSide",
-                                         "RightSide",
-                                         "K0_model_part",
-                                         "Head_line0"],
+                                         "RightSide"],
     "body_domain_sub_model_part_list" : ["Soil-0"],
-    "move_mesh_flag": false
+    "move_mesh_flag"                  : false
   },
   "output_processes": {
     "gid_output": [
@@ -73,7 +71,7 @@
         "process_name"                  : "GiDOutputProcess",
         "Parameters": {
           "model_part_name"             : "PorousDomain.porous_computational_model_part",
-          "output_name"                 : "stage1",
+          "output_name"                 : "stage3",
           "postprocess_parameters": {
             "result_file_configuration": {
               "gidpost_flags": {
@@ -120,11 +118,11 @@
         "python_module"            : "apply_vector_constraint_table_process",
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyVectorConstraintTableProcess",
-        "Parameters": {            
+        "Parameters": {
           "model_part_name"        : "PorousDomain.Bottom1",
           "variable_name"          : "DISPLACEMENT",
-          "active"                 : [true, true, true],
-          "is_fixed"               : [true, true, true],
+          "active"                 : [true,true,true],
+          "is_fixed"               : [true,true,true],
           "value"                  : [0.0, 0.0, 0.0],
           "table"                  : [0, 0, 0]
         }
@@ -172,25 +170,6 @@
           "value"                  : [0.0, 0.0, 0.0],
           "table"                  : [0, 0, 0]
         }
-      },
-      {
-        "python_module"            : "apply_scalar_constraint_table_process",
-        "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name"             : "ApplyScalarConstraintTableProcess",
-        "Parameters": {
-          "model_part_name"        : "PorousDomain.Head_line0",
-          "variable_name"          : "WATER_PRESSURE",
-          "is_fixed"               : false,
-          "value"                  : 0.0,
-          "table"                  : 0,
-          "fluid_pressure_type"    : "Phreatic_Multi_Line",
-          "gravity_direction"      : 1,
-          "out_of_plane_direction" : 2,
-          "x_coordinates"          : [0, 1],
-          "y_coordinates"          : [50, 50],
-          "z_coordinates"          : [0, 0],
-          "specific_weight"        : 10000
-        }
       }
     ],
     "loads_process_list": [
@@ -211,7 +190,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyNormalLoadTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.PhreaticLineContactStress0",
+          "model_part_name"        : "PorousDomain.PhreaticLineContactStress2",
           "variable_name"          : "NORMAL_CONTACT_STRESS",
           "active"                 : [true, false],
           "value"                  : [0.0, 0.0],
@@ -221,16 +200,27 @@
           "reference_coordinate"   : 50,
           "specific_weight"        : 10000
         }
+      },{
+        "python_module"            : "apply_vector_constraint_table_process",
+        "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name"             : "ApplyVectorConstraintTableProcess",
+        "Parameters": {
+          "model_part_name"        : "PorousDomain.LineLoad4",
+          "variable_name"          : "LINE_LOAD",
+          "active"                 : [false, true, false],
+          "value"                  : [0.0, 0.0, 0.0],
+          "table"                  : [0, 4, 0]
+        }
       }
     ],
     "auxiliary_process_list": [
       {
-        "python_module"            : "apply_k0_procedure_process",
+        "python_module"            : "geo_extrapolate_integration_point_values_to_nodes_process",
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name"             : "ApplyK0ProcedureProcess",
+        "process_name"             : "GeoExtrapolateIntegrationPointValuesToNodesProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.K0_model_part",
-          "variable_name"          : "CAUCHY_STRESS_TENSOR"
+          "model_part_name"        : "PorousDomain",
+          "list_of_variables"      : ["TOTAL_STRESS_TENSOR", "CAUCHY_STRESS_TENSOR"]
         }
       }
     ]
