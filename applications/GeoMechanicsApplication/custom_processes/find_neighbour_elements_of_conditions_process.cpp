@@ -40,7 +40,10 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     }
 
     hashmap sorted_condition_node_ids_to_condition;
-    std::ranges::transform(condition_node_ids_to_condition, std::inserter(sorted_condition_node_ids_to_condition, sorted_condition_node_ids_to_condition.end()), [](const auto& rPair) {
+    std::ranges::transform(condition_node_ids_to_condition,
+                           std::inserter(sorted_condition_node_ids_to_condition,
+                                         sorted_condition_node_ids_to_condition.end()),
+                           [](const auto& rPair) {
         auto sorted_ids = rPair.first;
         std::ranges::sort(sorted_ids);
         return std::make_pair(sorted_ids, rPair.second);
@@ -74,7 +77,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             const auto& r_boundary_geometries = r_geometry_element.GenerateEdges();
 
             AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-                condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, r_boundary_geometries);
+                condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element,
+                r_boundary_geometries);
         }
     }
 
