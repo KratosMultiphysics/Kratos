@@ -114,10 +114,10 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalDof, KratosGeoMechanicsFastSu
         "Missing the DoF for the variable VOLUME_ACCELERATION on nodes 0 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckProperties, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsPropertyId, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = Properties();
+    auto properties = Properties{};
     properties.SetValue(DENSITY_WATER, 1000.0);
     properties.SetValue(DENSITY, 0.0);
     const CheckProperties check_properties(properties, "property", CheckProperties::Bounds::AllInclusive);
@@ -146,21 +146,25 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckProperties, KratosGeoMechanicsFast
         check_properties.SingleUseBounds(CheckProperties::Bounds::ExclusiveLowerAndInclusiveUpper).Check(DENSITY),
         "DENSITY in the property 0 has an invalid value: 0 out of the range (0; -].")
 
-    // Arrange 2
-    auto                  properties_2 = Properties();
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsElementId, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto                  properties = Properties{};
     constexpr auto        element_Id   = 1;
-    const CheckProperties check_properties_2(properties_2, "property at element", element_Id,
+    const CheckProperties check_properties(properties, "property at element", element_Id,
                                              CheckProperties::Bounds::AllInclusive);
     // Act and Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties_2.CheckAvailabilityOnly(UDSM_NAME),
-                                      " UDSM_NAME does not exist in the property at element 1.")
-    properties_2.SetValue(UDSM_NAME, "");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties_2.CheckAvailabilityAndEmpty(UDSM_NAME),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityOnly(UDSM_NAME),
+                                      "UDSM_NAME does not exist in the property at element 1.")
+    properties.SetValue(UDSM_NAME, "");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityAndEmpty(UDSM_NAME),
                                       "UDSM_NAME is empty in the property at element 1.");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties_2.CheckAvailabilityOnly(UDSM_NUMBER),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityOnly(UDSM_NUMBER),
                                       "UDSM_NUMBER does not exist in the property at element 1.")
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        check_properties_2.CheckAvailabilityOnly(IS_FORTRAN_UDSM),
+        check_properties.CheckAvailabilityOnly(IS_FORTRAN_UDSM),
         "IS_FORTRAN_UDSM does not exist in the property at element 1.")
 }
 } // namespace Kratos::Testing
