@@ -29,9 +29,10 @@ using namespace Kratos;
 std::size_t AveragingTypeToArrayIndex(CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
     switch (AveragingType) {
-    case CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES:
+        using enum CoulombYieldSurface::CoulombAveragingType;
+    case LOWEST_PRINCIPAL_STRESSES:
         return 0;
-    case CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES:
+    case HIGHEST_PRINCIPAL_STRESSES:
         return 2;
     default:
         return 1;
