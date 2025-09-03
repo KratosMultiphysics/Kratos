@@ -60,7 +60,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
             auto itFace = FacesMap.find(FaceIds);
             if (itFace == FacesMap.end() && r_boundary_geometry.LocalSpaceDimension() == 2) {
-                // condition is not found but might be a problem of ordering in 3D geometries!
+                // condition is not found but might be a problem of ordering in 2D boundary geometries!
                 std::vector<std::size_t> FaceIdsSorted = FaceIds;
                 std::ranges::sort(FaceIdsSorted);
                 if (FacesMapSorted.contains(FaceIdsSorted)) {
