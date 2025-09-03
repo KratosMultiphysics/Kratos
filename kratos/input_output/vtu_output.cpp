@@ -1538,8 +1538,8 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
                 auto span = p_gauss_data->ViewData();
 
                 if (r_data_communicator.SumAll(span.size()) > 0) {
-                   is_gauss_point_data_available = true;
-                    IndexPartition<IndexType>(pContainer->size()).for_each(output, [&span, &pContainer, &pVariable, &rUnstructuredGridData, &offsets, total_number_of_components](const auto Index, auto& rTLS) {
+                    is_gauss_point_data_available = true;
+                    IndexPartition<IndexType>(pContainer->size()).for_each(std::vector<data_type>{}, [&span, &pContainer, &pVariable, &rUnstructuredGridData, &offsets, total_number_of_components](const auto Index, auto& rTLS) {
                         auto& r_entity = *(pContainer->begin() + Index);
                         r_entity.CalculateOnIntegrationPoints(*pVariable, rTLS, rUnstructuredGridData.mpModelPart->GetProcessInfo());
                         DataTypeTraits<std::vector<data_type>>::CopyToContiguousData(span.begin() + offsets[Index] * total_number_of_components, rTLS);
@@ -1550,7 +1550,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
         }, r_pair.second, rUnstructuredGridData.mpCells.value());
     }
 
-    if (r_data_communicator.OrReduceAll(is_gauss_point_data_available)) {
+    if (is_gauss_point_data_available) {
         std::stringstream output_vtu_file_name;
         output_vtu_file_name
             << rOutputFileNamePrefix << "/" << rUnstructuredGridData.mpModelPart->FullName() << "_"
