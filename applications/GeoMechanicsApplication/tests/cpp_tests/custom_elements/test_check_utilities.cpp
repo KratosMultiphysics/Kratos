@@ -183,6 +183,30 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesThrowsErrors
         "PERMEABILITY_XX in the properties with Id 2 has an invalid value: -10 is out of the range [0; -).")
 
     properties.SetValue(PERMEABILITY_XX, 10.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckPermeabilityProperties(2),
+                                      "PERMEABILITY_YY does not exist in the properties with Id 2.")
+
+    properties.SetValue(PERMEABILITY_YY, 10.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckPermeabilityProperties(2),
+                                      "PERMEABILITY_XY does not exist in the properties with Id 2.")
+    properties.SetValue(PERMEABILITY_XY, 0.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckPermeabilityProperties(3),
+                                      "PERMEABILITY_ZZ does not exist in the properties with Id 2.")
+    properties.SetValue(PERMEABILITY_ZZ, 10.0);
+    properties.SetValue(PERMEABILITY_YZ, 0.0);
+    properties.SetValue(PERMEABILITY_ZX, -10.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckPermeabilityProperties(3),
+                                      "PERMEABILITY_ZX in the properties with Id 2 has an invalid value: -10 is out of the range [0; -).")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesDoesNotThrowsErrors,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Properties properties(2);
+    const CheckProperties check_properties(properties, "properties", CheckProperties::Bounds::AllExclusive);
+
+    properties.SetValue(PERMEABILITY_XX, 10.0);
     EXPECT_NO_THROW(check_properties.CheckPermeabilityProperties(1));
 
     properties.SetValue(PERMEABILITY_YY, 10.0);
