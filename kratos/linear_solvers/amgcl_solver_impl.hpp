@@ -423,6 +423,14 @@ void AMGCLSolver<TSparse,TDense>::ProvideAdditionalData(SparseMatrixType& rA,
 
 
 template <class TSparse, class TDense>
+void AMGCLSolver<TSparse,TDense>::Clear()
+{
+    mpImpl->mpSolver = std::monostate();
+    mCoordinates = decltype(mCoordinates)();
+}
+
+
+template <class TSparse, class TDense>
 void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
                                                          VectorType& rSolution,
                                                          VectorType& rRhs)

@@ -162,6 +162,9 @@ public:
         ModelPart& rModelPart
         ) override;
 
+    /// @copydoc LinearSolver::Clear
+    void Clear() override;
+
     static Parameters GetDefaultParameters()
     {
         return Parameters(R"(
@@ -236,24 +239,19 @@ protected:
     ///@name Member Variables
     ///@{
 
-    double mTolerance;                /// The tolerance considered
-    IndexType mMaxIterationsNumber;   /// The maximum number of iterations considered
-    int mVerbosity;                   /// The versoisty level
-    std::optional<int> mBlockSize;    /// The size of the dof block
-    SizeType mGMRESSize;              /// The size of the GMRES
-    SizeType mCoarseEnough;           /// The level of coarsening allowed
-    bool mFallbackToGMRES;            /// Of consider GMRES as fallback (TODO: Local flag?)
-    bool mProvideCoordinates;         /// If the coordinates are provided (TODO: Local flag?)
-    bool mUseBlockMatricesIfPossible; /// If use the bloack matrices if possible  (TODO: Local flag?)
-    bool mUseGPGPU;                   /// Use GPGPU if available
-
-    std::vector<array_1d<double,3> > mCoordinates; /// The vector containing the local coordinates
-
-    boost::property_tree::ptree mAMGCLParameters;  /// The configuration parameters of the AMGCl
-
-    double mResidualNorm = 0.0;      /// The current residual norm
-    IndexType mIterationsNumber = 0; /// The current iteration number
-    bool mUseAMGPreconditioning = true; ///by default this includes AMG preconditioning
+    double mTolerance;                              //< The tolerance considered
+    IndexType mMaxIterationsNumber;                 //< The maximum number of iterations considered
+    int mVerbosity;                                 //< The versoisty level
+    std::optional<int> mBlockSize;                  //< The size of the dof block
+    SizeType mGMRESSize;                            //< The size of the GMRES
+    SizeType mCoarseEnough;                         //< The level of coarsening allowed
+    bool mFallbackToGMRES;                          //< Of consider GMRES as fallback (TODO: Local flag?)
+    bool mProvideCoordinates;                       //< If the coordinates are provided (TODO: Local flag?)
+    bool mUseBlockMatricesIfPossible;               //< If use the bloack matrices if possible  (TODO: Local flag?)
+    bool mUseGPGPU;                                 //< Use GPGPU if available
+    std::vector<array_1d<double,3> > mCoordinates;  //< The vector containing the local coordinates
+    boost::property_tree::ptree mAMGCLParameters;   //< The configuration parameters of the AMGCl
+    bool mUseAMGPreconditioning = true;             //< by default this includes AMG preconditioning
 
     struct Impl;
     std::unique_ptr<Impl> mpImpl;
