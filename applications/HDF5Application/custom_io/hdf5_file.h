@@ -307,9 +307,9 @@ public:
     /**
      * @brief Independently write dataset to the HDF5 file.
      *
-     * Performs independent write in MPI. Must be called collectively. Throws
-     * if more than one process has non-empty data.
+     * Performs independent write in MPI. Must be called collectively.
      *
+     * @throws If more than one process has non-empty data.
      * @tparam TDataType            Data type of the provided data.
      * @tparam TIntegerType         Integer type for the shape.
      * @param rPath                 Path to which the data is written.
