@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
+import xml.etree.ElementTree as ET
 
 with kratos_unittest.WorkFolderScope("../../tests", __file__, True):
     import test_vtu_output
@@ -176,24 +176,9 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
         TestMPIVtuOutput.__SetVariable(model_part.Elements, Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, lambda x, y, z : x.SetValue(y, z), offset)
         TestMPIVtuOutput.__SetVariable(model_part.Elements, Kratos.CONSTITUTIVE_MATRIX, lambda x, y, z : x.SetValue(y, z), offset)
 
-    def __CheckFile(self, file_name: str):
-        data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
-
-        if data_communicator.Size() == 2 and file_name.rfind("ascii") != -1:
-            ## Settings string in json format
-            params = Kratos.Parameters("""{
-                "reference_file_name" : "",
-                "output_file_name"    : "",
-                "comparison_type"     : "deterministic"
-            }""")
-            params["reference_file_name"].SetString(str(Path(f"auxiliar_files_for_python_unittest/reference_files/{file_name}")))
-            params["output_file_name"].SetString(file_name)
-            CompareTwoFilesCheckProcess(params).Execute()
-        else:
-            if data_communicator.Rank() == 0:
-                print(file_name)
-                self.assertTrue(Path(file_name).is_file())
-                # kratos_utils.DeleteFileIfExisting(file_name)
+    def setUp(self):
+        # Set some process info variables.
+        self.model_part.ProcessInfo[Kratos.TIME] = 1.2345 # float
 
     def __OutputTest(self, output_type: str):
         if output_type == "ascii":
@@ -319,6 +304,59 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
         data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
         proc_id = data_communicator.Rank()
 
+        def check_pvtu(model_part: Kratos.ModelPart, suffix: str, step_id: int, point_fields, cell_fields):
+            if data_communicator.Rank() == 0:
+                pvtu_file_name = f"temp/vtu_output/{output_type}_output/{model_part.FullName()}_{suffix}_{step_id}.pvtu"
+
+                tree = ET.parse(pvtu_file_name)
+                root = tree.getroot()
+
+                self.assertEqual(root.tag, "VTKFile")
+                self.assertEqual(root.get("type"), "PUnstructuredGrid")
+                self.assertEqual(root.get("version"), "0.1")
+
+                unstructured_grid = root.find("PUnstructuredGrid")
+                self.assertEqual(unstructured_grid.get("GhostLevel"), "0")
+
+                ppoints = unstructured_grid.find("PPoints")
+                test_vtu_output.TestVtuOutput.CheckDataArray(self, ppoints.find("PDataArray"), 3, "Position", "Float64")
+
+                pcells = unstructured_grid.find("PCells")
+                p_data_arrays = pcells.findall("PDataArray")
+                test_vtu_output.TestVtuOutput.CheckDataArray(self, p_data_arrays[0], 1, "connectivity", "Int32")
+                test_vtu_output.TestVtuOutput.CheckDataArray(self, p_data_arrays[1], 1, "offsets", "Int32")
+                test_vtu_output.TestVtuOutput.CheckDataArray(self, p_data_arrays[2], 1, "types", "UInt8")
+
+                ppoint_data = unstructured_grid.find("PPointData")
+                for data_field_name, (number_of_components, data_type) in point_fields:
+                    found_field = False
+                    for p_data_array in ppoint_data.findall("PDataArray"):
+                        if p_data_array.get("Name") == data_field_name:
+                            found_field = True
+                            test_vtu_output.TestVtuOutput.CheckDataArray(self, p_data_array, number_of_components, data_field_name, data_type)
+                            break
+                    self.assertTrue(found_field)
+
+                pcell_data = unstructured_grid.find("PCellData")
+                for data_field_name, (number_of_components, data_type) in cell_fields:
+                    found_field = False
+                    for p_data_array in pcell_data.findall("PDataArray"):
+                        if p_data_array.get("Name") == data_field_name:
+                            found_field = True
+                            test_vtu_output.TestVtuOutput.CheckDataArray(self, p_data_array, number_of_components, data_field_name, data_type)
+                            break
+                    self.assertTrue(found_field)
+
+                pieces = unstructured_grid.findall("Piece")
+                self.assertEqual(len(pieces), data_communicator.Size())
+                for proc_id in range(data_communicator.Size()):
+                    vtu_file_name = f"temp/vtu_output/{output_type}_output/{model_part.FullName()}_{suffix}_{step_id}_{proc_id}.vtu"
+                    relative_path = str(Path(vtu_file_name).absolute().relative_to(Path(pvtu_file_name).parent.absolute()))
+                    self.assertEqual(pieces[proc_id].get("Source"), relative_path)
+
+                kratos_utils.DeleteFileIfExisting(pvtu_file_name)
+                return pvtu_file_name
+
         def check(model_part: Kratos.ModelPart, number_of_nodes: int, number_of_cells: int, step_id: int, suffix: str, point_fields, cell_fields):
             file_name = f"temp/vtu_output/{output_type}_output/{model_part.FullName()}_{suffix}_{step_id}_{proc_id}.vtu"
             test_vtu_output.TestVtuOutput.CheckVtuFile(
@@ -327,17 +365,19 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
                 number_of_nodes, number_of_cells, output_type, point_fields, cell_fields)
             kratos_utils.DeleteFileIfExisting(file_name)
 
-        def check_gauss(model_part: Kratos.ModelPart, container, step_id: int, point_fields, cell_fields):
-            number_of_points = 0
-            for entity in container:
-                if len(entity.GetGeometry()) == 4:
-                    number_of_points += 4
-                elif len(entity.GetGeometry()) == 3:
-                    number_of_points += 1
-                elif len(entity.GetGeometry()) == 2:
-                    number_of_points += 1
-                else:
-                    raise RuntimeError("Unsupported geometry")
+            return check_pvtu(model_part, suffix, step_id, point_fields, cell_fields)
+
+        def check_gauss(model_part: Kratos.ModelPart, container, step_id: int, point_fields):
+            file_name = test_vtu_output.TestVtuOutput.CheckGaussVtuFile(
+                self,
+                model_part,
+                container,
+                f"temp/vtu_output/{output_type}_output",
+                step_id,
+                output_type,
+                model_part.GetRootModelPart().GetCommunicator().GetDataCommunicator(),
+                point_fields
+            )
 
             if isinstance(container, Kratos.ConditionsArray):
                 suffix = "condition"
@@ -346,34 +386,37 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
             else:
                 raise RuntimeError("Unsupported container type.")
 
-            file_name = f"temp/vtu_output/{output_type}_output/{model_part.FullName()}_{suffix}_gauss_{step_id}_{proc_id}.vtu"
-            test_vtu_output.TestVtuOutput.CheckVtuFile(
-                self,
-                file_name,
-                number_of_points, None, output_type, point_fields, cell_fields)
             kratos_utils.DeleteFileIfExisting(file_name)
+            return check_pvtu(model_part, suffix + "_gauss", step_id, point_fields, {})
 
+        list_of_pvtu_file_names: 'list[str]' = []
         for step_id in range(2):
-            check(self.model["test"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
-                self.model["test"].Conditions), len(self.model["test"].Conditions), step_id, "conditions", {}, {})
-            check(self.model["test"], self.model["test"].NumberOfNodes(), len(
-                self.model["test"].Elements), step_id, "elements", {}, {})
-            check(self.model["test.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
-                self.model["test.sub_1"].Conditions), len(self.model["test.sub_1"].Conditions), step_id, "conditions", {}, {})
-            check(self.model["test.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
-                self.model["test.sub_1"].Elements), len(self.model["test.sub_1"].Elements), step_id, "elements", {}, {})
-            check(self.model["test.sub_2"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
-                self.model["test.sub_2"].Conditions), len(self.model["test.sub_2"].Conditions), step_id, "conditions", {}, {})
-            check(self.model["test.sub_2.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
-                self.model["test.sub_2.sub_1"].Conditions), len(self.model["test.sub_2.sub_1"].Conditions), step_id, "conditions", {}, {})
+            list_of_pvtu_file_names.append(check(self.model["test"], self.model["test"].NumberOfNodes(), len(
+                self.model["test"].Elements), step_id, "elements", {}, {}))
+            list_of_pvtu_file_names.append(check_gauss(self.model["test"], self.model["test"].Elements, step_id, {}))
 
-            # gauss points
-            check_gauss(self.model["test"], self.model["test"].Conditions, step_id, {}, {})
-            check_gauss(self.model["test"], self.model["test"].Elements, step_id, {}, {})
-            check_gauss(self.model["test.sub_1"], self.model["test.sub_1"].Conditions, step_id, {}, {})
-            check_gauss(self.model["test.sub_1"], self.model["test.sub_1"].Elements, step_id, {}, {})
-            check_gauss(self.model["test.sub_2"], self.model["test.sub_2"].Conditions, step_id, {}, {})
-            check_gauss(self.model["test.sub_2.sub_1"], self.model["test.sub_2.sub_1"].Conditions, step_id, {}, {})
+            list_of_pvtu_file_names.append(check(self.model["test"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test"].Conditions), len(self.model["test"].Conditions), step_id, "conditions", {}, {}))
+            list_of_pvtu_file_names.append(check_gauss(self.model["test"], self.model["test"].Conditions, step_id, {}))
+
+            list_of_pvtu_file_names.append(check(self.model["test.sub_2"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test.sub_2"].Conditions), len(self.model["test.sub_2"].Conditions), step_id, "conditions", {}, {}))
+            list_of_pvtu_file_names.append(check_gauss(self.model["test.sub_2"], self.model["test.sub_2"].Conditions, step_id, {}))
+
+            list_of_pvtu_file_names.append(check(self.model["test.sub_2.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test.sub_2.sub_1"].Conditions), len(self.model["test.sub_2.sub_1"].Conditions), step_id, "conditions", {}, {}))
+            list_of_pvtu_file_names.append(check_gauss(self.model["test.sub_2.sub_1"], self.model["test.sub_2.sub_1"].Conditions, step_id, {}))
+
+            list_of_pvtu_file_names.append(check(self.model["test.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test.sub_1"].Elements), len(self.model["test.sub_1"].Elements), step_id, "elements", {}, {}))
+            list_of_pvtu_file_names.append(check_gauss(self.model["test.sub_1"], self.model["test.sub_1"].Elements, step_id, {}))
+
+            list_of_pvtu_file_names.append(check(self.model["test.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test.sub_1"].Conditions), len(self.model["test.sub_1"].Conditions), step_id, "conditions", {}, {}))
+            list_of_pvtu_file_names.append(check_gauss(self.model["test.sub_1"], self.model["test.sub_1"].Conditions, step_id, {}))
+
+        if data_communicator.Rank() == 0:
+            test_vtu_output.TestVtuOutput.CheckPvdFile(self, f"temp/vtu_output/{output_type}_output.pvd", list_of_pvtu_file_names, [1.2345, 2.2345])
 
     def test_OutputASCII(self):
         self.__OutputTest("ascii")
@@ -381,10 +424,10 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
     def test_OutputBinary(self):
         self.__OutputTest("binary")
 
-    # @classmethod
-    # def tearDownClass(cls):
-    #     cls.model_part.GetCommunicator().GetDataCommunicator().Barrier()
-    #     kratos_utils.DeleteDirectoryIfExisting("vtu_output")
+    @classmethod
+    def tearDownClass(cls):
+        cls.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+        kratos_utils.DeleteDirectoryIfExisting("temp")
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.INFO)
