@@ -193,6 +193,13 @@ void DofArrayUtilities::SetEffectiveDofEquationIds(
             it_dof->SetEffectiveEquationId(it_dof->EquationId());
         });
     } else {
+        // Initialize all DOFs effective equation ids to the maximum allowable value
+        // Note that this makes possible to distingish the effective DOFs from the non-effective ones
+        IndexPartition<IndexType>(rDofArray.size()).for_each([&](IndexType Index) {
+            auto it_dof = rDofArray.begin() + Index;
+            it_dof->SetEffectiveEquationId(std::numeric_limits<typename Node::DofType::EquationIdType>::max());
+        });
+
         // Set the effective DOFs equation ids
         // Note that in here we assume the effective DOFs to be already sorted
         IndexPartition<IndexType>(rEffectiveDofArray.size()).for_each([&](IndexType Index) {
