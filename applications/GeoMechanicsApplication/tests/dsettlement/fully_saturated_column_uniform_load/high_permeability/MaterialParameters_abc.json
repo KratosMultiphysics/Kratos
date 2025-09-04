@@ -23,7 +23,7 @@
           "RESIDUAL_SATURATION": 0.06203,
           "SATURATED_SATURATION": 1,
           "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
-          "UDSM_NAME": "../UDSM.dll",
+          "UDSM_NAME": "../../UDSM.dll",
           "UDSM_NUMBER": 1,
           "IS_FORTRAN_UDSM": true,
           "UMAT_PARAMETERS": [
