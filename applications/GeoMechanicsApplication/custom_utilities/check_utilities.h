@@ -74,7 +74,6 @@ public:
     {
         mHistoryOfTypes.push_back(mRangeBoundsType);
         mRangeBoundsType = RangeBoundsType;
-        KRATOS_INFO("SetNewRangeBounds ") << mHistoryOfTypes.size() << std::endl;
     }
 
     void RestorePreviousBounds() const;

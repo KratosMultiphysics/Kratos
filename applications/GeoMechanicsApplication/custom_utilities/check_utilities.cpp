@@ -75,13 +75,9 @@ std::string CheckUtilities::PrintVectorContent(const std::vector<size_t>& rVecto
 
 void CheckProperties::RestorePreviousBounds() const
 {
-    KRATOS_INFO("RestorePreviousBounds ")
-        << mHistoryOfTypes.size() << " " << static_cast<int>(mRangeBoundsType) << std::endl;
     if (!mHistoryOfTypes.empty()) {
         mRangeBoundsType = mHistoryOfTypes.back();
         mHistoryOfTypes.pop_back();
-        KRATOS_INFO("Action ") << mHistoryOfTypes.size() << " "
-                               << static_cast<int>(mRangeBoundsType) << std::endl;
     }
 }
 
