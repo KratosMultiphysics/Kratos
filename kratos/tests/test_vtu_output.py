@@ -305,7 +305,7 @@ class TestVtuOutput(kratos_unittest.TestCase):
         kratos_utils.DeleteDirectoryIfExisting("temp/vtu_output/variable_test")
 
     def test_CellVariableAddition(self):
-        vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, output_sub_model_parts=True)
+        vtu_output = Kratos.VtuOutput(self.model_part, output_format=Kratos.VtuOutput.ASCII, output_sub_model_parts=True)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Condition)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.NodeHistorical)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Element)

@@ -182,9 +182,9 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
 
     def __OutputTest(self, output_type: str):
         if output_type == "ascii":
-            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.ASCII, output_sub_model_parts=True, echo_level=0)
+            vtu_output = Kratos.VtuOutput(self.model_part, output_format=Kratos.VtuOutput.ASCII, output_sub_model_parts=True, echo_level=0)
         elif output_type == "binary":
-            vtu_output = Kratos.VtuOutput(self.model_part, binary_output=Kratos.VtuOutput.BINARY, output_sub_model_parts=True, echo_level=0)
+            vtu_output = Kratos.VtuOutput(self.model_part, output_format=Kratos.VtuOutput.BINARY, output_sub_model_parts=True, echo_level=0)
 
         for data_location in [Kratos.Globals.DataLocation.NodeNonHistorical, Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]:
             vtu_output.AddVariable(Kratos.DISPLACEMENT, data_location)
