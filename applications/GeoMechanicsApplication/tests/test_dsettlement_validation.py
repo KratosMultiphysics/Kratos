@@ -490,6 +490,16 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             ref_data = StressPlotDataFilePaths()
             left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
 
+            # Make a stress plot after 100 days of consolidation have passed
+            ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100_days.txt"
+            ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100_days.txt"
+            make_stress_over_depth_plot(output_stage_2, days_to_seconds(100), project_path / "stage2.post.msh", left_side_corner_node_ids, ref_data, project_path / "test_case_4_stress_plot_after_100_days.svg")
+
+            # Make a stress plot after applying the surface load
+            ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100.1_days.txt"
+            ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100.1_days.txt"
+            make_stress_over_depth_plot(output_stage_4, days_to_seconds(100.1001), project_path / "stage4.post.msh", left_side_corner_node_ids, ref_data, project_path / "test_case_4_stress_plot_after_100.1_days.svg")
+
             # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_10000_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_10000_days.txt"
