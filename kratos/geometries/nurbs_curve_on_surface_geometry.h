@@ -228,6 +228,18 @@ public:
         return mpNurbsCurve;
     }
 
+    /// Returns the NurbsSurface::Pointer of this CurveOnSurface.
+    typename NurbsSurfaceType::Pointer pGetSurface()
+    {
+        return mpNurbsSurface;
+    }
+
+    /// Returns the const NurbsSurface::Pointer of this CurveOnSurface.
+    const typename NurbsSurfaceType::Pointer pGetSurface() const
+    {
+        return mpNurbsSurface;
+    }
+
     ///@}
     ///@name Curve Properties
     ///@{
