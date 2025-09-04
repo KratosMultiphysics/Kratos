@@ -36,10 +36,25 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
 
     using AMGCLSolverType = AMGCLSolver<SpaceType, LocalSpaceType>;
     py::class_<AMGCLSolverType, std::shared_ptr<AMGCLSolverType>, LinearSolverType>(m, "AMGCLSolver")
-        .def(py::init<const std::string&, const std::string&, double, int, int, int>())
-        .def(py::init<const std::string&, const std::string&, const std::string&, double, int, int, int, bool>())
+        .def(py::init<const std::string&, const std::string&, double, int, int, int>(),
+             py::arg("smoother_name"),
+             py::arg("solver_name"),
+             py::arg("tolerance"),
+             py::arg("max_iterations"),
+             py::arg("verbosity"),
+             py::arg("gmres_size") = 50)
+        .def(py::init<const std::string&, const std::string&, const std::string&, double, int, int, int, bool>(),
+             py::arg("smoother_name"),
+             py::arg("solver_name"),
+             py::arg("coarsening_name"),
+             py::arg("tolerance"),
+             py::arg("max_iterations"),
+             py::arg("verbosity"),
+             py::arg("gmres_size") = 50,
+             py::arg("provide_coordinates") = false)
         .def(py::init<>())
-        .def(py::init<Parameters>())
+        .def(py::init<Parameters>(),
+             py::arg("settings"))
         ;
 
     using AMGCL_NS_SolverType = AMGCL_NS_Solver<SpaceType, LocalSpaceType>;
