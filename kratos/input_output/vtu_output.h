@@ -278,6 +278,7 @@ public:
      *
      * This method assigns the provided container expression pointer to the specified expression name.
      * It is typically used to update or replace the expression stored in the data fields of @ref VtuOutput.
+     * This also copies the internal data of @p pContainerExpression to vtu output's internal data.
      *
      * @throws std::runtime_error if there is no field name same as @p rExpressionName in one of the compatible data locations represented by the container of @p pContainerExpression .
      * @throws std::runtime_error if @p pContainerExpression does not corresponds to any of the containers which is written by this @ref VtuOutput .
@@ -294,6 +295,7 @@ public:
      *
      * This method assigns a new tensor adaptor to the specified name, allowing
      * for dynamic changes to the tensor adaptor used in the @ref VtuOutput process.
+     * This also copies the internal data of @p pTensorAdaptor to vtu output's internal data.
      *
      * @throws std::runtime_error if there is no field name same as @p rTensorAdaptorName in one of the compatible data locations represented by the container of @p pTensorAdaptor .
      * @throws std::runtime_error if @p pTensorAdaptor does not corresponds to any of the containers which is written by this @ref VtuOutput .
