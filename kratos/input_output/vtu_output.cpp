@@ -467,7 +467,8 @@ ModelPart::NodesContainerType::Pointer GetNodesContainer(TEntityContainerType& r
 void AddUnstructuredGridData(
     std::vector<VtuOutput::UnstructuredGridData>& rOutput,
     ModelPart& rModelPart,
-    const IndexType EchoLevel)
+    const IndexType EchoLevel,
+    const bool UseSubModelParts)
 {
     const std::vector<char> entity_availability{rModelPart.NumberOfNodes() > 0, rModelPart.NumberOfConditions() > 0, rModelPart.NumberOfElements() > 0};
     const auto& max_entity_availability = rModelPart.GetRootModelPart().GetCommunicator().GetDataCommunicator().MaxAll(entity_availability);
@@ -528,19 +529,12 @@ void AddUnstructuredGridData(
         VtuOutput::UnstructuredGridData model_part_data{true, &rModelPart, rModelPart.pNodes(), std::nullopt};
         rOutput.push_back(model_part_data);
     }
-}
 
-void AddUnstructuredGridDataRecursively(
-    std::vector<VtuOutput::UnstructuredGridData>& rOutput,
-    ModelPart& rModelPart,
-    const IndexType EchoLevel)
-{
-    // add the current model part data to the output.
-    AddUnstructuredGridData(rOutput, rModelPart, EchoLevel);
-
-    // now recursively add all the sub model part data.
-    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
-        AddUnstructuredGridDataRecursively(rOutput, r_sub_model_part, EchoLevel);
+    if (UseSubModelParts) {
+        // now recursively add all the sub model part data.
+        for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+            AddUnstructuredGridData(rOutput, r_sub_model_part, EchoLevel, UseSubModelParts);
+        }
     }
 }
 
@@ -952,13 +946,7 @@ VtuOutput::VtuOutput(
       mOutputFormat(OutputFormat),
       mPrecision(Precision)
 {
-    if (OutputSubModelParts) {
-        // Collect all model part data recursively.
-        AddUnstructuredGridDataRecursively(mUnstructuredGridDataList, rModelPart, mEchoLevel);
-    } else {
-        // Only collect the data from the Passed model part
-        AddUnstructuredGridData(mUnstructuredGridDataList, rModelPart, mEchoLevel);
-    }
+    AddUnstructuredGridData(mUnstructuredGridDataList, rModelPart, mEchoLevel, OutputSubModelParts);
 }
 
 const ModelPart& VtuOutput::GetModelPart() const
