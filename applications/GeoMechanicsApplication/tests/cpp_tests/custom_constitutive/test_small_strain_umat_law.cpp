@@ -17,15 +17,23 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(SmallStrainUMATLaw_HasReturnsTrueForCauchyStress, KratosGeoMechanicsFastSuiteWithoutKernel)
+class ParametrizedUMATLawTests : public ::testing::TestWithParam<std::tuple<Variable<Vector>, bool>>
+{
+};
+
+TEST_P(ParametrizedUMATLawTests, SmallStrainUMATLaw_HasReturnsCorrectBoolValueForVectorVariables)
 {
     // Arrange
+    const auto& [vector_variable, expected_state] = GetParam();
     auto umat_law = SmallStrainUMAT2DPlaneStrainLaw{std::make_unique<ThreeDimensional>()};
 
     // Act & Assert
-    KRATOS_EXPECT_TRUE(umat_law.Has(STATE_VARIABLES));
-    KRATOS_EXPECT_TRUE(umat_law.Has(CAUCHY_STRESS_VECTOR));
-    KRATOS_EXPECT_FALSE(umat_law.Has(TOTAL_STRESS_VECTOR));
+    KRATOS_EXPECT_EQ(umat_law.Has(vector_variable), expected_state);
 }
 
+INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
+                         ParametrizedUMATLawTests,
+                         ::testing::Values(std::make_tuple(STATE_VARIABLES, true),
+                                           std::make_tuple(CAUCHY_STRESS_VECTOR, true),
+                                           std::make_tuple(TOTAL_STRESS_VECTOR, false)));
 } // namespace Kratos::Testing
