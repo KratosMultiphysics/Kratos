@@ -168,6 +168,45 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsElementId, Kra
         "IS_FORTRAN_UDSM does not exist in the property at element 1.")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_SetRestoreRangeBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    using enum CheckProperties::Bounds;
+    auto properties = Properties{};
+    properties.SetValue(DENSITY, 0.0);
+    const CheckProperties check_properties(properties, "property", AllInclusive);
+
+    // Act and Assert
+    EXPECT_NO_THROW(check_properties.Check(DENSITY));
+
+    check_properties.SetNewBounds(AllExclusive);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.Check(DENSITY),
+        "DENSITY in the property 0 has an invalid value: 0 out of the range (0; -).")
+
+    check_properties.SetNewBounds(InclusiveLowerAndExclusiveUpper);
+    EXPECT_NO_THROW(check_properties.Check(DENSITY));
+
+    check_properties.SetNewBounds(ExclusiveLowerAndInclusiveUpper);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.Check(DENSITY),
+        "DENSITY in the property 0 has an invalid value: 0 out of the range (0; -].")
+
+    check_properties.RestorePreviousBounds();
+    EXPECT_NO_THROW(check_properties.Check(DENSITY));
+
+    check_properties.RestorePreviousBounds();
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.Check(DENSITY),
+        "DENSITY in the property 0 has an invalid value: 0 out of the range (0; -).")
+
+    check_properties.RestorePreviousBounds();
+    EXPECT_NO_THROW(check_properties.Check(DENSITY));
+
+    check_properties.RestorePreviousBounds();
+    EXPECT_NO_THROW(check_properties.Check(DENSITY));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesThrowsErrorsForWrongProperties,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
