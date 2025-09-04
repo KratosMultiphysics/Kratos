@@ -70,19 +70,14 @@ public:
         return CheckProperties(mrProperties, mrPrintName, mId, RangeBoundsType);
     }
 
-    void SetNewBounds(Bounds RangeBoundsType) const
+    void SetNewRangeBounds(Bounds RangeBoundsType) const
     {
         mHistoryOfTypes.push_back(mRangeBoundsType);
         mRangeBoundsType = RangeBoundsType;
+        KRATOS_INFO("SetNewRangeBounds ") << mHistoryOfTypes.size() << std::endl;
     }
 
-    void RestorePreviousBounds() const
-    {
-        if (!mHistoryOfTypes.empty()) {
-            mRangeBoundsType = mHistoryOfTypes.back();
-            mHistoryOfTypes.pop_back();
-        }
-    }
+    void RestorePreviousBounds() const;
 
     template <typename T>
     void Check(const Variable<T>& rVariable) const

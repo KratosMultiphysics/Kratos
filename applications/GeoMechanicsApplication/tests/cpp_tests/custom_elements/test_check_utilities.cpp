@@ -134,7 +134,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsPropertyId, Kr
                                       "DENSITY_WATER in the property 0 has an invalid value: 1000 "
                                       "out of the range [100; 500.000000].")
 
-    check_properties.SetNewBounds(CheckProperties::Bounds::AllExclusive);
+    check_properties.SetNewRangeBounds(CheckProperties::Bounds::AllExclusive);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.Check(DENSITY_WATER, 1000.0),
                                       "DENSITY_WATER in the property 0 has an invalid value: 1000 "
                                       "out of the range (0; 1000.000000).")
@@ -179,15 +179,15 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_SetRestoreRangeBounds, KratosGeoMechani
     // Act and Assert
     EXPECT_NO_THROW(check_properties.Check(DENSITY));
 
-    check_properties.SetNewBounds(AllExclusive);
+    check_properties.SetNewRangeBounds(AllExclusive);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         check_properties.Check(DENSITY),
         "DENSITY in the property 0 has an invalid value: 0 out of the range (0; -).")
 
-    check_properties.SetNewBounds(InclusiveLowerAndExclusiveUpper);
+    check_properties.SetNewRangeBounds(InclusiveLowerAndExclusiveUpper);
     EXPECT_NO_THROW(check_properties.Check(DENSITY));
 
-    check_properties.SetNewBounds(ExclusiveLowerAndInclusiveUpper);
+    check_properties.SetNewRangeBounds(ExclusiveLowerAndInclusiveUpper);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         check_properties.Check(DENSITY),
         "DENSITY in the property 0 has an invalid value: 0 out of the range (0; -].")
