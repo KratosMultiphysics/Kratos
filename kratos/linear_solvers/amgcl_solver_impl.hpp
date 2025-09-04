@@ -249,12 +249,12 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
         Parameters block_size_settings = Settings["block_size"].Clone();
         default_parameters.RemoveValue("block_size");
 
-        if (block_size_settings.Is<int>()) {
+        if (block_size_settings.IsInt()) {
             mBlockSize = Settings["block_size"].GetInt();
             default_parameters.AddInt("block_size", 1);
-        } else if (block_size_settings.Is<std::string>()) {
-            KRATOS_ERROR_IF_NOT(block_size_settings.Get<std::string>() == "auto")
-                << "Invalid value for \"block_size\": \"" << block_size_settings.Get<std::string>() << "\". "
+        } else if (block_size_settings.IsString()) {
+            KRATOS_ERROR_IF_NOT(block_size_settings.GetString() == "auto")
+                << "Invalid value for \"block_size\": \"" << block_size_settings.GetString() << "\". "
                 << "Expecting a positive integer, or \"auto\".";
             default_parameters.AddString("block_size", "auto");
         } else {
