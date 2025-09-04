@@ -70,7 +70,7 @@ public:
     ///@{
 
     template<class TEntityType>
-    inline unsigned char GetValue(
+    unsigned char GetValue(
         const TEntityType& rEntity,
         const Flags& rFlag,
         unsigned char& rTLS) const
@@ -79,7 +79,7 @@ public:
     }
 
     template<class TEntityType>
-    inline void SetValue(
+    void SetValue(
         TEntityType& rEntity,
         const Flags& rFlag,
         const unsigned char rValue) const
@@ -92,7 +92,7 @@ public:
     }
 
     template<class TEntityType>
-    inline bool HasValue(
+    bool HasValue(
         const TEntityType& rEntity,
         const Flags& rFlag) const
     {
@@ -127,7 +127,7 @@ public:
     ///@{
 
     template<class TDataType>
-    inline const TDataType& GetValue(
+    const TDataType& GetValue(
         const Node& rNode,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
@@ -136,7 +136,7 @@ public:
     }
 
     template<class TDataType>
-    inline void SetValue(
+    void SetValue(
         Node& rNode,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
@@ -145,7 +145,7 @@ public:
     }
 
     template<class TDataType>
-    inline bool HasValue(
+    bool HasValue(
         const Node& rNode,
         const Variable<TDataType>& rVariable) const
     {
@@ -182,7 +182,7 @@ public:
     ///@{
 
     template<class TEntityType, class TDataType>
-    inline const TDataType& GetValue(
+    const TDataType& GetValue(
         const TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
@@ -191,7 +191,7 @@ public:
     }
 
     template<class TEntityType, class TDataType>
-    inline void SetValue(
+    void SetValue(
         TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
@@ -200,7 +200,7 @@ public:
     }
 
     template<class TEntityType, class TDataType>
-    inline bool HasValue(
+    bool HasValue(
         const TEntityType& rEntity,
         const Variable<TDataType>& rVariable) const
     {
@@ -235,7 +235,7 @@ public:
     ///@{
 
     template<class TDataType>
-    inline TDataType GetValue(
+    TDataType GetValue(
         const Node& rNode,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
@@ -248,7 +248,7 @@ public:
     }
 
     template<class TDataType>
-    inline void SetValue(
+    void SetValue(
         Node& rNode,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
@@ -257,7 +257,7 @@ public:
     }
 
     template<class TDataType>
-    inline bool HasValue(
+    bool HasValue(
         const Node& rNode,
         const Variable<TDataType>& rVariable) const
     {
@@ -300,7 +300,7 @@ public:
     ///@{
 
     template<class TDataType>
-    inline TDataType GetValue(
+    TDataType GetValue(
         const Detail::Vertex& rVertex,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
@@ -309,7 +309,7 @@ public:
     }
 
     template<class TDataType>
-    inline void SetValue(
+    void SetValue(
         Detail::Vertex& rEntity,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
@@ -347,7 +347,7 @@ public:
     ///@{
 
     template<class TDataType>
-    inline TDataType GetValue(
+    TDataType GetValue(
         const Detail::Vertex& rVertex,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
@@ -356,7 +356,7 @@ public:
     }
 
     template<class TDataType>
-    inline void SetValue(
+    void SetValue(
         Detail::Vertex& rEntity,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const

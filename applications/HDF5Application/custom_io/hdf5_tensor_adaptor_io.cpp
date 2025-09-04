@@ -99,6 +99,10 @@ Parameters TensorAdaptorIO::Read(
         // such as in the Variable data writing. This common data set should be having a partition table in the same
         // group.
         const auto group_name_pos = dataset_path.rfind("/");
+
+        KRATOS_ERROR_IF(group_name_pos == std::string::npos)
+            << "The dataset path = \"" << dataset_path << "\" is not a valid hdf5 path. HDF5 path should always start with \"/\"\n.";
+
         const auto& partition_path = dataset_path.substr(0, group_name_pos + 1);
 
         if (HasPartitionTable(*mpFile, partition_path)) {

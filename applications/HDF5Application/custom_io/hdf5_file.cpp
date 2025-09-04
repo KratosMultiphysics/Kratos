@@ -578,11 +578,11 @@ template<class TDataType, class TIntegerType>
 void File::WriteDataSet(
     const std::string& rPath,
     TDataType const * pData,
-    TIntegerType const * pShapeIteratorBegin,
-    TIntegerType const * pShapeIteratorEnd,
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
     WriteInfo& rInfo)
 {
-    WriteDataSetImpl<DataTransferMode::Collective>(rPath, pData, pShapeIteratorBegin, pShapeIteratorEnd, rInfo);
+    WriteDataSetImpl<DataTransferMode::Collective>(rPath, pData, itrShapeBegin, itrShapeEnd, rInfo);
 }
 
 template<class TDataType>
@@ -598,11 +598,11 @@ template<class TDataType, class TIntegerType>
 void File::WriteDataSetIndependent(
     const std::string& rPath,
     TDataType const * pData,
-    TIntegerType const * pShapeIteratorBegin,
-    TIntegerType const * pShapeIteratorEnd,
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
     WriteInfo& rInfo)
 {
-    WriteDataSetImpl<DataTransferMode::Independent>(rPath, pData, pShapeIteratorBegin, pShapeIteratorEnd, rInfo);
+    WriteDataSetImpl<DataTransferMode::Independent>(rPath, pData, itrShapeBegin, itrShapeEnd, rInfo);
 }
 
 std::vector<unsigned> File::GetDataDimensions(const std::string& rPath) const
@@ -793,42 +793,42 @@ template<class TDataType>
 void File::ReadDataSet(
     const std::string& rPath,
     TDataType& rData,
-    const unsigned StartIndex,
+    const unsigned iBegin,
     const unsigned BlockSize) const
 {
-    ReadDataSetImpl<TDataType, DataTransferMode::Collective>(rPath, rData, StartIndex, BlockSize);
+    ReadDataSetImpl<TDataType, DataTransferMode::Collective>(rPath, rData, iBegin, BlockSize);
 }
 
 template<class TDataType, class TIntegerType>
 void File::ReadDataSet(
     const std::string& rPath,
     TDataType * pData,
-    TIntegerType const * pShapeIteratorBegin,
-    TIntegerType const * pShapeIteratorEnd,
-    const unsigned StartIndex)
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
+    const unsigned iBegin)
 {
-    ReadDataSetImpl<DataTransferMode::Collective>(rPath, pData, pShapeIteratorBegin, pShapeIteratorEnd, StartIndex);
+    ReadDataSetImpl<DataTransferMode::Collective>(rPath, pData, itrShapeBegin, itrShapeEnd, iBegin);
 }
 
 template<class TDataType>
 void File::ReadDataSetIndependent(
     const std::string& rPath,
     TDataType& rData,
-    const unsigned StartIndex,
+    const unsigned iBegin,
     const unsigned BlockSize) const
 {
-    ReadDataSetImpl<TDataType, DataTransferMode::Independent>(rPath, rData, StartIndex, BlockSize);
+    ReadDataSetImpl<TDataType, DataTransferMode::Independent>(rPath, rData, iBegin, BlockSize);
 }
 
 template<class TDataType, class TIntegerType>
 void File::ReadDataSetIndependent(
     const std::string& rPath,
     TDataType * pData,
-    TIntegerType const * pShapeIteratorBegin,
-    TIntegerType const * pShapeIteratorEnd,
-    const unsigned StartIndex)
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
+    const unsigned iBegin)
 {
-    ReadDataSetImpl<DataTransferMode::Independent>(rPath, pData, pShapeIteratorBegin, pShapeIteratorEnd, StartIndex);
+    ReadDataSetImpl<DataTransferMode::Independent>(rPath, pData, itrShapeBegin, itrShapeEnd, iBegin);
 }
 
 unsigned File::GetOpenObjectsCount() const
@@ -909,8 +909,8 @@ template<File::DataTransferMode TDataTransferMode, class TDataType, class TInteg
 void File::WriteDataSetImpl(
     const std::string& rPath,
     TDataType const * pData,
-    TIntegerType const * pShapeIteratorBegin,
-    TIntegerType const * pShapeIteratorEnd,
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
     WriteInfo& rInfo)
 {
     KRATOS_TRY
@@ -925,7 +925,7 @@ void File::WriteDataSetImpl(
     }
 
     // Initialize data space dimensions.
-    std::vector<hsize_t> local_shape(pShapeIteratorBegin, pShapeIteratorEnd);
+    std::vector<hsize_t> local_shape(itrShapeBegin, itrShapeEnd);
 
     // here we know, every rank should have the same number of dimensions, because every
     // rank will be calling the write method with the correct type of the values
@@ -1073,9 +1073,9 @@ template<File::DataTransferMode TDataTransferMode, class TDataType, class TInteg
 void File::ReadDataSetImpl(
     const std::string& rPath,
     TDataType * pData,
-    TIntegerType const * pShapeIteratorBegin,
-    TIntegerType const * pShapeIteratorEnd,
-    const unsigned StartIndex) const
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
+    const unsigned iBegin) const
 {
     KRATOS_TRY;
 
@@ -1087,7 +1087,7 @@ void File::ReadDataSetImpl(
 
     const auto& global_shape = GetDataDimensions(rPath);
 
-    std::vector<hsize_t> local_shape(pShapeIteratorBegin, pShapeIteratorEnd);
+    std::vector<hsize_t> local_shape(itrShapeBegin, itrShapeEnd);
 
     // Check consistency of file's data set dimensions.
     KRATOS_ERROR_IF(global_shape.size() != local_shape.size())
@@ -1111,7 +1111,7 @@ void File::ReadDataSetImpl(
     // only for the first dimension we will calculate the offsets. Other dimensions
     // should be of same number of components in each dimension in each rank.
     std::vector<hsize_t> offset(global_shape.size(), 0);
-    offset[0] = StartIndex;
+    offset[0] = iBegin;
 
     KRATOS_ERROR_IF(offset[0] + local_shape[0] > global_shape[0])
         << "Data size mismatch. [ current rank offset = " << offset
@@ -1207,7 +1207,7 @@ template<class TDataType, File::DataTransferMode TDataTransferMode>
 void File::ReadDataSetImpl(
     const std::string& rPath,
     TDataType& rData,
-    const unsigned StartIndex,
+    const unsigned iBegin,
     const unsigned BlockSize) const
 {
     KRATOS_TRY;
@@ -1237,11 +1237,11 @@ void File::ReadDataSetImpl(
     if (TypeTraits::Size(rData) > 0) {
         ReadDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(
             rPath, TypeTraits::GetContiguousData(rData), shape.data(),
-            shape.data() + local_dimension, StartIndex);
+            shape.data() + local_dimension, iBegin);
     } else {
         ReadDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(
             rPath, nullptr, shape.data(), shape.data() + local_dimension,
-            StartIndex);
+            iBegin);
     }
 
     KRATOS_CATCH("Path: \"" + rPath + "\".");

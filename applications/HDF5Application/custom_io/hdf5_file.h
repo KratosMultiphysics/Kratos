@@ -275,16 +275,16 @@ public:
      * @tparam TIntegerType         Integer type for the shape.
      * @param rPath                 Path to which the data is written.
      * @param pData                 Pointer to the data.
-     * @param pShapeIteratorBegin   Iterator to the begin of the shape.
-     * @param pShapeIteratorEnd     Iterator to the end of the shape.
+     * @param itrShapeBegin         Iterator to the begin of the shape.
+     * @param itrShapeEnd           Iterator to the end of the shape.
      * @param rInfo                 Information about the written data (output).
      */
     template<class TDataType, class TIntegerType>
     void WriteDataSet(
         const std::string& rPath,
         TDataType const * pData,
-        TIntegerType const * pShapeIteratorBegin,
-        TIntegerType const * pShapeIteratorEnd,
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
         WriteInfo& rInfo);
 
     /**
@@ -314,16 +314,16 @@ public:
      * @tparam TIntegerType         Integer type for the shape.
      * @param rPath                 Path to which the data is written.
      * @param pData                 Pointer to the data.
-     * @param pShapeIteratorBegin   Iterator to the begin of the shape.
-     * @param pShapeIteratorEnd     Iterator to the end of the shape.
+     * @param itrShapeBegin         Iterator to the begin of the shape.
+     * @param itrShapeEnd           Iterator to the end of the shape.
      * @param rInfo                 Information about the written data (output).
      */
     template<class TDataType, class TIntegerType>
     void WriteDataSetIndependent(
         const std::string& rPath,
         TDataType const * pData,
-        TIntegerType const * pShapeIteratorBegin,
-        TIntegerType const * pShapeIteratorEnd,
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
         WriteInfo& rInfo);
 
     /**
@@ -423,14 +423,14 @@ public:
      * @tparam TDataType        Datatype of the read data.
      * @param rPath             Path of the dataset.
      * @param rData             Data to be written to.
-     * @param StartIndex        Starting offset of data for this rank.
+     * @param iBegin            Starting offset of data for this rank.
      * @param BlockSize         Number of data points for this rank.
      */
     template<class TDataType>
     void ReadDataSet(
         const std::string& rPath,
         TDataType& rData,
-        const unsigned StartIndex,
+        const unsigned iBegin,
         const unsigned BlockSize) const;
 
     /**
@@ -438,25 +438,25 @@ public:
      *
      * Performs collective read in MPI. Throws if out of range.
      *
-     * @note The @p pData and the shape [ @p pShapeIteratorBegin, @p pShapeIteratorEnd ) must be
+     * @note The @p pData and the shape [ @p itrShapeBegin, @p itrShapeEnd ) must be
      *       correctly sized for the collective reading.
      *
      * @tparam TDataType            Datatype of the read data.
      * @tparam TIntegerType
      * @param rPath                 Path of the dataset.
      * @param pData                 Data to pointer which needs to be filled.
-     * @param pShapeIteratorBegin   Iterator to the begin of the shape.
-     * @param pShapeIteratorEnd     Iterator to the end of the shape.
-     * @param StartIndex            Starting offset of data for this rank.
+     * @param itrShapeBegin         Iterator to the begin of the shape.
+     * @param itrShapeEnd           Iterator to the end of the shape.
+     * @param iBegin                Starting offset of data for this rank.
      * @param BlockSize             Number of data points for this rank.
      */
     template<class TDataType, class TIntegerType>
     void ReadDataSet(
         const std::string& rPath,
         TDataType * pData,
-        TIntegerType const * pShapeIteratorBegin,
-        TIntegerType const * pShapeIteratorEnd,
-        const unsigned StartIndex);
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
+        const unsigned iBegin);
 
     /**
      * @brief Independently read a dataset from the HDF5 file.
@@ -466,14 +466,14 @@ public:
      * @tparam TDataType        Datatype of the read data.
      * @param rPath             Path of the dataset.
      * @param rData             Data to be written to.
-     * @param StartIndex        Starting offset of data for this rank.
+     * @param iBegin            Starting offset of data for this rank.
      * @param BlockSize         Number of data points for this rank.
      */
     template<class TDataType>
     void ReadDataSetIndependent(
         const std::string& rPath,
         TDataType& rData,
-        const unsigned StartIndex,
+        const unsigned iBegin,
         const unsigned BlockSize) const;
 
     /**
@@ -481,25 +481,25 @@ public:
      *
      * Performs independent read in MPI. Throws if out of range.
      *
-     * @note The @p pData and the shape [ @p pShapeIteratorBegin, @p pShapeIteratorEnd ) must be
+     * @note The @p pData and the shape [ @p itrShapeBegin, @p itrShapeEnd ) must be
      *       correctly sized for the independent reading.
      *
      * @tparam TDataType            Datatype of the read data.
      * @tparam TIntegerType
      * @param rPath                 Path of the dataset.
      * @param pData                 Data to pointer which needs to be filled.
-     * @param pShapeIteratorBegin   Iterator to the begin of the shape.
-     * @param pShapeIteratorEnd     Iterator to the end of the shape.
-     * @param StartIndex            Starting offset of data for this rank.
+     * @param itrShapeBegin         Iterator to the begin of the shape.
+     * @param itrShapeEnd           Iterator to the end of the shape.
+     * @param iBegin                Starting offset of data for this rank.
      * @param BlockSize             Number of data points for this rank.
      */
     template<class TDataType, class TIntegerType>
     void ReadDataSetIndependent(
         const std::string& rPath,
         TDataType * pData,
-        TIntegerType const * pShapeIteratorBegin,
-        TIntegerType const * pShapeIteratorEnd,
-        const unsigned StartIndex);
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
+        const unsigned iBegin);
 
     unsigned GetOpenObjectsCount() const;
     ///@}
@@ -539,24 +539,24 @@ private:
     void WriteDataSetImpl(
         const std::string& rPath,
         TDataType const * pData,
-        TIntegerType const * pShapeIteratorBegin,
-        TIntegerType const * pShapeIteratorEnd,
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
         WriteInfo& rInfo);
 
     template<class TDataType, DataTransferMode TDataTransferMode>
     void ReadDataSetImpl(
         const std::string& rPath,
         TDataType& rData,
-        const unsigned StartIndex,
+        const unsigned iBegin,
         const unsigned BlockSize) const;
 
     template<DataTransferMode TDataTransferMode, class TDataType, class TIntegerType>
     void ReadDataSetImpl(
         const std::string& rPath,
         TDataType * pData,
-        TIntegerType const * pShapeIteratorBegin,
-        TIntegerType const * pShapeIteratorEnd,
-        const unsigned StartIndex) const;
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
+        const unsigned iBegin) const;
 
     ///@}
 };
