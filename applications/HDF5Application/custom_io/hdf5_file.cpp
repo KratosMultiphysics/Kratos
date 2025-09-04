@@ -1049,7 +1049,7 @@ void File::WriteDataSetImpl(
 
             // select the local hyperslab
             KRATOS_HDF5_CALL(H5Sselect_hyperslab, fspace_id, H5S_SELECT_SET, offset.data(), nullptr, count.data(), nullptr)
-            KRATOS_HDF5_CALL_WITH_RETURN(mspace_id, H5Screate_simple, global_shape.size(), count.data(), nullptr)
+            KRATOS_HDF5_CALL_WITH_RETURN(mspace_id, H5Screate_simple, count.size(), count.data(), nullptr)
             KRATOS_HDF5_CALL(H5Dwrite, dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, pData)
             KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
             KRATOS_HDF5_CALL(H5Sclose, mspace_id)
