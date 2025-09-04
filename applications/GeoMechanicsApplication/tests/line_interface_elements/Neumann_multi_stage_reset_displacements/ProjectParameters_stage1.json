@@ -75,7 +75,6 @@
                         "body_output":         true,
                         "node_output":         true,
                         "skin_output":         false,
-                        "plane_output":        [],
                         "nodal_results":       ["DISPLACEMENT"],
                         "gauss_point_results": []
                     }
