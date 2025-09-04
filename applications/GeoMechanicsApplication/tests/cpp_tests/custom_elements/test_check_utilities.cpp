@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Gennady Markelov
+//                   Richard Faasse
 //
 
 #include "custom_utilities/check_utilities.h"
@@ -145,16 +146,15 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsPropertyId, Kr
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         check_properties.SingleUseBounds(CheckProperties::Bounds::ExclusiveLowerAndInclusiveUpper).Check(DENSITY),
         "DENSITY in the property 0 has an invalid value: 0 out of the range (0; -].")
-
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsElementId, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto                  properties = Properties{};
-    constexpr auto        element_Id   = 1;
+    constexpr auto        element_Id = 1;
     const CheckProperties check_properties(properties, "property at element", element_Id,
-                                             CheckProperties::Bounds::AllInclusive);
+                                           CheckProperties::Bounds::AllInclusive);
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityOnly(UDSM_NAME),
                                       "UDSM_NAME does not exist in the property at element 1.")
@@ -166,5 +166,32 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsElementId, Kra
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         check_properties.CheckAvailabilityOnly(IS_FORTRAN_UDSM),
         "IS_FORTRAN_UDSM does not exist in the property at element 1.")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesThrowsErrorsForWrongProperties,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Properties properties(2);
+    const CheckProperties check_properties(properties, "properties", CheckProperties::Bounds::AllExclusive);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckPermeabilityProperties(1),
+                                      "PERMEABILITY_XX does not exist in the properties 2.")
+
+    properties.SetValue(PERMEABILITY_XX, -10.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckPermeabilityProperties(1),
+        "PERMEABILITY_XX in the properties 2 has an invalid value: -10 out of the range [0; -).")
+
+    properties.SetValue(PERMEABILITY_XX, 10.0);
+    EXPECT_NO_THROW(check_properties.CheckPermeabilityProperties(1));
+
+    properties.SetValue(PERMEABILITY_YY, 10.0);
+    properties.SetValue(PERMEABILITY_XY, 0.0);
+    EXPECT_NO_THROW(check_properties.CheckPermeabilityProperties(2));
+
+    properties.SetValue(PERMEABILITY_ZZ, 10.0);
+    properties.SetValue(PERMEABILITY_YZ, 0.0);
+    properties.SetValue(PERMEABILITY_ZX, 0.0);
+    EXPECT_NO_THROW(check_properties.CheckPermeabilityProperties(3));
 }
 } // namespace Kratos::Testing

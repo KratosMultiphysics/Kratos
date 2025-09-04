@@ -70,7 +70,19 @@ public:
         return CheckProperties(mrProperties, mrPrintName, mId, RangeBoundsType);
     }
 
-    void SetNewBounds(Bounds RangeBoundsType) const { mRangeBoundsType = RangeBoundsType; }
+    void SetNewBounds(Bounds RangeBoundsType) const
+    {
+        mHistoryOfTypes.push_back(mRangeBoundsType);
+        mRangeBoundsType = RangeBoundsType;
+    }
+
+    void RestorePreviousBounds() const
+    {
+        if (!mHistoryOfTypes.empty()) {
+            mRangeBoundsType = mHistoryOfTypes.back();
+            mHistoryOfTypes.pop_back();
+        }
+    }
 
     template <typename T>
     void Check(const Variable<T>& rVariable) const
@@ -110,13 +122,16 @@ public:
                          << "." << std::endl;
     }
 
+    void CheckPermeabilityProperties(size_t Dimension) const;
+
 private:
-    const Properties& mrProperties;
-    const std::string mrPrintName;
-    const std::size_t mId;
-    mutable Bounds    mRangeBoundsType;
-    const double      mDefaultLowerBound = 0.0;
-    const double      mDefaultUpperBound = std::numeric_limits<double>::max();
+    const Properties&           mrProperties;
+    const std::string           mrPrintName;
+    const std::size_t           mId;
+    mutable Bounds              mRangeBoundsType;
+    const double                mDefaultLowerBound = 0.0;
+    const double                mDefaultUpperBound = std::numeric_limits<double>::max();
+    mutable std::vector<Bounds> mHistoryOfTypes;
 
     template <typename T>
     void CheckRangeBounds(const Variable<T>& rVariable, double LowerBound, double UpperBound) const
