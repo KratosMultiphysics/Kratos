@@ -1,0 +1,79 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   0.0000000000   0.0000000000
+    2   1.0000000000   0.0000000000   0.0000000000
+    3   1.0000000000   1.0000000000   0.0000000000
+    4   0.0000000000   1.0000000000   0.0000000000
+    5   0.5000000000   0.5000000000   1.0000000000
+End Nodes
+
+
+Begin Elements SmallDisplacementElement3D4N// GUI group identifier: volume
+        1          0     1     2     3     5
+        2          0     1     3     4     5
+End Elements
+
+Begin Conditions SurfaceLoadCondition3D3N// GUI group identifier: right
+    2 0 2 3 5
+End Conditions
+
+Begin SubModelPart Parts_Mat_1 
+    Begin SubModelPartNodes
+        1
+        2
+        3
+        5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        2
+    End SubModelPartElements
+End SubModelPart 
+
+Begin SubModelPart Parts_Solid_full
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+    End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart Parts_Solid_volume // Group volume // Subtree Parts_Solid
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_left // Group left // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart LineLoad2D_right // Group right // Subtree LineLoad2D
+    Begin SubModelPartNodes
+            2
+            3
+            5
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            2
+    End SubModelPartConditions
+End SubModelPart

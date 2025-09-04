@@ -80,32 +80,37 @@ virtual void Max(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_
  * The returned value is defined on all ranks.
  */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
-#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(...)                                         \
-virtual __VA_ARGS__ SumAll(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                                 \
-virtual std::vector<__VA_ARGS__> SumAll(const std::vector<__VA_ARGS__>& rLocalValues) const {                           \
-    return rLocalValues;                                                                                                \
-}                                                                                                                       \
-virtual void SumAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {      \
-    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "SumAll");                     \
-    rGlobalValues = SumAll(rLocalValues);                                                                               \
-}                                                                                                                       \
-virtual __VA_ARGS__ MinAll(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                                 \
-virtual std::vector<__VA_ARGS__> MinAll(const std::vector<__VA_ARGS__>& rLocalValues) const {                           \
-    return rLocalValues;                                                                                                \
-}                                                                                                                       \
-virtual void MinAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {      \
-    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MinAll");                     \
-    rGlobalValues = MinAll(rLocalValues);                                                                               \
-}                                                                                                                       \
-virtual __VA_ARGS__ MaxAll(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                                 \
-virtual std::vector<__VA_ARGS__> MaxAll(const std::vector<__VA_ARGS__>& rLocalValues) const {                           \
-    return rLocalValues;                                                                                                \
-}                                                                                                                       \
-virtual void MaxAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {      \
-    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MaxAll");                     \
-    rGlobalValues = MaxAll(rLocalValues);                                                                               \
-}                                                                                                                       \
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(...)                                                             \
+virtual __VA_ARGS__ SumAll(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                                                    \
+virtual std::vector<__VA_ARGS__> SumAll(const std::vector<__VA_ARGS__>& rLocalValues) const {                                               \
+    return rLocalValues;                                                                                                                    \
+}                                                                                                                                           \
+virtual void SumAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {                          \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "SumAll");                                         \
+    rGlobalValues = SumAll(rLocalValues);                                                                                                   \
+}                                                                                                                                           \
+virtual __VA_ARGS__ MinAll(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                                                    \
+virtual std::vector<__VA_ARGS__> MinAll(const std::vector<__VA_ARGS__>& rLocalValues) const {                                               \
+    return rLocalValues;                                                                                                                    \
+}                                                                                                                                           \
+virtual void MinAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {                          \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MinAll");                                         \
+    rGlobalValues = MinAll(rLocalValues);                                                                                                   \
+}                                                                                                                                           \
+virtual __VA_ARGS__ MaxAll(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                                                    \
+virtual std::vector<__VA_ARGS__> MaxAll(const std::vector<__VA_ARGS__>& rLocalValues) const {                                               \
+    return rLocalValues;                                                                                                                    \
+}                                                                                                                                           \
+virtual void MaxAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {                          \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rLocalValues.size(), rGlobalValues.size(), "MaxAll");                                         \
+    rGlobalValues = MaxAll(rLocalValues);                                                                                                   \
+}
+#endif
 
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(...)                                                         \
+virtual std::pair<__VA_ARGS__, int> MinLocAll(const __VA_ARGS__& rLocalValue) const { return std::pair<__VA_ARGS__, int>(rLocalValue, 0); } \
+virtual std::pair<__VA_ARGS__, int> MaxLocAll(const __VA_ARGS__& rLocalValue) const { return std::pair<__VA_ARGS__, int>(rLocalValue, 0); }
 #endif
 
 // Compute the partial sum of the given quantity from rank 0 to the current rank (included).
@@ -115,7 +120,7 @@ virtual void MaxAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__
  */
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(...)                                       \
-virtual __VA_ARGS__ ScanSum(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                            \
+virtual __VA_ARGS__ ScanSum(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                           \
 virtual std::vector<__VA_ARGS__> ScanSum(const std::vector<__VA_ARGS__>& rLocalValues) const {                      \
     return rLocalValues;                                                                                            \
 }                                                                                                                   \
@@ -394,6 +399,13 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(Vector)
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(Matrix)
 
+    // MinLoc and MaxLoc AllReduce operations
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(char)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(long unsigned int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(double)
+
     // Reduce operations
 
     virtual bool AndReduce(
@@ -567,42 +579,68 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     ///@name Inquiry
     ///@{
 
-    /// Return the parallel rank for this DataCommunicator.
-    /** This is a wrapper for calls to MPI_Comm_rank. */
+    /**
+     * @brief Get the parallel rank for this DataCommunicator.
+     * @details This function serves as a wrapper for MPI_Comm_rank.
+     * @return The parallel rank of the current process.
+     */
     virtual int Rank() const
     {
         return 0;
     }
 
-    /// Return the parallel size for this DataCommunicator.
-    /** This is a wrapper for calls to MPI_Comm_size. */
+    /**
+     * @brief Get the parallel size of this DataCommunicator.
+     * @details This function serves as a wrapper for MPI_Comm_size.
+     * @return The parallel size of the communicator.
+     */
     virtual int Size() const
     {
         return 1;
     }
 
-    /// Check whether this DataCommunicator is aware of parallelism.
+    /**
+     * @brief Check whether this DataCommunicator is aware of parallelism.
+     * @return True if the DataCommunicator is distributed, otherwise false.
+     */
     virtual bool IsDistributed() const
     {
         return false;
     }
 
-    /// Check whether this DataCommunicator involves the current rank.
-    /** In MPI, if the rank is not involved in communication, the communicator
-     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+    /**
+     * @brief Check whether this DataCommunicator involves the current rank.
+     * @details In MPI, if the rank is not involved in communication, the communicator is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     * @return True if the DataCommunicator is defined on the current rank, otherwise false.
      */
     virtual bool IsDefinedOnThisRank() const
     {
         return true;
     }
 
-    /// Check whether this DataCommunicator is MPI_COMM_NULL.
-    /** In MPI, if the rank is not involved in communication, the communicator
-     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+    /**
+     * @brief Check whether this DataCommunicator is MPI_COMM_NULL for the current rank.
+     * @details In MPI, if the rank is not involved in communication, the communicator is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     * @return True if the DataCommunicator is MPI_COMM_NULL, otherwise false.
      */
     virtual bool IsNullOnThisRank() const
     {
         return false;
+    }
+
+    /**
+     * @brief Get a sub-data communicator.
+     * @details This function returns a sub-data communicator based on the provided ranks and a new communicator name.
+     * @param rRanks               The ranks to include in the sub-communicator.
+     * @param rNewCommunicatorName The name of the new sub-communicator.
+     * @return The sub-data communicator.
+     */
+    virtual const DataCommunicator& GetSubDataCommunicator(
+        const std::vector<int>& rRanks,
+        const std::string& rNewCommunicatorName
+        ) const
+    {
+        return *this;
     }
 
     ///@}

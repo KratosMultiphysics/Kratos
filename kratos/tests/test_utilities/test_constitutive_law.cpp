@@ -16,7 +16,7 @@
 
 // Project includes
 #include "tests/test_utilities/test_constitutive_law.h"
-#include "includes/expect.h"
+#include "includes/checks.h"
 
 
 namespace Kratos

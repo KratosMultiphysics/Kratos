@@ -79,23 +79,29 @@ BOOST_AUTO_TEST_CASE(gather)
 
     std::vector<size_t> i(m);
     std::generate(i.begin(), i.end(), [n](){ return rand() % n; });
-    std::sort(i.begin(), i.end());
-    i.resize( std::unique(i.begin(), i.end()) - i.begin() );
 
-    std::vector<double> data(i.size());
-    vex::gather<double>  get(ctx, x.size(), i);
-    vex::scatter<double> put(ctx, x.size(), i);
+    for (int sorted = 0; sorted < 2; ++sorted) {
+        if (sorted) {
+            std::sort(i.begin(), i.end());
+            i.resize( std::unique(i.begin(), i.end()) - i.begin() );
+        }
 
-    get(X, data);
+        std::vector<double>  data(i.size());
+        vex::gather  get(ctx, x.size(), i);
+        vex::scatter put(ctx, x.size(), i);
 
-    for(size_t p = 0; p < i.size(); ++p)
-        BOOST_CHECK(data[p] == x[i[p]]);
+        get(X, data);
 
-    X = 0;
-    put(data, X);
+        for(size_t p = 0; p < i.size(); ++p)
+            BOOST_CHECK(data[p] == x[i[p]]);
 
-    for(size_t p = 0; p < i.size(); ++p)
-        BOOST_CHECK(data[p] == x[i[p]]);
+        vex::vector<double> Y(ctx, n);
+        Y = 0;
+        put(data, Y);
+
+        for(size_t p = 0; p < i.size(); ++p)
+            BOOST_CHECK(Y[i[p]] == x[i[p]]);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(std_sort_vex_vector)

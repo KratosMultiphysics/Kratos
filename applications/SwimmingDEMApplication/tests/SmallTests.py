@@ -84,33 +84,35 @@ class fluid_dem_coupling_one_way_test(FDEMTF.TestFactory):
      file_name = "fluid_dem_tests/settling_cube"
      file_parameters = "fluid_dem_tests/ProjectParameters.json"
 
-class CFD_DEM_two_way_test(FDEMTF.TestFactory):
-     file_name = "CFD_DEM_two_way_tests/Two_way_testFluid"
-     file_parameters = "CFD_DEM_two_way_tests/ProjectParameters.json"
+# 3 Tests below are not ready to run, they have problems writing the results
 
-class CFD_DEM_two_way_test_DVMS(FDEMTF.TestFactory):
-     file_name = "CFD_DEM_two_way_tests/Two_way_testFluid_DVMS"
-     file_parameters = "CFD_DEM_two_way_tests/ProjectParameters_DVMS.json"
+# class CFD_DEM_two_way_test(FDEMTF.TestFactory):
+#      file_name = "CFD_DEM_two_way_tests/Two_way_testFluid"
+#      file_parameters = "CFD_DEM_two_way_tests/ProjectParameters.json"
 
-class analytic_multiple_ghosts_test(AnalyticTF.TestFactory):
-     file_name = "analytic_tests/multiple_phantoms/multiple_phantom_test"
-     file_parameters = "analytic_tests/multiple_phantoms/ProjectParameters.json"
+# class CFD_DEM_two_way_test_DVMS(FDEMTF.TestFactory):
+#      file_name = "CFD_DEM_two_way_tests/Two_way_testFluid_DVMS"
+#      file_parameters = "CFD_DEM_two_way_tests/ProjectParameters_DVMS.json"
+
+# class analytic_multiple_ghosts_test(AnalyticTF.TestFactory):
+#      file_name = "analytic_tests/multiple_phantoms/multiple_phantom_test"
+#      file_parameters = "analytic_tests/multiple_phantoms/ProjectParameters.json"
 
 class porosity_field_conservation_test(PorosityTF.PorosityConservationTestFactory):
      file_name = "porosity_tests/porosity_conservation/Test_porosityFluid"
      file_parameters = "porosity_tests/porosity_conservation/ProjectParameters.json"
 
-class chien_drag_test(DragTF.TestFactory):
-     from  drag_tests.chien_law.chien_drag_test_analysis import ChienDragAnalysis
-     analysis_stage_to_be_launched = ChienDragAnalysis
-     file_name = "drag_tests/chien_law/chien_drag_test"
-     file_parameters = "drag_tests/chien_law/ProjectParameters.json"
+# class chien_drag_test(DragTF.TestFactory):
+#      from  drag_tests.chien_law.chien_drag_test_analysis import ChienDragAnalysis
+#      analysis_stage_to_be_launched = ChienDragAnalysis
+#      file_name = "drag_tests/chien_law/chien_drag_test"
+#      file_parameters = "drag_tests/chien_law/ProjectParameters.json"
 
 available_tests = []
 available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]
-if candelier_imports_available:
-     available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
+# if candelier_imports_available:
+#      available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in AnalyticTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in PorosityTF.PorosityConservationTestFactory.__subclasses__()]

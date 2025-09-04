@@ -15,10 +15,12 @@
 
 // Project includes
 #include "includes/kratos_components.h"
+#include "includes/serializer.h"
 
 // Application includes
 #include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_io/hdf5_file.h"
+#include "custom_utilities/hdf5_data_set_partition_utility.h"
 
 // Include base h
 #include "custom_io/hdf5_properties_io.h"
@@ -37,37 +39,15 @@ void ReadProperties(
 {
     KRATOS_TRY;
 
-    Vector<int> prop_ids;
-    if (rFile.HasAttribute(rPrefix + "/Properties", "Ids")) {
-        rFile.ReadAttribute(rPrefix + "/Properties", "Ids", prop_ids);
-    }
+    KRATOS_ERROR_IF_NOT(rProperties.empty()) << "The properties container is not empty.";
 
-    for (auto pid : prop_ids) {
-        std::stringstream pstream;
-        pstream << rPrefix << "/Properties/(" << pid << ")";
-        std::string path = pstream.str();
+    const auto [start_index, block_size] = StartIndexAndBlockSize(rFile, rPrefix + "/Properties/");
 
-        PropertiesType::ContainerType& r_data = rProperties[pid].Data();
-        Internals::ReadDataValueContainer(rFile, path, r_data);
-    }
+    std::string serialized_data;
+    rFile.ReadDataSet(rPrefix + "/Properties/ListOfProperties", serialized_data, start_index, block_size);
 
-    KRATOS_CATCH("");
-}
-
-void WriteProperties(
-    File& rFile,
-    const std::string& rPrefix,
-    const PropertiesType& rProperties)
-{
-    KRATOS_TRY;
-
-    std::stringstream pstream;
-    pstream << rPrefix << "/Properties/(" << rProperties.Id() << ")";
-    std::string path = pstream.str();
-    rFile.AddPath(path);
-
-    const PropertiesType::ContainerType& r_data = rProperties.Data();
-    Internals::WriteDataValueContainer(rFile, path, r_data);
+    StreamSerializer serializer(serialized_data);
+    serializer.load("properties", rProperties);
 
     KRATOS_CATCH("");
 }
@@ -79,16 +59,14 @@ void WriteProperties(
 {
     KRATOS_TRY;
 
-    Vector<int> prop_ids(rProperties.size());
-    unsigned i = 0;
-    for (const PropertiesType& r_properties : rProperties) {
-        prop_ids[i++] = r_properties.Id();
-        WriteProperties(rFile, rPrefix, r_properties);
-    }
     rFile.AddPath(rPrefix + "/Properties");
-    if (rProperties.size() > 0) { // H5Awrite fails for empty container (sub model parts)
-        rFile.WriteAttribute(rPrefix + "/Properties", "Ids", prop_ids);
-    }
+
+    StreamSerializer serializer;
+    serializer.save("properties", rProperties);
+
+    WriteInfo info;
+    rFile.WriteDataSet(rPrefix + "/Properties/ListOfProperties", serializer.GetStringRepresentation(), info);
+    WritePartitionTable(rFile, rPrefix + "/Properties/", info);
 
     KRATOS_CATCH("");
 }

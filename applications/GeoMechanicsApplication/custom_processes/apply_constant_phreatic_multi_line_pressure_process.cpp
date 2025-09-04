@@ -11,25 +11,26 @@
 //                   Jonathan Nuttall
 
 #include "apply_constant_phreatic_multi_line_pressure_process.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
 
 ApplyConstantPhreaticMultiLinePressureProcess::ApplyConstantPhreaticMultiLinePressureProcess(ModelPart& model_part,
                                                                                              Parameters rParameters)
-        : Process(Flags()) , mrModelPart(model_part)
+    : Process(Flags()), mrModelPart(model_part)
 {
     KRATOS_TRY
 
     InitializeParameters(rParameters);
 
-    mVariableName = rParameters["variable_name"].GetString();
-    mIsFixed = rParameters["is_fixed"].GetBool();
-    mIsFixedProvided = rParameters.Has("is_fixed");
-    mIsSeepage = rParameters["is_seepage"].GetBool();
-    mSpecificWeight = rParameters["specific_weight"].GetDouble();
+    mVariableName          = rParameters["variable_name"].GetString();
+    mIsFixed               = rParameters["is_fixed"].GetBool();
+    mIsFixedProvided       = rParameters.Has("is_fixed");
+    mIsSeepage             = rParameters["is_seepage"].GetBool();
+    mSpecificWeight        = rParameters["specific_weight"].GetDouble();
     mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
-    mOutOfPlaneDirection = rParameters["out_of_plane_direction"].GetInt();
+    mOutOfPlaneDirection   = rParameters["out_of_plane_direction"].GetInt();
 
     InitializeCoordinates(rParameters);
     InitializeGravityDirection(rParameters);
@@ -50,16 +51,16 @@ void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Paramet
                 "is_seepage": false,
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2,
-                "x_coordinates":           [0.0,1.0],
-                "y_coordinates":           [1.0,0.5],
-				"z_coordinates":           [0.0,0.0],
+                "x_coordinates":           [0.0, 1.0],
+                "y_coordinates":           [1.0, 0.5],
+                "z_coordinates":           [0.0, 0.0],
                 "specific_weight" : 10000.0,
                 "pressure_tension_cut_off" : 0.0,
-                "table" : [0,1]
-            }  )" );
+                "table" : [0, 0]
+            }  )");
 
-    // Some values are mandatory, since no meaningful default value exist. For this reason try accessing to them
-    // So that an error is thrown if they don't exist
+    // Some values are mandatory, since no meaningful default value exist. For this reason try
+    // accessing to them So that an error is thrown if they don't exist
     rParameters["x_coordinates"];
     rParameters["y_coordinates"];
     rParameters["z_coordinates"];
@@ -70,66 +71,68 @@ void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Paramet
     rParameters.ValidateAndAssignDefaults(default_parameters);
 }
 
-void ApplyConstantPhreaticMultiLinePressureProcess::ValidateCoordinates(const Parameters &rParameters) const
+void ApplyConstantPhreaticMultiLinePressureProcess::ValidateCoordinates(const Parameters& rParameters) const
 {
-    if (GravityDirection() == OutOfPlaneDirection())
-    {
+    if (GravityDirection() == OutOfPlaneDirection()) {
         KRATOS_ERROR << "Gravity direction cannot be the same as Out-of-Plane directions"
-                     << rParameters
-                     << std::endl;
+                     << rParameters << std::endl;
     }
 
-    if (!std::is_sorted(HorizontalDirectionCoordinates().begin(), HorizontalDirectionCoordinates().end()))
-    {
-        KRATOS_ERROR << "The Horizontal Elements Coordinates are not ordered."
-                     << rParameters
-                     << std::endl;
+    if (!std::is_sorted(HorizontalDirectionCoordinates().begin(), HorizontalDirectionCoordinates().end())) {
+        KRATOS_ERROR << "The Horizontal Elements Coordinates are not ordered." << rParameters << std::endl;
     }
+
+    KRATOS_ERROR_IF(GravityDirectionCoordinates().size() < 2)
+        << "At least two coordinates in gravity direction must be given, but got "
+        << GravityDirectionCoordinates().size() << std::endl;
+    KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() < 2)
+        << "At least two coordinates in horizontal direction must be given, but got "
+        << HorizontalDirectionCoordinates().size() << std::endl;
 }
 
-void ApplyConstantPhreaticMultiLinePressureProcess::InitializeCoordinates(const Parameters &rParameters)
+void ApplyConstantPhreaticMultiLinePressureProcess::InitializeCoordinates(const Parameters& rParameters)
 {
     mXCoordinates = rParameters["x_coordinates"].GetVector();
     mYCoordinates = rParameters["y_coordinates"].GetVector();
     mZCoordinates = rParameters["z_coordinates"].GetVector();
 }
 
-void ApplyConstantPhreaticMultiLinePressureProcess::InitializeGravityDirection(const Parameters &rParameters)
+void ApplyConstantPhreaticMultiLinePressureProcess::InitializeGravityDirection(const Parameters& rParameters)
 {
     mGravityDirection = rParameters["gravity_direction"].GetInt();
     switch (GravityDirection()) {
-        case 0:
-            mGravityDirectionCoordinates = XCoordinates();
-            break;
-        case 1:
-            mGravityDirectionCoordinates = YCoordinates();
-            break;
-        case 2:
-            mGravityDirectionCoordinates = ZCoordinates();
-            break;
-        default:
-            KRATOS_ERROR << "The Gravity direction is invalid";
+    case 0:
+        mGravityDirectionCoordinates = XCoordinates();
+        break;
+    case 1:
+        mGravityDirectionCoordinates = YCoordinates();
+        break;
+    case 2:
+        mGravityDirectionCoordinates = ZCoordinates();
+        break;
+    default:
+        KRATOS_ERROR << "The Gravity direction is invalid";
     }
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::InitializeHorizontalDirection()
 {
     mHorizontalDirection = 0;
-    for (unsigned int i=0; i<N_DIM_3D; ++i)
+    for (unsigned int i = 0; i < N_DIM_3D; ++i)
         if (i != GravityDirection() && i != OutOfPlaneDirection()) mHorizontalDirection = i;
 
     switch (HorizontalDirection()) {
-        case 0:
-            mHorizontalDirectionCoordinates = XCoordinates();
-            break;
-        case 1:
-            mHorizontalDirectionCoordinates = YCoordinates();
-            break;
-        case 2:
-            mHorizontalDirectionCoordinates = ZCoordinates();
-            break;
-        default:
-            KRATOS_ERROR << "The Horizontal direction is invalid";
+    case 0:
+        mHorizontalDirectionCoordinates = XCoordinates();
+        break;
+    case 1:
+        mHorizontalDirectionCoordinates = YCoordinates();
+        break;
+    case 2:
+        mHorizontalDirectionCoordinates = ZCoordinates();
+        break;
+    default:
+        KRATOS_ERROR << "The Horizontal direction is invalid";
     }
 }
 
@@ -137,9 +140,10 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ExecuteInitialize()
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(mrModelPart.NumberOfNodes() <= 0) << "Number of nodes is smaller than or equal to zero";
+    KRATOS_ERROR_IF(mrModelPart.NumberOfNodes() <= 0)
+        << "Number of nodes is smaller than or equal to zero";
 
-    const Variable<double> &var = KratosComponents< Variable<double> >::Get(VariableName());
+    const Variable<double>& var = KratosComponents<Variable<double>>::Get(VariableName());
 
     block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
         const double pressure = CalculatePressure(rNode);
@@ -153,7 +157,8 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ExecuteInitialize()
         } else {
             if (IsFixed()) rNode.Fix(var);
             else if (IsFixedProvided()) rNode.Free(var);
-            rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
+            rNode.FastGetSolutionStepValue(var) =
+                std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
         }
     });
 
@@ -165,30 +170,24 @@ std::string ApplyConstantPhreaticMultiLinePressureProcess::Info() const
     return "ApplyConstantPhreaticMultiLinePressureProcess";
 }
 
-void ApplyConstantPhreaticMultiLinePressureProcess::PrintInfo(std::ostream &rOStream) const
+void ApplyConstantPhreaticMultiLinePressureProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyConstantPhreaticMultiLinePressureProcess";
+    rOStream << Info();
 }
 
-const std::string &ApplyConstantPhreaticMultiLinePressureProcess::VariableName() const
+const std::string& ApplyConstantPhreaticMultiLinePressureProcess::VariableName() const
 {
     return mVariableName;
 }
 
-bool ApplyConstantPhreaticMultiLinePressureProcess::IsFixed() const
-{
-    return mIsFixed;
-}
+bool ApplyConstantPhreaticMultiLinePressureProcess::IsFixed() const { return mIsFixed; }
 
 bool ApplyConstantPhreaticMultiLinePressureProcess::IsFixedProvided() const
 {
     return mIsFixedProvided;
 }
 
-bool ApplyConstantPhreaticMultiLinePressureProcess::IsSeepage() const
-{
-    return mIsSeepage;
-}
+bool ApplyConstantPhreaticMultiLinePressureProcess::IsSeepage() const { return mIsSeepage; }
 
 unsigned int ApplyConstantPhreaticMultiLinePressureProcess::GravityDirection() const
 {
@@ -210,27 +209,27 @@ unsigned int ApplyConstantPhreaticMultiLinePressureProcess::HorizontalDirection(
     return mHorizontalDirection;
 }
 
-const Vector &ApplyConstantPhreaticMultiLinePressureProcess::HorizontalDirectionCoordinates() const
+const Vector& ApplyConstantPhreaticMultiLinePressureProcess::HorizontalDirectionCoordinates() const
 {
     return mHorizontalDirectionCoordinates;
 }
 
-const Vector &ApplyConstantPhreaticMultiLinePressureProcess::GravityDirectionCoordinates() const
+const Vector& ApplyConstantPhreaticMultiLinePressureProcess::GravityDirectionCoordinates() const
 {
     return mGravityDirectionCoordinates;
 }
 
-const Vector &ApplyConstantPhreaticMultiLinePressureProcess::XCoordinates() const
+const Vector& ApplyConstantPhreaticMultiLinePressureProcess::XCoordinates() const
 {
     return mXCoordinates;
 }
 
-const Vector &ApplyConstantPhreaticMultiLinePressureProcess::YCoordinates() const
+const Vector& ApplyConstantPhreaticMultiLinePressureProcess::YCoordinates() const
 {
     return mYCoordinates;
 }
 
-const Vector &ApplyConstantPhreaticMultiLinePressureProcess::ZCoordinates() const
+const Vector& ApplyConstantPhreaticMultiLinePressureProcess::ZCoordinates() const
 {
     return mZCoordinates;
 }
@@ -240,45 +239,43 @@ double ApplyConstantPhreaticMultiLinePressureProcess::PressureTensionCutOff() co
     return mPressureTensionCutOff;
 }
 
-int ApplyConstantPhreaticMultiLinePressureProcess::findIndex(const Node &rNode) const
+int ApplyConstantPhreaticMultiLinePressureProcess::findIndex(const Node& rNode) const
 {
-    const auto& coords = rNode.Coordinates();
-    const auto number_of_coordinates = static_cast<int>(HorizontalDirectionCoordinates().size());
-    for (int index = 0; index < number_of_coordinates; ++index)
-    {
-        if (HorizontalDirectionCoordinates()[index] >= coords[HorizontalDirection()])
-        {
+    const auto& coords                = rNode.Coordinates();
+    const auto  number_of_coordinates = static_cast<int>(HorizontalDirectionCoordinates().size());
+    for (int index = 0; index < number_of_coordinates; ++index) {
+        if (HorizontalDirectionCoordinates()[index] >= coords[HorizontalDirection()]) {
             return index == 0 ? index : index - 1;
         }
     }
 
-    return number_of_coordinates - 1;
+    return number_of_coordinates - 2;
 }
 
-double ApplyConstantPhreaticMultiLinePressureProcess::CalculatePressure(const Node &rNode,
+double ApplyConstantPhreaticMultiLinePressureProcess::CalculatePressure(const Node& rNode,
                                                                         std::vector<double> deltaH) const
 {
     // find nodes in horizontalDirectionCoordinates
-    const int firstPointIndex = findIndex(rNode);
+    const int firstPointIndex  = findIndex(rNode);
     const int secondPointIndex = firstPointIndex + 1;
 
     array_1d<double, 2> y;
     y[0] = GravityDirectionCoordinates()[firstPointIndex];
     y[1] = GravityDirectionCoordinates()[secondPointIndex];
 
-    if (!deltaH.empty())
-    {
+    if (!deltaH.empty()) {
         y[0] += deltaH[firstPointIndex];
         y[1] += deltaH[secondPointIndex];
     }
 
+    const double slope = (y[1] - y[0]) / (HorizontalDirectionCoordinates()[secondPointIndex] -
+                                          HorizontalDirectionCoordinates()[firstPointIndex]);
 
-    const double slope = (y[1] - y[0])
-                         / (HorizontalDirectionCoordinates()[secondPointIndex] - HorizontalDirectionCoordinates()[firstPointIndex]);
-
-    const double height = slope * (rNode.Coordinates()[HorizontalDirection()] - HorizontalDirectionCoordinates()[firstPointIndex]) + y[0];
+    const double height = slope * (rNode.Coordinates()[HorizontalDirection()] -
+                                   HorizontalDirectionCoordinates()[firstPointIndex]) +
+                          y[0];
     const double distance = height - rNode.Coordinates()[GravityDirection()];
-    return - PORE_PRESSURE_SIGN_FACTOR * SpecificWeight() * distance;
+    return -PORE_PRESSURE_SIGN_FACTOR * SpecificWeight() * distance;
 }
 
-}
+} // namespace Kratos

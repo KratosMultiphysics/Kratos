@@ -76,7 +76,7 @@ private:
         Vector& rX,
         Vector& rRefRHS,
         Vector& rPerturbedRHS,
-        typename TEntityType::Pointer& pThreadLocalEntity,
+        Node::Pointer& pThreadLocalEntity,
         ModelPart& rModelPart,
         const double Delta,
         const Variable<array_1d<double, 3>>& rOutputGradientVariable);

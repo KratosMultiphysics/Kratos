@@ -64,7 +64,7 @@ void StationaryStokes<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     // Initialize member variables
     mDN_DX.resize( IntegrationPoints.size() ); // Shape function derivatives container
-    mGaussWeight.resize( IntegrationPoints.size() ); // Integration weigths at each integration point
+    mGaussWeight.resize( IntegrationPoints.size() ); // Integration weights at each integration point
 
     GeometryType::JacobiansType J;
     J = GetGeometry().Jacobian( J, mIntegrationMethod );

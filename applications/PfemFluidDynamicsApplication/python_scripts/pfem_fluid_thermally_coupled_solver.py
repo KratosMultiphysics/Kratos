@@ -175,9 +175,6 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
         self.fluid_solver.Initialize()
         self.thermal_solver.Initialize()
 
-    def InitializeStrategy(self):
-        self.fluid_solver.InitializeStrategy()
-
     def Clear(self):
         (self.fluid_solver).Clear()
         (self.thermal_solver).Clear()

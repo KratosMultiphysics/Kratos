@@ -169,6 +169,59 @@ KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
         KRATOS_EXPECT_EQ(0.34, (*p_elem_prop).GetValue(POISSON_RATIO, *p_geom, N, r_model_part.GetProcessInfo()));
 }
 
+/**
+* Checks the correct work of the TableAccessor when using ProcessInfo variables (TIME)
+*/
+KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimplePropertiesProcessInfo, KratosCoreFastSuite)
+{
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+        r_model_part.GetProcessInfo().SetValue(TIME, 0.0);
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0);
+
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+        auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+
+        std::vector<Node::Pointer> geom(4);
+        geom[0] = p_node_1;
+        geom[1] = p_node_2;
+        geom[2] = p_node_3;
+        geom[3] = p_node_4;
+
+        auto p_geom = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{geom});
+        Vector N = ZeroVector(4);
+        N[0] = 0.1;
+        N[0] = 0.2;
+        N[0] = 0.3;
+        N[0] = 0.4;
+
+        KRATOS_EXPECT_EQ(2.0, (*p_elem_prop)[YOUNG_MODULUS]);
+        KRATOS_EXPECT_EQ(2.0, (*p_elem_prop).GetValue(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(2.0, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+        KRATOS_EXPECT_EQ(false, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+
+        Table<double> Time_E_table;
+        Time_E_table.PushBack(0.0,   2.0);
+        Time_E_table.PushBack(1.0,   1.0);
+
+        p_elem_prop->SetTable(TIME, YOUNG_MODULUS, Time_E_table);
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasTable(TIME, YOUNG_MODULUS));
+
+        TableAccessor E_table_accessor = TableAccessor(TIME, "process_info");
+        p_elem_prop->SetAccessor(YOUNG_MODULUS, E_table_accessor.Clone());
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(2.0, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+
+        r_model_part.GetProcessInfo().SetValue(TIME, 0.5);
+        KRATOS_EXPECT_EQ(1.5, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TableTableAccessorSerialization, KratosCoreFastSuite)
 {
     StreamSerializer serializer;

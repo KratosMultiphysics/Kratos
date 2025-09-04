@@ -66,6 +66,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_lagrange_multiplier.h"
+#include "solving_strategies/builder_and_solvers/p_multigrid/p_multigrid_builder_and_solver.hpp"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -325,6 +326,7 @@ namespace Kratos:: Python
         py::class_<ResidualBasedAdjointStaticSchemeType, typename ResidualBasedAdjointStaticSchemeType::Pointer, BaseSchemeType>
         (m, "ResidualBasedAdjointStaticScheme")
         .def(py::init<AdjointResponseFunction::Pointer>())
+        .def("SetResponseFunction", &ResidualBasedAdjointStaticSchemeType::SetResponseFunction, py::arg("new_response_function"))
         ;
 
         // Residual Based Adjoint Steady Scheme Type
@@ -511,6 +513,17 @@ namespace Kratos:: Python
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
         ;
 
+        typedef PMultigridBuilderAndSolver<SparseSpaceType,LocalSpaceType> PMultigridBuilderAndSolverType;
+        py::class_<PMultigridBuilderAndSolverType,PMultigridBuilderAndSolverType::Pointer,BuilderAndSolverType>(m, "PMultigridBuilderAndSolver")
+            .def(py::init<>())
+            .def(py::init<const LinearSolverType::Pointer&,Parameters>(),
+                 (std::string {"@param LinearSolver Pointer to a linear solver. This is ignored because PMultigridBuilderAndSolver constructs its own instances internally.\n"}
+                             + "@param Settings\n"
+                             + "@details Default parameters:\n" + PMultigridBuilderAndSolverType().GetDefaultParameters().PrettyPrintJsonString()).c_str(),
+                 py::arg("LinearSolver"),
+                 py::arg("Settings"))
+            ;
+
         //********************************************************************
         //********************************************************************
         //********************************************************************
@@ -520,9 +533,16 @@ namespace Kratos:: Python
 
         auto sparse_space_binder = CreateSpaceInterface< SparseSpaceType >(m,"UblasSparseSpace");
         sparse_space_binder.def("TwoNorm", TwoNorm);
-        //the dot product of two vectors
+        // The dot product of two vectors
         sparse_space_binder.def("Dot", Dot);
         sparse_space_binder.def("TransposeMult", TransposeMult);
+        // Size functions
+        sparse_space_binder.def("Size", &SparseSpaceType::Size);
+        sparse_space_binder.def("Size1", &SparseSpaceType::Size1);
+        sparse_space_binder.def("Size2", &SparseSpaceType::Size2);
+        // Information functions
+        sparse_space_binder.def("IsDistributed", &SparseSpaceType::IsDistributed);
+        sparse_space_binder.def("FastestDirectSolverList", &SparseSpaceType::FastestDirectSolverList);
 
         auto cplx_sparse_space_binder = CreateSpaceInterface< ComplexSparseSpaceType >(m,"UblasComplexSparseSpace");
 
@@ -653,6 +673,8 @@ namespace Kratos:: Python
             .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
             .def("SetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::SetReformDofSetAtEachStepFlag)
             .def("GetReformDofSetAtEachStepFlag", &ResidualBasedNewtonRaphsonStrategyType::GetReformDofSetAtEachStepFlag)
+            .def("GetNonconvergedSolutions", &ResidualBasedNewtonRaphsonStrategyType::GetNonconvergedSolutions)
+            .def("SetUpNonconvergedSolutionsFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUpNonconvergedSolutionsFlag)
             ;
 
         // ARC-LENGTH

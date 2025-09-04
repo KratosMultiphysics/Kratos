@@ -15,11 +15,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "spaces/ublas_space.h"
-#include "includes/properties.h"
 #include "containers/model.h"
+#include "includes/properties.h"
 #include "includes/model_part.h"
+
+// Application includes
+#include "tests/cpp_tests/contact_structural_mechanics_fast_suite.h"
 
 /* Utilities */
 #include "utilities/geometrical_projection_utilities.h"

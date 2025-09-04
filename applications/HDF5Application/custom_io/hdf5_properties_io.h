@@ -28,11 +28,7 @@
 #include "custom_io/hdf5_file.h"
 #include "hdf5_application_define.h"
 
-namespace Kratos
-{
-namespace HDF5
-{
-namespace Internals
+namespace Kratos::HDF5::Internals
 {
 ///@addtogroup HDF5Application
 ///@{
@@ -45,14 +41,7 @@ void ReadProperties(
 void WriteProperties(
     File& rFile,
     const std::string& rPrefix,
-    const Properties& rProperties);
-
-void WriteProperties(
-    File& rFile,
-    const std::string& rPrefix,
     const PropertiesContainerType& rProperties);
 
-///@} addtogroup
-} // namespace Internals.
-} // namespace HDF5.
-} // namespace Kratos.
+///@}
+} // namespace Kratos::HDF5::Internals

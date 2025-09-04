@@ -2,6 +2,7 @@ from importlib import import_module
 from typing import Any
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
@@ -26,10 +27,14 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
             "analysis_type"    : "",
             "analysis_settings": {},
             "analysis_output_settings": {
-                     "nodal_solution_step_data_variables": [],
-                     "nodal_data_value_variables"        : [],
-                     "element_data_value_variables"      : [],
-                     "condition_data_value_variables"    : []
+                     "nodal_solution_step_data_variables"         : [],
+                     "nodal_data_value_variables"                 : [],
+                     "element_data_value_variables"               : [],
+                     "element_properties_value_variables"         : [],
+                     "element_integration_point_value_variables"  : [],
+                     "condition_data_value_variables"             : [],
+                     "condition_properties_value_variables"       : [],
+                     "condition_integration_point_value_variables": []
             }
         }""")
         self.model = model
@@ -55,7 +60,11 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         self.nodal_solution_step_data_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["nodal_solution_step_data_variables"].GetStringArray())
         self.nodal_data_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["nodal_data_value_variables"].GetStringArray())
         self.element_data_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["element_data_value_variables"].GetStringArray())
+        self.element_properties_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["element_properties_value_variables"].GetStringArray())
+        self.element_integration_point_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["element_integration_point_value_variables"].GetStringArray())
         self.condition_data_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["condition_data_value_variables"].GetStringArray())
+        self.condition_properties_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["condition_properties_value_variables"].GetStringArray())
+        self.condition_integration_point_value_variables = KratosAnalysisExecutionPolicy.__GetVariablesList(analysis_output_settings["condition_integration_point_value_variables"].GetStringArray())
 
     def GetAnalysisModelPart(self):
         return self.analysis._GetSolver().GetComputingModelPart()
@@ -93,13 +102,31 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
                 nodal_field = Kratos.Expression.NodalExpression(model_part)
                 Kratos.Expression.VariableExpressionIO.Read(nodal_field, variable, False)
                 unbuffered_data.SetValue(variable.Name(), nodal_field.Clone(), overwrite=True)
+
             for variable in self.element_data_value_variables:
                 elem_field = Kratos.Expression.ElementExpression(model_part)
                 Kratos.Expression.VariableExpressionIO.Read(elem_field, variable)
                 unbuffered_data.SetValue(variable.Name(), elem_field.Clone(), overwrite=True)
+            for variable in self.element_properties_value_variables:
+                elem_field = Kratos.Expression.ElementExpression(model_part)
+                KratosOA.PropertiesVariableExpressionIO.Read(elem_field, variable)
+                unbuffered_data.SetValue(variable.Name(), elem_field.Clone(), overwrite=True)
+            for variable in self.element_integration_point_value_variables:
+                elem_field = Kratos.Expression.ElementExpression(model_part)
+                Kratos.Expression.IntegrationPointExpressionIO.Read(elem_field, variable)
+                unbuffered_data.SetValue(variable.Name(), elem_field.Clone(), overwrite=True)
+
             for variable in self.condition_data_value_variables:
                 cond_field = Kratos.Expression.ConditionExpression(model_part)
                 Kratos.Expression.VariableExpressionIO.Read(cond_field, variable)
+                unbuffered_data.SetValue(variable.Name(), cond_field.Clone(), overwrite=True)
+            for variable in self.condition_properties_value_variables:
+                cond_field = Kratos.Expression.ConditionExpression(model_part)
+                KratosOA.PropertiesVariableExpressionIO.Read(cond_field, variable)
+                unbuffered_data.SetValue(variable.Name(), cond_field.Clone(), overwrite=True)
+            for variable in self.condition_integration_point_value_variables:
+                cond_field = Kratos.Expression.ConditionExpression(model_part)
+                Kratos.Expression.IntegrationPointExpressionIO.Read(cond_field, variable)
                 unbuffered_data.SetValue(variable.Name(), cond_field.Clone(), overwrite=True)
 
     @staticmethod

@@ -140,7 +140,7 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
                                                                         reform_step_dofs,
                                                                         move_mesh_flag)
         strategy.SetEchoLevel(0)
-
+        strategy.Initialize()
         strategy.Check()
         strategy.Solve()
 

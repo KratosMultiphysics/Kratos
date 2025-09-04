@@ -165,4 +165,29 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27AverageEdgeLength, KratosCoreGeometriesFa
     KRATOS_EXPECT_NEAR(hexahedron->AverageEdgeLength(), 1.0, TOLERANCE);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27PointsLocalCoordinates, KratosCoreGeometriesFastSuite)
+{
+    // Test local PointsLocalCoordinates by checking that the provided local coordinates
+    // can be used to interpolate the correct global coordinate for each point
+    auto hexahedron = GenerateCanonicalHexahedra3D27();
+    Matrix points_local_coordinates = ZeroMatrix(27, 3);
+    hexahedron->PointsLocalCoordinates(points_local_coordinates);
+    array_1d<double, 3> local_coordinates(3, 0.0);
+    array_1d<double, 3> global_coordinates(3, 0.0);
+
+    const auto& r_points = hexahedron->Points();
+
+    for (std::size_t i_point = 0; i_point < 27; i_point++) {
+        local_coordinates[0] = points_local_coordinates(i_point, 0);
+        local_coordinates[1] = points_local_coordinates(i_point, 1);
+        local_coordinates[2] = points_local_coordinates(i_point, 2);
+
+        global_coordinates = hexahedron->GlobalCoordinates(global_coordinates, local_coordinates);
+
+        KRATOS_EXPECT_NEAR(global_coordinates[0], r_points[i_point].X(), TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[1], r_points[i_point].Y(), TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[2], r_points[i_point].Z(), TOLERANCE);
+    }
+}
+
 }  // namespace Kratos::Testing.

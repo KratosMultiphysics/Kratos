@@ -12,8 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "simple_dike_test_with_gravity_umat_stage2"
+            "input_type":       "use_input_model_part"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -129,7 +128,6 @@
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
             "model_part_name":      "PorousDomain.Excavation-auto-1",
-            "variable_name":        "EXCAVATION",
             "deactivate_soil_part":             false
         }
     }],

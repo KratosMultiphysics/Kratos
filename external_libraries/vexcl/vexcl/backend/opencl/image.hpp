@@ -33,7 +33,11 @@ THE SOFTWARE.
 
 #include <vexcl/operations.hpp>
 #include <vexcl/backend/opencl/defines.hpp>
-#include <CL/cl.hpp>
+#ifdef VEXCL_HAVE_OPENCL_HPP
+#  include <CL/opencl.hpp>
+#else
+#  include <CL/cl2.hpp>
+#endif
 
 namespace vex {
 

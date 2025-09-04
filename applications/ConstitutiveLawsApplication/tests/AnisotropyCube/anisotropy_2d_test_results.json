@@ -1,0 +1,104 @@
+{
+  "TIME": [
+    1.0
+  ],
+  "NODE_1": {
+    "DISPLACEMENT_X": [
+      0.0005237129686011353
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0004905129181585165
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_2": {
+    "DISPLACEMENT_X": [
+      0.00052650436190964
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0004821475041993483
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_3": {
+    "DISPLACEMENT_X": [
+      0.0004038998113975294
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00039855850816312646
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_4": {
+    "DISPLACEMENT_X": [
+      0.0005139806181518545
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00047272710313771304
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_5": {
+    "DISPLACEMENT_X": [
+      0.0003884411459232532
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00036083936525943376
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_6": {
+    "DISPLACEMENT_X": [
+      0.00037635963836100077
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00032342329242713354
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_7": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_8": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_9": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  }
+}

@@ -326,8 +326,8 @@ protected:
                 double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Y);
                 r_reaction = -force_residual[1];
             }
-            if( it_node->IsFixed(WATER_PRESSURE) == true ) {
-                double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_WATER_PRESSURE);
+            if( it_node->IsFixed(LIQUID_PRESSURE) == true ) {
+                double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_LIQUID_PRESSURE);
                 r_reaction = -flux_residual;
             }
             if(dim==3) {
@@ -352,13 +352,13 @@ protected:
             auto itCurrentNode = it_node_begin + i;
             const array_1d<double, 3>& r_current_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
             const array_1d<double, 3>& r_previous_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT,1);
-            const double& r_current_water_pressure = itCurrentNode->FastGetSolutionStepValue(WATER_PRESSURE);
-            const double& r_previous_water_pressure = itCurrentNode->FastGetSolutionStepValue(WATER_PRESSURE,1);
+            const double& r_current_liquid_pressure = itCurrentNode->FastGetSolutionStepValue(LIQUID_PRESSURE);
+            const double& r_previous_liquid_pressure = itCurrentNode->FastGetSolutionStepValue(LIQUID_PRESSURE,1);
             array_1d<double, 3> delta_displacement;
             noalias(delta_displacement) = r_current_displacement - r_previous_displacement;
-            const double delta_water_pressure = r_current_water_pressure - r_previous_water_pressure;
-            const double norm_2_du = inner_prod(delta_displacement,delta_displacement) + delta_water_pressure*delta_water_pressure;
-            const double norm_2_u_old = inner_prod(r_previous_displacement,r_previous_displacement) + r_previous_water_pressure*r_previous_water_pressure;
+            const double delta_liquid_pressure = r_current_liquid_pressure - r_previous_liquid_pressure;
+            const double norm_2_du = inner_prod(delta_displacement,delta_displacement) + delta_liquid_pressure*delta_liquid_pressure;
+            const double norm_2_u_old = inner_prod(r_previous_displacement,r_previous_displacement) + r_previous_liquid_pressure*r_previous_liquid_pressure;
 
             l2_numerator += norm_2_du;
             l2_denominator += norm_2_u_old;

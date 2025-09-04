@@ -266,6 +266,28 @@ public:
         WriteInfo& rInfo);
 
     /**
+     * @brief Write a dataset to the hDF5 file.
+     *
+     * Performs collective write in MPI. The data is written blockwise according to
+     * processor rank.
+     *
+     * @tparam TDataType            Data type of the provided data.
+     * @tparam TIntegerType         Integer type for the shape.
+     * @param rPath                 Path to which the data is written.
+     * @param pData                 Pointer to the data.
+     * @param itrShapeBegin         Iterator to the begin of the shape.
+     * @param itrShapeEnd           Iterator to the end of the shape.
+     * @param rInfo                 Information about the written data (output).
+     */
+    template<class TDataType, class TIntegerType>
+    void WriteDataSet(
+        const std::string& rPath,
+        TDataType const * pData,
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
+        WriteInfo& rInfo);
+
+    /**
      * @brief Independently write dataset to the HDF5 file.
      *
      * Performs independent write in MPI. Must be called collectively. Throws
@@ -280,6 +302,28 @@ public:
     void WriteDataSetIndependent(
         const std::string& rPath,
         const TDataType& rData,
+        WriteInfo& rInfo);
+
+    /**
+     * @brief Independently write dataset to the HDF5 file.
+     *
+     * Performs independent write in MPI. Must be called collectively.
+     *
+     * @throws If more than one process has non-empty data.
+     * @tparam TDataType            Data type of the provided data.
+     * @tparam TIntegerType         Integer type for the shape.
+     * @param rPath                 Path to which the data is written.
+     * @param pData                 Pointer to the data.
+     * @param itrShapeBegin         Iterator to the begin of the shape.
+     * @param itrShapeEnd           Iterator to the end of the shape.
+     * @param rInfo                 Information about the written data (output).
+     */
+    template<class TDataType, class TIntegerType>
+    void WriteDataSetIndependent(
+        const std::string& rPath,
+        TDataType const * pData,
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
         WriteInfo& rInfo);
 
     /**
@@ -379,15 +423,40 @@ public:
      * @tparam TDataType        Datatype of the read data.
      * @param rPath             Path of the dataset.
      * @param rData             Data to be written to.
-     * @param StartIndex        Starting offset of data for this rank.
+     * @param iBegin            Starting offset of data for this rank.
      * @param BlockSize         Number of data points for this rank.
      */
     template<class TDataType>
     void ReadDataSet(
         const std::string& rPath,
         TDataType& rData,
-        const unsigned StartIndex,
+        const unsigned iBegin,
         const unsigned BlockSize) const;
+
+    /**
+     * @brief Read a dataset from the HDF5 file.
+     *
+     * Performs collective read in MPI. Throws if out of range.
+     *
+     * @note The @p pData and the shape [ @p itrShapeBegin, @p itrShapeEnd ) must be
+     *       correctly sized for the collective reading.
+     *
+     * @tparam TDataType            Datatype of the read data.
+     * @tparam TIntegerType
+     * @param rPath                 Path of the dataset.
+     * @param pData                 Data to pointer which needs to be filled.
+     * @param itrShapeBegin         Iterator to the begin of the shape.
+     * @param itrShapeEnd           Iterator to the end of the shape.
+     * @param iBegin                Starting offset of data for this rank.
+     * @param BlockSize             Number of data points for this rank.
+     */
+    template<class TDataType, class TIntegerType>
+    void ReadDataSet(
+        const std::string& rPath,
+        TDataType * pData,
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
+        const unsigned iBegin);
 
     /**
      * @brief Independently read a dataset from the HDF5 file.
@@ -397,15 +466,40 @@ public:
      * @tparam TDataType        Datatype of the read data.
      * @param rPath             Path of the dataset.
      * @param rData             Data to be written to.
-     * @param StartIndex        Starting offset of data for this rank.
+     * @param iBegin            Starting offset of data for this rank.
      * @param BlockSize         Number of data points for this rank.
      */
     template<class TDataType>
     void ReadDataSetIndependent(
         const std::string& rPath,
         TDataType& rData,
-        const unsigned StartIndex,
+        const unsigned iBegin,
         const unsigned BlockSize) const;
+
+    /**
+     * @brief Read a dataset from the HDF5 file.
+     *
+     * Performs independent read in MPI. Throws if out of range.
+     *
+     * @note The @p pData and the shape [ @p itrShapeBegin, @p itrShapeEnd ) must be
+     *       correctly sized for the independent reading.
+     *
+     * @tparam TDataType            Datatype of the read data.
+     * @tparam TIntegerType
+     * @param rPath                 Path of the dataset.
+     * @param pData                 Data to pointer which needs to be filled.
+     * @param itrShapeBegin         Iterator to the begin of the shape.
+     * @param itrShapeEnd           Iterator to the end of the shape.
+     * @param iBegin                Starting offset of data for this rank.
+     * @param BlockSize             Number of data points for this rank.
+     */
+    template<class TDataType, class TIntegerType>
+    void ReadDataSetIndependent(
+        const std::string& rPath,
+        TDataType * pData,
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
+        const unsigned iBegin);
 
     unsigned GetOpenObjectsCount() const;
     ///@}
@@ -441,12 +535,28 @@ private:
         const TDataType& rData,
         WriteInfo& rInfo);
 
+    template<DataTransferMode TDataTransferMode, class TDataType, class TIntegerType>
+    void WriteDataSetImpl(
+        const std::string& rPath,
+        TDataType const * pData,
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
+        WriteInfo& rInfo);
+
     template<class TDataType, DataTransferMode TDataTransferMode>
     void ReadDataSetImpl(
         const std::string& rPath,
         TDataType& rData,
-        const unsigned StartIndex,
+        const unsigned iBegin,
         const unsigned BlockSize) const;
+
+    template<DataTransferMode TDataTransferMode, class TDataType, class TIntegerType>
+    void ReadDataSetImpl(
+        const std::string& rPath,
+        TDataType * pData,
+        TIntegerType const * itrShapeBegin,
+        TIntegerType const * itrShapeEnd,
+        const unsigned iBegin) const;
 
     ///@}
 };
@@ -460,7 +570,7 @@ namespace Internals
  * Valid paths are similar to linux file system with alphanumeric names
  * and possible underscores separated by '/'. All paths are absolute.
  */
-bool IsPath(const std::string& rPath);
+KRATOS_API(HDF5_APPLICATION) bool IsPath(const std::string& rPath);
 
 /// Return vector of non-empty substrings separated by a delimiter.
 std::vector<std::string> Split(const std::string& rPath, char Delimiter);

@@ -143,16 +143,9 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-         /*
-          * Get on rVariable a Matrix Value from the Element Constitutive Law
-          */
-         void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
          
          
-         // Get Values defined in order to avoid a clang warning (?)
-         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Calculate a Matrix Variable on the Element Constitutive Law

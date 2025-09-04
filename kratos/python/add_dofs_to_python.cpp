@@ -36,6 +36,7 @@ void  AddDofsToPython(pybind11::module& m)
             return self.GetSolutionStepValue() = value;
         })
         .def_property("EquationId", &Dof<double>::EquationId, &Dof<double>::SetEquationId)
+        .def_property("EffectiveEquationId", &Dof<double>::EffectiveEquationId, &Dof<double>::SetEffectiveEquationId)
         .def("Fix", &Dof<double>::FixDof)
         .def("Free", &Dof<double>::FreeDof)
         .def("IsFixed", &Dof<double>::IsFixed)

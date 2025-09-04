@@ -34,7 +34,7 @@ namespace Kratos {
  * @brief Construct a new CollectiveExpression instance
  * @details This constructs a CollectiveExpression instance which can hold list of ContainerExpresions of different types.
  *          The list within the instance can be treated as a single value, therefore all the binary operations present in the ContainerExpressions
- *          are also available with this container. This uses std::variant to store different types of containers. Since these containers memeory footprint
+ *          are also available with this container. This uses std::variant to store different types of containers. Since these containers memory footprint
  *          is the same, the memory footprint of the std::variant will be almost equal to the memory footprint of a single container for all the container types.
  *
  */
@@ -67,8 +67,11 @@ public:
      */
     CollectiveExpression(const std::vector<CollectiveExpressionType>& rExpressionPointersList);
 
-    // Copy consttructor
+    // Copy constructor
     CollectiveExpression(const CollectiveExpression& rOther);
+
+    /// Assignment operator
+    CollectiveExpression& operator=(const CollectiveExpression& rOther);
 
     // destructor
     ~CollectiveExpression() = default;
@@ -147,12 +150,6 @@ public:
     CollectiveExpression& operator/=(const CollectiveExpression& rOther);
 
     CollectiveExpression& operator/=(const double Value);
-
-    CollectiveExpression& Power(const CollectiveExpression& rOther);
-
-    CollectiveExpression& Power(const double Value);
-
-    CollectiveExpression& Scale(const CollectiveExpression& Value);
 
     ///@}
     ///@name Input and output

@@ -112,6 +112,7 @@ class DamMechanicalSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_YOUNG_MODULUS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         print("Variables correctly added")
 
@@ -198,7 +199,7 @@ class DamMechanicalSolver(object):
 
         self.Solver.Solve()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def InitializeStrategy(self):
         if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
@@ -218,7 +219,7 @@ class DamMechanicalSolver(object):
     def FinalizeSolutionStep(self):
         self.Solver.FinalizeSolutionStep()
 
-    # solve :: sequencial calls
+    # solve :: sequential calls
 
     def SetEchoLevel(self, level):
         self.Solver.SetEchoLevel(level)

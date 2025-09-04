@@ -234,7 +234,7 @@ protected:
      * added.
      * @param rConstraintIdVector The vector of the constraints Ids which is
      * accessed with StartIndex.
-     * @param rMsContainer The Constraint container to which the contraints are
+     * @param rMsContainer The Constraint container to which the constraints are
      * added.
      */
     template <typename TVariableType>
@@ -247,7 +247,7 @@ protected:
                                     MasterSlaveConstraintContainerType& rMsContainer);
 
     /**
-     * @brief This function reserves the necessary memory for the contraints in
+     * @brief This function reserves the necessary memory for the constraints in
      * each thread
      * @param rModelPart The modelpart to which the constraints are to be added.
      * @param rContainerVector The container vector which has constraints to
@@ -257,7 +257,7 @@ protected:
                                               MasterSlaveContainerVectorType& rContainerVector);
 
     /**
-     * @brief Given a node, this funcition finds and deletes all the existing
+     * @brief Given a node, this function finds and deletes all the existing
      * constraints for that node
      * @param rBoundaryNode The boundary node for which the connections are to
      * be made.

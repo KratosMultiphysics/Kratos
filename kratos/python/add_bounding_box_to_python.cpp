@@ -43,6 +43,9 @@ void AddBoundingBoxToPython(pybind11::module& m)
     .def("Extend", [](BoundingBoxType& rBoundingBox, const NodesContainerType& rNodes){
         rBoundingBox.Extend(rNodes.begin(), rNodes.end());
     })
+    .def("IsInside", [](BoundingBoxType& rBoundingBox, const Point& rPoint){
+        return rBoundingBox.IsInside(rPoint);
+    })
     .def("GetMinPoint", [](BoundingBoxType& rBoundingBox){
         return rBoundingBox.GetMinPoint();
     })

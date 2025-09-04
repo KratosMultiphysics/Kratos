@@ -51,11 +51,15 @@
 #include "custom_constitutive/small_strains/plasticity/small_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/small_strains/plasticity/small_strain_kinematic_plasticity_factory.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity.h"
+#include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity_plane_stress.h"
+#include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity_plane_stress.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity.h"
 #include "custom_constitutive/finite_strains/plasticity/finite_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/finite_strains/plasticity/finite_strain_kinematic_plasticity_factory.h"
 #include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_isotropic_plasticity.h"
 #include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_kinematic_plasticity.h"
+#include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_isotropic_plasticity_plane_stress.h"
+#include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_kinematic_plasticity_plane_stress.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage.h"
 #include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_factory.h"
 #include "custom_constitutive/small_strains/viscous/viscous_generalized_kelvin.h"
@@ -66,7 +70,8 @@
 #include "custom_constitutive/small_strains/plastic_damage/generic_small_strain_plastic_damage_model.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_orthotropic_damage.h"
 #include "custom_constitutive/composites/serial_parallel_rule_of_mixtures_law.h"
-#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_3d_law.h"
+#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_law.h"
+#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_plane_stress_2d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_elastic_1d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_isotropic_plane_stress_2d.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
@@ -82,6 +87,7 @@
 // Yield surfaces
 #include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/plane_stress_von_mises_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
@@ -89,8 +95,19 @@
 #include "custom_constitutive/auxiliary_files/yield_surfaces/drucker_prager_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/tresca_yield_surface.h"
 
+// Thermal yield surfaces
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_von_mises_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_tresca_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_rankine_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_simo_ju_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_drucker_prager_yield_surface.h"
+
+
 // Plastic potentials
 #include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/plane_stress_von_mises_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
@@ -108,6 +125,9 @@
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_elastic_isotropic_3d.h"
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_strain.h"
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_stress.h"
+
+#include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage.h"
+#include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage_plane_stress.h"
 
 namespace Kratos {
 
@@ -192,8 +212,8 @@ public:
     ///// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-          KRATOS_WATCH("in my application");
-          KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        KRATOS_WATCH("in my application");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -287,7 +307,8 @@ private:
     const MultiLinearIsotropicPlaneStress2D mMultiLinearIsotropicPlaneStress2D;
 
     // Damage and plasticity laws
-    const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;
+    const SerialParallelRuleOfMixturesLaw<3> mSerialParallelRuleOfMixturesLaw3D;
+    const SerialParallelRuleOfMixturesLaw<2> mSerialParallelRuleOfMixturesLaw2D;
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
     const SmallStrainKinematicPlasticityFactory mSmallStrainKinematicPlasticityFactory;
     const FiniteStrainIsotropicPlasticityFactory mFiniteStrainIsotropicPlasticityFactory;
@@ -299,6 +320,31 @@ private:
 
     /// Plasticity
     /* Small strain */
+    const GenericSmallStrainIsotropicPlasticityPlaneStress <GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStressVonMisesVonMises;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainVonMisesVonMises;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainVonMisesModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainVonMisesDruckerPrager;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainVonMisesTresca;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainModifiedMohrCoulombVonMises;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainModifiedMohrCoulombModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainModifiedMohrCoulombDruckerPrager;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainModifiedMohrCoulombTresca;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainTrescaVonMises;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainTrescaModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainTrescaDruckerPrager;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainTrescaTresca;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainDruckerPragerVonMises;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainDruckerPragerModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainDruckerPragerDruckerPrager;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainDruckerPragerTresca;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainVonMisesMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainMohrCoulombVonMises;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainMohrCoulombMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainMohrCoulombDruckerPrager;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainMohrCoulombTresca;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainTrescaMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainIsotropicPlasticityPlaneStrainDruckerPragerMohrCoulomb;
+
     const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DVonMisesVonMises;
     const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb;
     const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DVonMisesDruckerPrager;
@@ -322,6 +368,31 @@ private:
     const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DMohrCoulombTresca;
     const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DTrescaMohrCoulomb;
     const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DDruckerPragerMohrCoulomb;
+
+    const GenericSmallStrainKinematicPlasticityPlaneStress <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStressVonMisesVonMises;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainVonMisesVonMises;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainVonMisesModifiedMohrCoulomb;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainVonMisesDruckerPrager;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainVonMisesTresca;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainModifiedMohrCoulombVonMises;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainModifiedMohrCoulombModifiedMohrCoulomb;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainModifiedMohrCoulombDruckerPrager;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainModifiedMohrCoulombTresca;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainTrescaVonMises;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainTrescaModifiedMohrCoulomb;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainTrescaDruckerPrager;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainTrescaTresca;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainDruckerPragerVonMises;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainDruckerPragerModifiedMohrCoulomb;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainDruckerPragerDruckerPrager;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainDruckerPragerTresca;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainVonMisesMohrCoulomb;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainMohrCoulombVonMises;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainMohrCoulombMohrCoulomb;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainMohrCoulombDruckerPrager;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainMohrCoulombTresca;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainTrescaMohrCoulomb;
+    const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainKinematicPlasticityPlaneStrainDruckerPragerMohrCoulomb;
 
     const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainKinematicPlasticity3DVonMisesVonMises;
     const GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainKinematicPlasticity3DVonMisesModifiedMohrCoulomb;
@@ -353,6 +424,7 @@ private:
 
 
     /* Finite strain Isotropic plasticity*/
+    const GenericFiniteStrainIsotropicPlasticityPlaneStress<GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>> mFiniteStrainIsotropicPlasticityPlaneStressVonMisesVonMises;
     const GenericFiniteStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mFiniteStrainIsotropicPlasticity3DVonMisesVonMises;
     const GenericFiniteStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mFiniteStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb;
     const GenericFiniteStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>> mFiniteStrainIsotropicPlasticity3DVonMisesDruckerPrager;
@@ -378,6 +450,7 @@ private:
     const GenericFiniteStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>> mFiniteStrainIsotropicPlasticity3DDruckerPragerMohrCoulomb;
 
     /* Finite strain Kinematic plasticity*/
+    const GenericFiniteStrainKinematicPlasticityPlaneStress<GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>> mFiniteStrainKinematicPlasticityPlaneStressVonMisesVonMises;
     const GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mFiniteStrainKinematicPlasticity3DVonMisesVonMises;
     const GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mFiniteStrainKinematicPlasticity3DVonMisesModifiedMohrCoulomb;
     const GenericFiniteStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>> mFiniteStrainKinematicPlasticity3DVonMisesDruckerPrager;
@@ -562,7 +635,9 @@ private:
 	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
 
     // Anisotropic law
-    const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
+    const GenericAnisotropicLaw<2> mGenericAnisotropicPlaneStrain2DLaw;
+    const GenericAnisotropicLaw<3> mGenericAnisotropic3DLaw;
+    const GenericAnisotropicPlaneStress2DLaw mGenericAnisotropicPlaneStress2DLaw;
 
     const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMises;
     const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPrager;
@@ -573,6 +648,35 @@ private:
     const ThermalElasticIsotropic3D mThermalElasticIsotropic3D;
     const ThermalLinearPlaneStrain mThermalLinearPlaneStrain;
     const ThermalLinearPlaneStress mThermalLinearPlaneStress;
+
+    /// Thermal Damage
+    /* Small strain 3D */
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DVonMises;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalTrescaYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DTresca;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalDruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DDruckerPrager;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DRankine;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DSimoJu;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DMohrCoulomb;
+
+    /* Small strain 2D */
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainVonMises;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalTrescaYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainTresca;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalDruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainRankine;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainSimoJu;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb;
+
+    // Thermal plane stress damage
+    const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressVonMises;
+    const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressModifiedMohrCoulomb;
+    const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalTrescaYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressTresca;
+    const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalDruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressDruckerPrager;
+    const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressRankine;
+    const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressSimoJu;
+    const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressMohrCoulomb;
+
     ///@}
     ///@name Private Operators
     ///@{

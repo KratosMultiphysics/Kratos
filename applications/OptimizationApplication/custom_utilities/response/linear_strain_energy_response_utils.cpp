@@ -96,7 +96,7 @@ void LinearStrainEnergyResponseUtils::CalculateGradient(
             CalculateStrainEnergyLinearlyDependentPropertyGradient(rGradientComputedModelPart, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
         } else if (*pVariable == THICKNESS) {
             block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
-            CalculateStrainEnergyLinearlyDependentPropertyGradient(rGradientComputedModelPart, THICKNESS, THICKNESS_SENSITIVITY);
+            CalculateStrainEnergySemiAnalyticPropertyGradient(rGradientComputedModelPart, PerturbationSize, THICKNESS, THICKNESS_SENSITIVITY);
         } else if (*pVariable == POISSON_RATIO) {
             block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(POISSON_RATIO_SENSITIVITY, 0.0); });
             CalculateStrainEnergySemiAnalyticPropertyGradient(rGradientComputedModelPart, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
@@ -156,7 +156,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
     Vector& rX,
     Vector& rRefRHS,
     Vector& rPerturbedRHS,
-    typename TEntityType::Pointer& pThreadLocalEntity,
+    Node::Pointer& pThreadLocalNode,
     ModelPart& rModelPart,
     const double Delta,
     const Variable<array_1d<double, 3>>& rOutputGradientVariable)
@@ -170,71 +170,59 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
 
         rEntity.GetValuesVector(rX);
 
+        rX /= 2.0;
+
         // calculate the reference value
         rEntity.CalculateRightHandSide(rRefRHS, r_process_info);
 
-        // initialize dummy element for parallelized perturbation based sensitivity calculation
-        // in each thread seperately
-        if (!pThreadLocalEntity) {
-            GeometryType::PointsArrayType nodes;
-
-            for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                const auto& r_coordinates = r_geometry[i].Coordinates();
-                auto p_new_node = Kratos::make_intrusive<Node>(i+1, r_coordinates[0], r_coordinates[1], r_coordinates[2]);
-                p_new_node->SetSolutionStepVariablesList(rModelPart.pGetNodalSolutionStepVariablesList());
-                p_new_node->SetBufferSize(rModelPart.GetBufferSize());
-                nodes.push_back(p_new_node);
-            }
-
-            pThreadLocalEntity = rEntity.Create(1, nodes, rEntity.pGetProperties());
-            pThreadLocalEntity->Initialize(r_process_info);
-            pThreadLocalEntity->InitializeSolutionStep(r_process_info);
-        }
-
-        *pThreadLocalEntity = static_cast<const TEntityType&>(rEntity);
-
-        // TODO: For some reason, assignment operator of the element
-        //       assigns current position to initial position of the lhs element
-        //       hence these are corrected manually. But need to be checked
-        //       in the element/node/geometry assignment operators.
-        pThreadLocalEntity->GetGeometry().SetData(r_geometry.GetData());
-        pThreadLocalEntity->SetFlags(rEntity.GetFlags());
-        for (IndexType i = 0; i < r_geometry.size(); ++i) {
-            auto& r_node = pThreadLocalEntity->GetGeometry()[i];
-            const auto& r_orig_node = r_geometry[i];
-            r_node = r_orig_node;
+        // initialize dummy node for parallelized perturbation based sensitivity calculation
+        // in each thread separately
+        if (!pThreadLocalNode) {
+            pThreadLocalNode = Kratos::make_intrusive<Node>(1, 0, 0, 0);
         }
 
         // now calculate perturbed
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
             auto& r_orig_node_sensitivity = r_geometry[i].GetValue(rOutputGradientVariable);
 
-            auto& r_node = pThreadLocalEntity->GetGeometry()[i];
-            auto& r_coordinates = r_node.Coordinates();
-            auto& r_initial_coordintes = r_node.GetInitialPosition();
+            // get the geometry node pointer
+            auto& p_node = rEntity.GetGeometry()(i);
 
-            r_initial_coordintes[0] += Delta;
+            // now copy the node data to thread local node using the operator= in Node
+            (*pThreadLocalNode) = (*p_node);
+
+            // now swap entity node with the thread local node
+            std::swap(p_node, pThreadLocalNode);
+
+            // now do the finite difference computation.
+            auto& r_coordinates = p_node->Coordinates();
+            auto& r_initial_coordinates = p_node->GetInitialPosition();
+
+            r_initial_coordinates[0] += Delta;
             r_coordinates[0] += Delta;
-            pThreadLocalEntity->CalculateRightHandSide(rPerturbedRHS, r_process_info);
-            r_initial_coordintes[0] -= Delta;
+            rEntity.CalculateRightHandSide(rPerturbedRHS, r_process_info);
+            r_initial_coordinates[0] -= Delta;
             r_coordinates[0] -= Delta;
-            AtomicAdd<double>(r_orig_node_sensitivity[0], 0.5 * inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
+            AtomicAdd<double>(r_orig_node_sensitivity[0], inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
 
-            r_initial_coordintes[1] += Delta;
+            r_initial_coordinates[1] += Delta;
             r_coordinates[1] += Delta;
-            pThreadLocalEntity->CalculateRightHandSide(rPerturbedRHS, r_process_info);
-            r_initial_coordintes[1] -= Delta;
+            rEntity.CalculateRightHandSide(rPerturbedRHS, r_process_info);
+            r_initial_coordinates[1] -= Delta;
             r_coordinates[1] -= Delta;
-            AtomicAdd<double>(r_orig_node_sensitivity[1], 0.5 * inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
+            AtomicAdd<double>(r_orig_node_sensitivity[1], inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
 
             if (domain_size == 3) {
-                r_initial_coordintes[2] += Delta;
+                r_initial_coordinates[2] += Delta;
                 r_coordinates[2] += Delta;
-                pThreadLocalEntity->CalculateRightHandSide(rPerturbedRHS, r_process_info);
-                r_initial_coordintes[2] -= Delta;
+                rEntity.CalculateRightHandSide(rPerturbedRHS, r_process_info);
+                r_initial_coordinates[2] -= Delta;
                 r_coordinates[2] -= Delta;
-                AtomicAdd<double>(r_orig_node_sensitivity[2], 0.5 * inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
+                AtomicAdd<double>(r_orig_node_sensitivity[2], inner_prod(rX, rPerturbedRHS - rRefRHS) / Delta);
             }
+
+            // revert back the node change.
+            std::swap(p_node, pThreadLocalNode);
         }
     }
 
@@ -248,13 +236,11 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeGrad
 {
     KRATOS_TRY
 
-    using tls_element_type = std::tuple<Vector, Vector, Vector, Element::Pointer>;
-
-    using tls_condition_type = std::tuple<Vector, Vector, Vector, Condition::Pointer>;
+    using tls_type = std::tuple<Vector, Vector, Vector, Node::Pointer>;
 
     VariableUtils().SetNonHistoricalVariableToZero(rOutputGradientVariable, rModelPart.Nodes());
 
-    block_for_each(rModelPart.Elements(), tls_element_type(), [&](auto& rElement, tls_element_type& rTLS) {
+    block_for_each(rModelPart.Elements(), tls_type(), [&](auto& rElement, tls_type& rTLS) {
         CalculateStrainEnergyEntitySemiAnalyticShapeGradient(
             rElement,
             std::get<0>(rTLS),
@@ -266,7 +252,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeGrad
             rOutputGradientVariable);
     });
 
-    block_for_each(rModelPart.Conditions(), tls_condition_type(), [&](auto& rCondition, tls_condition_type& rTLS) {
+    block_for_each(rModelPart.Conditions(), tls_type(), [&](auto& rCondition, tls_type& rTLS) {
         CalculateStrainEnergyEntitySemiAnalyticShapeGradient(
             rCondition,
             std::get<0>(rTLS),

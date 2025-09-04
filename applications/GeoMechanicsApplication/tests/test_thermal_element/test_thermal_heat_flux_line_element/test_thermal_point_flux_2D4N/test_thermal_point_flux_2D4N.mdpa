@@ -1,0 +1,97 @@
+
+Begin Properties 1
+End Properties
+
+
+Begin Nodes
+   1 0.0000000000000000 0.0000000000000000 0
+   2 0.0000000000000000 0.2000000000000000 0
+   3 0.0000000000000000 0.4000000000000000 0
+   4 0.0000000000000000 0.6000000000000000 0
+   5 0.0000000000000000 0.8000000000000000 0
+   6 0.0000000000000000 1.0000000000000000 0
+   7 0.0000000000000000 0.0666666666666667 0
+   8 0.0000000000000000 0.1333333333333333 0
+   9 0.0000000000000000 0.2666666666666667 0
+  10 0.0000000000000000 0.3333333333333333 0
+  11 0.0000000000000000 0.4666666666666667 0
+  12 0.0000000000000000 0.5333333333333333 0
+  13 0.0000000000000000 0.6666666666666667 0
+  14 0.0000000000000000 0.7333333333333333 0
+  15 0.0000000000000000 0.8666666666666667 0
+  16 0.0000000000000000 0.9333333333333333 0
+End Nodes
+
+
+Begin Elements GeoTransientThermalLineElement2D4N
+   1  1  1  2  7  8
+   2  1  2  3  9 10
+   3  1  3  4 11 12
+   4  1  4  5 13 14
+   5  1  5  6 15 16
+End Elements
+
+
+Begin Conditions GeoThermalPointFluxCondition2D1N
+  1  1  1
+End Conditions
+
+
+Begin SubModelPart Soil
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+   10
+   11
+   12
+   13
+   14
+   15
+   16
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+    3
+    4
+    5
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart top
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+     6
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+
+Begin SubModelPart bottom
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+     1
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+    1
+  End SubModelPartConditions
+End SubModelPart
+
