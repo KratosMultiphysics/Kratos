@@ -334,12 +334,17 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
+        "BIOT_COEFFICIENT does not exist in the material properties at element 4.")
+
+    p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
         "PERMEABILITY_XX does not exist in the material properties at element 4.")
 
     p_element->GetProperties().SetValue(PERMEABILITY_XX, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "PERMEABILITY_XX in the material properties at element 4 has "
-                                      "an invalid value: -0.01 out of the range [0; -].")
+                                      "an invalid value: -0.01 out of the range [0; -).")
 
     p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -349,7 +354,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     p_element->GetProperties().SetValue(PERMEABILITY_YY, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "PERMEABILITY_YY in the material properties at element 4 has "
-                                      "an invalid value: -0.01 out of the range [0; -].")
+                                      "an invalid value: -0.01 out of the range [0; -).")
 
     p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -359,14 +364,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     p_element->GetProperties().SetValue(PERMEABILITY_XY, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "PERMEABILITY_XY in the material properties at element 4 has "
-                                      "an invalid value: -0.01 out of the range [0; -].")
+                                      "an invalid value: -0.01 out of the range [0; -).")
 
     p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_element->Check(dummy_process_info),
-        "BIOT_COEFFICIENT does not exist in the material properties at element 4.")
-
-    p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.0E-2);
 
     // No exceptions on correct input for 2D element
     KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
@@ -379,7 +379,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZZ, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
                                       "PERMEABILITY_ZZ in the material properties at element 5 has "
-                                      "an invalid value: -0.01 out of the range [0; -].")
+                                      "an invalid value: -0.01 out of the range [0; -).")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZZ, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -389,7 +389,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     p_3D_element->GetProperties().SetValue(PERMEABILITY_YZ, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
                                       "PERMEABILITY_YZ in the material properties at element 5 has "
-                                      "an invalid value: -0.01 out of the range [0; -].")
+                                      "an invalid value: -0.01 out of the range [0; -).")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_YZ, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -399,7 +399,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZX, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
                                       " PERMEABILITY_ZX in the material properties at element 5 "
-                                      "has an invalid value: -0.01 out of the range [0; -].")
+                                      "has an invalid value: -0.01 out of the range [0; -).")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZX, 1.0E-2);
 

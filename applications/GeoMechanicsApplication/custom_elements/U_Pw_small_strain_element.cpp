@@ -68,7 +68,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     if (!r_properties[IGNORE_UNDRAINED]) {
         check_properties.Check(BULK_MODULUS_FLUID);
         check_properties.Check(DYNAMIC_VISCOSITY);
-        GeoElementUtilities::CheckPermeabilityProperties(r_properties, r_geometry.WorkingSpaceDimension());
+        check_properties.CheckPermeabilityProperties(r_geometry.WorkingSpaceDimension());
     }
 
     // Verify that the constitutive law exists

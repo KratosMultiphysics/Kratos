@@ -67,15 +67,8 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
                              << std::endl;
         }
     }
-    check_properties.SetNewBounds(CheckProperties::Bounds::AllInclusive);
-    check_properties.Check(PERMEABILITY_XX);
-    check_properties.Check(PERMEABILITY_YY);
-    check_properties.Check(PERMEABILITY_XY);
-    if constexpr (TDim > 2) {
-        check_properties.Check(PERMEABILITY_ZZ);
-        check_properties.Check(PERMEABILITY_YZ);
-        check_properties.Check(PERMEABILITY_ZX);
-    }
+
+    check_properties.CheckPermeabilityProperties(TDim);
 
     // Verify that the constitutive law has the correct dimension
 
