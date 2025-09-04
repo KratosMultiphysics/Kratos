@@ -317,10 +317,12 @@ public:
      * @brief Prints the vtu output data to a file with the specified filename prefix.
      *
      * Will create the folder with the provided @p rOutputFilenamePrefix . In this folder, following files will be created.
-     * - If @p OutputSubModelParts is true, then it will create one vtu file per timestep, per model part's container (in MPI, per rank as well).
+     * - One vtu file per timestep, per model part's container (Including sub model parts if @p OutputSubModelParts is true) (in MPI, per rank as well).
+     * - If it find any gauss point fields, then there will be a vtu file per time step, per model part's container (in MPI, per rank as well).
      * - If this is called in MPI, then this will create one pvtu file per timestep, per model part's container (will be having information of all the corresponding rank vtu files)
+     * - If this is called in MPI, then this will create one pvtu file per timestep, per model part's gauss point container (will be having information of all the corresponding rank vtu files)
      *
-     * Finally it will create one pvd ( @p rOutputFilenamePrefix.pvd ) file for all the model parts and all the timesteps linking
+     * Finally it will create one pvd ( @p rOutputFilenamePrefix.pvd ) file for all the model parts, all the timesteps all the gauss point container linking
      * - In MPI the pvtu files created.
      * - In shared memory parallelism the vtu files created.
      *
