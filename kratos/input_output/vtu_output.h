@@ -31,16 +31,50 @@
 #include "includes/model_part.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 
-namespace Kratos {
 /**
  * @class VtuOutput
- * @brief Class to output Kratos Flags, Variables and ContainerExpressions
- *        to vtu. Supports both shared and distributed memory architectures.
- *
- * @details This class does not create or destroy any folder structures, hence the output
- * file name prefix should have a valid parent directory.
+ * @brief Handles VTU (Visualization Toolkit Unstructured grid) output for Kratos ModelParts.
  * @author Suneth Warnakulasuriya
+ * @ingroup InputOutput
+ *
+ * This class provides functionality to export simulation data from a Kratos ModelPart to VTU files,
+ * supporting both ASCII and binary formats. It allows users to register @ref Variable, @ref Flags, @ref ContainerExpression,
+ * and @ref TensorAdaptor for output, and supports writing data on nodes, elements, conditions, and integration points.
+ * The output can be configured to include submodel parts and supports parallel execution (MPI).
+ *
+ * @section TypeDefinitions Type Definitions
+ * - IndexType: Alias for std::size_t.
+ * - FieldPointerType: Variant type for supported field data pointers.
+ * - CellContainerPointerType: Variant type for supported cell container pointers.
+ * - SupportedVariablePointerType: Variant type for supported @ref Variable pointers.
+ * - SupportedContainerExpressionPointerType: Variant type for supported @ref ContainerExpression pointers.
+ * - SupportedTensorAdaptorPointerType: Variant type for supported @ref TensorAdaptor pointers.
+ * - IndicesMap: Unordered map for index mapping between Kratos node ids and Vtk point indices.
+ * - DataMap: Unordered map for @ref Globals::DataLocation and map of data field name and type of the data field.
+ *
+ * @section VtuOutput_Enums Enums
+ * - WriterFormat: Specifies output format (ASCII or BINARY).
+ *
+ * @section VtuOutput_Structs Structs
+ * - UnstructuredGridData: Holds data for an unstructured grid, including points, cells, and associated fields.
+ *
+ * @section VtuOutput_PrivateMembers Private Member Variables
+ * - mrModelPart: Reference to the ModelPart.
+ * - mIsInitialConfiguration: Flag for initial configuration output.
+ * - mEchoLevel: Echo level for logging.
+ * - mOutputFormat: Output format (ASCII/BINARY).
+ * - mPrecision: Precision for ASCII output.
+ * - mFlags: Registered flags for output.
+ * - mVariables: Registered variables for output.
+ * - mIntegrationPointVariables: Registered integration point variables.
+ * - mUnstructuredGridDataList: List of unstructured grid data.
+ * - mTimeStepList: List of time steps.
+ *
+ * @section VtuOutput_PrivateOperations Private Operations
+ * - WriteUnstructuredGridData: Writes unstructured grid data to file.
+ * - WriteIntegrationPointData: Writes integration point data to file.
  */
+namespace Kratos {
 class KRATOS_API(KRATOS_CORE) VtuOutput : public IO
 {
 public:

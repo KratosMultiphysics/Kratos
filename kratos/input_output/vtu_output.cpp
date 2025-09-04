@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/data_communicator.h"
+#include "includes/variables.h"
 #include "input_output/base_64_encoded_output.h"
 #include "input_output/vtk_definitions.h"
 #include "tensor_adaptors/flags_tensor_adaptor.h"
@@ -31,11 +32,10 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/string_utilities.h"
+#include "utilities/variable_utils.h"
 #include "utilities/xml_utilities/xml_ascii_nd_data_element.h"
 #include "utilities/xml_utilities/xml_base64_binary_nd_data_element.h"
 #include "utilities/xml_utilities/xml_elements_array.h"
-#include "utilities/variable_utils.h"
-#include "includes/variables.h"
 
 // Include base h
 #include "vtu_output.h"
@@ -306,18 +306,22 @@ void AddConnectivityData(
             indices_map[r_node.Id()] = vtu_index++;
         }
 
-        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting Vtk geometry type info...\n";
+        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2)
+            << "------ Collecting Vtk geometry type info...\n";
         auto p_type_data = GetGeometryTypes(rIgnoredIndices, *p_container, EchoLevel);
 
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2)
-        << "------ Ignored " << rIgnoredIndices.size() << "/"
-        << p_container->size() << " " << GetEntityName(p_container) << "(s).\n";
+            << "------ Ignored " << rIgnoredIndices.size() << "/"
+            << p_container->size() << " " << GetEntityName(p_container) << "(s).\n";
 
-        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting geometry offsets info...\n";
+        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2)
+            << "------ Collecting geometry offsets info...\n";
         auto p_offsets = GetOffsets(rIgnoredIndices, *p_container);
 
 
-        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting geometry connectivity info...\n";
+        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2)
+            << "------ Collecting geometry connectivity info...\n";
+
         rCellElement.AddElement(rXmlDataElementWrapper.Get("connectivity", GetConnectivities(*p_offsets, *p_container, indices_map, rIgnoredIndices)));
         rCellElement.AddElement(rXmlDataElementWrapper.Get("offsets", p_offsets));
         rCellElement.AddElement(rXmlDataElementWrapper.Get("types", GetNonIgnoredNDData(rIgnoredIndices, p_type_data)));
@@ -340,7 +344,8 @@ void AddFieldsFromTensorAdaptor(
     for (const auto& r_pair : rMap) {
         using data_type = BareType<decltype(r_pair.second)>;
 
-        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting " << r_pair.first << " data...\n";
+        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2)
+            << "------ Collecting " << r_pair.first << " data...\n";
 
         if constexpr(std::is_same_v<data_type, Flags>) {
             // the map is of type flags
@@ -440,7 +445,9 @@ void AddFields(
     const IndexType EchoLevel)
 {
     for (const auto& r_pair : rMap) {
-        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting " << r_pair.first << " data...\n";
+        KRATOS_INFO_IF("VtuOutput", EchoLevel > 2)
+            << "------ Collecting " << r_pair.first << " data...\n";
+
         std::visit([&rXmlElement, &r_pair, &rXmlDataElementWrapper, &rIgnoredIndices](auto pNDData) {
             rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetNonIgnoredNDData(rIgnoredIndices, pNDData)));
         }, r_pair.second);
@@ -586,8 +593,6 @@ std::string WritePartitionedUnstructuredGridData(
     // get list of file names
     std::stringstream list_of_file_names;
 
-    // TODO: May be we want to check a rank which has some entities (not empty ranks)
-    //       Then write on that rank.
     const int writing_rank = 0;
 
     list_of_file_names << rOutputVtuFileName << "\n";
