@@ -72,11 +72,8 @@ public:
 
     void SetNewRangeBounds(Bounds RangeBoundsType) const
     {
-        mHistoryOfTypes.push_back(mRangeBoundsType);
         mRangeBoundsType = RangeBoundsType;
     }
-
-    void RestorePreviousBounds() const;
 
     template <typename T>
     void Check(const Variable<T>& rVariable) const
@@ -103,7 +100,7 @@ public:
     void CheckAvailabilityOnly(const Variable<T>& rVariable) const
     {
         if (!mrProperties.Has(rVariable))
-            KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName << " "
+            KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName << " with Id "
                          << mId << "." << std::endl;
     }
 
@@ -112,7 +109,7 @@ public:
     {
         CheckAvailabilityOnly(rVariable);
         if (mrProperties[rVariable].empty())
-            KRATOS_ERROR << rVariable.Name() << " is empty in the " << mrPrintName << " " << mId
+            KRATOS_ERROR << rVariable.Name() << " is empty in the " << mrPrintName << " with Id " << mId
                          << "." << std::endl;
     }
 
@@ -125,7 +122,6 @@ private:
     mutable Bounds              mRangeBoundsType;
     const double                mDefaultLowerBound = 0.0;
     const double                mDefaultUpperBound = std::numeric_limits<double>::max();
-    mutable std::vector<Bounds> mHistoryOfTypes;
 
     template <typename T>
     void CheckRangeBounds(const Variable<T>& rVariable, double LowerBound, double UpperBound) const
@@ -159,8 +155,8 @@ private:
             print_range << (include_lower_bound ? "[" : "(") << LowerBound << "; "
                         << ((UpperBound == std::numeric_limits<double>::max()) ? "-" : std::to_string(UpperBound))
                         << (include_upper_bound ? "]" : ")");
-            KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " " << mId
-                         << " has an invalid value: " << value << " out of the range "
+            KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " with Id " << mId
+                         << " has an invalid value: " << value << " is out of the range "
                          << print_range.str() << "." << std::endl;
         }
     }

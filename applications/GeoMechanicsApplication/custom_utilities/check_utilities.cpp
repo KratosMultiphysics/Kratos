@@ -73,17 +73,9 @@ std::string CheckUtilities::PrintVectorContent(const std::vector<size_t>& rVecto
     return output;
 }
 
-void CheckProperties::RestorePreviousBounds() const
-{
-    if (!mHistoryOfTypes.empty()) {
-        mRangeBoundsType = mHistoryOfTypes.back();
-        mHistoryOfTypes.pop_back();
-    }
-}
-
-
 void CheckProperties::CheckPermeabilityProperties(size_t Dimension) const
 {
+    const auto original_bounds_type = mRangeBoundsType;
     SetNewRangeBounds(Bounds::InclusiveLowerAndExclusiveUpper);
     Check(PERMEABILITY_XX);
     if (Dimension > 1) {
@@ -95,7 +87,7 @@ void CheckProperties::CheckPermeabilityProperties(size_t Dimension) const
         Check(PERMEABILITY_YZ);
         Check(PERMEABILITY_ZX);
     }
-    RestorePreviousBounds();
+    mRangeBoundsType = original_bounds_type;
 }
 
 } /* namespace Kratos.*/
