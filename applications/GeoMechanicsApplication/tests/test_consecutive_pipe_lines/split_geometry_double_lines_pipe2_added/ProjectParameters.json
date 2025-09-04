@@ -13,7 +13,7 @@
         "domain_size": 2,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "pipe2_added"
+            "input_filename": "../common/pipe2_added"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters.json"
