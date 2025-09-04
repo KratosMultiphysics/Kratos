@@ -1,4 +1,4 @@
-# Data obtained with "old" D-Settlement
+# Data obtained with D-Settlement 23.2.1
 
 # Row | y [m] | Water pressure [kPa]
 1	0.00	0.00

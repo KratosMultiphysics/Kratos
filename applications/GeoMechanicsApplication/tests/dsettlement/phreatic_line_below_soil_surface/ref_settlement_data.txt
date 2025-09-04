@@ -1,4 +1,4 @@
-# Data obtained with "old" D-Settlement
+# Data obtained with D-Settlement 23.2.1
 
 # Row | Time [day] | Settlement [m]
 1	0.10	0.00
