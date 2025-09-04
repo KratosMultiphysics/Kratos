@@ -51,6 +51,26 @@ enum DataAvailabilityStatesList
     INCONCLUSIVE = 2
 };
 
+/**
+ * @class FlagIO
+ * @brief Utility class for reading and writing flag values on entities.
+ *
+ * This class provides methods to get, set, and check the presence of flag values
+ * on entities. Flags are represented as unsigned char values, where 255 indicates
+ * an undefined flag state.
+ *
+ * @tparam TEntityType The type of entity on which flags are operated.
+ *
+ * @section TypeDefinitions Type Definitions
+ * - TLSType: Alias for unsigned char, used for thread-local storage.
+ * - ComponentType: Alias for unsigned char, used for flag components.
+ * - DataAvailability: Indicates the data availability state (INCONCLUSIVE).
+ *
+ * @section PublicOperations Public Operations
+ * - GetValue: Returns the value of the specified flag for the given entity.
+ * - SetValue: Sets or resets the specified flag for the given entity based on the value.
+ * - HasValue: Checks if the specified flag is defined for the given entity.
+ */
 class FlagIO
 {
 public:
