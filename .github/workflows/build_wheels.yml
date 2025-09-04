@@ -1,0 +1,77 @@
+name: Build wheels
+
+on:
+  pull_request:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+# for cancelling redundant runs
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
+
+permissions:
+  contents: read
+
+jobs:
+  changed-files:
+    runs-on: ubuntu-latest
+    # see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-defining-outputs-for-a-job
+    outputs:
+      files: ${{ steps.get_files.outputs.changed_files }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: get_files
+        run: |
+          echo "changed_files=$(python3 .github/get_files_changed_in_pr.py)" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+
+  ubuntu:
+    runs-on: ubuntu-latest
+    needs: changed-files
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [Release]
+        compiler: [gcc]
+        python-version: ["3.12"]
+    env:
+      KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
+      KRATOS_CI_CHANGED_FILES: ${{needs.changed-files.outputs.files}}
+      KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_linux.json"
+      KRATOS_CI_CORES: 4                              # Current limits are 4 CPU and 16 GB Ram
+      OMPI_MCA_rmaps_base_oversubscribe: 1            # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
+      OMPI_MCA_btl_vader_single_copy_mechanism: none  # Suppressing some annoying OpenMPI messages
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
+      options: --user 1001
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
+
+    - name: CI configuration
+      shell: bash
+      run: |
+        python3 kratos/python_scripts/testing/ci_utilities.py
+        python3 -m pip install --upgrade numpy==1.26.4
+        python3 -m pip install setuptools
+
+    - name: Build wheels
+      shell: bash
+      run: |
+        bash ./scripts/wheels/linux/build.sh

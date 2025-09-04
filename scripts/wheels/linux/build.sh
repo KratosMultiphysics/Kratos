@@ -1,12 +1,13 @@
 #!/bin/bash
-PYTHONS=("38" "39" "310" "311" "312" "313")
-export KRATOS_VERSION="10.2.3"
+PYTHONS=("312")
+export KRATOS_VERSION="10.3.0"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-export KRATOS_ROOT="/workspace/kratos/Kratos"
-WHEEL_ROOT="/workspace/wheel"
-WHEEL_OUT="/data_swap_guest"
-CORE_LIB_DIR="/workspace/coreLibs"
+export KRATOS_ROOT="."
+WHEEL_ROOT="./wheel"
+WHEEL_OUT="./data_swap_guest"
+mkdir $WHEEL_OUT
+CORE_LIB_DIR="./coreLibs"
 
 # Created the wheel building directory.
 setup_wheel_dir () {
@@ -120,7 +121,7 @@ build_core () {
 	PYTHON_LOCATION=$1
     PREFIX_LOCATION=$2
 
-	cp /workspace/kratos/Kratos/scripts/wheels/linux/configure.sh ./configure.sh
+	cp ./scripts/wheels/linux/configure.sh ./configure.sh
 	chmod +x configure.sh
 	./configure.sh $PYTHON_LOCATION $PREFIX_LOCATION
 
@@ -134,7 +135,7 @@ build_interface () {
 	PYTHON_LOCATION=$1
     PREFIX_LOCATION=$2
 
-	cp /workspace/kratos/Kratos/scripts/wheels/linux/configure.sh ./configure.sh
+	cp ./scripts/wheels/linux/configure.sh ./configure.sh
 	chmod +x configure.sh
 	./configure.sh $PYTHON_LOCATION $PREFIX_LOCATION
 
@@ -154,7 +155,8 @@ do
     export PYTHON=${PYTHON_TMP#cp}
     echo "Starting build for python${PYTHON_VERSION}"
 
-	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
+    PYTHON_LOCATION= $(which python)
+#	PYTHON_LOCATION=/opt/python/$(ls /opt/python | grep $PYTHON_VERSION)/bin/python
     PREFIX_LOCATION=$KRATOS_ROOT/bin/Release/python_$PYTHON
 
     $PYTHON_LOCATION -m pip install mypy
