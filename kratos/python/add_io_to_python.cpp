@@ -215,7 +215,7 @@ void  AddIOToPython(pybind11::module& m)
         .def(py::init<ModelPart&, const bool, const VtuOutput::WriterFormat, const std::size_t, const bool, const IndexType>(),
             py::arg("model_part"),
             py::arg("is_initial_configuration_considered") = true,
-            py::arg("binary_output") = VtuOutput::WriterFormat::BINARY,
+            py::arg("output_format") = VtuOutput::WriterFormat::BINARY,
             py::arg("precision") = 9,
             py::arg("output_sub_model_parts") = false,
             py::arg("echo_level") = 0)
