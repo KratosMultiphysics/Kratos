@@ -328,6 +328,97 @@ void AddConnectivityData(
     }, pCells);
 }
 
+template<class TTensorAdaptorType, class TContainerPointerType, class TDataType, class TXmlDataElementWrapper, class... TArgs>
+void AddFieldsFromTensorAdaptorImpl(
+    XmlElementsArray& rXmlElement,
+    TContainerPointerType pContainer,
+    const Variable<TDataType>& rVariable,
+    TXmlDataElementWrapper& rXmlDataElementWrapper,
+    const DataCommunicator& rDataCommunicator,
+    const std::set<IndexType>& rIgnoredIndices,
+    const IndexType EchoLevel,
+    TArgs&&... rArgs)
+{
+    KRATOS_TRY
+
+    using primitive_data_type = typename DataTypeTraits<TDataType>::PrimitiveType;
+
+    if constexpr(std::is_same_v<primitive_data_type, int>) {
+        // we only support int variable, and there are no TensorAdaptors to
+        // collect data from integer variables, we do it manually here.
+        auto p_nd_data = Kratos::make_shared<NDData<int>>(DenseVector<unsigned int>(1, pContainer->size()));
+        const auto& shape = p_nd_data->Shape();
+        if constexpr (std::is_same_v<TTensorAdaptorType, HistoricalVariableTensorAdaptor>) {
+            ContainerIOUtils::CopyToContiguousArray<int>(
+                *pContainer, p_nd_data->ViewData(),
+                shape.data().begin(), shape.data().begin() + 1,
+                [&rVariable](int& rValue, const Node& rNode) {
+                    rValue = rNode.FastGetSolutionStepValue(rVariable);
+                });
+        } else if constexpr(std::is_same_v<TTensorAdaptorType, VariableTensorAdaptor>) {
+            ContainerIOUtils::CopyToContiguousArray<int>(
+                *pContainer, p_nd_data->ViewData(),
+                shape.data().begin(), shape.data().begin() + 1,
+                [&rVariable](int& rValue, const auto& rNode) {
+                    rValue = rNode.GetValue(rVariable);
+                });
+        } else {
+            KRATOS_ERROR << "Unsupported tensor adaptor type.";
+        }
+
+        // since we only support Variable<int>, which is having a static data shape
+        // we don't have to do mpi communication to decide the shape on the
+        // empty ranks.
+        rXmlElement.AddElement(rXmlDataElementWrapper.Get(rVariable.Name(), GetNonIgnoredNDData(rIgnoredIndices, p_nd_data)));
+    } else if constexpr(std::is_same_v<primitive_data_type, double>) {
+        using container_type = BareType<decltype(*pContainer)>;
+        using entity_type = typename container_type::data_type;
+        using data_type_traits = DataTypeTraits<TDataType>;
+
+        if constexpr(data_type_traits::IsDynamic) {
+            // this is a dynamic type such as Vector or Matrix, so
+            // we need to do communication to decide the correct size.
+
+            // construct the correct data_shape
+            std::vector<unsigned int> data_shape(data_type_traits::Dimension, 0);
+            if (!pContainer->empty()) {
+                TDataType value;
+                if constexpr(std::is_same_v<TTensorAdaptorType, HistoricalVariableTensorAdaptor>) {
+                    value = static_cast<const entity_type&>(pContainer->front()).FastGetSolutionStepValue(rVariable);
+                } else if constexpr(std::is_same_v<TTensorAdaptorType, VariableTensorAdaptor>) {
+                    value = static_cast<const entity_type&>(pContainer->front()).GetValue(rVariable);
+                } else {
+                    KRATOS_ERROR << "Unsupported tensor adaptor type.";
+                    value = TDataType{};
+                }
+                data_type_traits::Shape(value, data_shape.data(), data_shape.data() + data_type_traits::Dimension);
+            }
+            const auto& max_data_shape = rDataCommunicator.MaxAll(data_shape);
+            DenseVector<unsigned int> nd_shape(max_data_shape.size() + 1);
+            std::copy(max_data_shape.begin(), max_data_shape.end(), nd_shape.begin() + 1);
+            nd_shape[0] = pContainer->size();
+
+            // construct the data storage
+            auto p_nd_data = Kratos::make_shared<typename TTensorAdaptorType::Storage>(nd_shape);
+            auto base_ta = TensorAdaptor<double>(pContainer, p_nd_data, false);
+            TTensorAdaptorType tensor_adaptor(base_ta, &rVariable, rArgs..., false);
+            tensor_adaptor.CollectData();
+
+            rXmlElement.AddElement(rXmlDataElementWrapper.Get(rVariable.Name(), GetNonIgnoredNDData(rIgnoredIndices, tensor_adaptor.pGetStorage())));
+        } else {
+            // this is a static type such as double, array_1d<double, 3>, ...
+            // So no need of mpi communication
+            TTensorAdaptorType tensor_adaptor(pContainer, &rVariable, rArgs...);
+            tensor_adaptor.CollectData();
+            rXmlElement.AddElement(rXmlDataElementWrapper.Get(rVariable.Name(), GetNonIgnoredNDData(rIgnoredIndices, tensor_adaptor.pGetStorage())));
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported variable type.";
+    }
+
+    KRATOS_CATCH("");
+}
+
 template<class TTensorAdaptorType, class TContainerPointerType, class TMapType, class TXmlDataElementWrapper, class... TArgs>
 void AddFieldsFromTensorAdaptor(
     XmlElementsArray& rXmlElement,
@@ -355,80 +446,9 @@ void AddFieldsFromTensorAdaptor(
             rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetNonIgnoredNDData(rIgnoredIndices, tensor_adaptor.pGetStorage())));
         } else {
             std::visit([&](const auto p_variable) {
-                using primitive_data_type = typename DataTypeTraits<typename BareType<decltype(*p_variable)>::Type>::PrimitiveType;
-                if constexpr(std::is_same_v<primitive_data_type, int>) {
-                    // we only support int variable, and there are no TensorAdaptors to
-                    // collect data from integer variables, we do it manually here.
-                    auto p_nd_data = Kratos::make_shared<NDData<int>>(DenseVector<unsigned int>(1, pContainer->size()));
-                    const auto& shape = p_nd_data->Shape();
-                    if constexpr (std::is_same_v<TTensorAdaptorType, HistoricalVariableTensorAdaptor>) {
-                        ContainerIOUtils::CopyToContiguousArray<int>(
-                            *pContainer, p_nd_data->ViewData(),
-                            shape.data().begin(), shape.data().begin() + 1,
-                            [p_variable](int& rValue, const Node& rNode) {
-                                rValue = rNode.FastGetSolutionStepValue(*p_variable);
-                            });
-                    } else if constexpr(std::is_same_v<TTensorAdaptorType, VariableTensorAdaptor>) {
-                        ContainerIOUtils::CopyToContiguousArray<int>(
-                            *pContainer, p_nd_data->ViewData(),
-                            shape.data().begin(), shape.data().begin() + 1,
-                            [p_variable](int& rValue, const auto& rNode) {
-                                rValue = rNode.GetValue(*p_variable);
-                            });
-                    } else {
-                        KRATOS_ERROR << "Unsupported tensor adaptor type.";
-                    }
-
-                    // since we only support Variable<int>, which is having a static data shape
-                    // we don't have to do mpi communication to decide the shape on the
-                    // empty ranks.
-                    rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetNonIgnoredNDData(rIgnoredIndices, p_nd_data)));
-                } else if constexpr(std::is_same_v<primitive_data_type, double>) {
-                    using container_type = BareType<decltype(*pContainer)>;
-                    using entity_type = typename container_type::data_type;
-                    using data_type = typename BareType<decltype(*p_variable)>::Type;
-                    using data_type_traits = DataTypeTraits<data_type>;
-
-                    if constexpr(data_type_traits::IsDynamic) {
-                        // this is a dynamic type such as Vector or Matrix, so
-                        // we need to do communication to decide the correct size.
-
-                        // construct the correct data_shape
-                        std::vector<unsigned int> data_shape(data_type_traits::Dimension, 0);
-                        if (!pContainer->empty()) {
-                            data_type value;
-                            if constexpr(std::is_same_v<TTensorAdaptorType, HistoricalVariableTensorAdaptor>) {
-                                value = static_cast<const entity_type&>(pContainer->front()).FastGetSolutionStepValue(*p_variable);
-                            } else if constexpr(std::is_same_v<TTensorAdaptorType, VariableTensorAdaptor>) {
-                                value = static_cast<const entity_type&>(pContainer->front()).GetValue(*p_variable);
-                            } else {
-                                KRATOS_ERROR << "Unsupported tensor adaptor type.";
-                                value = data_type{};
-                            }
-                            data_type_traits::Shape(value, data_shape.data(), data_shape.data() + data_type_traits::Dimension);
-                        }
-                        const auto& max_data_shape = rDataCommunicator.MaxAll(data_shape);
-                        DenseVector<unsigned int> nd_shape(max_data_shape.size() + 1);
-                        std::copy(max_data_shape.begin(), max_data_shape.end(), nd_shape.begin() + 1);
-                        nd_shape[0] = pContainer->size();
-
-                        // construct the data storage
-                        auto p_nd_data = Kratos::make_shared<typename TTensorAdaptorType::Storage>(nd_shape);
-                        auto base_ta = TensorAdaptor<double>(pContainer, p_nd_data, false);
-                        TTensorAdaptorType tensor_adaptor(base_ta, p_variable, rArgs..., false);
-                        tensor_adaptor.CollectData();
-
-                        rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetNonIgnoredNDData(rIgnoredIndices, tensor_adaptor.pGetStorage())));
-                    } else {
-                        // this is a static type such as double, array_1d<double, 3>, ...
-                        // So no need of mpi communication
-                        TTensorAdaptorType tensor_adaptor(pContainer, p_variable, rArgs...);
-                        tensor_adaptor.CollectData();
-                        rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetNonIgnoredNDData(rIgnoredIndices, tensor_adaptor.pGetStorage())));
-                    }
-                } else {
-                    KRATOS_ERROR << "Unsupported variable type.";
-                }
+                AddFieldsFromTensorAdaptorImpl<TTensorAdaptorType>(
+                    rXmlElement, pContainer, *p_variable, rXmlDataElementWrapper,
+                    rDataCommunicator, rIgnoredIndices, EchoLevel, rArgs...);
             }, r_pair.second);
         }
     }
@@ -1758,18 +1778,18 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
 
         if (r_model_part_data.UsePointsForDataFieldOutput) {
             rOStream << "\n\t\t" << "Point fields:";
-            for (const auto& [name, field] : r_model_part_data.mPointFields) {
-                std::visit([&rOStream, &name](auto pNDData){
-                    rOStream << "\n\t\t\t" << name << ": " << *pNDData;
-                }, field);
+            for (const auto& r_pair : r_model_part_data.mPointFields) {
+                std::visit([&rOStream, &r_pair](auto pNDData){
+                    rOStream << "\n\t\t\t" << r_pair.first << ": " << *pNDData;
+                }, r_pair.second);
             }
         }
 
         rOStream << "\n\t\t" << "Cell fields:";
-        for (const auto& [name, field] : r_model_part_data.mCellFields) {
-            std::visit([&rOStream, &name](auto pNDData){
-                rOStream << "\n\t\t\t" << name << ": " << *pNDData;
-            }, field);
+        for (const auto& r_pair : r_model_part_data.mCellFields) {
+            std::visit([&rOStream, &r_pair](auto pNDData){
+                rOStream << "\n\t\t\t" << r_pair.first << ": " << *pNDData;
+            }, r_pair.second);
         }
     }
 }
