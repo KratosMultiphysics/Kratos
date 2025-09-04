@@ -150,9 +150,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         test_root = "dsettlement"
         project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
 
-        current_working_directory = os.getcwd()
-        os.chdir(project_path)
-
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
         n_stages = 5
@@ -163,8 +160,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             project_path, project_parameters_filenames
         )
         self.assertEqual(status, 0)
-
-        os.chdir(current_working_directory)
 
         project_path = pathlib.Path(project_path)
 
@@ -221,9 +216,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         test_root = "dsettlement/consolidation_uniform_load"
         project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
 
-        current_working_directory = os.getcwd()
-        os.chdir(project_path)
-
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
         n_stages = 3
@@ -253,8 +245,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 "TOTAL_STRESS_TENSOR", 8726.4, output_data, [nodes[i]])[0][1]
             self.assertAlmostEqual(actual_total_stress, expected_total_stress[i], 4)
 
-        os.chdir(current_working_directory)
-
 
     def test_settlement_consolidation_fine_mesh(self):
         """
@@ -266,9 +256,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         test_name = "fine_mesh"
         test_root = "dsettlement/consolidation_uniform_load"
         project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
-
-        current_working_directory = os.getcwd()
-        os.chdir(project_path)
 
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
@@ -299,8 +286,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 "TOTAL_STRESS_TENSOR", 8726.4, output_data, [nodes[i]])[0][1]
             self.assertAlmostEqual(actual_total_stress, expected_total_stress[i], 4)
 
-        os.chdir(current_working_directory)
-
 
     def test_settlement_fully_saturated_column(self):
         """
@@ -313,9 +298,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         test_root = os.path.join("dsettlement", "fully_saturated_column_uniform_load")
         project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
 
-        cwd = os.getcwd()
-        os.chdir(project_path)
-
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
         n_stages = 5
@@ -326,8 +308,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             project_path, project_parameters_filenames
         )
         self.assertEqual(status, 0)
-
-        os.chdir(cwd)
 
         project_path = pathlib.Path(project_path)
 
@@ -361,9 +341,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         test_root = "dsettlement"
         project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
 
-        original_working_dir = os.getcwd()
-        os.chdir(project_path)
-
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
         n_stages = 5
@@ -374,8 +351,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             project_path, project_parameters_filenames
         )
         self.assertEqual(status, 0)
-
-        os.chdir(original_working_dir)
 
         reader = test_helper.GiDOutputFileReader()
         top_node_ids = [2, 3, 104]
@@ -429,9 +404,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         test_root = os.path.join("dsettlement", "fully_saturated_column_uniform_load")
         project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
 
-        original_working_directory = os.getcwd()
-        os.chdir(project_path)
-
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
         n_stages = 5
@@ -442,8 +414,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             project_path, project_parameters_filenames
         )
         self.assertEqual(status, 0)
-
-        os.chdir(original_working_directory)
 
         project_path = pathlib.Path(project_path)
 
