@@ -381,30 +381,19 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         top_node_ids = [2, 3, 104]
         project_path = pathlib.Path(project_path)
 
-        # Assert settlement values at the start of the third stage (when consolidation starts)
+        # Check some settlement values
         output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
-        time_in_sec = days_to_seconds(0.1) + 1.0
-        actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", time_in_sec, output_stage_3, top_node_ids
-        )
-        for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
-            self.assertAlmostEqual(total_displacement_vector[1], 0.0, places=None, delta=0.01, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
-
-        # Assert settlement values at the end of the third stage (just before applying the surface load)
-        time_in_sec = days_to_seconds(100)
-        actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", time_in_sec, output_stage_3, top_node_ids
-        )
-        for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
-            self.assertAlmostEqual(total_displacement_vector[1], -1.75, places=None, delta=0.06, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
-
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
-        time_in_sec = days_to_seconds(10000)
-        actual_total_displacement_along_top_edge = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", time_in_sec, output_stage_5, top_node_ids
-        )
-        for total_displacement_vector, node_id in zip(actual_total_displacement_along_top_edge, top_node_ids):
-            self.assertAlmostEqual(total_displacement_vector[1], -7.90, places=None, delta=0.12, msg=f"total vertical displacement at node {node_id} at time {time_in_sec} [s]")
+
+        check_data = [{"output_data": output_stage_3, "time_in_s": days_to_seconds(0.1) + 1.0, "expected_total_u_y": 0.0, "delta": 0.01},
+                      {"output_data": output_stage_3, "time_in_s": days_to_seconds(100), "expected_total_u_y": -1.75, "delta": 0.06},
+                      {"output_data": output_stage_5, "time_in_s": days_to_seconds(10000), "expected_total_u_y": -7.90, "delta": 0.12}]
+        for item in check_data:
+            actual_total_displacement_of_top_edge = reader.nodal_values_at_time(
+                "TOTAL_DISPLACEMENT", item["time_in_s"], item["output_data"], top_node_ids
+            )
+            for total_displacement_vector, node_id in zip(actual_total_displacement_of_top_edge, top_node_ids):
+                self.assertAlmostEqual(total_displacement_vector[1], item["expected_total_u_y"], places=None, delta=item["delta"], msg=f"total vertical displacement at node {node_id} at time {item["time_in_s"]} [s]")
 
         if test_helper.want_test_plots():
             left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
