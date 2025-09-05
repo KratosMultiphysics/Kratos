@@ -350,6 +350,8 @@ public:
      * - If this is called in MPI, then this will create one pvtu file per timestep, per model part's container (will be having information of all the corresponding rank vtu files)
      * - If this is called in MPI, then this will create one pvtu file per timestep, per model part's gauss point container (will be having information of all the corresponding rank vtu files)
      *
+     * @throws If the @p mrModelPart's @ref ProcessInfo 's TIME value is already used with @ref PrintOutput unless it was the last TIME value.
+     *
      * Finally it will create one pvd ( @p rOutputFilenamePrefix.pvd ) file for all the model parts, all the timesteps all the gauss point container linking
      * - In MPI the pvtu files created.
      * - In shared memory parallelism the vtu files created.
