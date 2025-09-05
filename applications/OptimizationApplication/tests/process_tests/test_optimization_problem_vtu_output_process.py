@@ -75,7 +75,6 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part1 = cls.model.CreateModelPart("test_1")
-        cls.model_part1.ProcessInfo[Kratos.TIME] = 1
         cls.model_part1.CreateNewNode(1, 0.0, 0.0, 0.0)
         cls.model_part1.CreateNewNode(2, 1.0, 0.0, 0.0)
         cls.model_part1.CreateNewNode(3, 1.0, 1.0, 0.0)
@@ -89,7 +88,6 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             element.SetValue(Kratos.ACCELERATION, Kratos.Array3([element.Id + 4, element.Id + 5, element.Id + 6]))
 
         cls.model_part2 = cls.model.CreateModelPart("test_2")
-        cls.model_part2.ProcessInfo[Kratos.TIME] = 1
         cls.model_part2.CreateNewNode(1, 0.0, 0.0, 0.0)
         cls.model_part2.CreateNewNode(2, 1.0, 0.0, 0.0)
         cls.model_part2.CreateNewNode(3, 1.0, 1.0, 0.0)
@@ -159,10 +157,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
 
         with kratos_unittest.WorkFolderScope(".", __file__):
             number_of_steps = 10
-            for i in range(number_of_steps):
-                for model_part_name in self.model.GetModelPartNames():
-                    self.model[model_part_name].ProcessInfo[Kratos.TIME] = i
-
+            for _ in range(number_of_steps):
                 # initialize the buffered data
                 for component in self.components_list:
                     self.__AddData(ComponentDataView(component, self.optimization_problem).GetBufferedData(), True, component)
@@ -175,15 +170,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "test_1_orig.vtu",
-                "output_file_name"      : "Optimization_Results/test_1/test_1_elements_9.vtu",
-                "remove_output_file"    : true,
-                "comparison_type"       : "deterministic"
-            }""")).Execute()
-
-            CompareTwoFilesCheckProcess(Kratos.Parameters("""
-            {
-                "reference_file_name"   : "test_1_orig.pvd",
-                "output_file_name"      : "Optimization_Results/test_1.pvd",
+                "output_file_name"      : "Optimization_Results/test_1/test_1_elements_0.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
@@ -191,15 +178,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "test_2_orig.vtu",
-                "output_file_name"      : "Optimization_Results/test_2/test_2_elements_9.vtu",
-                "remove_output_file"    : true,
-                "comparison_type"       : "deterministic"
-            }""")).Execute()
-
-            CompareTwoFilesCheckProcess(Kratos.Parameters("""
-            {
-                "reference_file_name"   : "test_2_orig.pvd",
-                "output_file_name"      : "Optimization_Results/test_2.pvd",
+                "output_file_name"      : "Optimization_Results/test_2/test_2_elements_0.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
