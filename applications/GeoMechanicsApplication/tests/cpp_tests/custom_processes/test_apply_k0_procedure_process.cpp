@@ -26,7 +26,7 @@ namespace
 
 using namespace Kratos;
 
-class MockConstitutiveLaw : public GeoIncrementalLinearElasticLaw
+class MockIncrementalLinearElasticLaw : public GeoIncrementalLinearElasticLaw
 {
 public:
     MOCK_METHOD(std::size_t, WorkingSpaceDimension, (), (override));
@@ -423,7 +423,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     const auto              k0_settings = Parameters{};
     ApplyK0ProcedureProcess process{r_model_part, k0_settings};
 
-    auto mock_constitutive_law = std::make_shared<MockConstitutiveLaw>();
+    auto mock_constitutive_law = std::make_shared<MockIncrementalLinearElasticLaw>();
     p_element->GetProperties().SetValue(CONSTITUTIVE_LAW, mock_constitutive_law);
     EXPECT_CALL(*mock_constitutive_law, WorkingSpaceDimension()).WillRepeatedly(testing::Return(2));
 
