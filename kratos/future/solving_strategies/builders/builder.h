@@ -66,8 +66,6 @@ struct LinearSystemContainer
 
     typename TSystemVectorType::Pointer pConstraintsQ = nullptr; // Master-slave constraints constant vector
 
-    typename TSparseMatrixType::Pointer pDirichletT = nullptr; // Dirichlet constraints relation matrix
-
     typename TSparseMatrixType::Pointer pMassMatrix = nullptr; // Pointer to the mass matrix
 
     typename TSparseMatrixType::Pointer pDampingMatrix = nullptr; // Pointer to the damping matrix
@@ -100,9 +98,6 @@ struct LinearSystemContainer
         }
         if (pConstraintsQ != nullptr) {
             pConstraintsQ->Clear();
-        }
-        if (pDirichletT != nullptr) {
-            pDirichletT->Clear();
         }
         if (pMassMatrix != nullptr) {
             pMassMatrix->Clear();

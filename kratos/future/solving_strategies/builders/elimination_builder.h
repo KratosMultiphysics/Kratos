@@ -182,7 +182,7 @@ public:
         // Note that there is no need to allocate the Dirichlet constraints relation vector as this is never used
         // as we always solve for the solution increment (the Dirichlet values are already in the effective DOF set data)
         auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(dirichlet_sparse_graph);
-        rLinearSystemContainer.pDirichletT.swap(p_aux_T);
+        mpDirichletT.swap(p_aux_T);
     }
 
     void BuildDirichletConstraints(
@@ -191,7 +191,7 @@ public:
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         // Set ones in the entries of the Dirichlet constraints relation matrix
-        rLinearSystemContainer.pDirichletT->SetValue(1.0);
+        mpDirichletT->SetValue(1.0);
     }
 
     //FIXME: Do the RHS-only version
@@ -216,9 +216,8 @@ public:
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
         if (n_constraints) { //FIXME: In here we should check the number of active constraints
             // Compute the total relation matrix including master-slave and Dirichlet constraints
-            auto& r_dirichlet_T = *rLinearSystemContainer.pDirichletT;
             auto& r_constraints_T = *rLinearSystemContainer.pConstraintsT;
-            rLinearSystemContainer.pEffectiveT = AmgclCSRSpMMUtilities::SparseMultiply(r_constraints_T, r_dirichlet_T);
+            rLinearSystemContainer.pEffectiveT = AmgclCSRSpMMUtilities::SparseMultiply(r_constraints_T, *mpDirichletT);
 
             // Apply constraints to RHS
             auto p_rhs = rLinearSystemContainer.pRhs;
@@ -231,7 +230,7 @@ public:
             rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
         } else {
             // Assign the Dirichlet relation matrix as the effective ones since there are no other constraints
-            rLinearSystemContainer.pEffectiveT = rLinearSystemContainer.pDirichletT;
+            rLinearSystemContainer.pEffectiveT = mpDirichletT;
 
             // Apply Dirichlet constraints to RHS
             auto p_rhs = rLinearSystemContainer.pRhs;
@@ -249,6 +248,8 @@ public:
 private:
     ///@name Member Variables
     ///@{
+
+    typename TSparseMatrixType::Pointer mpDirichletT = nullptr; // Dirichlet constraints relation matrix
 
     ///@}
     ///@name Private Operations
