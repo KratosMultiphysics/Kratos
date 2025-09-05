@@ -119,7 +119,7 @@ class ExpressionVtuOutput:
     def WriteOutput(self):
         for current_expression_name_data_pair in self.dict_of_expression_data.values():
             for expression_data in current_expression_name_data_pair.values():
-                self.vtu_output.AddContainerExpression(expression_data.GetContainerExpressionName(), expression_data.GetContainerExpression(self.optimization_problem))
+                self.vtu_output.EmplaceContainerExpression(expression_data.GetContainerExpressionName(), expression_data.GetContainerExpression(self.optimization_problem))
 
         output_file_name = self.output_file_name_prefix
         output_file_name = output_file_name.replace("<model_part_full_name>", self.model_part.FullName())

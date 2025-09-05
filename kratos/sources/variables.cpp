@@ -478,6 +478,10 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARAMETER_2D_COORDINATES)
 KRATOS_CREATE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST)
 KRATOS_CREATE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
 
+// Variable used for synchronizing tensor adaptor data
+// if a tensor adaptor is created from a local mesh nodes.
+KRATOS_CREATE_VARIABLE(Vector, TENSOR_ADAPTOR_SYNC)
+
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -956,5 +960,9 @@ void KratosApplication::RegisterVariables() {
     // Variational redistance
     KRATOS_REGISTER_VARIABLE(VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST)
     KRATOS_REGISTER_VARIABLE(VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
+
+    // Variable used for synchronizing tensor adaptor data
+    // if a tensor adaptor is created from a local mesh nodes.
+    KRATOS_REGISTER_VARIABLE(TENSOR_ADAPTOR_SYNC)
 }
 }  // namespace Kratos.

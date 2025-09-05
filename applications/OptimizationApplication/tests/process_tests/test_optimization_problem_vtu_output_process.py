@@ -3,6 +3,7 @@ import KratosMultiphysics as Kratos
 # Import KratosUnittest
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
+import KratosMultiphysics.kratos_utilities as Kratos_utils
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
@@ -169,7 +170,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "test_1_orig.vtu",
-                "output_file_name"      : "Optimization_Results/test_1.vtu",
+                "output_file_name"      : "Optimization_Results/test_1/test_1_elements_0.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
@@ -177,10 +178,15 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "test_2_orig.vtu",
-                "output_file_name"      : "Optimization_Results/test_2.vtu",
+                "output_file_name"      : "Optimization_Results/test_2/test_2_elements_0.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
+
+    @classmethod
+    def tearDownClass(cls):
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            Kratos_utils.DeleteDirectoryIfExisting("Optimization_Results")
 
 if __name__ == "__main__":
     kratos_unittest.main()
