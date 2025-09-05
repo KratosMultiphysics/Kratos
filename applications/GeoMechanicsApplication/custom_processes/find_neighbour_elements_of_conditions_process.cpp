@@ -128,11 +128,10 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
         std::ranges::transform(r_boundary_geometry, element_boundary_node_ids.begin(),
                                [](const Node& rNode) { return rNode.Id(); });
         std::vector<std::size_t> adjacent_condition_node_ids;
-        auto itFace = FacesMap.find(element_boundary_node_ids);
+        auto                     itFace = FacesMap.find(element_boundary_node_ids);
         if (itFace != FacesMap.end()) {
             adjacent_condition_node_ids = itFace->first;
         }
-
 
         if (itFace == FacesMap.end() && r_boundary_geometry.LocalSpaceDimension() == 2) {
             // condition is not found but might be a problem of ordering in 2D boundary geometries!
@@ -221,27 +220,27 @@ void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnEleme
     }
 }
 
-bool FindNeighbourElementsOfConditionsProcess::FindPermutations(std::vector<std::size_t> FaceIds,
+bool FindNeighbourElementsOfConditionsProcess::FindPermutations(std::vector<std::size_t> elements_boundary_node_ids,
                                                                 std::vector<std::size_t> condition_node_ids) const
 {
-    for (std::size_t i = 0; i < FaceIds.size() - 1; ++i) {
-        std::ranges::rotate(FaceIds, FaceIds.begin() + 1);
-
-        if (FaceIds == condition_node_ids) return true;
-    }
-    return false;
+    const auto amount_of_needed_rotations =
+        std::ranges::find(elements_boundary_node_ids, condition_node_ids[0]) -
+        elements_boundary_node_ids.begin();
+    std::ranges::rotate(elements_boundary_node_ids, elements_boundary_node_ids.begin() + amount_of_needed_rotations);
+    return elements_boundary_node_ids == condition_node_ids;
 }
 
-bool FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(std::vector<std::size_t> FaceIds,
+bool FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
                                                                          std::vector<std::size_t> condition_node_ids) const
 {
-    for (std::size_t i = 0; i < FaceIds.size() / 2 - 1; ++i) {
-        std::rotate(FaceIds.begin(), FaceIds.begin() + 1, FaceIds.begin() + FaceIds.size() / 2);
-        std::rotate(FaceIds.begin() + FaceIds.size() / 2, FaceIds.begin() + FaceIds.size() / 2 + 1,
-                    FaceIds.end());
-
-        if (FaceIds == condition_node_ids) return true;
-    }
-    return false;
+    const auto amount_of_needed_rotations =
+        std::ranges::find(elements_boundary_node_ids, condition_node_ids[0]) -
+        elements_boundary_node_ids.begin();
+    std::rotate(elements_boundary_node_ids.begin(), elements_boundary_node_ids.begin() + amount_of_needed_rotations,
+                elements_boundary_node_ids.begin() + elements_boundary_node_ids.size() / 2);
+    std::rotate(elements_boundary_node_ids.begin() + elements_boundary_node_ids.size() / 2,
+                elements_boundary_node_ids.begin() + elements_boundary_node_ids.size() / 2 + amount_of_needed_rotations,
+                elements_boundary_node_ids.end());
+    return elements_boundary_node_ids == condition_node_ids;
 }
 } // namespace Kratos

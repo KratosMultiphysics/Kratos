@@ -114,8 +114,8 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
-    bool FindPermutations(std::vector<std::size_t> FaceIds, std::vector<std::size_t> condition_node_ids) const;
-    bool FindPermutationsQuadratic(std::vector<std::size_t> FaceIds,
+    bool FindPermutations(std::vector<std::size_t> elements_boundary_node_ids, std::vector<std::size_t> condition_node_ids) const;
+    bool FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
                                    std::vector<std::size_t> condition_node_ids) const;
 
     ///@}
