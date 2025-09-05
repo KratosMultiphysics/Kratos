@@ -263,17 +263,32 @@ public:
         const DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
         TSparseGraphType& rConstraintsSparseGraph)
     {
+        // Check if there are constraints to build the constraints sparse graph
+        if (!rSlaveToMasterDofsMap.empty()) { //TODO: Change the way this is checked (w/o the DOFs map)
+            // Initialize the constraints matrix sparse graph
+            // Note that the number of rows is the size of the standard DOFs arrays (the effective one will be the columns)
+            rConstraintsSparseGraph = std::move(TSparseGraphType(rDofSet.size()));
 
-        //FIXME:!!!!!!
-        for dof in dofs:
-            if(dof in rEffectiveDofSet)
-            Agraph.AddEntry(dof.EquationId, dof.EffectiveEquationId)
+            // Add all effective DOFs
+            // Note that here effective means that the DOF is either a master DOF or a DOF that does not involve any constraint
+            for (IndexType i_dof = 0; i_dof < rEffectiveDofSet.size(); ++i_dof) {
+                auto p_eff_dof = *(rEffectiveDofSet.ptr_begin() + i_dof);
+                const IndexType i_dof_eq_id = p_eff_dof->EquationId();
+                const IndexType i_dof_eff_eq_id = p_eff_dof->EffectiveEquationId();
+                rConstraintsSparseGraph.AddEntry(i_dof_eq_id, i_dof_eff_eq_id);
+            }
 
-        for mpc in mpcs:
-            master_dofs, slave_dofs = mppc..
-            master_dofs_ids = master_dofs.EffecticeEquationIds
-            slave_dofs_ids = master_dofs.EquationIds
-            Agraph.AddEntries(master_dofs_ids, slave_dofs_ids)
+            // Loop the constraints to add the slave DOFs
+            // Note that we assume that there constraints are always one to many (not many to many)
+            for (const auto& r_constraint : mpModelPart->MasterSlaveConstraints()) {
+                const auto& r_masters = r_constraint.GetMasterDofsVector();
+                const IndexType slave_eq_id = (r_constraint.GetSlaveDofsVector()[0])->EquationId();
+                for (const auto& rp_master_dof : r_masters) {
+                    const IndexType master_eff_eq_id = rp_master_dof->EffectiveEquationId();
+                    rConstraintsSparseGraph.AddEntry(slave_eq_id, master_eff_eq_id);
+                }
+            }
+        }
 
         // // Check if there are constraints to build the constraints sparse graph
         // if (!rSlaveToMasterDofsMap.empty()) {
