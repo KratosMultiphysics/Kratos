@@ -117,11 +117,10 @@ public:
         }
 
         if (slave_active_indices > 0 && master_active_indices > 0) {
-            std::vector<int> indices(slave_active_indices);
+            std::vector<int> indices(master_active_indices);
             std::vector<double> values(master_active_indices);
 
-            // Fill epetra vectors
-            unsigned int loc_i = 0;
+            // Fill Epetra vectors
             for (unsigned int i = 0; i < rSlaveEquationId.size(); i++) {
                 if (rSlaveEquationId[i] < system_size) {
                     const int current_global_row = rSlaveEquationId[i];
@@ -137,8 +136,6 @@ public:
 
                     const int ierr = rT.SumIntoGlobalValues(current_global_row, master_active_indices, values.data(), indices.data());
                     KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
-
-                    ++loc_i;
                 }
             }
         }
@@ -169,7 +166,7 @@ public:
             Epetra_IntSerialDenseVector indices(slave_active_indices);
             Epetra_SerialDenseVector values(slave_active_indices);
 
-            // Fill epetra vectors
+            // Fill Epetra vectors
             unsigned int loc_i = 0;
             for (unsigned int i = 0; i < rSlaveEquationId.size(); i++) {
                 if (rSlaveEquationId[i] < system_size) {

@@ -960,7 +960,7 @@ private:
 		plastic_power=0;
 		std::vector<double> Value(1);
 
-		MasterElement.GetValueOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,CurrentProcessInfo);
+		MasterElement.CalculateOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,CurrentProcessInfo);
 
 
 		Geometry<Node >& pGeom = MasterElement.GetGeometry();

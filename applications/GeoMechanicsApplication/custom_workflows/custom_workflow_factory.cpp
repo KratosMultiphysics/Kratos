@@ -11,6 +11,7 @@
 //
 
 #include "custom_workflow_factory.h"
+#include "dgeoflow.h"
 #include "dgeosettlement.h"
 #include "time_loop_executor.hpp"
 
@@ -29,4 +30,6 @@ KratosGeoSettlement* CustomWorkflowFactory::CreateKratosGeoSettlement()
                                    std::make_unique<TimeLoopExecutor>()};
 }
 
-}
+KratosExecute* CustomWorkflowFactory::CreateKratosGeoFlow() { return new KratosExecute{}; }
+
+} // namespace Kratos

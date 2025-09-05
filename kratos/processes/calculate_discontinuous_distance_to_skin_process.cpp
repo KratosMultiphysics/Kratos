@@ -102,6 +102,20 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
+    Process::Pointer CalculateDiscontinuousDistanceToSkinProcess<TDim>::Create(
+        Model& rModel,
+        Parameters ThisParameters
+        )
+    {
+        const std::string& r_volume_part_name = ThisParameters["volume_model_part_name"].GetString();
+        const std::string& r_skin_part_name = ThisParameters["skin_model_part_name"].GetString();
+        return Kratos::make_shared<CalculateDiscontinuousDistanceToSkinProcess<TDim>>(
+            rModel.GetModelPart(r_volume_part_name),
+            rModel.GetModelPart(r_skin_part_name),
+            ThisParameters);
+    }
+
+    template<std::size_t TDim>
     void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Initialize()
     {
         // Initialize the intersected objects process
@@ -682,8 +696,8 @@ namespace Kratos
         const Element::GeometryType &rGeometry,
         array_1d<double,3> &rIntObjNormal)
     {
-        rIntObjNormal[0] = rGeometry[0].Y() - rGeometry[1].Y();
-        rIntObjNormal[1] = rGeometry[1].X() - rGeometry[0].X();
+        rIntObjNormal[0] = rGeometry[1].Y() - rGeometry[0].Y();
+        rIntObjNormal[1] = rGeometry[0].X() - rGeometry[1].X();
         rIntObjNormal[2] = 0.0;
     }
 

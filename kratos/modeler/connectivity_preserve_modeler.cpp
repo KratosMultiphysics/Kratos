@@ -24,6 +24,18 @@ namespace Kratos
 
 // Public methods //////////////////////////////////////////////////////////////
 
+ConnectivityPreserveModeler::ConnectivityPreserveModeler(Model& rModel, Parameters Settings):
+    Modeler(Settings),
+    mpModel(&rModel)
+{
+    mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+}
+
+Modeler::Pointer ConnectivityPreserveModeler::Create(Model& rModel, const Parameters Settings) const
+{
+    return Kratos::make_shared<ConnectivityPreserveModeler>(rModel, Settings);
+}
+
 void ConnectivityPreserveModeler::GenerateModelPart(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
@@ -93,6 +105,85 @@ void ConnectivityPreserveModeler::GenerateModelPart(
     KRATOS_CATCH("");
 }
 
+void ConnectivityPreserveModeler::GenerateModelPart(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart)
+{
+    KRATOS_TRY;
+
+    this->CheckVariableLists(rOriginModelPart, rDestinationModelPart);
+
+    this->ResetModelPart(rDestinationModelPart);
+
+    this->CopyCommonData(rOriginModelPart, rDestinationModelPart);
+
+    this->DuplicateCommunicatorData(rOriginModelPart,rDestinationModelPart);
+
+    this->DuplicateSubModelParts(rOriginModelPart, rDestinationModelPart);
+
+    KRATOS_CATCH("");
+}
+
+void ConnectivityPreserveModeler::SetupModelPart()
+{
+    // Retrieve origin model part
+    ModelPart& r_origin_model_part = mpModel->GetModelPart(mParameters["origin_model_part_name"].GetString());
+
+    // Retrieve destination model part
+    const std::string destination_model_part_name = mParameters["destination_model_part_name"].GetString();
+    if (!mpModel->HasModelPart(destination_model_part_name)) {
+        mpModel->CreateModelPart(destination_model_part_name, r_origin_model_part.GetBufferSize());
+    }
+    ModelPart& r_destination_model_part = mpModel->GetModelPart(destination_model_part_name);
+
+    // Retrieve the element name
+    const std::string element_name = mParameters["reference_element"].GetString();
+
+    // Retrieve the condition name
+    const std::string condition_name = mParameters["reference_condition"].GetString();
+
+    // Initialize mPreserveConstraints
+    mPreserveConstraints = mParameters["preserve_constraints"].GetBool();
+
+    if (element_name != "") {
+        if (condition_name != "") {
+            GenerateModelPart(
+                r_origin_model_part,
+                r_destination_model_part,
+                KratosComponents<Element>::Get(element_name),
+                KratosComponents<Condition>::Get(condition_name));
+        } else {
+            GenerateModelPart(
+                r_origin_model_part,
+                r_destination_model_part,
+                KratosComponents<Element>::Get(element_name));
+        }
+    } else if (condition_name != "") {
+        GenerateModelPart(
+            r_origin_model_part,
+            r_destination_model_part,
+            KratosComponents<Condition>::Get(condition_name));
+    } else {
+        GenerateModelPart(r_origin_model_part, r_destination_model_part);
+    }
+}
+
+const Parameters ConnectivityPreserveModeler::GetDefaultParameters() const
+{
+    return Parameters(R"({
+        "origin_model_part_name"        : "undefined_origin_model_part_name",
+        "destination_model_part_name"   : "undefined_destination_model_part_name",
+        "reference_element"             : "",
+        "reference_condition"           : "",
+        "preserve_constraints"          : true
+    })");
+}
+
+std::string ConnectivityPreserveModeler::Info() const
+{
+    return "ConnectivityPreserveModeler";
+}
+
 // Private methods /////////////////////////////////////////////////////////////
 void ConnectivityPreserveModeler::CheckVariableLists(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart) const
 {
@@ -118,10 +209,16 @@ void ConnectivityPreserveModeler::ResetModelPart(ModelPart& rDestinationModelPar
     VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.Nodes());
     VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.Elements());
     VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.Conditions());
+    if (mPreserveConstraints) {
+        VariableUtils().SetFlag(TO_ERASE, true, rDestinationModelPart.MasterSlaveConstraints());
+    }
 
     rDestinationModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     rDestinationModelPart.RemoveElementsFromAllLevels(TO_ERASE);
     rDestinationModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+    if (mPreserveConstraints) {
+        rDestinationModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
+    }
 }
 
 void ConnectivityPreserveModeler::CopyCommonData(
@@ -149,6 +246,14 @@ void ConnectivityPreserveModeler::CopyCommonData(
 
     // Assign the nodes to the new model part
     rDestinationModelPart.AddNodes(rOriginModelPart.NodesBegin(), rOriginModelPart.NodesEnd());
+
+    // Assign the geometries to the new model part
+    rDestinationModelPart.Geometries() = rOriginModelPart.Geometries();
+
+    // Assign the master slave constraints to the new model part
+    if (mPreserveConstraints) {
+        rDestinationModelPart.MasterSlaveConstraints() = rOriginModelPart.MasterSlaveConstraints();
+    }
 }
 
 void ConnectivityPreserveModeler::DuplicateElements(
@@ -237,44 +342,65 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
 }
 
 void ConnectivityPreserveModeler::DuplicateSubModelParts(
-ModelPart& rOriginModelPart,
-ModelPart& rDestinationModelPart) const
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart) const
 {
     for (auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part) {
         if(!rDestinationModelPart.HasSubModelPart(i_part->Name())) {
             rDestinationModelPart.CreateSubModelPart(i_part->Name());
         }
 
-        ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_part->Name());
+        ModelPart& r_destination_part = rDestinationModelPart.GetSubModelPart(i_part->Name());
 
-        destination_part.AddNodes(i_part->NodesBegin(), i_part->NodesEnd());
+        r_destination_part.AddNodes(i_part->NodesBegin(), i_part->NodesEnd());
 
         std::vector<ModelPart::IndexType> ids;
         ids.reserve(i_part->Elements().size());
 
         // Execute only if we created elements in the destination
-        if (rDestinationModelPart.NumberOfElements() > 0)
-        {
+        if (rDestinationModelPart.NumberOfElements() > 0) {
             //adding by index
-            for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
+            for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it) {
                 ids.push_back(it->Id());
-            destination_part.AddElements(ids, 0); //adding by index
+            }
+            r_destination_part.AddElements(ids, 0); //adding by index
         }
 
         // Execute only if we created conditions in the destination
-        if (rDestinationModelPart.NumberOfConditions() > 0)
-        {
+        if (rDestinationModelPart.NumberOfConditions() > 0) {
             ids.clear();
-            for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
+            for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it) {
                 ids.push_back(it->Id());
-            destination_part.AddConditions(ids, 0);
+            }
+            r_destination_part.AddConditions(ids, 0);
+        }
+
+        // Execute only if there are geometries in the destination
+        if (rDestinationModelPart.NumberOfGeometries() > 0) {
+            ids.reserve(i_part->NumberOfGeometries());
+            for (const auto& r_geom : i_part->Geometries()) {
+                ids.push_back(r_geom.Id());
+            }
+            r_destination_part.AddGeometries(ids);
+        }
+
+        // Execute only if there are MasterSlaveConstraints in the destination
+        if (mPreserveConstraints) {
+            if (rDestinationModelPart.NumberOfMasterSlaveConstraints() > 0) {
+                ids.clear();
+                ids.reserve(i_part->NumberOfMasterSlaveConstraints());
+                for (const auto& r_constraint : i_part->MasterSlaveConstraints()) {
+                    ids.push_back(r_constraint.Id());
+                }
+                r_destination_part.AddMasterSlaveConstraints(ids, 0);
+            }
         }
 
         // Duplicate the Communicator for this SubModelPart
-        this->DuplicateCommunicatorData(*i_part, destination_part);
+        this->DuplicateCommunicatorData(*i_part, r_destination_part);
 
         // Recursively call this function to duplicate any child SubModelParts
-        this->DuplicateSubModelParts(*i_part, destination_part);
+        this->DuplicateSubModelParts(*i_part, r_destination_part);
     }
 }
 

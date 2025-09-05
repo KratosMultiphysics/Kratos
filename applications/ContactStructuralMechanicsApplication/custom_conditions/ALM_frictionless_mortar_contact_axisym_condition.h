@@ -173,7 +173,7 @@ public:
     ///@{
 
     /**
-     * @brief Creates a new element pointer from an arry of nodes
+     * @brief Creates a new element pointer from an array of nodes
      * @param NewId The ID of the new element
      * @param ThisNodes tThe nodes of the new element
      * @param pProperties The properties assigned to the new element
@@ -214,7 +214,7 @@ public:
         ) const override;
 
     /******************************************************************/
-    /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
+    /********** AUXILIARY METHODS FOR GENERAL CALCULATIONS ************/
     /******************************************************************/
 
     /**

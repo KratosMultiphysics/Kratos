@@ -50,6 +50,8 @@ namespace Testing
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3.
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP3, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -94,6 +96,8 @@ namespace Testing
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=4.
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP4, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -138,6 +142,8 @@ namespace Testing
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=5.
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP5, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -182,6 +188,8 @@ namespace Testing
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3 (with initial displacement)
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP3Disp, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -243,6 +251,8 @@ namespace Testing
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=4 (with initial displacement)
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP4Disp, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -311,6 +321,8 @@ namespace Testing
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=5 (with initial displacement)
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP5Disp, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);

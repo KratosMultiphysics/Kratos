@@ -12,14 +12,14 @@ Begin Properties 1
   YOUNG_MODULUS 2.5e7
   POISSON_RATIO 0.2
   DENSITY_SOLID 2.0e3
-  DENSITY_WATER 1.0e3
+  DENSITY_LIQUID 1.0e3
   POROSITY 0.3
   BULK_MODULUS_SOLID 1.5e17
-  BULK_MODULUS_FLUID 3.0e14
+  BULK_MODULUS_LIQUID 3.0e14
   PERMEABILITY_XX 1.0e-14
   PERMEABILITY_YY 1.0e-14
   PERMEABILITY_XY 0.0
-  DYNAMIC_VISCOSITY 1.0e-3
+  DYNAMIC_VISCOSITY_LIQUID 1.0e-3
   THICKNESS 1.0
   BIOT_COEFFICIENT 0.9999999999074074
 End Properties
@@ -152,7 +152,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements SmallStrainUPwDiffOrderElement2D9N
+Begin Elements SmallStrainUPlDiffOrderElement2D9N
   1  0  123 117 115 121 120 116 118 122 119
   2  0  117 111 109 115 114 110 112 116 113
   3  0  111 105 103 109 108 104 106 110 107
@@ -180,7 +180,7 @@ Begin Conditions LineLoadDiffOrderCondition2D3N
   1  1  5 1 2
 End Conditions
 
-Begin Conditions LineNormalFluidFluxDiffOrderCondition2D3N
+Begin Conditions LineNormalLiquidFluxDiffOrderCondition2D3N
   2  1  121 123 122
   3  1  123 117 120
   4  1  115 121 118
@@ -499,7 +499,7 @@ Begin SubModelPart Solid_Displacement-auto-3
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Fluid_Pressure-auto-1
+Begin SubModelPart Liquid_Pressure-auto-1
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
@@ -529,7 +529,7 @@ Begin SubModelPart Face_Load-auto-1
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Normal_Fluid_Flux-auto-1
+Begin SubModelPart Normal_Liquid_Flux-auto-1
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes

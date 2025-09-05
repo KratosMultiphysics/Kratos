@@ -69,7 +69,7 @@ int TwoFluidNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::Check(const
 //         }
 //         FluidElementUtilities<3>::SetTangentialProjectionMatrix(nodal_normal, nodal_projection_matrix);
 
-//         // Finding the coefficent to relate velocity to drag
+//         // Finding the coefficient to relate velocity to drag
 //         const double viscosity = r_geom[i_node].GetSolutionStepValue(DYNAMIC_VISCOSITY);
 //         const double navier_slip_length = r_geom[i_node].GetValue(SLIP_LENGTH);
 //         KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;
@@ -119,7 +119,7 @@ int TwoFluidNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::Check(const
 //         nodal_normal /= sqrt(sum_of_squares);
 //         FluidElementUtilities<3>::SetTangentialProjectionMatrix( nodal_normal, nodal_projection_matrix );
 
-//         // finding the coefficent to relate velocity to drag
+//         // finding the coefficient to relate velocity to drag
 //         const double viscosity = r_geom[inode].GetSolutionStepValue(DYNAMIC_VISCOSITY);
 //         const double navier_slip_length = r_geom[inode].GetValue(SLIP_LENGTH);
 //         KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;

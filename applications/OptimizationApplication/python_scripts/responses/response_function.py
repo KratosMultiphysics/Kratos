@@ -7,7 +7,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 class ResponseFunction(ABC):
     """Base response function.
 
-    This reponse function is the base response function. This is assumed to have following responsibilities.
+    This response function is the base response function. This is assumed to have following responsibilities.
         1. CalculateValue for a new design. (@see CalculateValue)
         2. CalculateSensitivity for a new design (@see CalculateSensitivity)
 
@@ -55,8 +55,8 @@ class ResponseFunction(ABC):
         that sensitivities w.r.t. those variables are requested from the response. If sensitivities
         w.r.t. other variables are required from this response, they are ASSUMED TO BE ZERO.
 
-        Please return all the dependent physical variables, eventhough the gradient computation is not yet implemented
-        for some to avoid future bugs.
+        Please return all the dependent physical variables, even though the gradient computation is not yet
+        implemented for some to avoid future bugs.
 
         Returns:
             list[SupportedSensitivityFieldVariableTypes]: All dependent physical variables of the response.
@@ -94,22 +94,33 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
-        """Returns the model part for which this response is computed on.
+    def GetInfluencingModelPart(self) -> Kratos.ModelPart:
+        """Returns the model part which influences the computation of the response value.
+
+        Following two cases are considered:
+            1. Responses without adjoint system solve: The value of the response can only be influenced by
+               changing the quantities in the evaluated model part (evaluated model part is the one which the
+               response value is computed.) Therefore, in this case, this method should return the
+               evaluated model part.
+            2. Responses with adjoint system solve: The value of the response can be influenced by
+                changing quantities in the adjoint/primal model part (Evaluated model part needs to have
+                intersection with the adjoint/primal model part). Therefore, in this case, this method should return the
+                adjoint analysis model part.
 
         Returns:
-            Kratos.ModelPart: Response function model part.
+            Kratos.ModelPart: Response function model part which influences the response value.
         """
         pass
 
-    @abstractmethod
-    def GetAnalysisModelPart(self) -> 'Union[Kratos.ModelPart, None]':
-        """Returns the analysis model part if exists. Otherwise returns None.
+    def GetChildResponses(self) -> 'list[ResponseFunction]':
+        """Returns the list of child responses.
 
-        This method returns the analysis model part if an analysis is used (as in Adjoint case)
-        to compute the gradients. If it is not the case, then None should be returned.
+        This method returns list of child responses. If the current response is a leaf response,
+        then it will return empty list.
+
+        Needs to be implemented in non-leaf response functions.
 
         Returns:
-            Union[Kratos.ModelPart, None]: Analysis model part if used, otherwise None
+            list[ResponseFunction]: List of child responses.
         """
-        pass
+        return []

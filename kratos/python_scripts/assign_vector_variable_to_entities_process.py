@@ -33,7 +33,6 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                 : "This process assigns a given value (vector) to the entities belonging a certain submodelpart",
-            "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
@@ -72,7 +71,6 @@ class AssignVectorVariableToEntitiesProcess(KratosMultiphysics.Process):
             if not settings["value"][i_dir].IsNull():
                 direction_params = KratosMultiphysics.Parameters("{}")
                 direction_params.AddValue("model_part_name",settings["model_part_name"])
-                direction_params.AddValue("mesh_id",settings["mesh_id"])
                 direction_params.AddValue("interval",settings["interval"])
                 direction_params.AddValue("value",settings["value"][i_dir])
                 direction_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + var_string)

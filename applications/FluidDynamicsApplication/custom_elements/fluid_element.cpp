@@ -15,15 +15,17 @@
 #include "includes/checks.h"
 
 #include "data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
-#include "custom_utilities/qsvms_data.h"
-#include "custom_utilities/time_integrated_qsvms_data.h"
-#include "custom_utilities/qsvms_dem_coupled_data.h"
-#include "custom_utilities/fic_data.h"
-#include "custom_utilities/time_integrated_fic_data.h"
-#include "custom_utilities/symbolic_stokes_data.h"
-#include "custom_utilities/two_fluid_navier_stokes_data.h"
-#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+#include "data_containers/low_mach_navier_stokes/low_mach_navier_stokes_data.h"
+#include "data_containers/qs_vms/qs_vms_data.h"
+#include "data_containers/time_integrated_qs_vms/time_integrated_qs_vms_data.h"
+#include "data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
+#include "data_containers/fic/fic_data.h"
+#include "data_containers/time_integrated_fic/time_integrated_fic_data.h"
+#include "data_containers/stokes/stokes_data.h"
+#include "data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_data.h"
+#include "data_containers/two_fluid_navier_stokes_alpha_method/two_fluid_navier_stokes_alpha_method_data.h"
+#include "data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
+#include "data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
 
@@ -106,7 +108,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
                                                       VectorType& rRightHandSideVector,
                                                       const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
@@ -145,7 +147,7 @@ template <class TElementData>
 void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
@@ -210,7 +212,7 @@ template <class TElementData>
 void FluidElement<TElementData>::CalculateLocalVelocityContribution(
     MatrixType& rDampMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if( rDampMatrix.size1() != LocalSize )
         rDampMatrix.resize(LocalSize,LocalSize,false);
 
@@ -248,7 +250,7 @@ template <class TElementData>
 void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                      const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rMassMatrix.size1() != LocalSize)
         rMassMatrix.resize(LocalSize, LocalSize, false);
 
@@ -927,6 +929,7 @@ template class FluidElement< AxisymmetricNavierStokesData<2,4> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,3> >;
 template class FluidElement< QSVMSDEMCoupledData<3,4> >;
+template class FluidElement< QSVMSDEMCoupledData<3,10> >;
 
 template class FluidElement< QSVMSDEMCoupledData<2,4> >;
 template class FluidElement< QSVMSDEMCoupledData<2,6> >;
@@ -948,6 +951,13 @@ template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
 template class FluidElement<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
 template class FluidElement< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
+template class FluidElement<TwoFluidNavierStokesFractionalData<2, 3>>;
+template class FluidElement<TwoFluidNavierStokesFractionalData<3, 4>>;
+
+template class FluidElement< LowMachNavierStokesData<2,3> >;
+template class FluidElement< LowMachNavierStokesData<2,4> >;
+template class FluidElement< LowMachNavierStokesData<3,4> >;
+template class FluidElement< LowMachNavierStokesData<3,8> >;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

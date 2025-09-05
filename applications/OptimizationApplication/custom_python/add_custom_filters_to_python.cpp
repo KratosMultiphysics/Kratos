@@ -17,7 +17,10 @@
 // Project includes
 
 // Application includes
-#include "custom_utilities/filtering/explicit_filter.h"
+#include "custom_utilities/filtering/explicit_filter_utils.h"
+#include "custom_utilities/filtering/explicit_damping.h"
+#include "custom_utilities/filtering/neareset_entity_explicit_damping.h"
+#include "custom_utilities/filtering/integrated_neareset_entity_explicit_damping.h"
 
 // Include base h
 #include "add_custom_filters_to_python.h"
@@ -29,31 +32,70 @@ namespace Detail
 {
 
 template <class TContainerType>
-void AddExplicitFilter(
+void AddExplicitFilterUtils(
     pybind11::module& m,
     const std::string& rName)
 {
     namespace py = pybind11;
 
-    py::class_<ExplicitFilter<TContainerType>, typename ExplicitFilter<TContainerType>::Pointer>(m, rName.c_str())
-        .def(py::init<const ModelPart&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"))
-        .def(py::init<const ModelPart&, const ModelPart&, const std::string&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("fixed_model_part"), py::arg("kernel_function_type"), py::arg("damping_function_type"), py::arg("max_number_of_neighbours"))
-        .def("SetFilterRadius", &ExplicitFilter<TContainerType>::SetFilterRadius, py::arg("filter_radius"))
-        .def("FilterField", &ExplicitFilter<TContainerType>::FilterField, py::arg("unfiltered_field"))
-        .def("FilterIntegratedField", &ExplicitFilter<TContainerType>::FilterIntegratedField, py::arg("filtered_field"))
-        .def("GetIntegrationWeights", &ExplicitFilter<TContainerType>::GetIntegrationWeights, py::arg("integration_weight_field"))
-        .def("Update", &ExplicitFilter<TContainerType>::Update)
-        .def("__str__", &ExplicitFilter<TContainerType>::Info)
+    py::class_<ExplicitFilterUtils<TContainerType>, typename ExplicitFilterUtils<TContainerType>::Pointer>(m, rName.c_str())
+        .def(py::init<const ModelPart&, const std::string&, const std::size_t, const std::size_t>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"), py::arg("echo_level"))
+        .def("SetRadius", &ExplicitFilterUtils<TContainerType>::SetRadius, py::arg("filter_radius"))
+        .def("SetDamping", &ExplicitFilterUtils<TContainerType>::SetDamping, py::arg("damping"))
+        .def("ForwardFilterField", &ExplicitFilterUtils<TContainerType>::ForwardFilterField, py::arg("mesh_independent_control_space_field"))
+        .def("BackwardFilterField", &ExplicitFilterUtils<TContainerType>::BackwardFilterField, py::arg("physical_space_mesh_independent_gradient"))
+        .def("BackwardFilterIntegratedField", &ExplicitFilterUtils<TContainerType>::BackwardFilterIntegratedField, py::arg("physical_space_mesh_dependent_gradient"))
+        .def("GetRadius", &ExplicitFilterUtils<TContainerType>::GetRadius)
+        .def("GetIntegrationWeights", &ExplicitFilterUtils<TContainerType>::GetIntegrationWeights, py::arg("integration_weight_field"))
+        .def("CalculateMatrix", &ExplicitFilterUtils<TContainerType>::CalculateMatrix, py::arg("output_filtering_matrix"))
+        .def("Update", &ExplicitFilterUtils<TContainerType>::Update)
+        .def("__str__", &ExplicitFilterUtils<TContainerType>::Info)
         ;
 }
+
+template<class TContainerType>
+void AddExplicitDamping(
+    pybind11::module& m,
+    const std::string& rSuffix)
+{
+    namespace py = pybind11;
+
+    using explicit_damping_type = ExplicitDamping<TContainerType>;
+    py::class_<explicit_damping_type, typename explicit_damping_type::Pointer>(m, (rSuffix + "ExplicitDamping").c_str())
+        .def("SetRadius", &explicit_damping_type::SetRadius, py::arg("radius_expression"))
+        .def("GetRadius", &explicit_damping_type::GetRadius)
+        .def("GetStride", &explicit_damping_type::GetStride)
+        .def("GetDampedModelParts", &explicit_damping_type::GetDampedModelParts)
+        .def("CalculateMatrix", &explicit_damping_type::CalculateMatrix, py::arg("output_matrix"), py::arg("component_index"))
+        .def("Update", &explicit_damping_type::Update)
+        ;
+
+    using nearest_entity_explicit_damping_type = NearestEntityExplicitDamping<TContainerType>;
+    py::class_<nearest_entity_explicit_damping_type, typename nearest_entity_explicit_damping_type::Pointer, explicit_damping_type>(m, ("Nearest" + rSuffix + "ExplicitDamping").c_str())
+        .def(py::init<Model&, Parameters, const IndexType>(), py::arg("model"), py::arg("parameters"), py::arg("stride"))
+        ;
+
+    using integrated_nearest_entity_explicit_damping_type = IntegratedNearestEntityExplicitDamping<TContainerType>;
+    py::class_<integrated_nearest_entity_explicit_damping_type, typename integrated_nearest_entity_explicit_damping_type::Pointer, explicit_damping_type>(m, ("IntegratedNearest" + rSuffix + "ExplicitDamping").c_str())
+        .def(py::init<Model&, Parameters, const IndexType>(), py::arg("model"), py::arg("parameters"), py::arg("stride"))
+        ;
+}
+
 
 } // namespace Detail
 
 void AddCustomFiltersToPython(pybind11::module& m)
 {
-    Detail::AddExplicitFilter<ModelPart::NodesContainerType>(m, "NodalExplicitFilter");
-    Detail::AddExplicitFilter<ModelPart::ConditionsContainerType>(m, "ConditionExplicitFilter");
-    Detail::AddExplicitFilter<ModelPart::ElementsContainerType>(m, "ElementExplicitFilter");
+    namespace py = pybind11;
+
+    // Add damping interface
+    Detail::AddExplicitDamping<ModelPart::NodesContainerType>(m, "Node");
+    Detail::AddExplicitDamping<ModelPart::ConditionsContainerType>(m, "Condition");
+    Detail::AddExplicitDamping<ModelPart::ElementsContainerType>(m, "Element");
+
+    Detail::AddExplicitFilterUtils<ModelPart::NodesContainerType>(m, "NodeExplicitFilterUtils");
+    Detail::AddExplicitFilterUtils<ModelPart::ConditionsContainerType>(m, "ConditionExplicitFilterUtils");
+    Detail::AddExplicitFilterUtils<ModelPart::ElementsContainerType>(m, "ElementExplicitFilterUtils");
 
 }
 

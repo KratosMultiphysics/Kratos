@@ -1,10 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
-
-if(${CMAKE_VERSION} VERSION_LESS 3.12)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-else()
-    cmake_policy(VERSION 3.12)
-endif()
+cmake_minimum_required(VERSION 3.12...4.0)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, default to RelWithDebInfo")
@@ -61,11 +55,22 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLBoostTargets.cmake")
 add_library(Common INTERFACE)
 add_library(VexCL::Common ALIAS Common)
 
+target_compile_features(Common INTERFACE
+    cxx_auto_type
+    cxx_nullptr
+    cxx_rvalue_references
+    cxx_right_angle_brackets
+    cxx_static_assert
+    cxx_variadic_templates
+    cxx_decltype
+)
+
 if (VEXCL_AMD_SI_WORKAROUND)
     target_compile_definitions(Common INTERFACE VEXCL_AMD_SI_WORKAROUND)
 endif()
 
 target_include_directories(Common INTERFACE
+    ${Boost_INCLUDE_DIRS}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
     )
@@ -91,6 +96,7 @@ target_compile_options(Common INTERFACE
     $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-declarations>
     $<$<CXX_COMPILER_ID:GNU>:-Wno-ignored-attributes>
     $<$<CXX_COMPILER_ID:GNU>:-Wno-unused-local-typedefs>
+    $<$<CXX_COMPILER_ID:GNU>:-Wno-variadic-macros>
     # Clang
     $<$<CXX_COMPILER_ID:Clang>:$<BUILD_INTERFACE:-Wall>>
     $<$<CXX_COMPILER_ID:Clang>:-Wno-missing-braces>
@@ -113,15 +119,24 @@ target_compile_definitions(Common INTERFACE
 #----------------------------------------------------------------------------
 find_package(OpenCL)
 
-# Ensure all targets are available
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLOpenCLTarget.cmake")
-
 if(OpenCL_FOUND)
+    set(CL_HPP_TARGET_OPENCL_VERSION 120 CACHE STRING "Target OpenCL version")
+    set(CL_HPP_MINIMUM_OPENCL_VERSION 120 CACHE STRING "Minimum OpenCL version")
+
     add_library(OpenCL INTERFACE)
     add_library(VexCL::OpenCL ALIAS OpenCL)
 
     target_link_libraries(OpenCL INTERFACE Common OpenCL::OpenCL)
     target_compile_definitions(OpenCL INTERFACE VEXCL_BACKEND_OPENCL)
+    target_compile_definitions(OpenCL INTERFACE CL_TARGET_OPENCL_VERSION=${CL_HPP_TARGET_OPENCL_VERSION})
+    target_compile_definitions(OpenCL INTERFACE CL_HPP_TARGET_OPENCL_VERSION=${CL_HPP_TARGET_OPENCL_VERSION})
+    target_compile_definitions(OpenCL INTERFACE CL_HPP_MINIMUM_OPENCL_VERSION=${CL_HPP_MINIMUM_OPENCL_VERSION})
+
+    find_file(OPENCL_HPP CL/opencl.hpp HINTS ${OpenCL_INCLUDE_DIRS})
+    message(STATUS " -- ${OPENCL_HPP} --")
+    if(OPENCL_HPP)
+        target_compile_definitions(OpenCL INTERFACE VEXCL_HAVE_OPENCL_HPP)
+    endif()
 
     target_compile_options(Common INTERFACE
         $<$<CXX_COMPILER_ID:GNU>:-Wno-catch-value>
@@ -129,7 +144,7 @@ if(OpenCL_FOUND)
 
     message(STATUS "Found VexCL::OpenCL")
 
-    if (NOT "${Boost_VERSION}" STRLESS "106100")
+    if ("${Boost_VERSION}" VERSION_GREATER_EQUAL "1.61.0")
         add_library(Compute INTERFACE)
         add_library(VexCL::Compute ALIAS Compute)
 
@@ -140,20 +155,44 @@ if(OpenCL_FOUND)
     endif()
 endif()
 
-find_package(CUDA)
-if(CUDA_FOUND)
-    add_library(CUDA INTERFACE)
-    add_library(VexCL::CUDA ALIAS CUDA)
+# find_package(CUDA) has been deprecated since CMake 3.10,
+# but checking for CUDA availability without enabling language
+# support for it (using FindCUDAToolkit) was only added in
+# CMake 3.17. To use the deprecated method in versions < 3.17,
+# CMP0146 must be set.
+if (${CMAKE_VERSION} VERSION_LESS 3.17)
+    # Use the deprecated find_package(CUDA) to check for
+    # CUDA availability.
+    cmake_policy(SET CMP0146 NEW)
+    find_package(CUDA)
+    if (CUDA_FOUND)
+        add_library(CUDA INTERFACE)
+        add_library(VexCL::CUDA ALIAS CUDA)
 
-    target_include_directories(CUDA INTERFACE "${CUDA_INCLUDE_DIRS}")
-    target_link_libraries(CUDA INTERFACE Common "${CUDA_CUDA_LIBRARY}")
-    target_compile_definitions(CUDA INTERFACE VEXCL_BACKEND_CUDA)
+        target_include_directories(CUDA INTERFACE "${CUDA_INCLUDE_DIRS}")
+        target_link_libraries(CUDA INTERFACE Common "${CUDA_CUDA_LIBRARY}")
+        target_compile_definitions(CUDA INTERFACE VEXCL_BACKEND_CUDA)
 
-    message(STATUS "Found VexCL::CUDA")
+        message(STATUS "Found VexCL::CUDA")
+    endif()
+else()
+    # Check for CUDA availability using FindCUDAToolkit and add
+    # support for the CUDA language if it is successful.
+    find_package(CUDAToolkit)
+    if (CUDAToolkit_FOUND)
+        enable_language(CUDA)
+        add_library(CUDA INTERFACE)
+        add_library(VexCL::CUDA ALIAS CUDA)
+
+        target_link_libraries(CUDA INTERFACE Common CUDA::toolkit CUDA::cuda_driver)
+        target_compile_definitions(CUDA INTERFACE VEXCL_BACKEND_CUDA)
+
+        message(STATUS "Found VexCL::CUDA")
+    endif()
 endif()
 
-if (NOT "${Boost_VERSION}" STRLESS "106100")
-
+find_path(Boost_DLL NAMES boost/dll PATHS ${Boost_INCLUDE_DIRS})
+if (Boost_DLL)
     if(OpenCL_INCLUDE_DIR)
         add_library(JIT INTERFACE)
         target_include_directories(JIT INTERFACE "${OpenCL_INCLUDE_DIR}")
@@ -226,7 +265,14 @@ if (VEXCL_MASTER_PROJECT)
     option(VEXCL_BUILD_TESTS    OFF)
     option(VEXCL_BUILD_EXAMPLES OFF)
 
-    set(VEXCL_BACKEND "OpenCL" CACHE STRING "Select VexCL backend (OpenCL/CUDA/Compute/JIT/All)")
+    foreach(target OpenCL CUDA Compute JIT)
+        if (TARGET ${target})
+            set(VEXCL_BACKEND "${target}" CACHE STRING "Select VexCL backend (OpenCL/CUDA/Compute/JIT/All)")
+            break()
+        endif()
+    endforeach()
+    message(STATUS "Selected backend: ${VEXCL_BACKEND}")
+
     set_property(CACHE VEXCL_BACKEND PROPERTY STRINGS "All" "OpenCL" "CUDA" "Compute" "JIT")
 
     if("${VEXCL_BACKEND}" STREQUAL "OpenCL")
@@ -313,12 +359,6 @@ if (VEXCL_MASTER_PROJECT)
         )
 
     configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLOpenCLTarget.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/cmake/VexCLOpenCLTarget.cmake"
-        COPYONLY
-        )
-
-    configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLBoostTargets.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/cmake/VexCLBoostTargets.cmake"
         COPYONLY
@@ -341,7 +381,6 @@ if (VEXCL_MASTER_PROJECT)
       FILES
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/VexCLConfig.cmake
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLTools.cmake
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLOpenCLTarget.cmake
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake/VexCLBoostTargets.cmake
       DESTINATION
         share/vexcl/cmake

@@ -84,3 +84,7 @@ class SimpleThermoMechanicalTest(ConvectionDiffusionTestFactory):
 @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class SimpleThermoMechanicalTableAccessorTest(ConvectionDiffusionTestFactory):
     file_name = "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+class SimpleThermoMechanicalDamageTest(ConvectionDiffusionTestFactory):
+    file_name = "thermo_mechanical_tests/thermo_mechanical_damage/thermo_mech_damage_test"

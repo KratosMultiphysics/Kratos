@@ -12,7 +12,7 @@
 
 namespace flow_stubs
 {
-    void emptyProgress(double progress);
-    void emptyLog(const char* log);
-    bool emptyCancel();
-}
+void emptyProgress(double progress);
+void emptyLog(const char* log);
+bool emptyCancel();
+} // namespace flow_stubs

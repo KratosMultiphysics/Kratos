@@ -21,6 +21,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"

@@ -77,7 +77,7 @@ for normalvar in range(normal_combs):
         u1old = custom_sympy_fe_utilities.DefineMatrix('u1old', nnodes, dim, "Symbol")        # u1(i,j) is the previous displacement of node i component j at domain 1
         u2old = custom_sympy_fe_utilities.DefineMatrix('u2old', nnodes_master, dim, "Symbol") # u2(i,j) is the previous displacement of node i component j at domain 2
 
-        # Normal and tangets of the slave
+        # Normal and tangents of the slave
         if normalvar == 1:
             NormalSlave = custom_sympy_fe_utilities.DefineMatrix('NormalSlave', nnodes, dim)
         else:

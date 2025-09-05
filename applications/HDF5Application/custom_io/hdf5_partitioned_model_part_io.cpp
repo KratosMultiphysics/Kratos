@@ -43,18 +43,6 @@ PartitionedModelPartIO::PartitionedModelPartIO(
     KRATOS_CATCH("");
 }
 
-PartitionedModelPartIO::PartitionedModelPartIO(
-    const std::string& rPrefix,
-    File::Pointer pFile)
-    : ModelPartIO(rPrefix, pFile)
-{
-    KRATOS_TRY;
-
-    Check();
-
-    KRATOS_CATCH("");
-}
-
 bool PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
 {
     KRATOS_TRY;
@@ -100,6 +88,7 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     // Write ghost nodes.
     Internals::PointsData<Internals::NodesIO> ghost_points(mPrefix + "/Nodes/Ghost", mpFile);
     ghost_points.Write(ghost_nodes, Internals::NodesIO{}, Parameters(R"({})"));
+    WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
 
     // Write partition index
     WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
@@ -136,8 +125,7 @@ void PartitionedModelPartIO::ReadParitionIndices(ModelPart& rModelPart)
 
     // now we read the ghost node partition index from the H5 file.
     const auto& r_ghost_node_path = mPrefix + "/Nodes/Ghost";
-    unsigned start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, r_ghost_node_path);
+    const auto [start_index, block_size] = StartIndexAndBlockSize(*mpFile, r_ghost_node_path);
     Vector<int> partition_ids, node_ids;
     mpFile->ReadDataSet(r_ghost_node_path + "/PARTITION_INDEX", partition_ids, start_index, block_size);
     mpFile->ReadDataSet(r_ghost_node_path + "/Ids", node_ids, start_index, block_size);
@@ -171,11 +159,11 @@ void PartitionedModelPartIO::SetCommunicator(ModelPart& rModelPart) const
     auto& r_local_nodes = r_communicator.LocalMesh().Nodes();
     auto& r_ghost_nodes = r_communicator.GhostMesh().Nodes();
 
-    for (auto& p_node : rModelPart.Nodes().GetContainer()) {
-        if (p_node->FastGetSolutionStepValue(PARTITION_INDEX) == my_pid) {
-            r_local_nodes.push_back(p_node);
+    for (auto p_itr = rModelPart.Nodes().ptr_begin(); p_itr != rModelPart.Nodes().ptr_end(); ++p_itr) {
+        if ((*p_itr)->FastGetSolutionStepValue(PARTITION_INDEX) == my_pid) {
+            r_local_nodes.insert(r_local_nodes.end(), *p_itr);
         } else {
-            r_ghost_nodes.push_back(p_node);
+            r_ghost_nodes.insert(r_ghost_nodes.end(), *p_itr);
         }
     }
 

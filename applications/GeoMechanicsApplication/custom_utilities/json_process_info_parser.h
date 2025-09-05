@@ -17,15 +17,17 @@
 
 #include <vector>
 
-namespace Kratos {
+namespace Kratos
+{
 
-class JsonProcessInfoParser : public ProcessInfoParser
+class KRATOS_API(GEO_MECHANICS_APPLICATION) JsonProcessInfoParser : public ProcessInfoParser
 {
 public:
     std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) const override;
 
 private:
-    std::vector<ProcessParameters> AddProcessesForList(const std::string& rProcessListName, const Parameters& rProcessParameters) const;
+    std::vector<ProcessParameters> AddProcessesForList(const std::string& rProcessListName,
+                                                       const Parameters&  rProcessParameters) const;
 };
 
-}
+} // namespace Kratos

@@ -1,9 +1,11 @@
+import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import HasContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 
 class MasterControl:
     """Master control class.
@@ -180,11 +182,21 @@ class MasterControl:
         update_map: 'dict[Control, bool]' = {}
         for control, container_expression in zip(self.__list_of_controls, update_collective_expressions.GetContainerExpressions()):
             update_map[control] = control.Update(container_expression)
+            if update_map[control]:
+                Kratos.Logger.PrintInfo(f"Control {control.GetName()} updated.")
+            else:
+                Kratos.Logger.PrintInfo(f"Control {control.GetName()} not updated")
 
         return update_map
 
-    def Initialize(self):
-        pass
+    def Check(self) -> None:
+        CallOnAll(self.__list_of_controls, Control.Check)
 
-    def Finalize(self):
-        pass
+    def Initialize(self) -> None:
+        CallOnAll(self.__list_of_controls, Control.Initialize)
+
+    def Finalize(self) -> None:
+        CallOnAll(self.__list_of_controls, Control.Finalize)
+
+    def GetName(self) -> str:
+        return "master_control"

@@ -1,0 +1,31 @@
+{
+    "materials"                  : [{
+        "material_name" : "Material",
+        "material_id"   : 1,
+        "Variables"     : {
+            "PARTICLE_DENSITY"              : 1.0,
+            "YOUNG_MODULUS"                 : 1000000.0,
+            "POISSON_RATIO"                 : 0.1,
+            "PARTICLE_SPHERICITY"           : 1.0,
+            "THERMAL_CONDUCTIVITY"          : 1.0,
+            "SPECIFIC_HEAT"                 : 1.0,
+            "EMISSIVITY"                    : 1.0,
+            "THERMAL_EXPANSION_COEFFICIENT" : 0.0
+        }
+    }],
+    "material_relations"         : [{
+        "material_names_list" : ["Material","Material"],
+        "material_ids_list"   : [1,1],
+        "Variables"           : {
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Linear_Simple_Coulomb",
+            "STATIC_FRICTION"                        : 0.5,
+            "DYNAMIC_FRICTION"                       : 0.5,
+            "FRICTION_DECAY"                         : 100,
+            "COEFFICIENT_OF_RESTITUTION"             : 0.5,
+            "ROLLING_FRICTION"                       : 0.01,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.01,
+			"DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+        }
+    }],
+    "material_assignation_table" : [["SpheresPart.DEMParts_Particles","Material"],["RigidFacePart.DEM-FEM-Wall2D_WallX-","Material"],["RigidFacePart.DEM-FEM-Wall2D_WallX+","Material"],["RigidFacePart.DEM-FEM-Wall2D_WallY-","Material"],["RigidFacePart.DEM-FEM-Wall2D_WallY+","Material"]]
+}

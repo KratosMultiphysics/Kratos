@@ -12,91 +12,102 @@
 //                   Vahid Galavi
 //
 
-
 // Project includes
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
+#include "custom_utilities/variables_utilities.hpp"
+#include "includes/variables.h"
+#include "utilities/math_utils.h"
+
+#include <numeric>
 
 namespace Kratos
 {
 
 // Default Constructor
-SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition() : SurfaceLoad3DDiffOrderCondition() {}
-
-//----------------------------------------------------------------------------------------
-//Constructor 1
-SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry) : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry) {}
-
-//----------------------------------------------------------------------------------------
-//Constructor 2
-SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry, pProperties) {}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Condition::Pointer SurfaceNormalLoad3DDiffOrderCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition()
+    : SurfaceLoad3DDiffOrderCondition()
 {
-    return Condition::Pointer(new SurfaceNormalLoad3DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SurfaceNormalLoad3DDiffOrderCondition::
-CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
+// Constructor 1
+SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
+                                                                             GeometryType::Pointer pGeometry)
+    : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry)
+{
+}
+
+// Constructor 2
+SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
+                                                                             GeometryType::Pointer pGeometry,
+                                                                             PropertiesType::Pointer pProperties)
+    : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry, pProperties)
+{
+}
+
+Condition::Pointer SurfaceNormalLoad3DDiffOrderCondition::Create(IndexType             NewId,
+                                                                 NodesArrayType const& ThisNodes,
+                                                                 PropertiesType::Pointer pProperties) const
+{
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer SurfaceNormalLoad3DDiffOrderCondition::Create(IndexType             NewId,
+                                                                 GeometryType::Pointer pGeom,
+                                                                 PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<SurfaceNormalLoad3DDiffOrderCondition>(NewId, pGeom, pProperties);
+}
+
+void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables,
+                                                                     unsigned int PointNumber)
 {
     KRATOS_TRY
 
-    double NormalVector[3];
+    Vector normal_vector(3);
+    MathUtils<double>::CrossProduct(normal_vector, column(rVariables.JContainer[PointNumber], 0),
+                                    column(rVariables.JContainer[PointNumber], 1));
 
-    NormalVector[0] = rVariables.JContainer[PointNumber](1,0) * rVariables.JContainer[PointNumber](2,1) -
-                      rVariables.JContainer[PointNumber](2,0) * rVariables.JContainer[PointNumber](1,1);
+    const auto& r_geometry = GetGeometry();
+    Vector      normal_stresses(r_geometry.PointsNumber());
+    VariablesUtilities::GetNodalValues(r_geometry, NORMAL_CONTACT_STRESS, normal_stresses.begin());
 
-    NormalVector[1] = rVariables.JContainer[PointNumber](2,0) * rVariables.JContainer[PointNumber](0,1) -
-                      rVariables.JContainer[PointNumber](0,0) * rVariables.JContainer[PointNumber](2,1);
+    // Since the normal vector is pointing outwards for the 3D conditions, the normal stress
+    // should switch sign, such that positive normal contact stress is defined inwards.
+    const auto normal_stress = -1.0 * std::inner_product(rVariables.Nu.cbegin(), rVariables.Nu.cend(),
+                                                         normal_stresses.cbegin(), 0.0);
+    rVariables.ConditionVector = normal_stress * normal_vector;
 
-    NormalVector[2] = rVariables.JContainer[PointNumber](0,0) * rVariables.JContainer[PointNumber](1,1) -
-                      rVariables.JContainer[PointNumber](1,0) * rVariables.JContainer[PointNumber](0,1);
-    
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType NumUNodes = rGeom.PointsNumber();
-    double NormalStress = 0.0;
-    rVariables.ConditionVector.resize(3,false);
-
-    for ( SizeType i = 0; i < NumUNodes; ++i ) {
-        NormalStress += rVariables.Nu[i]*rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
-    }
-
-    rVariables.ConditionVector[0] = NormalStress * NormalVector[0];
-    rVariables.ConditionVector[1] = NormalStress * NormalVector[1];
-    rVariables.ConditionVector[2] = NormalStress * NormalVector[2];
-
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-double SurfaceNormalLoad3DDiffOrderCondition::
-    CalculateIntegrationCoefficient(const IndexType PointNumber,
-                                    const GeometryType::JacobiansType& JContainer,
-                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
-
+double SurfaceNormalLoad3DDiffOrderCondition::CalculateIntegrationCoefficient(
+    IndexType                                       PointNumber,
+    const GeometryType::JacobiansType&              rJContainer,
+    const GeometryType::IntegrationPointsArrayType& rIntegrationPoints) const
 {
     KRATOS_TRY
 
-    return IntegrationPoints[PointNumber].Weight();
+    return rIntegrationPoints[PointNumber].Weight();
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-void SurfaceNormalLoad3DDiffOrderCondition::
-    CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables)
+void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
+                                                                          ConditionVariables& rVariables)
 {
-    const SizeType NumUNodes = GetGeometry().PointsNumber();
-    SizeType Index;
-
-    for ( SizeType i = 0; i < NumUNodes; ++i ) {
-        Index = i * 3;
-        
-        rRightHandSideVector[Index]   += rVariables.Nu[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
-        rRightHandSideVector[Index+1] += rVariables.Nu[i] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
-        rRightHandSideVector[Index+2] += rVariables.Nu[i] * rVariables.ConditionVector[2] * rVariables.IntegrationCoefficient;
+    for (SizeType node = 0; node < GetGeometry().PointsNumber(); ++node) {
+        rRightHandSideVector[3 * node] +=
+            rVariables.Nu[node] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
+        rRightHandSideVector[3 * node + 1] +=
+            rVariables.Nu[node] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
+        rRightHandSideVector[3 * node + 2] +=
+            rVariables.Nu[node] * rVariables.ConditionVector[2] * rVariables.IntegrationCoefficient;
     }
+}
+
+std::string SurfaceNormalLoad3DDiffOrderCondition::Info() const
+{
+    return "SurfaceNormalLoad3DDiffOrderCondition";
 }
 
 } // Namespace Kratos.

@@ -16,7 +16,6 @@
 #include <stdexcept>
 #include <sstream>
 
-
 /* External includes */
 
 /* Project includes */
@@ -316,7 +315,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #endif
 #define KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::zero_vector<double>(3)); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::ZeroVector(3)); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0); \
@@ -337,7 +336,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #endif
 #define KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3, component4, component5, component6) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 6> > name(#name, Kratos::zero_vector<double>(6)); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 6> > name(#name, Kratos::ZeroVector(6)); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0); \
@@ -367,7 +366,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #endif
 #define KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3, component4) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 4> > name(#name, Kratos::zero_vector<double>(4)); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 4> > name(#name, Kratos::ZeroVector(4)); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0); \
@@ -391,7 +390,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #endif
 #define KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3, component4, component5, component6, component7, component8, component9) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 9> > name(#name, Kratos::zero_vector<double>(9)); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 9> > name(#name, Kratos::ZeroVector(9)); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0); \
@@ -431,7 +430,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 #define KRATOS_REGISTER_VARIABLE(name) \
     AddKratosComponent(name.Name(), name); \
-    KratosComponents<VariableData>::Add(name.Name(), name);
+    KratosComponents<VariableData>::Add(name.Name(), name); \
+    name.Register();
 
 #ifdef KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS
@@ -525,7 +525,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
 #define KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, variable_derivative) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::zero_vector<double>(3), &variable_derivative); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::ZeroVector(3), &variable_derivative); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0, &variable_derivative##_XX); \
@@ -546,7 +546,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
 #define KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, component5, component6, variable_derivative) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 6> > name(#name, Kratos::zero_vector<double>(6), &variable_derivative); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 6> > name(#name, Kratos::ZeroVector(6), &variable_derivative); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0, &variable_derivative##_XX); \
@@ -576,7 +576,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
 #define KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, variable_derivative) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 4> > name(#name, Kratos::zero_vector<double>(4), &variable_derivative); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 4> > name(#name, Kratos::ZeroVector(4), &variable_derivative); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0, &variable_derivative##_XX); \
@@ -600,7 +600,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
 #define KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, component5, component6, component7, component8, component9, variable_derivative) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 9> > name(#name, Kratos::zero_vector<double>(9), &variable_derivative); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 9> > name(#name, Kratos::ZeroVector(9), &variable_derivative); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0, &variable_derivative##_XX); \
@@ -696,43 +696,73 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #ifdef KRATOS_REGISTER_GEOMETRY
 #undef KRATOS_REGISTER_GEOMETRY
 #endif
-#define KRATOS_REGISTER_GEOMETRY(name, reference) \
-    KratosComponents<Geometry<Node>>::Add(name, reference); \
+#define KRATOS_REGISTER_GEOMETRY(name, reference)                                                                   \
+    KratosComponents<Geometry<Node>>::Add(name, reference);                                                         \
+    if(!Registry::HasItem("geometries."+Registry::GetCurrentSource()+"."+name) &&                                   \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("geometries."+Registry::GetCurrentSource()+"."+name);                       \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_ELEMENT
 #undef KRATOS_REGISTER_ELEMENT
 #endif
-#define KRATOS_REGISTER_ELEMENT(name, reference) \
-    KratosComponents<Element >::Add(name, reference); \
+#define KRATOS_REGISTER_ELEMENT(name, reference)                                                                    \
+    KratosComponents<Element>::Add(name, reference);                                                                \
+    if(!Registry::HasItem("elements."+Registry::GetCurrentSource()+"."+name) &&                                     \
+       !Registry::HasItem("components."+std::string(name))){                                                                    \
+        Registry::AddItem<RegistryItem>("elements."+Registry::GetCurrentSource()+"."+name);                         \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONDITION
 #undef KRATOS_REGISTER_CONDITION
 #endif
-#define KRATOS_REGISTER_CONDITION(name, reference) \
-    KratosComponents<Condition >::Add(name, reference); \
+#define KRATOS_REGISTER_CONDITION(name, reference)                                                                  \
+    KratosComponents<Condition>::Add(name, reference);                                                              \
+    if(!Registry::HasItem("conditions."+Registry::GetCurrentSource()+"."+name) &&                                   \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("conditions."+Registry::GetCurrentSource()+"."+name);                       \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONSTRAINT
 #undef KRATOS_REGISTER_CONSTRAINT
 #endif
-#define KRATOS_REGISTER_CONSTRAINT(name, reference) \
-    KratosComponents<MasterSlaveConstraint >::Add(name, reference); \
+#define KRATOS_REGISTER_CONSTRAINT(name, reference)                                                                 \
+    KratosComponents<MasterSlaveConstraint>::Add(name, reference);                                                  \
+    if(!Registry::HasItem("constraints."+Registry::GetCurrentSource()+"."+name) &&                                  \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("constraints."+Registry::GetCurrentSource()+"."+name);                      \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_MODELER
 #undef KRATOS_REGISTER_MODELER
 #endif
-#define KRATOS_REGISTER_MODELER(name, reference) \
-    KratosComponents<Modeler>::Add(name, reference); \
+#define KRATOS_REGISTER_MODELER(name, reference)                                                                    \
+    KratosComponents<Modeler>::Add(name, reference);                                                                \
+    if(!Registry::HasItem("modelers."+Registry::GetCurrentSource()+"."+name) &&                                     \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("modelers."+Registry::GetCurrentSource()+"."+name);                         \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #undef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #endif
-#define KRATOS_REGISTER_CONSTITUTIVE_LAW(name, reference) \
-    KratosComponents<ConstitutiveLaw >::Add(name, reference); \
+#define KRATOS_REGISTER_CONSTITUTIVE_LAW(name, reference)                                                           \
+    KratosComponents<ConstitutiveLaw>::Add(name, reference);                                                        \
+    if(!Registry::HasItem("constitutive_laws."+Registry::GetCurrentSource()+"."+name) &&                            \
+       !Registry::HasItem("components."+std::string(name))){                                                                     \
+        Registry::AddItem<RegistryItem>("constitutive_laws."+Registry::GetCurrentSource()+"."+name);                \
+        Registry::AddItem<RegistryItem>("components."+std::string(name));                                                        \
+    }                                                                                                               \
     Serializer::Register(name, reference);
 
 #define KRATOS_DEPRECATED [[deprecated]]

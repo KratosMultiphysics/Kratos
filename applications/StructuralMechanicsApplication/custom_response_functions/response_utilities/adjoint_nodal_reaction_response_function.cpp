@@ -30,7 +30,7 @@ namespace Kratos
         // Get label of the reaction which should be traced
         // by this response function e.g. REACTION_X, REACTION_MOMENT_X,...
         mTracedReactionLabel = ResponseSettings["traced_reaction"].GetString();
-        // Get the label of the correspondig displacement e.g. REACTION_X --> DISPLACEMENT_X
+        // Get the label of the corresponding displacement e.g. REACTION_X --> DISPLACEMENT_X
         mTracedDisplacementLabel = this->GetCorrespondingDisplacementLabel(mTracedReactionLabel);
 
         if(ResponseSettings.Has("adjust_adjoint_displacement"))
@@ -43,12 +43,12 @@ namespace Kratos
         this->PerformResponseVariablesCheck();
 
         // Find neighbour elements and conditions because they are needed to construct the partial derivatives
-        FindNodalNeighboursProcess neigbhor_elements_finder(mrModelPart);
-        FindConditionsNeighboursProcess neigbhor_conditions_finder = FindConditionsNeighboursProcess(mrModelPart, 10, 10);
-        neigbhor_elements_finder.Execute();
-        neigbhor_conditions_finder.Execute();
-        mpNeighborElements = mpTracedNode->GetValue(NEIGHBOUR_ELEMENTS);
-        mpNeighborConditions = mpTracedNode->GetValue(NEIGHBOUR_CONDITIONS);
+        FindNodalNeighboursProcess neigbhour_elements_finder(mrModelPart);
+        FindConditionsNeighboursProcess neigbhour_conditions_finder = FindConditionsNeighboursProcess(mrModelPart);
+        neigbhour_elements_finder.Execute();
+        neigbhour_conditions_finder.Execute();
+        mpNeighbourElements = mpTracedNode->GetValue(NEIGHBOUR_ELEMENTS);
+        mpNeighbourConditions = mpTracedNode->GetValue(NEIGHBOUR_CONDITIONS);
     }
 
     AdjointNodalReactionResponseFunction::~AdjointNodalReactionResponseFunction(){}
@@ -98,9 +98,9 @@ namespace Kratos
             rResponseGradient.resize(rResidualGradient.size1(), false);
         rResponseGradient.clear();
 
-        for(IndexType i = 0; i < mpNeighborElements.size(); ++i)
+        for(IndexType i = 0; i < mpNeighbourElements.size(); ++i)
         {
-            Kratos::Element& ng_elem_i = mpNeighborElements[i];
+            Kratos::Element& ng_elem_i = mpNeighbourElements[i];
 
             if( rAdjointElement.Id() == ng_elem_i.Id() )
             {
@@ -245,9 +245,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        for(IndexType i = 0; i < mpNeighborElements.size(); ++i)
+        for(IndexType i = 0; i < mpNeighbourElements.size(); ++i)
         {
-            Kratos::Element& ng_elem_i = mpNeighborElements[i];
+            Kratos::Element& ng_elem_i = mpNeighbourElements[i];
 
             if( rAdjointElement.Id() == ng_elem_i.Id() )
             {
@@ -266,9 +266,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        for(IndexType i = 0; i < mpNeighborConditions.size(); ++i)
+        for(IndexType i = 0; i < mpNeighbourConditions.size(); ++i)
         {
-            Kratos::Condition& ng_cond_i = mpNeighborConditions[i];
+            Kratos::Condition& ng_cond_i = mpNeighbourConditions[i];
 
             if( rAdjointCondition.Id() == ng_cond_i.Id() )
             {

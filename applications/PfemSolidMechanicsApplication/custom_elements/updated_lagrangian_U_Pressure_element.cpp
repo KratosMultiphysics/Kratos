@@ -144,7 +144,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  UpdatedLagrangianUPressureElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  UpdatedLagrangianUPressureElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       KRATOS_TRY
 
@@ -174,7 +174,7 @@ namespace Kratos
       if ( dimension == 2 )
       {
          if ( this->GetProperties().Has( THICKNESS ) == false ){
-            this->GetProperties().SetValue( THICKNESS , 1.0 );
+            correct = false;
          }
       }
 
@@ -184,45 +184,6 @@ namespace Kratos
       KRATOS_CATCH( "" );
    }
 
-   //*************************************************************************
-   //*************************************************************************
-
-   void UpdatedLagrangianUPressureElement::GetValueOnIntegrationPoints( const Variable<Matrix >& rVariable, 
-         std::vector<Matrix>& rValues,
-         const ProcessInfo& rCurrentProcessInfo)
-   {
-
-      KRATOS_TRY
-      if ( rVariable == CAUCHY_STRESS_TENSOR) {
-         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
-      }
-      else if ( rVariable == TOTAL_CAUCHY_STRESS) {
-         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
-      }
-      else {
-         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
-         //UpdatedLagrangianUPElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
-      }
-
-      KRATOS_CATCH( "" )
-
-   }
-
-   //*************************************************************************
-   //*************************************************************************
-
-   void UpdatedLagrangianUPressureElement::GetValueOnIntegrationPoints( const Variable<double> & rVariable,
-         std::vector<double>& rValues,
-         const ProcessInfo& rCurrentProcessInfo)
-   {
-      KRATOS_TRY
-
-      //Element* pBasePointer = this;
-      //pBasePointer->GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
-      SolidElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
-
-      KRATOS_CATCH("")
-   }
 
    //*************************************************************************
    //*************************************************************************
@@ -554,10 +515,10 @@ namespace Kratos
 
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::CalculateOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         LargeDisplacementElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::CalculateOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
       }
@@ -964,10 +925,10 @@ namespace Kratos
 
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::CalculateOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         LargeDisplacementElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::CalculateOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
 

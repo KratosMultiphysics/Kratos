@@ -1,0 +1,91 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1 3.0 0.0 0.0
+    2 3.0 1.0 0.0
+    3 2.0 0.0 0.0
+    4 2.0 1.0 0.0
+    6 1.0 0.0 0.0
+    8 1.0 1.0 0.0
+    9 0.5 0.5 0.0
+    11 0.0 0.0 0.0
+    13 0.0 1.0 0.0
+End Nodes
+
+
+Begin Elements Element2D3N// GUI group identifier: Grid Auto2
+        3          0    11     6    13 
+        4          0     3     1     2 
+        5          0     2     4     3 
+        6          0     8    13     6 
+        7          0     3     4     6 
+        8          0     8     6     4 
+End Elements
+
+Begin Conditions MPMGridPointLoadCondition2D1N// GUI group identifier: normal load
+    1 0 9
+End Conditions
+
+Begin Conditions MPMGridPointLoadCondition2D1N// GUI group identifier: transverse load
+    2 0 9
+End Conditions
+
+Begin Conditions LineCondition2D2N// GUI group identifier: ground
+    3 0 11 6
+    4 0 6 3
+    5 0 3 1
+End Conditions
+
+Begin SubModelPart Parts_Grid_Grid_Auto2 // Group Grid Auto2 // Subtree Parts_Grid
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            6
+            8
+           11
+           13
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            3
+            4
+            5
+            6
+            7
+            8
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart PointLoad2D_normal_load // Group normal load // Subtree PointLoad2D
+    Begin SubModelPartNodes
+            9
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            1
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad2D_transverse_load // Group transverse load // Subtree PointLoad2D
+    Begin SubModelPartNodes
+            9
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            2
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Slip2D_ground // Group ground // Subtree Slip2D
+    Begin SubModelPartNodes
+            1
+            3
+            6
+           11
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            3
+            4
+            5
+    End SubModelPartConditions
+End SubModelPart

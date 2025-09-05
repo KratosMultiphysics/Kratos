@@ -90,7 +90,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    // The airfoil model part conatining the trailing edge
+    // The airfoil model part containing the trailing edge
     ModelPart& mrTrailingEdgeModelPart;
     ModelPart& mrBodyModelPart;
     ModelPart& mrStlWakeModelPart;

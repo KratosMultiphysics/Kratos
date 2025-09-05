@@ -98,6 +98,23 @@ class TestMPIDataCommunicatorPython(KratosUnittest.TestCase):
         self.assertEqual(reduced_min_double, -1.0*(self.size-1))
         self.assertEqual(reduced_max_double, 0.0)
 
+    def testAllReduceLocValueOperations(self):
+        reduced_min_int = self.world.MinLocAll(self.rank)
+        reduced_max_int = self.world.MaxLocAll(self.rank)
+
+        reduced_min_double = self.world.MinLocAll(-1.0*self.rank)
+        reduced_max_double = self.world.MaxLocAll(-1.0*self.rank)
+
+        self.assertEqual(reduced_min_int[0], 0)
+        self.assertEqual(reduced_min_int[1], 0)
+        self.assertEqual(reduced_max_int[0], self.size-1)
+        self.assertEqual(reduced_max_int[1], self.size-1)
+
+        self.assertEqual(reduced_min_double[0], -1.0*(self.size-1))
+        self.assertEqual(reduced_min_double[1], self.size-1)
+        self.assertEqual(reduced_max_double[0], 0.0)
+        self.assertEqual(reduced_max_double[1], 0)
+
     def testScanSumOperations(self):
         partial_sum_int = self.world.ScanSum(-1)
         partial_sum_double = self.world.ScanSum(2.0)
