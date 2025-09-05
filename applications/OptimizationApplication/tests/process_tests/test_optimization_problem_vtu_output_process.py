@@ -206,7 +206,8 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        Kratos_utils.DeleteDirectoryIfExisting("Optimization_Results")
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            Kratos_utils.DeleteDirectoryIfExisting("Optimization_Results")
 
 if __name__ == "__main__":
     kratos_unittest.main()
