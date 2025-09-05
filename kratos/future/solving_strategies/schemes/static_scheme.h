@@ -180,39 +180,33 @@ public:
     {
         KRATOS_TRY
 
-        // Check if the InitializeSolutionStep has been already performed
-        if (!this->GetSchemeSolutionStepIsInitialized()) {
-            // Set up the system
-            if (!(this->GetDofSetIsInitialized()) || ReformDofSets) {
-                // Setting up the DOFs list
-                BuiltinTimer setup_dofs_time;
-                auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(pDofSet, pEffectiveDofSet);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
+        // Set up the system
+        if (ReformDofSets) {
+            // Setting up the DOFs list
+            BuiltinTimer setup_dofs_time;
+            auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(pDofSet, pEffectiveDofSet);
+            KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
-                // Set up the equation ids
-                BuiltinTimer setup_system_ids_time;
-                this->SetUpSystemIds(pDofSet, pEffectiveDofSet);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_ids_time << std::endl;
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << eff_eq_system_size << std::endl;
+            // Set up the equation ids
+            BuiltinTimer setup_system_ids_time;
+            this->SetUpSystemIds(pDofSet, pEffectiveDofSet);
+            KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_ids_time << std::endl;
+            KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
+            KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << eff_eq_system_size << std::endl;
 
-                // Allocating the system constraints arrays
-                BuiltinTimer constraints_allocation_time;
-                this->AllocateLinearSystemConstraints(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
+            // Allocating the system constraints arrays
+            BuiltinTimer constraints_allocation_time;
+            this->AllocateLinearSystemConstraints(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+            KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
 
-                // Allocating the system vectors to their correct sizes
-                BuiltinTimer linear_system_allocation_time;
-                this->AllocateLinearSystemArrays(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
-            }
-
-            // Initializes solution step for all of the elements, conditions and constraints
-            EntitiesUtilities::InitializeSolutionStepAllEntities(this->GetModelPart());
-
-            // Set the flag to avoid calling this twice
-            this->SetSchemeSolutionStepIsInitialized(true); // TODO: Discuss with the KTC if these should remain or not
+            // Allocating the system vectors to their correct sizes
+            BuiltinTimer linear_system_allocation_time;
+            this->AllocateLinearSystemArrays(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+            KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
         }
+
+        // Initializes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeSolutionStepAllEntities(this->GetModelPart());
 
         KRATOS_CATCH("")
     }
@@ -223,10 +217,6 @@ public:
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         KRATOS_TRY
-
-        // Internal solution loop check to avoid repetitions
-        KRATOS_ERROR_IF_NOT(this->GetSchemeIsInitialized()) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
-        KRATOS_ERROR_IF_NOT(this->GetSchemeSolutionStepIsInitialized()) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
 
         // Applying constraints if needed
         const auto& r_model_part = this->GetModelPart();

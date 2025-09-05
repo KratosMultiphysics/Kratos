@@ -179,8 +179,6 @@ public:
     /// @brief Copy constructor
     /// @param rOther Other ImplicitScheme
     explicit ImplicitScheme(ImplicitScheme& rOther)
-      : mSchemeIsInitialized(rOther.mSchemeIsInitialized)
-      , mSchemeSolutionStepIsInitialized(rOther.mSchemeSolutionStepIsInitialized)
     {
         //TODO: Check this... particularly the mpBuilder pointer
     }
@@ -225,14 +223,8 @@ public:
     {
         KRATOS_TRY
 
-        // Check if the Initialize has been already performed
-        if (!mSchemeIsInitialized) {
-            // Initialize elements, conditions and constraints
-            EntitiesUtilities::InitializeAllEntities(*mpModelPart);
-
-            // Set the flag to avoid calling this twice
-            mSchemeIsInitialized = true; //TODO: Discuss with the KTC if these should remain or not
-        }
+        // Initialize elements, conditions and constraints
+        EntitiesUtilities::InitializeAllEntities(*mpModelPart);
 
         KRATOS_CATCH("")
     }
@@ -292,9 +284,6 @@ public:
         // Finalizes solution step for all of the elements, conditions and constraints
         EntitiesUtilities::FinalizeSolutionStepAllEntities(*mpModelPart);
 
-        // Reset flags for next step
-        mSchemeSolutionStepIsInitialized = false;
-
         KRATOS_CATCH("")
     }
 
@@ -350,9 +339,6 @@ public:
         // Call the external utility to set up the DOFs array
         DofArrayUtilities::SetUpEffectiveDofArray(*mpModelPart, *pDofSet, *pEffectiveDofSet, mEchoLevel);
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished effective DOFs array set up." << std::endl;
-
-        // Set the corresponding flag
-        mDofSetIsInitialized = true;
 
         // Return the sizes of the two DOF sets
         return std::make_pair(pDofSet->size(), pEffectiveDofSet->size());
@@ -1281,12 +1267,6 @@ public:
     {
         KRATOS_TRY
 
-        // Reset initialization flags
-        mSchemeIsInitialized = false;
-
-        mSchemeSolutionStepIsInitialized = false;
-
-        // Clear the assembly helper
         GetBuilder().Clear();
 
         KRATOS_CATCH("")
@@ -1357,33 +1337,6 @@ public:
     }
 
     /**
-     * @brief This method sets the value of mDofSetIsInitialized
-     * @param DofSetIsInitialized The value to set
-     */
-    void SetDofSetIsInitialized(const bool DofSetIsInitialized)
-    {
-        mDofSetIsInitialized = DofSetIsInitialized;
-    }
-
-    /**
-     * @brief This method sets the value of mSchemeIsInitialized
-     * @param SchemeIsInitialized The value to set
-     */
-    void SetSchemeIsInitialized(const bool SchemeIsInitialized)
-    {
-        mSchemeIsInitialized = SchemeIsInitialized;
-    }
-
-    /**
-     * @brief This method sets the value of mSchemeIsInitialized
-     * @param SchemeIsInitialized The value to set
-     */
-    void SetSchemeSolutionStepIsInitialized(const bool SchemeSolutionStepIsInitialized)
-    {
-        mSchemeSolutionStepIsInitialized = SchemeSolutionStepIsInitialized;
-    }
-
-    /**
      * @brief Get the Model Part object
      * Returns a reference to the model part the scheme is referring to
      * @return ModelPart& Reference to the scheme model part
@@ -1423,33 +1376,6 @@ public:
     int GetEchoLevel() const
     {
         return mEchoLevel;
-    }
-
-    /**
-     * @brief This method returns if the DOF set is initialized
-     * @return bool True if initialized, false otherwise
-     */
-    bool GetDofSetIsInitialized() const
-    {
-        return mDofSetIsInitialized;
-    }
-
-    /**
-     * @brief This method returns if the scheme is initialized
-     * @return bool True if initialized, false otherwise
-     */
-    bool GetSchemeIsInitialized() const
-    {
-        return mSchemeIsInitialized;
-    }
-
-    /**
-     * @brief This method returns if the scheme is initialized
-     * @return bool True if initialized, false otherwise
-     */
-    bool GetSchemeSolutionStepIsInitialized() const
-    {
-        return mSchemeSolutionStepIsInitialized;
     }
 
     ///@}
@@ -1731,12 +1657,6 @@ private:
     int mEchoLevel = 0;
 
     bool mMoveMesh = false; /// Flag to activate the mesh motion from the DISPLACEMENT variable
-
-    bool mDofSetIsInitialized = false; /// Flag to be used in controlling if the DOF set has been already set
-
-    bool mSchemeIsInitialized = false; /// Flag to be used in controlling if the Scheme has been initialized or not
-
-    bool mSchemeSolutionStepIsInitialized = false; /// Flag to be used in controlling if the Scheme solution step has been initialized or not
 
     ModelPart* mpModelPart = nullptr; /// Pointer to the ModelPart the scheme refers to
 
