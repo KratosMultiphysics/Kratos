@@ -6,15 +6,8 @@ import pathlib
 import test_helper
 
 if test_helper.want_test_plots():
-    from KratosMultiphysics.GeoMechanicsApplication import geo_plot_utilities
+    import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
-class PlotDataSeries():
-    def __init__(self, x_values, y_values, label='', linestyle='-', marker=None):
-        self.x_values = x_values
-        self.y_values = y_values
-        self.label = label
-        self.linestyle = linestyle
-        self.marker = marker
 
 def seconds_to_days(duration_in_seconds):
     return duration_in_seconds / (24.0 * 60.0 * 60.0)
@@ -38,16 +31,10 @@ def get_data_points_from_file(file_path):
     return result
 
 
-def make_plot_data(points, label='', linestyle='-', marker=None):
-    times = [data[0] for data in points]
-    total_y_displacements = [data[1] for data in points]
-    return PlotDataSeries(times, total_y_displacements, label=label, linestyle=linestyle, marker=marker)
-
-
 def make_water_pressure_plot_data(points, label='', linestyle='-', marker=None):
     ys = [data[0] for data in points]
     water_pressures = [data[1] for data in points]
-    return PlotDataSeries(water_pressures, ys, label=label, linestyle=linestyle, marker=marker)
+    return plot_utils.DataSeries(water_pressures, ys, label=label, line_style=linestyle, marker=marker)
 
 
 def extract_nodal_settlement_over_time(output_data, node_id):
@@ -100,11 +87,11 @@ def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figur
             data_points_by_node[node_id].extend(extract_nodal_settlement_over_time(output_data, node_id))
 
     graph_series = []
-    graph_series.append(make_plot_data(get_data_points_from_file(path_to_ref_data_points), 'ref', marker='+'))
+    graph_series.append(plot_utils.make_data_series(get_data_points_from_file(path_to_ref_data_points), 'ref', marker='+'))
     for node_id in node_ids:
-        graph_series.append(make_plot_data(data_points_by_node[node_id], f'node {node_id}', linestyle=':', marker='+'))
+        graph_series.append(plot_utils.make_data_series(data_points_by_node[node_id], f'node {node_id}', line_style=':', marker='+'))
 
-    geo_plot_utilities.plot_settlement_results(graph_series, figure_filename)
+    plot_utils.plot_settlement_results(graph_series, figure_filename)
 
 
 class StressPlotDataFilePaths:
@@ -130,12 +117,12 @@ def make_stress_over_depth_plot(output_data, time_in_sec, post_msh_file_path, no
     y_coordinates = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
 
     water_pressures = get_nodal_water_pressures_at_time(time_in_sec, output_data, node_ids=node_ids_over_depth)
-    graph_series.append(PlotDataSeries(water_pressures, y_coordinates, 'P_w [Kratos]', linestyle=':', marker='+'))
+    graph_series.append(plot_utils.DataSeries(water_pressures, y_coordinates, 'P_w [Kratos]', line_style=':', marker='+'))
 
     effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_data, node_ids=node_ids_over_depth)
-    graph_series.append(PlotDataSeries(effective_vertical_stresses, y_coordinates, 'sigma_yy;eff [Kratos]', linestyle=':', marker='+'))
+    graph_series.append(plot_utils.DataSeries(effective_vertical_stresses, y_coordinates, 'sigma_yy;eff [Kratos]', line_style=':', marker='+'))
 
-    geo_plot_utilities.make_stress_plot(graph_series, plot_file_path)
+    plot_utils.make_stress_plot(graph_series, plot_file_path)
 
 
 class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):

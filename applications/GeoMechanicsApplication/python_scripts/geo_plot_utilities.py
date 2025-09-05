@@ -2,6 +2,21 @@ import matplotlib.pyplot as plt
 import pathlib
 
 
+class DataSeries():
+    def __init__(self, x_values, y_values, label='', line_style='-', marker=None):
+        self.x_values = x_values
+        self.y_values = y_values
+        self.label = label
+        self.line_style = line_style
+        self.marker = marker
+
+
+def make_data_series(data_points, label='', line_style='-', marker=None):
+    x_values = [point[0] for point in data_points]
+    y_values = [point[1] for point in data_points]
+    return DataSeries(x_values, y_values, label=label, line_style=line_style, marker=marker)
+
+
 def _make_plot(
     data_series_collection,
     plot_file_path,
@@ -19,7 +34,7 @@ def _make_plot(
             series.x_values,
             series.y_values,
             label=series.label,
-            linestyle=series.linestyle,
+            linestyle=series.line_style,
             marker=series.marker,
         )
     axes.grid()
