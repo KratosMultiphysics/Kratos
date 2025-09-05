@@ -131,6 +131,8 @@ class VariableOutputOperation(IOOperation):
     def _MakeIO(self) -> typing.Any:
         class_name = self.__class__.__name__
         if class_name.endswith("Output"):
+            # This maps the output classes to their corresponding IO classes
+            # Eg. ElementDataValueOutput is mapped to ElementDataValueIO
             class_type_name = f"HDF5{class_name[:-6]}IO"
             if hasattr(KratosHDF5, class_type_name):
                 return getattr(KratosHDF5, class_type_name)(self.parameters, self.file)
@@ -158,6 +160,8 @@ class VariableInputOperation(IOOperation):
         class_name = self.__class__.__name__
         if class_name.endswith("Input"):
             class_type_name = f"HDF5{class_name[:-5]}IO"
+            # This maps the input classes to their corresponding IO classes
+            # Eg. ElementDataValueInput is mapped to ElementDataValueIO
             if hasattr(KratosHDF5, class_type_name):
                 return getattr(KratosHDF5, class_type_name)(self.parameters, self.file)
             else:
