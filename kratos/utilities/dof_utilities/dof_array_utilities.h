@@ -121,30 +121,7 @@ public:
         DofsArrayType& rEffectiveDofArray);
 
     ///@}
-    ///@name Input and output
-    ///@{
-
-
-    ///@}
-private:
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
 }; // Class DofArrayUtilities
-
-///@}
-///@name Input and output
-///@{
-
-
-///@}
 
 ///@} addtogroup block
 
