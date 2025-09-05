@@ -29,6 +29,10 @@
 #include "utilities/dof_utilities/dof_array_utilities.h"
 #include "utilities/timer.h"
 
+#ifdef KRATOS_USE_FUTURE
+#include "future/containers/linear_system_container.h"
+#endif
+
 namespace Kratos::Future
 {
 
@@ -37,76 +41,6 @@ namespace Kratos::Future
 
 ///@name Kratos Classes
 ///@{
-
-//FIXME: We should place this somewhere else
-/**
- * @brief Auxiliary container to store the linear system
- * This auxiliary container is intended to store all the arrays requires for the linear system setup
- * @tparam TSparseMatrixType The sparse matrix type
- * @tparam TSystemVectorType The system vector type
- */
-template <class TSparseMatrixType, class TSystemVectorType>
-struct LinearSystemContainer
-{
-    typename TSparseMatrixType::Pointer pLhs = nullptr; // Pointer to the LHS matrix
-
-    typename TSystemVectorType::Pointer pRhs = nullptr; // Pointer to the RHS vector
-
-    typename TSystemVectorType::Pointer pDx = nullptr; // Pointer to the solution increment vector
-
-    typename TSparseMatrixType::Pointer pEffectiveLhs = nullptr; // Pointer to the effective LHS matrix (i.e., after applying system constraints)
-
-    typename TSystemVectorType::Pointer pEffectiveRhs = nullptr; // Pointer to the effective RHS vector (i.e., after applying system constraints)
-
-    typename TSystemVectorType::Pointer pEffectiveDx = nullptr; // Pointer to the effective solution increment vector (i.e., after applying system constraints)
-
-    typename TSparseMatrixType::Pointer pEffectiveT = nullptr; // Linear system constraints total relation matrix
-
-    typename TSparseMatrixType::Pointer pConstraintsT = nullptr; // Master-slave constraints relation matrix
-
-    typename TSystemVectorType::Pointer pConstraintsQ = nullptr; // Master-slave constraints constant vector
-
-    typename TSparseMatrixType::Pointer pMassMatrix = nullptr; // Pointer to the mass matrix
-
-    typename TSparseMatrixType::Pointer pDampingMatrix = nullptr; // Pointer to the damping matrix
-
-    void Clear()
-    {
-        if (pLhs != nullptr) {
-            pLhs->Clear();
-        }
-        if (pRhs != nullptr) {
-            pRhs->Clear();
-        }
-        if (pDx != nullptr) {
-            pDx->Clear();
-        }
-        if (pEffectiveLhs != nullptr) {
-            pEffectiveLhs->Clear();
-        }
-        if (pEffectiveRhs != nullptr) {
-            pEffectiveRhs->Clear();
-        }
-        if (pEffectiveDx != nullptr) {
-            pEffectiveDx->Clear();
-        }
-        if (pEffectiveT != nullptr) {
-            pEffectiveT->Clear();
-        }
-        if (pConstraintsT != nullptr) {
-            pConstraintsT->Clear();
-        }
-        if (pConstraintsQ != nullptr) {
-            pConstraintsQ->Clear();
-        }
-        if (pMassMatrix != nullptr) {
-            pMassMatrix->Clear();
-        }
-        if (pDampingMatrix != nullptr) {
-            pDampingMatrix->Clear();
-        }
-    }
-};
 
 /**
  * @class Builder
@@ -229,7 +163,7 @@ public:
         rSparseGraph.Clear();
 
         // Add the elements and conditions DOF equation connectivities
-        // Note that we add all the DOFs regarless their fixity status
+        // Note that we add all the DOFs regardless their fixity status
         Element::EquationIdVectorType eq_ids;
         for (auto& r_elem : mpModelPart->Elements()) {
             r_elem.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
