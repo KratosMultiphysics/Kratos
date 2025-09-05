@@ -58,9 +58,6 @@ public:
     /// Auxilary DOF set type definition
     using AuxiliaryDofsSetType = std::unordered_set<Node::DofType::Pointer, DofPointerHasher>;
 
-    /// Auxiliary slave to master(s) map for slave DOFs
-    using SlaveToMasterDofsMap = std::unordered_map<typename Node::DofType::Pointer, DofsVectorType>;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -92,14 +89,12 @@ public:
      * @param rModelPart The model part containing the constraints
      * @param rDofArray The already filled and sorted DOF array
      * @param rEffectiveDofArray The effective DOF array to be filled
-     * @param rSlaveToMasterDofsMap The slave to master DOFs map to be filled
      * @param EchoLevel The echo level (i.e., verbosity level)
      */
     static void SetUpEffectiveDofArray(
         const ModelPart& rModelPart,
         const DofsArrayType& rDofArray,
         DofsArrayType& rEffectiveDofArray,
-        SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
         const unsigned int EchoLevel = 0);
 
     /**

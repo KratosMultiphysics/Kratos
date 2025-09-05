@@ -186,8 +186,7 @@ public:
             if (!(this->GetDofSetIsInitialized()) || ReformDofSets) {
                 // Setting up the DOFs list
                 BuiltinTimer setup_dofs_time;
-                DofArrayUtilities::SlaveToMasterDofsMap slaves_to_master_dofs_map;
-                auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(pDofSet, pEffectiveDofSet, slaves_to_master_dofs_map);
+                auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(pDofSet, pEffectiveDofSet);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
                 // Set up the equation ids
@@ -199,7 +198,7 @@ public:
 
                 // Allocating the system constraints arrays
                 BuiltinTimer constraints_allocation_time;
-                this->AllocateLinearSystemConstraints(pDofSet, pEffectiveDofSet, slaves_to_master_dofs_map, rLinearSystemContainer);
+                this->AllocateLinearSystemConstraints(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
                 KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
 
                 // Allocating the system vectors to their correct sizes

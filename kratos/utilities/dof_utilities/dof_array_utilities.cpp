@@ -103,7 +103,6 @@ void DofArrayUtilities::SetUpEffectiveDofArray(
     const ModelPart &rModelPart,
     const DofsArrayType &rDofArray,
     DofsArrayType &rEffectiveDofArray,
-    SlaveToMasterDofsMap &rSlaveToMasterDofsMap,
     const unsigned int EchoLevel)
 {
     KRATOS_TRY;
@@ -114,8 +113,6 @@ void DofArrayUtilities::SetUpEffectiveDofArray(
     // Clear the provided containers
     KRATOS_WARNING_IF("Builder", !rEffectiveDofArray.empty()) << "Provided effective DOFs set is not empty. About to clear it." << std::endl;
     rEffectiveDofArray.clear();
-    KRATOS_WARNING_IF("Builder", !rSlaveToMasterDofsMap.empty()) << "Provided slave to master DOFs map is not empty. About to clear it." << std::endl;
-    rSlaveToMasterDofsMap.clear();
 
     //FIXME: In here we should check if there are ACTIVE constraints among all processes
     // Check if there are constraints to build the effective DOFs map and the corresponding arrays
@@ -126,6 +123,7 @@ void DofArrayUtilities::SetUpEffectiveDofArray(
 
         // Get the master / slave DOFs from the constraints
         KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Getting master and slave DOFs from constraints." << std::endl;
+        std::unordered_map<Node::DofType::Pointer, ModelPart::DofsVectorType> slave_to_master_dofs_map;
         const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
         for (IndexType i_const = 0; i_const < n_constraints; ++i_const) {
             // Get current constraint master and slave DOFs
@@ -135,7 +133,7 @@ void DofArrayUtilities::SetUpEffectiveDofArray(
 
             // Add the slave DOFs to the slave map
             for (auto& rp_slave : r_slave_dofs) {
-                rSlaveToMasterDofsMap.insert(std::make_pair(rp_slave, r_master_dofs));
+                slave_to_master_dofs_map.insert(std::make_pair(rp_slave, r_master_dofs));
             }
 
             // Add the master DOFs to the effective DOFs set
@@ -154,7 +152,7 @@ void DofArrayUtilities::SetUpEffectiveDofArray(
             // Check if current DOF is slave by checking the slaves DOFs map
             // If not present in the slaves DOFs map it should be considered in the resolution of the system
             // Note that this includes masters DOFs or and standard DOFs (those not involved in any constraint)
-            if (rSlaveToMasterDofsMap.find(p_dof) == rSlaveToMasterDofsMap.end()) {
+            if (slave_to_master_dofs_map.find(p_dof) == slave_to_master_dofs_map.end()) {
                 // Add current DOF to the effective DOFs set (note that the std::unordered_set guarantees uniqueness)
                 effective_dofs_set.insert(p_dof);
             }

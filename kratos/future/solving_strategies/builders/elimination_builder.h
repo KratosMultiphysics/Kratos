@@ -139,14 +139,14 @@ public:
     void AllocateLinearSystemConstraints(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
-        const DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         // Check if there are master-slave constraints
-        if (!rSlaveToMasterDofsMap.empty()) {
+        const std::size_t n_constraints = this->GetModelPart().NumberOfMasterSlaveConstraints();
+        if (n_constraints) {
             // Fill the master-slave constraints graph
             TSparseGraphType constraints_sparse_graph;
-            this->SetUpMasterSlaveConstraintsGraph(rDofSet, rEffectiveDofSet, rSlaveToMasterDofsMap, constraints_sparse_graph);
+            this->SetUpMasterSlaveConstraintsGraph(rDofSet, rEffectiveDofSet, constraints_sparse_graph);
 
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)
             auto p_aux_q = Kratos::make_shared<TSystemVectorType>(rDofSet.size());
