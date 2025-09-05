@@ -308,6 +308,34 @@ public:
         SupportedTensorAdaptorPointerType pTensorAdaptor);
 
     /**
+     * @brief Inserts a @ref ContainerExpression into the internal storage with the specified name.
+     *
+     * This method:
+     *  - If PrintOutput is not called at all, then calls @ref AddContainerExpression
+     *  - If PrintOutput is at least once called, then calls @ref UpdateContainerExpresion
+     *
+     * @param rExpressionName The name to associate with the @ref ContainerExpression.
+     * @param pContainerExpression Pointer to the @ref ContainerExpression to be stored.
+     */
+    void EmplaceContainerExpression(
+        const std::string& rExpressionName,
+        SupportedContainerExpressionPointerType pContainerExpression);
+
+    /**
+     * @brief Inserts a @ref TensorAdaptor into the internal storage with the specified name.
+     *
+     * This method:
+     *  - If PrintOutput is not called at all, then calls @ref AddTensorAdaptor
+     *  - If PrintOutput is at least once called, then calls @ref UpdateTensorAdaptor
+     *
+     * @param rTensorAdaptorName The name to associate with the @ref TensorAdaptor.
+     * @param pTensorAdaptor Pointer to the @ref TensorAdaptor to be stored.
+     */
+    void EmplaceTensorAdaptor(
+        const std::string& rTensorAdaptorName,
+        SupportedTensorAdaptorPointerType pTensorAdaptor);
+
+    /**
     * @brief Returns the model part.
     * @return The constant reference to the model part.
     */

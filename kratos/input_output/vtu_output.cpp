@@ -1303,6 +1303,28 @@ void VtuOutput::UpdateTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+void VtuOutput::EmplaceContainerExpression(
+    const std::string& rExpressionName,
+    SupportedContainerExpressionPointerType pContainerExpression)
+{
+    if (mTimeStepList.empty()) {
+        AddContainerExpression(rExpressionName, pContainerExpression);
+    } else {
+        UpdateContainerExpression(rExpressionName, pContainerExpression);
+    }
+}
+
+void VtuOutput::EmplaceTensorAdaptor(
+    const std::string& rTensorAdaptorName,
+    SupportedTensorAdaptorPointerType pTensorAdaptor)
+{
+    if (mTimeStepList.empty()) {
+        AddTensorAdaptor(rTensorAdaptorName, pTensorAdaptor);
+    } else {
+        UpdateTensorAdaptor(rTensorAdaptorName, pTensorAdaptor);
+    }
+}
+
 template<class TXmlDataElementWrapper>
 std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     const std::string& rOutputFileNamePrefix,
@@ -1550,7 +1572,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
                 auto p_gauss_data = Kratos::make_shared<NDData<double>>(nd_data_shape);
                 auto span = p_gauss_data->ViewData();
 
-                if (r_data_communicator.SumAll(span.size()) > 0) {
+                if (r_data_communicator.SumAll(static_cast<unsigned long>(span.size())) > 0) {
                     is_gauss_point_data_available = true;
                     IndexPartition<IndexType>(pContainer->size()).for_each(std::vector<data_type>{}, [&span, &pContainer, &pVariable, &rUnstructuredGridData, &offsets, total_number_of_components](const auto Index, auto& rTLS) {
                         auto& r_entity = *(pContainer->begin() + Index);
@@ -1601,14 +1623,13 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
 
     const auto& r_process_info = mrModelPart.GetProcessInfo();
 
-    // check if the time variables is there. It
-    // must exist for the *.pvd file and time step file writing.
-    KRATOS_ERROR_IF_NOT(r_process_info.Has(TIME))
-        << "TIME variable is not found in the process info of " << mrModelPart.FullName() << ".\n";
-
     // Add the time step info.
     // check if a similar time has been already printed to vtu.
+    // here we do not check whether the r_process_info has the time variable specified
+    // because, in a const DataValueContainer, if the variable is not there, it returns the
+    // zero value of the variable.
     const double process_time = r_process_info[TIME];
+
     std::stringstream s_process_time;
     s_process_time << std::scientific << std::setprecision(mPrecision) << process_time;
     const auto& str_process_time = s_process_time.str();
