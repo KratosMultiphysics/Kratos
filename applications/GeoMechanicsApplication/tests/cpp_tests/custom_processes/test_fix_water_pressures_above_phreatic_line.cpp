@@ -142,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_DoesNothingWhenA
     EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesNodesAbovePhreaticLine,
+KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesWaterPressureDoFsAbovePhreaticLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -167,7 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesNodesAb
     EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTheyGetBelowPhreaticLine_WithoutMoveMesh,
+KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesWaterPressureDoFsWhenTheyAreBelowPhreaticLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -193,8 +193,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTh
     EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 
     // Act
-    // Move node 1 below phreatic line using total displacements (without moving the mesh, since move_mesh is false)
-    r_model_part.GetNode(1).FastGetSolutionStepValue(TOTAL_DISPLACEMENT)[1] = -1.0;
+    // Move node 1 below phreatic line
+    r_model_part.GetNode(1).Coordinates()[1] = -1.0;
     process.ExecuteInitializeSolutionStep();
 
     // Assert
