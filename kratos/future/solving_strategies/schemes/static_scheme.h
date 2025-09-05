@@ -181,7 +181,8 @@ public:
         KRATOS_TRY
 
         // Set up the system
-        if (ReformDofSets) {
+        const bool initialize_dof_sets = pDofSet->empty() || pEffectiveDofSet->empty();
+        if (initialize_dof_sets || ReformDofSets) {
             // Setting up the DOFs list
             BuiltinTimer setup_dofs_time;
             auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(pDofSet, pEffectiveDofSet);
