@@ -5,7 +5,22 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
-    return SetAbsorbingBoundaryParametersProcess(model, settings["Parameters"])
+
+    default_settings = KratosMultiphysics.Parameters("""
+            {
+                "help"                    : "This process applies absorbing boundary conditions to a modelpart.",
+                "model_part_name"         : "please_specify_model_part_name",
+                "absorbing_factors"       : [1,1],
+                "virtual_thickness"       : 1e30,
+                "skip_internal_forces"    : false
+            }
+            """
+                                                     )
+    boundary_settings = settings["Parameters"]
+    boundary_settings.ValidateAndAssignDefaults(default_settings)
+
+
+    return SetAbsorbingBoundaryParametersProcess(model, boundary_settings)
 
 
 class SetAbsorbingBoundaryParametersProcess(KratosMultiphysics.Process):
@@ -18,6 +33,7 @@ class SetAbsorbingBoundaryParametersProcess(KratosMultiphysics.Process):
         params.AddValue("model_part_name",settings["model_part_name"])
         params.AddValue("absorbing_factors", settings["absorbing_factors"])
         params.AddValue("virtual_thickness", settings["virtual_thickness"])
+        params.AddValue("skip_internal_forces", settings["skip_internal_forces"])
 
         self.process = KratosGeo.SetAbsorbingBoundaryParametersProcess(model_part, params)
 
