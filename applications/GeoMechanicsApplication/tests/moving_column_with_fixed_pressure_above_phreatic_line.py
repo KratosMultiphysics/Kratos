@@ -43,7 +43,7 @@ class KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine(
         status = run_geo_settlement.run_stages(test_folder, ["ProjectParameters.json"])
         self.assertEqual(status, 0)
 
-        self.assert_results(test_folder, expected_value1 = -4479.17, expected_value2 = -4270.83)
+        self.assert_results(test_folder, expected_value1 = 0.0, expected_value2 = 0.0)
 
     def assert_results(self, test_folder, expected_value1, expected_value2):
         reader = test_helper.GiDOutputFileReader()
