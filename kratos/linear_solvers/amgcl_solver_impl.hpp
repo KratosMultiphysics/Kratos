@@ -107,9 +107,8 @@ struct AMGCLSolver<TSparse,TDense>::Impl
     std::conditional_t<
         TSparse::IsDistributed(),
         std::variant<
-            std::monostate
             #if defined(KRATOS_USING_MPI) && defined(KRATOS_AMGCL_MPI)
-                ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<1>>>
+                 MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<1>>>
                 ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<2>>>
                 ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<3>>>
                 ,MakeDistributedSolver<amgcl::backend::builtin<BackendMatrix<4>>>
@@ -126,8 +125,7 @@ struct AMGCLSolver<TSparse,TDense>::Impl
             #endif
         >,
         std::variant<
-             std::monostate
-            ,MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<1>>>
+             MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<1>>>
             ,MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<2>>>
             ,MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<3>>>
             ,MakeSharedMemorySolver<amgcl::backend::builtin<BackendMatrix<4>>>
@@ -425,7 +423,7 @@ void AMGCLSolver<TSparse,TDense>::ProvideAdditionalData(SparseMatrixType& rA,
 template <class TSparse, class TDense>
 void AMGCLSolver<TSparse,TDense>::Clear()
 {
-    mpImpl->mpSolver = std::monostate();
+    mpImpl->mpSolver = decltype(mpImpl->mpSolver)();
     mCoordinates = decltype(mCoordinates)();
 }
 
@@ -645,13 +643,10 @@ void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
     if (1 < mVerbosity) {
         std::visit(
             [] (const auto& rp_solver) -> void {
-                using ElementType = std::remove_const_t<std::remove_reference_t<decltype(rp_solver)>>;
-                if constexpr (!std::is_same_v<ElementType,std::monostate>) {
-                    KRATOS_INFO("AMGCLSolver")
-                        << amgcl::human_readable_memory(amgcl::backend::bytes(*rp_solver))
-                        << " memory footprint"
-                        << std::endl;
-                }
+                KRATOS_INFO("AMGCLSolver")
+                    << amgcl::human_readable_memory(amgcl::backend::bytes(*rp_solver))
+                    << " memory footprint"
+                    << std::endl;
             },
             mpImpl->mpSolver
         );
@@ -698,53 +693,49 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
     const auto [iteration_count, residual_norm] = std::visit(
         [&rSolution, &rRhs, &rLhs] (auto& rp_solver) -> std::pair<std::size_t,typename TSparse::DataType> {
             using ElementType = std::remove_reference_t<decltype(rp_solver)>;
+            KRATOS_ERROR_IF_NOT(rp_solver) << "AMGCL solver is uninitialized";
 
-            if constexpr (std::is_same_v<ElementType,std::monostate>) {
-                KRATOS_ERROR << "AMGCLSolver is uninitialized";
-                return {};
-            } else {
-                auto& r_solver = *rp_solver;
+            auto& r_solver = *rp_solver;
+            using SolverType = typename std::pointer_traits<ElementType>::element_type;
+            using BackendType = typename SolverType::backend_type;
+            using StaticMatrixType = typename BackendType::value_type;
+            using StaticVectorType = typename AMGCLStaticVectorTraits<StaticMatrixType>::type;
+
+            if constexpr (std::is_same_v<BackendType,amgcl::backend::builtin<StaticMatrixType>>) {
+                const std::size_t block_system_size = AMGCLAdaptor<TSparse>().template BlockSystemSize<StaticMatrixType>(rLhs);
+
+                auto it_solution_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rSolution));
+                const auto it_rhs_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rRhs));
+                const auto [iteration_count, residual_norm] = r_solver(
+                    boost::make_iterator_range(it_rhs_begin, it_rhs_begin + block_system_size),
+                    boost::make_iterator_range(it_solution_begin, it_solution_begin + block_system_size));
+                return std::pair<std::size_t,typename TSparse::DataType>(iteration_count, residual_norm);
+
+            #ifdef AMGCL_GPGPU
+            } else if constexpr (std::is_same_v<BackendType,amgcl::backend::vexcl<StaticMatrixType>>) {
                 using SolverType = typename std::pointer_traits<ElementType>::element_type;
-                using BackendType = typename SolverType::backend_type;
-                using StaticMatrixType = typename BackendType::value_type;
+
+                auto& vexcl_context = VexCLContext();
+                KRATOS_ERROR_IF_NOT(vexcl_context) << "invalid VexCL context";
+
+                using StaticMatrixType = typename SolverType::backend_type::value_type;
                 using StaticVectorType = typename AMGCLStaticVectorTraits<StaticMatrixType>::type;
+                const std::size_t block_system_size = AMGCLAdaptor<TSparse>().template BlockSystemSize<StaticMatrixType>(rLhs);
 
-                if constexpr (std::is_same_v<BackendType,amgcl::backend::builtin<StaticMatrixType>>) {
-                    const std::size_t block_system_size = AMGCLAdaptor<TSparse>().template BlockSystemSize<StaticMatrixType>(rLhs);
+                auto it_solution_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rSolution));
+                const auto it_rhs_begin = reinterpret_cast<const StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rRhs));
+                vex::vector<StaticVectorType> solution(vexcl_context, block_system_size, it_solution_begin),
+                                              rhs     (vexcl_context, block_system_size, it_rhs_begin);
 
-                    auto it_solution_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rSolution));
-                    const auto it_rhs_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rRhs));
-                    const auto [iteration_count, residual_norm] = r_solver(
-                        boost::make_iterator_range(it_rhs_begin, it_rhs_begin + block_system_size),
-                        boost::make_iterator_range(it_solution_begin, it_solution_begin + block_system_size));
-                    return std::pair<std::size_t,typename TSparse::DataType>(iteration_count, residual_norm);
+                const auto [iteration_count, residual_norm] = r_solver(rhs, solution);
+                vex::copy(solution.begin(), solution.end(), it_solution_begin);
+                return std::pair<std::size_t,typename TSparse::DataType>(iteration_count, residual_norm);
+            #endif
 
-                #ifdef AMGCL_GPGPU
-                } else if constexpr (std::is_same_v<BackendType,amgcl::backend::vexcl<StaticMatrixType>>) {
-                    using SolverType = typename std::pointer_traits<ElementType>::element_type;
-
-                    auto& vexcl_context = VexCLContext();
-                    KRATOS_ERROR_IF_NOT(vexcl_context) << "invalid VexCL context";
-
-                    using StaticMatrixType = typename SolverType::backend_type::value_type;
-                    using StaticVectorType = typename AMGCLStaticVectorTraits<StaticMatrixType>::type;
-                    const std::size_t block_system_size = AMGCLAdaptor<TSparse>().template BlockSystemSize<StaticMatrixType>(rLhs);
-
-                    auto it_solution_begin = reinterpret_cast<StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rSolution));
-                    const auto it_rhs_begin = reinterpret_cast<const StaticVectorType*>(AMGCLAdaptor<TSparse>().MakeVectorIterator(rRhs));
-                    vex::vector<StaticVectorType> solution(vexcl_context, block_system_size, it_solution_begin),
-                                                  rhs     (vexcl_context, block_system_size, it_rhs_begin);
-
-                    const auto [iteration_count, residual_norm] = r_solver(rhs, solution);
-                    vex::copy(solution.begin(), solution.end(), it_solution_begin);
-                    return std::pair<std::size_t,typename TSparse::DataType>(iteration_count, residual_norm);
-                #endif
-
-                } else {
-                    static_assert(std::is_same_v<ElementType,std::monostate>, "unhandled solver type");
-                    return {};
-                }
-            } // if not monostate
+            } else {
+                static_assert(std::is_same_v<ElementType,std::monostate>, "unhandled solver type");
+                return {};
+            }
         },
         mpImpl->mpSolver
     );
