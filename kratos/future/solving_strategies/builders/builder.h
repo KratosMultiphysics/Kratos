@@ -197,13 +197,11 @@ public:
      * Note that the sizes of the resultant arrays depend on the build type
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
-     * @param rSlaveToMasterDofsMap The map containing the corresponding master(s) for each slave DOF
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
     virtual void AllocateLinearSystemConstraints(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
-        const DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'AllocateLinearSystemArrays'." << std::endl;
@@ -254,24 +252,23 @@ public:
      * based on the provided slave to master(s) map
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
-     * @param rSlaveToMasterDofsMap The map containing the corresponding master(s) for each slave DOF
      * @param rConstraintsSparseGraph The master-slave constraints graph to be built
      */
     virtual void SetUpMasterSlaveConstraintsGraph(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
-        const DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
         TSparseGraphType& rConstraintsSparseGraph)
     {
         // Check if there are constraints to build the constraints sparse graph
-        if (!rSlaveToMasterDofsMap.empty()) { //TODO: Change the way this is checked (w/o the DOFs map)
+        const std::size_t n_constraints = mpModelPart->NumberOfMasterSlaveConstraints();
+        if (n_constraints) { //TODO: Change the way this is checked (w/o the DOFs map)
             // Initialize the constraints matrix sparse graph
             // Note that the number of rows is the size of the standard DOFs arrays (the effective one will be the columns)
             rConstraintsSparseGraph = std::move(TSparseGraphType(rDofSet.size()));
 
             // Add all effective DOFs
             // Note that here effective means that the DOF is either a master DOF or a DOF that does not involve any constraint
-            for (IndexType i_dof = 0; i_dof < rEffectiveDofSet.size(); ++i_dof) {
+            for (IndexType i_dof = 0; i_dof < rEffectiveDofSet.size(); ++i_dof) { //TODO: Make it parallel when we implement the IsThreadSafe method in the sparse graphs
                 auto p_eff_dof = *(rEffectiveDofSet.ptr_begin() + i_dof);
                 const IndexType i_dof_eq_id = p_eff_dof->EquationId();
                 const IndexType i_dof_eff_eq_id = p_eff_dof->EffectiveEquationId();
@@ -280,7 +277,7 @@ public:
 
             // Loop the constraints to add the slave DOFs
             // Note that we assume that there constraints are always one to many (not many to many)
-            for (const auto& r_constraint : mpModelPart->MasterSlaveConstraints()) {
+            for (const auto& r_constraint : mpModelPart->MasterSlaveConstraints()) { //TODO: Make it parallel when we implement the IsThreadSafe method in the sparse graphs
                 const auto& r_masters = r_constraint.GetMasterDofsVector();
                 const IndexType slave_eq_id = (r_constraint.GetSlaveDofsVector()[0])->EquationId();
                 for (const auto& rp_master_dof : r_masters) {
@@ -289,41 +286,6 @@ public:
                 }
             }
         }
-
-        // // Check if there are constraints to build the constraints sparse graph
-        // if (!rSlaveToMasterDofsMap.empty()) {
-        //     // Initialize the constraints matrix sparse graph
-        //     // Note that the number of rows is the size of the standard DOFs arrays (the effective one will be the columns)
-        //     rConstraintsSparseGraph = std::move(TSparseGraphType(rDofSet.size()));
-
-        //     // Loop the elements and conditions DOFs container to add the slave entries to the graph
-        //     for (IndexType i_dof = 0; i_dof < rDofSet.size(); ++i_dof) {
-        //         // Get current DOF
-        //         auto p_dof = *(rDofSet.ptr_begin() + i_dof);
-        //         const IndexType i_dof_eq_id = p_dof->EquationId();
-
-        //         // Check if current DOF is slave by checking the slaves DOFs map
-        //         // If not present in the slaves DOFs map it should be considered an effective DOF
-        //         // Note that here effective means a masters DOF or a DOF that does not involve any constraint
-        //         auto i_dof_slave_find = rSlaveToMasterDofsMap.find(p_dof);
-        //         if (i_dof_slave_find != rSlaveToMasterDofsMap.end()) { // Slave DOF
-        //             // Add current slave DOF connectivities to the constraints sparse graph
-        //             // The slave rows eq ids come from the system ones while the column master ones are the above defined
-        //             for (auto& rp_master : i_dof_slave_find->second) {
-        //                 auto eff_dof_find = rEffectiveDofSet.find(*rp_master);
-        //                 KRATOS_ERROR_IF(eff_dof_find == rEffectiveDofSet.end()) << "Effective DOF cannot be find." << std::endl;
-        //                 rConstraintsSparseGraph.AddEntry(i_dof_eq_id, eff_dof_find->EffectiveEquationId());
-        //             }
-        //         } else { // Effective DOF
-        //             auto eff_dof_find = rEffectiveDofSet.find(*p_dof);
-        //             KRATOS_ERROR_IF(eff_dof_find == rEffectiveDofSet.end()) << "Effective DOF cannot be find." << std::endl;
-        //             // mMasterIds.push_back(eff_dof_find->second);
-        //             rConstraintsSparseGraph.AddEntry(i_dof_eq_id, eff_dof_find->EffectiveEquationId());
-        //         }
-        //     }
-        // }
-
-
     }
 
     /**

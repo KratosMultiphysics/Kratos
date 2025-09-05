@@ -341,15 +341,14 @@ public:
      */
     virtual std::pair<std::size_t, std::size_t> SetUpDofArrays(
         typename DofsArrayType::Pointer pDofSet,
-        typename DofsArrayType::Pointer pEffectiveDofSet,
-        DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap)
+        typename DofsArrayType::Pointer pEffectiveDofSet)
     {
         // Call the external utility to set up the DOFs array
         DofArrayUtilities::SetUpDofArray(*mpModelPart, *pDofSet, mEchoLevel);
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished DOFs array set up." << std::endl;
 
         // Call the external utility to set up the DOFs array
-        DofArrayUtilities::SetUpEffectiveDofArray(*mpModelPart, *pDofSet, *pEffectiveDofSet, rSlaveToMasterDofsMap, mEchoLevel);
+        DofArrayUtilities::SetUpEffectiveDofArray(*mpModelPart, *pDofSet, *pEffectiveDofSet, mEchoLevel);
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished effective DOFs array set up." << std::endl;
 
         // Set the corresponding flag
@@ -414,20 +413,18 @@ public:
      * This method calls the builder to allocate the linear system constraints arrays
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
-     * @param rSlaveToMasterDofsMap The map containing the corresponding master(s) for each slave DOF
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
     virtual void AllocateLinearSystemConstraints(
         const DofsArrayType::Pointer pDofSet,
         const DofsArrayType::Pointer pEffectiveDofSet,
-        const DofArrayUtilities::SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
         // Call the builder to set the master-slave constraints structure
         BuiltinTimer system_constraints_allocation_time;
-        (this->GetBuilder()).AllocateLinearSystemConstraints(*pDofSet, *pEffectiveDofSet, rSlaveToMasterDofsMap, rLinearSystemContainer);
+        (this->GetBuilder()).AllocateLinearSystemConstraints(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() >= 2) << "System constraints allocation time: " << system_constraints_allocation_time << std::endl;
 
         KRATOS_CATCH("")
