@@ -364,10 +364,10 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
             ref_data = StressPlotDataFilePaths()
 
-            # Make a stress plot at the end of the fourth stage
+            # Make a stress plot at the end of the third stage
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100_days.txt"
-            make_stress_over_depth_plot(output_stage_4, days_to_seconds(100) + 1.0, project_path / "stage4.post.msh", left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_100_days.svg")
+            make_stress_over_depth_plot(output_stage_3, days_to_seconds(100), project_path / "stage3.post.msh", left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_100_days.svg")
 
             # Make a stress plot at the start of the fifth stage
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100.1_days.txt"
