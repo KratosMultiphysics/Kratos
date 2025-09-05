@@ -110,9 +110,7 @@ using f_UMATMod = void (*)(double*       STRESS,
 #endif
 
 template <SizeType TVoigtSize>
-SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw()
-{
-}
+SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw() = default;
 
 template <SizeType TVoigtSize>
 SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
@@ -205,7 +203,7 @@ int SmallStrainUMATLaw<TVoigtSize>::Check(const Properties&   rMaterialPropertie
                                           const ProcessInfo&  rCurrentProcessInfo) const
 {
     // Verify Properties variables
-    if (!rMaterialProperties.Has(UDSM_NAME) || rMaterialProperties[UDSM_NAME] == "")
+    if (!rMaterialProperties.Has(UDSM_NAME) || rMaterialProperties[UDSM_NAME].empty())
         KRATOS_ERROR << "UDSM_NAME has Key zero, is not defined for property"
                      << rMaterialProperties.Id() << std::endl;
 
@@ -668,10 +666,10 @@ void SmallStrainUMATLaw<TVoigtSize>::UpdateInternalStrainVectorFinalized(Constit
 
 template <SizeType TVoigtSize>
 double& SmallStrainUMATLaw<TVoigtSize>::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                                       const Variable<double>& rThisVariable,
+                                                       const Variable<double>& rVariable,
                                                        double&                 rValue)
 {
-    if (rThisVariable == STRAIN_ENERGY) {
+    if (rVariable == STRAIN_ENERGY) {
         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector&       r_stress_vector = rParameterValues.GetStressVector();
         this->CalculateStress(rParameterValues, r_stress_vector);
@@ -684,11 +682,11 @@ double& SmallStrainUMATLaw<TVoigtSize>::CalculateValue(ConstitutiveLaw::Paramete
 
 template <SizeType TVoigtSize>
 Vector& SmallStrainUMATLaw<TVoigtSize>::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                                       const Variable<Vector>& rThisVariable,
+                                                       const Variable<Vector>& rVariable,
                                                        Vector&                 rValue)
 {
-    if (rThisVariable == STRESSES || rThisVariable == CAUCHY_STRESS_VECTOR ||
-        rThisVariable == KIRCHHOFF_STRESS_VECTOR || rThisVariable == PK2_STRESS_VECTOR) {
+    if (rVariable == STRESSES || rVariable == CAUCHY_STRESS_VECTOR ||
+        rVariable == KIRCHHOFF_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
         Flags& rFlags = rParameterValues.GetOptions();
 
@@ -713,11 +711,11 @@ Vector& SmallStrainUMATLaw<TVoigtSize>::CalculateValue(ConstitutiveLaw::Paramete
 
 template <SizeType TVoigtSize>
 Matrix& SmallStrainUMATLaw<TVoigtSize>::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                                       const Variable<Matrix>& rThisVariable,
+                                                       const Variable<Matrix>& rVariable,
                                                        Matrix&                 rValue)
 {
-    if (rThisVariable == CONSTITUTIVE_MATRIX || rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
-        rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
+    if (rVariable == CONSTITUTIVE_MATRIX || rVariable == CONSTITUTIVE_MATRIX_PK2 ||
+        rVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
         this->CalculateConstitutiveMatrix(rParameterValues, rValue);
     }
 
@@ -725,12 +723,12 @@ Matrix& SmallStrainUMATLaw<TVoigtSize>::CalculateValue(ConstitutiveLaw::Paramete
 }
 
 template <SizeType TVoigtSize>
-Vector& SmallStrainUMATLaw<TVoigtSize>::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+Vector& SmallStrainUMATLaw<TVoigtSize>::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
-    if (rThisVariable == STATE_VARIABLES) {
+    if (rVariable == STATE_VARIABLES) {
         rValue.resize(mStateVariablesFinalized.size());
         noalias(rValue) = mStateVariablesFinalized;
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
         rValue.resize(mStressVectorFinalized.size());
         noalias(rValue) = mStressVectorFinalized;
     }
@@ -739,9 +737,9 @@ Vector& SmallStrainUMATLaw<TVoigtSize>::GetValue(const Variable<Vector>& rThisVa
 }
 
 template <SizeType TVoigtSize>
-double& SmallStrainUMATLaw<TVoigtSize>::GetValue(const Variable<double>& rThisVariable, double& rValue)
+double& SmallStrainUMATLaw<TVoigtSize>::GetValue(const Variable<double>& rVariable, double& rValue)
 {
-    int index = ConstitutiveLawUtilities::GetStateVariableIndex(rThisVariable);
+    int index = ConstitutiveLawUtilities::GetStateVariableIndex(rVariable);
 
     KRATOS_DEBUG_ERROR_IF(index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1))
         << "GetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
@@ -770,10 +768,16 @@ void SmallStrainUMATLaw<TVoigtSize>::SetValue(const Variable<Vector>& rVariable,
                                               const ProcessInfo&      rCurrentProcessInfo)
 {
     if ((rVariable == STATE_VARIABLES) && (rValue.size() == mStateVariablesFinalized.size())) {
-        std::copy(rValue.begin(), rValue.end(), mStateVariablesFinalized.begin());
+        std::ranges::copy(rValue, mStateVariablesFinalized.begin());
     } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == TVoigtSize)) {
-        std::copy_n(rValue.begin(), TVoigtSize, mStressVectorFinalized.begin());
+        std::ranges::copy_n(rValue.begin(), TVoigtSize, mStressVectorFinalized.begin());
     }
+}
+
+template <SizeType TVoigtSize>
+bool SmallStrainUMATLaw<TVoigtSize>::Has(const Variable<Vector>& rVariable)
+{
+    return rVariable == STATE_VARIABLES || rVariable == CAUCHY_STRESS_VECTOR;
 }
 
 template class SmallStrainUMATLaw<VOIGT_SIZE_3D>;
