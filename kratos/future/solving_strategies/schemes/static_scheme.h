@@ -31,7 +31,6 @@
 #include "utilities/timer.h"
 
 #ifdef KRATOS_USE_FUTURE
-#include "future/linear_solvers/amgcl_solver.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/builders/builder.h"
 #endif
