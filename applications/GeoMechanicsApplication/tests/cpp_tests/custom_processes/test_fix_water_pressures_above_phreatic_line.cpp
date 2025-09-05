@@ -33,7 +33,6 @@ ModelPart& CreateModelPartWithTwoNodesAtHeights(Model& rModel, double y_node_1, 
 {
     auto& r_result = rModel.CreateModelPart("foo");
     r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_result.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
     r_result.CreateNewNode(1, 0.0, y_node_1, 0.0);
     r_result.CreateNewNode(2, 0.0, y_node_2, 0.0);
 
@@ -211,7 +210,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_InterpolatesMult
     auto  model        = Model{};
     auto& r_model_part = model.CreateModelPart("foo");
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
     r_model_part.CreateNewNode(1, 0.4, -0.4, 0.0);
     r_model_part.CreateNewNode(2, 0.6, -0.6, 0.0);
 
