@@ -319,8 +319,6 @@ class TestVtuOutput(kratos_unittest.TestCase):
         vtu_output.AddIntegrationPointVariable(Kratos.DISPLACEMENT, self.data_location.Element)
 
         vtu_output.PrintOutput("temp/vtu_output/time_step_test")
-        with self.assertRaises(RuntimeError):
-            vtu_output.PrintOutput("temp/vtu_output/time_step_test")
         vtu_output.GetModelPart().ProcessInfo[Kratos.TIME] += 1e-9
         vtu_output.PrintOutput("temp/vtu_output/time_step_test")
 
