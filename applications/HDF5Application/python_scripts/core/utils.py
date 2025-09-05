@@ -14,12 +14,8 @@ import KratosMultiphysics
 
 def EvaluatePattern(pattern: str, model_part: KratosMultiphysics.ModelPart, time_format='') -> str:
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]
+    step = model_part.ProcessInfo[KratosMultiphysics.STEP]
     pattern = pattern.replace("<time>", format(time, time_format))
-
-    if KratosMultiphysics.STEP in model_part.ProcessInfo:
-        step = model_part.ProcessInfo[KratosMultiphysics.STEP]
-    else:
-        step = 0
     pattern = pattern.replace("<step>", str(step))
     pattern = pattern.replace("<model_part_name>", model_part.Name)
     return pattern
