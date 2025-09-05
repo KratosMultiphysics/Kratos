@@ -1128,7 +1128,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     ## PRINTS
     def _PrintOptimizationProblem(self):
-        self.MpiPrint("\n--|PRINT OPTIMIZATION PROBLEM DATA|")
+        self.MpiPrint("\n--|PRINT OPTIMIZATION PROBLEM DATA|", min_echo=0)
         self._PrintFunctionals()
         self._PrintConstraints()
     
@@ -1137,16 +1137,16 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._PrintFluidFunctionals()
 
     def _PrintTotalFunctional(self):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| TOTAL FUNCTIONAL  : " +  str(self.functional))
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " +  str(self.initial_functional))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| TOTAL FUNCTIONAL  : " +  str(self.functional), min_echo=0)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " +  str(self.initial_functional), min_echo=0)
         
     def _PrintFluidFunctionals(self):
         if (abs(self.functional_weights[0]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (" + str(self.functional_weights[0]) + "): " + str(self.weighted_functionals[0]))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional (" + str(self.functional_weights[0]) + "): " + str(self.weighted_functionals[0]), min_echo=0)
         if (abs(self.functional_weights[1]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (" + str(self.functional_weights[1]) + "): " + str(self.weighted_functionals[1]))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional (" + str(self.functional_weights[1]) + "): " + str(self.weighted_functionals[1]), min_echo=0)
         if (abs(self.functional_weights[2]) > 1e-10):
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional (" + str(self.functional_weights[2]) + "): " + str(self.weighted_functionals[2]))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional (" + str(self.functional_weights[2]) + "): " + str(self.weighted_functionals[2]), min_echo=0)
     
     def _PrintFunctionalsToFile(self):
         with open("functional_history.txt", "a") as file:
@@ -1197,13 +1197,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self._PrintWSSConstraint()
     
     def _PrintVolumeConstraint(self):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| VOLUME FRACTION: " + str(self.volume_fraction))
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Volume Constraint: " + str(self.volume_constraint))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| VOLUME FRACTION: " + str(self.volume_fraction), min_echo=0)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Volume Constraint: " + str(self.volume_constraint), min_echo=0)
 
     def _PrintWSSConstraint(self):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| WSS VALUE: " + str(self.wss_value))
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Resistance: " + str(self.resistance_parameters["value_full"].GetDouble()))
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Constraint: " + str(self.wss_constraint))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| WSS VALUE: " + str(self.wss_value), min_echo=0)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Resistance: " + str(self.resistance_parameters["value_full"].GetDouble()), min_echo=0)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Constraint: " + str(self.wss_constraint), min_echo=0)
 
     def PrintAnalysisStageProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TOTAL STEP: ", self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
@@ -2144,16 +2144,19 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def MpiNotRunOnlyRank(self, rank=0):
         return not self.MpiRunOnlyRank(rank)
         
-    def MpiPrint(self, text_to_print="", rank=0, set_barrier=False):
-        if (self.IsOpenMPParallelism()):
-            print(text_to_print)
-        else:
-            if (set_barrier):
-                self.MpiBarrier()
-            if (self.MpiRunOnlyRank(rank)):
+    def MpiPrint(self, text_to_print="", rank=0, set_barrier=False, min_echo=1):
+        if self.echo_level >= min_echo:
+            if (self.IsOpenMPParallelism()):
                 print(text_to_print)
-            if (set_barrier):
-                self.MpiBarrier()   
+            else:
+                if (set_barrier):
+                    self.MpiBarrier()
+                if (self.MpiRunOnlyRank(rank)):
+                    print(text_to_print)
+                if (set_barrier):
+                    self.MpiBarrier()   
+        else:
+            pass
 
     def CurrentDomainHasOptimizationNodes(self):
         opt_mp = self._GetOptimizationDomain()

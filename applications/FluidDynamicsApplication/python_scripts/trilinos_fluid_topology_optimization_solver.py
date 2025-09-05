@@ -328,16 +328,19 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
     def MpiBarrier(self):
         self.data_communicator.Barrier()
 
-    def MpiPrint(self, text_to_print="", rank=0, set_barrier=False):
-        if (not _CheckIsDistributed()):
-            print(text_to_print)
-        else:
-            if (set_barrier):
-                self.MpiBarrier()
-            if (self.MpiRunOnlyRank(rank)):
+    def MpiPrint(self, text_to_print="", rank=0, set_barrier=False, min_echo=1):
+        if self.settings["echo_level"].GetInt() >= min_echo:
+            if (not _CheckIsDistributed()):
                 print(text_to_print)
-            if (set_barrier):
-                self.MpiBarrier()  
+            else:
+                if (set_barrier):
+                    self.MpiBarrier()
+                if (self.MpiRunOnlyRank(rank)):
+                    print(text_to_print)
+                if (set_barrier):
+                    self.MpiBarrier()    
+        else:
+            pass 
 
     def MpiRunOnlyRank(self, rank=0):
         """

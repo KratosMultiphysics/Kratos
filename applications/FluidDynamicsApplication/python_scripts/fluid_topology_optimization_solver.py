@@ -63,7 +63,7 @@ class FluidTopologyOptimizationSolverOpenMP(NavierStokesMonolithicSolver):
 
     def _DefineElementsAndConditions(self):
         if (self.element_name != "FluidTopologyOptimizationElement"):
-            print("[WARNING] " + self.__class__.__name__ + " element_name: \' " + self.element_name + " \' is not compatible with FluidTopologyOptimization. Its value has been reset to default value: \' FluidTopologyOptimizationElement \'")
+            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " element_name: \' " + self.element_name + " \' is not compatible with FluidTopologyOptimization. Its value has been reset to default value: \' FluidTopologyOptimizationElement \'")
             self.element_name = "FluidTopologyOptimizationElement"
         self.condition_name = "FluidTopologyOptimizationWallCondition"
         self.element_integrates_in_time = True
@@ -110,12 +110,12 @@ class FluidTopologyOptimizationSolverOpenMP(NavierStokesMonolithicSolver):
     def _SetTimeSchemeBufferSize(self):
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":
-            print("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + scheme_type + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' steady \'")
+            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + scheme_type + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' steady \'")
             self.settings["time_scheme"].SetString("steady")
             self.min_buffer_size = 1
             self._SetUpSteadySimulation()
         elif scheme_type == "bdf2":
-            print("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + scheme_type + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' steady \'")
+            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + scheme_type + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' steady \'")
             self.settings["time_scheme"].SetString("steady")
             self.min_buffer_size = 1
             self._SetUpSteadySimulation()
@@ -212,10 +212,10 @@ class FluidTopologyOptimizationSolverOpenMP(NavierStokesMonolithicSolver):
             if self.IsNodesIdsGlobalToLocalDictionaryEmpty():
                 raise RuntimeError("Executing 'SolveSolutionStep' of FluidTopologyOptimizationSolverMpi' with self.nodes_ids_global_to_local_partition_dictionary == { }")
             self.PrintPhysicsParametersUpdateStatus(problem_phase_str)
-            print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " solution step...")
+            KratosMultiphysics.Logger.PrintInfo("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " solution step...")
             # Call the base fluid solver to solve current time step
             is_converged = super().SolveSolutionStep()
-            print("--|" + problem_phase_str + "| ---> Step Solved!")
+            KratosMultiphysics.Logger.PrintInfo("--|" + problem_phase_str + "| ---> Step Solved!")
             return is_converged
     
     def AdvanceInTime(self, current_time):
@@ -223,7 +223,7 @@ class FluidTopologyOptimizationSolverOpenMP(NavierStokesMonolithicSolver):
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] += 1
             new_time =  super().AdvanceInTime(current_time)
         else: #ADJ
-            print("[WARNING] The Adjoint problem should go backward buth this has not yet been implemented. Since for now it is steady, we advance in time even if it is unnecessary.")
+            KratosMultiphysics.Logger.PrintWarning("[WARNING] The Adjoint problem should go backward buth this has not yet been implemented. Since for now it is steady, we advance in time even if it is unnecessary.")
             dt = self._ComputeDeltaTime()
             # new_time = current_time - dt
             new_time = current_time + dt
@@ -277,11 +277,11 @@ class FluidTopologyOptimizationSolverOpenMP(NavierStokesMonolithicSolver):
 
     def PrintPhysicsParametersUpdateStatus(self, problem_phase_str):
         if (not self.is_resistance_updated):
-            print("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating RESISTANCE variable")
+            KratosMultiphysics.Logger.PrintInfo("--|" + problem_phase_str + "| ---> Top. Opt. solution: Solve " + problem_phase_str + " without updating RESISTANCE variable")
 
     def _CheckMaterialProperties(self):
         for node in self._GetLocalMeshNodes():
-            print("--|--> Resistance: " + node.GetValue(KratosCFD.RESISTANCE))
+            KratosMultiphysics.Logger.PrintInfo("--|--> Resistance: " + node.GetValue(KratosCFD.RESISTANCE))
             break
 
     def SetNodesIdsGlobalToLocalDictionary(self, dict):

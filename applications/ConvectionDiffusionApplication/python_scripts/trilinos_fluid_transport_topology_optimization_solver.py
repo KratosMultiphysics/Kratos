@@ -153,8 +153,6 @@ class TrilinosFluidTransportTopologyOptimizationSolver(PythonSolver):
         """This function validates the settings of the solver
         """
         default_settings = self.GetDefaultParameters()
-        # print(default_settings.PrettyPrintJsonString())
-        # print(self.settings.PrettyPrintJsonString())
         self.settings.ValidateAndAssignDefaults(default_settings)
     
     def PrepareModelPart(self):
