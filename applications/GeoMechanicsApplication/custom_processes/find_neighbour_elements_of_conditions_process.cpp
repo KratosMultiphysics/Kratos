@@ -204,9 +204,9 @@ void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashm
 void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnElement(
     hashmap& rFacesMap, const std::vector<std::size_t>& key, Element* pElement)
 {
-    const auto face_pair = rFacesMap.equal_range(key);
-    for (auto it = face_pair.first; it != face_pair.second; ++it) {
-        auto&                         r_conditions = it->second;
+    const auto [start, end] = rFacesMap.equal_range(key);
+    for (auto it = start; it != end; ++it) {
+        const auto&                   r_conditions = it->second;
         GlobalPointersVector<Element> vector_of_neighbours;
         vector_of_neighbours.resize(1);
         vector_of_neighbours(0) = Element::WeakPointer(pElement);
