@@ -37,8 +37,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
         std::vector<IndexType> Ids(r_geometry.size());
         std::ranges::transform(r_geometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
-        for (auto& rNode : r_geometry)
-            rNode.Set(BOUNDARY, true);
 
         condition_node_ids_to_condition.insert(hashmap::value_type(Ids, {&r_condition}));
     }
