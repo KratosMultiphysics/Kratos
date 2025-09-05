@@ -229,7 +229,7 @@ public:
         rSparseGraph.Clear();
 
         // Add the elements and conditions DOF equation connectivities
-        // Note that we add all the DOFs regarless their fixity status
+        // Note that we add all the DOFs regardless their fixity status
         Element::EquationIdVectorType eq_ids;
         for (auto& r_elem : mpModelPart->Elements()) {
             r_elem.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
