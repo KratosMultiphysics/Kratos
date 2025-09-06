@@ -125,25 +125,19 @@ private:
         const auto value = mrProperties[rVariable];
         bool       in_range;
         using enum CheckProperties::Bounds;
-        auto isLessThanUpperBound = [UpperBound](double value) {
-            return !UpperBound || value < *UpperBound;
-        };
-        auto isLessOrEqualToUpperBound = [UpperBound](double value) {
-            return !UpperBound || value <= *UpperBound;
-        };
 
         switch (mRangeBoundsType) {
         case AllExclusive:
-            in_range = (value > LowerBound && isLessThanUpperBound(value));
+            in_range = (value > LowerBound && (!UpperBound || value < *UpperBound));
             break;
         case AllInclusive:
-            in_range = (value >= LowerBound && isLessOrEqualToUpperBound(value));
+            in_range = (value >= LowerBound && (!UpperBound || value <= *UpperBound));
             break;
         case InclusiveLowerAndExclusiveUpper:
-            in_range = (value >= LowerBound && isLessThanUpperBound(value));
+            in_range = (value >= LowerBound && (!UpperBound || value < *UpperBound));
             break;
         case ExclusiveLowerAndInclusiveUpper:
-            in_range = (value > LowerBound && isLessOrEqualToUpperBound(value));
+            in_range = (value > LowerBound && (!UpperBound || value <= *UpperBound));
             break;
         default:
             KRATOS_ERROR << " Unknown type of range bounds";

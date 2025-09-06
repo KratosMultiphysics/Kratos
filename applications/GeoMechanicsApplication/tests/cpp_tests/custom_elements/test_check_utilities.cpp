@@ -173,6 +173,26 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsElementId, Kra
         "IS_FORTRAN_UDSM does not exist in the property at element with Id 1.")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckIntegerProperty, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties{};
+    const CheckProperties check_properties(properties, "property at element", CheckProperties::Bounds::AllInclusive);
+    // Act and Assert
+    properties.SetValue(UDSM_NUMBER, 3);
+    EXPECT_NO_THROW(check_properties.Check(UDSM_NUMBER));
+    EXPECT_NO_THROW(check_properties.Check(UDSM_NUMBER, 3, 5));
+    EXPECT_NO_THROW(check_properties.Check(UDSM_NUMBER, 1, 3));
+
+    check_properties.SetNewRangeBounds(CheckProperties::Bounds::AllExclusive);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.Check(UDSM_NUMBER, 3, 5),
+                                      "UDSM_NUMBER in the property at element with Id 0 has an "
+                                      "invalid value: 3 is out of the range (3; 5.000000).")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.Check(UDSM_NUMBER, 1, 3),
+                                      "UDSM_NUMBER in the property at element with Id 0 has an "
+                                      "invalid value: 3 is out of the range (1; 3.000000)")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesThrowsErrorsForWrongProperties,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
