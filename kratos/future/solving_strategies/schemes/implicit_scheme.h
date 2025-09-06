@@ -23,9 +23,7 @@
 #include "containers/csr_matrix.h"
 #include "containers/system_vector.h"
 #include "includes/kratos_parameters.h"
-#include "includes/master_slave_constraint.h"
 #include "includes/model_part.h"
-#include "spaces/kratos_space.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/dof_utilities/dof_array_utilities.h"
 #include "utilities/entities_utilities.h"
@@ -34,7 +32,6 @@
 #include "utilities/timer.h"
 
 #ifdef KRATOS_USE_FUTURE
-#include "future/linear_solvers/amgcl_solver.h"
 #include "future/solving_strategies/builders/builder.h"
 #include "future/solving_strategies/builders/block_builder.h"
 #include "future/solving_strategies/builders/elimination_builder.h"

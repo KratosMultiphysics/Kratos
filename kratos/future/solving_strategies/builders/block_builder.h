@@ -59,7 +59,9 @@ public:
     {
         NoScaling,
         NormDiagonal,
+        NormDiagonalRatio,
         MaxDiagonal,
+        MaxDiagonalRatio,
         PrescribedDiagonal
     };
 
@@ -110,8 +112,12 @@ public:
                 mScalingType = ScalingType::NoScaling;
             } else if (scaling_type == "norm_diagonal") {
                 mScalingType = ScalingType::NormDiagonal;
+            } else if (scaling_type == "norm_diagonal_ratio") {
+                mScalingType = ScalingType::NormDiagonalRatio;
             } else if (scaling_type == "max_diagonal") {
                 mScalingType = ScalingType::MaxDiagonal;
+            } else if (scaling_type == "max_diagonal_ratio") {
+                mScalingType = ScalingType::MaxDiagonalRatio;
             } else if (scaling_type == "prescribed_diagonal") {
                 mScalingType = ScalingType::PrescribedDiagonal;
             } else {
@@ -348,10 +354,12 @@ private:
             return 1.0;
         } else if (mScalingType == ScalingType::NormDiagonal) {
             return rLHS.NormDiagonal();
-            // return rLHS.NormDiagonal() / rLHS.size1(); //TODO: Decide which one
+        } else if (mScalingType == ScalingType::NormDiagonalRatio) {
+            return rLHS.NormDiagonal() / rLHS.size1();
         } else if (mScalingType == ScalingType::MaxDiagonal) {
             return rLHS.MaxDiagonal();
-            // return rLHS.MaxDiagonal() / rLHS.size1(); // TODO: Decide which one
+        } else if (mScalingType == ScalingType::MaxDiagonalRatio) {
+            return rLHS.MaxDiagonal() / rLHS.size1();
         } else if (mScalingType == ScalingType::PrescribedDiagonal) {
             const auto& r_process_info = (this->GetModelPart()).GetProcessInfo();
             KRATOS_ERROR_IF_NOT(r_process_info.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined in ProcessInfo container. Please set 'BUILD_SCALE_FACTOR' variable." << std::endl;
