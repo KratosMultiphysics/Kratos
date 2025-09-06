@@ -286,6 +286,9 @@ public:
      */
     virtual void Clear()
     {
+
+        mpModelPart = nullptr;
+
     }
 
     ///@}
