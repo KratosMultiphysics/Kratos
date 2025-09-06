@@ -81,56 +81,60 @@ KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawChecksInputParameters, KratosGeoMechani
         law.Check(properties, process_info),
         "SATURATED_SATURATION does not exist in the parameters of material with Id 1.");
     properties.SetValue(SATURATED_SATURATION, 1.1);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, process_info),
-                                      "SATURATED_SATURATION in the parameters of material with Id 1 has an "
-                                      "invalid value: 1.1 is out of the range [0; 1.000000].");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, process_info),
+        "SATURATED_SATURATION in the parameters of material with Id 1 has an "
+        "invalid value: 1.1 is out of the range [0; 1.000000].");
     properties.SetValue(SATURATED_SATURATION, 0.9);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, process_info),
         "RESIDUAL_SATURATION does not exist in the parameters of material with Id 1.");
     properties.SetValue(RESIDUAL_SATURATION, 1.1);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, process_info),
-                                      "RESIDUAL_SATURATION in the parameters of material with Id 1 has an "
-                                      "invalid value: 1.1 is out of the range [0; 0.900000).");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, process_info),
+        "RESIDUAL_SATURATION in the parameters of material with Id 1 has an "
+        "invalid value: 1.1 is out of the range [0; 0.900000).");
     properties.SetValue(RESIDUAL_SATURATION, 0.1);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, process_info),
         "MINIMUM_RELATIVE_PERMEABILITY does not exist in the parameters of material with Id 1.");
     properties.SetValue(MINIMUM_RELATIVE_PERMEABILITY, 1.1);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        law.Check(properties, process_info),
-        "MINIMUM_RELATIVE_PERMEABILITY in the parameters of material with Id 1 has an invalid value: 1.1 "
-        "is out of the range [0; 1.000000].");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, process_info),
+                                      "MINIMUM_RELATIVE_PERMEABILITY in the parameters of material "
+                                      "with Id 1 has an invalid value: 1.1 "
+                                      "is out of the range [0; 1.000000].");
     properties.SetValue(MINIMUM_RELATIVE_PERMEABILITY, 0.05);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, process_info),
         "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE does not exist in the parameters of material with Id 1.");
     properties.SetValue(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE, -4.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        law.Check(properties, process_info),
-        "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE in the parameters of material with Id 1 has an invalid value: -4 "
-        "is out of the range (0; -).");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, process_info),
+                                      "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE in the parameters of "
+                                      "material with Id 1 has an invalid value: -4 "
+                                      "is out of the range (0; -).");
     properties.SetValue(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE, 4.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, process_info),
         "VAN_GENUCHTEN_GN does not exist in the parameters of material with Id 1.");
     properties.SetValue(VAN_GENUCHTEN_GN, -2.5);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, process_info),
-                                      "VAN_GENUCHTEN_GN in the parameters of material with Id 1 has an "
-                                      "invalid value: -2.5 is out of the range (0; -).");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, process_info),
+        "VAN_GENUCHTEN_GN in the parameters of material with Id 1 has an "
+        "invalid value: -2.5 is out of the range (0; -).");
     properties.SetValue(VAN_GENUCHTEN_GN, 2.5);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, process_info),
         "VAN_GENUCHTEN_GL does not exist in the parameters of material with Id 1.");
     properties.SetValue(VAN_GENUCHTEN_GL, -1.5);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, process_info),
-                                      " VAN_GENUCHTEN_GL in the parameters of material with Id 1 has an "
-                                      "invalid value: -1.5 is out of the range [0; -].");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, process_info),
+        " VAN_GENUCHTEN_GL in the parameters of material with Id 1 has an "
+        "invalid value: -1.5 is out of the range [0; -].");
     properties.SetValue(VAN_GENUCHTEN_GL, 1.5);
 
     KRATOS_EXPECT_EQ(law.Check(properties, process_info), 0);

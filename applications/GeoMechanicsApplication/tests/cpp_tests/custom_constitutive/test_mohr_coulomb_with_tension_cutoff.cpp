@@ -73,8 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
         "GEO_COHESION does not exist in the property with Id 3.")
     properties.SetValue(GEO_COHESION, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "GEO_COHESION in the property with Id 3 has an invalid value: -1 is out of the range [0; -].")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_COHESION in the property with Id 3 has an invalid value: -1 is out of the range [0; -].")
     properties.SetValue(GEO_COHESION, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -82,8 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
         "GEO_FRICTION_ANGLE does not exist in the property with Id 3.")
     properties.SetValue(GEO_FRICTION_ANGLE, -30.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "GEO_FRICTION_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range [0; -].")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_FRICTION_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range [0; -].")
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -113,8 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
         "YOUNG_MODULUS does not exist in the property with Id 3.")
     properties.SetValue(YOUNG_MODULUS, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "YOUNG_MODULUS in the property with Id 3 has an invalid value: -1 is out of the range [0; -].")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "YOUNG_MODULUS in the property with Id 3 has an invalid value: -1 is out of the range [0; -].")
     properties.SetValue(YOUNG_MODULUS, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -125,8 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "POISSON_RATIO in the property with Id 3 has an invalid value: -0.5 is out of the range [0; 0.500000].")
     properties.SetValue(POISSON_RATIO, 1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        " POISSON_RATIO in the property with Id 3 has an invalid value: 1 is out of the range [0; 0.500000].")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), " POISSON_RATIO in the property with Id 3 has an invalid value: 1 is out of the range [0; 0.500000].")
     properties.SetValue(POISSON_RATIO, 0.3);
 
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);

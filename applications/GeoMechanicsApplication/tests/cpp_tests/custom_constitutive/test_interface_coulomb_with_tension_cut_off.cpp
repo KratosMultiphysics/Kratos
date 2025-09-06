@@ -357,8 +357,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
         "GEO_COHESION does not exist in the property with Id 3.")
     properties.SetValue(GEO_COHESION, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "GEO_COHESION in the property with Id 3 has an invalid value: -1 is out of the range [0; -].")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_COHESION in the property with Id 3 has an invalid value: -1 is out of the range [0; -].")
     properties.SetValue(GEO_COHESION, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(

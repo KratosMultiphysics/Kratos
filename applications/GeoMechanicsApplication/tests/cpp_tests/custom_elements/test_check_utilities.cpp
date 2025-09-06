@@ -127,17 +127,20 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsPropertyId, Kr
     EXPECT_NO_THROW(check_properties.Check(DENSITY_WATER));
     EXPECT_NO_THROW(check_properties.Check(DENSITY));
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.Check(DENSITY_WATER, 500.0),
-                                      "DENSITY_WATER in the property with Id 0 has an invalid value: 1000 "
-                                      "is out of the range [0; 500.000000].")
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.Check(DENSITY_WATER, 100.0, 500.0),
-                                      "DENSITY_WATER in the property with Id 0 has an invalid value: 1000 "
-                                      "is out of the range [100; 500.000000].")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.Check(DENSITY_WATER, 500.0),
+        "DENSITY_WATER in the property with Id 0 has an invalid value: 1000 "
+        "is out of the range [0; 500.000000].")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.Check(DENSITY_WATER, 100.0, 500.0),
+        "DENSITY_WATER in the property with Id 0 has an invalid value: 1000 "
+        "is out of the range [100; 500.000000].")
 
     check_properties.SetNewRangeBounds(CheckProperties::Bounds::AllExclusive);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.Check(DENSITY_WATER, 1000.0),
-                                      "DENSITY_WATER in the property with Id 0 has an invalid value: 1000 "
-                                      "is out of the range (0; 1000.000000).")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.Check(DENSITY_WATER, 1000.0),
+        "DENSITY_WATER in the property with Id 0 has an invalid value: 1000 "
+        "is out of the range (0; 1000.000000).")
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         check_properties.Check(DENSITY),
         "DENSITY in the property with Id 0 has an invalid value: 0 is out of the range (0; -).")
@@ -156,13 +159,15 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsElementId, Kra
     const CheckProperties check_properties(properties, "property at element", element_Id,
                                            CheckProperties::Bounds::AllInclusive);
     // Act and Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityOnly(UDSM_NAME),
-                                      "UDSM_NAME does not exist in the property at element with Id 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckAvailabilityOnly(UDSM_NAME),
+        "UDSM_NAME does not exist in the property at element with Id 1.")
     properties.SetValue(UDSM_NAME, "");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityAndEmpty(UDSM_NAME),
                                       "UDSM_NAME is empty in the property at element with Id 1.");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityOnly(UDSM_NUMBER),
-                                      "UDSM_NUMBER does not exist in the property at element with Id 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckAvailabilityOnly(UDSM_NUMBER),
+        "UDSM_NUMBER does not exist in the property at element with Id 1.")
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         check_properties.CheckAvailabilityOnly(IS_FORTRAN_UDSM),
         "IS_FORTRAN_UDSM does not exist in the property at element with Id 1.")
@@ -178,9 +183,9 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesThrowsErrors
                                       "PERMEABILITY_XX does not exist in the properties with Id 2.")
 
     properties.SetValue(PERMEABILITY_XX, -10.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        check_properties.CheckPermeabilityProperties(1),
-        "PERMEABILITY_XX in the properties with Id 2 has an invalid value: -10 is out of the range [0; -).")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckPermeabilityProperties(1),
+                                      "PERMEABILITY_XX in the properties with Id 2 has an invalid "
+                                      "value: -10 is out of the range [0; -).")
 
     properties.SetValue(PERMEABILITY_XX, 10.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckPermeabilityProperties(2),
@@ -197,7 +202,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesThrowsErrors
     properties.SetValue(PERMEABILITY_YZ, 0.0);
     properties.SetValue(PERMEABILITY_ZX, -10.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckPermeabilityProperties(3),
-                                      "PERMEABILITY_ZX in the properties with Id 2 has an invalid value: -10 is out of the range [0; -).")
+                                      "PERMEABILITY_ZX in the properties with Id 2 has an invalid "
+                                      "value: -10 is out of the range [0; -).")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesDoesNotThrowsErrors,

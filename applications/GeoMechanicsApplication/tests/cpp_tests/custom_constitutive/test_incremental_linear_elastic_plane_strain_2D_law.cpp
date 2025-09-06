@@ -214,17 +214,19 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawChecksYoungModulusAndP
         law.Check(properties, element_geometry, process_info),
         "YOUNG_MODULUS does not exist in the parameters of material with Id 3.")
     properties.SetValue(YOUNG_MODULUS, -1.0e7);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, element_geometry, process_info),
-                                      "YOUNG_MODULUS in the parameters of material with Id 3 has an "
-                                      "invalid value: -1e+07 is out of the range (0; -).")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, element_geometry, process_info),
+        "YOUNG_MODULUS in the parameters of material with Id 3 has an "
+        "invalid value: -1e+07 is out of the range (0; -).")
     properties.SetValue(YOUNG_MODULUS, 1.0e7);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, element_geometry, process_info),
         "POISSON_RATIO does not exist in the parameters of material with Id 3.")
     properties.SetValue(POISSON_RATIO, 0.7);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, element_geometry, process_info),
-                                      "POISSON_RATIO in the parameters of material with Id 3 has an "
-                                      "invalid value: 0.7 is out of the range [-1; 0.500000).")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, element_geometry, process_info),
+        "POISSON_RATIO in the parameters of material with Id 3 has an "
+        "invalid value: 0.7 is out of the range [-1; 0.500000).")
     properties.SetValue(POISSON_RATIO, 0.25);
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
