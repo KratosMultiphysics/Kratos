@@ -179,11 +179,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
     check_properties.CheckAvailabilityOnly(BIOT_COEFFICIENT);
     check_properties.CheckPermeabilityProperties(TDim);
 
-    if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(r_properties, rCurrentProcessInfo);
-    }
-
-    return 0;
+    return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }

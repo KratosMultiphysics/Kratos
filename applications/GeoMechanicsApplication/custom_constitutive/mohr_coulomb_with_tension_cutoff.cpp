@@ -45,11 +45,12 @@ Vector AveragePrincipalStressComponents(const Vector& rPrincipalStressVector,
 {
     auto result = rPrincipalStressVector;
     switch (AveragingType) {
-    case CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES:
+        using enum CoulombYieldSurface::CoulombAveragingType;
+    case LOWEST_PRINCIPAL_STRESSES:
         std::fill(result.begin(), result.begin() + 1,
                   (rPrincipalStressVector[0] + rPrincipalStressVector[1]) * 0.5);
         break;
-    case CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES:
+    case HIGHEST_PRINCIPAL_STRESSES:
         std::fill(result.begin() + 1, result.begin() + 2,
                   (rPrincipalStressVector[1] + rPrincipalStressVector[2]) * 0.5);
         break;
@@ -61,13 +62,14 @@ Vector AveragePrincipalStressComponents(const Vector& rPrincipalStressVector,
 
 CoulombYieldSurface::CoulombAveragingType FindAveragingType(const Vector& rMappedPrincipalStressVector)
 {
+    using enum CoulombYieldSurface::CoulombAveragingType;
     if (rMappedPrincipalStressVector[0] < rMappedPrincipalStressVector[1]) {
-        return CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES;
+        return LOWEST_PRINCIPAL_STRESSES;
     }
     if (rMappedPrincipalStressVector[1] < rMappedPrincipalStressVector[2]) {
-        return CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES;
+        return HIGHEST_PRINCIPAL_STRESSES;
     }
-    return CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING;
+    return NO_AVERAGING;
 }
 
 } // namespace
