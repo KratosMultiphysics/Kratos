@@ -70,16 +70,13 @@ public:
         return CheckProperties(mrProperties, mrPrintName, mId, RangeBoundsType);
     }
 
-    void SetNewRangeBounds(Bounds RangeBoundsType) const
-    {
-        mRangeBoundsType = RangeBoundsType;
-    }
+    void SetNewRangeBounds(Bounds RangeBoundsType) const { mRangeBoundsType = RangeBoundsType; }
 
     template <typename T>
     void Check(const Variable<T>& rVariable) const
     {
         CheckAvailabilityOnly(rVariable);
-        CheckRangeBounds(rVariable, mDefaultLowerBound, mDefaultUpperBound);
+        CheckRangeBounds(rVariable, mDefaultLowerBound, std::nullopt);
     }
 
     template <typename T>
@@ -100,8 +97,8 @@ public:
     void CheckAvailabilityOnly(const Variable<T>& rVariable) const
     {
         if (!mrProperties.Has(rVariable))
-            KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName << " with Id "
-                         << mId << "." << std::endl;
+            KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName
+                         << " with Id " << mId << "." << std::endl;
     }
 
     template <typename T>
@@ -109,38 +106,44 @@ public:
     {
         CheckAvailabilityOnly(rVariable);
         if (mrProperties[rVariable].empty())
-            KRATOS_ERROR << rVariable.Name() << " is empty in the " << mrPrintName << " with Id " << mId
-                         << "." << std::endl;
+            KRATOS_ERROR << rVariable.Name() << " is empty in the " << mrPrintName << " with Id "
+                         << mId << "." << std::endl;
     }
 
     void CheckPermeabilityProperties(size_t Dimension) const;
 
 private:
-    const Properties&           mrProperties;
-    const std::string           mrPrintName;
-    const std::size_t           mId;
-    mutable Bounds              mRangeBoundsType;
-    const double                mDefaultLowerBound = 0.0;
-    const double                mDefaultUpperBound = std::numeric_limits<double>::max();
+    const Properties& mrProperties;
+    const std::string mrPrintName;
+    const std::size_t mId;
+    mutable Bounds    mRangeBoundsType;
+    const double      mDefaultLowerBound = 0.0;
 
     template <typename T>
-    void CheckRangeBounds(const Variable<T>& rVariable, double LowerBound, double UpperBound) const
+    void CheckRangeBounds(const Variable<T>& rVariable, double LowerBound, std::optional<double> UpperBound) const
     {
         const auto value = mrProperties[rVariable];
         bool       in_range;
         using enum CheckProperties::Bounds;
+        auto isLessThanUpperBound = [UpperBound](double value) {
+            return !UpperBound || value < *UpperBound;
+        };
+        auto isLessOrEqualToUpperBound = [UpperBound](double value) {
+            return !UpperBound || value <= *UpperBound;
+        };
+
         switch (mRangeBoundsType) {
         case AllExclusive:
-            in_range = (value > LowerBound && value < UpperBound);
+            in_range = (value > LowerBound && isLessThanUpperBound(value));
             break;
         case AllInclusive:
-            in_range = (value >= LowerBound && value <= UpperBound);
+            in_range = (value >= LowerBound && isLessOrEqualToUpperBound(value));
             break;
         case InclusiveLowerAndExclusiveUpper:
-            in_range = (value >= LowerBound && value < UpperBound);
+            in_range = (value >= LowerBound && isLessThanUpperBound(value));
             break;
         case ExclusiveLowerAndInclusiveUpper:
-            in_range = (value > LowerBound && value <= UpperBound);
+            in_range = (value > LowerBound && isLessOrEqualToUpperBound(value));
             break;
         default:
             KRATOS_ERROR << " Unknown type of range bounds";
@@ -153,7 +156,7 @@ private:
             const auto include_upper_bound = (mRangeBoundsType == AllInclusive) ||
                                              (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper);
             print_range << (include_lower_bound ? "[" : "(") << LowerBound << "; "
-                        << ((UpperBound == std::numeric_limits<double>::max()) ? "-" : std::to_string(UpperBound))
+                        << (UpperBound ? std::to_string(*UpperBound) : "-")
                         << (include_upper_bound ? "]" : ")");
             KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " with Id " << mId
                          << " has an invalid value: " << value << " is out of the range "
