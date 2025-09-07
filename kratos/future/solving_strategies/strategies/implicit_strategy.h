@@ -183,7 +183,7 @@ public:
         KRATOS_TRY
 
         // Initialize scheme (this has to be done once)
-        pGetScheme()->Initialize();
+        pGetScheme()->Initialize(mpDofSet, mpEffectiveDofSet, mLinearSystemContainer);
 
         KRATOS_CATCH("")
     }
@@ -193,7 +193,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mpDofSet, mpEffectiveDofSet, mLinearSystemContainer, mReformDofsAtEachStep);
+        pGetScheme()->InitializeSolutionStep(mpDofSet, mpEffectiveDofSet, mLinearSystemContainer);
 
         KRATOS_CATCH("")
     }

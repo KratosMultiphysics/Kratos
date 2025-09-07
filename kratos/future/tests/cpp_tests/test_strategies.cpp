@@ -72,8 +72,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyEliminationBuild, KratosCoreFastSuite)
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -133,8 +133,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyBlockBuild, KratosCoreFastSuite)
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -206,8 +206,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintEliminationBuild, Krat
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -279,8 +279,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintBlockBuild, KratosCore
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -350,8 +350,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintEliminationBuil
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -422,8 +422,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintBlockBuild, Kra
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -503,8 +503,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsEliminationBu
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -584,8 +584,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsBlockBuild, K
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -671,8 +671,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsEliminationBuild, Krat
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -758,8 +758,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsBlockBuild, KratosCore
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -833,8 +833,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintElimination
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
     p_strategy->Clear();
@@ -900,8 +900,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintBlockBuild,
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
     p_strategy->Clear();
