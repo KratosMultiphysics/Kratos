@@ -219,9 +219,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput,
     Model model;
     auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(p_element);
-
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
     // Act and Assert
-    KRATOS_EXPECT_EQ(p_element->Check(ProcessInfo{}), 0);
+    KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
