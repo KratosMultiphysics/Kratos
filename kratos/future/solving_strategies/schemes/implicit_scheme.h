@@ -151,9 +151,7 @@ public:
     {
         // Validate default parameters
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        AssignSettings(ThisParameters);
-
-        //TODO: User-definable reshaping stuff
+        this->AssignSettings(ThisParameters);
 
         // Set up the assembly helper
         Parameters build_settings = ThisParameters["build_settings"];
@@ -215,10 +213,22 @@ public:
     /**
      * @brief This is the place to initialize the ImplicitScheme.
      * @details This is intended to be called just once when the strategy is initialized
+     * This method sets up the linear system of equations (DOF sets and allocation) and calls the Initialize of all entities
+     * Further operations might be required depending on the time integration scheme
+     * Note that steps from 1 to 4 can be done once if the DOF set does not change (i.e., the mesh and the constraints active/inactive status do not change in time)
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void Initialize()
+    virtual void Initialize(
+        DofsArrayType::Pointer pDofSet,
+        DofsArrayType::Pointer pEffectiveDofSet,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
+
+        // Set up the system
+        InitializeLinearSystem(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
 
         // Initialize elements, conditions and constraints
         EntitiesUtilities::InitializeAllEntities(*mpModelPart);
@@ -228,27 +238,17 @@ public:
 
     /**
      * @brief Function called once at the beginning of each solution step
-     * @warning Must be defined in derived classes
-     * The basic operations to be carried out in here are the following:
-     * 1) Set up the DOF arrays from the element and conditions DOFs and the corresponding effective ones accounting for the constraints
-     * 2) Set up the system ids (i.e., the DOFs equation ids), including the effective DOF ids, which may not match the "standard" ones
-     * 3) Allocate the memory for the linear system constraints arrays (note that the operations done in here may depend on the build type)
-     * 4) Allocate the memory for the system arrays (note that this implies building the sparse matrix graph)
-     * 5) Call the InitializeSolutionStep of all entities
-     * Further operations might be required depending on the time integration scheme
-     * Note that steps from 1 to 4 can be done once if the DOF set does not change (i.e., the mesh and the constraints active/inactive status do not change in time)
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
-     * @param ReformDofSet Flag to indicate if the DOFs have changed and need to be updated
      */
     virtual void InitializeSolutionStep(
         DofsArrayType::Pointer pDofSet,
         DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer,
-        const bool ReformDofSets = true)
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
-        KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'InitializeSolutionStep\' method. Call derived class one." << std::endl;
+        // Initializes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
     }
 
     /**
@@ -1296,7 +1296,8 @@ public:
                 "name" : "block_builder"
             },
             "echo_level" : 0,
-            "move_mesh" : false
+            "move_mesh" : false,
+            "reform_dofs_at_each_step" : false
         })");
 
         return default_parameters;
@@ -1322,6 +1323,15 @@ public:
     void SetMoveMesh(const bool MoveMesh)
     {
         mMoveMesh = MoveMesh;
+    }
+
+    /**
+     * @brief This method sets the value of mReformDofsAtEachStep
+     * @param ReformDofsAtEachStep If the flag must be set to true or false
+     */
+    void SetReformDofsAtEachStep(const bool ReformDofsAtEachStep)
+    {
+        mReformDofsAtEachStep = ReformDofsAtEachStep;
     }
 
     /**
@@ -1361,9 +1371,18 @@ public:
      * @brief This method returns if the mesh has to be updated
      * @return bool True if to be moved, false otherwise
      */
-    int GetMoveMesh() const
+    bool GetMoveMesh() const
     {
         return mMoveMesh;
+    }
+
+    /**
+     * @brief This method returns if DOF sets have to be updated at each time step
+     * @return bool True if to be updated, false otherwise
+     */
+    bool GetReformDofsAtEachStep() const
+    {
+        return mReformDofsAtEachStep;
     }
 
     /**
@@ -1418,6 +1437,49 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief Auxiliary function to set up the implicit linear system of equations
+     * The basic operations to be carried out in here are the following:
+     * 1) Set up the DOF arrays from the element and conditions DOFs and the corresponding effective ones accounting for the constraints
+     * 2) Set up the system ids (i.e., the DOFs equation ids), including the effective DOF ids, which may not match the "standard" ones
+     * 3) Allocate the memory for the linear system constraints arrays (note that the operations done in here may depend on the build type)
+     * 4) Allocate the memory for the system arrays (note that this implies building the sparse matrix graph)
+     * @param rDofSet The array of DOFs from elements and conditions
+     * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     */
+    void InitializeLinearSystem(
+        DofsArrayType::Pointer pDofSet,
+        DofsArrayType::Pointer pEffectiveDofSet,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    {
+        KRATOS_TRY
+
+        // Setting up the DOFs list
+        BuiltinTimer setup_dofs_time;
+        auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(pDofSet, pEffectiveDofSet);
+        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
+
+        // Set up the equation ids
+        BuiltinTimer setup_system_ids_time;
+        this->SetUpSystemIds(pDofSet, pEffectiveDofSet);
+        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_ids_time << std::endl;
+        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
+        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << eff_eq_system_size << std::endl;
+
+        // Allocating the system constraints arrays
+        BuiltinTimer constraints_allocation_time;
+        this->AllocateLinearSystemConstraints(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
+
+        // Allocating the system vectors to their correct sizes
+        BuiltinTimer linear_system_allocation_time;
+        this->AllocateLinearSystemArrays(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
+
+        KRATOS_CATCH("")
+    }
 
     template<class TEntityType>
     bool CalculateLocalSystemContribution(
@@ -1609,6 +1671,7 @@ protected:
     {
         mMoveMesh = ThisParameters["move_mesh"].GetBool();
         mEchoLevel = ThisParameters["echo_level"].GetInt();
+        mReformDofsAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
     }
 
     ///@}
@@ -1651,9 +1714,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    int mEchoLevel = 0;
+    int mEchoLevel = 0; /// The level of verbosity
 
     bool mMoveMesh = false; /// Flag to activate the mesh motion from the DISPLACEMENT variable
+
+    bool mReformDofsAtEachStep = false; /// Flag to indicate if the DOF sets are required to be computed at each time step
 
     ModelPart* mpModelPart = nullptr; /// Pointer to the ModelPart the scheme refers to
 
@@ -1682,5 +1747,5 @@ private:
     ///@}
 }; // Class Scheme
 
-} // namespace Kratos::Future.
+} // namespace Kratos::Future
 
