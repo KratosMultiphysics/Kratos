@@ -14,6 +14,10 @@
 #include "custom_retention/van_genuchten_law.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos
 {
 
@@ -154,5 +158,7 @@ int VanGenuchtenLaw::Check(const Properties& rMaterialProperties, const ProcessI
 
     return 0;
 }
+
+std::string VanGenuchtenLaw::Info() const { return "VanGenuchtenLaw"s; }
 
 } // namespace Kratos

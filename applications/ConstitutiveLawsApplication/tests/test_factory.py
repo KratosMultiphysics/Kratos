@@ -128,6 +128,9 @@ class SmallDeformationPlasticityTest(TestFactory):
 class SimpleJ2PlasticityTest(TestFactory):
     file_name = "SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
 
+class PlaneStressJ2Plasticity(TestFactory):
+    file_name = "PlaneStressJ2Plasticity/plane_stress_j2_test"
+
 class TensileTestStructuralTest(TestFactory):
     file_name = "TensileTestStructural/TensileTestStructural"
 

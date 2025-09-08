@@ -34,6 +34,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mNavierStokesElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mSolidElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
@@ -60,9 +62,15 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportFluidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportFluidCondition(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mSupportPressureCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmFluidConditionDirichlet(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportSolidCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
@@ -87,6 +95,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
     KRATOS_REGISTER_ELEMENT("NavierStokesElement", mNavierStokesElement)
+    KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -104,6 +113,11 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("SupportFluidCondition", mSupportFluidCondition)
     KRATOS_REGISTER_CONDITION("SupportPressureCondition", mSupportPressureCondition)
     KRATOS_REGISTER_CONDITION("SbmFluidConditionDirichlet", mSbmFluidConditionDirichlet)
+    KRATOS_REGISTER_CONDITION("SupportSolidCondition", mSupportSolidCondition)
+    KRATOS_REGISTER_CONDITION("LoadSolidCondition", mLoadSolidCondition)
+    KRATOS_REGISTER_CONDITION("SbmSolidCondition", mSbmSolidCondition)
+    KRATOS_REGISTER_CONDITION("SbmLoadSolidCondition", mSbmLoadSolidCondition)
+
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("IgaModelerSbm", mIgaModelerSbm);
@@ -162,6 +176,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(CAUCHY_STRESS_BOTTOM)
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(MEMBRANE_FORCE)
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(INTERNAL_MOMENT)
+    KRATOS_REGISTER_VARIABLE(DIVERGENCE_STRESS)
 
     KRATOS_REGISTER_VARIABLE(SHEAR_FORCE_1)
     KRATOS_REGISTER_VARIABLE(SHEAR_FORCE_2)
@@ -181,6 +196,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
     KRATOS_REGISTER_VARIABLE(BOUNDARY_CONDITION_TYPE)
     KRATOS_REGISTER_VARIABLE(CONDITION_NAME)
+    KRATOS_REGISTER_VARIABLE(LAYER_NAME)
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_U)
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_V)
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)

@@ -94,8 +94,6 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
 protected:
     /// Member Variables
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;

@@ -38,6 +38,23 @@ FOREACH(subFolder ${ListFolders})
     # Append to final list
     LIST(APPEND KRATOS_CORE_SOURCES ${AUXILIAR_CORE_SOURCES})
 ENDFOREACH(subFolder ${ListFolders})
+kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FOLDER}" EXCEPTIONS "${LIST_OF_SOURCE_EXCEPTIONS}")
+if(${KRATOS_USE_FUTURE} MATCHES ON)
+    add_definitions( -DKRATOS_USE_FUTURE )
+    message(WARNING "You are using sources from Kratos::Future. This is not recommended for stability.")
+    ## TODO: Change this in the future (no pun intended) and make it part of the interface target in a different folder.
+    FILE(GLOB_RECURSE KRATOS_FUTURE_PYTHON_SOURCES "future/python/*.cpp")
+    FILE(GLOB_RECURSE KRATOS_FUTURE_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/future/tests/cpp_tests/*.cpp)
+    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FUTURE}" EXCEPTIONS "${KRATOS_FUTURE_PYTHON_SOURCES}" "${KRATOS_FUTURE_TEST_SOURCES}")
+endif(${KRATOS_USE_FUTURE} MATCHES ON)
+if(${KRATOS_USE_LEGACY} MATCHES ON)
+    add_definitions( -DKRATOS_USE_LEGACY )
+    message(WARNING "You are using sources from Kratos::Legacy. This will be removed soon.")
+    ## TODO: Change this in the future and make it part of the interface target in a different folder.
+    FILE(GLOB_RECURSE KRATOS_LEGACY_PYTHON_SOURCES "legacy/python/*.cpp")
+    FILE(GLOB_RECURSE KRATOS_LEGACY_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/legacy/tests/cpp_tests/*.cpp)
+    kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_LEGACY}" EXCEPTIONS "${KRATOS_LEGACY_PYTHON_SOURCES}" "${KRATOS_LEGACY_TEST_SOURCES}")
+endif(${KRATOS_USE_LEGACY} MATCHES ON)
 
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     SET(KRATOS_TPL_SOURCES
@@ -59,16 +76,17 @@ file(GLOB_RECURSE KRATOS_CORE_TESTING_ENGINE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}
 ## Kratos I/o sources
 file(GLOB_RECURSE KRATOS_CORE_INPUT_OUTPUT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/input_output/*.cpp)
 file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp)
+file(GLOB KRATOS_TENSOR_ADAPTOR_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tensor_adaptors/*.cpp)
 
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     include(GoogleTest)
 
-    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES 
+    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
     )
 
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES 
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp
     )
@@ -89,7 +107,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Kratos benchmark sources. Disabled by default
 if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES 
+    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*.cpp
     )
 
@@ -115,7 +133,7 @@ target_compile_definitions(KratosVersion PRIVATE
 )
 
 ## Define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TENSOR_ADAPTOR_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 include_directories(${EIGEN3_INCLUDE_DIR})
@@ -137,7 +155,11 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
     endif()
 endif()
 
+if(KRATOS_USE_TBB)
+    set(KRATOS_EXTERNAL_LIBRARIES ${KRATOS_EXTERNAL_LIBRARIES} TBB::tbb)
+endif()
 target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
+
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
 # Set batch size in the unity build

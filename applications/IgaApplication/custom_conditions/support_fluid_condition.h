@@ -85,12 +85,12 @@ namespace Kratos
         /// Create with Id, pointer to geometry and pointer to property
         Condition::Pointer Create(
             IndexType NewId,
-            NodesArrayType const& ThisNodes,
+            NodesArrayType const& rThisNodes,
             PropertiesType::Pointer pProperties
         ) const override
         {
             return Kratos::make_intrusive<SupportFluidCondition>(
-                NewId, GetGeometry().Create(ThisNodes), pProperties);
+                NewId, GetGeometry().Create(rThisNodes), pProperties);
         };
 
         void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
@@ -211,7 +211,7 @@ namespace Kratos
             pGetGeometry()->PrintData(rOStream);
         }
 
-        void GetValuesVector(Vector& rValues) const;
+        void GetSolutionCoefficientVector(Vector& rValues) const;
 
         ///@}
 

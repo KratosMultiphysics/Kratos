@@ -25,7 +25,7 @@
 namespace Kratos
 {
 /// Condition for penalty support condition
-class SupportPressureCondition
+class KRATOS_API(IGA_APPLICATION) SupportPressureCondition
     : public Condition
 {
 public:
@@ -87,12 +87,12 @@ public:
     /// Create with Id, pointer to geometry and pointer to property
     Condition::Pointer Create(
         IndexType NewId,
-        NodesArrayType const& ThisNodes,
+        NodesArrayType const& rThisNodes,
         PropertiesType::Pointer pProperties
     ) const override
     {
         return Kratos::make_intrusive<SupportPressureCondition>(
-            NewId, GetGeometry().Create(ThisNodes), pProperties);
+            NewId, GetGeometry().Create(rThisNodes), pProperties);
     };
 
     ///@}
@@ -191,7 +191,7 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
 
-    void GetValuesVector(Vector& rValues) const;
+    void GetSolutionCoefficientVector(Vector& rValues) const;
 
     ///@}
 

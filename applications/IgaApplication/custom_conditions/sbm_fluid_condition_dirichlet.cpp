@@ -53,7 +53,7 @@ void SbmFluidConditionDirichlet::CalculateAll(
     noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
 
     // Integration
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
     
     Matrix DN_DX(number_of_nodes,mDim);
@@ -91,8 +91,8 @@ void SbmFluidConditionDirichlet::CalculateAll(
     add_factor[2] = 0.0;
     det_J0 = norm_2(add_factor);
 
-    const double penalty_integration = mPenalty * integration_points[0].Weight() * std::abs(det_J0);
-    const double integration_weight = integration_points[0].Weight() * std::abs(det_J0);
+    const double penalty_integration = mPenalty * r_integration_points[0].Weight() * std::abs(det_J0);
+    const double integration_weight = r_integration_points[0].Weight() * std::abs(det_J0);
 
     // Compute the pressure & velocity at the previous iteration
     double pressure_old_iteration = 0.0;

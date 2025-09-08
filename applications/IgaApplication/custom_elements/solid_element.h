@@ -5,7 +5,7 @@
 //      /___/\____/_/  |_| Application
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Andrea Gorgi
 //
@@ -49,7 +49,6 @@ namespace Kratos
 class KRATOS_API(IGA_APPLICATION) SolidElement : public Element
 {
 protected:
-/**
     /**
      * Internal variables used in the kinematic calculations
      */
@@ -231,11 +230,22 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    /**
+     * @brief Calculate the B matrix for the element in the two-dimensional case.
+     * 
+     * @param rB B matrix to be calculated
+     * @param r_DN_DX The shape function derivatives in the global coordinate system
+     */
     void CalculateB(
         Matrix& rB,
         Matrix& r_DN_DX) const;
 
-    void GetValuesVector(
+    /**
+     * @brief Get the solution coefficient at the previous time step in the two-dimensional case.
+     * 
+     * @param rValues solution coefficients at the previous time step
+     */
+    void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
 protected:
@@ -243,6 +253,20 @@ protected:
     ///@{
 
     void InitializeMaterial();
+
+    /**
+     * @brief Compute the constitutive law response for the given strain vector.
+     * 
+     * @param matSize 
+     * @param rStrain 
+     * @param rValues 
+     * @param rConstitutiVariables 
+     */
+    void ApplyConstitutiveLaw(
+        SizeType matSize, 
+        Vector& rStrain, 
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveVariables& rConstitutiveVariables);
 
 
     ///@}

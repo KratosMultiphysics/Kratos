@@ -41,7 +41,7 @@ void SupportFluidCondition::CalculateAll(
     const SizeType number_of_nodes = r_geometry.size();
 
     // Integration
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
 
     Matrix DN_DX(number_of_nodes,mDim);
@@ -95,8 +95,8 @@ void SupportFluidCondition::CalculateAll(
     determinant_factor[2] = 0.0; // 2D case
     const double det_J0 = norm_2(determinant_factor);
     
-    double penalty_integration = mPenalty * integration_points[0].Weight() * std::abs(det_J0);
-    const double integration_weight = integration_points[0].Weight() * std::abs(det_J0);
+    double penalty_integration = mPenalty * r_integration_points[0].Weight() * std::abs(det_J0);
+    const double integration_weight = r_integration_points[0].Weight() * std::abs(det_J0);
 
     // Compute the pressure & velocity at the previous iteration
     double pressure_current_iteration = 0.0;
@@ -261,7 +261,7 @@ void SupportFluidCondition::ApplyConstitutiveLaw(
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     Vector old_displacement(number_of_nodes*mDim);
-    GetValuesVector(old_displacement);
+    GetSolutionCoefficientVector(old_displacement);
     Vector old_strain = prod(rB,old_displacement);
     rValues.SetStrainVector(old_strain);
     rValues.SetStressVector(rConstitutiveVariables.StressVector);
@@ -340,7 +340,7 @@ void SupportFluidCondition::GetDofList(
 };
 
 
-void SupportFluidCondition::GetValuesVector(
+void SupportFluidCondition::GetSolutionCoefficientVector(
         Vector& rValues) const
 {
     const SizeType number_of_control_points = GetGeometry().size();
