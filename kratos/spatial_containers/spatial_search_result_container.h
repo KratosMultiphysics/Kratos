@@ -464,25 +464,6 @@ public:
     void Barrier();
 
     /**
-     * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
-     * @tparam TFunctorType Functor type.
-     * @param UserFunctor The user-provided function.
-     * @return A proxy to the results.
-     */
-    template<class TFunctorType>
-    ResultsProxy<
-    SpatialSearchResultType,
-    TFunctorType // TODO: Unfortunately this is deprecated in c++17, so we will have to change this call in the future
-    > Apply(TFunctorType&& UserFunctor)
-    {
-        // Check if the communicator has been created
-        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
-        // Apply the user-provided function
-        return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
-    }
-
-    /**
      * @brief Retrieves the global distances
      * @return A vector containing all the distances
      */
@@ -696,6 +677,25 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
+     * @tparam TFunctorType Functor type.
+     * @param UserFunctor The user-provided function.
+     * @return A proxy to the results.
+     */
+    template<class TFunctorType>
+    ResultsProxy<
+    SpatialSearchResultType,
+    TFunctorType // TODO: Unfortunately this is deprecated in c++17, so we will have to change this call in the future
+    > Apply(TFunctorType&& UserFunctor)
+    {
+        // Check if the communicator has been created
+        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+        // Apply the user-provided function
+        return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
+    }
 
     ///@}
     ///@name Serialization
