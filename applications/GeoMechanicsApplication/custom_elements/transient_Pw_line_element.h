@@ -156,7 +156,7 @@ public:
         CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
         CheckHasDofsFor(WATER_PRESSURE);
         CheckProperties();
-        CheckForNonZeroZCoordinateIn2D();
+        CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, GetGeometry());
         CheckRetentionLaw(rCurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -227,17 +227,6 @@ private:
         KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName)
             << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
             << ") instead of (" << rName << ") at element " << Id() << std::endl;
-    }
-
-    void CheckForNonZeroZCoordinateIn2D() const
-    {
-        if constexpr (TDim == 2) {
-            const auto& r_geometry = GetGeometry();
-            auto        pos =
-                std::ranges::find_if(r_geometry, [](const auto& node) { return node.Z() != 0.0; });
-            KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
-        }
     }
 
     void CheckRetentionLaw(const ProcessInfo& rCurrentProcessInfo) const

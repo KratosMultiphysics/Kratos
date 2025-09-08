@@ -13,6 +13,7 @@
 // Project includes
 #include "check_utilities.h"
 #include "includes/exception.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include <sstream>
 
@@ -71,4 +72,14 @@ std::string CheckUtilities::PrintVectorContent(const std::vector<size_t>& rVecto
     return output;
 }
 
+void CheckUtilities::CheckForNonZeroZCoordinateIn2D(int Dimension, const Geometry<Node>& rGeometry)
+{
+    if (Dimension == 2) {
+        auto pos = std::ranges::find_if(rGeometry, [](const auto& node) {
+            return std::abs(node.Z()) < Testing::Defaults::absolute_tolerance;
+        });
+        KRATOS_ERROR_IF_NOT(pos == rGeometry.end())
+            << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
+    }
+}
 } /* namespace Kratos.*/

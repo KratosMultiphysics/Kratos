@@ -64,14 +64,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
                         "has an invalid value at element"
                      << this->Id() << std::endl;
 
-    if (TDim == 2) {
-        // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            if (r_geometry[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geometry[i].Id()
-                             << std::endl;
-        }
-    }
+    CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, r_geometry);
 
     // Verify specific properties
     if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] < 0.0)

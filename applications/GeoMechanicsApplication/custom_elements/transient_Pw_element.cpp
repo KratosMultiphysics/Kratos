@@ -175,13 +175,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
                         "has an invalid value at element "
                      << this->Id() << std::endl;
 
-    if (TDim == 2) {
-        // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            if (r_geom[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geom[i].Id() << std::endl;
-        }
-    }
+    CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, r_geom);
 
     // Verify specific properties
     if (!r_properties.Has(BULK_MODULUS_FLUID) || r_properties[BULK_MODULUS_FLUID] < 0.0)
