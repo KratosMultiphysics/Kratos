@@ -56,8 +56,8 @@ def extract_nodal_settlement_over_time(output_data, node_id):
 
 def get_nodal_vertical_stress_component_at_time(stress_item_name, time_in_seconds, output_data, node_ids=None):
     stress_vectors = test_helper.GiDOutputFileReader.nodal_values_at_time(stress_item_name, time_in_seconds, output_data, node_ids=node_ids)
-    # Invert the sign of the vertical stress component such that compression becomes positive. Also convert Pa to kPa.
-    return [-1.0 * (vector[1] / 1000.0) for vector in stress_vectors]
+    # Invert the sign of the vertical stress component such that compression becomes positive.
+    return [-1.0 * unit_conversions.Pa_to_kPa(vector[1]) for vector in stress_vectors]
 
 
 def get_nodal_vertical_effective_stress_at_time(time_in_seconds, output_data, node_ids=None):
@@ -66,8 +66,8 @@ def get_nodal_vertical_effective_stress_at_time(time_in_seconds, output_data, no
 
 def get_nodal_water_pressures_at_time(time_in_seconds, output_data, node_ids=None):
     water_pressures = test_helper.GiDOutputFileReader.nodal_values_at_time("WATER_PRESSURE", time_in_seconds, output_data, node_ids=node_ids)
-    # Invert the sign of the water pressure such that compression becomes positive. Also convert Pa to kPa.
-    return [-1.0 * (value / 1000.0) for value in water_pressures]
+    # Invert the sign of the water pressure such that compression becomes positive.
+    return [-1.0 * unit_conversions.Pa_to_kPa(value) for value in water_pressures]
 
 
 def shift_y_of_kratos_model(y):
