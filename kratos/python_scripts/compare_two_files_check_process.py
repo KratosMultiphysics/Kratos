@@ -767,6 +767,11 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             """
             Compares a single 'part' block, including its elements and connectivities.
             """
+            list_of_element_types = [
+                "point", "bar2", "bar3", "tria3", "tria6", "quad4", "quad8",
+                "tetra4", "tetra10", "pyramid5", "pyramid13", "penta6",
+                "penta15", "hexa8", "hexa20"
+            ]
             if not lines_ref[line_counter].strip().startswith("part"):
                 raise Exception(f'Reference file is missing "part" keyword at line {line_counter+1}')
             if not lines_out[line_counter].strip().startswith("part"):
@@ -778,31 +783,34 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 error_messages.append(f'Part number mismatch at line {line_counter+1}.')
             line_counter += 1
 
-            # Compare element type
-            elem_type_ref = lines_ref[line_counter].strip()
-            elem_type_out = lines_out[line_counter].strip()
-            if elem_type_ref != elem_type_out:
-                error_messages.append(f'Element type mismatch for part at line {line_counter-2}. Ref: "{elem_type_ref}", Out: "{elem_type_out}"')
-            line_counter += 1
+            # Iterate through all element types in this part
+            while lines_ref[line_counter] in list_of_element_types:
+                # Compare element type
+                elem_type_ref = lines_ref[line_counter].strip()
+                elem_type_out = lines_out[line_counter].strip()
+                if elem_type_ref != elem_type_out:
+                    error_messages.append(f'Element type mismatch for part at line {line_counter-2}. Ref: "{elem_type_ref}", Out: "{elem_type_out}"')
+                line_counter += 1
 
-            # Compare number of elements
-            num_elements_ref = int(lines_ref[line_counter])
-            num_elements_out = int(lines_out[line_counter])
-            if num_elements_ref != num_elements_out:
-                error_messages.append(f'Mismatch in number of elements for part "{elem_type_ref}". Ref: {num_elements_ref}, Out: {num_elements_out}')
-                # Skip to end of this part block based on reference file
-                return line_counter + 1 + num_elements_ref
-            line_counter += 1
+                # Compare number of elements
+                num_elements_ref = int(lines_ref[line_counter])
+                num_elements_out = int(lines_out[line_counter])
+                if num_elements_ref != num_elements_out:
+                    error_messages.append(f'Mismatch in number of elements for part "{elem_type_ref}". Ref: {num_elements_ref}, Out: {num_elements_out}')
+                    # Skip to end of this part block based on reference file
+                    return line_counter + 1 + num_elements_ref
+                line_counter += 1
 
-            # Compare element IDs and connectivities
-            for i in range(num_elements_ref):
-                current_line_idx = line_counter + i
-                ref_connectivity = ReadVectorFromLine(lines_ref[current_line_idx], int)
-                out_connectivity = ReadVectorFromLine(lines_out[current_line_idx], int)
-                if ref_connectivity != out_connectivity:
-                    error_messages.append(f'Element connectivity mismatch in line {current_line_idx+1}.\n  Ref: {ref_connectivity}\n  Out: {out_connectivity}')
+                # Compare element IDs and connectivities
+                for i in range(num_elements_ref):
+                    current_line_idx = line_counter + i
+                    ref_connectivity = ReadVectorFromLine(lines_ref[current_line_idx], int)
+                    out_connectivity = ReadVectorFromLine(lines_out[current_line_idx], int)
+                    if ref_connectivity != out_connectivity:
+                        error_messages.append(f'Element connectivity mismatch in line {current_line_idx+1}.\n  Ref: {ref_connectivity}\n  Out: {out_connectivity}')
+                line_counter += num_elements_ref
 
-            return line_counter + num_elements_ref
+            return line_counter # Return the updated line counter
 
         ###### Main execution starts here ######
         lines_ref, lines_out = self.__GetFileLines()
