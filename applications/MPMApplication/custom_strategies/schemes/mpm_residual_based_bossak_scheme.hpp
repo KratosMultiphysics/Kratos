@@ -31,6 +31,7 @@
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -198,7 +199,7 @@ public:
             }
         });
 
-        KRATOS_CATCH( "" )
+                KRATOS_CATCH( "" )
     }
 
     /**
@@ -446,8 +447,43 @@ public:
         TSystemVectorType& rDx,
         TSystemVectorType& rb) override
     {
+        if(!mFrictionIsActive)
+        {
+            VariableUtils().SetHistoricalVariableToZero(REACTION, mGridModelPart.Nodes());
+
+            struct TLS
+            {
+                Vector mRHS;
+                Matrix mD;
+                Matrix mM;
+            };
+
+            const IndexType domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+            block_for_each(rModelPart.Elements(), TLS(), [&rModelPart, domain_size, this](auto& rElement, auto& rTLS) {
+                
+                rElement.CalculateRightHandSide(rTLS.mRHS, rModelPart.GetProcessInfo());
+
+                if(this->mIsDynamic) {
+                    rElement.CalculateMassMatrix(rTLS.mM,rModelPart.GetProcessInfo());
+                    rElement.CalculateDampingMatrix(rTLS.mD,rModelPart.GetProcessInfo());
+                    BossakBaseType::AddDynamicsToRHS(rElement, rTLS.mRHS, rTLS.mD, rTLS.mM, rModelPart.GetProcessInfo());
+                }
+                mRotationTool.Rotate(rTLS.mRHS, rElement.GetGeometry());
+
+                auto& r_geometry = rElement.GetGeometry();
+                for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
+                    auto& r_node = r_geometry[i_node];
+                    auto& r_reaction = r_node.FastGetSolutionStepValue(REACTION);
+
+                    for (IndexType i_comp = 0; i_comp < domain_size; ++i_comp) {
+                        AtomicAdd<double>(r_reaction[i_comp], -rTLS.mRHS[i_node * domain_size + i_comp]);
+                    }
+                }
+            });
+
+        }
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-        
+
         if(mFrictionIsActive) {
             block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
             {
@@ -468,7 +504,7 @@ public:
             }
         });
         
-    }
+            }
 
     /**
      * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
@@ -505,6 +541,7 @@ public:
             // prevent rotation in case of particle-based slip (handled by condition itself)
             mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
             mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+            // mRotationTool.RevertRotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
         }
 
 
@@ -546,6 +583,7 @@ public:
             // prevent rotation in case of particle-based slip (handled by condition itself)
             mRotationTool.Rotate(RHS_Contribution, rCurrentElement.GetGeometry());
             mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
+            // mRotationTool.RevertRotate(RHS_Contribution, rCurrentElement.GetGeometry());
         }
 
         KRATOS_CATCH( "" )
@@ -588,6 +626,7 @@ public:
             // prevent rotation in case of particle-based slip (handled by condition itself)
             mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
             mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+            // mRotationTool.RevertRotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
         }
 
 
@@ -626,6 +665,7 @@ public:
             // prevent rotation in case of particle-based slip (handled by condition itself)
             mRotationTool.Rotate(RHS_Contribution, rCurrentCondition.GetGeometry());
             mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
+            // mRotationTool.RevertRotate(RHS_Contribution, rCurrentCondition.GetGeometry());
         }
 
 
