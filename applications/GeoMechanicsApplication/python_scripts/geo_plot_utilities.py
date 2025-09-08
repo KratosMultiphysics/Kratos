@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import pathlib
 
 
-class DataSeries():
-    def __init__(self, data_points, label='', line_style='-', marker=None):
+class DataSeries:
+    def __init__(self, data_points, label="", line_style="-", marker=None):
         self.data_points = data_points
         self.label = label
         self.line_style = line_style
