@@ -332,7 +332,7 @@ void SupportPressureCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentP
     ConstitutiveLaw::Parameters Values(r_geom, GetProperties(), rCurrentProcessInfo);
     ConstitutiveVariables cv(3);
     Vector u_coeff(n*mDim);
-    GetValuesVector(u_coeff);
+    GetSolutionCoefficientVector(u_coeff);
     Vector strain = prod(B, u_coeff);
 
     Values.SetStrainVector(strain);

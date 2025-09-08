@@ -196,17 +196,12 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D(
         return;
     }
 
-    // Create the True Model Part -> contains all the true boundary features
-    std::string skin_model_part_name;
-
     // Retrieve skin_model_part_inner_initial_name if it exists
-    std::string skin_model_part_inner_initial_name = "skin_model_part_outer_initial_name";
     if (mParameters.Has("skin_model_part_inner_initial_name")) {
         skin_model_part_inner_initial_name = mParameters["skin_model_part_inner_initial_name"].GetString();
     }
 
     // Retrieve skin_model_part_outer_initial_name if it exists;
-    std::string skin_model_part_outer_initial_name = "skin_model_part_outer_initial_name";
     if (mParameters.Has("skin_model_part_outer_initial_name")) {
         skin_model_part_outer_initial_name = mParameters["skin_model_part_outer_initial_name"].GetString();
     }
