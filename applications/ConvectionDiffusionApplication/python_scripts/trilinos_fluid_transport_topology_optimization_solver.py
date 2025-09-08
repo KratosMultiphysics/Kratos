@@ -4,8 +4,8 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 
 # Import applications modules
-from KratosMultiphysics.FluidDynamicsApplication import fluid_topology_optimization_solver_mpi
-from KratosMultiphysics.ConvectionDiffusionApplication import transport_topology_optimization_solver_mpi
+from KratosMultiphysics.FluidDynamicsApplication import trilinos_fluid_topology_optimization_solver
+from KratosMultiphysics.ConvectionDiffusionApplication import trilinos_transport_topology_optimization_solver
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -104,10 +104,10 @@ class TrilinosFluidTransportTopologyOptimizationSolver(PythonSolver):
         self._CreateTransportSolver()
 
     def _CreateFluidSolver(self):
-        self.fluid_solver = fluid_topology_optimization_solver_mpi.CreateSolver(self.model, self.settings["fluid_solver_settings"], isAdjointSolver=self.IsAdjoint())
+        self.fluid_solver = trilinos_fluid_topology_optimization_solver.CreateSolver(self.model, self.settings["fluid_solver_settings"], isAdjointSolver=self.IsAdjoint())
 
     def _CreateTransportSolver(self):
-        self.transport_solver = transport_topology_optimization_solver_mpi.CreateSolver(self.model,self.settings["transport_solver_settings"], isAdjointSolver=self.IsAdjoint()) 
+        self.transport_solver = trilinos_transport_topology_optimization_solver.CreateSolver(self.model,self.settings["transport_solver_settings"], isAdjointSolver=self.IsAdjoint()) 
     
     def _DefineAdjointSolver(self, is_adjoint_solver):
         self.is_adjoint = is_adjoint_solver

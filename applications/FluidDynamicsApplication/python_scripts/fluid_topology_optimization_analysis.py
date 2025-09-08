@@ -1328,6 +1328,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ApplyDesignParameterProjectiveFilter(self, design_parameter):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter: " + str(self.apply_projective_filter))
         mask = self._GetOptimizationDomainNodesMask()
+        design_parameter = np.clip(design_parameter, a_min=0.0, a_max=1.0)
         self.design_parameter_projected = design_parameter
         self.design_parameter_projected_derivatives = np.ones(self.n_nodes)
         if ((self.opt_it > 10) and (self.apply_projective_filter)):
