@@ -226,10 +226,17 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
     {
         //TODO: decrease the number when the closest point projection for the NURBS is optimized in the IgaSbmModeler
-        const int n_initial_points_for_side = 100000; 
+        const int n_initial_points_for_side = 5000; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
         const SizeType n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
         bool new_inner_loop = true;
+
+        //FIXME: vertices sub model part
+        std::string interface_sub_model_part_name = "interface_vertices";
+        ModelPart& r_skin_interface_sub_model_part = r_skin_sub_model_part.HasSubModelPart(interface_sub_model_part_name) ? 
+                                                    r_skin_sub_model_part.GetSubModelPart(interface_sub_model_part_name) : r_skin_sub_model_part.CreateSubModelPart(interface_sub_model_part_name);
+
+                                                         
         for (IndexType i_boundary_curve = 0; i_boundary_curve < n_boundary_curves; i_boundary_curve++) 
         {
             NurbsCurveGeometryPointerType p_curve = std::dynamic_pointer_cast<Kratos::NurbsCurveGeometry<2, Kratos::PointerVector<Kratos::Node>>>(rSkinModelPartInitial.pGetGeometry(i_boundary_curve));
@@ -268,6 +275,19 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                 node->SetValue(LOCAL_TANGENT, tangent_vector);
         
                 r_skin_layer_sub_model_part.AddNode(node);
+                
+                // FIXME: add to the interface sub model part
+                r_skin_interface_sub_model_part.AddNode(node);
+                // cut sbm modifications 
+                std::string condition_name = p_curve->GetValue(CONDITION_NAME);
+                auto connected_layers = node->GetValue(CONNECTED_LAYERS);
+                auto connected_condition_names = node->GetValue(CONNECTED_CONDITIONS);
+                connected_layers.push_back(layer_name);
+                connected_condition_names.push_back(condition_name);
+
+                node->SetValue(CONNECTED_LAYERS, connected_layers);
+                node->SetValue(CONNECTED_CONDITIONS, connected_condition_names);
+
                 new_inner_loop = false;
             } else 
             {
@@ -300,7 +320,16 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
                 r_last_node.SetValue(NORMAL, normal_vector);
                 r_last_node.SetValue(LOCAL_TANGENT, tangent_vector);
-                r_skin_layer_sub_model_part.AddNode(&r_last_node);
+                
+                // cut sbm modifications 
+                std::string condition_name = p_curve->GetValue(CONDITION_NAME);
+                auto connected_layers = r_last_node.GetValue(CONNECTED_LAYERS);
+                auto connected_condition_names = r_last_node.GetValue(CONNECTED_CONDITIONS);
+                connected_layers.push_back(layer_name);
+                connected_condition_names.push_back(condition_name);
+
+                r_last_node.SetValue(CONNECTED_LAYERS, connected_layers);
+                r_last_node.SetValue(CONNECTED_CONDITIONS, connected_condition_names);
             }
             // add the specified number of points
             Vector second_point_local_coord = ZeroVector(3);
@@ -352,9 +381,27 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             // check the last point of the curve
             if (norm_2(second_point_coords - r_skin_sub_model_part.GetNode(first_node_id)) < 1e-15)
             {
+                Node& r_last_node = r_skin_sub_model_part.GetNode(first_node_id);
+
+                // cut sbm modifications 
+                std::string layer_name = p_curve->GetValue(IDENTIFIER);
+                std::string condition_name = p_curve->GetValue(CONDITION_NAME);
+                auto connected_layers = r_last_node.GetValue(CONNECTED_LAYERS);
+                auto connected_condition_names = r_last_node.GetValue(CONNECTED_CONDITIONS);
+                connected_layers.push_back(layer_name);
+                connected_condition_names.push_back(condition_name);
+
+                r_last_node.SetValue(CONNECTED_LAYERS, connected_layers);
+                r_last_node.SetValue(CONNECTED_CONDITIONS, connected_condition_names);
+
                 first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
                 new_inner_loop = true;
                 id_matrix_knot_spans_available++;
+            } else // cut sbm modifications
+            {
+                const int last_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes();
+                Node& r_last_node = r_skin_sub_model_part.GetNode(last_node_id);
+                r_skin_interface_sub_model_part.AddNode(&r_last_node);
             }
         }
     }
@@ -634,6 +681,15 @@ void SnakeSbmProcess::SnakeStepNurbs(
         normal_vector[1] = -tangent_vector[0];
         node->SetValue(NORMAL, normal_vector);
         node->SetValue(LOCAL_TANGENT, tangent_vector);
+
+        //cut sbm modifications
+        auto connected_layers = node->GetValue(CONNECTED_LAYERS);
+        auto connected_condition_names = node->GetValue(CONNECTED_CONDITIONS);
+        connected_layers.push_back(layer_name);
+        connected_condition_names.push_back(condition_name);
+
+        node->SetValue(CONNECTED_LAYERS, connected_layers);
+        node->SetValue(CONNECTED_CONDITIONS, connected_condition_names);
 
         skin_layer_sub_model_part.AddNode(node);
 

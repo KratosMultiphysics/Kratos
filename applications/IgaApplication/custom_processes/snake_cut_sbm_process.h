@@ -187,8 +187,21 @@ private:
         const Node::Pointer& pSurrogateNode1, 
         const Node::Pointer& pSurrogateNode2, 
         const GeometryType::Pointer& rSurrogateBrepMiddleGeometry,
-        ModelPart& r_cut_sbm_sub_model_part,
+        ModelPart& rIgaModelPart,
         const ModelPart& rSkinSubModelPart);
+
+    template <bool TIsInnerLoop>
+    void SetSurrogateToSkinProjections(
+        const ModelPart& rSurrogateSubModelPart, 
+        const ModelPart& rSkinSubModelPart,
+        BinSearchParameters& rBinSearchParameters, 
+        BinSearchParameters& rBinSearchInterfaceParameters);
+    
+    void AssestProjectionsFeasibility(
+        const ModelPart& rSkinSubModelPart,
+        Node::Pointer pSurrogateNode1, 
+        Node::Pointer pSurrogateNode2,
+        BinSearchParameters& rBinSearchInterfaceParameters);
 
     void FindClosestTruePointToSurrogateVertexByNurbs();
 

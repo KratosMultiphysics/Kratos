@@ -163,19 +163,19 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
     Vector N_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution(N_sum_vec);
 
-    // Vector g_N = this->GetValue(FORCE); 
+    Vector g_N = this->GetValue(FORCE); 
 
-    Vector g_N = ZeroVector(3); 
+    // Vector g_N = ZeroVector(3); 
 
-    double nu = this->GetProperties().GetValue(POISSON_RATIO);
-    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+    // double nu = this->GetProperties().GetValue(POISSON_RATIO);
+    // double E = this->GetProperties().GetValue(YOUNG_MODULUS);
 
-    const double x = r_true_geometry.Center().X();
-    const double y = r_true_geometry.Center().Y();
+    // const double x = r_true_geometry.Center().X();
+    // const double y = r_true_geometry.Center().Y();
 
-    // // // cosinusoidal
-    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
-    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
+    // // // // cosinusoidal
+    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
+    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
 
     // // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
     // // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
@@ -331,7 +331,7 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
         const Vector sigma = values_true.GetStressVector();
-        Vector sigma_n(2);
+        Vector sigma_n = ZeroVector(3);
 
         sigma_n[0] = sigma[0]*mNormalPhysicalSpace[0] + sigma[2]*mNormalPhysicalSpace[1];
         sigma_n[1] = sigma[2]*mNormalPhysicalSpace[0] + sigma[1]*mNormalPhysicalSpace[1];
