@@ -44,7 +44,7 @@ def _make_plot(
     plt.savefig(plot_file_path)
 
 
-def plot_settlement_results(data_series_collection, plot_file_path):
+def make_settlement_history_plot(data_series_collection, plot_file_path):
     _make_plot(
         data_series_collection,
         plot_file_path,
@@ -55,7 +55,7 @@ def plot_settlement_results(data_series_collection, plot_file_path):
     )
 
 
-def make_stress_plot(data_series_collection, plot_file_path):
+def make_stress_over_y_plot(data_series_collection, plot_file_path):
     _make_plot(
         data_series_collection, plot_file_path, xlabel="Stress [kPa]", ylabel="y [m]"
     )

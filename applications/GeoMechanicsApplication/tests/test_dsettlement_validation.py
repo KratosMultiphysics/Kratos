@@ -70,7 +70,7 @@ def get_nodal_water_pressures_at_time(time_in_seconds, output_data, node_ids=Non
     return [-1.0 * unit_conversions.Pa_to_kPa(value) for value in water_pressures]
 
 
-def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figure_filename):
+def make_settlement_history_plot(stage_outputs, node_ids, path_to_ref_data_points, figure_filename):
     data_points_by_node = {node_id : [] for node_id in node_ids}
     for output_data in stage_outputs:
         for node_id in node_ids:
@@ -81,7 +81,7 @@ def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figur
     for node_id in node_ids:
         data_series_collection.append(plot_utils.DataSeries(data_points_by_node[node_id], f'node {node_id}', line_style=':', marker='+'))
 
-    plot_utils.plot_settlement_results(data_series_collection, figure_filename)
+    plot_utils.make_settlement_history_plot(data_series_collection, figure_filename)
 
 
 class StressPlotDataFilePaths:
@@ -121,7 +121,7 @@ def make_stress_over_y_plot(output_data, time_in_sec, y_coordinates, node_ids_ov
     effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_data, node_ids=node_ids_over_depth)
     data_series_collection.append(plot_utils.DataSeries(zip(effective_vertical_stresses, y_coordinates, strict=True), 'sigma_yy;eff [Kratos]', line_style=':', marker='+'))
 
-    plot_utils.make_stress_plot(data_series_collection, plot_file_path)
+    plot_utils.make_stress_over_y_plot(data_series_collection, plot_file_path)
 
 
 class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
@@ -188,7 +188,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         if test_helper.want_test_plots():
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
             top_node_ids = [2, 3, 104]
-            make_settlement_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_1_settlement_plot.svg")
+            make_settlement_history_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_1_settlement_plot.svg")
 
 
     def test_settlement_consolidation_coarse_mesh(self):
@@ -316,7 +316,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
             top_node_ids = [2, 3, 104]
-            make_settlement_plot((output_stage_2, output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_2_settlement_plot.svg")
+            make_settlement_history_plot((output_stage_2, output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_2_settlement_plot.svg")
 
             ref_data = StressPlotDataFilePaths()
             left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
@@ -379,7 +379,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         if test_helper.want_test_plots():
             left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
-            make_settlement_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_3_settlement_plot.svg")
+            make_settlement_history_plot((output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_3_settlement_plot.svg")
 
             ref_data = StressPlotDataFilePaths()
             ref_y_coordinates = get_ref_y_coordinates(project_path / "stage1.post.msh", left_side_corner_node_ids)
@@ -451,7 +451,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
             top_node_ids = [2, 3, 104]
-            make_settlement_plot((output_stage_2, output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_4_settlement_plot.svg")
+            make_settlement_history_plot((output_stage_2, output_stage_3, output_stage_4, output_stage_5), top_node_ids, project_path / "ref_settlement_data.txt", project_path / "test_case_4_settlement_plot.svg")
 
             ref_data = StressPlotDataFilePaths()
             left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
