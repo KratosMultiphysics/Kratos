@@ -2664,6 +2664,8 @@ void EnSightOutput::UpdatePartData()
     // Check if the model part has sub-model parts
     const auto& r_sub_model_parts = mrModelPart.SubModelParts();
     if (!r_sub_model_parts.empty() && output_sub_model_parts) {
+        p_model_parts.reserve(r_sub_model_parts.size() + 1);
+        p_model_parts.push_back(&mrModelPart);
         for (const auto& r_sub_model_part : r_sub_model_parts) {
             p_model_parts.push_back(&r_sub_model_part);
         }
