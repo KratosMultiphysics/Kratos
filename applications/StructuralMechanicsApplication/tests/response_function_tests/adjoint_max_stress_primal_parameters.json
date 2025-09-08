@@ -31,7 +31,6 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "cantilever_beam.DISPLACEMENT_support",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
@@ -47,7 +46,6 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionToConditionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "cantilever_beam.PointLoad3D_load_point",
                 "variable_name"   : "POINT_LOAD",
                 "modulus"         : 10000.0,

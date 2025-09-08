@@ -98,7 +98,7 @@ void PointsData<TContainerDataIO>::Write(
 
 // template instantiations
 template class KRATOS_API(HDF5_APPLICATION) PointsData<Internals::NodesIO>;
-template class KRATOS_API(HDF5_APPLICATION) PointsData<Internals::VerticesIO>;
+template class KRATOS_API(HDF5_APPLICATION) PointsData<Internals::VertexIO>;
 
 } // namespace Internals.
 } // namespace HDF5.

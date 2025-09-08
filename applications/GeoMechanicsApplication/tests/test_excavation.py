@@ -79,7 +79,6 @@ class KratosGeoMechanicsExcavationTests(KratosUnittest.TestCase):
         simulation = test_helper.run_kratos(file_path)
 
         displacements = test_helper.get_displacement(simulation)
-        coordinates = test_helper.get_nodal_coordinates(simulation)
 
         bottom_nodes = [5, 7, 9, 12]
         # check if bottom nodes are not moving
@@ -163,12 +162,6 @@ class KratosGeoMechanicsExcavationTests(KratosUnittest.TestCase):
         # top_y_displacement = [0, 0, 3.16312e-07, 3.14736e-07, 3.16312e-07]
         # for i in range(len(top_nodes)):
         #     self.assertAlmostEqual(top_y_displacement[i], displacements[top_nodes[i]-1][1])
-
-    def testNightlyFirstExample(self):
-        self.assertEqual(True, True)
-
-    def testNightlySecondExample(self):
-        self.assertEqual(True, True)
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -32,6 +32,9 @@ class ControlledOperation:
     def Update(self) -> None:
         self.__controller.Update()
 
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: operation type = {self.__operation_type}, controller = {self.__controller}, parameters = \n{self.__parameters}"
+
 class AggregatedControlledOperations:
     def __init__(self,
                  model_part: Kratos.ModelPart,
@@ -58,3 +61,8 @@ class AggregatedControlledOperations:
 
     def GetListOfControlledOperations(self) -> 'list[ControlledOperation]':
         return self.__list_of_controlled_operations
+
+    def __str__(self) -> str:
+        msg = f"{self.__class__.__name__}: model part name = {self.__model_part.FullName()}, hdf5_file_params =\n{self.__hdf5_file_parameters}"
+        msg += "List of aggregated operations:" + "\n\t --- ".join(str(operation) for operation in self.__list_of_controlled_operations)
+        return msg

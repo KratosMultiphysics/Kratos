@@ -3,32 +3,32 @@
     1.0
   ],
   "NODE_1": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       0.0
     ]
   },
   "NODE_2": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       0.0
     ]
   },
   "NODE_3": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       0.0
     ]
   },
   "NODE_4": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       19875.936317731328
     ]
   },
   "NODE_5": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       19875.936317731343
     ]
   },
   "NODE_6": {
-    "WATER_PRESSURE": [
+    "LIQUID_PRESSURE": [
       19875.936317731335
     ]
   }

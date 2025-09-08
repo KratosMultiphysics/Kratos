@@ -17,7 +17,6 @@
 
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -25,6 +24,7 @@
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_constitutive/newtonian_2d_law.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos::Testing {
 
@@ -43,6 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(WeaklyCompressibleNavierStokes2D3N, FluidDynamicsAppli
     r_model_part.AddNodalSolutionStepVariable(ACCELERATION);
     r_model_part.AddNodalSolutionStepVariable(REACTION);
     r_model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_VELOCITY);
 
     // ProcessInfo container fill
     double delta_time = 0.1;
@@ -111,8 +112,8 @@ KRATOS_TEST_CASE_IN_SUITE(WeaklyCompressibleNavierStokes2D3N, FluidDynamicsAppli
     // KRATOS_WATCH(row(LHS,0))
 
     // Check values
-    const std::vector<double> rhs_ref = {34.2921172632, -19.1612962435, -0.0212935839184, -58.7701017724, 31.2334272413, -0.0186565395118, -8.37866202262, -77.7742128742, -0.0450498765698}; // WeaklyCompressibleNavierStokes2D3N
-    const std::vector<double> lhs_0_ref = {255.745969647, 0, 0.155863699867, -197.183916289, 250.033529091, 0.105861405575, 52.887840474, -250.033529091, 0.13527448821};                     // WeaklyCompressibleNavierStokes2D3N
+    const std::vector<double> rhs_ref = {35.4884272438, -16.3707126841, -0.0165099840565, -57.1752103975, 34.4226885377, -0.0120809017136, -6.38728003117, -74.1903403375, -0.0564091142299}; // WeaklyCompressibleNavierStokes2D3N
+    const std::vector<double> lhs_0_ref = {247.633101497, 0, 0.17185384644, -201.239603454, 250.033529091, 0.08787249068, 48.8263970168, -250.033529091, 0.137273256531};                     // WeaklyCompressibleNavierStokes2D3N
     KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-10)
     KRATOS_EXPECT_VECTOR_NEAR(row(LHS,0), lhs_0_ref, 1.0e-8)
 }

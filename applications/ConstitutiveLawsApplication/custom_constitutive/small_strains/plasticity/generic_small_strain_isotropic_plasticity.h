@@ -69,22 +69,22 @@ public:
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
     /// Definition of the base class
-    typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
+    using BaseType = typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type;
 
     /// The definition of the Voigt array type
-    typedef array_1d<double, VoigtSize> BoundedArrayType;
+    using BoundedArrayType = array_1d<double, VoigtSize>;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+    using BoundedMatrixType = BoundedMatrix<double, Dimension, Dimension>;
 
     /// Counted pointer of GenericSmallStrainIsotropicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPlasticity);
 
     /// The node definition
-    typedef Node NodeType;
+    using NodeType = Node;
 
     /// The geometry definition
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     ///@}
     ///@name Life Cycle
@@ -441,7 +441,9 @@ protected:
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+    void CalculateTangentTensor(
+        ConstitutiveLaw::Parameters &rValues,
+        const Vector& rPlasticStrain);
 
     ///@}
     ///@name Private  Access

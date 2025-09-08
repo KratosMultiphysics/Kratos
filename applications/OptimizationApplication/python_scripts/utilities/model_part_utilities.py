@@ -19,7 +19,7 @@ class ModelPartOperation:
             raise RuntimeError("No operating model part names are provided.")
 
         if suggested_model_part_name.find("#") != -1 or any([mp_name.find("#") != -1 for mp_name in list_of_operation_model_part_full_names]):
-            # find '#' in the model part names which is not allwed.
+            # find '#' in the model part names which is not allowed.
             raise RuntimeError(f"The model part names cannot contain '#' character. Parsed model part names are as followings:\n\t suggested model part name: \"{suggested_model_part_name}\"\n\toperation model part names:\n\t" + "\n\t\t".join(list_of_operation_model_part_full_names))
 
         # set the root model part. This needs to always exist.
@@ -40,7 +40,7 @@ class ModelPartOperation:
         # now check in the status messages of the root model part whether this operation is already added.
         status_msg_prefix = "ModelPartUtilities_created#"
         status_msg_suffix = f"#{self.operation_type.name}#{self.add_neighbours:d}#" + "#".join(self.list_of_operation_model_part_full_names)
-        status_msg_log = KratosOA.ModelPartUtils.GetModelPartStatusLog(self.GetRootModelPart())
+        status_msg_log = KratosOA.OptAppModelPartUtils.GetModelPartStatusLog(self.GetRootModelPart())
         for status_msg in status_msg_log:
             if status_msg.startswith(status_msg_prefix) and status_msg.endswith(status_msg_suffix):
                 # found the same operation done on a different model part, hence sending that name
@@ -51,12 +51,12 @@ class ModelPartOperation:
 
         # it is not already called for creation. Then put that in the status msg.
         if self.root_model_part.HasSubModelPart(self.suggested_model_part_name):
-            # this means, it already has a model part with suggeted name, but
+            # this means, it already has a model part with suggested name, but
             # it does not match the operation identifier. So throw an error
             raise RuntimeError(f"Found an already existing submodel part named \"{self.suggested_model_part_name}\" in {self.root_model_part.FullName()} without the required operation identifier = \"{status_msg_suffix}\".")
 
         self.status_msg = f"{status_msg_prefix}{self.suggested_model_part_name}{status_msg_suffix}"
-        KratosOA.ModelPartUtils.LogModelPartStatus(self.GetRootModelPart(), self.status_msg)
+        KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.GetRootModelPart(), self.status_msg)
         return f"{self.GetRootModelPart().FullName()}.{self.suggested_model_part_name}"
 
     def GetModelPart(self) -> Kratos.ModelPart:

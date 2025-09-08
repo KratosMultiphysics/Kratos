@@ -43,7 +43,7 @@
                         "block_size": 1,
                         "use_block_matrices_if_possible" : true,
                         "coarse_enough" : 5000
-        },        
+        },
         "rotation_dofs"                   : false,
         "volumetric_strain_dofs"          : false
     },
@@ -78,7 +78,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorByDirectionToConditionProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.center_load",
                 "variable_name"   : "POINT_LOAD",
                 "modulus"         : 2000,
@@ -90,7 +89,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorByDirectionToConditionProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.side_loads",
                 "variable_name"   : "POINT_LOAD",
                 "modulus"         : 2000,

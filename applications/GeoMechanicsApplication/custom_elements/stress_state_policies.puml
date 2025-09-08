@@ -1,0 +1,23 @@
+@startuml
+
+abstract class StressStatePolicy {
+  +{abstract} Matrix CalculateBMatrix()
+  +{abstract} Vector CalculateGreenLagrangeStrain()
+  +{abstract} std::unique_ptr<StressStatePolicy> Clone()
+  +{abstract} const Vector& GetVoigtVector()
+  +{abstract} SizeType GetVoigtSize()
+  +{abstract} SizeType GetStressTensorSize()
+}
+
+class ThreeDimensionalStressState
+class PlaneStrainStressState
+class AxisymmetricStressState
+class Line2DInterfaceStressState
+class SurfaceInterfaceStressState
+
+StressStatePolicy <|-- ThreeDimensionalStressState
+StressStatePolicy <|-- PlaneStrainStressState
+StressStatePolicy <|-- AxisymmetricStressState
+StressStatePolicy <|-- Line2DInterfaceStressState
+StressStatePolicy <|-- SurfaceInterfaceStressState
+@enduml

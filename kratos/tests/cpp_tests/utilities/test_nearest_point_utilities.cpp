@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineNearestPoint, KratosCoreFastSuite)
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point,Point(length, 0.00, 0.00), 1e-6);
 
     nearest_point = NearestPointUtilities::LineNearestPoint(point_3, line_2);
-    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.00, length, 0.00), 1e-6);     
+    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.00, length, 0.00), 1e-6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TriangleInPlaneNearestPoint, KratosCoreFastSuite)
@@ -70,44 +70,54 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInPlaneNearestPoint, KratosCoreFastSuite)
     Triangle3D3<Point> triangle(p_point_1, p_point_3, p_point_2);
 
     Point inside_point(0.2 * length, 0.1 * length, 0.00);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(inside_point, triangle);
+    auto scenario = NearestPointUtilities::TriangleNearestPoint(inside_point, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, inside_point, 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::INSIDE_TRIANGLE);
 
     Point border_point(0.2 * length, 0.2 * length, 0.00);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(border_point, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(border_point, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, border_point, 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::INSIDE_TRIANGLE);
 
     Point lower_corner(-2 * length, -0.1 * length, 0.00);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(lower_corner, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(lower_corner, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, (*p_point_1), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_0);
 
     Point below_point(0.2 * length, -0.2 * length, 0.00);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(below_point, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(below_point, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.2 * length, 0.0, 0.00), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_EDGE_20);
 
     Point below_left_point(-0.1 * length, -0.2 * length, 0.00);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(below_left_point, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(below_left_point, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, (*p_point_1), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_0);
 
     Point below_point_right(1.2 * length, -0.2 * length, 0.00);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(below_point_right, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(below_point_right, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, (*p_point_2), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_2);
 
     Point right_side(1.2 * length, 0.2 * length, 0.00);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(right_side, triangle);
-    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(length, 0.2 * length, 0.00), 1e-6);       
+    scenario = NearestPointUtilities::TriangleNearestPoint(right_side, triangle, nearest_point);
+    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(length, 0.2 * length, 0.00), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_EDGE_12);
 
     Point upper_corner(1.2 * length, 1.2 * length, 0.00);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(upper_corner, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(upper_corner, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, (*p_point_3), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_1);
 
     Point left_point(0.2 * length, 0.4 * length, 0.00);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(left_point, triangle);
-    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.3 * length, 0.3 * length, 0.00), 1e-6);       
+    scenario = NearestPointUtilities::TriangleNearestPoint(left_point, triangle, nearest_point);
+    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.3 * length, 0.3 * length, 0.00), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_EDGE_01);
 
     Point far_left_point(-0.2 * length, 0.2 * length, 0.00);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(far_left_point, triangle);
-    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.00, 0.00, 0.00), 1e-6);       
+    scenario = NearestPointUtilities::TriangleNearestPoint(far_left_point, triangle, nearest_point);
+    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.00, 0.00, 0.00), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_EDGE_01);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TriangleOutOfPlaneNearestPoint, KratosCoreFastSuite)
@@ -124,44 +134,54 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleOutOfPlaneNearestPoint, KratosCoreFastSuite)
     Triangle3D3<Point> triangle(p_point_1, p_point_3, p_point_2);
 
     Point inside_point(0.2 * length, 0.1 * length, distance);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(inside_point, triangle);
-    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.2 * length, 0.1 * length, 0.00), 1e-6);
+    auto scenario = NearestPointUtilities::TriangleNearestPoint(inside_point, triangle, nearest_point);
+    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.2 * length, 0.1 * length, 0.00), 1e-6)
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::INSIDE_TRIANGLE);
 
     Point border_point(0.2 * length, 0.2 * length, distance);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(border_point, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(border_point, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.2 * length, 0.2 * length, 0.00), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::INSIDE_TRIANGLE);
 
     Point lower_corner(-2 * length, -0.1 * length, distance);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(lower_corner, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(lower_corner, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, (*p_point_1), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_0);
 
     Point below_point(0.2 * length, -0.2 * length, distance);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(below_point, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(below_point, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.2 * length, 0.0, 0.00), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_EDGE_20);
 
     Point below_left_point(-0.1 * length, -0.2 * length, distance);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(below_left_point, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(below_left_point, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, (*p_point_1), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_0);
 
     Point below_point_right(1.2 * length, -0.2 * length, distance);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(below_point_right, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(below_point_right, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, (*p_point_2), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_2);
 
     Point right_side(1.2 * length, 0.2 * length, distance);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(right_side, triangle);
-    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(length, 0.2 * length, 0.00), 1e-6);       
+    scenario = NearestPointUtilities::TriangleNearestPoint(right_side, triangle, nearest_point);
+    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(length, 0.2 * length, 0.00), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_EDGE_12);
 
     Point upper_corner(1.2 * length, 1.2 * length, distance);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(upper_corner, triangle);
+    scenario = NearestPointUtilities::TriangleNearestPoint(upper_corner, triangle, nearest_point);
     KRATOS_EXPECT_VECTOR_NEAR(nearest_point, (*p_point_3), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_1);
 
     Point left_point(0.2 * length, 0.4 * length, distance);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(left_point, triangle);
-    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.3 * length, 0.3 * length, 0.00), 1e-6);       
+    scenario = NearestPointUtilities::TriangleNearestPoint(left_point, triangle, nearest_point);
+    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.3 * length, 0.3 * length, 0.00), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_EDGE_01);
 
     Point far_left_point(-0.2 * length, 0.2 * length, distance);
-    nearest_point = NearestPointUtilities::TriangleNearestPoint(far_left_point, triangle);
-    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.00, 0.00, 0.00), 1e-6);       
+    scenario = NearestPointUtilities::TriangleNearestPoint(far_left_point, triangle, nearest_point);
+    KRATOS_EXPECT_VECTOR_NEAR(nearest_point, Point(0.00, 0.00, 0.00), 1e-6);
+    KRATOS_EXPECT_EQ(scenario, TriangleNearestPointLocation::ON_TRIANGLE_EDGE_01);
 }
 
 } // namespace Kratos::Testing

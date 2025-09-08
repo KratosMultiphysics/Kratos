@@ -103,7 +103,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
   BoundedMatrix<double,6,6> msMassFactors;
   BoundedMatrix<double,3,2> msDN_DX;
   array_1d<double,3> msN; //dimension = number of nodes
-  array_1d<double,2> ms_vel_gauss; //dimesion coincides with space dimension
+  array_1d<double,2> ms_vel_gauss; //dimension coincides with space dimension
   //array_1d<double,3> temp_vec_np; //dimension = number of nodes
   array_1d<double,3> ms_u_DN; //dimension = number of nodes
   //getting data for the given geometry
@@ -294,8 +294,8 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     BoundedMatrix<double,2,6> msConvOp = ZeroMatrix(2,6);
     BoundedMatrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-    array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-    array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+    array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimension coincides with space dimension
+    array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimension coincides with space dimension
     array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
@@ -450,8 +450,8 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     BoundedMatrix<double,2,6> msConvOp = ZeroMatrix(2,6);
     BoundedMatrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-    array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-    array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+    array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimension coincides with space dimension
+    array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimension coincides with space dimension
     array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
@@ -515,8 +515,8 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
         BoundedMatrix<double,2,6> msConvOp = ZeroMatrix(2,6);
         BoundedMatrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
         array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimension coincides with space dimension
+        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimension coincides with space dimension
 	BoundedMatrix<double,3,6> msB;
         BoundedMatrix<double,3,3> ms_constitutive_matrix;
         BoundedMatrix<double,3,6> ms_temp;
@@ -666,8 +666,8 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
         BoundedMatrix<double,2,6> msConvOp = ZeroMatrix(2,6);
         BoundedMatrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
         array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimension coincides with space dimension
+        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimension coincides with space dimension
 
         //getting data for the given geometry
         double Area;
@@ -723,8 +723,8 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
         BoundedMatrix<double,2,6> msConvOp = ZeroMatrix(2,6);
         BoundedMatrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
         array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimension coincides with space dimension
+        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimension coincides with space dimension
 	array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
 
 	double dt = CurrentProcessInfo[DELTA_TIME];

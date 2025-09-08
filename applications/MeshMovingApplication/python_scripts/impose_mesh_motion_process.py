@@ -1,4 +1,7 @@
+# --- Core Imports ---
 import KratosMultiphysics
+
+# --- MeshMoving Imports ---
 import KratosMultiphysics.MeshMovingApplication as MeshMovingApplication
 
 
@@ -9,37 +12,37 @@ def Factory(parameters, model):
     return ImposeMeshMotionProcess(model, parameters["Parameters"])
 
 
-# Full docstring of ImposeMotionProcess (here until codacy multiline docstrings are fixed)
-#
-# Impose a rotation followed by translation on a ModelPart.
-#
-# The transformation is equivalent to:
-# 1) Translation to the reference frame (offset the origin)
-# 2) Specified rotation
-# 3) Reverse translation from the reference frame (undo origin offset)
-# 4) Specified translation
-# Note: angles in radians
-#
-# The rotation can be defined by either "euler_angles"
-# or a "rotation_axis" and "rotation_angle" pair. The following parameters can be
-# defined parametrically (see GenericFunctionUtility):
-# "euler_angles", "rotation_axis", "reference_point", "rotation_angle", "translation_vector"
-#
-# Default parameters:
-# {
-#     "model_part_name"       : "",
-#     "interval"              : [0.0, "End"],
-#     "rotation_definition"   : "rotation_axis",
-#     "euler_angles"          : [0.0, 0.0, 0.0],
-#     "rotation_axis"         : [0.0, 0.0, 1.0],
-#     "reference_point"       : [0.0, 0.0, 0.0]
-#     "rotation_angle"        : 0,
-#     "translation_vector"    : [0.0, 0.0, 0.0],
-# }
-# Note: the euler angles follow the convention specified by @ref{Quaternion} (Z, -X', Z")
-
-
 class ImposeMeshMotionProcess(KratosMultiphysics.Process):
+    """ @brief Impose a rotation followed by translation on a ModelPart.
+
+        @details The transformation is equivalent to:
+                 1) Translation to the reference frame (offset the origin)
+                 2) Specified rotation
+                 3) Reverse translation from the reference frame (undo origin offset)
+                 4) Specified translation
+                 Note: angles in radians
+
+                 The rotation can be defined by either "euler_angles"
+                 or a "rotation_axis" and "rotation_angle" pair. The following parameters can be
+                 defined parametrically (see GenericFunctionUtility):
+                 "euler_angles", "rotation_axis", "reference_point", "rotation_angle", "translation_vector"
+
+                Default parameters:
+                @code
+                {
+                    "model_part_name"       : "",
+                    "interval"              : [0.0, "End"],
+                    "rotation_definition"   : "rotation_axis",
+                    "euler_angles"          : [0.0, 0.0, 0.0],
+                    "rotation_axis"         : [0.0, 0.0, 1.0],
+                    "reference_point"       : [0.0, 0.0, 0.0]
+                    "rotation_angle"        : 0,
+                    "translation_vector"    : [0.0, 0.0, 0.0],
+                }
+                @endcode
+
+        @note the euler angles follow the convention specified by @ref{Quaternion} (Z, -X', Z")
+    """
 
     def __init__(self,
                  model: KratosMultiphysics.Model,
@@ -81,13 +84,13 @@ class ImposeMeshMotionProcess(KratosMultiphysics.Process):
 
         if requires_parametric_transform:
             if rotation_definition == "rotation_axis":
-                self.transform = MeshMovingApplication.ParametricLinearTransform(
+                self.transform = MeshMovingApplication.ParametricAffineTransform(
                     rotation_axis_parameters,
                     rotation_angle_parameters,
                     reference_point_parameters,
                     translation_vector_parameters)
             elif rotation_definition == "euler_angles":
-                self.transform = MeshMovingApplication.ParametricLinearTransform(
+                self.transform = MeshMovingApplication.ParametricAffineTransform(
                     euler_angle_parameters,
                     reference_point_parameters,
                     translation_vector_parameters)
@@ -100,14 +103,14 @@ class ImposeMeshMotionProcess(KratosMultiphysics.Process):
             if rotation_definition == "rotation_axis":
                 rotation_axis = rotation_axis_parameters.GetVector()
                 rotation_angle = rotation_angle_parameters.GetDouble()
-                self.transform = MeshMovingApplication.LinearTransform(
+                self.transform = MeshMovingApplication.AffineTransform(
                     rotation_axis,
                     rotation_angle,
                     reference_point,
                     translation_vector)
             elif rotation_definition == "euler_angles":
                 euler_angles = euler_angle_parameters.GetVector()
-                self.transform = MeshMovingApplication.LinearTransform(
+                self.transform = MeshMovingApplication.AffineTransform(
                     euler_angles,
                     reference_point,
                     translation_vector)

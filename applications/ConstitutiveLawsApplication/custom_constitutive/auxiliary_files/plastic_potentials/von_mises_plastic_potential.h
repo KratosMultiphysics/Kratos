@@ -69,11 +69,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Initialization constructor.
-    VonMisesPlasticPotential()
-    {
-    }
-
     /// Copy constructor
     VonMisesPlasticPotential(VonMisesPlasticPotential const &rOther)
     {
@@ -84,9 +79,6 @@ public:
     {
         return *this;
     }
-
-    /// Destructor
-    virtual ~VonMisesPlasticPotential(){};
 
     ///@}
     ///@name Operators
@@ -100,7 +92,7 @@ public:
     * @brief This  script  calculates  the derivatives  of the plastic potential
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
-     As:            DF/DS = c1*V1 + c2*V2 + c3*V3
+    As:            DF/DS = c1*V1 + c2*V2 + c3*V3
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
@@ -116,16 +108,10 @@ public:
         )
     {
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-
-        const double c1 = 0.0;
         const double c2 = std::sqrt(3.0);
-        const double c3 = 0.0;
 
-        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        noalias(rGFlux) = c2 * second_vector;
     }
 
     /**

@@ -37,13 +37,13 @@ namespace HDF5
  *      "write_vertex_ids" : false
  *  }
  */
-class KRATOS_API(HDF5_APPLICATION) VertexContainerCoordinateIO : protected Internals::PointsData<Internals::VerticesIO>
+class KRATOS_API(HDF5_APPLICATION) VertexContainerCoordinateIO : protected Internals::PointsData<Internals::VertexIO>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = Internals::PointsData<Internals::VerticesIO>;
+    using BaseType = Internals::PointsData<Internals::VertexIO>;
 
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(VertexContainerCoordinateIO);
@@ -66,17 +66,6 @@ public:
 
     ///@}
 
-private:
-    ///@name Private Member Variables
-    ///@{
-
-    File::Pointer mpFile;
-
-    std::string mPathPrefix;
-
-    bool mWriteIDs;
-
-    ///@}
 }; // class VertexContainerCoordinateIO
 
 /** IO class for writing variables of a set of vertices

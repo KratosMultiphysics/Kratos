@@ -1,0 +1,56 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+	2	-1.0 -1.0  0.0
+	3	 1.0 -1.0  0.0
+	4	 1.0  1.0  0.0
+	5	-1.0  1.0  0.0
+End Nodes
+
+Begin Conditions RigidFace3D3N// GUI group identifier: Wall
+	1	0	2  3  4
+	2	0	2  5  4
+End Conditions
+
+Begin NodalData TEMPERATURE
+	2	0	400.0
+	3	0	400.0
+	4	0	400.0
+	5	0	400.0
+End NodalData
+
+Begin SubModelPart DEM-FEM-Wall_Wall // DEM-FEM-Wall - group identifier: Wall
+	Begin SubModelPartData // DEM-FEM-Wall. Group name: Wall
+		ADIABATIC                    0
+		LINEAR_VELOCITY [3]         (0.0, 0.0, 0.0)
+		VELOCITY_PERIOD              0.0
+		ANGULAR_VELOCITY [3]        (0.0,0.0,0.0)
+		ROTATION_CENTER [3]         (0.0,0.0,0.0)
+		ANGULAR_VELOCITY_PERIOD      0.0
+		VELOCITY_START_TIME          0.0
+		VELOCITY_STOP_TIME           100.0
+		ANGULAR_VELOCITY_START_TIME  0.0
+		ANGULAR_VELOCITY_STOP_TIME   100.0
+		FIXED_MESH_OPTION            0
+		RIGID_BODY_MOTION            1
+		FREE_BODY_MOTION             0
+		IS_GHOST                     0
+		IDENTIFIER                   Wall
+		FORCE_INTEGRATION_GROUP      0
+	End SubModelPartData
+	Begin SubModelPartNodes
+		2
+		3
+		4
+		5
+	End SubModelPartNodes
+	Begin SubModelPartConditions
+		1
+		2
+	End SubModelPartConditions
+End SubModelPart

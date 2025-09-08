@@ -35,7 +35,7 @@ namespace CSharpKratosWrapper {
     using ConditionType = Kratos::Condition;
     using ModelPart = Kratos::ModelPart;
 
-    class ModelPartWrapper {
+    class KRATOS_API(CSHARP_WRAPPER_APPLICATION) ModelPartWrapper {
 
     public:
 

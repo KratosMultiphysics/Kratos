@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # --- HDF5 Imports ---
+import KratosMultiphysics.HDF5Application.core.operations as operations
 
 # --- STD Imports ---
 from unittest.mock import patch
@@ -45,8 +46,7 @@ class TestOperations(KratosUnittest.TestCase):
         operation_settings = settings["list_of_operations"][0]
         self.assertTrue(model_part.IsDistributed())
         with patch("KratosMultiphysics.HDF5Application.HDF5File"):
-            partitioned_model_part_output = operations.Create(model, settings)
-            self.assertTrue(operation_settings.Has('operation_type'))
+            partitioned_model_part_output = operations.CreateAggregatedOperation(model, settings)
             self.assertTrue(operation_settings.Has('prefix'))
             with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5PartitionedModelPartIO') as p:
                 partitioned_model_part_io = p.return_value
@@ -65,11 +65,11 @@ class TestOperations(KratosUnittest.TestCase):
         }""")
         self.assertTrue(model_part.IsDistributed())
         with patch("KratosMultiphysics.HDF5Application.HDF5File"):
-            partitioned_model_part_output = operations.Create(model, settings)
+            partitioned_model_part_output = operations.CreateAggregatedOperation(model, settings)
             with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5PartitionedModelPartIO', autospec=True) as p:
                 partitioned_model_part_output.Execute()
                 args, _ = p.call_args
-                self.assertEqual(args[1], '/ModelData/model_part/1.23')
+                self.assertEqual(args[0]["prefix"].GetString(), '/ModelData/model_part/1.23')
 
 if __name__ == "__main__":
     KratosUnittest.main()

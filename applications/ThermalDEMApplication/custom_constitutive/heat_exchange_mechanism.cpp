@@ -14,7 +14,7 @@
 #include "heat_exchange_mechanism.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   HeatExchangeMechanism::HeatExchangeMechanism() {}
   HeatExchangeMechanism::~HeatExchangeMechanism() {}
 
@@ -33,6 +33,11 @@ namespace Kratos {
 
   //------------------------------------------------------------------------------------------------------------
   double HeatExchangeMechanism::FinalizeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+    return 0.0;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double HeatExchangeMechanism::ComputeEffectiveThermalConductivity(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     return 0.0;
   }
 

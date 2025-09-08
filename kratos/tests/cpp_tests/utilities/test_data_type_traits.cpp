@@ -157,11 +157,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
 
     Matrix dummy(4, 5);
     type_trait::CopyToContiguousData(dummy.data().begin(), test);
-    KRATOS_EXPECT_MATRIX_EQUAL(dummy, test);
+    KRATOS_EXPECT_MATRIX_EQ(dummy, test);
 
     dummy = Matrix(4, 5, -2);
     type_trait::CopyFromContiguousData(dummy, test.data().begin());
-    KRATOS_EXPECT_MATRIX_EQUAL(dummy, test);
+    KRATOS_EXPECT_MATRIX_EQ(dummy, test);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         type_trait::Reshape(test, std::vector<unsigned int>{}),
@@ -411,7 +411,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixNested, KratosCoreFastSuite)
     type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 6; ++i) {
         for (unsigned int j = 0; j < 20; ++j) {
-            KRATOS_EXPECT_MATRIX_EQUAL(result.data()[i].data()[j], test.data()[i].data()[j]);
+            KRATOS_EXPECT_MATRIX_EQ(result.data()[i].data()[j], test.data()[i].data()[j]);
         }
     }
 }
@@ -855,7 +855,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(data_type_4_trait::Size(test_data_type_4), 0);
     std::vector<unsigned int> data_type_4_shape{0, 0, 4, 0, 4};
     KRATOS_EXPECT_EQ(data_type_4_trait::Shape(test_data_type_4), data_type_4_shape);
-    KRATOS_EXPECT_EQ(data_type_4_trait::GetContiguousData(test_data_type_4), 0);
+    KRATOS_EXPECT_TRUE(data_type_4_trait::GetContiguousData(test_data_type_4) == nullptr);
 
     using data_type_5 = DenseMatrix<array_1d<array_1d<array_1d<array_1d<double, 4>, 0>, 4>, 0>>;
     using data_type_5_trait = DataTypeTraits<data_type_5>;
@@ -872,7 +872,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(data_type_5_trait::Size(test_data_type_5), 0);
     std::vector<unsigned int> data_type_5_shape{0, 0, 0, 4, 0, 4};
     KRATOS_EXPECT_EQ(data_type_5_trait::Shape(test_data_type_5), data_type_5_shape);
-    KRATOS_EXPECT_EQ(data_type_5_trait::GetContiguousData(test_data_type_5), 0);
+    KRATOS_EXPECT_TRUE(data_type_5_trait::GetContiguousData(test_data_type_5) == nullptr);
 
     using data_type_6 = array_1d<array_1d<array_1d<array_1d<array_1d<double, 4>, 0>, 4>, 0>, 2>;
     using data_type_6_trait = DataTypeTraits<data_type_6>;
@@ -934,6 +934,218 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(data_type_9_trait::Size(test_data_type_9), 0);
     std::vector<unsigned int> data_type_9_shape{2, 0, 0, 0, 4};
     KRATOS_EXPECT_EQ(data_type_9_trait::Shape(test_data_type_9), data_type_9_shape);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrixSizeWithShape, KratosCoreFastSuite)
+{
+    using data_type_traits = DataTypeTraits<std::vector<DenseMatrix<array_1d<std::vector<DenseVector<array_1d<double, 3>>>, 10>>>>;
+
+    std::vector<unsigned int> shape(7);
+    shape[0] = 10;
+    shape[1] = 4;
+    shape[2] = 8;
+    shape[3] = 12;
+    shape[4] = 20;
+    shape[5] = 4;
+    shape[6] = 7;
+
+    KRATOS_EXPECT_EQ(data_type_traits::Dimension, shape.size());
+    KRATOS_EXPECT_EQ(data_type_traits::Size(shape.begin(), shape.end()), 2150400);
+    KRATOS_EXPECT_FALSE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size()));
+
+    shape[3] = 10;
+    shape[6] = 3;
+    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size()));
+    KRATOS_EXPECT_EQ(data_type_traits::Size(shape.begin(), shape.end()), 768000);
+    KRATOS_EXPECT_FALSE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size() - 1));
+    KRATOS_EXPECT_FALSE(data_type_traits::IsValidShape(shape.data() + 1, shape.data() + shape.size()));
+
+    shape[3] = 5;
+    shape[6] = 2;
+    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size()));
+    KRATOS_EXPECT_EQ(data_type_traits::Size(shape.begin(), shape.end()), 256000);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrixCopyToContiguousDataWithShape, KratosCoreFastSuite)
+{
+    using data_type_traits = DataTypeTraits<std::vector<DenseMatrix<array_1d<std::vector<DenseVector<array_1d<int, 3>>>, 10>>>>;
+
+    std::vector<unsigned int> shape(7);
+    shape[0] = 3;       // vector dim
+    shape[1] = 2;       // matrix 1dim
+    shape[2] = 2;       // matrix 2dim
+    shape[3] = 5;       // array_1d dim
+    shape[4] = 2;       // vector dim
+    shape[5] = 3;       // dense vector dim
+    shape[6] = 2;       // array_1d dim
+
+    KRATOS_EXPECT_EQ(data_type_traits::Dimension, shape.size());
+    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size()));
+    KRATOS_EXPECT_EQ(data_type_traits::Size(shape.begin(), shape.end()), 720);
+
+    // generate the data
+    unsigned int value = 0;
+    using vec_type_1 = data_type_traits::ContainerType;
+    vec_type_1 data;
+    for (unsigned int vec_i = 0; vec_i < 5; ++vec_i) {
+        using mat_type_1 = DataTypeTraits<vec_type_1>::ValueType;
+        mat_type_1 mat_1(3, 4);
+        for (unsigned int mat_i = 0; mat_i < 3; ++mat_i) {
+            for (unsigned int mat_j = 0; mat_j < 4; ++mat_j) {
+                using arr_type_1 = DataTypeTraits<mat_type_1>::ValueType;
+                arr_type_1 arr_1;
+                for (unsigned int arr_i = 0; arr_i < 10; ++arr_i) {
+                    using vec_type_2 = DataTypeTraits<arr_type_1>::ValueType;
+                    vec_type_2 vec_2;
+                    for (unsigned int vec_j = 0; vec_j < 5; ++vec_j) {
+                        using dvec_type_1 = DataTypeTraits<vec_type_2>::ValueType;
+                        dvec_type_1 dvec(4);
+                        for (unsigned int dvec_i = 0; dvec_i < 4; ++dvec_i) {
+                            using arr_type_2 = DataTypeTraits<dvec_type_1>::ValueType;
+                            arr_type_2 arr_2;
+                            for (unsigned int arr_j = 0; arr_j < 3; ++arr_j) {
+                                arr_2[arr_j] = ++value;
+                            }
+                            dvec[dvec_i] = arr_2;
+                        }
+                        vec_2.push_back(dvec);
+                    }
+                    arr_1[arr_i] = vec_2;
+                }
+                mat_1(mat_i, mat_j) = arr_1;
+            }
+        }
+        data.push_back(mat_1);
+    }
+
+    // first copy all the data
+    std::vector<int> all_data(data_type_traits::Size(data));
+    data_type_traits::CopyToContiguousData(all_data.data(), data);
+    for (unsigned int i = 0; i < all_data.size(); ++i) {
+        KRATOS_EXPECT_EQ(all_data[i], i + 1);
+    }
+
+    const auto& r_origin_shape = data_type_traits::Shape(data);
+
+    std::vector<int> copied_data(720);
+    data_type_traits::CopyToContiguousData(copied_data.data(), data, shape.begin(), shape.end());
+
+    std::vector<unsigned int> copy_dim_lengths;
+    for (unsigned int i = 0; i < shape.size() - 1; ++i) {
+        copy_dim_lengths.push_back(std::accumulate(shape.begin() + i + 1, shape.end(), 1, std::multiplies<int>{}));
+    }
+
+    std::vector<unsigned int> orig_dim_lengths;
+    for (unsigned int i = 0; i < r_origin_shape.size() - 1; ++i) {
+        orig_dim_lengths.push_back(std::accumulate(r_origin_shape.begin() + i + 1, r_origin_shape.end(), 1, std::multiplies<int>{}));
+    }
+
+    std::vector<unsigned int> current_copy_dim_index(copy_dim_lengths.size());
+    for (unsigned int i = 0; i < 720; ++i) {
+        unsigned int index_remainder = i;
+        for (unsigned int j = 0; j < copy_dim_lengths.size(); ++j) {
+            current_copy_dim_index[j] = index_remainder / copy_dim_lengths[j];
+            index_remainder -= current_copy_dim_index[j] * copy_dim_lengths[j];
+        }
+
+        unsigned int orig_i = 0;
+        for (unsigned int j = 0; j < orig_dim_lengths.size(); ++j) {
+            orig_i += current_copy_dim_index[j] * orig_dim_lengths[j];
+        }
+
+        KRATOS_EXPECT_EQ(copied_data[i], all_data[orig_i + index_remainder]);
+    }
+
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsDenseMatrixCopyToFromContiguousDataWithShape, KratosCoreFastSuite)
+{
+    DenseMatrix<double> input(5, 2);
+    for (unsigned int i = 0; i < 10; ++i) {
+        *(input.data().begin() + i) = i;
+    }
+
+    std::vector<unsigned int> shape = {5, 2};
+    std::vector<double> contiguous_data(10);
+    DataTypeTraits<DenseMatrix<double>>::CopyToContiguousData(contiguous_data.data(), input, shape.begin(), shape.end());
+
+    for (unsigned int i = 0; i < 10; ++i) {
+        KRATOS_EXPECT_EQ(contiguous_data[i], i);
+    }
+
+    DenseMatrix<double> output(5, 2);
+    DataTypeTraits<DenseMatrix<double>>::CopyFromContiguousData(output, contiguous_data.data(), shape.begin(), shape.end());
+
+    for (unsigned int i = 0; i < 10; ++i) {
+        KRATOS_EXPECT_EQ(*(input.data().begin() + i), *(output.data().begin() + i));
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrixCopyFromContiguousDataWithShape, KratosCoreFastSuite)
+{
+    using data_type_traits = DataTypeTraits<std::vector<DenseMatrix<array_1d<std::vector<DenseVector<array_1d<int, 3>>>, 10>>>>;
+
+    std::vector<unsigned int> shape(7);
+    shape[0] = 3;       // vector dim
+    shape[1] = 2;       // matrix 1dim
+    shape[2] = 2;       // matrix 2dim
+    shape[3] = 5;       // array_1d dim
+    shape[4] = 2;       // vector dim
+    shape[5] = 3;       // dense vector dim
+    shape[6] = 2;       // array_1d dim
+
+    KRATOS_EXPECT_EQ(data_type_traits::Dimension, shape.size());
+    KRATOS_EXPECT_TRUE(data_type_traits::IsValidShape(shape.data(), shape.data() + shape.size()));
+    KRATOS_EXPECT_EQ(data_type_traits::Size(shape.begin(), shape.end()), 720);
+
+    // generate the data
+    unsigned int value = 0;
+    using vec_type_1 = data_type_traits::ContainerType;
+    vec_type_1 data;
+    for (unsigned int vec_i = 0; vec_i < 5; ++vec_i) {
+        using mat_type_1 = DataTypeTraits<vec_type_1>::ValueType;
+        mat_type_1 mat_1(3, 4);
+        for (unsigned int mat_i = 0; mat_i < 3; ++mat_i) {
+            for (unsigned int mat_j = 0; mat_j < 4; ++mat_j) {
+                using arr_type_1 = DataTypeTraits<mat_type_1>::ValueType;
+                arr_type_1 arr_1;
+                for (unsigned int arr_i = 0; arr_i < 10; ++arr_i) {
+                    using vec_type_2 = DataTypeTraits<arr_type_1>::ValueType;
+                    vec_type_2 vec_2;
+                    for (unsigned int vec_j = 0; vec_j < 5; ++vec_j) {
+                        using dvec_type_1 = DataTypeTraits<vec_type_2>::ValueType;
+                        dvec_type_1 dvec(4);
+                        for (unsigned int dvec_i = 0; dvec_i < 4; ++dvec_i) {
+                            using arr_type_2 = DataTypeTraits<dvec_type_1>::ValueType;
+                            arr_type_2 arr_2;
+                            for (unsigned int arr_j = 0; arr_j < 3; ++arr_j) {
+                                arr_2[arr_j] = ++value;
+                            }
+                            dvec[dvec_i] = arr_2;
+                        }
+                        vec_2.push_back(dvec);
+                    }
+                    arr_1[arr_i] = vec_2;
+                }
+                mat_1(mat_i, mat_j) = arr_1;
+            }
+        }
+        data.push_back(mat_1);
+    }
+
+    // first copy all the data
+    std::vector<int> all_data(data_type_traits::Size(shape.begin(), shape.end()));
+    data_type_traits::CopyToContiguousData(all_data.data(), data, shape.begin(), shape.end());
+
+    data_type_traits::ContainerType check_data;
+    data_type_traits::Reshape(check_data, shape);
+    data_type_traits::CopyFromContiguousData(check_data, all_data.data(), shape.begin(), shape.end());
+
+    std::vector<int> check_flat_data(data_type_traits::Size(shape.begin(), shape.end()));
+    data_type_traits::CopyToContiguousData(check_flat_data.data(), check_data, shape.begin(), shape.end());
+
+    KRATOS_CHECK_VECTOR_EQUAL(check_flat_data, all_data);
+
 }
 
 } // namespace Kratos::Testing

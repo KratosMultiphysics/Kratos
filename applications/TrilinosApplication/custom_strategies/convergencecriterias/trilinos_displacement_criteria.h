@@ -4,332 +4,267 @@
 //           | || |  | | | | | | | (_) \__
 //           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:             BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Jordi Cotela
 //
 
-#if !defined(KRATOS_TRILINOS_DISPLACEMENT_CRITERIA )
-#define  KRATOS_TRILINOS_DISPLACEMENT_CRITERIA
+#pragma once
 
 //  System includes
 
 //  External includes
 
 //  Project includes
-#include "includes/model_part.h"
-#include "includes/define.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "Epetra_MpiComm.h"
+#include "solving_strategies/convergencecriterias/displacement_criteria.h"
 
 namespace Kratos
 {
 
-///@name Kratos Globals
+///@addtogroup TrilinosApplication
 ///@{
 
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-
-
-///@name  Enum's
-///@{
-
-
-///@}
-///@name  Functions
-///@{
-
-
-
-///@}
 ///@name Kratos Classes
 ///@{
 
-// Short class definition
-// Detail class definition
-
-// URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-// URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-// URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-// URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-// URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-// URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-// URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-// URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
+/**
+ * @class TrilinosDisplacementCriteria
+ * @ingroup TrilinosApplication
+ * @brief MPI version of the DisplacementCriteria.
+ * @details This is a convergence criteria that considers the increment on the solution as criteria. The reactions from the RHS are not computed in the solution
+ * @see DisplacementCriteria
+ * @author Jordi Cotela
+ */
 template<class TSparseSpace,
          class TDenseSpace
          >
-class TrilinosDisplacementCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class TrilinosDisplacementCriteria
+    : public DisplacementCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of TrilinosDisplacementCriteria
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosDisplacementCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    /// The definition of the base ConvergenceCriteria
+    using BaseConvergenceCriteriaType = ConvergenceCriteria< TSparseSpace, TDenseSpace >;
 
-    typedef TSparseSpace SparseSpaceType;
+    /// The definition of the base DisplacementCriteria
+    using BaseType = DisplacementCriteria<TSparseSpace, TDenseSpace>;
 
-    typedef typename BaseType::TDataType TDataType;
+    /// The definition of the class type
+    using ClassType = TrilinosDisplacementCriteria<TSparseSpace, TDenseSpace>;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    /// The definition of the data type
+    using TDataType = typename BaseType::TDataType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    /// The definition of the DoF data type
+    using DofType = typename Node::DofType;
 
     ///@}
     ///@name Life Cycle
-
     ///@{
 
-    // * Constructor.
-
-    TrilinosDisplacementCriteria(
-        TDataType NewRatioTolerance,
-        TDataType AlwaysConvergedNorm)
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    /// Default constructor.
+    explicit TrilinosDisplacementCriteria()
+        : BaseType()
     {
-        mRatioTolerance = NewRatioTolerance;
-        mAlwaysConvergedNorm = AlwaysConvergedNorm;
-
-        //mActualizeRHSIsNeeded = false;
     }
 
-    // * Destructor.
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit TrilinosDisplacementCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
-    virtual ~TrilinosDisplacementCriteria() {}
+    /**
+     * @brief Constructor 2 arguments
+     * @param NewRatioTolerance The ratio tolerance for the convergence.
+     * @param AlwaysConvergedNorm The absolute tolerance for the convergence.
+     */
+    explicit TrilinosDisplacementCriteria(
+        TDataType NewRatioTolerance,
+        TDataType AlwaysConvergedNorm)
+        : BaseType(NewRatioTolerance, AlwaysConvergedNorm)
+    {
+    }
 
+    /**
+     * @brief Copy constructor
+     * @param rOther The criteria to be copied
+     */
+    explicit TrilinosDisplacementCriteria( TrilinosDisplacementCriteria const& rOther )
+      :BaseType(rOther)
+    {
+    }
+
+    /**
+     * @brief Destructor.
+     */
+    ~TrilinosDisplacementCriteria() override {}
 
     ///@}
     ///@name Operators
-
     ///@{
-
-    // Criterias that need to be called after getting the solution
-    bool PostCriteria(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    ) override
-    {
-        if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
-        {
-            TDataType mFinalCorrectionNorm = TSparseSpace::TwoNorm(Dx);
-
-            TDataType ratio = 0.00;
-
-            mReferenceDispNorm = CalculateReferenceNorm(rDofSet, rModelPart);
-
-            ratio = mFinalCorrectionNorm/mReferenceDispNorm;
-
-            double aaa = SparseSpaceType::Size(Dx);
-
-            double AbsoluteNorm = (mFinalCorrectionNorm/sqrt(aaa));
-
-            if(rModelPart.GetCommunicator().MyPID() == 0) //print performed only by the first processor
-                KRATOS_INFO("DISPLACEMENT CRITERION") << " :: obtained tol = " << ratio << ";  expected ratio = " << mRatioTolerance << "absolute tol = " << AbsoluteNorm << std::endl;
-
-            if ( ratio <= mRatioTolerance || AbsoluteNorm<mAlwaysConvergedNorm ) // || (mFinalCorrectionNorm/x.size())<=1e-7)
-            {
-                if(rModelPart.GetCommunicator().MyPID() == 0) //print performed only by the first processor
-                    KRATOS_INFO("DISPLACEMENT CRITERION") << "convergence is achieved" <<std::endl;
-
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else //in this case all the displacements are imposed!
-        {
-            return true;
-        }
-    }
-
-    void Initialize(
-        ModelPart& r_model_part
-    ) override
-    {
-        BaseType::mConvergenceCriteriaIsInitialized = true;
-    }
-
-    void InitializeSolutionStep(
-        ModelPart& r_model_part,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    ) override
-    {
-    }
-
-    void FinalizeSolutionStep(
-        ModelPart& r_model_part,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-    )  override {}
-
-
 
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseConvergenceCriteriaType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "trilinos_displacement_criteria";
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                            : "trilinos_displacement_criteria",
+            "displacement_relative_tolerance" : 1.0e-4,
+            "displacement_absolute_tolerance" : 1.0e-9
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "TrilinosDisplacementCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+    }
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-    TDataType mRatioTolerance;
-    TDataType mAlwaysConvergedNorm;
 
-    // Epetra_MpiComm& mrComm;
-
-
-    TDataType mReferenceDispNorm;
     ///@}
     ///@name Private Operators
     ///@{
-
-    TDataType CalculateReferenceNorm(DofsArrayType& rDofSet, ModelPart& rModelPart)
-    {
-        TDataType local_ReferenceDispNorm = TDataType();
-        TDataType value;
-
-        const int rank = rModelPart.GetCommunicator().MyPID();
-
-        for(auto it_dof = rDofSet.begin() ; it_dof != rDofSet.end() ; ++it_dof)
-        {
-            if(it_dof->IsFree() && (it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank))
-            {
-                value = it_dof->GetSolutionStepValue();
-                local_ReferenceDispNorm += value*value;
-            }
-        }
-
-        //perform the sum between all of the nodes
-        TDataType ReferenceDispNorm = local_ReferenceDispNorm;
-        ReferenceDispNorm = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(ReferenceDispNorm);
-
-
-        ReferenceDispNorm = std::sqrt(ReferenceDispNorm);
-        return ReferenceDispNorm;
-    }
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
 
-
     ///@}
-
 }; //  Class ClassName
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 
 }  //  namespace Kratos.
-
-#endif //  KRATOS_TRILINOS_DISPLACEMENT_CRITERIA  defined

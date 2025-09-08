@@ -153,7 +153,7 @@ namespace Kratos
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
        * @param NewId Index number of the new element (optional)
        */
@@ -179,7 +179,7 @@ namespace Kratos
     {
     }
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
@@ -236,16 +236,27 @@ namespace Kratos
                                       VectorType &rRightHandSideVector,
                                       const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               const ProcessInfo &rCurrentProcessInfo) override
+    void CalculateLeftHandSide(
+        MatrixType &rLeftHandSideMatrix,
+        const ProcessInfo &rCurrentProcessInfo) override
     {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "UpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
-      KRATOS_CATCH("");
+        KRATOS_TRY;
+
+        KRATOS_ERROR << "UpdatedLagrangianElement::CalculateLeftHandSide not implemented." << std::endl;
+
+        KRATOS_CATCH("");
     }
 
-    void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                const ProcessInfo &rCurrentProcessInfo) override{};
+    void CalculateRightHandSide(
+        VectorType &rRightHandSideVector,
+        const ProcessInfo &rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+
+        KRATOS_ERROR << "UpdatedLagrangianElement::CalculateRightHandSide not implemented." << std::endl;
+
+        KRATOS_CATCH("");
+    };
 
     // The following methods have different implementations depending on TDim
     /// Provides the global indices for each one of this element's local rows
@@ -414,18 +425,18 @@ namespace Kratos
                                   const int Step,
                                   const double TimeStep);
 
-    /// Determine integration point weights and shape funcition derivatives from the element's geometry.
+    /// Determine integration point weights and shape function derivatives from the element's geometry.
     virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
                                Matrix &rNContainer,
                                Vector &rGaussWeights);
 
-    void CalculateGeometryData(Vector &rGaussWeights);
+    virtual void CalculateGeometryData(Vector &rGaussWeights);
     double ElementSize(/*ShapeFunctionDerivativesType& rDN_DX*/);
 
     /**
        * @brief EquivalentStrainRate Calculate the second invariant of the strain rate tensor GammaDot = (2SijSij)^0.5.
        *
-       * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this funcition being
+       * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this function being
        * defined on all fluid elements.
        *
        * @param rDN_DX Shape function derivatives at the integration point.
@@ -435,7 +446,7 @@ namespace Kratos
 
     /// Add integration point contribution to the mass matrix.
     /**
-       * A constistent mass matrix is used.
+       * A consistent mass matrix is used.
        * @param rMassMatrix The local matrix where the result will be added.
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.

@@ -21,12 +21,12 @@
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 #include "processes/structured_mesh_generator_process.h"
-#include "testing/testing.h"
 #include "utilities/normal_calculation_utils.h"
 
 // Application includes
 #include "fluid_dynamics_biomedical_application_variables.h"
 #include "custom_utilities/wss_statistics_utilities.h"
+#include "tests/cpp_tests/fluid_dynamics_biomedical_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {

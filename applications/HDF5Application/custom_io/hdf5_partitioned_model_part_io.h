@@ -54,10 +54,6 @@ public:
         Parameters Settings,
         File::Pointer pFile);
 
-    PartitionedModelPartIO(
-        const std::string& rPrefix,
-        File::Pointer pFile);
-
     ///@}
     ///@name Operations
     ///@{

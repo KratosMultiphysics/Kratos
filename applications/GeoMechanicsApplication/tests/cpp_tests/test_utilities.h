@@ -12,15 +12,10 @@
 
 #pragma once
 
-#include <string>
-
-namespace Kratos::Testing
+namespace Kratos::Testing::Defaults
 {
 
-class TestUtilities
-{
-public:
-    static bool CompareFiles(const std::string& p1, const std::string& p2);
-};
+constexpr auto absolute_tolerance = 1.0e-12;
+constexpr auto relative_tolerance = 1.0e-6;
 
-}
+} // namespace Kratos::Testing::Defaults

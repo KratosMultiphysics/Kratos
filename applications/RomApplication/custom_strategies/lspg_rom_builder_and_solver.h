@@ -62,14 +62,14 @@ namespace Kratos
  * @class LeastSquaresPetrovGalerkinROMBuilderAndSolver
  * @ingroup RomApplication
  * @brief This class provides an implementation for the LeastSquaresPetrovGalerkinROM builder and solver operations.
- * This B&S now inherits from the GlobalROMBuilderAndSolver, which in turn inherits 
- * from the ResidualBasedBlockBuilderAndSolver. The RHS is composed of unbalanced loads 
- * (residual) and is constructed using the ResidualBasedBlockBuilderAndSolver. Similarly, the 
- * LHS is constructed using the ResidualBasedBlockBuilderAndSolver and is then multiplied 
- * by the ROM RIGHT BASIS. This results in a rectangular system with dimensions of FOM size 
- * by ROM size. This system can be solved using either the normal equations or the QR 
- * decomposition. The degrees of freedom are rearranged so that the restrained ones are 
- * placed at the end of the system, ordered inversely to the DofSet, mirroring the arrangement 
+ * This B&S now inherits from the GlobalROMBuilderAndSolver, which in turn inherits
+ * from the ResidualBasedBlockBuilderAndSolver. The RHS is composed of unbalanced loads
+ * (residual) and is constructed using the ResidualBasedBlockBuilderAndSolver. Similarly, the
+ * LHS is constructed using the ResidualBasedBlockBuilderAndSolver and is then multiplied
+ * by the ROM RIGHT BASIS. This results in a rectangular system with dimensions of FOM size
+ * by ROM size. This system can be solved using either the normal equations or the QR
+ * decomposition. The degrees of freedom are rearranged so that the restrained ones are
+ * placed at the end of the system, ordered inversely to the DofSet, mirroring the arrangement
  * in the FOM.
  * @tparam TSparseSpace Defines the sparse system under consideration
  * @tparam TDenseSpace Defines the dense system under consideration
@@ -123,13 +123,13 @@ public:
 
     explicit LeastSquaresPetrovGalerkinROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        Parameters ThisParameters) : BaseType(pNewLinearSystemSolver) 
+        Parameters ThisParameters) : BaseType(pNewLinearSystemSolver)
     {
         // Validate and assign defaults
         Parameters this_parameters_copy = ThisParameters.Clone();
         this_parameters_copy = BaseType::ValidateAndAssignParameters(this_parameters_copy, GetDefaultParameters());
         AssignSettings(this_parameters_copy);
-    } 
+    }
 
     ~LeastSquaresPetrovGalerkinROMBuilderAndSolver() = default;
 
@@ -163,7 +163,7 @@ public:
         }
 
         auto dof_queue = BaseType::ExtractDofSet(pScheme, rModelPart);
-        
+
         // Fill a sorted auxiliary array of with the DOFs set
         KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
         auto dof_array = BaseType::SortAndRemoveDuplicateDofs(dof_queue);
@@ -192,10 +192,10 @@ public:
         }
 #endif
         KRATOS_CATCH("");
-    } 
+    }
 
     /**
-     * Builds and projects the reduced system of equations 
+     * Builds and projects the reduced system of equations
      */
     virtual void BuildAndProjectROM(
         typename TSchemeType::Pointer pScheme,
@@ -217,7 +217,7 @@ public:
         if (BaseType::mHromSimulation) {
             BuildWithComplementaryMeshAndApplyDirichletConditions(pScheme, rModelPart, r_a_comp, r_b_comp, rDx);
         }
-        
+
         if (BaseType::GetMonotonicityPreservingFlag()) {
             BaseType::MonotonicityPreserving(rA, rb);
         }
@@ -278,7 +278,7 @@ public:
 
     /**
      * @brief Initializes the selected DOFs based on the selected elements and conditions.
-     * 
+     *
      * This function populates the mSelectedDofs set with the DOFs that are part of the
      * selected elements and conditions. This set is then used to determine which rows
      * of the system matrix should be zeroed out in subsequent time steps.
@@ -303,16 +303,16 @@ public:
 
     /**
      * @brief Zeroes out the rows of the system matrix that correspond to the complementary mesh.
-     * 
-     * This function zeroes out the rows of the system matrix 'rA' that correspond to the DOFs 
-     * of the complementary mesh, i.e., those not part of the selected elements and conditions 
-     * and do not overlap with them. It uses the mSelectedDofs set to determine which rows 
+     *
+     * This function zeroes out the rows of the system matrix 'rA' that correspond to the DOFs
+     * of the complementary mesh, i.e., those not part of the selected elements and conditions
+     * and do not overlap with them. It uses the mSelectedDofs set to determine which rows
      * should remain non-zero.
-     * 
+     *
      * @param rA System matrix
      */
     void ZeroOutUnselectedComplementaryMeshRows(
-        TSystemMatrixType& rA) 
+        TSystemMatrixType& rA)
     {
         // Use parallel utilities to zero out the rows of the system matrix that are not part of the selected DOFs.
         IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i) {
@@ -331,7 +331,7 @@ public:
     }
 
     /**
-     * Projects the reduced system of equations 
+     * Projects the reduced system of equations
      */
     virtual void ProjectROM(
         ModelPart &rModelPart,
@@ -379,12 +379,47 @@ public:
                 mEigenRomB = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
             }
             else if (mSolvingTechnique == "qr_decomposition") {
-                mEigenRomA = eigen_rA_times_mPhiGlobal; 
+                mEigenRomA = eigen_rA_times_mPhiGlobal;
                 mEigenRomB = eigen_rb;
             }
         }
 
         KRATOS_CATCH("")
+    }
+
+    void WriteReactionDataToMatrixMarket(
+        ModelPart& rModelPart,
+        const std::stringstream& MatrixMarketVectorName
+    )
+    {
+
+        std::vector<const Variable<double>*> variables;
+        for (const auto& unknown : mNodalUnknowns) {
+            variables.push_back(&KratosComponents<Variable<double>>::Get(unknown));
+        }
+
+        std::vector<double> aux_data_array;
+
+        // Loop over all nodes
+        for (auto& node : rModelPart.Nodes()) {
+            for (const auto* var : variables) {
+                // Check if the node has the DoF
+                if (node.HasDofFor(*var)) {
+                    // Get the DoF
+                    const auto& dof = node.pGetDof(*var);
+
+                    // Get the reaction value and add it to the array
+                    aux_data_array.push_back(dof->GetSolutionStepReactionValue());
+                }
+            }
+        }
+
+        // Convert std::vector to Ublas Vector
+        Vector aux_vector(aux_data_array.size());
+        std::copy(aux_data_array.begin(), aux_data_array.end(), aux_vector.begin());
+
+        // Write the vector to a MatrixMarket file
+        SparseSpaceType::WriteMatrixMarketVector(MatrixMarketVectorName.str().c_str(), aux_vector);
     }
 
     void BuildAndSolve(
@@ -399,12 +434,21 @@ public:
         BuildAndProjectROM(pScheme, rModelPart, A, b, Dx);
 
         // Obtain the assembled residuals vector (To build a basis for Petrov-Galerkin)
-        if (mTrainPetrovGalerkinFlag & mBasisStrategy=="residuals"){
+        if (mTrainPetrovGalerkinFlag) {
             std::stringstream matrix_market_vector_name;
-            matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <<  ".res.mm";
-            SparseSpaceType::WriteMatrixMarketVector((matrix_market_vector_name.str()).c_str(), b);
+            matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME]
+                                    << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]
+                                    << ".res.mm";
+            if (mBasisStrategy == "residuals") {
+                SparseSpaceType::WriteMatrixMarketVector(matrix_market_vector_name.str().c_str(), b);
+            }
+            else if (mBasisStrategy == "reactions") {  // Assuming "reactions" or another suitable keyword
+                BaseType::CalculateReactions(pScheme, rModelPart, A, Dx, b);
+                WriteReactionDataToMatrixMarket(rModelPart, matrix_market_vector_name);
+            }
         }
-        
+
+
         if (mSolvingTechnique == "normal_equations"){
             BaseType::SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
         }
@@ -434,7 +478,7 @@ public:
         return default_parameters;
     }
 
-    static std::string Name() 
+    static std::string Name()
     {
         return "lspg_rom_builder_and_solver";
     }
@@ -465,7 +509,7 @@ public:
         rOStream << Info();
     }
 
-    /// Print object's 
+    /// Print object's
     virtual void PrintData(std::ostream &rOStream) const override
     {
         rOStream << Info();
@@ -503,13 +547,14 @@ protected:
         BaseType::AssignSettings(ThisParameters);
 
         // // Set member variables
+        mNodalUnknowns = ThisParameters["nodal_unknowns"].GetStringArray();
         mTrainPetrovGalerkinFlag = ThisParameters["rom_bns_settings"]["train_petrov_galerkin"].GetBool();
         mBasisStrategy = ThisParameters["rom_bns_settings"]["basis_strategy"].GetString();
         mSolvingTechnique = ThisParameters["rom_bns_settings"]["solving_technique"].GetString();
     }
 
     /**
-     * @brief Function to perform the build of the LHS and RHS on the selected elements and the corresponding complementary mesh. 
+     * @brief Function to perform the build of the LHS and RHS on the selected elements and the corresponding complementary mesh.
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param A The LHS matrix
@@ -586,7 +631,7 @@ protected:
         KRATOS_CATCH("")
     }
 
-    void FindNeighbouringElementsAndConditions(ModelPart& rModelPart) 
+    void FindNeighbouringElementsAndConditions(ModelPart& rModelPart)
     {
         mNeighbouringAndSelectedElements.clear();
         mNeighbouringAndSelectedConditions.clear();
@@ -686,8 +731,9 @@ protected:
     ///@}
     ///@name Protected life cycle
     ///@{
-    
+
 private:
+    std::vector<std::string> mNodalUnknowns;
     bool mTrainPetrovGalerkinFlag = false;
     std::string mBasisStrategy;
     std::string mSolvingTechnique;
@@ -699,7 +745,7 @@ private:
     bool mIsSelectedDofsInitialized = false;
 
     ///@}
-    ///@name Private operations 
+    ///@name Private operations
     ///@{
 
     ///@}

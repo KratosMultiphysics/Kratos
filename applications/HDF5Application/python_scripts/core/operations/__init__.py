@@ -20,6 +20,7 @@ from KratosMultiphysics.HDF5Application.core.controllers import Factory as Contr
 operation_types_map: 'dict[str, typing.Any]' = {
     "model_part_input": ModelPartInput,
     "model_part_output": ModelPartOutput,
+    "partitioned_model_part_output": PartitionedModelPartOutput,
     "process_info_input": ProcessInfoInput,
     "process_info_output": ProcessInfoOutput,
     "nodal_solution_step_data_input" : NodalSolutionStepDataInput,

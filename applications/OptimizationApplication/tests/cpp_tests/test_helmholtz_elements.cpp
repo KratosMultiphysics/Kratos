@@ -13,7 +13,7 @@
 // Project includes
 #include "containers/model.h"
 #include "optimization_application_variables.h"
-#include "testing/testing.h"
+#include "tests/cpp_tests/optimization_fast_suite.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos::Testing

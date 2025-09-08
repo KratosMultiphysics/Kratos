@@ -8,7 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                  
+//
 
 #pragma once
 
@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -35,7 +35,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  */
 template <typename TPointType>
-class BoundingBox 
+class BoundingBox
 {
 public:
     ///@name Type Definitions
@@ -56,10 +56,10 @@ public:
     };
 
     /// Constructor with min and max points
-    BoundingBox(TPointType const& MinPoint, TPointType const& MaxPoint) :
-		mMinMaxPoints{MinPoint,MaxPoint} 
+    BoundingBox(TPointType const& MinPoint, TPointType const& MaxPoint)
     {
-
+        noalias(GetMinPoint().Coordinates()) = MinPoint.Coordinates();
+        noalias(GetMaxPoint().Coordinates()) = MaxPoint.Coordinates();
     }
 
     /// Copy constructor
@@ -69,7 +69,7 @@ public:
 
     /// Construction with container of points.
     template<typename TIteratorType>
-    BoundingBox(TIteratorType const& itPointsBegin, TIteratorType const& itPointsEnd) 
+    BoundingBox(TIteratorType const& itPointsBegin, TIteratorType const& itPointsEnd)
     {
         Set(itPointsBegin, itPointsEnd);
     }
@@ -167,6 +167,25 @@ public:
         }
     }
 
+    /**
+     * @brief Checks if a point is inside the bounding box with tolerance.
+     * @details This function checks if a given point is inside the bounding box defined by the minimum and maximum points. It returns true if the point is inside the bounding box within the given tolerance, and false otherwise.
+     * @param rPoint The point to be checked.
+     * @param Tolerance A tolerance value to allow for slight inaccuracies (default is std::numeric_limits<double>::epsilon()).
+     * @return True if the point is inside the bounding box within the given tolerance, false otherwise.
+     */
+    bool IsInside(
+        const array_1d<double, 3>& rPoint, 
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const
+    {
+        for (unsigned int i = 0; i < Dimension; i++) {
+            if (rPoint[i] < GetMinPoint()[i] - Tolerance || rPoint[i] > GetMaxPoint()[i] + Tolerance)
+                return false;
+        }
+        return true;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -176,7 +195,7 @@ public:
      * @details This function returns a reference to the minimum point stored in the object.
      * @return A reference to the minimum point.
      */
-    TPointType& GetMinPoint() 
+    TPointType& GetMinPoint()
     {
         return mMinMaxPoints[0];
     }
@@ -186,7 +205,7 @@ public:
      * @details This function returns a constant reference to the minimum point stored in the object. It allows you to access the minimum point without modifying it.
      * @return A constant reference to the minimum point.
      */
-    TPointType const& GetMinPoint() const 
+    TPointType const& GetMinPoint() const
     {
         return mMinMaxPoints[0];
     }
@@ -196,7 +215,7 @@ public:
      * @details This function returns a reference to the maximum point stored in the object.
      * @return A reference to the maximum point.
      */
-    TPointType& GetMaxPoint() 
+    TPointType& GetMaxPoint()
     {
         return mMinMaxPoints[1];
     }
@@ -244,9 +263,9 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     static constexpr unsigned int Dimension = 3;
-    
+
     ///@}
     ///@name Member Variables
     ///@{

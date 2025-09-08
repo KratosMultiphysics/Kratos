@@ -22,7 +22,7 @@ namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_NonExistingFile_read, KratosMedFastSuite)
 {
-    const std::filesystem::path file_path(this->Name() + ".txt");
+    const std::filesystem::path file_path(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".txt");
     KRATOS_EXPECT_FALSE(std::filesystem::exists(file_path)); // make sure there are no leftovers
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -34,7 +34,7 @@ KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_NonExistingFile_read, KratosMedFastSuit
 
 KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_NonExistingFile_write, KratosMedFastSuite)
 {
-    const std::filesystem::path file_path(this->Name() + ".txt");
+    const std::filesystem::path file_path(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".txt");
     KRATOS_EXPECT_FALSE(std::filesystem::exists(file_path)); // make sure there are no leftovers
 
     MedModelPartIO(file_path, IO::WRITE);
@@ -45,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_NonExistingFile_write, KratosMedFastSui
 
 KRATOS_TEST_CASE_IN_SUITE(MedModelpartIO_TextFile, KratosMedFastSuite)
 {
-    const std::filesystem::path file_path(this->Name() + ".txt");
+    const std::filesystem::path file_path(std::string(::testing::UnitTest::GetInstance()->current_test_info()->name()) + ".txt");
     std::ofstream output(file_path); // create a dummy file (that is not a hdf file)
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(

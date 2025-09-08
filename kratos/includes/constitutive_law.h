@@ -13,9 +13,7 @@
 //                   Josep Maria Carbonell
 //
 
-
-#if !defined(KRATOS_CONSTITUTIVE_LAW )
-#define  KRATOS_CONSTITUTIVE_LAW
+#pragma once
 
 /* System includes */
 
@@ -143,14 +141,14 @@ public:
      * its variables will be used to check constitutive law and element compatibility
 
      * @param mOptions        flags  with the current constitutive law characteristics
-     * @param mStrainSize     double with the strain vector size
+     * @param mStrainSize     SizeType with the strain vector size
      * @param mStrainMeasures vector with the strain measures accepted by the constitutive law
 
      */
 
       Flags                mOptions;
-      double               mStrainSize;
-      double               mSpaceDimension;
+      SizeType             mStrainSize;
+      SizeType             mSpaceDimension;
       std::vector< StrainMeasure > mStrainMeasures;
 
       /**
@@ -168,18 +166,18 @@ public:
       }
 
       // Set variables
-      void SetOptions       (const Flags&  rOptions)      {mOptions=rOptions;};
-      void SetStrainSize    (const double StrainSize)     {mStrainSize=StrainSize;};
-      void SetSpaceDimension(const double SpaceDimension) {mSpaceDimension=SpaceDimension;};
-      void SetStrainMeasure (const StrainMeasure Measure) {mStrainMeasures.push_back(Measure);};
+      void SetOptions        (const Flags&  rOptions)        {mOptions=rOptions;};
+      void SetStrainSize     (const SizeType StrainSize)     {mStrainSize=StrainSize;};
+      void SetSpaceDimension (const SizeType SpaceDimension) {mSpaceDimension=SpaceDimension;};
+      void SetStrainMeasure  (const StrainMeasure Measure)   {mStrainMeasures.push_back(Measure);};
 
       void SetStrainMeasures (const std::vector<StrainMeasure> MeasuresVector) {mStrainMeasures = MeasuresVector;};
 
       // Get variables
       const Flags& GetOptions () {return mOptions;};
 
-      const double& GetStrainSize() {return mStrainSize;};
-      const double& GetSpaceDimension() {return mSpaceDimension;};
+      const SizeType& GetStrainSize()     {return mStrainSize;};
+      const SizeType& GetSpaceDimension() {return mSpaceDimension;};
       std::vector<StrainMeasure>& GetStrainMeasures() {return mStrainMeasures;};
     };
 
@@ -1605,4 +1603,3 @@ KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 
 
 } /* namespace Kratos.*/
-#endif /* KRATOS_CONSTITUTIVE_LAW  defined */
