@@ -22,13 +22,25 @@ coordinates
         16 1.000000e+00 1.000000e+00 0.000000e+00
         17 1.000000e+00 5.000000e-01 0.000000e+00
         18 1.000000e+00 0.000000e+00 0.000000e+00
-part	0
+part	1
+Submodelpart	Main
+quad4
+	         8
+	         1		        14		        11		        12		        15
+	         2		        13		        10		        11		        14
+	         3		        11		        17		        18		        12
+	         4		        10		        16		        17		        11
+	         5		         2		         4		         3		         1
+	         6		         5		         8		         4		         2
+	         7		         4		         7		         6		         3
+	         8		         8		         9		         7		         4
+part	2
 Submodelpart	FixedEdgeNodes
 bar2
 	         2
 	         1		         1		         2
 	         2		         2		         5
-part	1
+part	3
 Submodelpart	MovingNodes
 bar2
 	         2

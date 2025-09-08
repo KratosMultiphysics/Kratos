@@ -15,42 +15,36 @@ class TestEnsightOutputProcess(KratosUnittest.TestCase):
     def test_ascii_ensight_output_2D(self):
         ExecuteBasicVTKoutputProcessCheck("ascii", "2D")
 
+    def test_ascii_ensight_output_3D(self):
+        ExecuteBasicVTKoutputProcessCheck("ascii", "3D")
+
+    def test_ascii_ensight_output_quad_3D(self):
+        ExecuteBasicVTKoutputProcessCheck("ascii", "Quad3D")
+
+    def test_ascii_ensight_output_quad_prism_3D(self):
+        ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticPrism3D")
+
+    def test_ascii_ensight_output_quad_hexahedra_3D(self):
+        ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticHexahedra3D")
+
     # def test_binary_ensight_output_2D(self):
     #     ExecuteBasicVTKoutputProcessCheck("binary", "2D")
-
-    # def test_ascii_ensight_output_3D(self):
-    #     ExecuteBasicVTKoutputProcessCheck("ascii", "3D")
 
     # def test_binary_ensight_output_3D(self):
     #     ExecuteBasicVTKoutputProcessCheck("binary", "3D")
 
-    # def test_ascii_ensight_output_quad_3D(self):
-    #     ExecuteBasicVTKoutputProcessCheck("ascii", "Quad3D")
-
     # def test_binary_ensight_output_quad_3D(self):
     #     ExecuteBasicVTKoutputProcessCheck("binary", "Quad3D")
-
-    # def test_ascii_ensight_output_quad_prism_3D(self):
-    #     ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticPrism3D")
 
     # def test_binary_ensight_output_quad_prism_3D(self):
     #     ExecuteBasicVTKoutputProcessCheck("binary", "QuadraticPrism3D")
 
-    # def test_ascii_ensight_output_quad_hexahedra_3D(self):
-    #     ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticHexahedra3D")
-
     # def test_binary_ensight_output_quad_hexahedra_3D(self):
     #     ExecuteBasicVTKoutputProcessCheck("binary", "QuadraticHexahedra3D")
 
-    # def test_ascii_ensight_output_quad_hexahedra_3D_27N(self):
-    #     ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticHexahedra3D27N")
-
-    # def test_binary_ensight_output_quad_hexahedra_3D_27N(self):
-    #     ExecuteBasicVTKoutputProcessCheck("binary", "QuadraticHexahedra3D27N")
-
     def tearDown(self):
-        # kratos_utils.DeleteDirectoryIfExisting("test_ensight_output")
-        pass
+        kratos_utils.DeleteDirectoryIfExisting("test_ensight_output")
+        # pass
 
 def SetupModelPart2D(model_part):
     test_vtk_output_process.SetupModelPart2D(model_part)
@@ -66,9 +60,6 @@ def SetupModelPartQuadraticPrism3D(model_part):
 
 def SetupModelPartQuadraticHexahedra3D(model_part):
     test_vtk_output_process.SetupModelPartQuadraticHexahedra3D(model_part)
-
-def SetupModelPartHexahedra3D27N(model_part):
-    test_vtk_output_process.SetupModelPartHexahedra3D27N(model_part)
 
 def SetSolution(model_part):
     test_vtk_output_process.SetSolution(model_part)
@@ -114,7 +105,7 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
             "model_part_name"                    : "Main",
             "ensight_file_format"                : "6", // Options: "6", "gold"
             "file_format"                        : "ascii",
-            "output_precision"                   : 8,
+            "output_precision"                   : 6,
             "output_interval"                    : 2,
             "output_sub_model_parts"             : true,
             "evolving_geometry"                  : true,
