@@ -153,7 +153,7 @@ public:
         const auto r_geometry = GetGeometry();
         CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), Id(), "Length");
         CheckUtilities::CheckHasNodalSolutionStepData(
-            r_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+            r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
         CheckProperties();
         CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, r_geometry);
