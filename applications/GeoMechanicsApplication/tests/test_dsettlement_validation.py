@@ -102,7 +102,7 @@ def get_ref_y_coordinates(post_msh_file_path, node_ids):
     return [to_ref_y_coordinate(coord[1]) for coord in coordinates]
 
 
-def make_stress_over_depth_plot(output_data, time_in_sec, y_coordinates, node_ids_over_depth, ref_data, plot_file_path):
+def make_stress_over_y_plot(output_data, time_in_sec, y_coordinates, node_ids_over_depth, ref_data, plot_file_path):
     data_series_collection = []
 
     # Extract reference data points from files
@@ -325,17 +325,17 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             # Make a stress plot after 100 days of consolidation have passed
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100_days.txt"
-            make_stress_over_depth_plot(output_stage_2, unit_conversions.days_to_seconds(100), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_2_stress_plot_after_100_days.svg")
+            make_stress_over_y_plot(output_stage_2, unit_conversions.days_to_seconds(100), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_2_stress_plot_after_100_days.svg")
 
             # Make a stress plot after applying the surface load
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100.1_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100.1_days.txt"
-            make_stress_over_depth_plot(output_stage_4, unit_conversions.days_to_seconds(100.1001), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_2_stress_plot_after_100.1_days.svg")
+            make_stress_over_y_plot(output_stage_4, unit_conversions.days_to_seconds(100.1001), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_2_stress_plot_after_100.1_days.svg")
 
             # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_10000_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_10000_days.txt"
-            make_stress_over_depth_plot(output_stage_5, unit_conversions.days_to_seconds(10000), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_2_stress_plot_after_10000_days.svg")
+            make_stress_over_y_plot(output_stage_5, unit_conversions.days_to_seconds(10000), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_2_stress_plot_after_10000_days.svg")
 
 
     def test_settlement_phreatic_line_below_surface(self):
@@ -387,17 +387,17 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             # Make a stress plot at the end of the third stage
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100_days.txt"
-            make_stress_over_depth_plot(output_stage_3, unit_conversions.days_to_seconds(100), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_100_days.svg")
+            make_stress_over_y_plot(output_stage_3, unit_conversions.days_to_seconds(100), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_100_days.svg")
 
             # Make a stress plot at the start of the fifth stage
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100.1_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100.1_days.txt"
-            make_stress_over_depth_plot(output_stage_5, unit_conversions.days_to_seconds(100.1) + 1.0, ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
+            make_stress_over_y_plot(output_stage_5, unit_conversions.days_to_seconds(100.1) + 1.0, ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_100.1_days.svg")
 
             # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_10000_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_10000_days.txt"
-            make_stress_over_depth_plot(output_stage_5, unit_conversions.days_to_seconds(10000), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_10000_days.svg")
+            make_stress_over_y_plot(output_stage_5, unit_conversions.days_to_seconds(10000), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_3_stress_plot_after_10000_days.svg")
 
     def test_settlement_fully_saturated_column_low_permeability(self):
         """
@@ -460,17 +460,17 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             # Make a stress plot after 100 days of consolidation have passed
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100_days.txt"
-            make_stress_over_depth_plot(output_stage_2, unit_conversions.days_to_seconds(100), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_4_stress_plot_after_100_days.svg")
+            make_stress_over_y_plot(output_stage_2, unit_conversions.days_to_seconds(100), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_4_stress_plot_after_100_days.svg")
 
             # Make a stress plot after applying the surface load
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_100.1_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_100.1_days.txt"
-            make_stress_over_depth_plot(output_stage_4, unit_conversions.days_to_seconds(100.1001), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_4_stress_plot_after_100.1_days.svg")
+            make_stress_over_y_plot(output_stage_4, unit_conversions.days_to_seconds(100.1001), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_4_stress_plot_after_100.1_days.svg")
 
             # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
             ref_data.path_to_water_pressure_data = project_path / "ref_water_pressures_after_10000_days.txt"
             ref_data.path_to_vertical_effective_stress_data = project_path / "ref_effective_vertical_stresses_after_10000_days.txt"
-            make_stress_over_depth_plot(output_stage_5, unit_conversions.days_to_seconds(10000), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_4_stress_plot_after_10000_days.svg")
+            make_stress_over_y_plot(output_stage_5, unit_conversions.days_to_seconds(10000), ref_y_coordinates, left_side_corner_node_ids, ref_data, project_path / "test_case_4_stress_plot_after_10000_days.svg")
 
       
 if __name__ == "__main__":
