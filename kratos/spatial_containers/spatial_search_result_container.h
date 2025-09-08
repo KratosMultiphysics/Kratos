@@ -489,12 +489,6 @@ public:
     std::vector<double> GetDistances();
 
     /**
-     * @brief Retrieves if is local the entity
-     * @return A vector containing all the booleans showing is local the entity
-     */
-    std::vector<bool> GetResultIsLocal();
-
-    /**
      * @brief Retrieves the rank of the entity
      * @return A vector containing all the ranks of the entity
      */
@@ -541,12 +535,6 @@ public:
      * @return A vector containing all the indices
      */
     std::vector<std::vector<int>> GetResultPartitionIndices();
-
-    /**
-     * @brief Considers the global pointer communicator to get the coordinates of the resulting object
-     * @return A vector containing all the coordinates
-     */
-    std::vector<std::vector<array_1d<double, 3>>> GetResultCoordinates();
 
     /**
      * @brief Removes elements from the given ranks.

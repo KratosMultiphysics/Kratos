@@ -238,32 +238,6 @@ std::vector<double> SpatialSearchResultContainer<TObjectType, TSpatialSearchComm
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIsLocal()
-{
-    // Define the coordinates vector
-    const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<bool> is_local(number_of_gp, false);
-
-    // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> int {
-        return rGP->Get().GetRank();
-    });
-
-    // Get the is local
-    const int rank = mrDataCommunicator.Rank();
-    for(std::size_t i=0; i<number_of_gp; ++i) {
-        auto& r_gp = mGlobalResults(i);
-        const int retrieved_rank = mrDataCommunicator.MaxAll(proxy.Get(r_gp));
-        is_local[i] = (rank == retrieved_rank);
-    }
-
-    return is_local;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultRank()
 {
     // Define the coordinates vector
@@ -493,45 +467,6 @@ std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType, TSpatial
     }
 
     return indices;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultCoordinates()
-{
-    // Define the coordinates vector
-    const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<std::vector<array_1d<double, 3>>> coordinates(number_of_gp);
-
-    // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::vector<array_1d<double, 3>> {
-        auto p_object = rGP->Get();
-        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
-            auto& r_geometry = p_object->GetGeometry();
-            std::vector<array_1d<double, 3>> coordinates(r_geometry.size());
-            for (unsigned int i = 0; i < r_geometry.size(); ++i) {
-                coordinates[i] = r_geometry[i].Coordinates();
-            }
-            return coordinates;
-        } else if constexpr (std::is_same<TObjectType, Node>::value) {
-            std::vector<array_1d<double, 3>> coordinates(1, p_object->Coordinates());
-            return coordinates;
-        } else {
-            KRATOS_ERROR << "Not implemented yet" << std::endl;
-            std::vector<array_1d<double, 3>> coordinates;
-            return coordinates;
-        }
-    });
-
-    // Get the coordinates
-    for(std::size_t i=0; i<number_of_gp; ++i) {
-        auto& r_gp = mGlobalResults(i);
-        coordinates[i] = proxy.Get(r_gp);
-    }
-
-    return coordinates;
 }
 
 /***********************************************************************************/
