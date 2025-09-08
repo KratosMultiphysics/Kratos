@@ -395,45 +395,6 @@ std::vector<IndexType> SpatialSearchResultContainer<TObjectType, TSpatialSearchC
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<std::vector<IndexType>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultNodeIndices()
-{
-    // Define the coordinates vector
-    const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<std::vector<IndexType>> indices(number_of_gp);
-
-    // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::vector<IndexType> {
-        auto p_object = rGP->Get();
-        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
-            auto& r_geometry = p_object->GetGeometry();
-            std::vector<IndexType> gp_indices(r_geometry.size());
-            for (unsigned int i = 0; i < r_geometry.size(); ++i) {
-                gp_indices[i] = r_geometry[i].Id();
-            }
-            return gp_indices;
-        } else if constexpr (std::is_same<TObjectType, Node>::value) {
-            std::vector<IndexType> gp_indices(1, p_object->Id());
-            return gp_indices;
-        } else {
-            KRATOS_ERROR << "Not implemented yet" << std::endl;
-            std::vector<IndexType> gp_indices;
-            return gp_indices;
-        }
-    });
-
-    // Get the indices
-    for(std::size_t i=0; i<number_of_gp; ++i) {
-        auto& r_gp = mGlobalResults(i);
-        indices[i] = proxy.Get(r_gp);
-    }
-
-    return indices;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultPartitionIndices()
 {
     // Define the coordinates vector

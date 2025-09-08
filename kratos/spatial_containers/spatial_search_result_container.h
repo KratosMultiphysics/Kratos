@@ -506,12 +506,6 @@ public:
     std::vector<IndexType> GetResultIndices();
 
     /**
-     * @brief Considers the global pointer communicator to get the indices of the nodes of the resulting object
-     * @return A vector containing all the indices
-     */
-    std::vector<std::vector<IndexType>> GetResultNodeIndices();
-
-    /**
      * @brief Considers the global pointer communicator to get the partition indices of the nodes of the resulting object
      * @return A vector containing all the indices
      */
