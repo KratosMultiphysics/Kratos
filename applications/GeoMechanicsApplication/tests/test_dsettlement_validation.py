@@ -114,10 +114,10 @@ def make_stress_over_depth_plot(output_data, time_in_sec, post_msh_file_path, no
     y_coordinates = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
 
     water_pressures = get_nodal_water_pressures_at_time(time_in_sec, output_data, node_ids=node_ids_over_depth)
-    data_series_collection.append(plot_utils.DataSeries(zip(water_pressures, y_coordinates), 'P_w [Kratos]', line_style=':', marker='+'))
+    data_series_collection.append(plot_utils.DataSeries(zip(water_pressures, y_coordinates, strict=True), 'P_w [Kratos]', line_style=':', marker='+'))
 
     effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_data, node_ids=node_ids_over_depth)
-    data_series_collection.append(plot_utils.DataSeries(zip(effective_vertical_stresses, y_coordinates), 'sigma_yy;eff [Kratos]', line_style=':', marker='+'))
+    data_series_collection.append(plot_utils.DataSeries(zip(effective_vertical_stresses, y_coordinates, strict=True), 'sigma_yy;eff [Kratos]', line_style=':', marker='+'))
 
     plot_utils.make_stress_plot(data_series_collection, plot_file_path)
 
@@ -370,7 +370,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             actual_total_displacement_of_top_edge = reader.nodal_values_at_time(
                 "TOTAL_DISPLACEMENT", item["time_in_s"], item["output_data"], top_node_ids
             )
-            for total_displacement_vector, node_id in zip(actual_total_displacement_of_top_edge, top_node_ids):
+            for total_displacement_vector, node_id in zip(actual_total_displacement_of_top_edge, top_node_ids, strict=True):
                 self.assertAlmostEqual(total_displacement_vector[1], item["expected_total_u_y"], places=None, delta=item["delta"], msg=f"total vertical displacement at node {node_id} at time {item["time_in_s"]} [s]")
 
         if test_helper.want_test_plots():
