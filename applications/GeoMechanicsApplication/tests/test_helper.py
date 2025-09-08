@@ -10,6 +10,8 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
+from KratosMultiphysics.GeoMechanicsApplication import unit_conversions
+
 
 def get_file_path(filename):
     import os
@@ -442,6 +444,19 @@ def want_test_plots() -> bool:
     return os.environ.get("KRATOS_GEO_MAKE_TEST_PLOTS", "off").lower() == "on"
 
 
+def get_data_points_from_file(file_path, line_to_data_point):
+    result = []
+    with open(file_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+
+            result.append(line_to_data_point(line))
+
+    return result
+
+
 class GiDOutputFileReader:
     def __init__(self):
         self._reset_internal_state()
@@ -620,6 +635,24 @@ class GiDOutputFileReader:
             return result
         else:
             return element_results
+
+
+def extract_nodal_settlement_over_time(output_data, node_id):
+    result = []
+    for item in output_data["results"]["TOTAL_DISPLACEMENT"]:
+        if item["location"] != "OnNodes":
+            continue
+
+        total_y_displacement = None
+        for value_item in item["values"]:
+            if value_item["node"] == node_id:
+                total_y_displacement = -1.0 * value_item["value"][1]
+                break
+        assert total_y_displacement is not None
+
+        result.append((unit_conversions.seconds_to_days(item["time"]), total_y_displacement))
+
+    return result
 
 
 def read_coordinates_from_post_msh_file(file_path, node_ids=None):

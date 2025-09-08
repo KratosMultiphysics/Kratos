@@ -10,19 +10,6 @@ if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
 
-def get_data_points_from_file(file_path, line_to_data_point):
-    result = []
-    with open(file_path, "r") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-
-            result.append(line_to_data_point(line))
-
-    return result
-
-
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1):
     words = line.split()
     return (float(words[index_of_x]), float(words[index_of_y]))
@@ -34,24 +21,6 @@ def extract_time_and_settlement_from_line(line):
 
 def extract_stress_and_y_from_line(line):
     return _extract_x_and_y_from_line(line, index_of_x=2, index_of_y=1)
-
-
-def extract_nodal_settlement_over_time(output_data, node_id):
-    result = []
-    for item in output_data["results"]["TOTAL_DISPLACEMENT"]:
-        if item["location"] != "OnNodes":
-            continue
-
-        total_y_displacement = None
-        for value_item in item["values"]:
-            if value_item["node"] == node_id:
-                total_y_displacement = -1.0 * value_item["value"][1]
-                break
-        assert total_y_displacement is not None
-
-        result.append((unit_conversions.seconds_to_days(item["time"]), total_y_displacement))
-
-    return result
 
 
 def make_compression_positive_and_to_kPa(kratos_stress_components):
@@ -70,10 +39,10 @@ def make_settlement_history_plot(stage_outputs, node_ids, path_to_ref_data_point
     data_points_by_node = {node_id : [] for node_id in node_ids}
     for output_data in stage_outputs:
         for node_id in node_ids:
-            data_points_by_node[node_id].extend(extract_nodal_settlement_over_time(output_data, node_id))
+            data_points_by_node[node_id].extend(test_helper.extract_nodal_settlement_over_time(output_data, node_id))
 
     data_series_collection = []
-    data_series_collection.append(plot_utils.DataSeries(get_data_points_from_file(path_to_ref_data_points, extract_time_and_settlement_from_line), 'ref', marker='+'))
+    data_series_collection.append(plot_utils.DataSeries(test_helper.get_data_points_from_file(path_to_ref_data_points, extract_time_and_settlement_from_line), 'ref', marker='+'))
     for node_id in node_ids:
         data_series_collection.append(plot_utils.DataSeries(data_points_by_node[node_id], f'node {node_id}', line_style=':', marker='+'))
 
@@ -95,7 +64,7 @@ def make_stress_over_y_plot(output_data, time_in_s, y_coordinates, node_ids_over
 
     # Extract reference data points from files
     for item in ref_data:
-        data_points = get_data_points_from_file(item["file_path"], extract_stress_and_y_from_line)
+        data_points = test_helper.get_data_points_from_file(item["file_path"], extract_stress_and_y_from_line)
         data_series_collection.append(plot_utils.DataSeries(data_points, item["label"], marker='+'))
 
     # Extract data points from the Kratos analysis results
