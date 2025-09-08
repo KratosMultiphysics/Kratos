@@ -598,7 +598,7 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
 
         if (gp[0]>0.2499968 || gp[0]<0.15001)
         {
-            KRATOS_WATCH("First or Last point on true boundary");
+            // KRATOS_WATCH("First or Last point on true boundary");
             pressure_max_min = p_true;
         }
 
@@ -642,7 +642,7 @@ void SbmFluidConditionDirichlet::ComputeGradientTaylorExpansionContribution(Matr
         if (mDim == 2) {
             for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
                 // Retrieve the appropriate derivative for the term
-                Matrix& shapeFunctionDerivatives = shape_function_derivatives[n-1];
+                Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
                 for (IndexType k = 0; k <= n-1; k++) {
                     IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k); 

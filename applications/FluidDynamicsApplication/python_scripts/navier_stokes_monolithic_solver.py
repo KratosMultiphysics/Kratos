@@ -323,6 +323,17 @@ class NavierStokesMonolithicSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
+        # main_model_part = self.GetComputingModelPart()
+        # numero = 0
+        # tol = 1e-8
+        # for node in main_model_part.Nodes :
+        #     numero = numero + 1
+        #     # print("node ", numero, " : ", node.X, " ", node.Y, " ", node.Z)
+        #     if abs(node.X - 2.2) < tol and abs(node.Y - 0.0) < tol:
+        #         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0, 0.0)
+        #         node.Fix(KratosMultiphysics.PRESSURE)
+        #         print("Pressure fixed at outlet corner node")
+
         # If required, compute the BDF coefficients
         if hasattr(self, 'time_discretization'):
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)

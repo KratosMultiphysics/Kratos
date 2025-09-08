@@ -14,6 +14,9 @@
 #include "includes/define.h"
 #include "includes/condition.h"
 
+// delete these includes if they are not needed
+#include "includes/constitutive_law.h"
+
 // External includes
 
 // Project includes
@@ -97,6 +100,8 @@ public:
     ///@{
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief This is called during the assembling process in order
@@ -191,6 +196,39 @@ public:
     ///@}
 
 protected:
+
+    //DELETE THIS
+    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct ConstitutiveVariables
+    {
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const SizeType StrainSize)
+        {
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+        }
+    }; 
 
     
 private:

@@ -360,4 +360,99 @@ void SupportFluidCondition::GetValuesVector(
     }
 }
 
+void SupportFluidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+#pragma omp critical
+{
+    const auto& r_geom = GetGeometry();
+    const SizeType n = r_geom.size();
+
+    // 1) Dati di quadratura (GI_GAUSS_1) e funzioni di forma
+    const auto& r_ip   = r_geom.IntegrationPoints(this->GetIntegrationMethod());
+    const auto& r_dnde = r_geom.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const Matrix& H    = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const Matrix& DN_DX = r_dnde[0];
+
+    // 2) Normale e |J| per misura di linea (2D)
+    array_1d<double,3> n_par = - r_geom.Normal(0, this->GetIntegrationMethod());
+    n_par /= MathUtils<double>::Norm(n_par);
+
+    GeometryType::JacobiansType J0;
+    r_geom.Jacobian(J0, this->GetIntegrationMethod());
+    Matrix J = ZeroMatrix(3,3);
+    J(0,0)=J0[0](0,0); J(0,1)=J0[0](0,1);
+    J(1,0)=J0[0](1,0); J(1,1)=J0[0](1,1);
+    J(2,2)=1.0;
+
+    array_1d<double,3> t_par;
+    r_geom.Calculate(LOCAL_TANGENT, t_par);
+    Vector det_vec = prod(J, t_par);
+    det_vec[2]=0.0;
+    const double detJ = norm_2(det_vec);
+    const double w = r_ip[0].Weight() * std::abs(detJ);
+
+    // 3) Costitutivo al GP (B*u -> strain-rate), stress (solo viscoso)
+    Matrix B(3, n*mDim, 0.0);
+    CalculateB(B, DN_DX);
+
+    ConstitutiveLaw::Parameters Values(r_geom, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveVariables cv(3);
+    Vector u_coeff(n*mDim);
+    GetValuesVector(u_coeff);
+    Vector strain = prod(B, u_coeff);
+
+    Values.SetStrainVector(strain);
+    Values.SetStressVector(cv.StressVector);
+    Values.SetConstitutiveMatrix(cv.D);
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+
+    const Vector& sigma_voigt = Values.GetStressVector(); // τ in Voigt (xx, yy, xy)
+    // 2x2 da Voigt
+    Matrix tau = ZeroMatrix(2,2);
+    tau(0,0)=sigma_voigt[0]; tau(1,1)=sigma_voigt[1];
+    tau(0,1)=sigma_voigt[2]; tau(1,0)=sigma_voigt[2];
+
+    // 4) Pressione al GP (interpolazione)
+    double p_gp = 0.0;
+    for (SizeType a=0; a<n; ++a)
+        p_gp += H(0,a) * r_geom[a].GetSolutionStepValue(PRESSURE);
+
+    // 5) Normale (2D)
+    array_1d<double,2> n2; n2[0]=n_par[0]; n2[1]=n_par[1];
+
+    // 6) Tractions
+    array_1d<double,2> t_visc = ZeroVector(2);
+    t_visc[0] = tau(0,0)*n2[0] + tau(0,1)*n2[1];
+    t_visc[1] = tau(1,0)*n2[0] + tau(1,1)*n2[1];
+
+    array_1d<double,2> t_pres = ZeroVector(2);
+    t_pres[0] = -p_gp * n2[0];
+    t_pres[1] = -p_gp * n2[1];
+
+    array_1d<double,2> t_tot = t_visc + t_pres;
+
+    // 7) Coordinate del GP (qui uso il centro geometrico della condizione)
+    const auto center = r_geom.Center();
+
+    // 8) Salva risultati per il post-process (1 GP -> 1 riga)
+    //    [0] w, [1] fx_tot, [2] fy_tot, [3] fx_visc, [4] fy_visc, [5] fx_pres, [6] fy_pres,
+    //    [7] nx, [8] ny, [9] x_gp, [10] y_gp
+    Matrix results(1, 11, 0.0);
+    results(0,0)  = w;
+    results(0,1)  = t_tot[0];
+    results(0,2)  = t_tot[1];
+    results(0,3)  = t_visc[0];
+    results(0,4)  = t_visc[1];
+    results(0,5)  = t_pres[0];
+    results(0,6)  = t_pres[1];
+    results(0,7)  = n2[0];
+    results(0,8)  = n2[1];
+    results(0,9)  = center.X();
+    results(0,10) = center.Y();
+
+    // Usa una chiave diversa da quella del cilindro per non confonderli
+    this->SetValue(RESULTS_ON_TRUE_BOUNDARY, results);
+}
+}
+
 } // Namespace Kratos

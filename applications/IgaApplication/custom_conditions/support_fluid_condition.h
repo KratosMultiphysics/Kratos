@@ -95,6 +95,8 @@ namespace Kratos
 
         void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
         ///@}
         ///@name Operations
         ///@{

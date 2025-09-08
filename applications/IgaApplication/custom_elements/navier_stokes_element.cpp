@@ -153,10 +153,9 @@ void NavierStokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, 
 
     array_1d<double,3> body_force = ZeroVector(3);
     body_force = this->GetValue(BODY_FORCE);
-    double density = 1.0;
     double viscosity = mu_effective;
     const Properties& r_properties = GetProperties();
-    density = r_properties[DENSITY];
+    double density = r_properties[DENSITY];
 
     double adv_norm;
     // Calculate the advective norm
@@ -452,6 +451,30 @@ void NavierStokesElement::AddContinuityTerms(MatrixType &rLHS,
         first_col = 0;
         first_row += block_size;
     }
+
+
+    // // TO BE DELETED
+    // // === Penalty per media-zero "morbida" ===
+    // const double alpha_p = 1e2;
+
+    // if (alpha_p > 0.0) {
+    //     // contribuisce a LHS (p,p)
+    //     for (unsigned int i = 0; i < number_of_nodes; ++i) {
+    //         for (unsigned int j = 0; j < number_of_nodes; ++j) {
+    //             rLHS(i*block_size + mDim, j*block_size + mDim) += alpha_p * Weight * rN[i] * rN[j];
+    //         }
+    //     }
+
+    //     // contribuisce anche al RHS (residuo) con p alla iterazione corrente (o "previous" come fai tu)
+    //     for (unsigned int i = 0; i < number_of_nodes; ++i) {
+    //         rRHS(i*block_size + mDim) -= alpha_p * Weight * rN[i] * pressure_previous_iteration;
+    //         // Se preferisci essere totalmente "consistenti" con l’unknown attuale, valuta p_i dei nodi direttamente:
+    //         // double p_i = r_geometry[i].FastGetSolutionStepValue(PRESSURE);
+    //         // rRHS(i*block_size + mDim) -= alpha_p * Weight * rN[i] * p_i;
+    //     }
+    // }
+
+
 
 }
 
