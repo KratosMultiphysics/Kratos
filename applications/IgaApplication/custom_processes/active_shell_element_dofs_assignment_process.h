@@ -92,6 +92,10 @@ private:
 
     std::string mActiveShellDofModelPartName;
 
+    std::vector<std::string> mAppliedActuationList;
+
+    Vector mAppliedActuationValue;
+
     ///@}
 
 }; // Class ActiveShellElementDofAssignmentProcess
