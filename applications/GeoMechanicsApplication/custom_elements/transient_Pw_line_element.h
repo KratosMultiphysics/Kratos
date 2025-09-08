@@ -150,8 +150,8 @@ public:
     {
         KRATOS_TRY
 
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), "Length");
         const auto r_geometry = GetGeometry();
-        CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), Id(), "Length");
         CheckUtilities::CheckHasNodalSolutionStepData(
             r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
