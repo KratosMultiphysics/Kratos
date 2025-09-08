@@ -784,7 +784,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             line_counter += 1
 
             # Iterate through all element types in this part
-            while lines_ref[line_counter] in list_of_element_types:
+            while line_counter < len(lines_ref) and lines_ref[line_counter] in list_of_element_types:
                 # Compare element type
                 elem_type_ref = lines_ref[line_counter].strip()
                 elem_type_out = lines_out[line_counter].strip()
