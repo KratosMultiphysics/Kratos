@@ -30,17 +30,17 @@ def get_data_points_from_file(file_path, line_to_data_point):
     return result
 
 
-def _line_to_x_and_y(line, index_of_x=0, index_of_y=1):
+def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1):
     words = line.split()
     return (float(words[index_of_x]), float(words[index_of_y]))
 
 
-def line_to_time_and_settlement(line):
-    return _line_to_x_and_y(line, index_of_x=1, index_of_y=2)
+def extract_time_and_settlement_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=1, index_of_y=2)
 
 
-def line_to_stress_and_y(line):
-    return _line_to_x_and_y(line, index_of_x=2, index_of_y=1)
+def extract_stress_and_y_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=2, index_of_y=1)
 
 
 def extract_nodal_settlement_over_time(output_data, node_id):
@@ -93,7 +93,7 @@ def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figur
             data_points_by_node[node_id].extend(extract_nodal_settlement_over_time(output_data, node_id))
 
     data_series_collection = []
-    data_series_collection.append(plot_utils.make_data_series(get_data_points_from_file(path_to_ref_data_points, line_to_time_and_settlement), 'ref', marker='+'))
+    data_series_collection.append(plot_utils.make_data_series(get_data_points_from_file(path_to_ref_data_points, extract_time_and_settlement_from_line), 'ref', marker='+'))
     for node_id in node_ids:
         data_series_collection.append(plot_utils.make_data_series(data_points_by_node[node_id], f'node {node_id}', line_style=':', marker='+'))
 
@@ -111,11 +111,11 @@ def make_stress_over_depth_plot(output_data, time_in_sec, post_msh_file_path, no
 
     # Extract reference data points from files
     if ref_data.path_to_water_pressure_data:
-        data_points = get_data_points_from_file(ref_data.path_to_water_pressure_data, line_to_stress_and_y)
+        data_points = get_data_points_from_file(ref_data.path_to_water_pressure_data, extract_stress_and_y_from_line)
         data_series_collection.append(plot_utils.make_data_series(data_points, 'ref P_w', marker='+'))
 
     if ref_data.path_to_vertical_effective_stress_data:
-        data_points = get_data_points_from_file(ref_data.path_to_vertical_effective_stress_data, line_to_stress_and_y)
+        data_points = get_data_points_from_file(ref_data.path_to_vertical_effective_stress_data, extract_stress_and_y_from_line)
         data_series_collection.append(plot_utils.make_data_series(data_points, 'ref sigma_yy;eff', marker='+'))
 
     # Extract data points from the Kratos analysis results
