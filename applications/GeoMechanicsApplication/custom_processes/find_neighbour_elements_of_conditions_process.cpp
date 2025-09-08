@@ -219,7 +219,7 @@ void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnEleme
 }
 
 bool FindNeighbourElementsOfConditionsProcess::FindPermutations(std::vector<std::size_t> elements_boundary_node_ids,
-                                                                std::vector<std::size_t> condition_node_ids) const
+                                                                const std::vector<std::size_t>& condition_node_ids) const
 {
     const auto amount_of_needed_rotations =
         std::ranges::find(elements_boundary_node_ids, condition_node_ids[0]) -
@@ -228,8 +228,8 @@ bool FindNeighbourElementsOfConditionsProcess::FindPermutations(std::vector<std:
     return elements_boundary_node_ids == condition_node_ids;
 }
 
-bool FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
-                                                                         std::vector<std::size_t> condition_node_ids) const
+bool FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(
+    std::vector<std::size_t> elements_boundary_node_ids, const std::vector<std::size_t>& condition_node_ids) const
 {
     const auto position_of_first_condition_node_in_element_boundary =
         std::ranges::find(elements_boundary_node_ids, condition_node_ids[0]);

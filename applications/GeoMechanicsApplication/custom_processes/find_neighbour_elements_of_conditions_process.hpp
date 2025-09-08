@@ -71,9 +71,10 @@ private:
         const hashmap2&                             FacesMapSorted,
         Element&                                   rElement,
         const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries) const;
-    bool FindPermutations(std::vector<std::size_t> elements_boundary_node_ids, std::vector<std::size_t> condition_node_ids) const;
-    bool FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
-                                   std::vector<std::size_t> condition_node_ids) const;
+    bool FindPermutations(std::vector<std::size_t>        elements_boundary_node_ids,
+                          const std::vector<std::size_t>& condition_node_ids) const;
+    bool FindPermutationsQuadratic(std::vector<std::size_t>        elements_boundary_node_ids,
+                                   const std::vector<std::size_t>& condition_node_ids) const;
 };
 
 inline std::istream& operator>>(std::istream& rIStream, FindNeighbourElementsOfConditionsProcess& rThis);
