@@ -76,10 +76,10 @@ void CheckUtilities::CheckForNonZeroZCoordinateIn2D(int Dimension, const Geometr
 {
     if (Dimension == 2) {
         auto pos = std::ranges::find_if(rGeometry, [](const auto& node) {
-            return std::abs(node.Z()) < Testing::Defaults::absolute_tolerance;
+            return std::abs(node.Z()) > Testing::Defaults::absolute_tolerance;
         });
         KRATOS_ERROR_IF_NOT(pos == rGeometry.end())
-            << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
+            << "Node with Id: " << pos->Id() << " has non-zero Z coordinate." << std::endl;
     }
 }
 } /* namespace Kratos.*/
