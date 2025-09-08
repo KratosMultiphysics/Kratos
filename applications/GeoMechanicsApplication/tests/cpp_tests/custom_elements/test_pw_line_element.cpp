@@ -198,7 +198,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCheckThrowsOnFaultyInput, Kratos
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     p_element = CreatePwLineElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Missing degree of freedom for WATER_PRESSURE on node 0")
+                                      "Missing the DoF for the variable WATER_PRESSURE on nodes 0 1")
 
     RemoveTwoNodes(model_part);
     p_element = CreatePwLineElementWithoutPWDofs(model_part, p_properties);
