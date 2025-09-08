@@ -2677,7 +2677,7 @@ void EnSightOutput::UpdatePartData()
     // Prepare parts data
     mPartDatas.clear();
     mPartDatas.resize(p_model_parts.size());
-    std::size_t part_index = 0;
+    std::size_t part_index = 1; // EnSight part index starts at 1 (at least Hypervgiew does not like 0, Paraview is OK with 0)
     for (const auto& p_model_part : p_model_parts) {
         const ModelPart& r_sub_model_part = *p_model_part;
         // Skip empty parts
