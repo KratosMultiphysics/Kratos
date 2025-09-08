@@ -94,7 +94,6 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
     current_model = KratosMultiphysics.Model()
     model_part_name = "Main"
     model_part = current_model.CreateModelPart(model_part_name)
-    bc_defined = True
     if setup == "2D":
         SetupModelPart2D(model_part)
     elif setup == "3D":
@@ -103,13 +102,10 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
         SetupModelPartQuadratic3D(model_part)
     elif setup == "QuadraticPrism3D":
         SetupModelPartQuadraticPrism3D(model_part)
-        bc_defined = False
     elif setup == "QuadraticHexahedra3D":
         SetupModelPartQuadraticHexahedra3D(model_part)
-        bc_defined = False
     elif setup == "QuadraticHexahedra3D27N":
         SetupModelPartHexahedra3D27N(model_part)
-        bc_defined = False
     else:
         raise Exception("Unknown setup: " + setup)
 
@@ -141,7 +137,7 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
     end_time = 1.0
     ensight_output_process.ExecuteInitialize()
 
-    while (time <= end_time):
+    while time <= end_time:
         time = time + dt
         model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         SetSolution(model_part)
@@ -151,19 +147,27 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
         if ensight_output_process.IsOutputStep():
             ensight_output_process.PrintOutput()
 
-            Check(os.path.join("test_ensight_output","Main.case"),\
-                os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main.case"), file_format, "case")
-            Check(os.path.join("test_ensight_output","Main.000" + str(step)+".geo"),\
-                os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main.000"+str(step)+".geo"), file_format, "geo")
+            label_step = "000" + str(step)
 
-            # if bc_defined:
-            #     Check(os.path.join("test_ensight_output","Main_FixedEdgeNodes_0_" + str(step)+".case"),\
-            #         os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main_FixedEdgeNodes_0_"+str(step)+".case"), file_format)
+            Check(os.path.join("test_ensight_output","Main." + label_step + ".geo"),\
+                os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main." + label_step + ".geo"), file_format, "geo")
 
-            #     Check(os.path.join("test_ensight_output","Main_MovingNodes_0_"+str(step)+".case"),\
-            #         os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main_MovingNodes_0_"+str(step)+".case"), file_format)
+            # Check node variables
+            for variable_name in ensight_output_parameters["Parameters"]["nodal_solution_step_data_variables"].GetStringArray():
+                is_scalar = KratosMultiphysics.KratosGlobals.Kernel.HasDoubleVariable(variable_name)
+                name_extension = "scl" if is_scalar else "vec"
+                Check(os.path.join("test_ensight_output","Main." + variable_name + "." + label_step + ".node." + name_extension),\
+                    os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main." + variable_name + "." + label_step + ".node." + name_extension), file_format, "ensight_solution")
+
+            # Check nodal flags
+            for flag_name in ensight_output_parameters["Parameters"]["nodal_flags"].GetStringArray():
+                Check(os.path.join("test_ensight_output","Main." + flag_name + "." + label_step + ".node.scl"),\
+                    os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main." + flag_name + "." + label_step + ".node.scl"), file_format, "ensight_solution")
 
             step = step + 1
+
+    Check(os.path.join("test_ensight_output","Main.case"),\
+          os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main.case"), file_format, "case")
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
