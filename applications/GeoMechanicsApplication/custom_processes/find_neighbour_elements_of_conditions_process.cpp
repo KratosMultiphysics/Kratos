@@ -119,7 +119,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 }
 
 void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-    hashmap& FacesMap, const hashmap2& FacesMapSorted, Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
+    hashmap& FacesMap, const hashmap2& FacesMapSorted, Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries) const
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         std::vector<IndexType> element_boundary_node_ids(r_boundary_geometry.size());
@@ -231,14 +231,18 @@ bool FindNeighbourElementsOfConditionsProcess::FindPermutations(std::vector<std:
 bool FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
                                                                          std::vector<std::size_t> condition_node_ids) const
 {
+    const auto position_of_first_condition_node_in_element_boundary =
+        std::ranges::find(elements_boundary_node_ids, condition_node_ids[0]);
     const auto amount_of_needed_rotations =
-        std::ranges::find(elements_boundary_node_ids, condition_node_ids[0]) -
-        elements_boundary_node_ids.begin();
+        position_of_first_condition_node_in_element_boundary - elements_boundary_node_ids.begin();
+
     std::rotate(elements_boundary_node_ids.begin(), elements_boundary_node_ids.begin() + amount_of_needed_rotations,
                 elements_boundary_node_ids.begin() + elements_boundary_node_ids.size() / 2);
+
     std::rotate(elements_boundary_node_ids.begin() + elements_boundary_node_ids.size() / 2,
                 elements_boundary_node_ids.begin() + elements_boundary_node_ids.size() / 2 + amount_of_needed_rotations,
                 elements_boundary_node_ids.end());
     return elements_boundary_node_ids == condition_node_ids;
 }
+
 } // namespace Kratos

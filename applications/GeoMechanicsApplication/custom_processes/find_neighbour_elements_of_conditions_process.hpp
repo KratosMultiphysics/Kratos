@@ -81,11 +81,7 @@ public:
     ///@name Operations
     ///@{
 
-    void AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-        hashmap&                                   FacesMap,
-        const hashmap2&                             FacesMapSorted,
-        Element&                                   rElement,
-        const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
+
     /// Finds neighbour elements of conditions
     void Execute() override;
 
@@ -135,6 +131,12 @@ private:
     static void CheckForMultipleConditionsOnElement(hashmap&                 rFacesMap,
                                                     const std::vector<std::size_t>& key,
                                                     Element*                 pElement);
+
+    void AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+        hashmap&                                   FacesMap,
+        const hashmap2&                             FacesMapSorted,
+        Element&                                   rElement,
+        const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries) const;
 
     ///@}
 }; // Class Process
