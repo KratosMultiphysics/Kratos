@@ -98,8 +98,8 @@ public:
 
     // FIXME: Does not work... ask @Charlie
     // /// Add scheme to Kratos registry
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSystemVectorType)
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSystemVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSystemVectorType, TSparseGraphType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSystemVectorType, TSparseGraphType)
 
     ///@name Type Definitions
     ///@{
