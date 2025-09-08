@@ -152,6 +152,9 @@ public:
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using ConstitutiveLaw::SetValue;
 
+    bool Has(const Variable<Vector>& rThisVariable) override;
+    using ConstitutiveLaw::Has;
+
     [[nodiscard]] std::string Info() const override;
     void                      PrintInfo(std::ostream& rOStream) const override;
     void                      PrintData(std::ostream& rOStream) const override;
