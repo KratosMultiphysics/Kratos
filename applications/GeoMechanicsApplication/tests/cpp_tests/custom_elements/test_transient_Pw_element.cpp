@@ -368,7 +368,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
 
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.0E-2);
 
-    // No exceptions on correct input for 2D element
+    // No exceptions on correct input for 2D element when retention law vector is initialized
+    p_element->Initialize(dummy_process_info);
+
     KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
 
     auto p_3D_element = CreateTransientPwElementWithPWDofs<3, 4>(model_part, p_properties);
