@@ -2684,7 +2684,7 @@ void EnSightOutput::UpdatePartData()
         if (r_sub_model_part.NumberOfElements() == 0 && r_sub_model_part.NumberOfConditions() == 0) continue;
 
         // Collect data for the part
-        PartData& r_part_data = mPartDatas[part_index];
+        PartData& r_part_data = mPartDatas[part_index - 1];
 
         // Collect data for the part
         CollectPartData(r_sub_model_part, r_part_data);
