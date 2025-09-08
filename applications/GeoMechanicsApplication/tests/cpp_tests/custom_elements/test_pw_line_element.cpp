@@ -172,24 +172,27 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCheckThrowsOnFaultyInput, Kratos
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_coincident_nodes.Check(dummy_process_info),
-                                      "Error: Length (0) is smaller than 1e-15 for element 1")
+                                      "Length (0) is smaller than 1e-15 for element 1")
     nodes.erase(nodes.begin() + 1);
     nodes.push_back(make_intrusive<Node>(1, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
     const auto element_with_correct_domain_size = TransientPwLineElementWithoutPWDofs(p_properties, p_geometry);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_correct_domain_size.Check(dummy_process_info),
-                                      "Error: Missing variable WATER_PRESSURE on node 0")
+                                      "Missing variable WATER_PRESSURE on nodes 0 1")
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     auto p_element = CreatePwLineElementWithoutPWDofs(model_part, p_properties);
+    p_element      = CreatePwLineElementWithoutPWDofs(model_part, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable DT_WATER_PRESSURE on nodes 0 1")
 
     RemoveTwoNodes(model_part);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     p_element = CreatePwLineElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Missing variable VOLUME_ACCELERATION on node 0")
+                                      "Missing variable VOLUME_ACCELERATION on nodes 0 1")
 
     RemoveTwoNodes(model_part);
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
