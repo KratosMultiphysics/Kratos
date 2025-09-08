@@ -42,8 +42,6 @@ def extract_nodal_settlement_over_time(output_data, node_id):
         if item["location"] != "OnNodes":
             continue
 
-        time_in_days = unit_conversions.seconds_to_days(item["time"])
-
         total_y_displacement = None
         for value_item in item["values"]:
             if value_item["node"] == node_id:
@@ -51,7 +49,7 @@ def extract_nodal_settlement_over_time(output_data, node_id):
                 break
         assert total_y_displacement is not None
 
-        result.append((time_in_days, total_y_displacement))
+        result.append((unit_conversions.seconds_to_days(item["time"]), total_y_displacement))
 
     return result
 
