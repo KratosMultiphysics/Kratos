@@ -100,8 +100,8 @@ private:
         auto end_state    = previous_state;
         while (mTimeIncrementor->WantRetryStep(cycle_number, end_state) && !IsCancelled()) {
             if (cycle_number > 0) mStrategyWrapper->RestorePositionsAndDOFVectorToStartOfStep();
-            end_state = RunCycle(previous_state.time);
             ++cycle_number;
+            end_state = RunCycle(previous_state.time);
         }
 
         end_state.num_of_cycles = cycle_number;
