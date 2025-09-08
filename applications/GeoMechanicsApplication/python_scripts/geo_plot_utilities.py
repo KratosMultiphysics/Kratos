@@ -3,18 +3,11 @@ import pathlib
 
 
 class DataSeries():
-    def __init__(self, x_values, y_values, label='', line_style='-', marker=None):
-        self.x_values = x_values
-        self.y_values = y_values
+    def __init__(self, data_points, label='', line_style='-', marker=None):
+        self.data_points = data_points
         self.label = label
         self.line_style = line_style
         self.marker = marker
-
-
-def make_data_series(data_points, label='', line_style='-', marker=None):
-    x_values = [point[0] for point in data_points]
-    y_values = [point[1] for point in data_points]
-    return DataSeries(x_values, y_values, label=label, line_style=line_style, marker=marker)
 
 
 def _make_plot(
@@ -31,8 +24,7 @@ def _make_plot(
 
     for series in data_series_collection:
         axes.plot(
-            series.x_values,
-            series.y_values,
+            *zip(*series.data_points),
             label=series.label,
             linestyle=series.line_style,
             marker=series.marker,

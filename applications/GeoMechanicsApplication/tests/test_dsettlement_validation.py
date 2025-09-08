@@ -84,9 +84,9 @@ def make_settlement_plot(stage_outputs, node_ids, path_to_ref_data_points, figur
             data_points_by_node[node_id].extend(extract_nodal_settlement_over_time(output_data, node_id))
 
     data_series_collection = []
-    data_series_collection.append(plot_utils.make_data_series(get_data_points_from_file(path_to_ref_data_points, extract_time_and_settlement_from_line), 'ref', marker='+'))
+    data_series_collection.append(plot_utils.DataSeries(get_data_points_from_file(path_to_ref_data_points, extract_time_and_settlement_from_line), 'ref', marker='+'))
     for node_id in node_ids:
-        data_series_collection.append(plot_utils.make_data_series(data_points_by_node[node_id], f'node {node_id}', line_style=':', marker='+'))
+        data_series_collection.append(plot_utils.DataSeries(data_points_by_node[node_id], f'node {node_id}', line_style=':', marker='+'))
 
     plot_utils.plot_settlement_results(data_series_collection, figure_filename)
 
@@ -103,21 +103,21 @@ def make_stress_over_depth_plot(output_data, time_in_sec, post_msh_file_path, no
     # Extract reference data points from files
     if ref_data.path_to_water_pressure_data:
         data_points = get_data_points_from_file(ref_data.path_to_water_pressure_data, extract_stress_and_y_from_line)
-        data_series_collection.append(plot_utils.make_data_series(data_points, 'ref P_w', marker='+'))
+        data_series_collection.append(plot_utils.DataSeries(data_points, 'ref P_w', marker='+'))
 
     if ref_data.path_to_vertical_effective_stress_data:
         data_points = get_data_points_from_file(ref_data.path_to_vertical_effective_stress_data, extract_stress_and_y_from_line)
-        data_series_collection.append(plot_utils.make_data_series(data_points, 'ref sigma_yy;eff', marker='+'))
+        data_series_collection.append(plot_utils.DataSeries(data_points, 'ref sigma_yy;eff', marker='+'))
 
     # Extract data points from the Kratos analysis results
     coordinates = test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=node_ids_over_depth)
     y_coordinates = [shift_y_of_kratos_model(coord[1]) for coord in coordinates]
 
     water_pressures = get_nodal_water_pressures_at_time(time_in_sec, output_data, node_ids=node_ids_over_depth)
-    data_series_collection.append(plot_utils.DataSeries(water_pressures, y_coordinates, 'P_w [Kratos]', line_style=':', marker='+'))
+    data_series_collection.append(plot_utils.DataSeries(zip(water_pressures, y_coordinates), 'P_w [Kratos]', line_style=':', marker='+'))
 
     effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(time_in_sec, output_data, node_ids=node_ids_over_depth)
-    data_series_collection.append(plot_utils.DataSeries(effective_vertical_stresses, y_coordinates, 'sigma_yy;eff [Kratos]', line_style=':', marker='+'))
+    data_series_collection.append(plot_utils.DataSeries(zip(effective_vertical_stresses, y_coordinates), 'sigma_yy;eff [Kratos]', line_style=':', marker='+'))
 
     plot_utils.make_stress_plot(data_series_collection, plot_file_path)
 
