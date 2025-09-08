@@ -54,20 +54,16 @@ def extract_nodal_settlement_over_time(output_data, node_id):
     return result
 
 
-def get_nodal_vertical_stress_component_at_time(stress_item_name, time_in_s, output_data, node_ids=None):
-    stress_vectors = test_helper.GiDOutputFileReader.nodal_values_at_time(stress_item_name, time_in_s, output_data, node_ids=node_ids)
-    # Invert the sign of the vertical stress component such that compression becomes positive.
-    return [-1.0 * unit_conversions.Pa_to_kPa(vector[1]) for vector in stress_vectors]
+def make_compression_positive_and_to_kPa(kratos_stress_components):
+    return [-1.0 * unit_conversions.Pa_to_kPa(stress) for stress in kratos_stress_components]
 
 
 def get_nodal_vertical_effective_stress_at_time(time_in_s, output_data, node_ids=None):
-    return get_nodal_vertical_stress_component_at_time("CAUCHY_STRESS_TENSOR", time_in_s, output_data, node_ids=node_ids)
+    return make_compression_positive_and_to_kPa([stress_vector[1] for stress_vector in test_helper.GiDOutputFileReader.nodal_values_at_time("CAUCHY_STRESS_TENSOR", time_in_s, output_data, node_ids=node_ids)])
 
 
 def get_nodal_water_pressures_at_time(time_in_s, output_data, node_ids=None):
-    water_pressures = test_helper.GiDOutputFileReader.nodal_values_at_time("WATER_PRESSURE", time_in_s, output_data, node_ids=node_ids)
-    # Invert the sign of the water pressure such that compression becomes positive.
-    return [-1.0 * unit_conversions.Pa_to_kPa(value) for value in water_pressures]
+    return make_compression_positive_and_to_kPa(test_helper.GiDOutputFileReader.nodal_values_at_time("WATER_PRESSURE", time_in_s, output_data, node_ids=node_ids))
 
 
 def make_settlement_history_plot(stage_outputs, node_ids, path_to_ref_data_points, figure_filename):
