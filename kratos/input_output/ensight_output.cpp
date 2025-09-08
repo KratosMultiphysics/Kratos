@@ -37,7 +37,7 @@ Parameters EnSightOutput::GetDefaultParameters()
         "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
         "ensight_file_format"                         : "gold", // Options: "6", "gold"
         "file_format"                                 : "ascii", // Options: "ascii", "binary" // TODO: Check if binary is supported
-        "output_precision"                            : 7,
+        "output_precision"                            : 6,
         "step_label_precision"                        : 4,
         "output_control_type"                         : "step",
         "output_interval"                             : 1.0,
@@ -95,6 +95,8 @@ EnSightOutput::EnSightOutput(ModelPart& rModelPart, Parameters ThisParameters)
 
     // Set the default precision
     mDefaultPrecision = mOutputSettings["output_precision"].GetInt();
+    KRATOS_ERROR_IF(mDefaultPrecision < 0) << "\"output_precision\" must be a non-negative integer." << std::endl;
+    KRATOS_ERROR_IF(mDefaultPrecision > 6) << "\"output_precision\" cannot be higher than 6 for EnSight format due to floating point precision limitations." << std::endl;
 
     // Set the step label precision
     mStepLabelPrecision = mOutputSettings["step_label_precision"].GetInt();
