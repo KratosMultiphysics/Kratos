@@ -83,12 +83,10 @@ def make_settlement_history_plot(stage_outputs, node_ids, path_to_ref_data_point
 def get_ref_y_coordinates(post_msh_file_path, node_ids):
     coordinates = test_helper.read_coordinates_from_post_msh_file(post_msh_file_path, node_ids=node_ids)
 
-    def to_ref_y_coordinate(y):
-        # The top edge of the soil column in the Kratos model is at y = 50.0. In the corresponding D-Settlement model,
-        # the same edge is located at y = 0.0. This function transforms the y coordinate of the Kratos model to the
-        # corresponding one of the D-Settlement model.
-        return y - 50.0
-
+    # The top edge of the soil column in the Kratos model is at y = 50.0. In the corresponding D-Settlement model, the
+    # same edge is located at y = 0.0. The following lambda transforms the y coordinate of the Kratos model to the
+    # corresponding one of the D-Settlement model.
+    to_ref_y_coordinate = lambda y : y - 50.0
     return [to_ref_y_coordinate(coord[1]) for coord in coordinates]
 
 
