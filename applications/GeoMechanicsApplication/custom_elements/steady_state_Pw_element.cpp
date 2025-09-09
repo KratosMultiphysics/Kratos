@@ -60,14 +60,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     check_properties.Check(POROSITY, max_value_porosity);
     check_properties.Check(DYNAMIC_VISCOSITY);
 
-    if (TDim == 2) {
-        // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            if (r_geometry[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geometry[i].Id()
-                             << std::endl;
-        }
-    }
+    if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geometry);
 
     check_properties.CheckPermeabilityProperties(TDim);
 

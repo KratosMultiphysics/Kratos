@@ -244,4 +244,20 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesDoesNotThrow
     properties.SetValue(PERMEABILITY_ZX, 0.0);
     EXPECT_NO_THROW(check_properties.CheckPermeabilityProperties(3));
 }
+
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckForNonZeroZCoordinateIn2D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto line_geometry = CreatLineGeometryWithVariables();
+
+    // Act and Assert
+    EXPECT_NO_THROW(CheckUtilities::CheckForNonZeroZCoordinateIn2D(line_geometry));
+
+    // Arrange 2
+    line_geometry.begin()->Z() += 1;
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CheckUtilities::CheckForNonZeroZCoordinateIn2D(line_geometry),
+                                      "Node with Id: 0 has non-zero Z coordinate.")
+}
 } // namespace Kratos::Testing

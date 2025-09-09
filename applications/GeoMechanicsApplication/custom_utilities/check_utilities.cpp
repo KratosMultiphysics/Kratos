@@ -15,6 +15,7 @@
 #include "check_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/exception.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include <sstream>
 
@@ -90,4 +91,12 @@ void CheckProperties::CheckPermeabilityProperties(size_t Dimension) const
     mRangeBoundsType = original_bounds_type;
 }
 
+void CheckUtilities::CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeometry)
+{
+    auto pos = std::ranges::find_if(rGeometry, [](const auto& node) {
+        return std::abs(node.Z()) > Testing::Defaults::absolute_tolerance;
+    });
+    KRATOS_ERROR_IF_NOT(pos == rGeometry.end())
+        << "Node with Id: " << pos->Id() << " has non-zero Z coordinate." << std::endl;
+}
 } /* namespace Kratos.*/

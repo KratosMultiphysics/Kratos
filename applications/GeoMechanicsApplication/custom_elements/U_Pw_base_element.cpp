@@ -48,14 +48,8 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     constexpr auto max_value_porosity = 1.0;
     check_properties.Check(POROSITY, max_value_porosity);
 
-    if (this->GetGeometry().WorkingSpaceDimension() == 2) {
-        // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
-            if (r_geometry[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geometry[i].Id()
-                             << std::endl;
-        }
-    }
+    if (this->GetGeometry().WorkingSpaceDimension() == 2)
+        CheckUtilities::CheckForNonZeroZCoordinateIn2D(this->GetGeometry());
 
     return 0;
 
