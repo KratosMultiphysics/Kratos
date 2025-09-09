@@ -14,6 +14,7 @@
 #pragma once
 
 // System includes
+#include <map>
 #include <unordered_map>
 
 // External includes
@@ -51,12 +52,12 @@ namespace Kratos
  */
 struct PartData
 {
-    std::vector<const Node*> PartNodes;                                                            ///< The nodes belonging to this part
-    std::unordered_map<std::size_t, std::size_t> KratosIdToLocalId;                                ///< Mapping from Kratos node IDs to local IDs
-    std::unordered_map<std::string, std::vector<const GeometricalObject*>> PartGeometricalObjects; ///< Geometrical objects (elements/conditions) belonging to this part, organized by type
-    unsigned int PartId = 0;                                                                       ///< Unique identifier for the part
-    std::string PartName;                                                                          ///< Name of the part
-    bool PartElements = true;                                                                      ///< True if the part contains elements, false if it contains conditions
+    std::vector<const Node*> PartNodes;                                                  ///< The nodes belonging to this part
+    std::unordered_map<std::size_t, std::size_t> KratosIdToLocalId;                      ///< Mapping from Kratos node IDs to local IDs
+    std::map<std::string, std::vector<const GeometricalObject*>> PartGeometricalObjects; ///< Geometrical objects (elements/conditions) belonging to this part, organized by type (must be ordered to ensure consistency in output)
+    unsigned int PartId = 0;                                                             ///< Unique identifier for the part
+    std::string PartName;                                                                ///< Name of the part
+    bool PartElements = true;                                                            ///< True if the part contains elements, false if it contains conditions
 };
 
 /**

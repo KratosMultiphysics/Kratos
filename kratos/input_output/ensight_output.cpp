@@ -13,7 +13,6 @@
 
 // System includes
 #include <iomanip>
-#include <map>
 
 // External includes
 
