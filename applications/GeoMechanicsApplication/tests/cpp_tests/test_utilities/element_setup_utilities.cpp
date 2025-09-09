@@ -15,6 +15,7 @@
 #include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
 #include "custom_conditions/line_load_2D_diff_order_condition.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/calculation_contribution.h"
 #include "custom_elements/interface_element.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_elements/plane_strain_stress_state.h"
@@ -22,8 +23,8 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_elements/transient_Pw_line_element.h"
 #include "custom_geometries/interface_geometry.h"
-#include "geometries/point_3d.h"
 #include "geometries/line_2d_2.h"
+#include "geometries/point_3d.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/tetrahedra_3d_10.h"
@@ -31,7 +32,6 @@
 #include "geometries/triangle_2d_15.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
-#include "custom_elements/calculation_contribution.h"
 
 namespace
 {
@@ -116,14 +116,14 @@ Element::Pointer ElementSetupUtilities::Create2D3NElement()
     return Create2D3NElement(GenerateNodes(CreatePointsFor2D3NElement()), std::make_shared<Properties>(0));
 }
 
-Element::Pointer ElementSetupUtilities::Create2D2NElement(const PointerVector<Node>& rNodes, const Properties::Pointer& rProperties)
+Element::Pointer ElementSetupUtilities::Create2D2NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
 {
-    const auto contributions={CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow};
+    const auto contributions = {CalculationContribution::Permeability, CalculationContribution::Compressibility,
+                                CalculationContribution::FluidBodyFlow};
 
     return make_intrusive<TransientPwLineElement<2, 2>>(
-        1, Kratos::make_shared<Line2D2<Node>>(rNodes), rProperties, contributions,
-        nullptr);
+        1, Kratos::make_shared<Line2D2<Node>>(rNodes), rProperties, contributions, nullptr);
 }
 
 Condition::Pointer ElementSetupUtilities::Create3D3NCondition(const PointerVector<Node>& rNodes)

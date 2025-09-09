@@ -50,50 +50,38 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         return std::make_pair(sorted_ids, rPair.first);
     });
 
-    auto generate_boundaries=[](const auto &rGeometry){return rGeometry.GenerateBoundariesEntities();};
+    auto generate_boundaries = [](const auto& rGeometry) {
+        return rGeometry.GenerateBoundariesEntities();
+    };
     CheckBoundaryTypeForAllElements(generate_boundaries, condition_node_ids_to_condition,
                                     sorted_condition_node_ids_to_condition);
 
     if (AllConditionsAreVisited()) return;
 
     // Now try point loads:
-    for (auto& r_element : mrModelPart.Elements()) {
-        const auto& rGeometryElement    = r_element.GetGeometry();
-        const auto  rBoundaryGeometries = rGeometryElement.GeneratePoints();
-
-        AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-            condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, rBoundaryGeometries);
-    }
+    auto generate_points = [](const auto& rGeometry) { return rGeometry.GeneratePoints(); };
+    CheckBoundaryTypeForAllElements(generate_points, condition_node_ids_to_condition,
+                                    sorted_condition_node_ids_to_condition);
 
     if (AllConditionsAreVisited()) return;
 
-    // check edges of 3D geometries:
-    // Now loop over all elements and check if one of the faces is in the "FacesMap"
-    for (auto& r_element : mrModelPart.Elements()) {
-        const auto& r_geometry_element = r_element.GetGeometry();
-        if (r_geometry_element.LocalSpaceDimension() == 3) {
-            const auto& r_boundary_geometries = r_geometry_element.GenerateEdges();
-
-            AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-                condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element,
-                r_boundary_geometries);
-        }
-    }
+    auto generate_edges = [](const auto& rGeometry) {
+        return rGeometry.LocalSpaceDimension() == 3 ? rGeometry.GenerateEdges()
+                                                    : PointerVector<Geometry<Node>>();
+    };
+    CheckBoundaryTypeForAllElements(generate_edges, condition_node_ids_to_condition,
+                                    sorted_condition_node_ids_to_condition);
 
     if (AllConditionsAreVisited()) return;
 
     // check 1D elements, note that this has to happen after procedures to find 2 and 3d neighbours are already performed, such that 1D elements are only added
     // as neighbours when the condition is not neighbouring 2D or 3D elements
-    for (auto& r_element : mrModelPart.Elements()) {
-        const auto& r_geometry_element = r_element.GetGeometry();
-        if (r_geometry_element.LocalSpaceDimension() == 1) {
-            const auto& r_boundary_geometries = r_geometry_element.GenerateEdges();
-
-            AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-                condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element,
-                r_boundary_geometries);
-        }
-    }
+    auto generate_edges_1d = [](const auto& rGeometry) {
+        return rGeometry.LocalSpaceDimension() == 1 ? rGeometry.GenerateEdges()
+                                                    : PointerVector<Geometry<Node>>();
+    };
+    CheckBoundaryTypeForAllElements(generate_edges_1d, condition_node_ids_to_condition,
+                                    sorted_condition_node_ids_to_condition);
 
     // check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     auto all_conditions_visited = true;
@@ -109,9 +97,8 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     KRATOS_CATCH("")
 }
 
-void FindNeighbourElementsOfConditionsProcess::CheckBoundaryTypeForAllElements(auto generate_boundaries,
-                                     Kratos::hashmap&  condition_node_ids_to_condition,
-                                     Kratos::hashmap2& sorted_condition_node_ids_to_condition)
+void FindNeighbourElementsOfConditionsProcess::CheckBoundaryTypeForAllElements(
+    auto generate_boundaries, Kratos::hashmap& condition_node_ids_to_condition, Kratos::hashmap2& sorted_condition_node_ids_to_condition)
 {
     for (auto& r_element : mrModelPart.Elements()) {
         const auto& rGeometryElement    = r_element.GetGeometry();

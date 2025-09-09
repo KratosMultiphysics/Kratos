@@ -180,7 +180,7 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::vector<std::size_t>{3, 1, 2},
                                            std::vector<std::size_t>{2, 3, 1}));
 
-KRATOS_TEST_CASE_IN_SUITE(TestPointSource, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(FindNeighbourElementsOfConditionsProcess_TestPointCondition, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(model);
@@ -198,10 +198,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointSource, KratosGeoMechanicsFastSuiteWithoutKer
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SomeTest, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(FindNeighbourElementsOfConditionsProcess_Test1DElement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_model_part=model.CreateModelPart("Main");
+    auto& r_model_part = model.CreateModelPart("Main");
     r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
 
