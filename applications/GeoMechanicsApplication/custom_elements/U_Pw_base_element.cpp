@@ -60,8 +60,8 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_ERROR << "POROSITY has Key zero, is not defined or has an invalid value at element"
                      << this->Id() << std::endl;
 
-    CheckUtilities::CheckForNonZeroZCoordinateIn2D(this->GetGeometry().WorkingSpaceDimension(),
-                                                   this->GetGeometry());
+    if (this->GetGeometry().WorkingSpaceDimension() == 2)
+        CheckUtilities::CheckForNonZeroZCoordinateIn2D(this->GetGeometry());
 
     return 0;
 

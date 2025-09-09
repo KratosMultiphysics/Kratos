@@ -175,7 +175,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
                         "has an invalid value at element "
                      << this->Id() << std::endl;
 
-    CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, r_geom);
+    if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geom);
 
     // Verify specific properties
     if (!r_properties.Has(BULK_MODULUS_FLUID) || r_properties[BULK_MODULUS_FLUID] < 0.0)

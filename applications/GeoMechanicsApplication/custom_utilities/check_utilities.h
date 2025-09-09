@@ -36,7 +36,7 @@ public:
                                               const Geo::ConstVariableDataRefs& rVariableRefs);
     static void CheckHasDofs(const Geometry<Node>& rGeometry, const Geo::ConstVariableDataRefs& rVariableRefs);
 
-    static void CheckForNonZeroZCoordinateIn2D(int Dimension, const Geometry<Node>& rGeometry);
+    static void CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeometry);
 
 private:
     static std::string PrintVectorContent(const std::vector<size_t>& rVector);

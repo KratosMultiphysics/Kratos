@@ -153,10 +153,11 @@ public:
         CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), "Length");
         const auto r_geometry = GetGeometry();
         CheckUtilities::CheckHasNodalSolutionStepData(
-            r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+            r_geometry,
+            {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
         CheckProperties();
-        CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, r_geometry);
+        if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geometry);
 
         return RetentionLaw::Check(mRetentionLawVector, GetProperties(), rCurrentProcessInfo);
 

@@ -64,7 +64,7 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
                         "has an invalid value at element"
                      << this->Id() << std::endl;
 
-    CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, r_geometry);
+    if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geometry);
 
     // Verify specific properties
     if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] < 0.0)
