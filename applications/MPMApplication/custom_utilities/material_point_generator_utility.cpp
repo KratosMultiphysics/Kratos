@@ -308,11 +308,12 @@ namespace Kratos::MaterialPointGeneratorUtility
                         const int boundary_condition_type = r_cond.GetValue(MPC_BOUNDARY_CONDITION_TYPE);
 
                         // Check number of material points per condition to be created
-                        unsigned int material_points_per_condition = 0; // Default zero
+                        unsigned int material_points_per_condition;
                         if (r_cond.Has( MATERIAL_POINTS_PER_CONDITION )){
                             material_points_per_condition = r_cond.GetValue(MATERIAL_POINTS_PER_CONDITION);
                         }
                         else{
+                            material_points_per_condition = 1;
                             KRATOS_WARNING("MaterialPointGeneratorUtility") << "MATERIAL_POINTS_PER_CONDITION is not specified. Only one material point is assumed." << std::endl;
                         }
 
@@ -363,6 +364,9 @@ namespace Kratos::MaterialPointGeneratorUtility
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GAUSS);
                                 r_geometry.CreateIntegrationPoints(integration_points,integration_info);
                                 integration_method = integration_info.GetIntegrationMethod(0);
+                            } else {
+                                KRATOS_WARNING_IF("MaterialPointGeneratorUtility",material_points_per_condition!=1) <<
+                                    "When using a material point load condition, only 1 material point per condition (geometrical point) can be used" << std::endl;
                             }
                         }
 
@@ -838,9 +842,8 @@ namespace Kratos::MaterialPointGeneratorUtility
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes)
     {
         const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
-        const SizeType domain_size = rGeom.WorkingSpaceDimension();
 
-        if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
+        if (geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
             switch (MaterialPointsPerElement)
             {
@@ -850,6 +853,9 @@ namespace Kratos::MaterialPointGeneratorUtility
             case 3:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
+            case 4:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+                break;
             case 6:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
@@ -857,32 +863,53 @@ namespace Kratos::MaterialPointGeneratorUtility
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
                 break;
             case 16:
-                if (domain_size == 2) {
-                    IsEqualVolumes = true;
-
-                    KRATOS_WARNING("MaterialPointGeneratorUtility") << "16 material points per triangle element is only valid for undistorted triangles." << std::endl;
-                    rN = MP16ShapeFunctions();
-                    break;
-                }
+                IsEqualVolumes = true;
+                KRATOS_WARNING("MaterialPointGeneratorUtility") << "16 material points per triangle element is only valid for undistorted triangles." << std::endl;
+                rN = MP16ShapeFunctions();
+                break;
             case 33:
-                if (domain_size == 2) {
-                    IsEqualVolumes = true;
-                    KRATOS_WARNING("MaterialPointGeneratorUtility") << "33 material points per triangle element is only valid for undistorted triangles." << std::endl;
-                    rN = MP33ShapeFunctions();
-                    break;
-                }
+                IsEqualVolumes = true;
+                KRATOS_WARNING("MaterialPointGeneratorUtility") << "33 material points per triangle element is only valid for undistorted triangles." << std::endl;
+                rN = MP33ShapeFunctions();
+                break;
             default:
-                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; // default to 3 material points per tri
-
-                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT: " + std::to_string(MaterialPointsPerElement);
-                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
-                warning_msg += "The default number of material points: 3 is currently assumed.";
-                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT: ";
+                err_msg += std::to_string(MaterialPointsPerElement);
+                err_msg += " is not available for Triangular elements\n";
+                err_msg += "Available options are: 1, 3, 4, 6, 12, 16 (only undistorted triangles), and 33 (only undistorted triangles).\n";
+                KRATOS_ERROR <<  err_msg << std::endl;
                 break;
             }
         }
-        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8 || geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
+        {
+            switch (MaterialPointsPerElement)
+            {
+            case 1:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                break;
+            case 4:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+                break;
+            case 8:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+                break;
+            case 14:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
+                break;
+            case 24:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+                break;
+            default:
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT: ";
+                err_msg += std::to_string(MaterialPointsPerElement);
+                err_msg += " is not available for Tetrahedral elements\n";
+                err_msg += "Available options are: 1, 4, 8, 14 and 24.\n";
+                KRATOS_ERROR <<  err_msg << std::endl;
+                break;
+            }
+        }
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
         {
             switch (MaterialPointsPerElement)
             {
@@ -898,18 +925,46 @@ namespace Kratos::MaterialPointGeneratorUtility
             case 16:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
+            case 25:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+                break;
             default:
-                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; // default to 4 material points per quad
-
-                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT: " + std::to_string(MaterialPointsPerElement);
-                warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1, 4, 9, 16.\n";
-                warning_msg += "The default number of material points: 4 is currently assumed.";
-                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT: ";
+                err_msg += std::to_string(MaterialPointsPerElement);
+                err_msg += " is not available for Quadrilateral elements\n";
+                err_msg += "Available options are: 1, 4, 9, 16 and 25.\n";
+                KRATOS_ERROR <<  err_msg << std::endl;
                 break;
             }
         }
-
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8)
+        {
+            switch (MaterialPointsPerElement)
+            {
+            case 1:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                break;
+            case 8:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+                break;
+            case 27:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+                break;
+            case 64:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
+                break;
+            case 125:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+                break;
+            default:
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT: ";
+                err_msg += std::to_string(MaterialPointsPerElement);
+                err_msg += " is not available for Hexahedral elements\n";
+                err_msg += "Available options are: 1, 8, 27, 64 and 25.\n";
+                KRATOS_ERROR <<  err_msg << std::endl;
+                break;
+            }
+        }
         // Get shape function values
         if (!IsEqualVolumes) rN = rGeom.ShapeFunctionsValues(rIntegrationMethod);
     }
@@ -925,12 +980,11 @@ namespace Kratos::MaterialPointGeneratorUtility
             if (MaterialPointsPerCondition>0 && MaterialPointsPerCondition<6)
                 rNumPointsPerSpan = MaterialPointsPerCondition;
             else{
-                rNumPointsPerSpan = 1;
-                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: " + std::to_string(MaterialPointsPerCondition);
-                warning_msg += " is not available for Line" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1 (default), 2, 3, 4, 5.\n";
-                warning_msg += "The default number of material points: 1 is currently assumed.";
-                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: ";
+                err_msg += std::to_string(MaterialPointsPerCondition);
+                err_msg += " is not available for Line" + std::to_string(domain_size) + "D.\n";
+                err_msg += "Available options are: 1, 2, 3, 4 and 5.";
+                KRATOS_ERROR <<  err_msg << std::endl;
             }
 
         }
@@ -951,12 +1005,11 @@ namespace Kratos::MaterialPointGeneratorUtility
                 rNumPointsPerSpan = 5;
                 break;
             default:
-                rNumPointsPerSpan = 1;
-                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: " + std::to_string(MaterialPointsPerCondition);
-                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1 (default), 3, 6 and 12.\n";
-                warning_msg += "The default number of material points: 1 is currently assumed.";
-                KRATOS_WARNING("MaterialPointGeneratorUtility") << warning_msg << std::endl;
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: ";
+                err_msg += std::to_string(MaterialPointsPerCondition);
+                err_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
+                err_msg += "Available options are: 1, 3, 6 and 12.";
+                KRATOS_ERROR << err_msg << std::endl;
                 break;
             }
 
@@ -978,12 +1031,11 @@ namespace Kratos::MaterialPointGeneratorUtility
                 rNumPointsPerSpan = 4;
                 break;
             default:
-                rNumPointsPerSpan = 1;
-                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: " + std::to_string(MaterialPointsPerCondition);
-                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1 (default), 4, 9 and 16.\n";
-                warning_msg += "The default number of material points: 1 is currently assumed.";
-                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: ";
+                err_msg += std::to_string(MaterialPointsPerCondition);
+                err_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
+                err_msg += "Available options are: 1, 4, 9 and 16.";
+                KRATOS_ERROR <<  err_msg << std::endl;
                 break;
             }
 
