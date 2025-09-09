@@ -114,12 +114,14 @@ namespace Kratos::MaterialPointGeneratorUtility
                     std::string element_type_name = "MPMUpdatedLagrangian";
                     if (IsMixedFormulation) {
                         if ((rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 0) || (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 1)){
-                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "MPMUpdatedLagrangianUP";
-                            else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+                            //if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "MPMUpdatedLagrangianUP";
+                            //else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+                            element_type_name = "MPMUpdatedLagrangianUP";
                         }
                         else {
-                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3  || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "MPMUpdatedLagrangianUPVMS";
-                            else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+                            //if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3  || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "MPMUpdatedLagrangianUPVMS";
+                            //else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+                            element_type_name = "MPMUpdatedLagrangianUPVMS";
                         }
 
                     }

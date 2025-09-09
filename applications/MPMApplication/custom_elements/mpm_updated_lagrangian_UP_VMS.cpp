@@ -411,9 +411,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateTaus(const int& stabilization_type,
     const double constant1=1.0;
     const double constant2=1.0;
     //double characteristic_element_size;
-    //ComputeElementSize(characteristic_element_size);
+    ComputeElementSize(characteristic_element_size);
 
-    double characteristic_element_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
+    //double characteristic_element_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
 
     rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * rVariables.ShearModulus);
     rVariables.tau2 = 2 * constant2 * rVariables.ShearModulus;
