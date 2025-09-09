@@ -68,7 +68,7 @@ class DamAzenhaHeatFluxProcess : public Process
         rParameters["activation_energy"];
         rParameters["gas_constant"];
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
@@ -102,7 +102,7 @@ class DamAzenhaHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
 

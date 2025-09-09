@@ -289,7 +289,7 @@ public:
 
 		}
 		//if(my_settings->IsDefinedProjectionVariable()==true)
-		//	KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: ProjectionVariable not useed. Remove it", "");
+		//	KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: ProjectionVariable not used. Remove it", "");
 
 		//CONVECTION VELOCITY VARIABLE
 		//CURRENTLY WE ARE USING (VELOCITY -MESH_VELOCITY) TO CONVECT, so the ConvectionVariable must not be used:

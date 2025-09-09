@@ -13,10 +13,6 @@
 #if !defined(KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
 #define KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -84,8 +80,10 @@ public:
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
-                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, std::move(pStressStatePolicy))
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : SmallStrainUPwDiffOrderElement(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -93,8 +91,10 @@ public:
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
                                          PropertiesType::Pointer            pProperties,
-                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : SmallStrainUPwDiffOrderElement(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -113,13 +113,11 @@ public:
     /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
-     * @param ThisNodes The array containing nodes
+     * @param rNodes The array containing nodes
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType               NewId,
-                            NodesArrayType const&   ThisNodes,
-                            PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law

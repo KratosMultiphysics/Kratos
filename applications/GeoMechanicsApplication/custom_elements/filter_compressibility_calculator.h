@@ -26,45 +26,35 @@ namespace Kratos
 class FilterCompressibilityCalculator : public ContributionCalculator
 {
 public:
-    class InputProvider
-    {
-    public:
-        InputProvider(std::function<const Properties&()> GetElementProperties,
-                      std::function<const Matrix&()>     GetNContainer,
-                      std::function<Vector()>            GetIntegrationCoefficients,
-                      std::function<Vector()>            GetProjectedGravityForIntegrationPoints,
-                      std::function<double()>            GetMatrixScalarFactor,
+    struct InputProvider {
+        InputProvider(std::function<const Properties&()>   GetElementProperties,
+                      std::function<const Matrix&()>       GetNContainer,
+                      std::function<Vector()>              GetIntegrationCoefficients,
+                      std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints,
+                      std::function<double()>              GetMatrixScalarFactor,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf)
-            : mGetElementProperties(std::move(GetElementProperties)),
-              mGetNContainer(std::move(GetNContainer)),
-              mGetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
-              mGetProjectedGravityForIntegrationPoints(std::move(GetProjectedGravityForIntegrationPoints)),
-              mGetMatrixScalarFactor(std::move(GetMatrixScalarFactor)),
-              mGetNodalValues(std::move(GetNodalValuesOf))
+            : GetElementProperties(std::move(GetElementProperties)),
+              GetNContainer(std::move(GetNContainer)),
+              GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
+              GetProjectedGravityAtIntegrationPoints(std::move(GetProjectedGravityAtIntegrationPoints)),
+              GetMatrixScalarFactor(std::move(GetMatrixScalarFactor)),
+              GetNodalValues(std::move(GetNodalValuesOf))
         {
         }
 
-        [[nodiscard]] const Properties& GetElementProperties() const;
-        [[nodiscard]] const Matrix&     GetNContainer() const;
-        [[nodiscard]] Vector            GetIntegrationCoefficients() const;
-        [[nodiscard]] Vector            GetProjectedGravityForIntegrationPoints() const;
-        [[nodiscard]] double            GetMatrixScalarFactor() const;
-        [[nodiscard]] Vector            GetNodalValues(const Variable<double>& rVariable) const;
-
-    private:
-        std::function<const Properties&()>             mGetElementProperties;
-        std::function<const Matrix&()>                 mGetNContainer;
-        std::function<Vector()>                        mGetIntegrationCoefficients;
-        std::function<Vector()>                        mGetProjectedGravityForIntegrationPoints;
-        std::function<double()>                        mGetMatrixScalarFactor;
-        std::function<Vector(const Variable<double>&)> mGetNodalValues;
+        std::function<const Properties&()>             GetElementProperties;
+        std::function<const Matrix&()>                 GetNContainer;
+        std::function<Vector()>                        GetIntegrationCoefficients;
+        std::function<std::vector<Vector>()>           GetProjectedGravityAtIntegrationPoints;
+        std::function<double()>                        GetMatrixScalarFactor;
+        std::function<Vector(const Variable<double>&)> GetNodalValues;
     };
 
     explicit FilterCompressibilityCalculator(InputProvider AnInputProvider);
 
-    Matrix                    LHSContribution() override;
-    Vector                    RHSContribution() override;
-    std::pair<Matrix, Vector> LocalSystemContribution() override;
+    std::optional<Matrix>                    LHSContribution() override;
+    Vector                                   RHSContribution() override;
+    std::pair<std::optional<Matrix>, Vector> LocalSystemContribution() override;
 
 private:
     [[nodiscard]] Matrix CalculateCompressibilityMatrix() const;

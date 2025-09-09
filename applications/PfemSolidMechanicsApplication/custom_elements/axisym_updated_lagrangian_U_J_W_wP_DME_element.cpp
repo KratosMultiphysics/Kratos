@@ -258,7 +258,7 @@ namespace Kratos
          tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
       }
 
-      const double & rPermeability = GetProperties()[PERMEABILITY];
+      const double & rPermeability = GetProperties()[PERMEABILITY_WATER];
 
       if ( ( fabs(StabFactor) > 1.0e-9) && dimension==2)  {
 

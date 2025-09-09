@@ -5,7 +5,6 @@ from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objectiv
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_constraint import StandardizedConstraint
 from KratosMultiphysics.LinearSolversApplication.dense_linear_solver_factory import ConstructSolver
@@ -15,13 +14,20 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListCollectiveProduct
 from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListVectorProduct
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OutputGradientFields
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.constraint_conv_criterion import ConstraintConvCriterion
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.combined_conv_criterion import CombinedConvCriterion
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.max_iter_conv_criterion import MaxIterConvCriterion
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OptimizationComponentFactory
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import ListLogger
+
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     return AlgorithmGradientProjection(model, parameters, optimization_problem)
 
 class AlgorithmGradientProjection(Algorithm):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        A classical steepest descent algorithm to solve unconstrained optimization problems.
     """
 
     @classmethod
@@ -63,18 +69,19 @@ class AlgorithmGradientProjection(Algorithm):
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
 
-        self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"], self._optimization_problem)
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
-        self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
-        self._optimization_problem.AddComponent(self.__objective)
-        self.__constraints_list: 'list[StandardizedConstraint]' = []
+        self._objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self._optimization_problem.AddComponent(self._objective)
+        self._constraints_list: 'list[StandardizedConstraint]' = []
         for constraint_param in parameters["constraints"].values():
             constraint = StandardizedConstraint(constraint_param, self.master_control, self._optimization_problem)
             self._optimization_problem.AddComponent(constraint)
-            self.__constraints_list.append(constraint)
-        self.__control_field = None
-        self.__obj_val = None
+            self._constraints_list.append(constraint)
+        self._control_field = None
+        self._obj_val = None
+
+        self._convergence_criteria = self._CreateConvergenceCriteria(settings["conv_settings"])
 
         default_linear_solver_settings = Kratos.Parameters("""{
             "solver_type": "LinearSolversApplication.dense_col_piv_householder_qr"
@@ -88,28 +95,32 @@ class AlgorithmGradientProjection(Algorithm):
 
     def Check(self):
         self.master_control.Check()
-        self.__objective.Check()
-        CallOnAll(self.__constraints_list, StandardizedConstraint.Check)
+        self._objective.Check()
+        CallOnAll(self._constraints_list, StandardizedConstraint.Check)
 
     @time_decorator()
     def Initialize(self):
         self.converged = False
-        self.__obj_val = None
+        self._obj_val = None
         self.master_control.Initialize()
-        self.__objective.Initialize()
-        CallOnAll(self.__constraints_list, StandardizedConstraint.Initialize)
-        self.__control_field = self.master_control.GetControlField()
+        self._objective.Initialize()
+        CallOnAll(self._constraints_list, StandardizedConstraint.Initialize)
+        self._control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
+
+        self._convergence_criteria.Initialize()
 
     @time_decorator()
     def Finalize(self):
         self.master_control.Finalize()
-        self.__objective.Finalize()
-        CallOnAll(self.__constraints_list, StandardizedConstraint.Finalize)
+        self._objective.Finalize()
+        CallOnAll(self._constraints_list, StandardizedConstraint.Finalize)
+
+        self._convergence_criteria.Finalize()
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]') -> KratosOA.CollectiveExpression:
-        active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constr_value[i] >= 0.0]
+        active_constraints_list = [self._constraints_list[i] for i in range(len(self._constraints_list)) if self.__constr_value[i] >= 0.0]
         number_of_active_constraints = len(active_constraints_list)
         if not number_of_active_constraints:
             search_direction = obj_grad * -1.0
@@ -150,25 +161,26 @@ class AlgorithmGradientProjection(Algorithm):
         search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
         update = KratosOA.ExpressionUtils.Scale(search_direction, alpha) + self.algorithm_data.GetBufferedData()["correction"]
         self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
+        return update
 
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["control_field_update"]
-        self.__control_field = KratosOA.ExpressionUtils.Collapse(self.__control_field + update)
+        self._control_field = KratosOA.ExpressionUtils.Collapse(self._control_field + update)
 
     @time_decorator()
     def GetCurrentObjValue(self) -> float:
-        return self.__obj_val
+        return self._obj_val
 
     @time_decorator()
     def GetCurrentControlField(self):
-        return self.__control_field
+        return self._control_field
 
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
-        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
-        OutputGradientFields(self.__objective, self._optimization_problem, True)
-        for constraint in self.__constraints_list:
+        self.algorithm_data.GetBufferedData()["control_field"] = self._control_field.Clone()
+        OutputGradientFields(self._objective, self._optimization_problem, True)
+        for constraint in self._constraints_list:
             OutputGradientFields(constraint, self._optimization_problem, constraint.IsActive())
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
@@ -180,19 +192,19 @@ class AlgorithmGradientProjection(Algorithm):
             with OptimizationAlgorithmTimeLogger("Gradient Projection",self._optimization_problem.GetStep()):
                 self._InitializeIteration()
 
-                self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
-                obj_info = self.__objective.GetInfo()
+                self._obj_val = self._objective.CalculateStandardizedValue(self._control_field)
+                obj_info = self._objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
                 self.algorithm_data.GetBufferedData()["rel_change[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_change[%]"] = obj_info["abs_change [%]"]
 
-                obj_grad = self.__objective.CalculateStandardizedGradient()
+                obj_grad = self._objective.CalculateStandardizedGradient()
 
                 self.__constr_value = []
                 active_constr_grad = []
-                for constraint in self.__constraints_list:
-                    value = constraint.CalculateStandardizedValue(self.__control_field)
+                for constraint in self._constraints_list:
+                    value = constraint.CalculateStandardizedValue(self._control_field)
                     self.__constr_value.append(value)
                     constr_name = constraint.GetResponseName()
                     self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = value
@@ -207,15 +219,13 @@ class AlgorithmGradientProjection(Algorithm):
 
                 self._FinalizeIteration()
 
+                self.converged = self._convergence_criteria.IsConverged()
+
                 self.Output()
 
                 self.UpdateControl()
 
-                converged = self.__convergence_criteria.IsConverged()
-
-                converged &= all([value <= 0.0 for value in self.__constr_value]) 
-
-                self.converged |=  self.__convergence_criteria.IsMaxIterationsReached()
+                ListLogger("Convergence info", self._convergence_criteria.GetInfo())
 
                 self._optimization_problem.AdvanceStep()
 
@@ -223,6 +233,89 @@ class AlgorithmGradientProjection(Algorithm):
 
     def GetOptimizedObjectiveValue(self) -> float:
         if self.converged:
-            return self.__obj_val
+            return self._obj_val
         else:
             raise RuntimeError("Optimization problem hasn't been solved.")
+
+    def _CreateConvergenceCriteria(self, settings: Kratos.Parameters) -> ConvergenceCriterion:
+        """
+        Here we create default constraint convergence criteria, if nothing
+        is defined in the "constraint_conv_settings".
+
+        """
+        default_settings = Kratos.Parameters("""{
+            "max_iter"                : 0,
+            "objective_conv_settings" : {},
+            "constraint_conv_settings": {}
+        }""")
+
+        if settings.Has("constraint_conv_settings") and settings["constraint_conv_settings"].IsString():
+            default_settings["constraint_conv_settings"].SetString("")
+
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        default_additional_conv_params = Kratos.Parameters("""{
+            "type"    : "",
+            "module"  : "KratosMultiphysics.OptimizationApplication.convergence_criteria",
+            "settings": {}
+        }""")
+
+        max_iter_params = Kratos.Parameters("""{
+            "max_iter": """ + str(settings["max_iter"].GetInt()) + """
+        }""")
+        max_iter_conv_criterion = MaxIterConvCriterion(max_iter_params, self._optimization_problem)
+
+        and_conv_criteria: 'list[ConvergenceCriterion]' = []
+        if not settings["objective_conv_settings"].IsEquivalentTo(Kratos.Parameters("""{}""")):
+            # objective convergence criteria is given.
+            current_settings = settings["objective_conv_settings"]
+            current_settings.AddMissingParameters(default_additional_conv_params)
+            and_conv_criteria.append(OptimizationComponentFactory(self.model, current_settings, self._optimization_problem))
+
+        if settings["constraint_conv_settings"].IsSubParameter() and not settings["constraint_conv_settings"].IsEquivalentTo(Kratos.Parameters("""{}""")):
+            # constraint convergence criteria is given
+            current_settings = settings["constraint_conv_settings"]
+            current_settings.AddMissingParameters(default_additional_conv_params)
+            and_conv_criteria.append(OptimizationComponentFactory(self.model, current_settings, self._optimization_problem))
+        else:
+            if settings["constraint_conv_settings"].IsString():
+                if settings["constraint_conv_settings"].GetString() != "none":
+                    raise RuntimeError("constraint_conv_settings can only be either \"none\" or sub-paramter.")
+            elif settings["constraint_conv_settings"].IsSubParameter():
+                # constraint convergence criteria is not given, so creating them here.
+                constraint_settings = Kratos.Parameters("""{
+                    "component_name": ""
+                }""")
+                for constraint in self._constraints_list:
+                    current_settings = constraint_settings.Clone()
+                    current_settings["component_name"].SetString(f"response_function.{constraint.GetName()}")
+                    and_conv_criteria.append(ConstraintConvCriterion(current_settings, self._optimization_problem))
+
+        if len(and_conv_criteria) == 0:
+            return max_iter_conv_criterion
+        elif len(and_conv_criteria) == 1:
+            # now create the combined one and return the combined one
+            combined_params = Kratos.Parameters("""{
+                "operator": "or"
+            }""")
+            combined_conv_criteria = CombinedConvCriterion(self.model, combined_params, self._optimization_problem)
+            combined_conv_criteria.Add(max_iter_conv_criterion)
+            combined_conv_criteria.Add(and_conv_criteria[0])
+            return combined_conv_criteria
+        else:
+            # create the "and" combined conv criterion first
+            combined_params = Kratos.Parameters("""{
+                "operator": "and"
+            }""")
+            and_combined_conv_criteria = CombinedConvCriterion(self.model, combined_params, self._optimization_problem)
+            for and_conv in and_conv_criteria:
+                and_combined_conv_criteria.Add(and_conv)
+
+            # now create the "or" combined conv criterion with the max_iter and the previous one
+            combined_params = Kratos.Parameters("""{
+                "operator": "or"
+            }""")
+            or_combined_conv_criteria = CombinedConvCriterion(self.model, combined_params, self._optimization_problem)
+            or_combined_conv_criteria.Add(max_iter_conv_criterion)
+            or_combined_conv_criteria.Add(and_combined_conv_criteria)
+            return or_combined_conv_criteria

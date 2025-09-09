@@ -85,6 +85,11 @@ class ExplicitStrategy():
         if "BoundingBoxServoLoadingOption" in DEM_parameters.keys():
             self.bounding_box_servo_loading_option = DEM_parameters["BoundingBoxServoLoadingOption"].GetBool()
 
+        self.use_mesh_repair_option = False
+        if "UseMeshRepairOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["UseMeshRepairOption"].GetBool():
+                self.use_mesh_repair_option = True 
+
         self.delta_option = DEM_parameters["DeltaOption"].GetString() #TODO: this is not an option (bool) let's change the name to something including 'type'
 
         self.search_increment = 0.0
@@ -198,6 +203,9 @@ class ExplicitStrategy():
 
         if "RadiusExpansionRate" in DEM_parameters.keys():
             self.radius_expansion_rate = DEM_parameters["RadiusExpansionRate"].GetDouble()
+
+        if "RadiusMultiplierStartTime" in DEM_parameters.keys():
+            self.radius_multiplier_start_time = DEM_parameters["RadiusMultiplierStartTime"].GetDouble()
 
         if "RadiusMultiplierMax" in DEM_parameters.keys():
             self.radius_multiplier_max = DEM_parameters["RadiusMultiplierMax"].GetDouble()
@@ -315,6 +323,7 @@ class ExplicitStrategy():
         #Radius expansion method
         self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION, self.radius_expansion_option)
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_RATE, self.radius_expansion_rate)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIUS_MULTIPLIER_START_TIME, self.radius_multiplier_start_time)
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_MULTIPLIER_MAX, self.radius_multiplier_max)
         self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION_RATE_CHANGE, self.radius_expansion_rate_change_option)
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_ACCELERATION, self.radius_expansion_acceleration)
@@ -337,6 +346,11 @@ class ExplicitStrategy():
             self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_SERVO_LOADING_OPTION, 1)
         else:
             self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_SERVO_LOADING_OPTION, 0)
+
+        if self.use_mesh_repair_option:
+            self.spheres_model_part.ProcessInfo.SetValue(USE_MESH_REPAIR_OPTION, 1)
+        else:
+            self.spheres_model_part.ProcessInfo.SetValue(USE_MESH_REPAIR_OPTION, 0)
 
         # PRINTING VARIABLES
 
@@ -857,8 +871,8 @@ class ExplicitStrategy():
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
         if not properties.Has(DEM_ROLLING_FRICTION_MODEL_NAME):
-            properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelConstantTorque"
-            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelConstantTorque] for material relation with parameter \"material_ids_list\": [" + str(parent_id) + ", " + str(properties.Id) + "]")
+            properties[DEM_ROLLING_FRICTION_MODEL_NAME] = "DEMRollingFrictionModelBounded"
+            self.Procedures.KratosPrintWarning("Using a default rolling friction model [DEMRollingFrictionModelBounded] for material relation with parameter \"material_ids_list\": [" + str(parent_id) + ", " + str(properties.Id) + "]")
 
         rolling_friction_model = globals().get(properties[DEM_ROLLING_FRICTION_MODEL_NAME])()
         rolling_friction_model.SetAPrototypeOfThisInProperties(properties, False)

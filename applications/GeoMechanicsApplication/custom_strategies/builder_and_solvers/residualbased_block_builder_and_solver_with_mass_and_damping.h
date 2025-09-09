@@ -107,8 +107,7 @@ public:
     using ConditionsArrayType   = typename BaseType::ConditionsArrayType;
 
     /// Additional definitions
-    using ElementsContainerType = PointerVectorSet<Element, IndexedObject>;
-    using EquationIdVectorType  = Element::EquationIdVectorType;
+    using EquationIdVectorType = Element::EquationIdVectorType;
 
     ///@}
     ///@name Life Cycle

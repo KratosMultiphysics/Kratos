@@ -734,7 +734,7 @@ class TestModelPart(KratosUnittest.TestCase):
 
         ### here we test adding a list of nodes at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
-        with self.assertRaisesRegex(RuntimeError, "Error: while adding nodes to submodelpart, the node with Id 4 does not exist in the root model part"):
+        with self.assertRaisesRegex(RuntimeError, "Error: while adding nodes to submodelpart Main.sub1, the node with Id 4 does not exist in the root model part"):
             sub1.AddNodes([4,5])
 
         model_part1.AddNode( n4, 0 )
@@ -783,7 +783,7 @@ class TestModelPart(KratosUnittest.TestCase):
 
         ### here we test adding a list of conditions at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
-        with self.assertRaisesRegex(RuntimeError, "Error: the condition with Id 4 does not exist in the root model part"):
+        with self.assertRaisesRegex(RuntimeError, "Error: while adding conditions to submodelpart Main.sub1, the condition with Id 4 does not exist in the root model part"):
             sub1.AddConditions([4,5])
 
         model_part1.AddCondition( c4, 0 )
@@ -831,7 +831,7 @@ class TestModelPart(KratosUnittest.TestCase):
 
        ### here we test adding a list of elements at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
-        with self.assertRaisesRegex(RuntimeError, "Error: the element with Id 4 does not exist in the root model part"):
+        with self.assertRaisesRegex(RuntimeError, "Error: while adding elements to submodelpart Main.sub1, the element with Id 4 does not exist in the root model part"):
             sub1.AddElements([4,5])
 
         model_part1.AddElement( e4, 0 )

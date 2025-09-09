@@ -18,10 +18,7 @@
 #include "custom_utilities/model_subdivision_utilities.h"
 
 
-namespace Kratos
-{
-namespace Testing
-{
+namespace Kratos::Testing {
 
 
 KRATOS_TEST_CASE_IN_SUITE(ModelSubdivisionUtilitiesSortNodesBySlabs, KratosWindEngineeringFastSuite)
@@ -181,5 +178,4 @@ KRATOS_TEST_CASE_IN_SUITE(ModelSubdivisionUtilitiesSlabStack, KratosCoreFastSuit
 }
 
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

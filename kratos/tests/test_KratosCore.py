@@ -100,6 +100,9 @@ import test_obj_io
 import test_import_obj_modeler
 import test_vectorized_interpolation
 import test_clean_up_problematic_triangles_modeler
+import test_tetrahedral_mesh_orientation_check
+import test_nd_data
+import test_tensor_adaptors
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -186,6 +189,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilitiesCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilities2DSymmetricalSquare]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_utilities.TestSensitivityUtilitiesTwoDimSymmetricalSquare]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_utilities.TestSensitivityUtilitiesGetSensitivityVariableName]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_file_name_data_collector.TestFileNameDataCollector]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_function_parser_utility.TestGenericFunctionUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_integration_points.TestIntegrationPoints]))
@@ -226,6 +230,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_import_obj_modeler.TestImportOBJModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vectorized_interpolation.TestVectorizedInterpolation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_clean_up_problematic_triangles_modeler.TestCleanUpProblematicTrianglesModeler]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tetrahedral_mesh_orientation_check.TestTetrahedralMeshOrientationCheck]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nd_data.TestNDData]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TestTensorAdaptors]))
 
 
     if sympy_available:

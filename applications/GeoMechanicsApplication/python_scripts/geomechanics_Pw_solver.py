@@ -85,9 +85,7 @@ class PwSolver(GeoSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [""],
-            "loads_sub_model_part_list": [],
-            "loads_variable_list": []
+            "body_domain_sub_model_part_list": [""]
         }""")
 
         this_defaults.AddMissingParameters(super().GetDefaultParameters())

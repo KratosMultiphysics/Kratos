@@ -53,8 +53,10 @@ public:
         mModel.CreateModelPart("dummy", 2);
     }
 
-    template <class T>
-    void TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents()
+    template <class T, typename AddComponentToModelPartCallable, typename InitializeComponentsInModelPartCallable>
+    void TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents(
+        const AddComponentToModelPartCallable&         rAddComponentTo,
+        const InitializeComponentsInModelPartCallable& rInitializeComponentsInModelPart)
     {
         typename T::EquationIdVectorType r_equation_id_vector;
         ProcessInfo                      r_process_info;
@@ -69,6 +71,10 @@ public:
         inactive_component->SetId(1);
         inactive_component->Set(ACTIVE, false);
 
+        auto& r_model_part = mModel.GetModelPart("dummy");
+        rAddComponentTo(r_model_part, active_component);
+        rAddComponentTo(r_model_part, inactive_component);
+
         EXPECT_CALL(*active_component, EquationIdVector(testing::_, testing::_)).Times(1);
         mScheme.EquationId(*active_component.get(), r_equation_id_vector, r_process_info);
 
@@ -80,6 +86,10 @@ public:
 
         EXPECT_CALL(*inactive_component, GetDofList(testing::_, testing::_)).Times(1);
         mScheme.GetDofList(*inactive_component.get(), r_dofs_vector, r_process_info);
+
+        EXPECT_CALL(*inactive_component, Initialize(testing::_)).Times(1);
+        EXPECT_CALL(*active_component, Initialize(testing::_)).Times(1);
+        rInitializeComponentsInModelPart(mScheme, r_model_part);
     }
 
     template <class T>
@@ -184,17 +194,32 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveCon
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyCondition>();
 }
 
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsCalledOnActiveAndInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoMechanicsSchemeTester tester;
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyElement>(
+        [](auto& rModelPart, auto& rElement) { rModelPart.AddElement(rElement); },
+        [](auto& rScheme, auto& rModelPart) { rScheme.InitializeElements(rModelPart); });
+}
+
 KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsCalledOnActiveAndInactiveConditions,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>();
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>(
+        [](auto& rModelPart, auto& rCondition) { rModelPart.AddCondition(rCondition); },
+        [](auto& rScheme, auto& rModelPart) {
+        rScheme.SetElementsAreInitialized(); // Precondition for initializing the conditions
+        rScheme.InitializeConditions(rModelPart);
+    });
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsCalledOnActiveAndInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(InitializeConditions_Throws_IfElementsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyElement>();
+    tester.Setup();
+    auto& model_part = tester.GetModelPart();
+    EXPECT_THROW(tester.mScheme.InitializeConditions(model_part), Kratos::Exception);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,

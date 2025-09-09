@@ -297,7 +297,7 @@ namespace Kratos
         KRATOS_TRY
 
         // Check all points are in MPM grid geom bounding box
-        Node low, high;
+        Point low, high;
         rReferenceGeom.BoundingBox(low, high);
         const SizeType geom_dim = rReferenceGeom.WorkingSpaceDimension();
         for (size_t i = 0; i < rPoints.size(); ++i) {
@@ -321,7 +321,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            NodeType point_low, point_high;
+        Point point_low, point_high;
         for (size_t i = 0; i < rIntersectedGeometries.size(); ++i) {
             if (rIntersectedGeometries[i]->GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) {
                 #pragma omp single
@@ -406,7 +406,7 @@ namespace Kratos
         if (rGeom.WorkingSpaceDimension() == 3)
         {
             std::vector<Boost2DPointType> rPolygonPoints(5);
-            NodeType point_low, point_high;
+            Point point_low, point_high;
             rGeom.BoundingBox(point_low, point_high);
 
             if (XActive && YActive && !ZActive)
@@ -670,7 +670,7 @@ namespace Kratos
         const double z_coord = (rGeom.WorkingSpaceDimension() == 3) ? SideHalfLength : 0.0;
         const Point point_low(rCoord[0] - SideHalfLength, rCoord[1] - SideHalfLength, rCoord[2] - z_coord);
         const Point point_high(rCoord[0] + SideHalfLength, rCoord[1] + SideHalfLength, rCoord[2] + z_coord);
-        NodeType ele_point_low, ele_point_high;
+        Point ele_point_low, ele_point_high;
 
         const double dimension_45_degree_factor = (rGeom.WorkingSpaceDimension() == 3) ? 1.7321 : 1.414214;
         double center_to_center = norm_2(rGeom.Center() - rCoord);

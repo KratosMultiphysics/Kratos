@@ -39,7 +39,7 @@ namespace Kratos
   {
   }
 
-  //*******************************ASSIGMENT OPERATOR***********************************
+  //******************************ASSIGNMENT OPERATOR***********************************
   //************************************************************************************
 
   ConstitutiveModel& ConstitutiveModel::operator=(const ConstitutiveModel& rOther)

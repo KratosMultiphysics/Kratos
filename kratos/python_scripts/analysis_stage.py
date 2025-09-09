@@ -64,7 +64,6 @@ class AnalysisStage(object):
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
-            self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -319,7 +318,7 @@ class AnalysisStage(object):
 
     @classmethod
     def __BackwardCompatibleModelersCreation(self, modelers_list):
-        return any([modeler.Has("modeler_name") for modeler in modelers_list])
+        return any([modeler.Has("modeler_name") for modeler in modelers_list.values()])
 
     ### Processes
     def _GetListOfProcesses(self):
@@ -410,19 +409,3 @@ class AnalysisStage(object):
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
         self._list_of_output_processes.extend(deprecated_output_processes)
-
-    def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
-        """In case the solver does not return the state of convergence
-        (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
-
-        """
-        if is_converged is None:
-            if not hasattr(self, '_map_ret_val_depr_warnings'):
-                self._map_ret_val_depr_warnings = []
-            solver_class_name = self._GetSolver().__class__.__name__
-            # used to only print the deprecation-warning once
-            if not solver_class_name in self._map_ret_val_depr_warnings:
-                self._map_ret_val_depr_warnings.append(solver_class_name)
-                warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
-                warn_msg += 'the state of convergence from "SolveSolutionStep"'
-                IssueDeprecationWarning("AnalysisStage", warn_msg)

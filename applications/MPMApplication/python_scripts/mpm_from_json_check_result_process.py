@@ -21,7 +21,7 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
-    model -- the model contaning the model_parts
+    model -- the model containing the model_parts
     settings -- Kratos parameters containing solver settings.
     """
 
@@ -30,7 +30,7 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model -- the model contaning the model_parts
+        model -- the model containing the model_parts
         settings -- Kratos parameters containing solver settings.
         """
         KratosMultiphysics.Process.__init__(self)
@@ -43,6 +43,7 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
             "input_file_name"      : "",
             "model_part_name"      : "",
             "sub_model_part_name"  : "",
+            "entity_type"          : "Element",
             "check_for_flag"       : "",
             "historical_value"     : true,
             "tolerance"            : 1e-3,
@@ -57,8 +58,12 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
         self.params = params
         self.model  = model
 
+        self.entity_type = self.params["entity_type"].GetString()
+        if self.entity_type not in ["Element", "Condition"]:
+            raise RuntimeError('"entity_type" must be "Element" or "Condition"')
+
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -152,7 +157,7 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
                                 value_json = values_json[index] # self.__linear_interpolation(time, input_time_list, values_json[index])
                                 self.__check_values(node.Id, "Node", value[index], value_json, variable_name)
             # Nodal values
-            for elem in self.__get_elements():
+            for elem in self.__get_entities():
                 compute = self.__check_flag(elem)
 
                 if compute is True:
@@ -291,7 +296,7 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
         else:
             return self.model_part.Nodes
 
-    def __get_elements(self):
+    def __get_entities(self):
         """ returns the elements to be checked
         Either only local or all (local and ghost)
         This is ONLY relevant in MPI
@@ -300,10 +305,17 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
         self -- It signifies an instance of a class.
         node -- The Kratos node to get the identifier for
         """
+
         if self.check_only_local_entities:
-            return self.model_part.GetCommunicator().LocalMesh().Elements
+            if self.entity_type == "Element":
+                return self.model_part.GetCommunicator().LocalMesh().Elements
+            else:
+                return self.model_part.GetCommunicator().LocalMesh().Conditions
         else:
-            return self.model_part.Elements
+            if self.entity_type == "Element":
+                return self.model_part.Elements
+            else:
+                return self.model_part.Conditions
 
 def ComputeRelevantDigits(number):
     """ Computes the relevant digits
@@ -316,6 +328,14 @@ class MPMFromJsonCheckResultProcess(LegacyFromJsonCheckResultProcess, KratosUnit
 
     def __init__(self, model_part, params):
         super(MPMFromJsonCheckResultProcess, self).__init__(model_part, params)
+
+    def ExecuteBeforeSolutionLoop(self):
+        if self.entity_type == "Condition":
+            model_part_name = self.params["model_part_name"].GetString()
+            if (model_part_name.startswith('Background_Grid.')):
+                model_part_name = model_part_name.replace('Background_Grid.','')
+            mpm_condition_model_part_name = "MPM_Material." + model_part_name
+            self.model_part = self.model[mpm_condition_model_part_name]
 
     def ExecuteFinalizeSolutionStep(self):
 
@@ -330,7 +350,7 @@ class MPMFromJsonCheckResultProcess(LegacyFromJsonCheckResultProcess, KratosUnit
             input_time_list = self.data["TIME"]
 
             # Material points values
-            for mp in self.model_part.Elements:
+            for mp in self.__get_entities():
                 compute = self.__check_flag(mp)
 
                 if (compute == True):
@@ -386,6 +406,16 @@ class MPMFromJsonCheckResultProcess(LegacyFromJsonCheckResultProcess, KratosUnit
 
         # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
         return [ KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
+
+    def __get_entities(self):
+
+        if self.entity_type == "Element":
+            return self.model_part.Elements
+        elif self.entity_type == "Condition":
+            return self.model_part.Conditions
+        else:
+            raise RuntimeError('"entity_type" must be "Element" or "Condition"')
+
 
     def __check_flag(self, component):
 

@@ -38,6 +38,7 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
     kratos_add_gtests(TARGET KratosGeoMechanicsCore SOURCES "${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES}")
+    set_target_properties("KratosGeoMechanicsCoreTest" PROPERTIES CXX_STANDARD 20)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## GeoMechanics python interface sources
@@ -45,14 +46,14 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURR
 
 add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_CORE})
 target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosLinearSolversCore ${CMAKE_DL_LIBS})
-set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API")
+set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API" CXX_STANDARD 20)
 
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosGeoMechanicsApplication MODULE THIN_LTO ${KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosGeoMechanicsApplication PRIVATE KratosGeoMechanicsCore)
-set_target_properties(KratosGeoMechanicsApplication PROPERTIES PREFIX "")
+set_target_properties(KratosGeoMechanicsApplication PROPERTIES PREFIX "" CXX_STANDARD 20)
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
@@ -84,8 +85,6 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/
 if(CMAKE_UNITY_BUILD MATCHES ON)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_element.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_FIC_element.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_truss_element_base.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/geo_cable_element_base.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Install python files
