@@ -518,7 +518,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                     item["expected_total_u_y"],
                     places=None,
                     delta=item["delta"],
-                    msg=f"total vertical displacement at node {node_id} at time {item["time_in_s"]} [s]",
+                    msg=f"total vertical displacement at node {node_id} at time {item['time_in_s']} [s]",
                 )
 
         if test_helper.want_test_plots():
