@@ -12,6 +12,7 @@
 //
 
 #include "incremental_linear_elastic_interface_law.h"
+#include "custom_utilities/check_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "geo_mechanics_application_variables.h"
 
@@ -98,19 +99,10 @@ int GeoIncrementalLinearElasticInterfaceLaw::Check(const Properties& rMaterialPr
 {
     const auto result = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACE_NORMAL_STIFFNESS))
-        << "No interface normal stiffness is defined" << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[INTERFACE_NORMAL_STIFFNESS] > 0.0)
-        << "Interface normal stiffness must be positive, but got "
-        << rMaterialProperties[INTERFACE_NORMAL_STIFFNESS] << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(INTERFACE_SHEAR_STIFFNESS))
-        << "No interface shear stiffness is defined" << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[INTERFACE_SHEAR_STIFFNESS] > 0.0)
-        << "Interface shear stiffness must be positive, but got "
-        << rMaterialProperties[INTERFACE_SHEAR_STIFFNESS] << std::endl;
+    const CheckProperties check_properties(rMaterialProperties, "material properties",
+                                           CheckProperties::Bounds::AllExclusive);
+    check_properties.Check(INTERFACE_NORMAL_STIFFNESS);
+    check_properties.Check(INTERFACE_SHEAR_STIFFNESS);
 
     return result;
 }

@@ -8,10 +8,12 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Gennady Markelov
+//                   Richard Faasse
 //
 
 // Project includes
 #include "check_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/exception.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -70,6 +72,23 @@ std::string CheckUtilities::PrintVectorContent(const std::vector<size_t>& rVecto
     if (!output.empty()) output.pop_back();
 
     return output;
+}
+
+void CheckProperties::CheckPermeabilityProperties(size_t Dimension) const
+{
+    const auto original_bounds_type = mRangeBoundsType;
+    SetNewRangeBounds(Bounds::InclusiveLowerAndExclusiveUpper);
+    Check(PERMEABILITY_XX);
+    if (Dimension > 1) {
+        Check(PERMEABILITY_YY);
+        Check(PERMEABILITY_XY);
+    }
+    if (Dimension > 2) {
+        Check(PERMEABILITY_ZZ);
+        Check(PERMEABILITY_YZ);
+        Check(PERMEABILITY_ZX);
+    }
+    mRangeBoundsType = original_bounds_type;
 }
 
 void CheckUtilities::CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeometry)

@@ -17,6 +17,7 @@
 #include "geometries/geometry.h"
 #include "includes/define.h"
 #include "includes/node.h"
+#include "includes/properties.h"
 #include "includes/variables.h"
 
 #include <optional>
@@ -41,4 +42,124 @@ public:
 private:
     static std::string PrintVectorContent(const std::vector<size_t>& rVector);
 }; /* Class CheckUtilities*/
+
+class KRATOS_API(GEO_MECHANICS_APPLICATION) CheckProperties
+{
+public:
+    enum class Bounds {
+        AllInclusive,
+        AllExclusive,
+        InclusiveLowerAndExclusiveUpper,
+        ExclusiveLowerAndInclusiveUpper
+    };
+
+    CheckProperties(const Properties& rProperties, const std::string& rPrintName, Bounds RangeBoundsType)
+        : mrProperties(rProperties), mrPrintName(rPrintName), mId(rProperties.Id()), mRangeBoundsType(RangeBoundsType)
+    {
+    }
+
+    CheckProperties(const Properties& rProperties, const std::string& rPrintName, std::size_t Id, Bounds RangeBoundsType)
+        : mrProperties(rProperties), mrPrintName(rPrintName), mId(Id), mRangeBoundsType(RangeBoundsType)
+    {
+    }
+
+    CheckProperties(const CheckProperties&) = delete;
+
+    CheckProperties(CheckProperties&&) = default;
+
+    CheckProperties SingleUseBounds(Bounds RangeBoundsType) const
+    {
+        return CheckProperties(mrProperties, mrPrintName, mId, RangeBoundsType);
+    }
+
+    void SetNewRangeBounds(Bounds RangeBoundsType) const { mRangeBoundsType = RangeBoundsType; }
+
+    template <typename T>
+    void Check(const Variable<T>& rVariable) const
+    {
+        CheckAvailability(rVariable);
+        CheckRangeBounds(rVariable, mDefaultLowerBound, std::nullopt);
+    }
+
+    template <typename T>
+    void Check(const Variable<T>& rVariable, double UpperBound) const
+    {
+        CheckAvailability(rVariable);
+        CheckRangeBounds(rVariable, mDefaultLowerBound, UpperBound);
+    }
+
+    template <typename T>
+    void Check(const Variable<T>& rVariable, double LowerBound, double UpperBound) const
+    {
+        CheckAvailability(rVariable);
+        CheckRangeBounds(rVariable, LowerBound, UpperBound);
+    }
+
+    template <typename T>
+    void CheckAvailability(const Variable<T>& rVariable) const
+    {
+        if (!mrProperties.Has(rVariable))
+            KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName
+                         << " with Id " << mId << "." << std::endl;
+    }
+
+    template <typename T>
+    void CheckAvailabilityAndNotEmpty(const Variable<T>& rVariable) const
+    {
+        CheckAvailability(rVariable);
+        if (mrProperties[rVariable].empty())
+            KRATOS_ERROR << rVariable.Name() << " is empty in the " << mrPrintName << " with Id "
+                         << mId << "." << std::endl;
+    }
+
+    void CheckPermeabilityProperties(size_t Dimension) const;
+
+private:
+    const Properties& mrProperties;
+    const std::string mrPrintName;
+    const std::size_t mId;
+    mutable Bounds    mRangeBoundsType;
+    const double      mDefaultLowerBound = 0.0;
+
+    template <typename T>
+    void CheckRangeBounds(const Variable<T>& rVariable, double LowerBound, std::optional<double> UpperBound) const
+    {
+        const auto value = mrProperties[rVariable];
+        bool       in_range;
+        using enum CheckProperties::Bounds;
+
+        switch (mRangeBoundsType) {
+        case AllExclusive:
+            in_range = (value > LowerBound && (!UpperBound || value < *UpperBound));
+            break;
+        case AllInclusive:
+            in_range = (value >= LowerBound && (!UpperBound || value <= *UpperBound));
+            break;
+        case InclusiveLowerAndExclusiveUpper:
+            in_range = (value >= LowerBound && (!UpperBound || value < *UpperBound));
+            break;
+        case ExclusiveLowerAndInclusiveUpper:
+            in_range = (value > LowerBound && (!UpperBound || value <= *UpperBound));
+            break;
+        default:
+            KRATOS_ERROR << " Unknown type of range bounds";
+            break;
+        }
+        if (!in_range) {
+            std::ostringstream print_range;
+            const auto         include_lower_bound = (mRangeBoundsType == AllInclusive) ||
+                                             (mRangeBoundsType == InclusiveLowerAndExclusiveUpper);
+            const auto include_upper_bound =
+                UpperBound && ((mRangeBoundsType == AllInclusive) ||
+                               (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper));
+            print_range << (include_lower_bound ? "[" : "(") << LowerBound << "; "
+                        << (UpperBound ? std::to_string(*UpperBound) : "-")
+                        << (include_upper_bound ? "]" : ")");
+            KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " with Id " << mId
+                         << " has an invalid value: " << value << " is out of the range "
+                         << print_range.str() << "." << std::endl;
+        }
+    }
+};
+
 } /* namespace Kratos.*/
