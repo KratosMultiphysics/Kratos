@@ -26,8 +26,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     KRATOS_TRY
 
-    BuiltinTimer timer;
-
     if (mrModelPart.Conditions().empty()) return;
 
     hashmap condition_node_ids_to_condition;
@@ -58,11 +56,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, rBoundaryGeometries);
     }
 
-    if (AllConditionsAreVisited()) {
-        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess")
-            << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
-        return;
-    }
+    if (AllConditionsAreVisited()) return;
 
     // Now try point loads:
     for (auto& r_element : mrModelPart.Elements()) {
@@ -73,11 +67,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
             condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, rBoundaryGeometries);
     }
 
-    if (AllConditionsAreVisited()) {
-        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess")
-            << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
-        return;
-    }
+    if (AllConditionsAreVisited()) return;
 
     // check edges of 3D geometries:
     // Now loop over all elements and check if one of the faces is in the "FacesMap"
@@ -92,17 +82,20 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         }
     }
 
-    if (AllConditionsAreVisited()) {
-        KRATOS_INFO("FindNeighbourElementsOfConditionsProcess")
-            << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
-        return;
-    }
+    if (AllConditionsAreVisited()) return;
+
     // check 1D elements, note that this has to happen after procedures to find 2 and 3d neighbours are already performed, such that 1D elements are only added
     // as neighbours when the condition is not neighbouring 2D or 3D elements
-    this->CheckIf1DElementIsNeighbour(condition_node_ids_to_condition);
+    for (auto& r_element : mrModelPart.Elements()) {
+        const auto& r_geometry_element = r_element.GetGeometry();
+        if (r_geometry_element.LocalSpaceDimension() == 1) {
+            const auto& r_boundary_geometries = r_geometry_element.GenerateEdges();
 
-    KRATOS_INFO("FindNeighbourElementsOfConditionsProcess")
-        << "Execute took " << timer.ElapsedSeconds() << " seconds" << std::endl;
+            AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+                condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element,
+                r_boundary_geometries);
+        }
+    }
 
     // check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     auto all_conditions_visited = true;
@@ -119,7 +112,10 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 }
 
 void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-    hashmap& FacesMap, const hashmap2& FacesMapSorted, Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries) const
+    hashmap&                                   FacesMap,
+    const hashmap2&                            FacesMapSorted,
+    Element&                                   rElement,
+    const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries) const
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         std::vector<IndexType> element_boundary_node_ids(r_boundary_geometry.size());
@@ -168,37 +164,6 @@ bool FindNeighbourElementsOfConditionsProcess::AllConditionsAreVisited() const
 {
     return std::ranges::all_of(mrModelPart.Conditions(),
                                [](const auto& rCondition) { return rCondition.Is(VISITED); });
-}
-
-void FindNeighbourElementsOfConditionsProcess::CheckIf1DElementIsNeighbour(hashmap& rFacesMap)
-{
-    // Now loop over all elements and check if one of the faces is in the "FacesMap"
-    for (auto& r_element : mrModelPart.Elements()) {
-        const auto& r_geometry_element = r_element.GetGeometry();
-
-        // for 1D elements, the edge geometry is the same as the element geometry
-        if (r_geometry_element.LocalSpaceDimension() == 1) {
-            const auto boundary_geometries = PointerVector(r_geometry_element.GenerateEdges());
-
-            for (IndexType iFace = 0; iFace < boundary_geometries.size(); ++iFace) {
-                std::vector<std::size_t> FaceIds(boundary_geometries[iFace].size());
-
-                const auto& r_nodes = boundary_geometries[iFace];
-
-                // get face node IDs
-                std::transform(r_nodes.begin(), r_nodes.end(), FaceIds.begin(),
-                               [](const auto& r_node) { return r_node.Id(); });
-
-                auto itFace = rFacesMap.find(FaceIds);
-
-                if (itFace != rFacesMap.end()) {
-                    // condition is found!
-                    // but check if there are more than one condition on the element
-                    CheckForMultipleConditionsOnElement(rFacesMap, itFace->first, &r_element);
-                }
-            }
-        }
-    }
 }
 
 void FindNeighbourElementsOfConditionsProcess::CheckForMultipleConditionsOnElement(

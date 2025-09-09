@@ -19,22 +19,22 @@
 namespace Kratos
 {
 
-using hashmap = std::unordered_multimap<std::vector<std::size_t>,
-                                        std::vector<Condition::Pointer>,
-                                        KeyHasherRange<std::vector<std::size_t>>,
-                                        KeyComparorRange<std::vector<std::size_t>>>;
+using hashmap  = std::unordered_multimap<std::vector<std::size_t>,
+                                         std::vector<Condition::Pointer>,
+                                         KeyHasherRange<std::vector<std::size_t>>,
+                                         KeyComparorRange<std::vector<std::size_t>>>;
 using hashmap2 = std::unordered_multimap<std::vector<std::size_t>,
-                                        std::vector<std::size_t>,
-                                        KeyHasherRange<std::vector<std::size_t>>,
-                                        KeyComparorRange<std::vector<std::size_t>>>;
+                                         std::vector<std::size_t>,
+                                         KeyHasherRange<std::vector<std::size_t>>,
+                                         KeyComparorRange<std::vector<std::size_t>>>;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighbourElementsOfConditionsProcess : public Process
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(FindNeighbourElementsOfConditionsProcess);
 
-    using IndexType = std::size_t;
-    using NodeType = Node;
+    using IndexType    = std::size_t;
+    using NodeType     = Node;
     using GeometryType = Geometry<NodeType>;
 
     explicit FindNeighbourElementsOfConditionsProcess(ModelPart& rModelPart)
@@ -60,15 +60,13 @@ private:
 
     [[nodiscard]] bool AllConditionsAreVisited() const;
 
-    void CheckIf1DElementIsNeighbour(hashmap& rFacesMap);
-
-    static void CheckForMultipleConditionsOnElement(hashmap&                 rFacesMap,
+    static void CheckForMultipleConditionsOnElement(hashmap&                        rFacesMap,
                                                     const std::vector<std::size_t>& key,
-                                                    Element*                 pElement);
+                                                    Element*                        pElement);
 
     void AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         hashmap&                                   FacesMap,
-        const hashmap2&                             FacesMapSorted,
+        const hashmap2&                            FacesMapSorted,
         Element&                                   rElement,
         const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries) const;
     bool FindPermutations(std::vector<std::size_t>        elements_boundary_node_ids,
