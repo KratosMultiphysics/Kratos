@@ -157,6 +157,9 @@ namespace
         static const std::regex space_re(R"(\s+)");
         d_name = std::regex_replace(d_name, space_re, "");
 
+        // Strip the trailing * from the usage of pointer types
+        d_name.pop_back();
+
         return d_name;
     }
 
