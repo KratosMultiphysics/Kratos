@@ -50,17 +50,16 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     int ierr = Element::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
+    const auto element_Id = this->Id();
+    CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), element_Id);
 
     // Verify generic variables
     ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    // Verify specific properties
-    if (!r_properties.Has(BULK_MODULUS_FLUID) || r_properties[BULK_MODULUS_FLUID] < 0.0)
-        KRATOS_ERROR << "BULK_MODULUS_FLUID has Key zero, is not defined or "
-                        "has an invalid value at element "
-                     << this->Id() << std::endl;
+    const CheckProperties check_properties(r_properties, "material properties at element",
+                                           element_Id, CheckProperties::Bounds::AllExclusive);
+    check_properties.Check(BULK_MODULUS_FLUID);
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
