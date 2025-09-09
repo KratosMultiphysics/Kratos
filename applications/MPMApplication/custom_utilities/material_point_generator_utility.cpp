@@ -546,15 +546,15 @@ namespace Kratos::MaterialPointGeneratorUtility
 
         }
 
-        // Scale TANGENTIAL_PENALTY_FACTOR by NODAL_AREA (in effect incorporating the integration weight)
+        // Scale TANGENTIAL_PENALTY_COEFFICIENT by NODAL_AREA (in effect incorporating the integration weight)
         block_for_each(rBackgroundGridModelPart.Nodes(), [&](Node& rNode)
         {
             const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
             double modified_factor;
 
             if (rNode.Is(SLIP)){
-                modified_factor = rConstNode.GetValue(NODAL_AREA) * rConstNode.GetValue(TANGENTIAL_PENALTY_FACTOR);
-                rNode.SetValue(TANGENTIAL_PENALTY_FACTOR, modified_factor);
+                modified_factor = rConstNode.GetValue(NODAL_AREA) * rConstNode.GetValue(TANGENTIAL_PENALTY_COEFFICIENT);
+                rNode.SetValue(TANGENTIAL_PENALTY_COEFFICIENT, modified_factor);
             }
         });
 
