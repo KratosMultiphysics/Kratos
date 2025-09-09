@@ -180,7 +180,7 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::vector<std::size_t>{3, 1, 2},
                                            std::vector<std::size_t>{2, 3, 1}));
 
-TEST(FindNeighbourElementsOfConditionsProcessTest, TestPointCondition)
+KRATOS_TEST_CASE_IN_SUITE(TestPointSource, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(model);
@@ -198,7 +198,30 @@ TEST(FindNeighbourElementsOfConditionsProcessTest, TestPointCondition)
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
-TEST(FindNeighbourElementsOfConditionsProcessTest, TestMultipleConditionsOnTheSameNodes)
+KRATOS_TEST_CASE_IN_SUITE(SomeTest, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& r_model_part=model.CreateModelPart("Main");
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.pGetNode(1));
+    nodes.push_back(r_model_part.pGetNode(2));
+    auto p_element = ElementSetupUtilities::Create2D2NElement(nodes, std::make_shared<Properties>(0));
+    r_model_part.AddElement(p_element);
+
+    auto p_condition = ElementSetupUtilities::Create2D2NCondition(nodes);
+    r_model_part.AddCondition(p_condition);
+
+    FindNeighbourElementsOfConditionsProcess process(r_model_part);
+
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+    process.Execute();
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestMultipleConditionsOnTheSameNodes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(model);

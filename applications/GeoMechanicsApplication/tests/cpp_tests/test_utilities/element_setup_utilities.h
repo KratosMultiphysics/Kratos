@@ -35,6 +35,8 @@ public:
     static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
     static Element::Pointer Create2D3NElement();
+    static Element::Pointer Create2D2NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties);
 
     static Condition::Pointer Create3D3NCondition(const PointerVector<Node>& rNodes);
 
@@ -44,6 +46,7 @@ public:
 
     static Condition::Pointer Create3D8NCondition(const PointerVector<Node>& rNodes);
     static Condition::Pointer Create3D1NCondition(const PointerVector<Node>& rNodes);
+    static Condition::Pointer Create2D2NCondition(const PointerVector<Node>& rNodes);
     static Condition::Pointer Create3D3NLineCondition(const PointerVector<Node>& rNodes);
 
     static Element::Pointer Create2D6NElement(const PointerVector<Node>& rNodes,
