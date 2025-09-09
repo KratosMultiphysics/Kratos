@@ -61,15 +61,7 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
                                            element_Id, CheckProperties::Bounds::AllExclusive);
     check_properties.Check(BULK_MODULUS_FLUID);
 
-    // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-        << "Constitutive law not provided for property " << r_properties.Id() << std::endl;
-
-    if (!r_properties[CONSTITUTIVE_LAW])
-        KRATOS_ERROR << "A constitutive law needs to be specified for the "
-                        "element "
-                     << this->Id() << std::endl;
-
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
 
     const auto expected_sizes = (TDim == 2 ? std::vector<std::size_t>{3, 4} : std::vector<std::size_t>{6});
