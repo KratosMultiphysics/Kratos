@@ -78,11 +78,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     if (!r_prop[IGNORE_UNDRAINED])
         check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
 
-    // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW))
-        << "Constitutive law not provided for property " << r_prop.Id() << std::endl;
-
-    // verify compatibility with the constitutive law
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     ConstitutiveLaw::Features LawFeatures;
     r_prop.GetValue(CONSTITUTIVE_LAW)->GetLawFeatures(LawFeatures);
 
@@ -95,19 +91,11 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
         << std::endl;
 
     r_prop.GetValue(CONSTITUTIVE_LAW)->Check(r_prop, r_geom, rCurrentProcessInfo);
-
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strainSize = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    if (r_geom.WorkingSpaceDimension() > 2) {
-        KRATOS_ERROR_IF_NOT(strainSize == VOIGT_SIZE_3D)
-            << "Wrong constitutive law used. This is a 3D element! expected strain size is " << VOIGT_SIZE_3D
-            << " But received: " << strainSize << " in element id: " << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strainSize == VOIGT_SIZE_2D_PLANE_STRAIN)
-            << "Wrong constitutive law used. This is a 2D element! expected strain size is "
-            << VOIGT_SIZE_2D_PLANE_STRAIN << " But received: " << strainSize
-            << " in element id: " << this->Id() << std::endl;
-    }
+    const auto expected_sizes =
+        (r_geom.WorkingSpaceDimension() == 2 ? std::vector<std::size_t>{VOIGT_SIZE_2D_PLANE_STRAIN}
+                                             : std::vector<std::size_t>{VOIGT_SIZE_3D});
+    ConstitutiveLawUtilities::CheckStrainSize(r_prop, expected_sizes,
+                                              r_geom.WorkingSpaceDimension(), this->Id());
 
     return RetentionLaw::Check(mRetentionLawVector, r_prop, rCurrentProcessInfo);
 
