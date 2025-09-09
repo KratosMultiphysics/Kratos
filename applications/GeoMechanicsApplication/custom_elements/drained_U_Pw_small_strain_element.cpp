@@ -57,7 +57,6 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
     const auto expected_sizes = (TDim == 2 ? std::vector<std::size_t>{3, 4} : std::vector<std::size_t>{6});
     ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_sizes, TDim, this->Id());
-    const SizeType strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 
     return ierr;
 
