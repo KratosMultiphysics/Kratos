@@ -87,65 +87,32 @@ protected:
     struct GridVariables
     {
     public:
-        // Material Point Position
-        CoordinatesArrayType xg;
-        // MP_MASS
-        double mass;
-        // MP_DENSITY
-        double density;
-        // grid volume
-        double volume;
-
-        // PENALTY_FACTOR
-        double penalty_factor;
-
-        // Sum of MP volume inside the background grid
-        double mp_volume_sum;
-        //
-        double volume_ratio;
         // stiffness_multiplier (calculated at InitializeSolutionStep)
         double stiffness_multiplier;
 
-        // MP_DISPLACEMENT
-        array_1d<double, 3> displacement;
-        // MP_VELOCITY
-        array_1d<double, 3> velocity;
-        // MP_ACCELERATION
-        array_1d<double, 3> acceleration;
-
-        // MP_VOLUME_ACCELERATION
-        array_1d<double, 3> volume_acceleration;
-
-        // MP_CAUCHY_STRESS_VECTOR
+        // CAUCHY_STRESS_VECTOR
         Vector cauchy_stress_vector;
-        // MP_ALMANSI_STRAIN_VECTOR
+        // ALMANSI_STRAIN_VECTOR
         Vector almansi_strain_vector;
 
-        // MP_DELTA_PLASTIC_STRAIN
+        // DELTA_PLASTIC_STRAIN
         double delta_plastic_strain;
-        // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
+        // DELTA_PLASTIC_VOLUMETRIC_STRAIN
         double delta_plastic_volumetric_strain;
-        // MP_DELTA_PLASTIC_DEVIATORIC_STRAIN
+        // DELTA_PLASTIC_DEVIATORIC_STRAIN
         double delta_plastic_deviatoric_strain;
-        // MP_EQUIVALENT_PLASTIC_STRAIN
+        // EQUIVALENT_PLASTIC_STRAIN
         double equivalent_plastic_strain;
-        // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
+        // ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
         double accumulated_plastic_volumetric_strain;
-        // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
+        // ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
         double accumulated_plastic_deviatoric_strain;
+
+        Matrix  LeftHandSideMatrix;
+
 
         explicit GridVariables()
         {
-            // MP_MASS
-            mass = 1.0;
-            // MP_DENSITY
-            density = 1.0;
-            // MP_VOLUME
-            volume = 0.0;
-
-            // PENALTY_FACTOR
-            penalty_factor = 0.0;
-
             // MP_DELTA_PLASTIC_STRAIN
             delta_plastic_strain = 1.0;
             // MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN
@@ -169,14 +136,6 @@ protected:
 
         void save( Serializer& rSerializer ) const
         {
-            rSerializer.save("xg",xg);
-            rSerializer.save("mass",mass);
-            rSerializer.save("density",density);
-            rSerializer.save("volume",volume);
-            rSerializer.save("displacement",displacement);
-            rSerializer.save("velocity",velocity);
-            rSerializer.save("acceleration",acceleration);
-            rSerializer.save("volume_acceleration",volume_acceleration);
             rSerializer.save("cauchy_stress_vector",cauchy_stress_vector);
             rSerializer.save("almansi_strain_vector",almansi_strain_vector);
             rSerializer.save("delta_plastic_strain",delta_plastic_strain);
@@ -189,14 +148,6 @@ protected:
 
         void load( Serializer& rSerializer )
         {
-            rSerializer.load("xg",xg);
-            rSerializer.load("mass",mass);
-            rSerializer.load("density",density);
-            rSerializer.load("volume",volume);
-            rSerializer.load("displacement",displacement);
-            rSerializer.load("velocity",velocity);
-            rSerializer.load("acceleration",acceleration);
-            rSerializer.load("volume_acceleration",volume_acceleration);
             rSerializer.load("cauchy_stress_vector",cauchy_stress_vector);
             rSerializer.load("almansi_strain_vector",almansi_strain_vector);
             rSerializer.load("delta_plastic_strain",delta_plastic_strain);
@@ -318,6 +269,11 @@ public:
      * Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const  override;
+
+    /**
+     * Get vector of current displacement
+     */
+    void GetCurrentDisp(Vector& rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
 
     //************* STARTING - ENDING  METHODS
 
@@ -517,9 +473,9 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
-        const double& rIntegrationWeight,
         const ProcessInfo& rCurrentProcessInfo);
 
 
@@ -535,9 +491,9 @@ protected:
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
-        const double& rIntegrationWeight,
         const ProcessInfo& rCurrentProcessInfo);
 
     /**

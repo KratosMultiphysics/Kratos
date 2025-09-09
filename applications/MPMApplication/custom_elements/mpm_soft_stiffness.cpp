@@ -151,16 +151,25 @@ void MPMSoftStiffness::Initialize(const ProcessInfo& rCurrentProcessInfo)
         mDeterminantF0 = 1;
         mDeformationGradientF0 = IdentityMatrix(dimension);
 
-
+        
 
         // Initialize grid volume
-        mGridVariables.volume = this->GetGeometry().DomainSize();
-        if (GetGeometry().WorkingSpaceDimension() == 2 && this->GetProperties().Has(THICKNESS)) {
-            mGridVariables.volume *= this->GetProperties()[THICKNESS];
+        double grid_volume = this->GetGeometry().DomainSize();
+        if (rCurrentProcessInfo.GetValue(DOMAIN_SIZE) == 2 && this->GetProperties().Has(THICKNESS))
+        {
+            grid_volume *= this->GetProperties()[THICKNESS];
         }
+        else if (rCurrentProcessInfo.GetValue(DOMAIN_SIZE) == 2 && !this->GetProperties().Has(THICKNESS))
+        {
+            KRATOS_ERROR <<  "Geometry is 2D but Thickness is not given in material properties" << std::endl;
+        }
+        this->SetValue(GRID_VOLUME, grid_volume);
 
         // Initialize penalty factor
-        mGridVariables.penalty_factor = this->GetProperties()[PENALTY_FACTOR]; // TODO: no error thrown when penalty factor value is not set 
+        if (!this->GetProperties().Has(PENALTY_FACTOR)) // temporary check for PENALTY_FACTOR TODO: move to mpm_solver as one of the checks
+        {
+            KRATOS_ERROR <<  "Penalty factor is not initialized" << std::endl;
+        }
 
         const auto& gp_size = this->GetGeometry().IntegrationPointsNumber();
         //Constitutive Law initialisation
@@ -201,7 +210,7 @@ void MPMSoftStiffness::InitializeGeneralVariables (GeneralVariables& rVariables,
     rVariables.StrainVector.resize(strain_size, false );
 
     rVariables.StressVector.resize(strain_size, false );
-
+    
     rVariables.N.resize( number_of_nodes, false );
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
 
@@ -243,6 +252,8 @@ void MPMSoftStiffness::CalculateElementalSystem(
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     Flags &ConstitutiveLawOptions=Values.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     Variables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
     
     // Note: soft stiffness geometry is the background grid geometry, not gauss quadrature
@@ -252,11 +263,21 @@ void MPMSoftStiffness::CalculateElementalSystem(
     // Get geometry's default shape functions, it's derivatives and Jacobian
     VectorType DeterminantsOfJacobian;
     Variables.ShapeFunctions = rGeometry.ShapeFunctionsValues();
+    // KRATOS_WATCH(this->Id())
+    // KRATOS_WATCH(IsActive())
+    // KRATOS_WATCH(mGridVariables.volume_ratio)
+    // KRATOS_WATCH(this->GetValue(TOTAL_MP_VOLUME))
+    // const GeometryType::PointsArrayType& nodes = rGeometry.Points();
+    // for (auto& node : nodes) {
+    //     KRATOS_WATCH(node)
+    // }
+    // KRATOS_WATCH(Variables.ShapeFunctions);
     rGeometry.ShapeFunctionsIntegrationPointsGradients(Variables.ShapeFunctionsGradients, DeterminantsOfJacobian, rThisIntegrationMethod);
     
     // Computing in all integrations points  
     const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints = rGeometry.IntegrationPoints(rThisIntegrationMethod);
     for ( IndexType gp_number = 0; gp_number < rThisIntegrationPoints.size(); ++gp_number ) {
+        // KRATOS_WATCH(gp_number)
         // Set all components to zero
         Variables.N.clear();
         Variables.DN_DX.clear();
@@ -273,17 +294,23 @@ void MPMSoftStiffness::CalculateElementalSystem(
 
         // Calculating weights for integration on the reference configuration
         double integration_weight = CalculateIntegrationWeight(rThisIntegrationPoints[gp_number].Weight(), DeterminantsOfJacobian[gp_number]);
+        // KRATOS_WATCH(integration_weight)
         
         // Contributions to stiffness matrix calculated on the initial reference config
         if ( CalculateStiffnessMatrixFlag ) {
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables, integration_weight, rCurrentProcessInfo);
         }
         // 
-        if ( CalculateResidualVectorFlag ) {
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables, integration_weight, rCurrentProcessInfo);
-        }
+        
     }
+    // KRATOS_WATCH(rLeftHandSideMatrix)
     rLeftHandSideMatrix *= mGridVariables.stiffness_multiplier;
+    if ( CalculateResidualVectorFlag )
+    {
+        this->CalculateAndAddRHS(rLeftHandSideMatrix, rRightHandSideVector, Variables, rCurrentProcessInfo);
+    }
+    // KRATOS_WATCH(mGridVariables.stiffness_multiplier)
+    // KRATOS_WATCH(rLeftHandSideMatrix)
     
 
 
@@ -319,9 +346,13 @@ void MPMSoftStiffness::CalculateKinematics(GeneralVariables& rVariables, const I
     Matrix InvJ;
     double detJ;
     MathUtils<double>::InvertMatrix( Jacobian, InvJ, detJ);
-
+    
     rVariables.N = row(rVariables.ShapeFunctions, GaussPointNumber);
     rVariables.DN_DX = prod(rVariables.ShapeFunctionsGradients[GaussPointNumber], InvJ);
+    // KRATOS_WATCH(rVariables.DN_DX)
+    // KRATOS_WATCH(rVariables.N)
+    // KRATOS_WATCH(rVariables.ShapeFunctionsGradients[GaussPointNumber])
+    // KRATOS_WATCH(InvJ)
     // Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
 
@@ -394,29 +425,32 @@ void MPMSoftStiffness::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 
 void MPMSoftStiffness::CalculateAndAddRHS(
+    MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     GeneralVariables& rVariables,
-    const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
     // Operation performed: rRightHandSideVector -= rLeftHandSideMatrix*CurrentDisp
-    this->CalculateAndAddInternalForces(rRightHandSideVector, rVariables, rIntegrationWeight, rCurrentProcessInfo);
+    this->CalculateAndAddInternalForces(rLeftHandSideMatrix, rRightHandSideVector, rVariables, rCurrentProcessInfo);
 }
 
 //************************************************************************************
 //************************************************************************************
 
 void MPMSoftStiffness::CalculateAndAddInternalForces(
+    MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     GeneralVariables& rVariables,
-    const double& rIntegrationWeight,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+    VectorType current_displacement;
+    this->GetCurrentDisp(current_displacement, rCurrentProcessInfo);
 
-    VectorType internal_forces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
+    VectorType internal_forces = prod(rLeftHandSideMatrix, current_displacement);
     noalias( rRightHandSideVector ) -= internal_forces;
-
+    // KRATOS_WATCH(current_displacement)
+    // KRATOS_WATCH(internal_forces)
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
@@ -443,8 +477,10 @@ void MPMSoftStiffness::CalculateAndAddKuum(
 {
     KRATOS_TRY
 
+    // KRATOS_WATCH(rVariables.B)
+    // KRATOS_WATCH(rVariables.ConstitutiveMatrix)
+    // KRATOS_WATCH(rLeftHandSideMatrix)
     noalias( rLeftHandSideMatrix ) += prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) );
-
     KRATOS_CATCH( "" )
 }
 
@@ -455,16 +491,19 @@ void MPMSoftStiffness::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    MatrixType left_hand_side_matrix = Matrix(0, 0);
-
+    
     const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    MatrixType left_hand_side_matrix = Matrix(mat_size, mat_size);
+    // if (left_hand_side_matrix.size1() != mat_size && rLeftHandSideMatrix.size2() != mat_size) {
+    //     left_hand_side_matrix.resize(mat_size, mat_size, false);
+    // }
     if (rRightHandSideVector.size() != mat_size) {
         rRightHandSideVector.resize(mat_size, false);
     }
     rRightHandSideVector = ZeroVector(mat_size);
 
     CalculateElementalSystem(left_hand_side_matrix, rRightHandSideVector,
-        rCurrentProcessInfo, false, true);
+        rCurrentProcessInfo, true, true);
 }
 
 //************************************************************************************
@@ -521,40 +560,40 @@ void MPMSoftStiffness::InitializeSolutionStep(const ProcessInfo& rCurrentProcess
     In the InitializeSolutionStep of each time step the nodal initial Elements are evaluated.
     This function is called by the base scheme class.*/
     
+    mGridVariables.stiffness_multiplier = 0.0;
+
     // Get the sum of MP_Volume inside parent geometry
     KRATOS_DEBUG_ERROR_IF(!this->GetGeometry().Has(TOTAL_MP_VOLUME)) << "The TOTAL_MP_VOLUME variable is not defined in the parent geometry." << std::endl;
-    mGridVariables.mp_volume_sum = this->GetGeometry().GetValue(TOTAL_MP_VOLUME);
-    mGridVariables.volume_ratio = mGridVariables.mp_volume_sum / mGridVariables.volume;
+    double volume_ratio = this->GetValue(TOTAL_MP_VOLUME) / this->GetValue(GRID_VOLUME);
     // Calculate the scalar multiplier for soft stiffness (input scalar * empty_volume_ratio)
-    mGridVariables.stiffness_multiplier = mGridVariables.penalty_factor * std::max(0.0, mGridVariables.volume - mGridVariables.mp_volume_sum) / mGridVariables.volume;
-
-    if ((0.0 < mGridVariables.volume_ratio) && (mGridVariables.volume_ratio < GetProperties()[VOLUME_RATIO_THRESHOLD]))
+    // KRATOS_WATCH(this->GetValue(TOTAL_MP_VOLUME))
+    
+    if ((0.0 < volume_ratio) && (volume_ratio < GetProperties()[VOLUME_RATIO_THRESHOLD]))
     {
         this->Set(ACTIVE, true);
-        KRATOS_INFO("MPMSoftStiffness")<<" Element: "<<this->Id()<< ", is ACTIVE. Volume ratio = " << mGridVariables.volume_ratio <<std::endl;
+        mGridVariables.stiffness_multiplier = this->GetProperties()[PENALTY_FACTOR] * std::max(0.0, 1.0 - volume_ratio);
     }
-    else if (mGridVariables.volume_ratio == 0 || mGridVariables.volume_ratio > GetProperties()[VOLUME_RATIO_THRESHOLD])
+    else if (volume_ratio == 0 || volume_ratio > GetProperties()[VOLUME_RATIO_THRESHOLD])
     {
         this->Set(ACTIVE, false);
-        if (mGridVariables.volume_ratio > GetProperties()[VOLUME_RATIO_THRESHOLD])
-            {
-                KRATOS_INFO("MPMSoftStiffness")<<" Element: "<<this->Id()<< ", is NOT ACTIVE. Volume ratio = " << mGridVariables.volume_ratio <<std::endl;
-            }
     }
     else
     {
-        KRATOS_ERROR << "MPMSoftStiffness: Negative volume ratio in background grid! \nVolume ratio = "<< mGridVariables.volume_ratio << 
-                        "\nTOTAL_MP_VOLUME = " << mGridVariables.mp_volume_sum << "\nGrid Volume = " << mGridVariables.volume << std::endl;
+        KRATOS_ERROR << "MPMSoftStiffness: Negative volume ratio in background grid!, Element Id = " << this->Id() << ", Volume ratio = "<< volume_ratio << 
+                        ", TOTAL_MP_VOLUME = " << this->GetValue(TOTAL_MP_VOLUME) << ", Grid Volume = " << this->GetValue(GRID_VOLUME) << std::endl;
     }
     
+    // KRATOS_WATCH(this->GetProperties()[PENALTY_FACTOR])
+    // KRATOS_WATCH(volume_ratio)
+    // KRATOS_WATCH(mGridVariables.stiffness_multiplier)
 
-    // if (mGridVariables.mp_volume_sum > 0.0){
+    // if (this->GetValue(TOTAL_MP_VOLUME) > 0.0){
 
     //     KRATOS_WATCH(this->Id())
     //     KRATOS_WATCH(mGridVariables.stiffness_multiplier)
-    //     KRATOS_WATCH(mGridVariables.penalty_factor)
+    //     KRATOS_WATCH(this->GetProperties()[PENALTY_FACTOR])
     //     KRATOS_WATCH(mGridVariables.volume)
-    //     KRATOS_WATCH(mGridVariables.mp_volume_sum)
+    //     KRATOS_WATCH(this->GetValue(TOTAL_MP_VOLUME))
     // }
     mFinalizedStep = false;
 
@@ -613,6 +652,8 @@ double MPMSoftStiffness::CalculateIntegrationWeight(const double& rGaussWeight, 
     const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
     double integration_weight = rGaussWeight * detJ;
+    // KRATOS_WATCH(rGaussWeight)
+    // KRATOS_WATCH(detJ)
 
     // Add thickness if 2D
     KRATOS_DEBUG_ERROR_IF(dimension == 2 && !this->GetProperties().Has(THICKNESS)) << "The geometry is 2D but THICKNESS is not assigned." << std::endl; // TODO: Remove this
@@ -627,6 +668,7 @@ double MPMSoftStiffness::CalculateIntegrationWeight(const double& rGaussWeight, 
 
 void MPMSoftStiffness::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
 {
+    // what if we use mixed formulation?
     const GeometryType& r_geometry = GetGeometry();
     int number_of_nodes = r_geometry.size();
     int dimension = r_geometry.WorkingSpaceDimension();
@@ -738,6 +780,35 @@ void MPMSoftStiffness::GetSecondDerivativesVector( Vector& values, int Step ) co
     }
 }
 
+//*************************COMPUTE CURRENT DISPLACEMENT*******************************
+//************************************************************************************
+
+void MPMSoftStiffness::GetCurrentDisp(Vector& rCurrentDisp, const ProcessInfo& rCurrentProcessInfo)
+{
+    //what about mixed formulation
+    
+    KRATOS_TRY
+
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    unsigned int matrix_size = number_of_nodes * dimension;
+
+    if ( rCurrentDisp.size() != matrix_size ) rCurrentDisp.resize( matrix_size, false );
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        unsigned int index = i * dimension;
+        rCurrentDisp[index] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_X);
+        rCurrentDisp[index + 1] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_Y);
+
+        if ( dimension == 3 )
+            rCurrentDisp[index + 2] = r_geometry[i].FastGetSolutionStepValue( DISPLACEMENT_Z);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
 //*************************DECIMAL CORRECTION OF STRAINS******************************
 //************************************************************************************
 
@@ -765,39 +836,14 @@ void MPMSoftStiffness::CalculateOnIntegrationPoints(const Variable<int>& rVariab
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    if (rVariable == MP_MATERIAL_ID) {
-        rValues[0] = GetProperties().Id();
-    }
-    else
-    {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
-    }
+    KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
 }
 
 void MPMSoftStiffness::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    
-    if (rVariable == TOTAL_MP_VOLUME){
-        rValues[0] = mGridVariables.mp_volume_sum;
-    }
-    else if (rVariable == PENALTY_FACTOR) {
-        rValues[0] = mGridVariables.penalty_factor;
-    }
-    else if (rVariable == MP_MASS) {
-        rValues[0] = mGridVariables.mass;
-    }
-    else
-    {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
-    }
+    KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
 }
 
 
@@ -809,49 +855,21 @@ void MPMSoftStiffness::SetValuesOnIntegrationPoints(const Variable<int>& rVariab
     const std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
 }
 
 void MPMSoftStiffness::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
     const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR_IF(rValues.size() > 1)
-        << "Only 1 value per integration point allowed! Passed values vector size: "
-        << rValues.size() << std::endl;
-
-    if (rVariable == MP_MASS) {
-        mGridVariables.mass = rValues[0];
-    }
-    else if (rVariable == MP_DENSITY) {
-        mGridVariables.density = rValues[0];
-    }
-    else if (rVariable == MP_VOLUME) {
-        mGridVariables.volume = rValues[0];
-    }
-    else
-    {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
-    }
+    KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
 }
 
 void MPMSoftStiffness::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
     const std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR_IF(rValues.size() > 1)
-        << "Only 1 value per integration point allowed! Passed values vector size: "
-        << rValues.size() << std::endl;
-
-    if (rVariable == MP_CAUCHY_STRESS_VECTOR) {
-        mGridVariables.cauchy_stress_vector = rValues[0];
-    }
-    else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
-        mGridVariables.almansi_strain_vector = rValues[0];
-    }
-    else
-    {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
-    }
+    KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
 }
 
 ///@}
@@ -865,6 +883,7 @@ void MPMSoftStiffness::SetValuesOnIntegrationPoints(const Variable<Vector>& rVar
  */
 int  MPMSoftStiffness::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
+    // TODO: add check for numerical stiffness element here
     KRATOS_TRY
 
     Element::Check(rCurrentProcessInfo);
