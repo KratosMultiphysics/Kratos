@@ -309,7 +309,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
 
     p_element->GetGeometry().begin()->Z() += 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error:  Node with non-zero Z coordinate found. Id: 1")
+                                      "Node with Id: 1 has non-zero Z coordinate.")
     p_element->GetGeometry().begin()->Z() = 0;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
