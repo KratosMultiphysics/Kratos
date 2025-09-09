@@ -101,7 +101,6 @@ void NavierStokesElement::InitializeMaterial()
 
 void NavierStokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
-    // KRATOS_WATCH("-1")
     // Obtain required constants
     GeometryType& r_geometry = this->GetGeometry();
     const unsigned int number_of_points = r_geometry.PointsNumber();

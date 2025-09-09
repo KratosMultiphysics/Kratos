@@ -30,6 +30,7 @@ SnakeSbmProcess::SnakeSbmProcess(
     mLambdaInner = mThisParameters["lambda_inner"].GetDouble();
     mLambdaOuter = mThisParameters["lambda_outer"].GetDouble();
     mNumberOfInnerLoops = mThisParameters["number_of_inner_loops"].GetInt();
+    mNumberInitialPointsIfImportingNurbs = mThisParameters["number_initial_points_if_importing_nurbs"].GetInt();
 
     std::string iga_model_part_name = mThisParameters["model_part_name"].GetString();
     std::string skin_model_part_inner_initial_name = mThisParameters["skin_model_part_inner_initial_name"].GetString();
@@ -62,14 +63,14 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates()
         if (!mpSkinModelPartInnerInitial->HasProperties(0)) mpSkinModelPartInnerInitial->CreateNewProperties(0);
         if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
         // template argument IsInnerLoop set true
-        CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart);
+        CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs);
             
     }
     if (mpSkinModelPartOuterInitial->NumberOfNodes()>0 || mpSkinModelPartOuterInitial->NumberOfGeometries()>0) {
         if (!mpSkinModelPartOuterInitial->HasProperties(0)) mpSkinModelPartOuterInitial->CreateNewProperties(0);
         if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
         // template argument IsInnerLoop set false
-        CreateTheSnakeCoordinates<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart);
+        CreateTheSnakeCoordinates<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs);
     }
 }   
 
@@ -82,7 +83,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     const double Lambda,
     IndexType EchoLevel,
     ModelPart& rIgaModelPart,
-    ModelPart& rSkinModelPart) 
+    ModelPart& rSkinModelPart,
+    const int NumberInitialPointsIfImportingNurbs) 
 { 
     KRATOS_ERROR_IF(rIgaModelPart.GetValue(KNOT_VECTOR_U).size() == 0) << "::[SnakeSbmProcess]::" 
                 << "The iga model part has KNOT_VECTOR_U of size 0" << std::endl;
@@ -225,8 +227,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     }
     else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
     {
-        //TODO: decrease the number when the closest point projection for the NURBS is optimized in the IgaSbmModeler
-        const int n_initial_points_for_side = 5000; 
+        // number of sampling points per curve side
+        const int number_initial_points_if_importing_nurbs = NumberInitialPointsIfImportingNurbs; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
         const SizeType n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
         bool new_inner_loop = true;
@@ -305,9 +307,9 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             // add the specified number of points
             Vector second_point_local_coord = ZeroVector(3);
             CoordinatesArrayType second_point_coords(3);
-            for (int i = 1; i < n_initial_points_for_side; i++)
+            for (int i = 1; i < number_initial_points_if_importing_nurbs; i++)
             {
-                second_point_local_coord[0] = (double) i/(n_initial_points_for_side-1);
+                second_point_local_coord[0] = (double) i/(number_initial_points_if_importing_nurbs-1);
                 p_curve->GlobalCoordinates(second_point_coords, second_point_local_coord);
                 //***********************************************************
                     // Collect the coordinates of the points

@@ -288,6 +288,16 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
         }
         mHsum(0,i) = H_taylor_term + H(0,i);
     }
+
+    // Store projection node coordinates for post-processing/inspection
+    Vector projection_coords(3);
+    projection_coords[0] = mpProjectionNode->X();
+    projection_coords[1] = mpProjectionNode->Y();
+    projection_coords[2] = mpProjectionNode->Z();
+    this->SetValue(PROJECTION_NODE_COORDINATES, projection_coords);
+
+    // Store projection node id
+    this->SetValue(PROJECTION_NODE_ID, mpProjectionNode->Id());
 }
 
 void SbmFluidConditionDirichlet::CalculateB(
