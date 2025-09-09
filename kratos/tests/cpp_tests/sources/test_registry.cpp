@@ -323,7 +323,7 @@ namespace RegistryTestNamespace {
     template<class T> class _FooC {};
     template<int D> class _FooT {};
 
-    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerClassLiteral, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerClassValue, KratosCoreFastSuite) {
 
         _FooCT<_Boo, 2> foo_instance;
 
@@ -332,7 +332,7 @@ namespace RegistryTestNamespace {
         KRATOS_EXPECT_EQ(demangled_name, "_FooCT<_Boo,2>");
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerClassLiteralWithNumberClassName, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerClassValueWithNumberClassName, KratosCoreFastSuite) {
 
         _FooCT<_Boo2, 2> foo_instance;
 
@@ -341,7 +341,7 @@ namespace RegistryTestNamespace {
         KRATOS_EXPECT_EQ(demangled_name, "_FooCT<_Boo2,2>");
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerClassLiteralWithNumberandSuffixClassName, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerClassValueWithNumberAndSuffixClassName, KratosCoreFastSuite) {
 
         _FooCT<_Boo2L, 2> foo_instance;
 
@@ -359,7 +359,7 @@ namespace RegistryTestNamespace {
         KRATOS_EXPECT_EQ(demangled_name, "_FooC<_Boo>");
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerTypeOnly, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerValueOnly, KratosCoreFastSuite) {
 
         _FooT<2> foo_instance;
 
