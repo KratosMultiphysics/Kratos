@@ -74,7 +74,6 @@
             "process_name"  : "AssignGravityToMPMProcess",
             "Parameters"    : {
                 "model_part_name" : "MPM_Material",
-                "variable_name"   : "MP_VOLUME_ACCELERATION",
                 "modulus"         : 10.0,
                 "direction"       : [0.0,0.0,1.0]
             }

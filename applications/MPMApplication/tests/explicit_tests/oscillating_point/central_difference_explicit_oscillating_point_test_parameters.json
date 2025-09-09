@@ -58,7 +58,6 @@
             "kratos_module" : "KratosMultiphysics.MPMApplication",
             "Parameters"    : {
                 "model_part_name" : "Parts_bar",
-                "variable_name"   : "MP_VELOCITY",
                 "modulus"         : 0.1,
                 "direction"       : [1.0,0.0,0.0]
             }
