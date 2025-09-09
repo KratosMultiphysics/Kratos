@@ -418,7 +418,7 @@ public:
     {
         // Check input
         KRATOS_WARNING("NURBSVolumeShapeFunctions: ComputeNurbsShapeFunctionValuesAtSpan")
-            << "The NURBS weights are not yet imlemented. "
+            << "The NURBS weights are not yet implemented. "
             << "Therefore the 'ComputeBSplineShapeFunctionValuesAtSpan' is invoked." << std::endl;
 
         // Compute B-Spline shape functions

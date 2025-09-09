@@ -50,14 +50,20 @@ public:
     explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy))
+    UPwSmallStrainElement(IndexType                          NewId,
+                          const NodesArrayType&              ThisNodes,
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
+    UPwSmallStrainElement(IndexType                          NewId,
+                          GeometryType::Pointer              pGeometry,
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -65,8 +71,9 @@ public:
     UPwSmallStrainElement(IndexType                          NewId,
                           GeometryType::Pointer              pGeometry,
                           PropertiesType::Pointer            pProperties,
-                          std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -287,12 +294,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
     }
 
     template <class TValueType>

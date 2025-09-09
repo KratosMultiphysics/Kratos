@@ -77,7 +77,7 @@ public:
      * This method computes the Wall Shear Stress (WSS).
      * @param rModelPart Model part in where the WSS is computed
      * @param rNormalVariable Variable storing the wall nodal normal
-     * @param IsNormalHistorical Bool variable indicating wether the historical or non-historical nodal database is used
+     * @param IsNormalHistorical Bool variable indicating whether the historical or non-historical nodal database is used
      */
     static void CalculateWSS(
         ModelPart &rModelPart,

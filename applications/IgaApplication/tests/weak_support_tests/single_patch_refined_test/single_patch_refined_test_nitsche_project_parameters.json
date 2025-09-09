@@ -74,7 +74,6 @@
             "kratos_module": "KratosMultiphysics",
             "python_module": "assign_vector_variable_to_conditions_process",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Support_2",
                 "variable_name": "DISPLACEMENT",
                 "value": [0, 0, 0],
@@ -85,7 +84,6 @@
             "kratos_module": "KratosMultiphysics",
             "python_module": "assign_vector_variable_to_conditions_process",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Load_3",
                 "variable_name": "DEAD_LOAD",
                 "value": [1, 0, 0],

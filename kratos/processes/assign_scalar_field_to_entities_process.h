@@ -117,6 +117,12 @@ public:
     ///@name Operations
     ///@{.
 
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
+
     /**
      * @brief Execute method is used to execute the AssignScalarFieldToEntitiesProcess algorithms.
      */
@@ -168,7 +174,6 @@ private:
     ModelPart& mrModelPart;                                /// The modelpart where compute
     Kratos::unique_ptr<GenericFunctionUtility> mpFunction; /// The python function used, depends on X, Y, Z, and t (it could also depend on X0, Y0, Z0)
     std::string mVariableName;                             /// The name of the variable to assign
-    std::size_t mMeshId = 0;                               /// The id of the mesh (0 by default)
 
     ///@}
     ///@name Private Operators
