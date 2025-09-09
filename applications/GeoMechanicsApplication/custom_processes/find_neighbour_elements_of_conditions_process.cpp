@@ -83,16 +83,16 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     CheckBoundaryTypeForAllElements(generate_edges_1d, condition_node_ids_to_condition,
                                     sorted_condition_node_ids_to_condition);
 
-    // check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
-    auto all_conditions_visited = true;
-    for (const auto& r_condition : mrModelPart.Conditions()) {
-        if (r_condition.IsNot(VISITED)) {
-            all_conditions_visited = false;
-            KRATOS_INFO("Condition without any corresponding element, ID ") << r_condition.Id() << std::endl;
-        }
+    if (AllConditionsAreVisited()) return;
+
+    std::vector<Condition> unvisited_conditions;
+    std::ranges::copy_if(mrModelPart.Conditions(), std::back_inserter(unvisited_conditions),
+                         [](const auto& rCondition) { return !rCondition.Is(VISITED); });
+    for (const auto& r_condition : unvisited_conditions) {
+        KRATOS_INFO("Condition without any corresponding element, ID ") << r_condition.Id() << std::endl;
     }
-    KRATOS_ERROR_IF_NOT(all_conditions_visited)
-        << "Some conditions found without any corresponding element" << std::endl;
+
+    KRATOS_ERROR << "Some conditions found without any corresponding element" << std::endl;
 
     KRATOS_CATCH("")
 }
