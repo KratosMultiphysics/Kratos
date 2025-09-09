@@ -105,7 +105,7 @@ void ConstitutiveLawUtilities::CheckStrainSize(const Properties&               r
                                                std::size_t                     ElementId)
 {
     const std::size_t strain_size = rProperties[CONSTITUTIVE_LAW]->GetStrainSize();
-    const bool        size_exists =
+    const auto        size_exists =
         std::any_of(rExpectedStrainSizes.begin(), rExpectedStrainSizes.end(),
                     [strain_size](std::size_t expected_size) { return strain_size == expected_size; });
     if (!size_exists) {
@@ -122,7 +122,7 @@ void ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(co
 {
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-    const bool correct_strain_measure = std::any_of(
+    const auto correct_strain_measure = std::any_of(
         LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
         return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
     });
