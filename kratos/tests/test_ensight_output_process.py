@@ -27,6 +27,7 @@ class TestEnsightOutputProcess(KratosUnittest.TestCase):
     def test_ascii_ensight_output_quad_hexahedra_3D(self):
         ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticHexahedra3D")
 
+    # TODO: Binary is implemented, but requires testing
     # def test_binary_ensight_output_2D(self):
     #     ExecuteBasicVTKoutputProcessCheck("binary", "2D")
 
@@ -44,7 +45,6 @@ class TestEnsightOutputProcess(KratosUnittest.TestCase):
 
     def tearDown(self):
         kratos_utils.DeleteDirectoryIfExisting("test_ensight_output")
-        # pass
 
 def SetupModelPart2D(model_part):
     test_vtk_output_process.SetupModelPart2D(model_part)
@@ -111,10 +111,10 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
             "evolving_geometry"                  : true,
             "output_path"                        : "test_ensight_output",
             "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
-            "nodal_flags"                        : ["BOUNDARY"]//, // NOTE: Implemented but giving issues in Paraview
-            //"element_data_value_variables"       : ["DETERMINANT"],
-            //"condition_data_value_variables"     : ["DENSITY", "YOUNG_MODULUS"],
-            //"condition_flags"                    : ["BOUNDARY"]
+            "nodal_flags"                        : ["BOUNDARY"],
+            "element_data_value_variables"       : ["DETERMINANT"],
+            "condition_data_value_variables"     : ["DENSITY", "YOUNG_MODULUS"],
+            "condition_flags"                    : ["BOUNDARY"]
         }
     }""")
 
@@ -154,6 +154,25 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
             for flag_name in ensight_output_parameters["Parameters"]["nodal_flags"].GetStringArray():
                 Check(os.path.join("test_ensight_output","Main." + flag_name + "." + label_step + ".node.scl"),\
                     os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main." + flag_name + "." + label_step + ".node.scl"), file_format, "ensight_solution")
+
+            # Check elemental variables
+            for variable_name in ensight_output_parameters["Parameters"]["element_data_value_variables"].GetStringArray():
+                is_scalar = KratosMultiphysics.KratosGlobals.Kernel.HasDoubleVariable(variable_name)
+                name_extension = "scl" if is_scalar else "vec"
+                Check(os.path.join("test_ensight_output","Main." + variable_name + "." + label_step + ".elem." + name_extension),\
+                    os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main." + variable_name + "." + label_step + ".elem." + name_extension), file_format, "ensight_solution")
+
+            # Check conditional variables
+            for variable_name in ensight_output_parameters["Parameters"]["condition_data_value_variables"].GetStringArray():
+                is_scalar = KratosMultiphysics.KratosGlobals.Kernel.HasDoubleVariable(variable_name)
+                name_extension = "scl" if is_scalar else "vec"
+                Check(os.path.join("test_ensight_output","Main." + variable_name + "." + label_step + ".cond." + name_extension),\
+                    os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main." + variable_name + "." + label_step + ".cond." + name_extension), file_format, "ensight_solution")
+
+            # Check conditional flags
+            for flag_name in ensight_output_parameters["Parameters"]["condition_flags"].GetStringArray():
+                Check(os.path.join("test_ensight_output","Main." + flag_name + "." + label_step + ".cond.scl"),\
+                    os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main." + flag_name + "." + label_step + ".cond.scl"), file_format, "ensight_solution")
 
             step = step + 1
 
