@@ -23,14 +23,14 @@ def extract_stress_and_y_from_line(line):
     return _extract_x_and_y_from_line(line, index_of_x=2, index_of_y=1)
 
 
-def make_compression_positive_and_to_kPa(kratos_stress_components):
+def make_compression_positive_and_convert_Pa_to_kPa(kratos_stress_components):
     return [
         -1.0 * unit_conversions.Pa_to_kPa(stress) for stress in kratos_stress_components
     ]
 
 
 def get_nodal_vertical_effective_stress_at_time(time_in_s, output_data, node_ids=None):
-    return make_compression_positive_and_to_kPa(
+    return make_compression_positive_and_convert_Pa_to_kPa(
         [
             stress_vector[1]
             for stress_vector in test_helper.GiDOutputFileReader.nodal_values_at_time(
@@ -41,7 +41,7 @@ def get_nodal_vertical_effective_stress_at_time(time_in_s, output_data, node_ids
 
 
 def get_nodal_water_pressures_at_time(time_in_s, output_data, node_ids=None):
-    return make_compression_positive_and_to_kPa(
+    return make_compression_positive_and_convert_Pa_to_kPa(
         test_helper.GiDOutputFileReader.nodal_values_at_time(
             "WATER_PRESSURE", time_in_s, output_data, node_ids=node_ids
         )
@@ -51,14 +51,8 @@ def get_nodal_water_pressures_at_time(time_in_s, output_data, node_ids=None):
 def make_settlement_history_plot(
     stage_outputs, node_ids, path_to_ref_data_points, figure_filename
 ):
-    data_points_by_node = {node_id: [] for node_id in node_ids}
-    for output_data in stage_outputs:
-        for node_id in node_ids:
-            data_points_by_node[node_id].extend(
-                test_helper.extract_nodal_settlement_over_time(output_data, node_id)
-            )
-
     data_series_collection = []
+
     data_series_collection.append(
         plot_utils.DataSeries(
             test_helper.get_data_points_from_file(
@@ -68,6 +62,13 @@ def make_settlement_history_plot(
             marker="+",
         )
     )
+
+    data_points_by_node = {node_id: [] for node_id in node_ids}
+    for output_data in stage_outputs:
+        for node_id in node_ids:
+            data_points_by_node[node_id].extend(
+                test_helper.extract_nodal_settlement_over_time(output_data, node_id)
+            )
     for node_id in node_ids:
         data_series_collection.append(
             plot_utils.DataSeries(
