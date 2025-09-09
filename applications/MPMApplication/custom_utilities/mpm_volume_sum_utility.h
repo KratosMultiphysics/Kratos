@@ -22,6 +22,7 @@
 #include "mpm_application_variables.h"
 #include "containers/model.h"
 #include "includes/element.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
