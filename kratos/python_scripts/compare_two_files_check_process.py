@@ -866,10 +866,41 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             error_msg += f"  Output:    '{header_out.strip()}'"
             self.fail(error_msg + self.info_msg)
 
-        # 2. Iterate through the numerical data lines (skipping the header).
-        for i in range(1, len(lines_ref)):
-            line_ref = lines_ref[i]
-            line_out = lines_out[i]
+        number_of_lines = len(lines_ref)
+        line_counter = 1 # Start after the header line
+
+        # 2. Iterate through the numerical data lines (skipping the header and parts).
+        while line_counter < number_of_lines:
+            line_ref = lines_ref[line_counter]
+            line_out = lines_out[line_counter]
+
+            # Skip "part" lines if present (only in element and condition file types).
+            if not "Per_node" in header_ref and "part" in line_ref:
+                # Check it is the same part number, split and the number of the part is the second word
+                part_number_ref = int(line_ref.split()[1])
+                part_number_out = int(line_out.split()[1])
+                if part_number_ref != part_number_out:
+                    error_msg = f"Part numbers do not match at line {line_counter+1}.\n"
+                    error_msg += f"  Reference: {part_number_ref}\n"
+                    error_msg += f"  Output:    {part_number_out}"
+                    self.fail(error_msg + self.info_msg)
+
+                # Check the same type of element follows
+                line_counter += 1
+                line_ref = lines_ref[line_counter]
+                line_out = lines_out[line_counter]
+                element_type_ref = line_ref.strip()
+                element_type_out = line_out.strip()
+                if element_type_ref != element_type_out:
+                    error_msg = f"Element types do not match after part {part_number_ref} at line {line_counter+1}.\n"
+                    error_msg += f"  Reference: '{element_type_ref}'\n"
+                    error_msg += f"  Output:    '{element_type_out}'"
+                    self.fail(error_msg + self.info_msg)
+
+                # Update the counter to move to the next line after "part" and element type
+                line_counter += 1
+                line_ref = lines_ref[line_counter]
+                line_out = lines_out[line_counter]
 
             # Split lines by any whitespace to get numerical values as strings.
             values_ref_str = line_ref.split()
@@ -878,7 +909,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             # Ensure both lines contain the same number of values using a direct comparison.
             len_ref = len(values_ref_str)
             len_out = len(values_out_str)
-            error_msg = f"Line {i+1} has a different number of values.\n"
+            error_msg = f"Line {line_counter+1} has a different number of values.\n"
             error_msg += f"  Reference count: {len_ref}\n"
             error_msg += f"  Output count:    {len_out}"
             self.assertTrue(len_ref == len_out, msg=error_msg + self.info_msg)
@@ -894,7 +925,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
 
                     # Use the test framework's assertion to check the result and report failure.
                     full_msg = self.info_msg + "\n"
-                    full_msg += f"Mismatch on data line {i}: {val_ref} != {val_out}"
+                    full_msg += f"Mismatch on data line {line_counter}: {val_ref} != {val_out}"
                     full_msg += f" (hardcoded tolerance = {HARDCODED_TOLERANCE})"
                     self.assertTrue(is_close, msg=full_msg)
 
@@ -902,6 +933,9 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                     # If conversion to float fails, fail the test immediately.
                     self.fail(f"Could not convert value to float on line {i+1}. "
                               f"Ref: '{val_ref_str}', Out: '{val_out_str}'" + self.info_msg)
+
+            # Update counter to move to the next line.
+            line_counter += 1
 
     def __CheckCloseValues(self, val_a, val_b, additional_info=""):
         isclosethis = t_isclose(val_a, val_b, rel_tol=self.reltol, abs_tol=self.tol)
