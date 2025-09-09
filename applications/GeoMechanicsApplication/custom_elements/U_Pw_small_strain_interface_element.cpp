@@ -64,40 +64,32 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-
-    KRATOS_ERROR_IF(this->Id() < 1)
-        << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
+    const auto element_Id = this->Id();
+    KRATOS_ERROR_IF(element_Id < 1)
+        << "Element found with Id 0 or negative, element: " << element_Id << std::endl;
 
     // Verify generic variables
     int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const CheckProperties check_properties(r_properties, "property at element", this->Id(),
+    const PropertiesType& r_properties = this->GetProperties();
+    const CheckProperties check_properties(r_properties, "property at element", element_Id,
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
-
+    check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_properties[IGNORE_UNDRAINED]) {
         check_properties.Check(TRANSVERSAL_PERMEABILITY);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
     }
 
-    // Verify the constitutive law
-    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-        << "CONSTITUTIVE_LAW has Key zero or is not defined at element " << this->Id() << std::endl;
-    if (!r_properties[CONSTITUTIVE_LAW])
-        KRATOS_ERROR << "A constitutive law needs to be specified for the "
-                        "element "
-                     << this->Id() << std::endl;
-
-    // Check constitutive law
+    check_properties.CheckAvailability(CONSTITUTIVE_LAW);
     ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
 
-    ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(r_properties, this->Id());
+    ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(r_properties, element_Id);
 
     const auto expected_size = (TDim == 2 ? std::vector<std::size_t>{2} : std::vector<std::size_t>{3});
-    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, TDim, this->Id());
+    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, TDim, element_Id);
 
     return ierr;
 
