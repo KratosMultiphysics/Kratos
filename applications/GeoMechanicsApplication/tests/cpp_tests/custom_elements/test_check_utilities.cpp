@@ -268,16 +268,17 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckAvailabilityAndSpecified, KratosGe
     Properties properties(1);
     const CheckProperties check_properties(properties, "properties", CheckProperties::Bounds::AllExclusive);
 
-        // Act and Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW),
-                                      " CONSTITUTIVE_LAW does not exist in the properties with Id 1.")
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW),
+        " CONSTITUTIVE_LAW does not exist in the properties with Id 1.")
 
     properties.SetValue(CONSTITUTIVE_LAW, nullptr);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW),
-                                      "CONSTITUTIVE_LAW needs to be specified in the properties with Id 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW),
+        "CONSTITUTIVE_LAW needs to be specified in the properties with Id 1.")
 
     properties.SetValue(CONSTITUTIVE_LAW, std::make_shared<StubConstitutiveLaw>());
     EXPECT_NO_THROW(check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW));
-
 }
 } // namespace Kratos::Testing

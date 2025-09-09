@@ -164,9 +164,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMec
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto                     properties       = Properties{};
-    auto constitutive_law = Kratos::make_shared<MockConstitutiveLaw>();
-    properties.GetValue(CONSTITUTIVE_LAW)     = constitutive_law;
+    auto properties                       = Properties{};
+    auto constitutive_law                 = Kratos::make_shared<MockConstitutiveLaw>();
+    properties.GetValue(CONSTITUTIVE_LAW) = constitutive_law;
 
     // Act and Assert
     constexpr std::size_t element_id = 1;
