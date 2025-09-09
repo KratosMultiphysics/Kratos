@@ -1,5 +1,4 @@
 import KratosMultiphysics
-from KratosMultiphysics.deprecation_management import DeprecationManager
 import KratosMultiphysics.MPMApplication as KratosMPM
 from KratosMultiphysics.MPMApplication.apply_mpm_particle_neumann_condition_process import ApplyMPMParticleNeumannConditionProcess
 
@@ -21,12 +20,6 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
                 "option"                    : ""
             }  """ )
 
-        context_string = type(self).__name__
-        old_name = 'particles_per_condition'
-        new_name = 'material_points_per_condition'
-        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
-
         settings.ValidateAndAssignDefaults(default_parameters)
         self.model = Model
         self.model_part_name = settings["model_part_name"].GetString()
@@ -45,7 +38,7 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
         self.model_part = self.model[mpm_material_model_part_name]
 
-        ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Neumann_Interface" responsible for coupling 
+        ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Neumann_Interface" responsible for coupling
         # Create coupling model part
         if not self.model.HasModelPart("MPM_Coupling_Neumann_Interface"):
             self.model.CreateModelPart("MPM_Coupling_Neumann_Interface")
@@ -84,7 +77,7 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
 
                 displacement = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_DISPLACEMENT, self.model_part.ProcessInfo)[0]
                 velocity = mpc.CalculateOnIntegrationPoints(KratosMPM.MPC_VELOCITY, self.model_part.ProcessInfo)[0]
-                
+
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,velocity)
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,displacement)
 
@@ -98,4 +91,4 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         coupling_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
-        
+

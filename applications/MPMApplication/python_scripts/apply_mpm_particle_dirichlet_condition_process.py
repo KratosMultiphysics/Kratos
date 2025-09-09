@@ -1,5 +1,4 @@
 import KratosMultiphysics
-from KratosMultiphysics.deprecation_management import DeprecationManager
 import KratosMultiphysics.MPMApplication as KratosMPM
 
 def Factory(settings, Model):
@@ -14,27 +13,21 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
+                "model_part_name"                 : "PLEASE_SPECIFY_MODEL_PART_NAME",
                 "material_points_per_condition"   : 0,
-                "imposition_type"           : "penalty",
-                "penalty_factor"            : 0,
-                "variable_name"             : "DISPLACEMENT",
-                "constrained"               : "fixed",
-                "value"                     : [0.0, "0*t", 0.0],
-                "interval"                  : [0.0, 1e30],
-                "option"                    : "",
-                "is_equal_distributed"      : false,
-                "local_axes"                : {}
+                "imposition_type"                 : "penalty",
+                "penalty_factor"                  : 0,
+                "variable_name"                   : "DISPLACEMENT",
+                "constrained"                     : "fixed",
+                "value"                           : [0.0, "0*t", 0.0],
+                "interval"                        : [0.0, 1e30],
+                "option"                          : "",
+                "is_equal_distributed"            : false,
+                "local_axes"                      : {}
             }  """ )
 
          # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
-
-        context_string = type(self).__name__
-        old_name = 'particles_per_condition'
-        new_name = 'material_points_per_condition'
-        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
         settings.ValidateAndAssignDefaults(default_parameters)
 

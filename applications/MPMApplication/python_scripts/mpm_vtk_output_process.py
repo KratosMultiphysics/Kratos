@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from  KratosMultiphysics.deprecation_management import DeprecationManager
 import KratosMultiphysics.MPMApplication as KratosMPM
 
 def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
@@ -24,8 +23,6 @@ class MPMVtkOutputProcess(KratosMultiphysics.OutputProcess):
         main_model_part_name = self.full_model_part_name.split(".",1)[0]
         self.main_model_part = self.model[main_model_part_name]
 
-        # Change name deprecated settings
-        self.TranslateLegacyVariablesAccordingToCurrentStandard(self.settings)
         # Validate settings using default parameters defined in MPMVtkOutput process
         # Default settings can be found in "custom_io/mpm_vtk_output.cpp"
         default_settings = KratosMPM.MPMVtkOutput.GetDefaultParameters()
@@ -49,30 +46,6 @@ class MPMVtkOutputProcess(KratosMultiphysics.OutputProcess):
             grid_settings.AddBool("save_output_files_in_folder",self.settings["save_output_files_in_folder"].GetBool())
             background_grid = self.model["Background_Grid"]
             KratosMultiphysics.VtkOutput(background_grid, grid_settings).PrintOutput()
-
-    # This function can be extended with new deprecated variables as they are generated
-    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings: KratosMultiphysics.Parameters) -> None:
-        context_string = type(self).__name__
-
-        old_name = 'output_frequency'
-        new_name = 'output_interval'
-        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
-
-        old_name = 'write_properties_id'
-        new_name = 'write_ids'
-        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
-
-        old_name = 'folder_name'
-        new_name = 'output_path'
-        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
-
-        old_name = 'gauss_point_results'
-        new_name = 'gauss_point_variables_in_elements'
-        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
     def ExecuteBeforeSolutionLoop(self) -> None:
         vtk_model_part = self.model[self.full_model_part_name]

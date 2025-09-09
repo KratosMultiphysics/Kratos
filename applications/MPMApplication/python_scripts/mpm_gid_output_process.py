@@ -4,7 +4,6 @@ import KratosMultiphysics
 
 # Import applications and dependencies
 import KratosMultiphysics.MPMApplication as KratosMPM
-from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 # Import time library
 from time import time
@@ -50,7 +49,6 @@ class MPMGiDOutputProcess(KratosMultiphysics.Process):
         if param is None:
             param = self.defaults
         else:
-            self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
             param.ValidateAndAssignDefaults(self.defaults)
 
         # Default
@@ -59,19 +57,6 @@ class MPMGiDOutputProcess(KratosMultiphysics.Process):
         self.model_part = model_part
 
         self.next_output = 0.0
-
-    # This function can be extended with new deprecated variables as they are generated
-    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
-        # Defining a string to help the user understand where the warnings come from (in case any is thrown)
-        context_string = type(self).__name__
-
-        if settings.Has('result_file_configuration'):
-            sub_settings_where_var_is = settings['result_file_configuration']
-            old_name = 'output_frequency'
-            new_name = 'output_interval'
-
-            if DeprecationManager.HasDeprecatedVariable(context_string, sub_settings_where_var_is, old_name, new_name):
-                DeprecationManager.ReplaceDeprecatedVariableName(sub_settings_where_var_is, old_name, new_name)
 
     # Public Functions
     def ExecuteInitialize(self):

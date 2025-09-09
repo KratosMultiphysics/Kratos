@@ -1,5 +1,4 @@
 import KratosMultiphysics
-from KratosMultiphysics.deprecation_management import DeprecationManager
 import KratosMultiphysics.MPMApplication as KratosMPM
 from KratosMultiphysics.MPMApplication.apply_mpm_particle_dirichlet_condition_process import ApplyMPMParticleDirichletConditionProcess
 
@@ -24,12 +23,6 @@ class ApplyMPMCouplingInterfaceDirichletConditionProcess(ApplyMPMParticleDirichl
                 "option"                    : "",
                 "is_equal_distributed"      : false
             }  """ )
-
-        context_string = type(self).__name__
-        old_name = 'particles_per_condition'
-        new_name = 'material_points_per_condition'
-        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
-            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
         settings.ValidateAndAssignDefaults(default_parameters)
         self.model = Model

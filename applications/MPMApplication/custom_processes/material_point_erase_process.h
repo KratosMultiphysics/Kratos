@@ -27,7 +27,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Delete particle elements and conditions with flag TO_ERASE
+/// Delete material points elements and conditions with flag TO_ERASE
 
 class MaterialPointEraseProcess
         : public Process
@@ -71,13 +71,13 @@ public:
         mr_model_part.RemoveElements( TO_ERASE );
         const int num_removed_elements = initial_num_element - mr_model_part.NumberOfElements();
 
-        KRATOS_WARNING_IF("MaterialPointEraseProcess", num_removed_elements > 0) << num_removed_elements << " particle elements have been erased.\n";
+        KRATOS_WARNING_IF("MaterialPointEraseProcess", num_removed_elements > 0) << num_removed_elements << " material points elements have been erased.\n";
 
         const int initial_num_condition = mr_model_part.NumberOfConditions();
         mr_model_part.RemoveConditions( TO_ERASE );
         const int num_removed_condition = initial_num_condition - mr_model_part.NumberOfConditions();
 
-        KRATOS_WARNING_IF("MaterialPointEraseProcess", num_removed_condition > 0) << num_removed_condition << " particle conditions have been erased.\n";
+        KRATOS_WARNING_IF("MaterialPointEraseProcess", num_removed_condition > 0) << num_removed_condition << " material points conditions have been erased.\n";
 
         KRATOS_CATCH("");
     }
