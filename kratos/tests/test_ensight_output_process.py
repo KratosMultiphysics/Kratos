@@ -12,6 +12,16 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestEnsightOutputProcess(KratosUnittest.TestCase):
+    """
+    Unit tests for the Ensight output process in Kratos.
+    This test class contains methods to verify the correct functionality of the Ensight output process
+    for various element types and dimensions in ASCII format. The tests cover 2D, 3D, quadratic 3D,
+    quadratic prism 3D, and quadratic hexahedra 3D cases. Binary output tests are present but commented out,
+    indicating that binary support is implemented but not yet tested.
+    Each test method calls `ExecuteBasicVTKoutputProcessCheck` with the appropriate format and geometry type.
+    The `tearDown` method ensures that the output directory ("test_ensight_output") is deleted after each test run
+    to maintain a clean test environment.
+    """
     def test_ascii_ensight_output_2D(self):
         ExecuteBasicVTKoutputProcessCheck("ascii", "2D")
 
@@ -47,27 +57,78 @@ class TestEnsightOutputProcess(KratosUnittest.TestCase):
         kratos_utils.DeleteDirectoryIfExisting("test_ensight_output")
 
 def SetupModelPart2D(model_part):
+    """
+    Sets up a ModelPart with a 2D mesh.
+
+    Args:
+        model_part (kratos.ModelPart): The model part to be initialized with the 2D mesh.
+    """
     test_vtk_output_process.SetupModelPart2D(model_part)
 
 def SetupModelPart3D(model_part):
+    """
+    Sets up a ModelPart with a 3D mesh.
+
+    Args:
+        model_part (kratos.ModelPart): The model part to be initialized with the 3D mesh.
+    """
     test_vtk_output_process.SetupModelPart3D(model_part)
 
 def SetupModelPartQuadratic3D(model_part):
+    """
+    Sets up a ModelPart with a 3D quadratic mesh.
+
+    Args:
+        model_part (kratos.ModelPart): The model part to be initialized with the quadratic mesh.
+    """
     test_vtk_output_process.SetupModelPartQuadratic3D(model_part)
 
 def SetupModelPartQuadraticPrism3D(model_part):
+    """
+    Sets up a ModelPart with a 3D quadratic prism mesh.
+
+    Args:
+        model_part (kratos.ModelPart): The model part to be initialized with the quadratic prism mesh.
+    """
     test_vtk_output_process.SetupModelPartQuadraticPrism3D(model_part)
 
 def SetupModelPartQuadraticHexahedra3D(model_part):
+    """
+    Sets up a ModelPart with a 3D quadratic hexahedral mesh.
+
+    Args:
+        model_part (kratos.ModelPart): The model part to be initialized with the quadratic hexahedral mesh.
+    """
     test_vtk_output_process.SetupModelPartQuadraticHexahedra3D(model_part)
 
 def SetSolution(model_part):
+    """
+    Sets a sample solution on the provided model part.
+
+    Args:
+        model_part (kratos.ModelPart): The model part on which to set the solution.
+    """
     test_vtk_output_process.SetSolution(model_part)
 
 def SetupEnsightOutputProcess(current_model, parameters):
+    """
+    Sets up the Ensight output process with the given model and parameters.
+
+    Args:
+        current_model (kratos.Model): The current Kratos model.
+        parameters (kratos.Parameters): The parameters for configuring the Ensight output process.
+    """
     return ensight_output_process.Factory(parameters, current_model)
 
 def Check(output_file,reference_file, file_format, extension):
+    """
+    Compares an output file with a reference file using the specified file format and extension.
+    Args:
+        output_file (str): The path to the output file to be checked.
+        reference_file (str): The path to the reference file to compare against.
+        file_format (str): The format of the files (e.g., "ascii").
+        extension (str): The file extension or comparison type to use for the check.
+    """
     ## Settings string in json format
     params = KratosMultiphysics.Parameters("""{
         "reference_file_name" : "",
@@ -81,6 +142,13 @@ def Check(output_file,reference_file, file_format, extension):
     CompareTwoFilesCheckProcess(params).Execute()
 
 def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
+    """
+    Executes a basic check of the Ensight output process for various model setups and file formats.
+    This function sets up a Kratos model part according to the specified geometry (2D, 3D, or various quadratic elements),
+    configures the Ensight output process with a set of parameters, and runs a simple time-stepping loop.
+    At each output step, it generates Ensight files and compares them against reference files to validate correctness.
+    Parameters
+    """
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     current_model = KratosMultiphysics.Model()
     model_part_name = "Main"
