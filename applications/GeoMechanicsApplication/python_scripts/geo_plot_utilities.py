@@ -29,7 +29,6 @@ def _make_plot(
             linestyle=series.line_style,
             marker=series.marker,
         )
-    axes.grid()
     axes.grid(which="minor", color="0.9")
     axes.yaxis.set_inverted(yaxis_inverted)
     if xlabel is not None:
