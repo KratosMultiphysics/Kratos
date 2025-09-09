@@ -83,7 +83,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
     }
 
-    check_properties.CheckAvailability(CONSTITUTIVE_LAW);
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
 
     ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(r_properties, element_Id);
