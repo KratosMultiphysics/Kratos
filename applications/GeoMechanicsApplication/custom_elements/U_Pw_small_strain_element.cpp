@@ -62,20 +62,13 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
-    // Verify specific properties
-    KRATOS_ERROR_IF_NOT(r_properties.Has(IGNORE_UNDRAINED))
-        << "IGNORE_UNDRAINED does not exist in the parameter list" << this->Id() << std::endl;
-
+    const CheckProperties check_properties(r_properties, "property at element", this->Id(),
+                                           CheckProperties::Bounds::AllInclusive);
+    check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_properties[IGNORE_UNDRAINED]) {
-        KRATOS_ERROR_IF(!r_properties.Has(BULK_MODULUS_FLUID) || r_properties[BULK_MODULUS_FLUID] < 0.0)
-            << "BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element"
-            << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF(!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] < 0.0)
-            << "DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element"
-            << this->Id() << std::endl;
-
-        GeoElementUtilities::CheckPermeabilityProperties(r_properties, r_geometry.WorkingSpaceDimension());
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
+        check_properties.CheckPermeabilityProperties(r_geometry.WorkingSpaceDimension());
     }
 
     // Verify that the constitutive law exists
