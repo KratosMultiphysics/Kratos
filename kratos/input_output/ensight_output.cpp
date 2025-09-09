@@ -2698,10 +2698,17 @@ void EnSightOutput::UpdatePartData()
     for (const auto& p_model_part : p_model_parts) {
         const ModelPart& r_sub_model_part = *p_model_part;
         // Skip empty parts
-        if (r_sub_model_part.NumberOfElements() == 0 && r_sub_model_part.NumberOfConditions() == 0) continue;
+        const std::size_t number_of_elements = r_sub_model_part.NumberOfElements();
+        const std::size_t number_of_conditions = r_sub_model_part.NumberOfConditions();
+        if (number_of_elements == 0 && number_of_conditions == 0) continue;
 
         // Collect data for the part
         PartData& r_part_data = mPartDatas[part_index - 1];
+
+        // If elements are zero, we set PartElements to false to know we have only conditions
+        if (number_of_elements == 0) {
+            r_part_data.PartElements = false;
+        }
 
         // Collect data for the part
         CollectPartData(r_sub_model_part, r_part_data);
