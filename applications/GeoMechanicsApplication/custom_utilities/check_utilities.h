@@ -75,26 +75,26 @@ public:
     template <typename T>
     void Check(const Variable<T>& rVariable) const
     {
-        CheckAvailabilityOnly(rVariable);
+        CheckAvailability(rVariable);
         CheckRangeBounds(rVariable, mDefaultLowerBound, std::nullopt);
     }
 
     template <typename T>
     void Check(const Variable<T>& rVariable, double UpperBound) const
     {
-        CheckAvailabilityOnly(rVariable);
+        CheckAvailability(rVariable);
         CheckRangeBounds(rVariable, mDefaultLowerBound, UpperBound);
     }
 
     template <typename T>
     void Check(const Variable<T>& rVariable, double LowerBound, double UpperBound) const
     {
-        CheckAvailabilityOnly(rVariable);
+        CheckAvailability(rVariable);
         CheckRangeBounds(rVariable, LowerBound, UpperBound);
     }
 
     template <typename T>
-    void CheckAvailabilityOnly(const Variable<T>& rVariable) const
+    void CheckAvailability(const Variable<T>& rVariable) const
     {
         if (!mrProperties.Has(rVariable))
             KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName
@@ -102,9 +102,9 @@ public:
     }
 
     template <typename T>
-    void CheckAvailabilityAndEmpty(const Variable<T>& rVariable) const
+    void CheckAvailabilityAndNotEmpty(const Variable<T>& rVariable) const
     {
-        CheckAvailabilityOnly(rVariable);
+        CheckAvailability(rVariable);
         if (mrProperties[rVariable].empty())
             KRATOS_ERROR << rVariable.Name() << " is empty in the " << mrPrintName << " with Id "
                          << mId << "." << std::endl;
@@ -147,8 +147,9 @@ private:
             std::ostringstream print_range;
             const auto         include_lower_bound = (mRangeBoundsType == AllInclusive) ||
                                              (mRangeBoundsType == InclusiveLowerAndExclusiveUpper);
-            const auto include_upper_bound = (mRangeBoundsType == AllInclusive) ||
-                                             (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper);
+            const auto include_upper_bound =
+                UpperBound && ((mRangeBoundsType == AllInclusive) ||
+                               (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper));
             print_range << (include_lower_bound ? "[" : "(") << LowerBound << "; "
                         << (UpperBound ? std::to_string(*UpperBound) : "-")
                         << (include_upper_bound ? "]" : ")");

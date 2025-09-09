@@ -56,7 +56,8 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
     const CheckProperties check_properties(r_properties, "material properties",
                                            CheckProperties::Bounds::AllExclusive);
     check_properties.Check(DENSITY_WATER);
-    check_properties.Check(POROSITY);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
     check_properties.Check(DYNAMIC_VISCOSITY);
 
     if (TDim == 2) {

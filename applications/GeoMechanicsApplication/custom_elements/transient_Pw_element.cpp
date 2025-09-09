@@ -174,9 +174,9 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
         }
     }
 
-    check_properties.Check(BULK_MODULUS_FLUID);
-    check_properties.Check(DYNAMIC_VISCOSITY);
-    check_properties.CheckAvailabilityOnly(BIOT_COEFFICIENT);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
+    check_properties.CheckAvailability(BIOT_COEFFICIENT);
     check_properties.CheckPermeabilityProperties(TDim);
 
     return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);

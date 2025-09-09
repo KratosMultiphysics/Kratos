@@ -79,8 +79,8 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 
     if (!r_properties[IGNORE_UNDRAINED]) {
         check_properties.Check(TRANSVERSAL_PERMEABILITY);
-        check_properties.Check(BULK_MODULUS_FLUID);
-        check_properties.Check(DYNAMIC_VISCOSITY);
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
     }
 
     // Verify the constitutive law

@@ -74,7 +74,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 
     const CheckProperties check_properties(r_prop, "parameter list", this->Id(),
                                            CheckProperties::Bounds::AllExclusive);
-    check_properties.CheckAvailabilityOnly(IGNORE_UNDRAINED);
+    check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_prop[IGNORE_UNDRAINED])
         check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
 

@@ -64,9 +64,9 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
                                            this->Id(), CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
     check_properties.Check(TRANSVERSAL_PERMEABILITY);
-    check_properties.Check(BULK_MODULUS_FLUID);
-    check_properties.Check(DYNAMIC_VISCOSITY);
-    check_properties.CheckAvailabilityOnly(BIOT_COEFFICIENT);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
+    check_properties.CheckAvailability(BIOT_COEFFICIENT);
     check_properties.Check(DENSITY_WATER);
     check_properties.Check(BULK_MODULUS_SOLID);
     constexpr auto max_value_porosity = 1.0;

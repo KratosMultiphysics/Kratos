@@ -53,9 +53,9 @@ int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
     check_properties.Check(PIPE_ETA);
     check_properties.Check(PIPE_THETA);
     check_properties.Check(PIPE_D_70);
-    check_properties.CheckAvailabilityOnly(PIPE_START_ELEMENT);
-    check_properties.CheckAvailabilityOnly(PIPE_MODIFIED_D);
-    check_properties.CheckAvailabilityOnly(PIPE_MODEL_FACTOR);
+    check_properties.CheckAvailability(PIPE_START_ELEMENT);
+    check_properties.CheckAvailability(PIPE_MODIFIED_D);
+    check_properties.CheckAvailability(PIPE_MODEL_FACTOR);
 
     KRATOS_CATCH("")
 

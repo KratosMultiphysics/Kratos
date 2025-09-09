@@ -204,8 +204,8 @@ int SmallStrainUMATLaw<TVoigtSize>::Check(const Properties&   rMaterialPropertie
                                           const ProcessInfo&  rCurrentProcessInfo) const
 {
     const CheckProperties check_properties(rMaterialProperties, "property", CheckProperties::Bounds::AllExclusive);
-    check_properties.CheckAvailabilityAndEmpty(UDSM_NAME);
-    check_properties.CheckAvailabilityOnly(IS_FORTRAN_UDSM);
+    check_properties.CheckAvailabilityAndNotEmpty(UDSM_NAME);
+    check_properties.CheckAvailability(IS_FORTRAN_UDSM);
 
     return 0;
 }

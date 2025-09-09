@@ -57,7 +57,7 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     if (ierr != 0) return ierr;
 
     const CheckProperties check_properties(r_properties, "material properties at element",
-                                           element_Id, CheckProperties::Bounds::AllInclusive);
+                                           element_Id, CheckProperties::Bounds::AllExclusive);
     check_properties.Check(BULK_MODULUS_FLUID);
 
     // Verify that the constitutive law exists

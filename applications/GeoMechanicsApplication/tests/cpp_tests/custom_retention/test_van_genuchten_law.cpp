@@ -134,7 +134,7 @@ KRATOS_TEST_CASE_IN_SUITE(VanGenuchtenLawChecksInputParameters, KratosGeoMechani
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, process_info),
         " VAN_GENUCHTEN_GL in the parameters of material with Id 1 has an "
-        "invalid value: -1.5 is out of the range [0; -].");
+        "invalid value: -1.5 is out of the range [0; -).");
     properties.SetValue(VAN_GENUCHTEN_GL, 1.5);
 
     KRATOS_EXPECT_EQ(law.Check(properties, process_info), 0);
