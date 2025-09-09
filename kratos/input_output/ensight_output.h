@@ -32,20 +32,31 @@ namespace Kratos
 ///@{
 
 /**
+ * @struct PartData
  * @brief Structure representing a part in the EnSight 6/Gold output.
- * @details Contains the nodes, mapping from Kratos IDs to local IDs, and geometrical objects associated with the part.
- * @var PartNodes The nodes belonging to this part.
- * @var KratosIdToLocalId Mapping from Kratos node IDs to local IDs used in the output.
- * @var PartGeometricalObjects Geometrical objects (elements) belonging to this part, organized by type.
+ * @details
+ * This structure holds all the necessary information for a single part (typically a SubModelPart)
+ * when exporting to the EnSight 6/Gold format. It includes:
+ * - The list of nodes belonging to the part.
+ * - A mapping from Kratos node IDs to local IDs used in the EnSight output.
+ * - The geometrical objects (elements or conditions) associated with the part, organized by type.
+ * - The part's unique identifier and name.
+ * - A flag indicating whether the part contains elements (true) or conditions (false).
+ * @var PartNodes Vector of pointers to the nodes belonging to this part.
+ * @var KratosIdToLocalId Mapping from Kratos node IDs to local IDs for EnSight output.
+ * @var PartGeometricalObjects Map from geometry type name to vector of pointers to geometrical objects (elements/conditions).
+ * @var PartId Unique identifier for the part.
+ * @var PartName Name of the part (typically the SubModelPart name).
+ * @var PartElements True if the part contains elements, false if it contains conditions.
  */
 struct PartData
 {
-    std::vector<const Node*> PartNodes;                                                            /// The nodes belonging to this part
-    std::unordered_map<std::size_t, std::size_t> KratosIdToLocalId;                                /// The mapping from Kratos IDs to local IDs
-    std::unordered_map<std::string, std::vector<const GeometricalObject*>> PartGeometricalObjects; /// The geometrical objects belonging to this part
-    unsigned int PartId = 0;                                                                       /// The id of the part
-    std::string PartName;                                                                          /// The name of the part
-    bool PartElements = true;                                                                      /// Flag indicating if the part contains elements, otherwise conditions
+    std::vector<const Node*> PartNodes;                                                            ///< The nodes belonging to this part
+    std::unordered_map<std::size_t, std::size_t> KratosIdToLocalId;                                ///< Mapping from Kratos node IDs to local IDs
+    std::unordered_map<std::string, std::vector<const GeometricalObject*>> PartGeometricalObjects; ///< Geometrical objects (elements/conditions) belonging to this part, organized by type
+    unsigned int PartId = 0;                                                                       ///< Unique identifier for the part
+    std::string PartName;                                                                          ///< Name of the part
+    bool PartElements = true;                                                                      ///< True if the part contains elements, false if it contains conditions
 };
 
 /**
