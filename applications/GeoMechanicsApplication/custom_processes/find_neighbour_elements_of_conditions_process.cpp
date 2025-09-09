@@ -17,6 +17,7 @@
 #include "includes/kratos_flags.h"
 #include "utilities/builtin_timer.h"
 
+#include "geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include <memory>
 
 namespace Kratos
@@ -49,12 +50,9 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         return std::make_pair(sorted_ids, rPair.first);
     });
 
-    for (auto& r_element : mrModelPart.Elements()) {
-        const auto& rGeometryElement    = r_element.GetGeometry();
-        const auto  rBoundaryGeometries = rGeometryElement.GenerateBoundariesEntities();
-        AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-            condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, rBoundaryGeometries);
-    }
+    auto generate_boundaries=[](const auto &rGeometry){return rGeometry.GenerateBoundariesEntities();};
+    CheckBoundaryTypeForAllElements(generate_boundaries, condition_node_ids_to_condition,
+                                    sorted_condition_node_ids_to_condition);
 
     if (AllConditionsAreVisited()) return;
 
@@ -109,6 +107,18 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         << "Some conditions found without any corresponding element" << std::endl;
 
     KRATOS_CATCH("")
+}
+
+void FindNeighbourElementsOfConditionsProcess::CheckBoundaryTypeForAllElements(auto generate_boundaries,
+                                     Kratos::hashmap&  condition_node_ids_to_condition,
+                                     Kratos::hashmap2& sorted_condition_node_ids_to_condition)
+{
+    for (auto& r_element : mrModelPart.Elements()) {
+        const auto& rGeometryElement    = r_element.GetGeometry();
+        const auto  rBoundaryGeometries = generate_boundaries(rGeometryElement);
+        AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+            condition_node_ids_to_condition, sorted_condition_node_ids_to_condition, r_element, rBoundaryGeometries);
+    }
 }
 
 void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
