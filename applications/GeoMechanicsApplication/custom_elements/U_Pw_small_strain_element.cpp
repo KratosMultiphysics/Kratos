@@ -71,32 +71,13 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
         check_properties.CheckPermeabilityProperties(r_geometry.WorkingSpaceDimension());
     }
 
-    // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(this->GetProperties().Has(CONSTITUTIVE_LAW))
-        << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
+    const auto expected_sizes = (TDim == 2 ? std::vector<std::size_t>{VOIGT_SIZE_2D_PLANE_STRAIN}
+                                           : std::vector<std::size_t>{VOIGT_SIZE_3D});
+    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_sizes, TDim, this->Id());
+    const auto ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
 
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strainSize = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    if (TDim == 2) {
-        KRATOS_ERROR_IF_NOT(strainSize == VOIGT_SIZE_2D_PLANE_STRAIN)
-            << "Wrong constitutive law used. This is a 2D element! expected "
-               "strain size is "
-            << VOIGT_SIZE_2D_PLANE_STRAIN << " But received: " << strainSize
-            << " in element id: " << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strainSize == VOIGT_SIZE_3D)
-            << "Wrong constitutive law used. This is a 3D element! expected "
-               "strain size is "
-            << VOIGT_SIZE_3D << " But received: " << strainSize << " in element id: " << this->Id()
-            << std::endl;
-    }
-
-    // Check constitutive law
-    if (!mConstitutiveLawVector.empty()) {
-        return mConstitutiveLawVector[0]->Check(r_properties, r_geometry, rCurrentProcessInfo);
-    }
-
-    return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
+    return ierr + RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
