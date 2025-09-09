@@ -28,7 +28,7 @@ class TestMaterialPointEraseProcess(KratosUnittest.TestCase):
 
         # Create element and nodes
         sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
-        sub_mp.GetProperties()[1].SetValue(KratosMPM.MATERIAL_POINTS_PER_ELEMENT, 4)
+        sub_mp.GetProperties()[1].SetValue(KratosMPM.MATERIAL_POINTS_PER_ELEMENT, 8)
         self._create_nodes(sub_mp)
         self._create_elements(sub_mp)
 
