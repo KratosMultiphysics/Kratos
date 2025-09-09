@@ -101,6 +101,7 @@ namespace Kratos
     
     // Numerical Stiffness variables
     KRATOS_DEFINE_APPLICATION_VARIABLE( MPM_APPLICATION, double, TOTAL_MP_VOLUME ) // Total volume of the material points in the background grid element
+    KRATOS_DEFINE_APPLICATION_VARIABLE( MPM_APPLICATION, double, GRID_VOLUME )
     KRATOS_DEFINE_APPLICATION_VARIABLE( MPM_APPLICATION, double, VOLUME_RATIO_THRESHOLD )
 
     /* NODAL VARIABLES */

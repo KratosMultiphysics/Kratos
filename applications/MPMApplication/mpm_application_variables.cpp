@@ -68,6 +68,7 @@ namespace Kratos
 
     // Numerical Stiffness variables
     KRATOS_CREATE_VARIABLE( double, TOTAL_MP_VOLUME ) // Total volume of the material points in the background grid element
+    KRATOS_CREATE_VARIABLE( double, GRID_VOLUME )
     KRATOS_CREATE_VARIABLE( double, VOLUME_RATIO_THRESHOLD )
 
     // Conditions
