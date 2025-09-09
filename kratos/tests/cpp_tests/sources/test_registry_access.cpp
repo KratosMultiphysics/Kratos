@@ -37,6 +37,8 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryItemGetValueDerivedAsBase, KratosCoreFastSuite
     auto pProcess = Registry::GetValue<Process>("Processes.KratosMultiphysics.OutputProcess.Prototype");
 
     KRATOS_EXPECT_TRUE((std::is_same<Process,decltype(pProcess)>::value))
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(Registry::GetValue<Process>("Processes.KratosMultiphysics.output_process.Prototype"), "");
 }
 
 

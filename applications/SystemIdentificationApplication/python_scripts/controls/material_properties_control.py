@@ -12,6 +12,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionBoundingManager
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
@@ -33,10 +34,11 @@ class MaterialPropertiesControl(Control):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "control_variable_name"  : "",
-            "control_variable_bounds": [0.0, 0.0],
-            "output_all_fields"      : false,
-            "filter_settings"        : {},
+            "control_variable_name"             : "",
+            "control_variable_bounds"           : [0.0, 0.0],
+            "output_all_fields"                 : false,
+            "consider_recursive_property_update": false,
+            "filter_settings"                   : {},
             "model_part_names": [
                 {
                     "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
@@ -74,6 +76,9 @@ class MaterialPropertiesControl(Control):
                                                 [param["adjoint_model_part_name"].GetString() for param in controlled_model_part_names],
                                                 False)
 
+        self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
+
+
         # filter needs to be based on the primal model part
         # because, filter may keep pointers for the elements to get their center positions
         # for filtering. The adjoint model part may re-assign adjoint elements based on
@@ -85,14 +90,17 @@ class MaterialPropertiesControl(Control):
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
 
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
-        self.clamper = KratosSI.ElementSmoothClamper(control_variable_bounds[0], control_variable_bounds[1])
+
+        # use the clamper in the unit interval
+        self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
+        self.clamper = KratosSI.ElementSmoothClamper(0, 1)
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
         self.adjoint_model_part = self.adjoint_model_part_operation.GetModelPart()
 
         if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.primal_model_part, "element_specific_properties_created"):
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements)
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements, self.consider_recursive_property_update)
             KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.primal_model_part, "element_specific_properties_created")
 
             if self.primal_model_part != self.adjoint_model_part:
@@ -110,12 +118,12 @@ class MaterialPropertiesControl(Control):
         physical_field = self.GetPhysicalField()
 
         # get the phi field which is in [0, 1] range
-        self.physical_phi_field = self.clamper.ProjectBackward(physical_field)
+        self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedExpression(physical_field))
 
         # compute the control phi field
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
 
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -180,14 +188,16 @@ class MaterialPropertiesControl(Control):
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_phi_field_update)
 
         # project forward the filtered thickness field to get clamped physical field
-        physical_field = self.clamper.ProjectForward(self.physical_phi_field)
+        physical_field = self.interval_bounder.GetUnboundedExpression(self.clamper.ProjectForward(self.physical_phi_field))
 
         # now update physical field
         KratosOA.PropertiesVariableExpressionIO.Write(physical_field, self.controlled_physical_variable)
+        if self.consider_recursive_property_update:
+            KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(physical_field.GetContainer(), self.controlled_physical_variable)
 
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()

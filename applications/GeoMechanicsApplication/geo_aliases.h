@@ -16,10 +16,15 @@
 #include <vector>
 
 #include "containers/variable.h"
+#include "integration/integration_point.h"
 
 namespace Kratos::Geo
 {
 
-using ConstVariableRefs = std::vector<std::reference_wrapper<const Variable<double>>>;
+using ConstVariableRefs     = std::vector<std::reference_wrapper<const Variable<double>>>;
+using ConstVariableDataRefs = std::vector<std::reference_wrapper<const VariableData>>;
+
+using IntegrationPointType       = IntegrationPoint<3>;
+using IntegrationPointVectorType = std::vector<IntegrationPointType>;
 
 } // namespace Kratos::Geo

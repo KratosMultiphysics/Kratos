@@ -1,8 +1,13 @@
 {
     "side_bar_name": "structural_mechanics_application",
-    "landing_page": "General/0_Roll-up-beam-cantilever.md",
+    "landing_page": "General/Overview.md",
     "additional_menu_options": {
         "product": "Structural Mechanics Application",
         "title": "sidebar"
-    }
+    },
+    "custom_entries": [
+        "General",
+        "Elements",
+        "Examples"
+    ]
 }

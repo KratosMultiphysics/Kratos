@@ -1,5 +1,9 @@
 import re
 import sympy
+from sympy.codegen.rewriting import create_expand_pow_optimization
+
+# We expand terms up to 8th power for optimization purposes
+expand_opt = create_expand_pow_optimization(8)
 
 def DefineMatrix(name, m, n):
     """
@@ -751,12 +755,14 @@ def _AuxiliaryOutputCollectionFactors(A, name, language, indentation_level, opti
     """
     symbol_name = "c" + name
     A_factors, A_collected = sympy.cse(A, sympy.numbered_symbols(symbol_name), optimizations)
-    A = A_collected[0] #overwrite lhs with the one with the collected components
+    A = A_collected[0] #overwrite A with the one with the collected components
+    A = expand_opt(A)
 
     Acoefficient_str = str("")
     for factor in A_factors:
         varname = str(factor[0])
         value = factor[1]
+        value = expand_opt(value)
         Acoefficient_str += OutputSymbolicVariableDeclaration(value, varname, language, indentation_level, replace_indices)
 
     A_out = Acoefficient_str + output_func(A, name, language, indentation_level, replace_indices, assignment_op)

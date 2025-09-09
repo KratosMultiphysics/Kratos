@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(KRATOS_THERMAL_SPHERIC_PARTICLE_H_INCLUDED)
-#define KRATOS_THERMAL_SPHERIC_PARTICLE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -37,10 +36,10 @@ namespace Kratos
       typedef ParticleWeakVectorType::ptr_iterator    ParticleWeakIteratorType_ptr;
       typedef GlobalPointersVector<Element>::iterator ParticleWeakIteratorType;
 
-      typedef Node                             NodeType;
+      typedef Node                                NodeType;
       typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
       typedef std::size_t                         IndexType;
-      typedef Geometry<Node>                   GeometryType;
+      typedef Geometry<Node>                      GeometryType;
       typedef Properties                          PropertiesType;
 
       // Definitions
@@ -81,7 +80,7 @@ namespace Kratos
       void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
       void ComputeInteractionProps         (const ProcessInfo& r_process_info);
       void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
-      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding) override;
+      void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, double GlobalContactForceTotal[3], double LocalContactForceTotal[3], double LocalContactForceDamping[3], bool sliding, double identation) override;
       void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods
@@ -105,7 +104,9 @@ namespace Kratos
       double ComputeSeparationToNeighborAdjusted (void);
       double ComputeFourierNumber                (void);
       double ComputeMaxCollisionTime             (void);
+      double ComputeMaxCollisionTimeReal         (void);
       double ComputeMaxContactRadius             (void);
+      double ComputeMaxContactRadiusReal         (void);
       double ComputeContactRadius                (void);
       double ComputeEffectiveRadius              (void);
       double ComputeEffectiveMass                (void);
@@ -212,11 +213,13 @@ namespace Kratos
       // General properties
       unsigned int mDimension;           // dimension (2D or 3D)
       unsigned int mNumStepsEval;        // number of steps passed since last thermal evaluation
+      double       mInitialTemperature;  // temperature from the beginning of the simulation
       double       mPreviousTemperature; // temperature from the beginning of the step
       bool         mIsTimeToSolve;       // flag to solve thermal problem in current step
-      bool         mHasMotion;           // flag to solve mechanical behavior (forces and displacements)
+      bool         mComputeForces;       // flag to solve mechanical behavior by computing forces
+      bool         mComputeMotion;       // flag to solve mechanical behavior by computing motion (and forces, as a pre-requisite)
       bool         mHasFixedTemperature; // flag for constant temperature
-      bool         mHasVariableRadius;   // flag for temperature-dependent radius
+      bool         mHasTempDependRadius; // flag for temperature-dependent radius
       bool         mStoreContactParam;   // flag to store contact parameters with neighbors when solving the mechanical problem
 
       // Heat flux components
@@ -240,6 +243,12 @@ namespace Kratos
       double mPreviousViscodampingEnergy; // accumulated energy dissipation from previous interaction: viscodamping 
       double mPreviousFrictionalEnergy;   // accumulated energy dissipation from previous interaction: frictional
       double mPreviousRollResistEnergy;   // accumulated energy dissipation from previous interaction: rolling resistance
+      double mGenerationThermalEnergy_damp_particle;
+      double mGenerationThermalEnergy_damp_wall;
+      double mGenerationThermalEnergy_slid_particle;
+      double mGenerationThermalEnergy_slid_wall;
+      double mGenerationThermalEnergy_roll_particle;
+      double mGenerationThermalEnergy_roll_wall;
 
       // Heat maps
       std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPP;  // Local heat map matrix for heat generaion by damping between particle-particle
@@ -317,5 +326,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // KRATOS_THERMAL_SPHERIC_PARTICLE_H_INCLUDED defined

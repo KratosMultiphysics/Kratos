@@ -32,7 +32,6 @@
             "check"         : "DirectorVectorNonZero direction",
             "process_name"  : "AssignVectorByDirectionToConditionProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.LineLoad2D_Load_on_lines_Auto1",
                 "variable_name"   : "LINE_LOAD",
                 "modulus"         : 1.0,

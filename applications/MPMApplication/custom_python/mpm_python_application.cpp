@@ -113,6 +113,7 @@ namespace Python{
 
         // Essential Boundary variables
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPC_BOUNDARY_CONDITION_TYPE);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PARTICLE_BASED_SLIP);
 
         // Nodal load variables
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, POINT_LOAD )

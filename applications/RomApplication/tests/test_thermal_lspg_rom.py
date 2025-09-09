@@ -11,7 +11,7 @@ if kratos_utilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication
 from KratosMultiphysics.RomApplication.rom_manager import RomManager
 from pathlib import Path
 
-def CustomizeSimulation(cls, global_model, parameters):
+def CustomizeSimulation(cls, global_model, parameters, mu = None):
 
     class CustomSimulation(cls):
 

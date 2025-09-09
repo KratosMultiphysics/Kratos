@@ -21,7 +21,6 @@
 // strategies
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
-#include "custom_strategies/strategies/geo_mechanics_ramm_arc_length_strategy.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // builders and solvers
@@ -32,6 +31,7 @@
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
+#include "custom_strategies/schemes/geomechanics_static_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
@@ -43,7 +43,7 @@
 namespace Kratos::Python
 {
 
-void AddCustomStrategiesToPython(pybind11::module& m)
+void AddCustomStrategiesToPython(const pybind11::module& m)
 {
     namespace py = pybind11;
 
@@ -69,14 +69,12 @@ void AddCustomStrategiesToPython(pybind11::module& m)
         BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>;
     using BackwardEulerQuasistaticTSchemeType = BackwardEulerTScheme<SparseSpaceType, LocalSpaceType>;
 
+    using GeoStaticSchemeType = GeoMechanicsStaticScheme<SparseSpaceType, LocalSpaceType>;
+
     using GeoMechanicsNewtonRaphsonStrategyType =
         GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-    using GeoMechanicsRammArcLengthStrategyType =
-        GeoMechanicsRammArcLengthStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
         GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     py::class_<NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkQuasistaticUPwScheme", py::module_local())
@@ -110,22 +108,20 @@ void AddCustomStrategiesToPython(pybind11::module& m)
         m, "BackwardEulerTScheme")
         .def(py::init<>());
 
+    py::class_<GeoStaticSchemeType, typename GeoStaticSchemeType::Pointer, BaseSchemeType>(
+        m, "GeoStaticScheme")
+        .def(py::init<>());
+
     py::class_<GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType>(
         m, "GeoMechanicsNewtonRaphsonStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>());
 
     py::class_<GeoMechanicsNewtonRaphsonErosionProcessStrategyType,
                typename GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer, BaseSolvingStrategyType>(
         m, "GeoMechanicsNewtonRaphsonErosionProcessStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>());
-
-    py::class_<GeoMechanicsRammArcLengthStrategyType, typename GeoMechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType>(
-        m, "GeoMechanicsRammArcLengthStrategy")
-        .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
-                      BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>())
-        .def("UpdateLoads", &GeoMechanicsRammArcLengthStrategyType::UpdateLoads);
 
     using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType =
         ResidualBasedBlockBuilderAndSolverWithMassAndDamping<SparseSpaceType, LocalSpaceType, LinearSolverType>;

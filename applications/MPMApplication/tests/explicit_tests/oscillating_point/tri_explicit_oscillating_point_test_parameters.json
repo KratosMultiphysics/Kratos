@@ -66,7 +66,7 @@
         "loads_process_list"       : [],
 		"gravity"                  : [],
         "list_other_processes"     : [{
-            "python_module" : "assign_initial_velocity_to_particle_process",
+            "python_module" : "assign_initial_velocity_to_material_point_process",
             "kratos_module" : "KratosMultiphysics.MPMApplication",
             "Parameters"    : {
                 "model_part_name" : "Parts_bar",
@@ -76,10 +76,10 @@
             }
         },
 		{
-            "python_module"   : "particle_from_json_check_result_process",
+            "python_module"   : "mpm_from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics.MPMApplication",
             "help"                  : "",
-            "process_name"          : "ParticleFromJsonCheckResultProcess",
+            "process_name"          : "MPMFromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["MP_VELOCITY","MP_DISPLACEMENT"],
                 "input_file_name"  : "explicit_tests/oscillating_point/tri_explicit_oscillating_point_test_results.json",
@@ -89,10 +89,10 @@
         }]
     },
 		"print_output_process" : [{
-        "python_module"   : "particle_json_output_process",
+        "python_module"   : "mpm_json_output_process",
         "kratos_module" : "KratosMultiphysics.MPMApplication",
         "help"                  : "",
-        "process_name"          : "ParticleJsonOutputProcess",
+        "process_name"          : "MPMJsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["MP_VELOCITY","MP_DISPLACEMENT"],
             "output_file_name"              : "explicit_tests/oscillating_point/tri_explicit_oscillating_point_test_results.json",

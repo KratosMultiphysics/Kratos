@@ -325,6 +325,26 @@ namespace Kratos
     };
 
     /**
+     * @brief This is a key comparer between two pointers
+     * @details This compares two pointers by using its value comparison operators.
+     */
+    template<class TDataType>
+    struct PointerComparor
+    {
+        // Data type used in the comparison
+        using data_type = TDataType;
+        /**
+         * @brief The () operator
+         * @param first  The first pointer
+         * @param second The second pointer
+         */
+        bool operator()(TDataType const * first, TDataType const * second) const
+        {
+            return (*first) == (*second);
+        }
+    };    
+
+    /**
      * @brief This is a hasher between two vectors of indexes
      * @tparam TVectorIndex The type of vector indexes to be compared
      */
@@ -383,23 +403,6 @@ namespace Kratos
             HashCombine(seed, pDoF->Id());
             HashCombine(seed, (pDoF->GetVariable()).Key());
             return seed;
-        }
-    };
-
-    /**
-     * @brief This is a key comparer between two dof pointers
-     * @details Used for example for the B&S
-     */
-    struct DofPointerComparor
-    {
-        /**
-         * @brief The () operator
-         * @param pDoF1 The first DoF pointer
-         * @param pDoF2 The second DoF pointer
-         */
-        bool operator()(const Dof<double>::Pointer& pDoF1, const Dof<double>::Pointer& pDoF2) const
-        {
-            return (((pDoF1->Id() == pDoF2->Id() && (pDoF1->GetVariable()).Key()) == (pDoF2->GetVariable()).Key()));
         }
     };
 

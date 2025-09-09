@@ -13,6 +13,7 @@
 
 #include "axisymmetric_stress_state.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -40,20 +41,6 @@ Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         rDN_DX,
     return result;
 }
 
-double AxisymmetricStressState::CalculateIntegrationCoefficient(const Geometry<Node>::IntegrationPointType& rIntegrationPoint,
-                                                                double DetJ,
-                                                                const Geometry<Node>& rGeometry) const
-{
-    Vector shape_function_values;
-    shape_function_values =
-        rGeometry.ShapeFunctionsValues(shape_function_values, rIntegrationPoint.Coordinates());
-
-    const auto radius_weight =
-        GeoElementUtilities::CalculateAxisymmetricCircumference(shape_function_values, rGeometry);
-
-    return rIntegrationPoint.Weight() * DetJ * radius_weight;
-}
-
 std::unique_ptr<StressStatePolicy> AxisymmetricStressState::Clone() const
 {
     return std::make_unique<AxisymmetricStressState>();
@@ -70,5 +57,15 @@ const Vector& AxisymmetricStressState::GetVoigtVector() const { return VoigtVect
 SizeType AxisymmetricStressState::GetVoigtSize() const { return GetVoigtSize2D(); }
 
 SizeType AxisymmetricStressState::GetStressTensorSize() const { return GetStressTensorSize2D(); }
+
+void AxisymmetricStressState::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void AxisymmetricStressState::load(Serializer&)
+{
+    // No data members to be loaded (yet)
+}
 
 } // namespace Kratos

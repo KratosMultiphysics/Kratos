@@ -132,7 +132,7 @@ public:
     */
     std::string Info() const
     {
-        return "a 3D plane auxiliar class";
+        return "a 3D plane auxiliary class";
     }
 
     /** Print information about this object.
@@ -142,7 +142,7 @@ public:
     */
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "a 3D plane auxiliar class";
+        rOStream << "a 3D plane auxiliary class";
     }
 
     /** Print geometry's data into given stream. Prints it's points
@@ -154,7 +154,7 @@ public:
     */
     void PrintData(std::ostream& rOStream) const
     {
-        rOStream << "a 3D plane auxiliar class with:\n";
+        rOStream << "a 3D plane auxiliary class with:\n";
         rOStream << "\t- distance to origin: " << mD << "\n";
         rOStream << "\t- normal: (" << mNormal[0] << " , " << mNormal[1] << " , " << mNormal[2] << ")";
     }

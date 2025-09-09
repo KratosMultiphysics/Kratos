@@ -27,6 +27,7 @@
 #include "input_output/logger.h"
 #include "utilities/quaternion.h"
 #include "constraints/linear_master_slave_constraint.h"
+#include "solving_strategies/builder_and_solvers/p_multigrid/linear_multifreedom_constraint.hpp" // LinearMultifreedomConstraint
 
 // Geometries definition
 #include "geometries/register_kratos_components_for_geometry.h"
@@ -59,6 +60,8 @@
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/quadrature_point_geometry.h"
 #include "geometries/coupling_geometry.h"
+#include "geometries/brep_curve_on_surface.h"
+#include "geometries/brep_curve.h"
 
 // Elements
 #include "elements/mesh_element.h"
@@ -78,6 +81,7 @@
 #include "modeler/combine_model_part_modeler.h"
 #include "modeler/connectivity_preserve_modeler.h"
 #include "modeler/voxel_mesh_generator_modeler.h"
+#include "modeler/clean_up_problematic_triangles_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -132,7 +136,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     /// Destructor.
     virtual ~KratosApplication()
     {
-        // This must be commented until tests have been fixed.
+        DeregisterVariables();
         DeregisterCommonComponents();
         DeregisterApplication();
     }
@@ -147,6 +151,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     }
 
     void RegisterKratosCore();
+
+    void DeregisterVariables();
 
     template<class TComponentsContainer>
     void DeregisterComponent(std::string const & rComponentName);
@@ -460,28 +466,37 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // General conditions must be defined
     // Generic condition
     const MeshCondition mGenericCondition;
+
     // Point conditions
     const MeshCondition mPointCondition2D1N;
     const MeshCondition mPointCondition3D1N;
+
     // Line conditions
     const MeshCondition mLineCondition2D2N;
     const MeshCondition mLineCondition2D3N;
     const MeshCondition mLineCondition3D2N;
     const MeshCondition mLineCondition3D3N;
+
     // Surface conditions
     const MeshCondition mSurfaceCondition3D3N;
     const MeshCondition mSurfaceCondition3D6N;
     const MeshCondition mSurfaceCondition3D4N;
     const MeshCondition mSurfaceCondition3D8N;
     const MeshCondition mSurfaceCondition3D9N;
-    //prisms
+
+    // Prisms conditions
     const MeshCondition mPrismCondition2D4N;
     const MeshCondition mPrismCondition3D6N;
+
+    // IBRA Conditions
+    const MeshCondition mBrepCurveOnSurfaceCondition;
+    const MeshCondition mNurbsCurveCondition;
 
 
     // Master-Slave base constraint
     const MasterSlaveConstraint mMasterSlaveConstraint;
     const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
+    const LinearMultifreedomConstraint mLinearMultifreedomConstraint;
 
     // Periodic Condition
     const PeriodicCondition mPeriodicCondition;
@@ -491,17 +506,19 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // General elements must be defined
     const MeshElement mGenericElement;
 
-    const MeshElement mElement2D1N;
-    const MeshElement mElement2D2N;
+    // 2D elements
+    const MeshElement mElement2D1N; // NOTE: This would be duplicated mPointElement2D1N
+    const MeshElement mElement2D2N; // NOTE: This would be duplicated mLineElement2D2N
     const MeshElement mElement2D3N;
     const MeshElement mElement2D6N;
     const MeshElement mElement2D4N;
     const MeshElement mElement2D8N;
     const MeshElement mElement2D9N;
 
-    const MeshElement mElement3D1N;
-    const MeshElement mElement3D2N;
-    const MeshElement mElement3D3N;
+    // 3D elements
+    const MeshElement mElement3D1N; // NOTE: This would be duplicated mPointElement3D1N
+    const MeshElement mElement3D2N; // NOTE: This would be duplicated mLineElement3D2N
+    const MeshElement mElement3D3N; // NOTE: This would be duplicated mSurfaceElement3D3N
     const MeshElement mElement3D4N;
     const MeshElement mElement3D5N;
     const MeshElement mElement3D6N;
@@ -512,12 +529,33 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshElement mElement3D20N;
     const MeshElement mElement3D27N;
 
+    // For sake of consistency and in order to define missing geometries for elements
+    // Point elements
+    const MeshElement mPointElement2D1N;
+    const MeshElement mPointElement3D1N;
+
+    // Line elements
+    const MeshElement mLineElement2D2N;
+    const MeshElement mLineElement2D3N;
+    const MeshElement mLineElement3D2N;
+    const MeshElement mLineElement3D3N;
+
+    // Surface elements
+    const MeshElement mSurfaceElement3D3N;
+    const MeshElement mSurfaceElement3D6N;
+    const MeshElement mSurfaceElement3D4N;
+    const MeshElement mSurfaceElement3D8N;
+    const MeshElement mSurfaceElement3D9N;
+
+    // Distance calculation elements
     const DistanceCalculationElementSimplex<2> mDistanceCalculationElementSimplex2D3N;
     const DistanceCalculationElementSimplex<3> mDistanceCalculationElementSimplex3D4N;
 
+    // Edge based gradient recovery elements
     const EdgeBasedGradientRecoveryElement<2> mEdgeBasedGradientRecoveryElement2D2N;
     const EdgeBasedGradientRecoveryElement<3> mEdgeBasedGradientRecoveryElement3D2N;
 
+    // Level set convection elements
     const LevelSetConvectionElementSimplex<2,3> mLevelSetConvectionElementSimplex2D3N;
     const LevelSetConvectionElementSimplex<3,4> mLevelSetConvectionElementSimplex3D4N;
     const LevelSetConvectionElementSimplexAlgebraicStabilization<2,3> mLevelSetConvectionElementSimplexAlgebraicStabilization2D3N;
@@ -533,6 +571,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const CombineModelPartModeler mCombineModelPartModeler;
     const ConnectivityPreserveModeler mConnectivityPreserveModeler;
     const VoxelMeshGeneratorModeler mVoxelMeshGeneratorModeler;
+    const CleanUpProblematicTrianglesModeler mCleanUpProblematicTrianglesModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;

@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(DIRECT_CONDUCTION_MODEL_H_INCLUDED)
-#define DIRECT_CONDUCTION_MODEL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -34,6 +33,7 @@ namespace Kratos
       void   SetHeatExchangeMechanismInProperties (Properties::Pointer pProp, bool verbose = true) const override;
       double GetSearchDistance                    (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
       double ComputeHeatFlux                      (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double ComputeEffectiveThermalConductivity  (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {
@@ -81,5 +81,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // DIRECT_CONDUCTION_MODEL_H_INCLUDED

@@ -11,9 +11,15 @@
 //
 
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
+#include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
+
+SmallStrainUMAT2DPlaneStrainLaw::SmallStrainUMAT2DPlaneStrainLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
+{
+}
 
 ConstitutiveLaw::Pointer SmallStrainUMAT2DPlaneStrainLaw::Clone() const
 {
@@ -77,30 +83,18 @@ void SmallStrainUMAT2DPlaneStrainLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Pa
     KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT2DPlaneStrainLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
-                                                                 Vector& rStrainVector)
+void SmallStrainUMAT2DPlaneStrainLaw::save(Serializer& rSerializer) const
 {
-    // 1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
-
-    // for shells/membranes in case the DeformationGradient is of size 3x3
-    BoundedMatrix<double, 2, 2> F2x2;
-    for (unsigned int i = 0; i < 2; ++i)
-        for (unsigned int j = 0; j < 2; ++j)
-            F2x2(i, j) = F(i, j);
-
-    Matrix E_tensor = prod(trans(F2x2), F2x2);
-    for (unsigned int i = 0; i < 2; ++i)
-        E_tensor(i, i) -= 1.0;
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUMATLaw)
 }
+
+void SmallStrainUMAT2DPlaneStrainLaw::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUMATLaw)}
 
 Vector& SmallStrainUMAT2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::GetValue(rThisVariable, rValue);
+        SmallStrainUMATLaw::GetValue(rThisVariable, rValue);
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
         for (unsigned int i = 0; i < VoigtSize; ++i) {
@@ -110,13 +104,13 @@ Vector& SmallStrainUMAT2DPlaneStrainLaw::GetValue(const Variable<Vector>& rThisV
     return rValue;
 }
 
-void SmallStrainUMAT2DPlaneStrainLaw::SetValue(const Variable<Vector>& rThisVariable,
+void SmallStrainUMAT2DPlaneStrainLaw::SetValue(const Variable<Vector>& rVariable,
                                                const Vector&           rValue,
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
-    if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
+    if (rVariable == STATE_VARIABLES) {
+        SmallStrainUMATLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
         this->SetInternalStressVector(rValue);
     }
 }

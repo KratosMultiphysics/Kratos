@@ -105,6 +105,11 @@ void CollectiveExpressionFromPythonArray(
     KRATOS_CATCH("");
 }
 
+void AddContainerSpecificMethods()
+{
+
+}
+
 } // namespace Detail
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
@@ -186,12 +191,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("IsVariableExistsInAtLeastOneContainerProperties", &OptimizationUtils::IsVariableExistsInAtLeastOneContainerProperties<ModelPart::ElementsContainerType,array_1d<double, 3>>)
         .def("AreAllEntitiesOfSameGeometryType", [](ModelPart::ConditionsContainerType& rContainer, const DataCommunicator& rDataCommunicator) { return OptimizationUtils::GetContainerEntityGeometryType(rContainer, rDataCommunicator) != GeometryData::KratosGeometryType::Kratos_generic_type; } )
         .def("AreAllEntitiesOfSameGeometryType", [](ModelPart::ElementsContainerType& rContainer, const DataCommunicator& rDataCommunicator) { return OptimizationUtils::GetContainerEntityGeometryType(rContainer, rDataCommunicator) != GeometryData::KratosGeometryType::Kratos_generic_type; } )
-        .def("CreateEntitySpecificPropertiesForContainer", &OptimizationUtils::CreateEntitySpecificPropertiesForContainer<ModelPart::ConditionsContainerType>)
-        .def("CreateEntitySpecificPropertiesForContainer", &OptimizationUtils::CreateEntitySpecificPropertiesForContainer<ModelPart::ElementsContainerType>)
+        .def("CreateEntitySpecificPropertiesForContainer", &OptimizationUtils::CreateEntitySpecificPropertiesForContainer<ModelPart::ConditionsContainerType>, py::arg("model_part"), py::arg("container"), py::arg("is_recursive"))
+        .def("CreateEntitySpecificPropertiesForContainer", &OptimizationUtils::CreateEntitySpecificPropertiesForContainer<ModelPart::ElementsContainerType>, py::arg("model_part"), py::arg("container"), py::arg("is_recursive"))
+        .def("UpdatePropertiesVariableWithRootValueRecursively", &OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<ModelPart::ConditionsContainerType, double>, py::arg("container"), py::arg("variable"))
+        .def("UpdatePropertiesVariableWithRootValueRecursively", &OptimizationUtils::UpdatePropertiesVariableWithRootValueRecursively<ModelPart::ElementsContainerType, double>, py::arg("container"), py::arg("variable"))
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<double>)
         .def("GetVariableDimension", &OptimizationUtils::GetVariableDimension<array_1d<double, 3>>)
         .def("SetSolutionStepVariablesList", &OptimizationUtils::SetSolutionStepVariablesList, py::arg("destination_model_part"), py::arg("origin_model_part"))
         .def("IsSolutionStepVariablesListASubSet", &OptimizationUtils::IsSolutionStepVariablesListASubSet, py::arg("main_set_model_part"), py::arg("sub_set_model_part"))
+        .def("GetSolutionStepVariableNamesList", &OptimizationUtils::GetSolutionStepVariableNamesList, py::arg("model_part"))
         .def("GetComponentWiseModelParts", &OptimizationUtils::GetComponentWiseModelParts,
             py::arg("model"),
             py::arg("parameters"),

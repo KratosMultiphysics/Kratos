@@ -13,16 +13,13 @@ from keras import metrics
 
 tf.keras.backend.set_floatx('float64')
 
-
-import KratosMultiphysics
-
 class ANNPROM_Keras_Model(Model):
 
     def __init__(self, phisig_norm_matrix, rescaling_factor, w_gradNN, *args, **kwargs):
         super(ANNPROM_Keras_Model,self).__init__(*args, **kwargs)
 
         self.run_eagerly = False
-        
+
         self.phisig_norm_matrix = phisig_norm_matrix
         self.w_gradNN = w_gradNN
         self.rescaling_factor_x = rescaling_factor
@@ -34,7 +31,7 @@ class ANNPROM_Keras_Model(Model):
 
     def train_step(self,data):
         input_batch, x_true_batch = data # target_aux is the reference force or residual, depending on the settings
-        
+
         with tf.GradientTape() as tape_d:
 
             with tf.GradientTape() as tape_e:
@@ -87,7 +84,7 @@ class ANNPROM_Keras_Model(Model):
         # or at the start of `evaluate()`.
         # If you don't implement this property, you have to call
         # `reset_states()` yourself at the time of your choosing.
-        
+
         return [self.loss_tracker, self.loss_x_tracker, self.loss_gradNN_tracker]
 
 
@@ -132,29 +129,11 @@ class RomNeuralNetworkTrainer(object):
         Q_sup_val = (phisig_inv_sup@S_val).T
         Q_inf_train_original = Q_inf_train.copy()
 
-        UseNonConvergedSolutionsGathering = self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool()
-        if UseNonConvergedSolutionsGathering:
-            #fetching nonconverged sols for enlarginign training samples in ann enhanced prom
-            conn = sqlite3.connect(self.data_base.database_name)
-            cursor = conn.cursor()
-            for mu in self.mu_train:
-                hash_mu, _ = self.data_base.get_hashed_file_name_for_table('NonconvergedFOM', mu)
-                cursor.execute(f"SELECT file_name FROM {'NonconvergedFOM'} WHERE file_name = ?", (hash_mu,))
-                result = cursor.fetchone()
-                if result:
-                    file_name = result[0]
-                    data = self.data_base.get_single_numpy_from_database(file_name)
-                    max_number_of_nonconverged_sols = 1000  #making sure not all data is contained
-                    number_of_cols = data.shape[1]
-
-                    if True: #use all data !!! data.shape[1] <= max_number_of_nonconverged_sols:
-                        pass
-                    else:
-                        indices = np.linspace(0, number_of_cols - 1, max_number_of_nonconverged_sols).astype(int)
-                        data = data[:, indices]
-
-                    Q_inf_train = np.r_[Q_inf_train, (phisig_inv_inf@data).T]
-                    Q_sup_train = np.r_[Q_sup_train, (phisig_inv_sup@data).T]
+        if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
+            #fetching nonconverged sols for enlarging training samples in ann enhanced prom
+            data = self.data_base.get_snapshots_matrix_from_database(self.mu_train, table_name='NonconvergedFOM') #TODO this might be too large. Add partitioned approached or a limit size
+            Q_inf_train = np.r_[Q_inf_train, (phisig_inv_inf@data).T]
+            Q_sup_train = np.r_[Q_sup_train, (phisig_inv_sup@data).T]
 
         phisig_norm_matrix = phisig_sup.T @ phisig_sup
 
@@ -216,7 +195,7 @@ class RomNeuralNetworkTrainer(object):
         schedulers_dict={"const": lr_const_scheduler, "steps": lr_steps_scheduler, "sgdr": lr_sgdr_scheduler}
 
         return schedulers_dict[strategy_name]
-    
+
     def _DefineNetwork(self, n_inf, n_sup, layers_size, phisig_norm_matrix=None, rescaling_factor=None, w_gradNN=None):
         input_layer=layers.Input((n_inf,), dtype=tf.float64)
         layer_out=input_layer
@@ -226,6 +205,13 @@ class RomNeuralNetworkTrainer(object):
 
         network=ANNPROM_Keras_Model(phisig_norm_matrix, rescaling_factor, w_gradNN, input_layer, output_layer)
         return network
+
+    def _SaveWeightsKratosFormat(self, network, weights_path):
+        layers=[]
+        for layer in network.trainable_variables:
+            layers.append(layer.numpy())
+
+        np.save(weights_path, np.array(layers, dtype=object), allow_pickle=True)
 
     def TrainNetwork(self, seed=None):
 
@@ -252,7 +238,7 @@ class RomNeuralNetworkTrainer(object):
 
         Q_inf_train, Q_inf_val, Q_sup_train, Q_sup_val, phisig_norm_matrix, rescaling_factor = self._GetTrainingData(n_inf, n_sup)
 
-        network = self._DefineNetwork(n_inf, n_sup, layers_size, phisig_norm_matrix, rescaling_factor, w_gradNN) 
+        network = self._DefineNetwork(n_inf, n_sup, layers_size, phisig_norm_matrix, rescaling_factor, w_gradNN)
 
         # def scaled_phinorm_mse_loss(y_true, y_pred):
         #     y_diff=y_true-y_pred
@@ -290,6 +276,7 @@ class RomNeuralNetworkTrainer(object):
         with open(str(model_path)+"/history.json", "w") as history_file:
             json.dump(str(history.history), history_file)
 
+        self._SaveWeightsKratosFormat(network, str(model_path)+"/model_weights.npy")
 
     def EvaluateNetwork(self):
 
@@ -341,91 +328,3 @@ class RomNeuralNetworkTrainer(object):
         print('     POD Inf: ', np.linalg.norm(np.exp(np.mean(np.log(sample_l2_err_list_pod_inf)))))
 
         return err_rel_recons
-
-
-class NN_ROM_Interface():
-    def __init__(self, mu_train, data_base):
-
-        model_name, _ = data_base.get_hashed_file_name_for_table("Neural_Network", mu_train)
-        model_path=pathlib.Path(data_base.database_root_directory / 'saved_nn_models' / model_name)
-
-        with open(pathlib.Path(model_path / 'train_config.json'), "r") as config_file:
-            model_config = json.load(config_file)
-
-        self.n_inf = int(model_config["modes"][0])
-        self.n_sup = int(model_config["modes"][1])
-        layers_size = model_config["layers_size"]
-                                                  
-        self.network = self._DefineNetwork(self.n_inf, self.n_sup, layers_size)
-        self.network.summary()
-
-        self.network.load_weights(str(pathlib.Path(model_path / 'model.weights.h5')))
-
-        _, hash_basis = data_base.check_if_in_database("RightBasis", mu_train)
-        self.phi = data_base.get_single_numpy_from_database(hash_basis)
-        _, hash_sigma = data_base.check_if_in_database("SingularValues_Solution", mu_train)
-        self.sigma =  data_base.get_single_numpy_from_database(hash_sigma)/np.sqrt(len(mu_train))
-        self.ref_snapshot = np.zeros(self.phi.shape[0])
-
-    def _DefineNetwork(self, n_inf, n_sup, layers_size):
-        input_layer=layers.Input((n_inf,), dtype=tf.float64)
-        layer_out=input_layer
-        for layer_size in layers_size:
-            layer_out=layers.Dense(int(layer_size), 'elu', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
-        output_layer=layers.Dense(n_sup-n_inf, 'linear', use_bias=False, kernel_initializer="he_normal", dtype=tf.float64)(layer_out)
-
-        network=Model(input_layer, output_layer)
-        return network
-
-    def get_encode_function(self):
-
-        phi_inf = self.phi[:,:self.n_inf]
-        ref_snapshot = self.ref_snapshot
-
-        def encode_function(s):
-            output_data=(s-ref_snapshot).copy()
-            output_data = (phi_inf.T@output_data).T
-            return np.expand_dims(output_data,axis=0), None
-        
-        return encode_function
-
-    def get_decode_function(self):
-        
-        ref_snapshot = self.ref_snapshot
-
-        phi_inf = self.phi[:,:self.n_inf]
-
-        sigma_inf = self.sigma[:self.n_inf]
-        sigma_inf_inv = np.linalg.inv(np.diag(sigma_inf))
-
-        phi_sup = self.phi[:,self.n_inf:self.n_sup]
-        sigma_sup = self.sigma[self.n_inf:self.n_sup]
-        phi_sup_weighted = phi_sup @ np.diag(sigma_sup)
-
-        def decode_function(q_inf):
-
-            q_sup_pred = self.network((sigma_inf_inv@q_inf.T).T).numpy()
-            s_pred = np.expand_dims(ref_snapshot,axis=1) + phi_inf@q_inf.T + phi_sup_weighted@q_sup_pred.T
-            return s_pred.T
-        
-        return decode_function
-    
-    def get_phi_matrices(self):
-        phi_inf = self.phi[:,:self.n_inf]
-        phi_sup = self.phi[:,self.n_inf:self.n_sup]
-        sigma_inf = self.sigma[:self.n_inf]
-        sigma_sup = self.sigma[self.n_inf:self.n_sup]
-        phi_inf_weighted = phi_inf @ np.diag(sigma_inf)
-        sigma_inf_inv = np.linalg.inv(np.diag(sigma_inf))
-        phi_sup_weighted = phi_sup @ np.diag(sigma_sup)
-
-        return KratosMultiphysics.Matrix(phi_inf), KratosMultiphysics.Matrix(phi_sup_weighted), KratosMultiphysics.Matrix(sigma_inf_inv)
-    
-    def get_NN_layers(self):
-        layers=[]
-        for layer in self.network.trainable_variables:
-            layers.append(KratosMultiphysics.Matrix(layer.numpy()))
-        return layers
-    
-    def get_ref_snapshot(self):
-        return self.ref_snapshot

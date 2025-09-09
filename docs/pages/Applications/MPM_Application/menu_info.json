@@ -1,6 +1,6 @@
 {
     "side_bar_name": "mpm_application",
-    "landing_page": "General/Overview.md",
+    "landing_page": "General/remote_Overview.md",
     "additional_menu_options": {
         "product": "MPM Application",
         "title": "sidebar"
@@ -8,7 +8,13 @@
     },
     "custom_entries": [
         "General",
-        "MPM_example_in_GiD",
-        "Examples"
+        "Input_Files",
+        "MPM_Solver",
+        "Constitutive_Laws",
+        "Material_Point_Variables",
+        "Processes",
+        "Output_Processes",
+        "Step-by-step_Tutorial_in_GiD",
+        "Ready-to-run_examples"
     ]
 }

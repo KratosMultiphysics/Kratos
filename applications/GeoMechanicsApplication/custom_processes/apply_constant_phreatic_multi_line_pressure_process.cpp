@@ -11,6 +11,7 @@
 //                   Jonathan Nuttall
 
 #include "apply_constant_phreatic_multi_line_pressure_process.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -50,12 +51,12 @@ void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Paramet
                 "is_seepage": false,
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2,
-                "x_coordinates":           [0.0,1.0],
-                "y_coordinates":           [1.0,0.5],
-				"z_coordinates":           [0.0,0.0],
+                "x_coordinates":           [0.0, 1.0],
+                "y_coordinates":           [1.0, 0.5],
+                "z_coordinates":           [0.0, 0.0],
                 "specific_weight" : 10000.0,
                 "pressure_tension_cut_off" : 0.0,
-                "table" : [0,1]
+                "table" : [0, 0]
             }  )");
 
     // Some values are mandatory, since no meaningful default value exist. For this reason try
@@ -80,6 +81,13 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ValidateCoordinates(const Pa
     if (!std::is_sorted(HorizontalDirectionCoordinates().begin(), HorizontalDirectionCoordinates().end())) {
         KRATOS_ERROR << "The Horizontal Elements Coordinates are not ordered." << rParameters << std::endl;
     }
+
+    KRATOS_ERROR_IF(GravityDirectionCoordinates().size() < 2)
+        << "At least two coordinates in gravity direction must be given, but got "
+        << GravityDirectionCoordinates().size() << std::endl;
+    KRATOS_ERROR_IF(HorizontalDirectionCoordinates().size() < 2)
+        << "At least two coordinates in horizontal direction must be given, but got "
+        << HorizontalDirectionCoordinates().size() << std::endl;
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::InitializeCoordinates(const Parameters& rParameters)
@@ -164,7 +172,7 @@ std::string ApplyConstantPhreaticMultiLinePressureProcess::Info() const
 
 void ApplyConstantPhreaticMultiLinePressureProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyConstantPhreaticMultiLinePressureProcess";
+    rOStream << Info();
 }
 
 const std::string& ApplyConstantPhreaticMultiLinePressureProcess::VariableName() const
@@ -241,7 +249,7 @@ int ApplyConstantPhreaticMultiLinePressureProcess::findIndex(const Node& rNode) 
         }
     }
 
-    return number_of_coordinates - 1;
+    return number_of_coordinates - 2;
 }
 
 double ApplyConstantPhreaticMultiLinePressureProcess::CalculatePressure(const Node& rNode,

@@ -48,8 +48,6 @@ public:
     using EquationIdVectorType = Element::EquationIdVectorType;
     using DofsVectorType       = Element::DofsVectorType;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     explicit DrainedUPwSmallStrainElement(IndexType NewId = 0)
         : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
     {
@@ -58,16 +56,20 @@ public:
     /// Constructor using an array of nodes
     DrainedUPwSmallStrainElement(IndexType                          NewId,
                                  const NodesArrayType&              ThisNodes,
-                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                 std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
     DrainedUPwSmallStrainElement(IndexType                          NewId,
                                  GeometryType::Pointer              pGeometry,
-                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                 std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -75,14 +77,15 @@ public:
     DrainedUPwSmallStrainElement(IndexType                          NewId,
                                  GeometryType::Pointer              pGeometry,
                                  PropertiesType::Pointer            pProperties,
-                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                 std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     ~DrainedUPwSmallStrainElement() = default;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Element::Pointer Create(IndexType               NewId,
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
@@ -91,23 +94,13 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
     /// Member Variables
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint) override;
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Serialization
 
     friend class Serializer;

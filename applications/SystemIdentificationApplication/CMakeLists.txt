@@ -13,6 +13,7 @@ file(GLOB_RECURSE KRATOS_DIGITAL_TWIN_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/system_identification_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_sensors/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_responses/*.cpp
 
 )
 
@@ -26,7 +27,7 @@ file(GLOB_RECURSE KRATOS_DIGITAL_TWIN_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRE
 
 add_library(KratosSystemIdentificationCore SHARED ${KRATOS_DIGITAL_TWIN_APPLICATION_CORE} ${KRATOS_DIGITAL_TWIN_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosSystemIdentificationCore PUBLIC KratosCore)
-set_target_properties(KratosSystemIdentificationCore PROPERTIES COMPILE_DEFINITIONS "DIGITAL_TWIN_APPLICATION=EXPORT,API")
+set_target_properties(KratosSystemIdentificationCore PROPERTIES COMPILE_DEFINITIONS "SYSTEM_IDENTIFICATION_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

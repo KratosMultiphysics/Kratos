@@ -44,12 +44,6 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
         }
         """)
 
-        #TODO: Remove this after the deprecation period
-        # Check if the mesh_id is provided in the user defined settings and remove it
-        if settings.Has("mesh_id"):
-            settings.RemoveValue("mesh_id")
-            IssueDeprecationWarning("AssignVectorByDirectionProcess", "Found \'mesh_id\' in input settings. This is no longer required and can be removed.")
-
         # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
         if settings.Has("modulus"):
             if settings["modulus"].IsString():

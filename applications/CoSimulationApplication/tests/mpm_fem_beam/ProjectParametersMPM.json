@@ -47,15 +47,15 @@
             "kratos_module" : "KratosMultiphysics.MPMApplication",
             "Parameters"    : {
                 "model_part_name" : "Background_Grid.INTERFACE_coupling_to_fem",
-                "particles_per_condition" : 7,
+                "material_points_per_condition" : 7,
                 "penalty_factor"  : 900000000.0,
                 "constrained"     : "fixed"
             }
         },{
-            "python_module"   : "particle_from_json_check_result_process",
+            "python_module"   : "mpm_from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics.MPMApplication",
             "help"                  : "",
-            "process_name"          : "ParticleFromJsonCheckResultProcess",
+            "process_name"          : "MPMFromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["MP_DISPLACEMENT"],
                 "input_file_name"  : "mpm_fem_beam/cosim_mpm_fem_beam_particle_results.json",
@@ -65,9 +65,9 @@
             }
         }],
         "gravity"                  : [{
-            "python_module" : "assign_gravity_to_particle_process",
+            "python_module" : "assign_gravity_to_material_point_process",
             "kratos_module" : "KratosMultiphysics.MPMApplication",
-            "process_name"  : "AssignGravityToParticleProcess",
+            "process_name"  : "AssignGravityToMaterialPointProcess",
             "Parameters"    : {
                 "model_part_name" : "MPM_Material",
                 "variable_name"   : "MP_VOLUME_ACCELERATION",
@@ -78,10 +78,10 @@
         }]
     },
     "print_output_process" : [{
-        "python_module"   : "particle_json_output_process",
+        "python_module"   : "mpm_json_output_process",
         "kratos_module"   : "KratosMultiphysics.MPMApplication",
         "help"                  : "",
-        "process_name"          : "ParticleJsonOutputProcess",
+        "process_name"          : "MPMJsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables"  : ["MP_DISPLACEMENT"],
             "output_file_name"  : "mpm_fem_beam/cosim_mpm_fem_beam_particle_results.json",

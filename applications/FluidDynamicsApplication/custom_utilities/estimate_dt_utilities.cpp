@@ -234,7 +234,7 @@ namespace Kratos
             // CFL and both Fourier numbers delta time estimation (i.e. compressible flow)
             new_dt = InternalEstimateDt<true, true, true>();
         } else {
-            KRATOS_ERROR << "This option is not supporte yet." << std::endl;
+            KRATOS_ERROR << "This option is not supported yet." << std::endl;
         }
 
         return new_dt;

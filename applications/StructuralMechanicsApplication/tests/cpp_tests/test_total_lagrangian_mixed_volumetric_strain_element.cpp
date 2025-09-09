@@ -26,7 +26,7 @@
 #include "structural_mechanics_fast_suite.h"
 
 // Application includes
-#include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
+#include "custom_elements/solid_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 
 namespace Kratos::Testing
 {

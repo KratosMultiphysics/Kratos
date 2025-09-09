@@ -13,7 +13,8 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
-#include "custom_utilities/constitutive_law_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -23,10 +24,9 @@ Element::Pointer UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwSmallStrainLinkInterfaceElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->CloneIntegrationCoefficientModifier()));
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
@@ -197,8 +197,6 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
     KRATOS_CATCH("")
 }
 
-//----------------------------------------------------------------------------------------
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
@@ -282,8 +280,6 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateOnIntegration
 
     KRATOS_CATCH("")
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHandSideMatrix,
@@ -380,8 +376,6 @@ void UPwSmallStrainLinkInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixTyp
 
     KRATOS_CATCH("")
 }
-
-//----------------------------------------------------------------------------------------------------
 
 template class UPwSmallStrainLinkInterfaceElement<2, 4>;
 template class UPwSmallStrainLinkInterfaceElement<3, 6>;

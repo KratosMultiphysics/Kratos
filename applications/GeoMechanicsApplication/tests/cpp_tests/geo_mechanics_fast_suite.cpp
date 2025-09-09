@@ -12,6 +12,8 @@
 //
 
 #include "geo_mechanics_fast_suite.h"
+#include "geo_mechanics_application.h"
+#include "linear_solvers_application.h"
 
 namespace Kratos::Testing
 {
@@ -24,8 +26,10 @@ KratosGeoMechanicsFastSuite::KratosGeoMechanicsFastSuite() : KratosCoreFastSuite
     this->ImportApplicationIntoKernel(mpLinearSolversApp);
 }
 
-KratosGeoMechanicsFastSuiteWithoutKernel::KratosGeoMechanicsFastSuiteWithoutKernel() : KratosCoreFastSuiteWithoutKernel()
+KratosGeoMechanicsFastSuiteWithoutKernel::KratosGeoMechanicsFastSuiteWithoutKernel()
+    : KratosCoreFastSuiteWithoutKernel()
 {
+    // clang-format off
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ACCELERATION)
@@ -34,14 +38,24 @@ KratosGeoMechanicsFastSuiteWithoutKernel::KratosGeoMechanicsFastSuiteWithoutKern
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ANGULAR_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ANGULAR_ACCELERATION)
 
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TOTAL_DISPLACEMENT)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INCREMENTAL_DISPLACEMENT)
+
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TOTAL_ROTATION)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INCREMENTAL_ROTATION)
+
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FLUID_FLUX_VECTOR)
     KRATOS_REGISTER_VARIABLE(HYDRAULIC_HEAD)
+    KRATOS_REGISTER_VARIABLE(WATER_PRESSURE)
 
     KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(CAUCHY_STRESS_TENSOR)
+    KRATOS_REGISTER_VARIABLE(TIME_STEPS)
+    // clang-format on
 }
 
-KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite() : KratosCoreFastSuite()
+KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite()
+    : KratosCoreFastSuite()
 {
     mpGeoApp = std::make_shared<KratosGeoMechanicsApplication>();
     this->ImportApplicationIntoKernel(mpGeoApp);

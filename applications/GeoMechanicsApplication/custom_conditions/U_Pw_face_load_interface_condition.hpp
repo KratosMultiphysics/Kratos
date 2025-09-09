@@ -20,7 +20,7 @@
 // Application includes
 #include "custom_conditions/U_Pw_condition.hpp"
 #include "custom_utilities/condition_utilities.hpp"
-#include "custom_utilities/interface_element_utilities.hpp"
+#include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -35,13 +35,8 @@ public:
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     UPwFaceLoadInterfaceCondition() : UPwFaceLoadInterfaceCondition(0, nullptr, nullptr) {}
 
@@ -57,20 +52,18 @@ public:
         this->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1);
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    std::string Info() const override;
 
 protected:
     void CalculateInitialGap(const GeometryType& Geom);
 
-    void CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
     void CheckJointWidth(double&                            rJointWidth,
                          bool&                              rComputeJointWidth,
@@ -89,12 +82,8 @@ protected:
 
     double CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight, const double& JointWidth);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
     Vector mInitialGap;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Serialization
 
@@ -109,7 +98,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
     }
-
 }; // class UPwFaceLoadInterfaceCondition.
 
 } // namespace Kratos.

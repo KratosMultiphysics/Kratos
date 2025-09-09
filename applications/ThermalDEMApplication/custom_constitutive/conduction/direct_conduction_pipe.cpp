@@ -14,7 +14,7 @@
 #include "direct_conduction_pipe.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   DirectConductionPipe::DirectConductionPipe() {}
   DirectConductionPipe::~DirectConductionPipe() {}
 
@@ -33,6 +33,23 @@ namespace Kratos {
     const double area      = (particle->mDimension == 2) ? 2.0 * Rc : Globals::Pi * Rc * Rc;
 
     return kavg * area * temp_grad / d;
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double DirectConductionPipe::ComputeEffectiveThermalConductivity(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+    KRATOS_TRY
+
+    const double Rc   = particle->mContactRadiusAdjusted;
+    const double d    = particle->mNeighborDistanceAdjusted;
+    const double kavg = particle->ComputeAverageConductivity();
+    
+    double area = 0.0;
+    if      (particle->mDimension == 2) area = 2.0 * Rc;
+    else if (particle->mDimension == 3) area = Globals::Pi * Rc * Rc;
+
+    return kavg * area * d;
 
     KRATOS_CATCH("")
   }

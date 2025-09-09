@@ -38,7 +38,8 @@
 #include "custom_utilities/piecewise_linear_random_variable.h"
 #include "custom_utilities/discrete_random_variable.h"
 #include "custom_utilities/parallel_bond_utilities.h"
-
+#include "custom_utilities/rve_utilities.h"
+#include "custom_utilities/rve_wall_boundary_2d.h"
 
 namespace Kratos {
 
@@ -186,6 +187,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle6)
         .def("DestroyMarkedParticles", &ParticleCreatorDestructor::DestroyMarkedParticles)
         .def("MarkContactElementsForErasing", &ParticleCreatorDestructor::MarkContactElementsForErasing)
+        .def("MarkContactElementsForErasingContinuum", &ParticleCreatorDestructor::MarkContactElementsForErasingContinuum)
         .def("DestroyContactElements", &ParticleCreatorDestructor::DestroyContactElements)
         .def("MarkIsolatedParticlesForErasing", &ParticleCreatorDestructor::MarkIsolatedParticlesForErasing)
         ;
@@ -220,6 +222,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<SphericElementGlobalPhysicsCalculator, SphericElementGlobalPhysicsCalculator::Pointer >(m, "SphericElementGlobalPhysicsCalculator")
         .def(py::init<ModelPart&>())
         .def("CalculateTotalVolume", &SphericElementGlobalPhysicsCalculator::CalculateTotalVolume)
+        .def("CalculatePorosityWithinSphere", &SphericElementGlobalPhysicsCalculator::CalculatePorosityWithinSphere)
         .def("CalculateTotalMass", &SphericElementGlobalPhysicsCalculator::CalculateTotalMass)
         .def("CalculateMaxNodalVariable", &SphericElementGlobalPhysicsCalculator::CalculateMaxNodalVariable)
         .def("CalculateMinNodalVariable", &SphericElementGlobalPhysicsCalculator::CalculateMinNodalVariable)
@@ -236,6 +239,18 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CalculateTotalMomentum", &SphericElementGlobalPhysicsCalculator::CalculateTotalMomentum)
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
         .def("CalculateSumOfInternalForces", &SphericElementGlobalPhysicsCalculator::CalculateSumOfInternalForces)
+        .def("CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius", &SphericElementGlobalPhysicsCalculator::CalculateParticleNumberTimesMaxNormalBallToBallForceTimesRadius)
+        .def("CalculateSumOfParticlesWithinSphere", &SphericElementGlobalPhysicsCalculator::CalculateSumOfParticlesWithinSphere)
+        ;
+    
+    py::class_<ContactElementGlobalPhysicsCalculator, ContactElementGlobalPhysicsCalculator::Pointer >(m, "ContactElementGlobalPhysicsCalculator")
+        .def(py::init<>())
+        .def("CalculateTotalStressTensor", &ContactElementGlobalPhysicsCalculator::CalculateTotalStressTensor)
+        .def("CalculateTotalStressTensorWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateTotalStressTensorWithinSphere)
+        .def("CalculateTotalStressTensorWithinCubic", &ContactElementGlobalPhysicsCalculator::CalculateTotalStressTensorWithinCubic)
+        .def("CalculateFabricTensorWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateFabricTensorWithinSphere)
+        .def("CalculateAveragedCoordinationNumberWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateAveragedCoordinationNumberWithinSphere)
+        .def("CalculateUnbalancedForceWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateUnbalancedForceWithinSphere)
         ;
 
     void (DemSearchUtilities::*SearchNodeNeigboursDistancesMM)(ModelPart&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
@@ -421,6 +436,19 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("Sample", &DiscreteRandomVariable::Sample)
         .def("ProbabilityDensity", &DiscreteRandomVariable::ProbabilityDensity)
         .def("GetMean", &DiscreteRandomVariable::GetMean)
+        ;
+
+    py::class_<RVEUtilities, RVEUtilities::Pointer>(m, "RVEUtilities")
+        .def(py::init<>())
+        .def(py::init<int, int, std::vector<double>, std::string, double, double>())
+        ;
+    
+    py::class_<RVEWallBoundary2D, RVEWallBoundary2D::Pointer, RVEUtilities>(m, "RVEWallBoundary2D")
+        .def(py::init<>())
+        .def(py::init<int, int, std::vector<double>, std::string, double, double>())
+        .def("Initialize", &RVEWallBoundary2D::Initialize)
+        .def("FinalizeSolutionStep", &RVEWallBoundary2D::FinalizeSolutionStep)
+        .def("Finalize", &RVEWallBoundary2D::Finalize)
         ;
     }
 
