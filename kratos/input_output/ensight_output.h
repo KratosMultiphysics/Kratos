@@ -70,7 +70,6 @@ struct PartData
  * Usage:
  * 1. Construct with a reference to the ModelPart and optional Parameters for output settings.
  * 2. Call PrintOutput() to write the results for the current simulation step.
- * 3. Use GetDefaultParameters() to retrieve the default configuration.
  * @see EnSight 7 User Manual, Section 11.1 for file format details.
  * @author Vicente Mataix Ferrandiz
  */
