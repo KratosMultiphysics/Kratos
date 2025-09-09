@@ -47,7 +47,7 @@ Parameters EnSightOutput::GetDefaultParameters()
         "custom_name_postfix"                         : "",
         "entity_type"                                 : "automatic",
         "save_output_files_in_folder"                 : true,
-        "evolving_geometry"                           : true, // For meshes with evolving geometry // TODO: Generate just one geo file if false
+        "evolving_geometry"                           : true, // For meshes with evolving geometry
         "nodal_solution_step_data_variables"          : [],
         "nodal_data_value_variables"                  : [],
         "nodal_flags"                                 : [],
@@ -139,9 +139,17 @@ EnSightOutput::EnSightOutput(ModelPart& rModelPart, Parameters ThisParameters)
         KRATOS_ERROR << "Unknown entity_type \"" << entity_type << "\". Available options are \"element\", \"condition\", \"automatic\"" << std::endl;
     }
 
-    // Update part data
+    // Create part data
     if (!mOutputSettings["evolving_geometry"].GetBool()) {
         UpdatePartData();
+
+        // If no output filename is provided, use the model part name
+        const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
+        const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
+        const std::string geometry_filename = r_custom_name_prefix + mrModelPart.Name() + r_custom_name_postfix;
+
+        // Write the geometry file
+        WriteGeometryFile(geometry_filename);
     }
 
     KRATOS_CATCH("")
@@ -230,7 +238,7 @@ void EnSightOutput::PrintOutput(const std::string& rOutputFilename)
     for (const auto& r_variable_name_param : mOutputSettings["condition_flags"]) {
         const std::string r_flag_name = r_variable_name_param.GetString();
         const std::string var_filename = base_filename + "." + r_flag_name + "." + step_label + ".cond";
-        WriteGeometricalFlagToFile(r_flag_name, var_filename);
+        WriteGeometricalFlagToFile(r_flag_name, var_filename, false);
     }
 
     // Determine the base filename for this time step
@@ -437,7 +445,16 @@ void EnSightOutput::WriteCaseFile()
     for (std::size_t i = 0; i < mStepLabelPrecision; ++i) {
         asterisk_label += "*";
     }
-    case_file << "model: 1 " << base_filename << "." << asterisk_label << ".geo\n\n";
+
+    // Write the geometry filename line
+    if (!mOutputSettings["evolving_geometry"].GetBool()) {
+        // If no output filename is provided, use the model part name
+        const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
+        const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
+        case_file << "model: 1 " << r_custom_name_prefix << mrModelPart.Name() << r_custom_name_postfix << ".geo\n\n";
+    } else {
+        case_file << "model: 1 " << base_filename << "." << asterisk_label << ".geo\n\n";
+    }
 
     // VARIABLE Section
     case_file << "VARIABLE\n";
