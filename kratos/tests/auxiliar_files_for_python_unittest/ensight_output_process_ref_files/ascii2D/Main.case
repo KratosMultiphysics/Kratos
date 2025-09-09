@@ -9,6 +9,10 @@ scalar per node: 1 PRESSURE Main.PRESSURE.****.node.scl
 vector per node: 1 DISPLACEMENT Main.DISPLACEMENT.****.node.vec
 vector per node: 1 VELOCITY Main.VELOCITY.****.node.vec
 scalar per node: 1 BOUNDARY Main.BOUNDARY.****.node.scl
+vector per element: 1 DETERMINANT Main.DETERMINANT.****.elem.vec
+scalar per element: 1 DENSITY Main.DENSITY.****.cond.scl
+scalar per element: 1 YOUNG_MODULUS Main.YOUNG_MODULUS.****.cond.scl
+scalar per element: 1 BOUNDARY Main.BOUNDARY.****.cond.scl
 
 TIME
 time set: 1

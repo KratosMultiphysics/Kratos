@@ -1,0 +1,7 @@
+Per_elem scalar values for the EnSight6 geometry. Conditional variable: DENSITY
+part	2
+tria6
+	0.000000e+00	6.000000e+00	
+part	3
+tria6
+	1.200000e+01	1.800000e+01	
