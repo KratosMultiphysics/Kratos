@@ -1126,8 +1126,8 @@ void EnSightOutput::WriteNodalVariableToFile(
                         }
                     }
                 } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                    const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                     // TODO: Implement asymmetric tensor.
+                    // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                     KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
                 } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                     const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
@@ -1272,8 +1272,8 @@ void EnSightOutput::WriteNodalVariableToFile(
                         }
                     }
                 } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                    const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                     // TODO: Implement asymmetric tensor.
+                    // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                     KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
                 } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                     const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
@@ -1402,8 +1402,8 @@ void EnSightOutput::WriteNodalVariableToFile(
                     WriteSymmetricTensorData(var_file, r_node.FastGetSolutionStepValue(r_variable));
                 }
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                 // TODO: Implement asymmetric tensor.
+                // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                 KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
             } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
@@ -1468,8 +1468,8 @@ void EnSightOutput::WriteNodalVariableToFile(
                     WriteSymmetricTensorData(var_file, r_node.GetValue(r_variable));
                 }
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                 // TODO: Implement asymmetric tensor.
+                // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                 KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
             } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
@@ -1887,8 +1887,8 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     }
                 }
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                 // TODO: Implement asymmetric tensor.
+                // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                 KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
             } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
@@ -2296,8 +2296,8 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     }
                 }
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                 // TODO: Implement asymmetric tensor.
+                // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
                 KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
             } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
