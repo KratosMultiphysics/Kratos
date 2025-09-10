@@ -95,6 +95,14 @@ public:
         CheckRangeBounds(rVariable, LowerBound, UpperBound);
     }
 
+    void Check(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
+    {
+        CheckAvailability(rVariable);
+        KRATOS_ERROR_IF_NOT(mrProperties[rVariable] == rName)
+            << rVariable.Name() << " has a value of (" << mrProperties[rVariable]
+            << ") instead of (" << rName << ") at element " << mId << std::endl;
+    }
+
     template <typename T>
     void CheckAvailability(const Variable<T>& rVariable) const
     {
