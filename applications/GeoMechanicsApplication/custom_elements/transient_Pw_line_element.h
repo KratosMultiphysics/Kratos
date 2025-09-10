@@ -150,16 +150,30 @@ public:
     {
         KRATOS_TRY
 
-        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), "Length");
+        const auto element_Id = Id();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), element_Id, "Length");
         const auto r_geometry = GetGeometry();
         CheckUtilities::CheckHasNodalSolutionStepData(
             r_geometry,
             {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
-        CheckProperties();
+
+        const PropertiesType& r_properties = GetProperties();
+        const CheckProperties check_properties(r_properties, "material properties at element",
+                                               element_Id, CheckProperties::Bounds::AllInclusive);
+        check_properties.Check(DENSITY_WATER);
+        check_properties.Check(DENSITY_SOLID);
+        constexpr auto max_value = 1.0;
+        check_properties.Check(POROSITY, max_value);
+        check_properties.Check(BULK_MODULUS_SOLID);
+        check_properties.Check(BULK_MODULUS_FLUID);
+        check_properties.Check(DYNAMIC_VISCOSITY);
+        check_properties.Check(BIOT_COEFFICIENT);
+        check_properties.Check(PERMEABILITY_XX);
+
         if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geometry);
 
-        return RetentionLaw::Check(mRetentionLawVector, GetProperties(), rCurrentProcessInfo);
+        return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -168,49 +182,6 @@ private:
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
     std::vector<CalculationContribution> mContributions;
     IntegrationCoefficientsCalculator    mIntegrationCoefficientsCalculator;
-
-    void CheckProperties() const
-    {
-        CheckProperty(DENSITY_WATER);
-        CheckProperty(DENSITY_SOLID);
-        constexpr auto max_value = 1.0;
-        CheckProperty(POROSITY, max_value);
-        CheckProperty(BULK_MODULUS_SOLID);
-        CheckProperty(BULK_MODULUS_FLUID);
-        CheckProperty(DYNAMIC_VISCOSITY);
-        CheckProperty(BIOT_COEFFICIENT);
-        CheckProperty(PERMEABILITY_XX);
-    }
-
-    void CheckProperty(const Kratos::Variable<double>& rVariable, std::optional<double> MaxValue = std::nullopt) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name()
-            << " does not exist in the material properties (Id = " << GetProperties().Id()
-            << ") at element " << Id() << std::endl;
-        constexpr auto min_value = 0.0;
-        if (MaxValue.has_value()) {
-            KRATOS_ERROR_IF(GetProperties()[rVariable] < min_value ||
-                            GetProperties()[rVariable] > MaxValue.value())
-                << rVariable.Name() << " of material Id = " << GetProperties().Id() << " at element "
-                << Id() << " has an invalid value " << GetProperties()[rVariable] << " which is outside of the range [ "
-                << min_value << ", " << MaxValue.value() << "]" << std::endl;
-        } else {
-            KRATOS_ERROR_IF(GetProperties()[rVariable] < min_value)
-                << rVariable.Name() << " of material Id = " << GetProperties().Id()
-                << " at element " << Id() << " has an invalid value " << GetProperties()[rVariable]
-                << " which is below the minimum allowed value of " << min_value << std::endl;
-        }
-    }
-
-    void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
-        KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName)
-            << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
-            << ") instead of (" << rName << ") at element " << Id() << std::endl;
-    }
 
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {
