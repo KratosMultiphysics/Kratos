@@ -69,10 +69,11 @@ private:
         const hashmap2&                            FacesMapSorted,
         Element&                                   rElement,
         const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries) const;
+
     [[nodiscard]] bool FindPermutations(std::vector<std::size_t>        elements_boundary_node_ids,
-                          const std::vector<std::size_t>& condition_node_ids) const;
-    [[nodiscard]] bool FindPermutationsQuadratic(std::vector<std::size_t>        elements_boundary_node_ids,
-                                   const std::vector<std::size_t>& condition_node_ids) const;
+                                        const std::vector<std::size_t>& condition_node_ids) const;
+    [[nodiscard]] bool FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
+                                                 const std::vector<std::size_t>& condition_node_ids) const;
     void CheckBoundaryTypeForAllElements(auto              generate_boundaries,
                                          Kratos::hashmap&  condition_node_ids_to_condition,
                                          Kratos::hashmap2& sorted_condition_node_ids_to_condition);
