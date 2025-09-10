@@ -178,7 +178,7 @@ class TestVtuOutput(kratos_unittest.TestCase):
         add_variables(cls.model_part.Elements, lambda x, y, z: x.SetValue(y, z))
 
     def test_PointVariableAddition(self):
-        vtu_output = Kratos.VtuOutput(self.model_part, output_sub_model_parts=True)
+        vtu_output = Kratos.VtuOutput(self.model_part, output_sub_model_parts=True, output_format=Kratos.VtuOutput.BINARY)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.NodeHistorical)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Condition)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Element)

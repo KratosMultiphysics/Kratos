@@ -151,7 +151,7 @@ public:
     VtuOutput(
         ModelPart& rModelPart,
         const bool IsInitialConfiguration = true,
-        const WriterFormat OutputFormat = WriterFormat::BINARY,
+        const WriterFormat OutputFormat = WriterFormat::COMPRESSED_RAW,
         const IndexType Precision = 9,
         const bool OutputSubModelParts = false,
         const IndexType EchoLevel = 0);

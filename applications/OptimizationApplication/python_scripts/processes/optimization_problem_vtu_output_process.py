@@ -133,7 +133,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             """
             {
                 "file_name"                   : "<model_part_full_name>_<step>",
-                "file_format"                 : "binary",
+                "file_format"                 : "compressed_raw",
                 "output_path"                 : "Optimization_Results",
                 "save_output_files_in_folder" : true,
                 "write_deformed_configuration": false,
@@ -163,8 +163,12 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             self.writer_format = Kratos.VtuOutput.ASCII
         elif file_format == "binary":
             self.writer_format = Kratos.VtuOutput.BINARY
+        elif file_format == "raw":
+            self.writer_format = Kratos.VtuOutput.RAW
+        elif file_format == "compressed_raw":
+            self.writer_format = Kratos.VtuOutput.COMPRESSED_RAW
         else:
-            raise RuntimeError(f"Only supports \"ascii\" and \"binary\" file_format. [ provided file_format = \"{file_format}\" ].")
+            raise RuntimeError(f"Only supports \"ascii\", \"binary\", \"raw\", and \"compressed_raw\" file_format. [ provided file_format = \"{file_format}\" ].")
 
         self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
         self.list_of_expresson_vtu_outputs: 'list[ExpressionVtuOutput]' = []
