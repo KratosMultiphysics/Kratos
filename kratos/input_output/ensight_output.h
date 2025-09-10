@@ -82,7 +82,7 @@ struct PartData
  * Usage:
  * 1. Construct with a reference to the ModelPart and optional Parameters for output settings.
  * 2. Call PrintOutput() to write the results for the current simulation step.
- * @see EnSight 7 User Manual, Section 11.1 for file format details.
+ * @see EnSight 7 User Manual, Section 11.1 for file format details. Link: https://fr.scribd.com/document/156786965/Ensight-File-Format-Manual
  * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) EnSightOutput
