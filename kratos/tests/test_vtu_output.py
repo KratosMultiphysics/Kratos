@@ -66,10 +66,7 @@ class TestVtuOutputBase:
         vtu_output.AddTensorAdaptor("elem_ta", ta_2)
 
         with kratos_unittest.WorkFolderScope("./auxiliar_files_for_python_unittest/vtk_output_process_ref_files", __file__, True):
-            if output_format == Kratos.VtuOutput.ASCII:
-                output_file_prefix = "ascii" + self.output_prefix + "/Main"
-            else:
-                output_file_prefix = "binary" + self.output_prefix + "/Main"
+            output_file_prefix = output_format.name.lower() + self.output_prefix + "/Main"
             vtu_output.PrintOutput("temp/" + output_file_prefix)
             self.Check("temp/" + output_file_prefix,  output_file_prefix)
 
@@ -78,6 +75,12 @@ class TestVtuOutputBase:
 
     def test_WriteMeshBinary(self):
         self.WriteVtu(Kratos.VtuOutput.BINARY)
+
+    def test_WriteMeshRaw(self):
+        self.WriteVtu(Kratos.VtuOutput.RAW)
+
+    def test_WriteMeshCompressedRaw(self):
+        self.WriteVtu(Kratos.VtuOutput.COMPRESSED_RAW)
 
     def Check(self, output_prefix, reference_prefix):
         def check_file(output_file_name: str, reference_file_name: str):
@@ -95,7 +98,6 @@ class TestVtuOutputBase:
             self.assertTrue((Path(output_prefix) / file_path.name).is_file())
             check_file(f"{output_prefix}/{file_path.name}", str(file_path))
         check_file(f"{output_prefix}.pvd", f"{reference_prefix}.pvd")
-
 
         kratos_utils.DeleteDirectoryIfExisting("temp")
 
