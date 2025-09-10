@@ -29,6 +29,7 @@ def _make_plot(
             linestyle=series.line_style,
             marker=series.marker,
         )
+    axes.grid()
     axes.grid(which="minor", color="0.9")
     axes.yaxis.set_inverted(yaxis_inverted)
     if xlabel is not None:
@@ -56,5 +57,5 @@ def make_settlement_history_plot(data_series_collection, plot_file_path):
 
 def make_stress_over_y_plot(data_series_collection, plot_file_path):
     _make_plot(
-        data_series_collection, plot_file_path, xlabel="Stress [kPa]", ylabel="y [m]"
+        data_series_collection, plot_file_path, xlabel="Stress [kPa]", ylabel=r"$y$ [m]"
     )

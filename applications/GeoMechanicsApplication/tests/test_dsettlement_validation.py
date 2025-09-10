@@ -48,6 +48,24 @@ def get_nodal_water_pressures_at_time(time_in_s, output_data, node_ids=None):
     )
 
 
+def extract_nodal_settlement_over_time(output_data, node_id):
+    result = []
+    for item in output_data["results"]["TOTAL_DISPLACEMENT"]:
+        if item["location"] != "OnNodes":
+            continue
+
+        settlement = None
+        for value_item in item["values"]:
+            if value_item["node"] == node_id:
+                settlement = -1.0 * value_item["value"][1]
+                break
+        assert settlement is not None
+
+        result.append((unit_conversions.seconds_to_days(item["time"]), settlement))
+
+    return result
+
+
 def make_settlement_history_plot(
     stage_outputs, node_ids, path_to_ref_data_points, figure_filename
 ):
@@ -58,7 +76,7 @@ def make_settlement_history_plot(
             test_helper.get_data_points_from_file(
                 path_to_ref_data_points, extract_time_and_settlement_from_line
             ),
-            "ref",
+            "D-Settlement",
             marker="+",
         )
     )
@@ -67,13 +85,13 @@ def make_settlement_history_plot(
     for output_data in stage_outputs:
         for node_id in node_ids:
             data_points_by_node[node_id].extend(
-                test_helper.extract_nodal_settlement_over_time(output_data, node_id)
+                extract_nodal_settlement_over_time(output_data, node_id)
             )
     for node_id in node_ids:
         data_series_collection.append(
             plot_utils.DataSeries(
                 data_points_by_node[node_id],
-                f"node {node_id}",
+                f"node {node_id} [Kratos]",
                 line_style=":",
                 marker="+",
             )
@@ -115,7 +133,7 @@ def make_stress_over_y_plot(
     data_series_collection.append(
         plot_utils.DataSeries(
             zip(water_pressures, y_coordinates, strict=True),
-            "P_w [Kratos]",
+            r"$p_{\mathrm{w}}$ [Kratos]",
             line_style=":",
             marker="+",
         )
@@ -127,7 +145,7 @@ def make_stress_over_y_plot(
     data_series_collection.append(
         plot_utils.DataSeries(
             zip(effective_vertical_stresses, y_coordinates, strict=True),
-            "sigma_yy;eff [Kratos]",
+            r"$\sigma_{\mathrm{eff, yy}}$ [Kratos]",
             line_style=":",
             marker="+",
         )
@@ -371,12 +389,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 {
                     "file_path": project_path
                     / "ref_water_pressures_after_100_days.txt",
-                    "label": "ref P_w",
+                    "label": r"$p_{\mathrm{w}}$ [D-Settlement]",
                 },
                 {
                     "file_path": project_path
                     / "ref_effective_vertical_stresses_after_100_days.txt",
-                    "label": "ref sigma_yy;eff",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
             ]
             make_stress_over_y_plot(
@@ -393,12 +411,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 {
                     "file_path": project_path
                     / "ref_water_pressures_after_100.1_days.txt",
-                    "label": "ref P_w",
+                    "label": r"$p_{\mathrm{w}}$ [D-Settlement]",
                 },
                 {
                     "file_path": project_path
                     / "ref_effective_vertical_stresses_after_100.1_days.txt",
-                    "label": "ref sigma_yy;eff",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
             ]
             make_stress_over_y_plot(
@@ -415,12 +433,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 {
                     "file_path": project_path
                     / "ref_water_pressures_after_10000_days.txt",
-                    "label": "ref P_w",
+                    "label": r"$p_{\mathrm{w}}$ [D-Settlement]",
                 },
                 {
                     "file_path": project_path
                     / "ref_effective_vertical_stresses_after_10000_days.txt",
-                    "label": "ref sigma_yy;eff",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
             ]
             make_stress_over_y_plot(
@@ -541,12 +559,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 {
                     "file_path": project_path
                     / "ref_water_pressures_after_100_days.txt",
-                    "label": "ref P_w",
+                    "label": r"$p_{\mathrm{w}}$ [D-Settlement]",
                 },
                 {
                     "file_path": project_path
                     / "ref_effective_vertical_stresses_after_100_days.txt",
-                    "label": "ref sigma_yy;eff",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
             ]
             make_stress_over_y_plot(
@@ -563,12 +581,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 {
                     "file_path": project_path
                     / "ref_water_pressures_after_100.1_days.txt",
-                    "label": "ref P_w",
+                    "label": r"$p_{\mathrm{w}}$ [D-Settlement]",
                 },
                 {
                     "file_path": project_path
                     / "ref_effective_vertical_stresses_after_100.1_days.txt",
-                    "label": "ref sigma_yy;eff",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
             ]
             make_stress_over_y_plot(
@@ -585,12 +603,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 {
                     "file_path": project_path
                     / "ref_water_pressures_after_10000_days.txt",
-                    "label": "ref P_w",
+                    "label": r"$p_{\mathrm{w}}$ [D-Settlement]",
                 },
                 {
                     "file_path": project_path
                     / "ref_effective_vertical_stresses_after_10000_days.txt",
-                    "label": "ref sigma_yy;eff",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
             ]
             make_stress_over_y_plot(
@@ -668,12 +686,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 {
                     "file_path": project_path
                     / "ref_water_pressures_after_100_days.txt",
-                    "label": "ref P_w",
+                    "label": r"$p_{\mathrm{w}}$ [D-Settlement]",
                 },
                 {
                     "file_path": project_path
                     / "ref_effective_vertical_stresses_after_100_days.txt",
-                    "label": "ref sigma_yy;eff",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
             ]
             make_stress_over_y_plot(
@@ -690,12 +708,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 {
                     "file_path": project_path
                     / "ref_water_pressures_after_100.1_days.txt",
-                    "label": "ref P_w",
+                    "label": r"$p_{\mathrm{w}}$ [D-Settlement]",
                 },
                 {
                     "file_path": project_path
                     / "ref_effective_vertical_stresses_after_100.1_days.txt",
-                    "label": "ref sigma_yy;eff",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
             ]
             make_stress_over_y_plot(
@@ -712,12 +730,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 {
                     "file_path": project_path
                     / "ref_water_pressures_after_10000_days.txt",
-                    "label": "ref P_w",
+                    "label": r"$p_{\mathrm{w}}$ [D-Settlement]",
                 },
                 {
                     "file_path": project_path
                     / "ref_effective_vertical_stresses_after_10000_days.txt",
-                    "label": "ref sigma_yy;eff",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
             ]
             make_stress_over_y_plot(

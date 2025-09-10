@@ -42,7 +42,7 @@ FixWaterPressuresAbovePhreaticLineProcess::FixWaterPressuresAbovePhreaticLinePro
 void FixWaterPressuresAbovePhreaticLineProcess::ExecuteInitializeSolutionStep()
 {
     block_for_each(mrModelPart.Nodes(), [this](Node& rNode) {
-        if (rNode.Coordinates()[1] > mPhreaticLineTable(rNode.Coordinates()[0])) {
+        if (rNode.Y() > mPhreaticLineTable(rNode.X())) {
             rNode.Fix(WATER_PRESSURE);
             rNode.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
         } else {

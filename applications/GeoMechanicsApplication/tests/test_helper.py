@@ -637,24 +637,6 @@ class GiDOutputFileReader:
             return element_results
 
 
-def extract_nodal_settlement_over_time(output_data, node_id):
-    result = []
-    for item in output_data["results"]["TOTAL_DISPLACEMENT"]:
-        if item["location"] != "OnNodes":
-            continue
-
-        settlement = None
-        for value_item in item["values"]:
-            if value_item["node"] == node_id:
-                settlement = -1.0 * value_item["value"][1]
-                break
-        assert settlement is not None
-
-        result.append((unit_conversions.seconds_to_days(item["time"]), settlement))
-
-    return result
-
-
 def read_coordinates_from_post_msh_file(file_path, node_ids=None):
     node_map = {}
 

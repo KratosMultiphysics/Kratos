@@ -193,7 +193,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesWaterPressu
 
     // Act
     // Move node 1 below phreatic line
-    r_model_part.GetNode(1).Coordinates()[1] = -1.0;
+    r_model_part.GetNode(1).Y() = -1.0;
     process.ExecuteInitializeSolutionStep();
 
     // Assert
