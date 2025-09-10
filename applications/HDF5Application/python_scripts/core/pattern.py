@@ -132,6 +132,22 @@ def EvaluatePattern(pattern: str, model_part: Kratos.ModelPart, time_format='') 
     return pattern
 
 def IdentifyPattern(entity_name: str) -> 'tuple[str, dict[str, typing.Any]]':
+    """
+    Identifies and replaces all floating-point number patterns in the given entity name string.
+
+    This function scans the input string for substrings that match the floating-point number pattern
+    (including scientific notation, but omitting the '-' sign), and replaces each occurrence with a
+    placeholder tag in the format <float_N>, where N is the 1-based index of the float found.
+    It also constructs a dictionary mapping each placeholder tag to the `float` type.
+
+    Args:
+        entity_name (str): The input string potentially containing floating-point numbers.
+
+    Returns:
+        tuple[str, dict[str, typing.Any]]:
+            - pattern (str): The input string with all float values replaced by their corresponding tags.
+            - tags_dict (dict[str, typing.Any]): A dictionary mapping each tag to the `float` type.
+    """
     # all the tag types are assumed to be of float type
     # here the "-" sign is omitted.
     float_pattern = re.compile(r"([0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)")
