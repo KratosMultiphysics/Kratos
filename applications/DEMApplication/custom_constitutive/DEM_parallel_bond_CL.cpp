@@ -451,12 +451,12 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         mBondedLocalElasticContactForce2 = kn_el * bonded_indentation;
     } else { //else the bond is broken
         //if the bond is broken, we still calculate the normal compressive force but not the normal tensile force //TODO:If the bond disappears, this will not work
-        /*if (bonded_indentation > 0.0){
+        if (bonded_indentation > 0.0){
             mBondedLocalElasticContactForce2 = kn_el * bonded_indentation;
         } else {
             mBondedLocalElasticContactForce2 = 0.0;
-        }*/
-        mBondedLocalElasticContactForce2 = 0.0;
+        }
+        //mBondedLocalElasticContactForce2 = 0.0;
     }
 
     if (indentation_particle > 0.0) {
@@ -635,8 +635,20 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         BondedLocalElasticContactForce[1] = OldBondedLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
     } else {
         //TODO:a friction force due to the broken bond should be added here
-        BondedLocalElasticContactForce[0] = 0.0; // 0: first tangential
-        BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
+        //BondedLocalElasticContactForce[0] = 0.0; // 0: first tangential
+        //BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential
+        const double& bond_internal_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
+        double BondedLocalTangentialContactForceModulus = -1 * tan(bond_internal_friction * Globals::Pi / 180.0) * mBondedLocalContactForce[2];
+        
+        double old_current_tangential_force_module = sqrt(OldBondedLocalElasticContactForce[0] * OldBondedLocalElasticContactForce[0] + OldBondedLocalElasticContactForce[1] * OldBondedLocalElasticContactForce[1]);
+
+        if (old_current_tangential_force_module > 1e-12) {
+            BondedLocalElasticContactForce[0] = BondedLocalTangentialContactForceModulus * OldBondedLocalElasticContactForce[0] / old_current_tangential_force_module;
+            BondedLocalElasticContactForce[1] = BondedLocalTangentialContactForceModulus * OldBondedLocalElasticContactForce[1] / old_current_tangential_force_module;
+        } else {
+            BondedLocalElasticContactForce[0] = 0.0;
+            BondedLocalElasticContactForce[1] = 0.0;
+        }
     }
 
     //unbonded force
@@ -993,7 +1005,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
         //const double& bond_sigma_max_deviation = (*mpProperties)[BOND_SIGMA_MAX_DEVIATION];
         //const double& bond_tau_zero = (*mpProperties)[BOND_TAU_ZERO];
         //const double& bond_tau_zero_deviation = (*mpProperties)[BOND_TAU_ZERO_DEVIATION];
-        const double& bond_interanl_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
+        const double& bond_internal_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
         const double& bond_rotational_moment_coefficient_normal =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL];
         const double& bond_rotational_moment_coefficient_tangential =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL];
         
@@ -1020,9 +1032,9 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
         double bond_current_tau_max = mBondTauZero;
 
         if (contact_sigma >= 0) {
-            bond_current_tau_max += tan(bond_interanl_friction * Globals::Pi / 180.0) * contact_sigma;
+            bond_current_tau_max += tan(bond_internal_friction * Globals::Pi / 180.0) * contact_sigma;
         }
-        //bond_current_tau_max += tan(bond_interanl_friction * Globals::Pi / 180.0) * contact_sigma;
+        //bond_current_tau_max += tan(bond_internal_friction * Globals::Pi / 180.0) * contact_sigma;
 
         if (contact_sigma < 0.0  /*break in tension*/
                 && ((-1 * contact_sigma + bond_rotational_moment_coefficient_normal * bond_rotational_moment_tangential_modulus * bond_radius / I) > mBondSigmaMax) 
