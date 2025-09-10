@@ -524,6 +524,8 @@ void DEM_parallel_bond::CalculateUnbondedViscoDampingForce(double LocalRelVel[3]
                                                 SphericParticle* const element2){
     KRATOS_TRY
     
+    KRATOS_ERROR << "This function shouldn't be accessed here, use basic contact model instead."<<std::endl;
+    /*
     const double my_mass    = element1->GetMass();
     const double other_mass = element2->GetMass();
 
@@ -538,6 +540,7 @@ void DEM_parallel_bond::CalculateUnbondedViscoDampingForce(double LocalRelVel[3]
     mUnbondedViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
     mUnbondedViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
     mUnbondedViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];
+    */
 
     KRATOS_CATCH("")
 }
