@@ -75,8 +75,8 @@ private:
     [[nodiscard]] bool FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
                                                  const std::vector<std::size_t>& condition_node_ids) const;
     void CheckBoundaryTypeForAllElements(auto              generate_boundaries,
-                                         Kratos::hashmap&  condition_node_ids_to_condition,
-                                         Kratos::hashmap2& sorted_condition_node_ids_to_condition);
+                                         hashmap&  condition_node_ids_to_condition,
+                                         hashmap2& sorted_condition_node_ids_to_condition);
 
     void ReportConditionsWithoutNeighbours() const;
 };

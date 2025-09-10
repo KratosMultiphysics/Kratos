@@ -12,7 +12,6 @@
 
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
 
-#include "custom_elements/interface_element.h"
 #include "geometries/geometry.h"
 #include "includes/kratos_flags.h"
 
@@ -77,7 +76,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 }
 
 void FindNeighbourElementsOfConditionsProcess::CheckBoundaryTypeForAllElements(
-    auto generate_boundaries, Kratos::hashmap& condition_node_ids_to_condition, Kratos::hashmap2& sorted_condition_node_ids_to_condition)
+    auto generate_boundaries, hashmap& condition_node_ids_to_condition, hashmap2& sorted_condition_node_ids_to_condition)
 {
     for (auto& r_element : mrModelPart.Elements()) {
         const auto& rGeometryElement    = r_element.GetGeometry();
