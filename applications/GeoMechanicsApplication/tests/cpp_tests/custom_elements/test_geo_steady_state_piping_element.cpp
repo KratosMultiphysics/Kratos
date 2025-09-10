@@ -381,7 +381,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementHasValuesAfterInitialize,
 
     // Assert
     KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_ELEMENT_LENGTH), 1.);
-    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_EROSION), false);
+    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_SECONDARY_EROSION), false);
     const double quite_small = 1.E-10;
     KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_HEIGHT), quite_small);
     KRATOS_EXPECT_EQ(p_element->GetValue(PREV_PIPE_HEIGHT), quite_small);

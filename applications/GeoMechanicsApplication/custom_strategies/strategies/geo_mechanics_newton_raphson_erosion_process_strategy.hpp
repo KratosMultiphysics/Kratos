@@ -296,6 +296,7 @@ private:
 
             // Update depth of open piping Elements
             equilibrium = true;
+
             for (auto p_open_pipe_element : rOpenPipeElements) {
                 // get open pipe element geometry and properties
                 auto& r_geom = p_open_pipe_element->GetGeometry();
@@ -304,21 +305,41 @@ private:
                 // calculate equilibrium pipe height and get current pipe height
                 double eq_height = p_open_pipe_element->CalculateEquilibriumPipeHeight(
                     r_prop, r_geom, p_open_pipe_element->GetValue(PIPE_ELEMENT_LENGTH));
-                const auto current_height = p_open_pipe_element->GetValue(PIPE_HEIGHT);
+                const auto current_height = r_prop[PIPE_HEIGHT];
 
-                // set erosion on true if current pipe height is greater than the equilibrium height
-                p_open_pipe_element->SetValue(PIPE_EROSION, p_open_pipe_element->GetValue(PIPE_EROSION) ||
+                // ITS HERE - BUT WHATS PIPE_SECONDARY_EROSION vs PIPE_ACTIVE - JDN
+                // set secondary erosion on true if current pipe height is greater than the equilibrium height
+                p_open_pipe_element->SetValue(PIPE_SECONDARY_EROSION, p_open_pipe_element->GetValue(PIPE_SECONDARY_EROSION) ||
                                                                 current_height > eq_height);
-                // check this if statement, I don't understand the check for pipe erosion
-                if ((!p_open_pipe_element->GetValue(PIPE_EROSION) || current_height > eq_height) &&
-                    current_height < MaxPipeHeight) {
+
+
+
+                if (r_prop[PIPE_PRIMARY_EROSION_ENABLED] &&
+                    p_open_pipe_element->CheckForPrimaryErosion(r_prop, r_geom)) {
+                    p_open_pipe_element->SetValue(PIPE_PRIMARY_EROSION, true);
+                } else if (current_height > eq_height) {
+                    p_open_pipe_element->SetValue(PIPE_SECONDARY_EROSION, true);
+               }
+
+                auto debug_pipe_primary_erosion = p_open_pipe_element->GetValue(PIPE_PRIMARY_EROSION);
+                auto debug_pipe_secondary_erosion =p_open_pipe_element->GetValue(PIPE_SECONDARY_EROSION);
+
+                // check this if statement, I don't understand the check for pipe secondary erosion
+                if (((p_open_pipe_element->GetValue(PIPE_PRIMARY_EROSION)) ||
+                    (r_prop[PIPE_CRITICAL_GRADIENT] < std::numeric_limits<double>::epsilon() &&
+                    (!p_open_pipe_element->GetValue(PIPE_SECONDARY_EROSION)|| (current_height > eq_height)) )) &&
+                    (current_height < MaxPipeHeight)) {
                     p_open_pipe_element->SetValue(PIPE_HEIGHT, current_height + pipe_height_increment);
                     equilibrium = false;
                 }
 
                 // check if equilibrium height and current pipe heights are diverging, stop
                 // Picard iterations if this is the case and set pipe height on zero
-                if (!p_open_pipe_element->GetValue(PIPE_EROSION) && piping_iteration > 1 &&
+
+                debug_pipe_primary_erosion = p_open_pipe_element->GetValue(PIPE_PRIMARY_EROSION);
+                debug_pipe_secondary_erosion = p_open_pipe_element->GetValue(PIPE_SECONDARY_EROSION);
+
+                if (!p_open_pipe_element->GetValue(PIPE_PRIMARY_EROSION) && !p_open_pipe_element->GetValue(PIPE_SECONDARY_EROSION) && piping_iteration > 1 &&
                     eq_height - current_height > p_open_pipe_element->GetValue(DIFF_PIPE_HEIGHT)) {
                     p_open_pipe_element->SetValue(PIPE_HEIGHT, mSmallPipeHeight);
                     equilibrium = true;
@@ -353,17 +374,22 @@ private:
             auto       p_tip_element = rPipeElements.at(NumberOfOpenPipeElements - 1);
             const auto pipe_height   = p_tip_element->GetValue(PIPE_HEIGHT);
 
-            if (pipe_height > MaxPipeHeight + std::numeric_limits<double>::epsilon() ||
-                pipe_height < mPipeHeightAccuracy) {
+            if ((pipe_height > MaxPipeHeight + std::numeric_limits<double>::epsilon() ||
+                pipe_height < mPipeHeightAccuracy) && (!p_tip_element->GetValue(PIPE_PRIMARY_EROSION))) {
                 // stable element found; pipe length does not increase during current time step
                 grow = false;
-                p_tip_element->SetValue(PIPE_EROSION, false);
+                p_tip_element->SetValue(PIPE_SECONDARY_EROSION, false);
                 p_tip_element->SetValue(PIPE_ACTIVE, false);
                 --NumberOfOpenPipeElements;
 
                 KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
                     << "Number of Open Pipe Elements: " << NumberOfOpenPipeElements << std::endl;
-            }
+                } else if ((pipe_height > MaxPipeHeight + std::numeric_limits<double>::epsilon() ||
+                    pipe_height < mPipeHeightAccuracy) && (p_tip_element->GetValue(PIPE_PRIMARY_EROSION))) {
+                    p_tip_element->SetValue(PIPE_SECONDARY_EROSION, false);
+                    p_tip_element->SetValue(PIPE_HEIGHT, mSmallPipeHeight);
+                }
+
         } else {
             grow = false;
         }

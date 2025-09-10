@@ -100,7 +100,7 @@ void SteadyStatePwPipingElement<TDim, TNumNodes>::Initialize(const ProcessInfo& 
     // initialse pipe parameters if not initalised, (important for staged analysis.
     if (!this->pipe_initialised) {
         this->pipe_initialised = true;
-        this->SetValue(PIPE_EROSION, false);
+        this->SetValue(PIPE_SECONDARY_EROSION, false);
 
         // initialise pipe height with a small value
         double smallPipeHeight = 1e-10;

@@ -113,7 +113,13 @@ public:
 
     void CalculateLength(const GeometryType& Geom);
 
+    bool CheckForPrimaryErosion(const PropertiesType& rProp, const GeometryType& rGeom)
+    {
+        return false;
+    }
+
 protected:
+
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo,

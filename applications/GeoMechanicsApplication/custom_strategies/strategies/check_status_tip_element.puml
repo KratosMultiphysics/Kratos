@@ -5,7 +5,7 @@
  if (PIPE_HEIGHT > max_pipe_height ||
      PIPE_HEIGHT < accuracy) then
      :grow = false;
-     :Set PIPE_EROSION=false;
+     :Set PIPE_SECONDARY_EROSION=false;
      :Set PIPE_ACTIVE= false;
      :n_open_elements --;
  endif

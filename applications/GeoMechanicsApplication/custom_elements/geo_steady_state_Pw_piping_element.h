@@ -121,7 +121,8 @@ public:
         this->SetValue(PIPE_ELEMENT_LENGTH, CalculateLength(this->GetGeometry()));
 
         if (!mIsInitialized) {
-            this->SetValue(PIPE_EROSION, false);
+            this->SetValue(PIPE_PRIMARY_EROSION, false);
+            this->SetValue(PIPE_SECONDARY_EROSION, false);
             constexpr double small_pipe_height = 1e-10;
             this->SetValue(PIPE_HEIGHT, small_pipe_height);
             this->SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
@@ -225,6 +226,17 @@ public:
 
     std::string Info() const override { return "GeoSteadyStatePwPipingElement"; }
 
+    bool CheckForPrimaryErosion(const PropertiesType& rProp, const GeometryType& rGeom)
+    {
+        auto critGradient = rProp[PIPE_CRITICAL_GRADIENT];
+        if (critGradient > std::numeric_limits<double>::epsilon()) {
+            // JDN is this abs correct here? Is it not directional ?
+            auto dhdx = std::abs(CalculateHeadGradient(rProp, rGeom));
+            return dhdx > critGradient;
+        }
+        return false;
+    }
+
 private:
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {
@@ -253,6 +265,12 @@ private:
         if constexpr (TDim == 3) {
             CheckProperty(PIPE_WIDTH_FACTOR);
         }
+        CheckProperty(PIPE_PRIMARY_EROSION_ENABLED);
+        if (GetProperties().Has(PIPE_PRIMARY_EROSION_ENABLED))
+        {
+            CheckProperty(PIPE_CRITICAL_GRADIENT);
+        }
+
     }
 
     void CheckProperty(const Kratos::Variable<double>& rVariable) const
@@ -264,6 +282,17 @@ private:
             << ") is not in the range [0,-> at element " << Id() << std::endl;
     }
 
+    void CheckProperty(const Kratos::Variable<bool>& rVariable) const
+    {
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
+            << rVariable.Name() << " does not exist in the properties of element " << Id() << std::endl;
+
+        if (GetProperties()[rVariable] != true && GetProperties()[rVariable] != false) {
+            KRATOS_ERROR << rVariable.Name() << " is not assigned in the properties of element " << Id()
+                         << std::endl;
+        }
+    }
+
     void CheckForNonZeroZCoordinate() const
     {
         const auto& r_geometry = GetGeometry();
@@ -272,6 +301,7 @@ private:
         KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
             << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
     }
+
 
     static double CalculateLength(const GeometryType& Geom)
     {

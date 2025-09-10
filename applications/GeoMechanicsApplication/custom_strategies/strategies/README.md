@@ -55,7 +55,7 @@ the modelling is performed. Then a pipe height is corrected by a given increment
 maximum number of iterations is the user input, "max_piping_iterations".
 
 The typical case is the following. Initially, the equilibrium pipe height is small and quickly the pipe height is
-increased above the equilibrium height. At this moment PIPE_EROSION is set to true. Then due to the flow development,
+increased above the equilibrium height. At this moment PIPE_SECONDARY_EROSION is set to true. Then due to the flow development,
 the water pressure gradient decreases, which leads to a higher value of the equilibrium height. As a result the
 equilibrium pipe height grows faster than the pipe height. When both of the heights become equal, the iterative process
 is stopped.
@@ -88,7 +88,7 @@ Currently, the pipe is assumed horizontal $\alpha = 0$.
 ### check_status_tip_element function
 
 This function checks the open piping elements and if their height is larger than a maximum value of the pipe height or
-too small then the function changes the pipe properties: PIPE_EROSION and PIPE_ACTIVE to false. In this case the
+too small then the function changes the pipe properties: PIPE_SECONDARY_EROSION and PIPE_ACTIVE to false. In this case the
 function sets grow parameter as false. As well the grow is set to false if all piping elements are open.
 
 ![check_status_tip_element.svg](check_status_tip_element.svg)
