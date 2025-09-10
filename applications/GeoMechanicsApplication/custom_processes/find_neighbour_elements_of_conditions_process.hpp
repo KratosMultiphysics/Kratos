@@ -80,8 +80,6 @@ private:
     void ReportConditionsWithoutNeighbours() const;
 };
 
-inline std::istream& operator>>(std::istream& rIStream, FindNeighbourElementsOfConditionsProcess& rThis);
-
 inline std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfConditionsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
