@@ -70,12 +70,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         if (AllConditionsAreVisited()) return;
     }
 
-    std::vector<Condition> unvisited_conditions;
-    std::ranges::copy_if(mrModelPart.Conditions(), std::back_inserter(unvisited_conditions),
-                         [](const auto& rCondition) { return !rCondition.Is(VISITED); });
-    for (const auto& r_condition : unvisited_conditions) {
-        KRATOS_INFO("Condition without any corresponding element, ID ") << r_condition.Id() << std::endl;
-    }
+    ReportConditionsWithoutNeighbours();
     KRATOS_ERROR << "Some conditions found without any corresponding element" << std::endl;
 
     KRATOS_CATCH("")
@@ -189,6 +184,16 @@ bool FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(
                 elements_boundary_node_ids.begin() + elements_boundary_node_ids.size() / 2 + amount_of_needed_rotations,
                 elements_boundary_node_ids.end());
     return elements_boundary_node_ids == condition_node_ids;
+}
+
+void FindNeighbourElementsOfConditionsProcess::ReportConditionsWithoutNeighbours() const
+{
+    std::vector<Condition> unvisited_conditions;
+    std::ranges::copy_if(mrModelPart.Conditions(), std::back_inserter(unvisited_conditions),
+                         [](const auto& rCondition) { return !rCondition.Is(VISITED); });
+    for (const auto& r_condition : unvisited_conditions) {
+        KRATOS_INFO("Condition without any corresponding element, ID ") << r_condition.Id() << std::endl;
+    }
 }
 
 } // namespace Kratos
