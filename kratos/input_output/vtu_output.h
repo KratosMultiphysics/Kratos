@@ -54,26 +54,11 @@
  * - DataMap: Unordered map for @ref Globals::DataLocation and map of data field name and type of the data field.
  *
  * @section VtuOutput_Enums Enums
- * - WriterFormat: Specifies output format (ASCII or BINARY).
+ * - WriterFormat: Specifies output format (ASCII, BINARY, RAW, COMPRESSED_RAW).
  *
  * @section VtuOutput_Structs Structs
  * - UnstructuredGridData: Holds data for an unstructured grid, including points, cells, and associated fields.
  *
- * @section VtuOutput_PrivateMembers Private Member Variables
- * - mrModelPart: Reference to the ModelPart.
- * - mIsInitialConfiguration: Flag for initial configuration output.
- * - mEchoLevel: Echo level for logging.
- * - mOutputFormat: Output format (ASCII/BINARY).
- * - mPrecision: Precision for ASCII output.
- * - mFlags: Registered flags for output.
- * - mVariables: Registered variables for output.
- * - mIntegrationPointVariables: Registered integration point variables.
- * - mUnstructuredGridDataList: List of unstructured grid data.
- * - mTimeStepList: List of time steps.
- *
- * @section VtuOutput_PrivateOperations Private Operations
- * - WriteUnstructuredGridData: Writes unstructured grid data to file.
- * - WriteIntegrationPointData: Writes integration point data to file.
  */
 namespace Kratos {
 class KRATOS_API(KRATOS_CORE) VtuOutput : public IO
