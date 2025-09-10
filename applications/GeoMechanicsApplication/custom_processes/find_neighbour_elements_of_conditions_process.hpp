@@ -19,14 +19,14 @@
 namespace Kratos
 {
 
-using hashmap  = std::unordered_multimap<std::vector<std::size_t>,
-                                         std::vector<Condition::Pointer>,
-                                         KeyHasherRange<std::vector<std::size_t>>,
-                                         KeyComparorRange<std::vector<std::size_t>>>;
-using hashmap2 = std::unordered_multimap<std::vector<std::size_t>,
-                                         std::vector<std::size_t>,
-                                         KeyHasherRange<std::vector<std::size_t>>,
-                                         KeyComparorRange<std::vector<std::size_t>>>;
+using NodeIdToConditionsHashMap      = std::unordered_multimap<std::vector<std::size_t>,
+                                                               std::vector<Condition::Pointer>,
+                                                               KeyHasherRange<std::vector<std::size_t>>,
+                                                               KeyComparorRange<std::vector<std::size_t>>>;
+using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::size_t>,
+                                                               std::vector<std::size_t>,
+                                                               KeyHasherRange<std::vector<std::size_t>>,
+                                                               KeyComparorRange<std::vector<std::size_t>>>;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighbourElementsOfConditionsProcess : public Process
 {
@@ -60,13 +60,13 @@ private:
 
     [[nodiscard]] bool AllConditionsAreVisited() const;
 
-    static void CheckForMultipleConditionsOnElement(hashmap&                        rFacesMap,
-                                                    const std::vector<std::size_t>& key,
+    static void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(NodeIdToConditionsHashMap&      rFacesMap,
+                                                    const std::vector<std::size_t>& rConditionNodeIds,
                                                     Element*                        pElement);
 
     void AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-        hashmap&                                   FacesMap,
-        const hashmap2&                            FacesMapSorted,
+        NodeIdToConditionsHashMap&                 FacesMap,
+        const SortedToUnsortedNodeIdsHashMap&      FacesMapSorted,
         Element&                                   rElement,
         const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries) const;
 
@@ -74,9 +74,9 @@ private:
                                         const std::vector<std::size_t>& condition_node_ids) const;
     [[nodiscard]] bool FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
                                                  const std::vector<std::size_t>& condition_node_ids) const;
-    void CheckBoundaryTypeForAllElements(auto              generate_boundaries,
-                                         hashmap&  condition_node_ids_to_condition,
-                                         hashmap2& sorted_condition_node_ids_to_condition);
+    void CheckBoundaryTypeForAllElements(auto                       generate_boundaries,
+                                         NodeIdToConditionsHashMap& condition_node_ids_to_condition,
+                                         SortedToUnsortedNodeIdsHashMap& sorted_condition_node_ids_to_condition);
 
     void ReportConditionsWithoutNeighbours() const;
 };
