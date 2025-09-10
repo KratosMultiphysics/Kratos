@@ -26,15 +26,15 @@
 namespace Kratos
 {
 /// Condition for penalty support condition
-class KRATOS_API(IGA_APPLICATION) SbmLoadSolidCondition
+class KRATOS_API(IGA_APPLICATION) CutSbmSolidCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer definition of SbmLoadSolidCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmLoadSolidCondition);
+    /// Counted pointer definition of CutSbmSolidCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CutSbmSolidCondition);
 
     /// Size types
     using SizeType = std::size_t;
@@ -47,14 +47,14 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Constructor with Id and geometry
-    SbmLoadSolidCondition(
+    CutSbmSolidCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    SbmLoadSolidCondition(
+    CutSbmSolidCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -62,11 +62,11 @@ public:
     {};
 
     /// Default constructor
-    SbmLoadSolidCondition() : Condition()
+    CutSbmSolidCondition() : Condition()
     {};
 
     /// Destructor
-    virtual ~SbmLoadSolidCondition() override
+    virtual ~CutSbmSolidCondition() override
     {};
 
     ///@}
@@ -80,7 +80,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SbmLoadSolidCondition>(
+        return Kratos::make_intrusive<CutSbmSolidCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -91,7 +91,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SbmLoadSolidCondition>(
+        return Kratos::make_intrusive<CutSbmSolidCondition>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -160,6 +160,7 @@ public:
     void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
+
     ///@}
     ///@name Check
     ///@{
@@ -175,14 +176,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"SbmLoadSolidCondition\" #" << Id();
+        buffer << "\"CutSbmSolidCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"SbmLoadSolidCondition\" #" << Id();
+        rOStream << "\"CutSbmSolidCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -194,7 +195,6 @@ public:
     ///@}
 
 protected:
-
 
 /**
  * Internal variables used in the constitutive calculations
@@ -247,6 +247,7 @@ void InitializeMemberVariables();
  */
 void InitializeSbmMemberVariables();
 
+
 /**
  * @brief Calculate the B matrix for the element in the two-dimensional case.
  * 
@@ -271,13 +272,19 @@ void ApplyConstitutiveLaw(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiVariables);
 
+/**
+ * @brief 
+ * 
+ * @param H_sum_vec 
+ */
+void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
 
 /**
  * @brief 
  * 
  * @param grad_H_sum 
  */
-void ComputeGradientTaylorExpansionContribution(const Vector& rDistanceVector, Matrix& grad_H_sum);
+void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
@@ -314,14 +321,11 @@ double ComputeTaylorTerm3D(
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpace;
-    array_1d<double, 3> mTrueNormal;
-    double mTrueDotSurrogateNormal;
     Vector mDistanceVector;
     unsigned int mDim;
+    double mPenalty;
+    double mNitschePenalty;
     IndexType mBasisFunctionsOrder;
-    NodeType* mpProjectionNode;
-
-
 
 ///@}
 

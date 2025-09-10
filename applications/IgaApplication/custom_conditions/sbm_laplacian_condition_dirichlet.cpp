@@ -80,6 +80,8 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
     // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
     mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
 
+    mBasisFunctionsOrder*=2;
+
     // https://doi.org/10.1016/j.cma.2023.116301 (A penalty-free Shifted Boundary Method of arbitrary order)
     mNitschePenalty = 1.0;   // = 1.0 -> Penalty approach
                                     // = -1.0 -> Free-penalty approach
@@ -115,7 +117,10 @@ void SbmLaplacianConditionDirichlet::InitializeSbmMemberVariables()
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
     mDistanceVector.resize(3);
+    // mDistanceVector = ZeroVector(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+
+    this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
 }
 
 void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
@@ -124,20 +129,20 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const SizeType number_of_control_points = r_geometry.PointsNumber();
 
-    if (rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes) {
-        rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
+    if (rLeftHandSideMatrix.size1() != number_of_control_points || rLeftHandSideMatrix.size2() != number_of_control_points) {
+        rLeftHandSideMatrix.resize(number_of_control_points, number_of_control_points, false);
     }
 
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_control_points, number_of_control_points);
 
     // Integration
     const auto& r_integration_points = r_geometry.IntegrationPoints();
     const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
     
     // Initialize DN_DX
-    Matrix DN_DX(number_of_nodes,mDim);
+    Matrix DN_DX(number_of_control_points,mDim);
 
     // Differential area
     double penalty_integration = mPenalty * r_integration_points[0].Weight() ;
@@ -161,11 +166,11 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
     determinant_factor[2] = 0.0; // 2D case
     const double det_J0 = norm_2(determinant_factor);
 
-    Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
-    Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
+    Matrix DN_dot_n = ZeroMatrix(1, number_of_control_points);
+    Vector DN_dot_n_vec = ZeroVector(number_of_control_points);
     
     const Matrix& H = r_geometry.ShapeFunctionsValues();
-    for (IndexType i = 0; i < number_of_nodes; ++i)
+    for (IndexType i = 0; i < number_of_control_points; ++i)
     {
         for (IndexType idim = 0; idim < mDim; idim++) {
                 DN_dot_n_vec(i)  += DN_DX(i, idim) * mNormalPhysicalSpace[idim];         
@@ -174,10 +179,10 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
     noalias(row(DN_dot_n, 0)) = DN_dot_n_vec;
 
     // compute Taylor expansion contribution: H_sum_vec
-    Vector H_sum_vec = ZeroVector(number_of_nodes);
+    Vector H_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution (H_sum_vec);
     
-    Matrix H_sum = ZeroMatrix(1, number_of_nodes);
+    Matrix H_sum = ZeroMatrix(1, number_of_control_points);
     noalias(row(H_sum, 0)) = H_sum_vec;
 
     // Assembly
@@ -198,18 +203,18 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
     const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
-    if (rRightHandSideVector.size() != number_of_nodes) {
-        rRightHandSideVector.resize(number_of_nodes, false);
+    const SizeType number_of_control_points = r_geometry.PointsNumber();
+    if (rRightHandSideVector.size() != number_of_control_points) {
+        rRightHandSideVector.resize(number_of_control_points, false);
     }
-    noalias(rRightHandSideVector) = ZeroVector(number_of_nodes);
+    noalias(rRightHandSideVector) = ZeroVector(number_of_control_points);
 
     // Integration
     const auto& r_integration_points = r_geometry.IntegrationPoints();
     const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
     
     // Initialize DN_DX
-    Matrix DN_DX(number_of_nodes,mDim);
+    Matrix DN_DX(number_of_control_points,mDim);
 
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
@@ -234,10 +239,10 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[0],InvJ0);
 
     const Matrix& H = r_geometry.ShapeFunctionsValues();
-    Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
-    Vector H_vec = ZeroVector(number_of_nodes);
+    Vector DN_dot_n_vec = ZeroVector(number_of_control_points);
+    Vector H_vec = ZeroVector(number_of_control_points);
     
-    for (IndexType i = 0; i < number_of_nodes; ++i)
+    for (IndexType i = 0; i < number_of_control_points; ++i)
     {
         H_vec(i) = H(0, i);
         for (IndexType idim = 0; idim < mDim; idim++) {
@@ -246,22 +251,26 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     }
 
     // compute Taylor expansion contribution: H_sum_vec
-    Vector H_sum_vec = ZeroVector(number_of_nodes);
+    Vector H_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution (H_sum_vec);
     
-    Matrix H_sum = ZeroMatrix(1, number_of_nodes);
+    Matrix H_sum = ZeroMatrix(1, number_of_control_points);
     noalias(row(H_sum, 0)) = H_sum_vec;
 
     // Assembly
     const double u_D_scalar = mpProjectionNode->GetValue(r_unknown_var);
+    // double xx = r_geometry.Center().X();
+    // double yy = r_geometry.Center().Y();
+    // // double u_D_scalar = sin(xx)*sinh(yy);
+    // double u_D_scalar = xx*yy*cosh(xx) * sin(yy);
 
     noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration * std::abs(det_J0);
     // Dirichlet BCs
     noalias(rRightHandSideVector) -= mNitschePenalty * DN_dot_n_vec * u_D_scalar * r_integration_points[0].Weight() * std::abs(det_J0) ;
 
 
-    Vector temperature_old_iteration(number_of_nodes);
-    for (IndexType i = 0; i < number_of_nodes; i++) {
+    Vector temperature_old_iteration(number_of_control_points);
+    for (IndexType i = 0; i < number_of_control_points; i++) {
         temperature_old_iteration[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
     }
     // Corresponding RHS
@@ -275,21 +284,21 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
 void SbmLaplacianConditionDirichlet::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
 {
     const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const SizeType number_of_control_points = r_geometry.PointsNumber();
     const Matrix& N = r_geometry.ShapeFunctionsValues();
 
-    if (H_sum_vec.size() != number_of_nodes)
+    if (H_sum_vec.size() != number_of_control_points)
     {
-        H_sum_vec = ZeroVector(number_of_nodes);
+        H_sum_vec = ZeroVector(number_of_control_points);
     }
-
+    
     // Compute all the derivatives of the basis functions involved
     std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
     for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
         shape_function_derivatives[n-1] = r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod());
     }
     
-    for (IndexType i = 0; i < number_of_nodes; ++i)
+    for (IndexType i = 0; i < number_of_control_points; ++i)
     {
         // Reset for each node
         double H_taylor_term = 0.0; 
@@ -369,12 +378,12 @@ void SbmLaplacianConditionDirichlet::EquationIdVector(
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType number_of_control_points = r_geometry.size();
 
-    if (rResult.size() !=  number_of_nodes)
-        rResult.resize(number_of_nodes, false);
+    if (rResult.size() !=  number_of_control_points)
+        rResult.resize(number_of_control_points, false);
 
-    for (IndexType i = 0; i < number_of_nodes; ++i) {
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
         const auto& r_node = r_geometry[i];
         rResult[i] = r_node.GetDof(r_unknown_var).EquationId();
     }
@@ -388,12 +397,12 @@ void SbmLaplacianConditionDirichlet::GetDofList(
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
     
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType number_of_control_points = r_geometry.size();
 
     rElementalDofList.resize(0);
-    rElementalDofList.reserve(number_of_nodes);
+    rElementalDofList.reserve(number_of_control_points);
 
-    for (IndexType i = 0; i < number_of_nodes; ++i) {
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
         const auto& r_node = r_geometry[i];
         rElementalDofList.push_back(r_node.pGetDof(r_unknown_var));
     }

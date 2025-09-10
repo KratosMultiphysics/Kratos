@@ -17,6 +17,7 @@
 #include "includes/kratos_parameters.h"
 #include "iga_application_variables.h"
 #include "geometries/nurbs_curve_geometry.h"
+#include "iga_fast_suite.h"
 
 namespace Kratos::Testing
 {

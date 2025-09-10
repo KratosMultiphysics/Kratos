@@ -136,6 +136,8 @@ void LaplacianIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
         const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
 
         noalias(rLeftHandSideMatrix) += int_to_reference_weight * conductivity * prod(DN_DX, trans(DN_DX));
+
+        SetValue(INTEGRATION_WEIGHT, int_to_reference_weight);
     }
 
     KRATOS_CATCH("")
@@ -192,11 +194,11 @@ void LaplacianIGAElement::EquationIdVector(EquationIdVectorType& rResult, const 
 
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    if(rResult.size() != number_of_nodes) {
-        rResult.resize(number_of_nodes);
+    unsigned int number_of_control_points = GetGeometry().PointsNumber();
+    if(rResult.size() != number_of_control_points) {
+        rResult.resize(number_of_control_points);
     }
-    for (unsigned int i=0; i<number_of_nodes; i++)
+    for (unsigned int i=0; i<number_of_control_points; i++)
     {
         rResult[i] = GetGeometry()[i].GetDof(r_unknown_var).EquationId();
     }
@@ -209,11 +211,11 @@ void LaplacianIGAElement::GetDofList(DofsVectorType& ElementalDofList,const Proc
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    if(ElementalDofList.size() != number_of_nodes) {
-        ElementalDofList.resize(number_of_nodes);
+    unsigned int number_of_control_points = GetGeometry().PointsNumber();
+    if(ElementalDofList.size() != number_of_control_points) {
+        ElementalDofList.resize(number_of_control_points);
     }
-    for (unsigned int i=0; i<number_of_nodes; i++)
+    for (unsigned int i=0; i<number_of_control_points; i++)
     {
         ElementalDofList[i] = GetGeometry()[i].pGetDof(r_unknown_var);
     }

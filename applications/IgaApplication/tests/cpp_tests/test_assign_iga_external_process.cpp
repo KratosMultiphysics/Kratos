@@ -16,6 +16,7 @@
 #include "custom_processes/assign_iga_external_conditions_process.h"
 #include "includes/kratos_parameters.h"
 #include "iga_application_variables.h"
+#include "iga_fast_suite.h"
 
 namespace Kratos::Testing
 {
