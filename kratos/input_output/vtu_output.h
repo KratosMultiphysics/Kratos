@@ -30,6 +30,7 @@
 #include "includes/io.h"
 #include "includes/model_part.h"
 #include "tensor_adaptors/tensor_adaptor.h"
+#include "utilities/xml_utilities/xml_data_element_wrapper.h"
 
 /**
  * @class VtuOutput
@@ -132,8 +133,10 @@ public:
     /// Enumerations for the output writer format.
     enum WriterFormat
     {
-        ASCII,  /// ASCII format.
-        BINARY  /// Binary format.
+        ASCII,                          /// ASCII format.
+        BINARY,                         /// Binary format.
+        RAW,                            /// Raw format. All data is appended to one stream.
+        COMPRESSED_RAW                  /// Data is first compressed with zlib and the appended to one stream.
     };
 
     struct UnstructuredGridData
@@ -403,17 +406,27 @@ private:
     ///@name Private operations
     ///@{
 
-    template<class TXmlDataElementWrapper>
-    std::pair<std::string, std::string> WriteUnstructuredGridData(
-        const std::string& rOutputPrefix,
+    template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
+    void WriteData(
+        std::vector<std::pair<std::string, std::string>>& rPVDFileNameInfo,
+        TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
+        TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
         UnstructuredGridData& rUnstructuredGridData,
-        TXmlDataElementWrapper& rXmlDataElementWrapper) const;
+        const std::string& rOutputPrefix) const;
 
-    template<class TXmlDataElementWrapper>
-    std::pair<std::string, std::string> WriteIntegrationPointData(
-        const std::string& rOutputPrefix,
+    template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
+    std::pair<std::string, std::string> WriteUnstructuredGridData(
+        TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
+        TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
         UnstructuredGridData& rUnstructuredGridData,
-        TXmlDataElementWrapper& rXmlDataElementWrapper) const;
+        const std::string& rOutputPrefix) const;
+
+    template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
+    std::pair<std::string, std::string> WriteIntegrationPointData(
+        TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
+        TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
+        UnstructuredGridData& rUnstructuredGridData,
+        const std::string& rOutputPrefix) const;
 
     ///@}
 };

@@ -33,9 +33,10 @@
 #include "utilities/reduction_utilities.h"
 #include "utilities/string_utilities.h"
 #include "utilities/variable_utils.h"
-#include "utilities/xml_utilities/xml_ascii_nd_data_element.h"
-#include "utilities/xml_utilities/xml_base64_binary_nd_data_element.h"
+#include "utilities/xml_utilities/xml_appended_data_element_wrapper.h"
 #include "utilities/xml_utilities/xml_elements_array.h"
+#include "utilities/xml_utilities/xml_in_place_data_element_wrapper.h"
+#include "utilities/xml_utilities/xml_utils.h"
 
 // Include base h
 #include "vtu_output.h"
@@ -44,35 +45,6 @@ namespace Kratos
 
 namespace
 {
-
-/// ----------------------------------------- NDDataElementWrappers ----------------------------------------- ///
-struct XmlAsciiNDDataElementWrapper
-{
-    IndexType mPrecision;
-
-    template<class NDDataTypePointer>
-    XmlElement::Pointer Get(
-        const std::string& rDataArrayName,
-        NDDataTypePointer pNDData)
-    {
-        using data_type = typename BareType<decltype(*pNDData)>::DataType;
-        return Kratos::make_shared<XmlAsciiNDDataElement<data_type>>(rDataArrayName, pNDData, mPrecision);
-    }
-};
-
-struct XmlBase64BinaryNDDataElementWrapper
-{
-    template<class NDDataTypePointer>
-    XmlElement::Pointer Get(
-        const std::string& rDataArrayName,
-        NDDataTypePointer pNDData)
-    {
-        using data_type = typename BareType<decltype(*pNDData)>::DataType;
-        return Kratos::make_shared<XmlBase64BinaryNDDataElement<data_type>>(rDataArrayName, pNDData);
-    }
-};
-
-/// ----------------------------------------- NDDataElementWrappers ----------------------------------------- ///
 
 std::string GetEndianness()
 {
@@ -1325,11 +1297,12 @@ void VtuOutput::EmplaceTensorAdaptor(
     }
 }
 
-template<class TXmlDataElementWrapper>
+template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
 std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
-    const std::string& rOutputFileNamePrefix,
+    TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
+    TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
     UnstructuredGridData& rUnstructuredGridData,
-    TXmlDataElementWrapper& rXmlDataElementWrapper) const
+    const std::string& rOutputFileNamePrefix) const
 {
     const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
     auto p_nodes = rUnstructuredGridData.mpPoints;
@@ -1343,6 +1316,9 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     // create the unstructured grid
     auto unstructured_grid_element = Kratos::make_shared<XmlElementsArray>("UnstructuredGrid");
     vtk_file_element.AddElement(unstructured_grid_element);
+
+    auto p_xml_data_element_wrapper = rElementDataWrapperCreateFunctor();
+    rElementDataWrapperAppendFunctor(vtk_file_element, p_xml_data_element_wrapper);
 
     // create the piece element
     auto piece_element = Kratos::make_shared<XmlElementsArray>("Piece");
@@ -1359,7 +1335,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
 
     // create the points element
     auto points_element = Kratos::make_shared<XmlElementsArray>("Points");
-    points_element->AddElement(rXmlDataElementWrapper.Get("Position", node_position_tensor_adaptor.pGetStorage()));
+    points_element->AddElement(p_xml_data_element_wrapper->Get("Position", node_position_tensor_adaptor.pGetStorage()));
     piece_element->AddElement(points_element);
 
     // create the cells element
@@ -1367,7 +1343,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     std::set<IndexType> ignored_indices;
     if (rUnstructuredGridData.mpCells.has_value()) {
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 2) << "--- Collecting " << GetEntityName(rUnstructuredGridData.mpCells) << " connectivity data...\n";
-        AddConnectivityData(*cells_element, ignored_indices, *rUnstructuredGridData.mpPoints, rUnstructuredGridData.mpCells.value(), rXmlDataElementWrapper, mEchoLevel);
+        AddConnectivityData(*cells_element, ignored_indices, *rUnstructuredGridData.mpPoints, rUnstructuredGridData.mpCells.value(), *p_xml_data_element_wrapper, mEchoLevel);
         // adding number of cells
         piece_element->AddAttribute(
             "NumberOfCells",
@@ -1386,10 +1362,10 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 2) << "--- Collecting nodal data fields...\n";
         // generate and add point field data
         std::set<IndexType> empty_ignored_indices;
-        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mFlags), rXmlDataElementWrapper, r_data_communicator, empty_ignored_indices, mEchoLevel);
-        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mVariables), rXmlDataElementWrapper, r_data_communicator, empty_ignored_indices, mEchoLevel);
-        AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeHistorical, mVariables), rXmlDataElementWrapper, r_data_communicator, empty_ignored_indices, mEchoLevel, 0);
-        AddFields(*point_data_element, rUnstructuredGridData.mPointFields, rXmlDataElementWrapper, empty_ignored_indices, mEchoLevel);
+        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mFlags), *p_xml_data_element_wrapper, r_data_communicator, empty_ignored_indices, mEchoLevel);
+        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mVariables), *p_xml_data_element_wrapper, r_data_communicator, empty_ignored_indices, mEchoLevel);
+        AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeHistorical, mVariables), *p_xml_data_element_wrapper, r_data_communicator, empty_ignored_indices, mEchoLevel, 0);
+        AddFields(*point_data_element, rUnstructuredGridData.mPointFields, *p_xml_data_element_wrapper, empty_ignored_indices, mEchoLevel);
     }
 
     // create cell data
@@ -1399,11 +1375,11 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     // generate and add cell field data
     if (rUnstructuredGridData.mpCells.has_value()) {
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 2) << "--- Collecting " << GetEntityName(rUnstructuredGridData.mpCells) << " data fields...\n";
-        std::visit([this, &rUnstructuredGridData, &cell_data_element, &rXmlDataElementWrapper, &r_data_communicator, &ignored_indices](auto p_container){
-            AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mVariables, rUnstructuredGridData.mpCells.value()), rXmlDataElementWrapper, r_data_communicator, ignored_indices, mEchoLevel);
-            AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mFlags, rUnstructuredGridData.mpCells.value()), rXmlDataElementWrapper, r_data_communicator, ignored_indices, mEchoLevel);
+        std::visit([this, &rUnstructuredGridData, &cell_data_element, &p_xml_data_element_wrapper, &r_data_communicator, &ignored_indices](auto p_container){
+            AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mVariables, rUnstructuredGridData.mpCells.value()), *p_xml_data_element_wrapper, r_data_communicator, ignored_indices, mEchoLevel);
+            AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mFlags, rUnstructuredGridData.mpCells.value()), *p_xml_data_element_wrapper, r_data_communicator, ignored_indices, mEchoLevel);
         }, rUnstructuredGridData.mpCells.value());
-        AddFields(*cell_data_element, rUnstructuredGridData.mCellFields, rXmlDataElementWrapper, ignored_indices, mEchoLevel);
+        AddFields(*cell_data_element, rUnstructuredGridData.mCellFields, *p_xml_data_element_wrapper, ignored_indices, mEchoLevel);
     }
 
     std::stringstream output_vtu_file_name;
@@ -1439,11 +1415,12 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     return std::make_pair(pvd_data_set_name, output_vtu_file_name.str());
 }
 
-template<class TXmlDataElementWrapper>
+template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
 std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
-    const std::string& rOutputFileNamePrefix,
+    TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
+    TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
     UnstructuredGridData& rUnstructuredGridData,
-    TXmlDataElementWrapper& rXmlDataElementWrapper) const
+    const std::string& rOutputFileNamePrefix) const
 {
     if (!rUnstructuredGridData.mpCells.has_value()) {
         // nothing to do here.
@@ -1467,6 +1444,9 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     // create the unstructured grid
     auto unstructured_grid_element = Kratos::make_shared<XmlElementsArray>("UnstructuredGrid");
     vtk_file_element.AddElement(unstructured_grid_element);
+
+    auto p_xml_data_element_wrapper = rElementDataWrapperCreateFunctor();
+    rElementDataWrapperAppendFunctor(vtk_file_element, p_xml_data_element_wrapper);
 
     DenseVector<std::size_t> offsets;
 
@@ -1517,7 +1497,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
 
     // create the gauss points element
     auto points_element = Kratos::make_shared<XmlElementsArray>("Points");
-    points_element->AddElement(rXmlDataElementWrapper.Get("Position", gauss_point_positions));
+    points_element->AddElement(p_xml_data_element_wrapper->Get("Position", gauss_point_positions));
     piece_element->AddElement(points_element);
 
     auto cells_element = Kratos::make_shared<XmlElementsArray>("Cells");
@@ -1532,7 +1512,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     // add the gauss point data
     bool is_gauss_point_data_available = false;
     for (const auto& r_pair : integration_point_vars) {
-        std::visit([&offsets, &point_data_element, &rXmlDataElementWrapper, &rUnstructuredGridData, &is_gauss_point_data_available, &r_data_communicator, total_gauss_points](auto pVariable, auto pContainer) {
+        std::visit([&offsets, &point_data_element, &p_xml_data_element_wrapper, &rUnstructuredGridData, &is_gauss_point_data_available, &r_data_communicator, total_gauss_points](auto pVariable, auto pContainer) {
             // type information of the variable
             using data_type = typename BareType<decltype(*pVariable)>::Type;
             using data_type_traits = DataTypeTraits<data_type>;
@@ -1579,7 +1559,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
                         r_entity.CalculateOnIntegrationPoints(*pVariable, rTLS, rUnstructuredGridData.mpModelPart->GetProcessInfo());
                         DataTypeTraits<std::vector<data_type>>::CopyToContiguousData(span.begin() + offsets[Index] * total_number_of_components, rTLS);
                     });
-                    point_data_element->AddElement(rXmlDataElementWrapper.Get(pVariable->Name(), p_gauss_data));
+                    point_data_element->AddElement(p_xml_data_element_wrapper->Get(pVariable->Name(), p_gauss_data));
                }
            }
         }, r_pair.second, rUnstructuredGridData.mpCells.value());
@@ -1615,6 +1595,27 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     else {
         return std::make_pair("", "");
     }
+}
+
+template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
+void VtuOutput::WriteData(
+    std::vector<std::pair<std::string, std::string>>& rPVDFileNameInfo,
+    TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
+    TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
+    UnstructuredGridData& rUnstructuredGridData,
+    const std::string& rOutputPrefix) const
+{
+    KRATOS_TRY
+
+    rPVDFileNameInfo.push_back(WriteUnstructuredGridData(
+        rElementDataWrapperCreateFunctor, rElementDataWrapperAppendFunctor,
+        rUnstructuredGridData, rOutputPrefix));
+
+    rPVDFileNameInfo.push_back(WriteIntegrationPointData(
+        rElementDataWrapperCreateFunctor, rElementDataWrapperAppendFunctor,
+        rUnstructuredGridData, rOutputPrefix));
+
+    KRATOS_CATCH("");
 }
 
 void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
@@ -1663,42 +1664,46 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
 
     std::vector<std::pair<std::string, std::string>> pvd_file_name_info;
 
-    for (auto& r_model_part_data : mUnstructuredGridDataList) {
+    for (auto& r_unstructured_grid_data : mUnstructuredGridDataList) {
         switch (mOutputFormat) {
             case ASCII:
             {
-                XmlAsciiNDDataElementWrapper data_element_wrapper{mPrecision};
-                // first write the unstructured grid data
-                KRATOS_INFO_IF("VtuOutput", mEchoLevel > 1)
-                    << "Writing \"" << r_model_part_data.mpModelPart->FullName()
-                    << "\" " << GetEntityName(r_model_part_data.mpCells) << " fields in ASCII format...\n";
-                pvd_file_name_info.push_back(WriteUnstructuredGridData(
-                    rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
-
-                // now write the gauss point info
-                KRATOS_INFO_IF("VtuOutput", mEchoLevel > 1)
-                    << "Writing \"" << r_model_part_data.mpModelPart->FullName()
-                    << "\" " << GetEntityName(r_model_part_data.mpCells) << " gauss point fields in ASCII format...\n";
-                pvd_file_name_info.push_back(WriteIntegrationPointData(
-                    rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
+                WriteData(
+                    pvd_file_name_info,
+                    [this](){ return Kratos::make_shared<XmlInPlaceDataElementWrapper>(XmlInPlaceDataElementWrapper::ASCII, this->mPrecision); },
+                    [](auto& rVtkFileElement, auto pXmlDataElementWrapper) {},
+                    r_unstructured_grid_data,
+                    rOutputFileNamePrefix);
                 break;
             }
             case BINARY:
             {
-                XmlBase64BinaryNDDataElementWrapper data_element_wrapper;
-                // first write the unstructured grid data
-                KRATOS_INFO_IF("VtuOutput", mEchoLevel > 1)
-                    << "Writing \"" << r_model_part_data.mpModelPart->FullName()
-                    << "\" " << GetEntityName(r_model_part_data.mpCells) << " fields in binary format...\n";
-                pvd_file_name_info.push_back(WriteUnstructuredGridData(
-                    rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
-
-                // now write the gauss point info
-                KRATOS_INFO_IF("VtuOutput", mEchoLevel > 1)
-                    << "Writing \"" << r_model_part_data.mpModelPart->FullName()
-                    << "\" " << GetEntityName(r_model_part_data.mpCells) << " gauss point fields in binary format...\n";
-                pvd_file_name_info.push_back(WriteIntegrationPointData(
-                    rOutputFileNamePrefix, r_model_part_data, data_element_wrapper));
+                WriteData(
+                    pvd_file_name_info,
+                    [this](){ return Kratos::make_shared<XmlInPlaceDataElementWrapper>(XmlInPlaceDataElementWrapper::BINARY, this->mPrecision); },
+                    [](auto& rVtkFileElement, auto pXmlDataElementWrapper) { rVtkFileElement.AddAttribute("header_type", "UInt64"); },
+                    r_unstructured_grid_data,
+                    rOutputFileNamePrefix);
+                break;
+            }
+            case RAW:
+            {
+                WriteData(
+                    pvd_file_name_info,
+                    [this](){ return Kratos::make_shared<XmlAppendedDataElementWrapper>(XmlAppendedDataElementWrapper::RAW); },
+                    [](auto& rVtkFileElement, auto pXmlDataElementWrapper) { rVtkFileElement.AddElement(pXmlDataElementWrapper); rVtkFileElement.AddAttribute("header_type", "UInt64"); },
+                    r_unstructured_grid_data,
+                    rOutputFileNamePrefix);
+                break;
+            }
+            case COMPRESSED_RAW:
+            {
+                WriteData(
+                    pvd_file_name_info,
+                    [this](){ return Kratos::make_shared<XmlAppendedDataElementWrapper>(XmlAppendedDataElementWrapper::RAW_COMPRESSED); },
+                    [](auto& rVtkFileElement, auto pXmlDataElementWrapper) { rVtkFileElement.AddElement(pXmlDataElementWrapper); rVtkFileElement.AddAttribute("header_type", "UInt64"); rVtkFileElement.AddAttribute("compressor", "vtkZLibDataCompressor"); },
+                    r_unstructured_grid_data,
+                    rOutputFileNamePrefix);
                 break;
             }
         }
@@ -1784,6 +1789,12 @@ std::string VtuOutput::Info() const
             break;
         case BINARY:
             info << "BINARY";
+            break;
+        case RAW:
+            info << "RAW";
+            break;
+        case COMPRESSED_RAW:
+            info << "COMPRESSED_RAW";
             break;
     }
     info << ", precision = " << mPrecision << ", is initial configuration = "
