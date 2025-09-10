@@ -533,7 +533,6 @@ void SnakeCutSbmProcess::CreateCutAndSkinQuadraturePoints(
     auto p_brep_curve_surrogate2_skin2 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_surrogate2_skin2);      
 
     // skin_1 - skin_2
-    //FIXME:
     // auto p_nurbs_curve_skin1_skin2 = FitQuadraticBezierBetween<TIsInnerLoop>(
     //     rSkinSubModelPart, id_closest_true_condition, id_closest_true_condition_2,
     //     p_skin1_brep_point, p_skin2_brep_point);
@@ -542,9 +541,9 @@ void SnakeCutSbmProcess::CreateCutAndSkinQuadraturePoints(
     const int p = 2;
     auto p_nurbs_curve_skin1_skin2 = this->CreateBrepCurve(p_skin1_brep_point, p_skin2_brep_point, active_range_knot_vector);
 
-    // if (norm_2(skin_2 - skin_1) > rBinSearchParameters.SearchRadius/10.0)
-        // p_nurbs_curve_skin1_skin2 = FitUV_BetweenSkinConditions_Generic<TIsInnerLoop>(
-        //     rSkinSubModelPart, *pNurbsSurface, id_closest_true_condition, id_closest_true_condition_2, p, /*ridge=*/1e-14);
+    if (norm_2(skin_2 - skin_1) > rBinSearchParameters.SearchRadius/10.0 && abs(id_closest_true_node-id_closest_true_node_2)> (2*p+1))
+        p_nurbs_curve_skin1_skin2 = FitUV_BetweenSkinNodes_Generic<TIsInnerLoop>(
+            rSkinSubModelPart, *pNurbsSurface, id_closest_true_node, id_closest_true_node_2, p, /*ridge=*/1e-14);
 
 
     auto p_brep_curve_skin1_skin2 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_skin1_skin2);      

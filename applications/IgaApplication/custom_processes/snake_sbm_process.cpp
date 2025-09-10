@@ -226,7 +226,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
     {
         //TODO: decrease the number when the closest point projection for the NURBS is optimized in the IgaSbmModeler
-        const int n_initial_points_for_side = 5000; 
+        const int n_initial_points_for_side = 50000; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
         const SizeType n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
         bool new_inner_loop = true;

@@ -407,15 +407,15 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     double nu = this->GetProperties().GetValue(POISSON_RATIO);
     double E = this->GetProperties().GetValue(YOUNG_MODULUS);
     Vector g_N = ZeroVector(3);
-    // const double x = mpProjectionNode->X();
-    // const double y = mpProjectionNode->Y();
+    const double x = mpProjectionNode->X();
+    const double y = mpProjectionNode->Y();
 
     // // // cosinusoidal
-    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
-    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
+    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
+    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
 
 
-    g_N = mpProjectionNode->GetValue(FORCE);
+    // g_N = mpProjectionNode->GetValue(FORCE);
     Vector normal_stress_old = ZeroVector(3);
     normal_stress_old[0] = (r_stress_vector[0] * mNormalPhysicalSpace[0] + r_stress_vector[2] * mNormalPhysicalSpace[1]);
     normal_stress_old[1] = (r_stress_vector[2] * mNormalPhysicalSpace[0] + r_stress_vector[1] * mNormalPhysicalSpace[1]);

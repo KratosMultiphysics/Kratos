@@ -569,28 +569,27 @@ template <bool TIsInnerLoop>
 std::vector<array_1d<double,3>> CollectSkinUVBetween(
     const ModelPart& rSkinSubModelPart,
     const NurbsSurfaceType& rSurface,
-    IndexType id_cond_1,
-    IndexType id_cond_2) const
+    IndexType id_node_1,
+    IndexType id_node_2) const
 {
     std::vector<array_1d<double,3>> uv_pts;
     uv_pts.reserve(rSkinSubModelPart.NumberOfConditions());
 
-    const IndexType first_id = rSkinSubModelPart.ConditionsBegin()->Id();
-    const IndexType last_id  = first_id + rSkinSubModelPart.NumberOfConditions() - 1;
+    const IndexType first_id = rSkinSubModelPart.NodesBegin()->Id();
+    const IndexType last_id  = first_id + rSkinSubModelPart.NumberOfNodes() - 1;
     auto next_id = [&](IndexType id){ return (id < last_id) ? (id + 1) : first_id; };
     auto previous_id = [&](IndexType id){ return (id > first_id) ? (id - 1) : last_id; };
 
-    IndexType id = id_cond_1;
+    IndexType id = id_node_1;
 
     int iter = 0;
     while (true) {
-        const auto& cond = rSkinSubModelPart.GetCondition(id);
-        const auto& node = cond.GetGeometry().pGetPoint(0);
+        const auto& p_node = rSkinSubModelPart.pGetNode(id);
         array_1d<double,3> uv;
-        const bool ok = ProjectPointToUV(rSurface, node->Coordinates(), uv);
+        const bool ok = ProjectPointToUV(rSurface, p_node->Coordinates(), uv);
         KRATOS_ERROR_IF_NOT(ok) << "CollectSkinUVBetween: projection failed.\n";
         uv_pts.push_back(uv);
-        if (id == id_cond_2) break;
+        if (id == id_node_2) break;
 
         if constexpr (TIsInnerLoop)  
         { // inner loop: go against the condition orientation
@@ -601,7 +600,7 @@ std::vector<array_1d<double,3>> CollectSkinUVBetween(
         iter++;
         KRATOS_ERROR_IF(iter > rSkinSubModelPart.NumberOfConditions())
             << "CollectSkinUVBetween: infinite loop detected between IDs "
-            << id_cond_1 << " and " << id_cond_2 << ".\n";
+            << id_node_1 << " and " << id_node_2 << ".\n";
     }
     return uv_pts;
 }
@@ -1119,16 +1118,16 @@ typename NurbsCurveGeometryType::Pointer ReverseBezierUV_Generic(
 
 /** Fit between two skin conditions (inclusive) with general degree p in UV. */
 template <bool TIsInnerLoop>
-typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinConditions_Generic(
+typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
     const ModelPart& rSkinSubModelPart,
     const NurbsSurfaceType& rSurface,
-    IndexType id_cond_1,
-    IndexType id_cond_2,
+    IndexType id_node_1,
+    IndexType id_node_2,
     const int p,
     const double ridge = 1e-12) const
 {
     // Reuse your robust UV collector (ordered with wrap-around).
-    auto UV = CollectSkinUVBetween<TIsInnerLoop>(rSkinSubModelPart, rSurface, id_cond_1, id_cond_2);
+    auto UV = CollectSkinUVBetween<TIsInnerLoop>(rSkinSubModelPart, rSurface, id_node_1, id_node_2);
     KRATOS_ERROR_IF(UV.size() < (std::size_t)(p+1))
         << "FitUV_BetweenSkinConditions_Generic: not enough samples for degree p=" << p << ".\n";
 
