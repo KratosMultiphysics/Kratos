@@ -16,8 +16,6 @@
 #include "geometries/geometry.h"
 #include "includes/kratos_flags.h"
 #include "utilities/builtin_timer.h"
-
-#include "geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include <memory>
 
 namespace Kratos
