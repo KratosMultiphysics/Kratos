@@ -126,16 +126,15 @@ public:
     {
         KRATOS_TRY
 
-        const auto r_geometry = GetGeometry();
-        const auto element_Id = Id();
-        CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), element_Id);
+        const auto element_Id = this->Id();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), element_Id);
 
         CheckUtilities::CheckHasNodalSolutionStepData(
-            r_geometry, {std::cref(TEMPERATURE), std::cref(DT_TEMPERATURE)});
-        CheckUtilities::CheckHasDofs(r_geometry, {std::cref(TEMPERATURE)});
+            GetGeometry(), {std::cref(TEMPERATURE), std::cref(DT_TEMPERATURE)});
+        CheckUtilities::CheckHasDofs(GetGeometry(), {std::cref(TEMPERATURE)});
 
-        const PropertiesType& r_properties = GetProperties();
-        const CheckProperties check_properties(r_properties, "material properties at element",
+        const PropertiesType& r_properties = this->GetProperties();
+        const CheckProperties check_properties(r_properties, "properties at thermal element",
                                                element_Id, CheckProperties::Bounds::AllInclusive);
         check_properties.Check(DENSITY_WATER);
         check_properties.Check(POROSITY);
@@ -155,7 +154,7 @@ public:
             check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XZ);
         }
 
-        if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geometry);
+        if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(GetGeometry());
 
         KRATOS_CATCH("")
 
