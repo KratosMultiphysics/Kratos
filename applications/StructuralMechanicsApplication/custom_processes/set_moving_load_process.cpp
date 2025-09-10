@@ -40,7 +40,8 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
             "direction"       : [1,1,1],
             "velocity"        : 1,
             "origin"          : [0.0, 0.0, 0.0],
-            "offset"          : 0.0
+            "offset"          : 0.0,
+            "motion_type"     : "base" 
         }  )"
     );
     
@@ -72,6 +73,9 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
     }
 
     KRATOS_ERROR_IF(!is_all_string && !is_all_number) << "'load' has to be a vector of numbers, or an array with strings" << std::endl;
+
+    std::string motion_type = mParameters["motion_type"].GetString();
+    KRATOS_ERROR_IF(motion_type != "base" && motion_type != "total") << "'motion_type' has to be either 'base' or 'total'!" << std::endl;
 
 }
 
@@ -333,6 +337,10 @@ void SetMovingLoadProcess::ExecuteInitialize()
         this->SortConditionIds(r_first_cond);
 
         InitializeDistanceLoadInSortedVector();
+
+        for (auto& r_cond : mrModelPart.Conditions()) {
+            r_cond.SetValue(MOTION_TYPE, mParameters["motion_type"].GetString());
+        }
     }
     KRATOS_CATCH("")
 }

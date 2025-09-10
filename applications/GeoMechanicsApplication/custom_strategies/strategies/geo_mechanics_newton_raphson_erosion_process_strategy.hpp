@@ -75,8 +75,8 @@ public:
         std::transform(rPipeElements.begin(), rPipeElements.end(), std::back_inserter(result),
                        [](auto p_element) { return dynamic_cast<PipingElementType*>(p_element); });
 
-        const auto number_of_piping_elements = static_cast<std::size_t>(std::count_if(
-            result.begin(), result.end(), [](auto p_element) { return p_element != nullptr; }));
+        const auto number_of_piping_elements = static_cast<std::size_t>(
+            std::ranges::count_if(result, [](auto p_element) { return p_element != nullptr; }));
         if (number_of_piping_elements == 0) return std::nullopt;
 
         KRATOS_ERROR_IF(number_of_piping_elements != rPipeElements.size())
@@ -225,7 +225,7 @@ private:
     SizeType GetNumberOfActivePipeElements(const FilteredElementsType& rPipeElements)
     {
         auto is_pipe_active = [](auto p_element) { return p_element->GetValue(PIPE_ACTIVE); };
-        return std::count_if(std::begin(rPipeElements), std::end(rPipeElements), is_pipe_active);
+        return std::ranges::count_if(rPipeElements, is_pipe_active);
     }
 
     /// <summary>
