@@ -209,7 +209,10 @@ void  AddIOToPython(pybind11::module& m)
     py::enum_<VtuOutput::WriterFormat>(vtu_output, "WriterFormat")
         .value("ASCII", VtuOutput::WriterFormat::ASCII)
         .value("BINARY", VtuOutput::WriterFormat::BINARY)
-        .export_values();
+        .value("RAW", VtuOutput::WriterFormat::RAW)
+        .value("COMPRESSED_RAW", VtuOutput::WriterFormat::COMPRESSED_RAW)
+        .export_values()
+        ;
 
     vtu_output
         .def(py::init<ModelPart&, const bool, const VtuOutput::WriterFormat, const std::size_t, const bool, const IndexType>(),
