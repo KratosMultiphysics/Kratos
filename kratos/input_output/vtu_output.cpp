@@ -1690,7 +1690,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
             {
                 WriteData(
                     pvd_file_name_info,
-                    [this](){ return Kratos::make_shared<XmlAppendedDataElementWrapper>(XmlAppendedDataElementWrapper::RAW); },
+                    [](){ return Kratos::make_shared<XmlAppendedDataElementWrapper>(XmlAppendedDataElementWrapper::RAW); },
                     [](auto& rVtkFileElement, auto pXmlDataElementWrapper) { rVtkFileElement.AddElement(pXmlDataElementWrapper); rVtkFileElement.AddAttribute("header_type", "UInt64"); },
                     r_unstructured_grid_data,
                     rOutputFileNamePrefix);
@@ -1700,7 +1700,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
             {
                 WriteData(
                     pvd_file_name_info,
-                    [this](){ return Kratos::make_shared<XmlAppendedDataElementWrapper>(XmlAppendedDataElementWrapper::RAW_COMPRESSED); },
+                    [](){ return Kratos::make_shared<XmlAppendedDataElementWrapper>(XmlAppendedDataElementWrapper::RAW_COMPRESSED); },
                     [](auto& rVtkFileElement, auto pXmlDataElementWrapper) { rVtkFileElement.AddElement(pXmlDataElementWrapper); rVtkFileElement.AddAttribute("header_type", "UInt64"); rVtkFileElement.AddAttribute("compressor", "vtkZLibDataCompressor"); },
                     r_unstructured_grid_data,
                     rOutputFileNamePrefix);
