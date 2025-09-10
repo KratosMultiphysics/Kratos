@@ -94,7 +94,7 @@ class Pattern:
     def GetNumberOfDataItems(self) -> int:
         return len(self.__converters)
 
-def __GetMachingEntities(starting_entity: PatternEntity, patterns: 'list[str]', tag_type_dict: 'dict[str, typing.Any]', common_data: 'list[typing.Any]') -> 'typing.Generator[tuple[PatternEntity, typing.Any]]':
+def __GetMatchingEntities(starting_entity: PatternEntity, patterns: 'list[str]', tag_type_dict: 'dict[str, typing.Any]', common_data: 'list[typing.Any]') -> 'typing.Generator[tuple[PatternEntity, typing.Any]]':
     if len(patterns) == 1:
         # this is the file pattern. hence we now try to find matching files
         pattern = Pattern(patterns[0], tag_type_dict)
@@ -110,12 +110,12 @@ def __GetMachingEntities(starting_entity: PatternEntity, patterns: 'list[str]', 
             if not itr.IsLeaf():
                 is_valid, dir_pattern_data = pattern.GetData(itr.Name())
                 if is_valid:
-                    for data in __GetMachingEntities(itr, patterns[1:], tag_type_dict, [*common_data, *dir_pattern_data]):
+                    for data in __GetMatchingEntities(itr, patterns[1:], tag_type_dict, [*common_data, *dir_pattern_data]):
                         yield data
 
-def GetMachingEntities(starting_entity: PatternEntity, tagged_pattern: str, tag_type_dict: 'dict[str, typing.Any]') -> 'typing.Generator[tuple[PatternEntity, typing.Any]]':
+def GetMatchingEntities(starting_entity: PatternEntity, tagged_pattern: str, tag_type_dict: 'dict[str, typing.Any]') -> 'typing.Generator[tuple[PatternEntity, typing.Any]]':
     sub_patterns = tagged_pattern.split("/")
-    for data in __GetMachingEntities(starting_entity, sub_patterns, tag_type_dict, []):
+    for data in __GetMatchingEntities(starting_entity, sub_patterns, tag_type_dict, []):
         yield data
 
 def EvaluatePattern(pattern: str, model_part: Kratos.ModelPart, time_format='') -> str:

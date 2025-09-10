@@ -13,7 +13,7 @@ import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from .pattern import EvaluatePattern
-from .pattern import GetMachingEntities
+from .pattern import GetMatchingEntities
 from .pattern import PathPatternEntity
 
 def GetFileName(model_part: KratosMultiphysics.ModelPart, file_name_pattern: str, time_format: str) -> str:
@@ -26,7 +26,7 @@ def KeepMostRecentFiles(file_name_pattern: str, max_files_to_keep: int, number_o
         raise RuntimeError(f"Max files to keep should be higher than or equal to number_of_oldest_files_to_keep.")
 
 
-    list_of_sorted_file_names = sorted(list(GetMachingEntities(PathPatternEntity(Path(".")),
+    list_of_sorted_file_names = sorted(list(GetMatchingEntities(PathPatternEntity(Path(".")),
                                                    file_name_pattern,
                                                    {"<step>": int, "<time>": float})),
                                                    key=lambda args: tuple(args[1:]))

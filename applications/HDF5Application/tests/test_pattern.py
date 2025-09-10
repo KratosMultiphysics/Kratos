@@ -2,7 +2,7 @@ from typing import Any
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.HDF5Application.core.pattern import PatternEntity
-from KratosMultiphysics.HDF5Application.core.pattern import GetMachingEntities
+from KratosMultiphysics.HDF5Application.core.pattern import GetMatchingEntities
 from KratosMultiphysics.HDF5Application.core.pattern import IdentifyPattern
 
 class TestGetMachingEntitiesString(KratosUnittest.TestCase):
@@ -58,7 +58,7 @@ class TestGetMachingEntitiesString(KratosUnittest.TestCase):
         ])
 
     def testGetMachingEntitiesNonSorted(self):
-        generated_result = list(GetMachingEntities(self.StringPatternEntity("", self.data),
+        generated_result = list(GetMatchingEntities(self.StringPatternEntity("", self.data),
                                                               "side_<TInt1>_end/side_<TInt2>/side_<TFloat1>_begin/side_<TInt3>.h5",
                                                               {
                                                                   "<TInt1>"  : int,
@@ -79,7 +79,7 @@ class TestGetMachingEntitiesString(KratosUnittest.TestCase):
             ], [v[0].Get() for v in generated_result])
 
     def testGetMachingEntitiesSorted(self):
-        data = list(GetMachingEntities(self.StringPatternEntity("", self.data),
+        data = list(GetMatchingEntities(self.StringPatternEntity("", self.data),
                                                                     "side_<TInt1>_end/side_<TInt2>/side_<TFloat1>_begin/side_<TInt3>.h5",
                                                                     {
                                                                         "<TInt1>"  : int,
@@ -101,7 +101,7 @@ class TestGetMachingEntitiesString(KratosUnittest.TestCase):
             ], [v[0].Get() for v in sorted_data])
 
     def testGetMachingEntitiesCustomSorted(self):
-        data = list(GetMachingEntities(self.StringPatternEntity("", self.data),
+        data = list(GetMatchingEntities(self.StringPatternEntity("", self.data),
                                                                     "side_<TInt1>_end/side_<TInt2>/side_<TFloat1>_begin/side_<TInt3>.h5",
                                                                     {
                                                                         "<TInt1>"  : int,
