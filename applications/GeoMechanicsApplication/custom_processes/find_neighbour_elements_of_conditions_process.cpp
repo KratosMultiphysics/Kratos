@@ -15,8 +15,6 @@
 #include "custom_elements/interface_element.h"
 #include "geometries/geometry.h"
 #include "includes/kratos_flags.h"
-#include "utilities/builtin_timer.h"
-#include <memory>
 
 namespace Kratos
 {
@@ -51,37 +49,26 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     auto generate_boundaries = [](const auto& rGeometry) {
         return rGeometry.GenerateBoundariesEntities();
     };
-    CheckBoundaryTypeForAllElements(generate_boundaries, condition_node_ids_to_condition,
-                                    sorted_condition_node_ids_to_condition);
-
-    if (AllConditionsAreVisited()) return;
-
-    // Now try point loads:
     auto generate_points = [](const auto& rGeometry) { return rGeometry.GeneratePoints(); };
-    CheckBoundaryTypeForAllElements(generate_points, condition_node_ids_to_condition,
-                                    sorted_condition_node_ids_to_condition);
-
-    if (AllConditionsAreVisited()) return;
-
-    auto generate_edges = [](const auto& rGeometry) {
+    auto generate_edges  = [](const auto& rGeometry) {
         return rGeometry.LocalSpaceDimension() == 3 ? rGeometry.GenerateEdges()
-                                                    : PointerVector<Geometry<Node>>();
+                                                     : PointerVector<Geometry<Node>>();
     };
-    CheckBoundaryTypeForAllElements(generate_edges, condition_node_ids_to_condition,
-                                    sorted_condition_node_ids_to_condition);
-
-    if (AllConditionsAreVisited()) return;
-
-    // check 1D elements, note that this has to happen after procedures to find 2 and 3d neighbours are already performed, such that 1D elements are only added
-    // as neighbours when the condition is not neighbouring 2D or 3D elements
     auto generate_edges_1d = [](const auto& rGeometry) {
         return rGeometry.LocalSpaceDimension() == 1 ? rGeometry.GenerateEdges()
                                                     : PointerVector<Geometry<Node>>();
     };
-    CheckBoundaryTypeForAllElements(generate_edges_1d, condition_node_ids_to_condition,
-                                    sorted_condition_node_ids_to_condition);
 
-    if (AllConditionsAreVisited()) return;
+    // Note the order in the generators: the 1D elements are only added
+    // as neighbours when the condition is not neighbouring 2D or 3D elements
+    std::vector<std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)>> boundary_generators = {
+        generate_boundaries, generate_points, generate_edges, generate_edges_1d};
+
+    for (const auto& r_generator : boundary_generators) {
+        CheckBoundaryTypeForAllElements(r_generator, condition_node_ids_to_condition,
+                                        sorted_condition_node_ids_to_condition);
+        if (AllConditionsAreVisited()) return;
+    }
 
     std::vector<Condition> unvisited_conditions;
     std::ranges::copy_if(mrModelPart.Conditions(), std::back_inserter(unvisited_conditions),
@@ -89,7 +76,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     for (const auto& r_condition : unvisited_conditions) {
         KRATOS_INFO("Condition without any corresponding element, ID ") << r_condition.Id() << std::endl;
     }
-
     KRATOS_ERROR << "Some conditions found without any corresponding element" << std::endl;
 
     KRATOS_CATCH("")
