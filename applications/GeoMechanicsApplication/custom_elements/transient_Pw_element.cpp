@@ -159,83 +159,21 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
         r_geom, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geom, {std::cref(WATER_PRESSURE)});
 
-    // Verify properties
-    if (!r_properties.Has(DENSITY_WATER) || r_properties[DENSITY_WATER] < 0.0)
-        KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
+    const CheckProperties check_properties(r_properties, "material properties at element",
+                                           this->Id(), CheckProperties::Bounds::AllInclusive);
+    check_properties.Check(DENSITY_WATER);
+    check_properties.Check(BULK_MODULUS_SOLID);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
 
-    if (!r_properties.Has(BULK_MODULUS_SOLID) || r_properties[BULK_MODULUS_SOLID] < 0.0)
-        KRATOS_ERROR << "BULK_MODULUS_SOLID does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
+    if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geom);
 
-    if (!r_properties.Has(POROSITY) || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY does not exist in the material properties or "
-                        "has an invalid value at element "
-                     << this->Id() << std::endl;
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
+    check_properties.CheckAvailability(BIOT_COEFFICIENT);
+    check_properties.CheckPermeabilityProperties(TDim);
 
-    if (TDim == 2) {
-        // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            if (r_geom[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geom[i].Id() << std::endl;
-        }
-    }
-
-    // Verify specific properties
-    if (!r_properties.Has(BULK_MODULUS_FLUID) || r_properties[BULK_MODULUS_FLUID] < 0.0)
-        KRATOS_ERROR << "BULK_MODULUS_FLUID does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] < 0.0)
-        KRATOS_ERROR << "DYNAMIC_VISCOSITY does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(PERMEABILITY_XX) || r_properties[PERMEABILITY_XX] < 0.0)
-        KRATOS_ERROR << "PERMEABILITY_XX does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(PERMEABILITY_YY) || r_properties[PERMEABILITY_YY] < 0.0)
-        KRATOS_ERROR << "PERMEABILITY_YY does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(PERMEABILITY_XY) || r_properties[PERMEABILITY_XY] < 0.0)
-        KRATOS_ERROR << "PERMEABILITY_XY does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(BIOT_COEFFICIENT))
-        KRATOS_ERROR << "BIOT_COEFFICIENT does not exist in the material "
-                        "properties in element "
-                     << this->Id() << std::endl;
-
-    if constexpr (TDim > 2) {
-        if (!r_properties.Has(PERMEABILITY_ZZ) || r_properties[PERMEABILITY_ZZ] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_ZZ does not exist in the material "
-                            "properties or has an invalid value at element "
-                         << this->Id() << std::endl;
-
-        if (!r_properties.Has(PERMEABILITY_YZ) || r_properties[PERMEABILITY_YZ] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_YZ does not exist in the material "
-                            "properties or has an invalid value at element "
-                         << this->Id() << std::endl;
-
-        if (!r_properties.Has(PERMEABILITY_ZX) || r_properties[PERMEABILITY_ZX] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_ZX does not exist in the material "
-                            "properties or has an invalid value at element "
-                         << this->Id() << std::endl;
-    }
-
-    if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(r_properties, rCurrentProcessInfo);
-    }
-
-    return 0;
+    return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
