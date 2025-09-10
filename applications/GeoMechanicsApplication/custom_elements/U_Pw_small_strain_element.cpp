@@ -75,9 +75,11 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     const auto expected_sizes = (TDim == 2 ? std::vector<std::size_t>{VOIGT_SIZE_2D_PLANE_STRAIN}
                                            : std::vector<std::size_t>{VOIGT_SIZE_3D});
     ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_sizes, TDim, this->Id());
-    const auto ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
+    if (!mConstitutiveLawVector.empty()) {
+        return r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
+    }
 
-    return ierr + RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
+    return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
