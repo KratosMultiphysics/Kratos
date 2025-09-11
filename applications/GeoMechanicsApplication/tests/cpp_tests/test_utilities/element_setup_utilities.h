@@ -24,13 +24,15 @@ namespace Kratos::Testing
 class ElementSetupUtilities
 {
 public:
-    static std::vector<Kratos::Point> CreatePointsFor2D3NElement();
-    static std::vector<Kratos::Point> CreatePointsFor2D3NLineEntity();
-    static std::vector<Kratos::Point> CreatePointsFor2D6NElement();
-    static std::vector<Kratos::Point> CreatePointsFor2D10NElement();
-    static std::vector<Kratos::Point> CreatePointsFor2D15NElement();
-    static std::vector<Kratos::Point> CreatePointsFor3D10NElement();
-    static std::vector<Kratos::Point> CreatePointsFor3D6NInterfaceElement();
+    static std::vector<Point> CreatePointsFor2D3NElement();
+    static std::vector<Point> CreatePointsFor2D3NLineEntity();
+    static std::vector<Point> CreatePointsFor2D6NElement();
+    static std::vector<Point> CreatePointsFor2D10NElement();
+    static std::vector<Point> CreatePointsFor2D15NElement();
+    static std::vector<Point> CreatePointsFor3D8NElement();
+    static std::vector<Point> CreatePointsFor3D10NElement();
+    static std::vector<Point> CreatePointsFor3D20NElement();
+    static std::vector<Point> CreatePointsFor3D6NInterfaceElement();
 
     static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
@@ -71,6 +73,10 @@ public:
     static Element::Pointer Create3D10NElement(const PointerVector<Node>& rNodes,
                                                const Properties::Pointer& rProperties);
     static Element::Pointer Create3D10NElement();
+    static Element::Pointer Create3D8NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties);
+    static Element::Pointer Create3D20NElement(const PointerVector<Node>& rNodes,
+                                               const Properties::Pointer& rProperties);
 
     static Condition::Pointer Create2D3NLineCondition(const PointerVector<Node>& rNodes,
                                                       const Properties::Pointer& rProperties);

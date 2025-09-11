@@ -23,6 +23,8 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_elements/transient_Pw_line_element.h"
 #include "custom_geometries/interface_geometry.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/point_3d.h"
 #include "geometries/quadrilateral_3d_4.h"
@@ -89,6 +91,16 @@ std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor3D10NElement()
             {0.5, 0.5, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}};
 }
 
+std::vector<Point> ElementSetupUtilities::CreatePointsFor3D20NElement()
+{
+    return {
+        {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
+    };
+}
+
 std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor3D6NInterfaceElement()
 {
     return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0},
@@ -101,6 +113,12 @@ std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor2D15NElement()
             {0.50, 0.00, 0.0}, {0.75, 0.00, 0.0}, {0.75, 0.25, 0.0}, {0.50, 0.50, 0.0},
             {0.25, 0.75, 0.0}, {0.00, 0.75, 0.0}, {0.00, 0.50, 0.0}, {0.00, 0.25, 0.0},
             {0.25, 0.25, 0.0}, {0.50, 0.25, 0.0}, {0.25, 0.50, 0.0}};
+}
+
+std::vector<Point> ElementSetupUtilities::CreatePointsFor3D8NElement()
+{
+    return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.0, 1.0, 0.0},
+            {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}, {1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}};
 }
 
 Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<Node>& rNodes,
@@ -234,6 +252,22 @@ Element::Pointer ElementSetupUtilities::Create3D10NElement(const PointerVector<N
 Element::Pointer ElementSetupUtilities::Create3D10NElement()
 {
     return Create3D10NElement(GenerateNodes(CreatePointsFor3D10NElement()), std::make_shared<Properties>(0));
+}
+
+Element::Pointer ElementSetupUtilities::Create3D8NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<3, 8>>(
+        1, Kratos::make_shared<Hexahedra3D8<Node>>(rNodes), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
+}
+
+Element::Pointer ElementSetupUtilities::Create3D20NElement(const PointerVector<Node>& rNodes,
+                                                           const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<3, 20>>(
+        1, Kratos::make_shared<Hexahedra3D20<Node>>(rNodes), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
 }
 
 Condition::Pointer ElementSetupUtilities::Create2D3NLineCondition(const PointerVector<Node>& rNodes,
