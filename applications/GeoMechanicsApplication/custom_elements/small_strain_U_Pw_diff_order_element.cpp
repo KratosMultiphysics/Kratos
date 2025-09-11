@@ -72,11 +72,11 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     // Verify specific properties
     const auto& r_prop = this->GetProperties();
 
-    if (!r_prop.Has(IGNORE_UNDRAINED))
-        KRATOS_ERROR << "IGNORE_UNDRAINED does not exist in the parameter list" << this->Id() << std::endl;
-
+    const CheckProperties check_properties(r_prop, "parameter list", this->Id(),
+                                           CheckProperties::Bounds::AllExclusive);
+    check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_prop[IGNORE_UNDRAINED])
-        GeoElementUtilities::CheckPermeabilityProperties(r_prop, r_geom.WorkingSpaceDimension());
+        check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW))
@@ -109,12 +109,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
             << " in element id: " << this->Id() << std::endl;
     }
 
-    // Check retention law
-    if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(r_prop, rCurrentProcessInfo);
-    }
-
-    return 0;
+    return RetentionLaw::Check(mRetentionLawVector, r_prop, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
