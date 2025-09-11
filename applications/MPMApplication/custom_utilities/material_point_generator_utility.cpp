@@ -342,13 +342,12 @@ namespace Kratos::MaterialPointGeneratorUtility
                             {
                                 number_of_points_per_span = material_points_per_condition;
                                 std::vector<double> spans = {-1, 1};
-
+                                
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GRID);
 
                                 IntegrationPointUtilities::CreateIntegrationPoints1D(
                                             integration_points, spans, integration_info);
-
-                                integration_method = integration_info.GetIntegrationMethod(0);
+                               
                             }
                             else{
                                 KRATOS_WARNING("MaterialPointGeneratorUtility") << "Equal distribution of material point conditions only available for line segments:  "  << std::endl;
@@ -385,7 +384,21 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         // If dirichlet boundary or coupling interface
                         if (!is_neumann_condition){
-                            condition_type_name = "MPMParticlePenaltyDirichletCondition";
+                            if(boundary_condition_type==1)
+                                condition_type_name = "MPMParticlePenaltyDirichletCondition";
+                            else if(boundary_condition_type==2 ){
+                                condition_type_name = "MPMParticleLagrangeDirichletCondition";
+
+                                // error in case of triangular/hexahedral background elements --> causes boundary locking
+                                const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
+                                if(background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
+                                    KRATOS_ERROR << "Lagrange multiplier condition is currently only suitable for quadrilateral/hexahedral elements. Boundary locking effect in case of triangular/tetrahedral background grid elements"  << std::endl;
+                            } 
+                            else if(boundary_condition_type==3)
+                                condition_type_name = "MPMParticleLagrangeDirichletCondition"; 
+                            else{
+                                KRATOS_ERROR << "boundary_condition_type in material_point_generator_utility.cpp is not correctly defined." << std::endl;
+                            }
                         }
                         else{
                             if(r_cond.Has( POINT_LOAD ) ){
@@ -462,7 +475,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                                 r_geometry.GlobalCoordinates(mpc_xg[0], local_coordinates);
 
                                 mpc_area[0] = integration_points[i_integration_point].Weight() * r_geometry.DeterminantOfJacobian(i_integration_point, integration_method);
-
+                                
                                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                                 Element::Pointer pelem;
                                 Vector N;
@@ -485,9 +498,6 @@ namespace Kratos::MaterialPointGeneratorUtility
                                         if (mpc_xg[0][0] == xg_tmp[0][0] && mpc_xg[0][1] == xg_tmp[0][1]  && mpc_xg[0][2] == xg_tmp[0][2] )
                                         {
                                             create_condition = false;
-                                            it->CalculateOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
-                                            area_temp[0] += mpc_area[0];
-                                            it->SetValuesOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
                                         }
                                     }
                                 }
@@ -517,7 +527,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                                     // Mark as boundary condition
                                     p_condition->Set(BOUNDARY, true);
 
-                                    if (boundary_condition_type == 1)
+                                    if (boundary_condition_type == 1 || boundary_condition_type == 2 || boundary_condition_type == 3)
                                     {
                                         p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
                                     }
@@ -532,6 +542,20 @@ namespace Kratos::MaterialPointGeneratorUtility
                                     // Add the MP Condition to the model part
                                     rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
                                     condition_id +=1;
+                                }
+                                else{
+                                    // update integration area for those particles which are at the same position but not created twice
+                                    for(auto it=MaterialPointConditions.begin(); it!=MaterialPointConditions.end(); ++it)
+                                    {
+                                        it->CalculateOnIntegrationPoints(MPC_COORD, xg_tmp, rMPMModelPart.GetProcessInfo());
+
+                                        if (mpc_xg[0][0] == xg_tmp[0][0] && mpc_xg[0][1] == xg_tmp[0][1]  && mpc_xg[0][2] == xg_tmp[0][2] )
+                                        {
+                                            it->CalculateOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
+                                            area_temp[0] += mpc_area[0];
+                                            it->SetValuesOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
+                                        }
+                                    }
                                 }
 
                             }
@@ -990,6 +1014,26 @@ namespace Kratos::MaterialPointGeneratorUtility
         }
     }
 
+    void GenerateLagrangeNodes(ModelPart& rBackgroundGridModelPart)
+    {
+        for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i)
+        {
+            const auto element_itr = (rBackgroundGridModelPart.ElementsBegin() + i);
+            const auto coord = element_itr->GetGeometry().Center();
+            const int id = rBackgroundGridModelPart.GetRootModelPart().Nodes().back().Id();
+            auto const p_new_node = rBackgroundGridModelPart.CreateNewNode(id + 1, coord[0], coord[1], coord[2]);
+
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Z,WEIGHTED_VECTOR_RESIDUAL_Z);
+
+            p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
+            p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
+            p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
+
+            element_itr->GetGeometry().SetValue(MPC_LAGRANGE_NODE, p_new_node);
+        }
+    }
     //
     // Specializing the functions for the templates
     //
