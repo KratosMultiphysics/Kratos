@@ -17,11 +17,11 @@
 
 namespace Kratos::Testing
 {
-class ParametrizedFindNeighbourElementsOfConditions : public ::testing::TestWithParam<std::vector<std::size_t>>
+class ParametrizedFindNeighbouring3D4NElementsFixture : public ::testing::TestWithParam<std::vector<std::size_t>>
 {
 };
 
-TEST_P(ParametrizedFindNeighbourElementsOfConditions, NeighboringTetraElementsAreFoundForDifferentNodeOrderings)
+TEST_P(ParametrizedFindNeighbouring3D4NElementsFixture, NeighboursAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
@@ -43,17 +43,17 @@ TEST_P(ParametrizedFindNeighbourElementsOfConditions, NeighboringTetraElementsAr
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindNeighbourElementsOfConditions,
+                         ParametrizedFindNeighbouring3D4NElementsFixture,
                          ::testing::Values(std::vector<std::size_t>{1, 3, 2},
                                            std::vector<std::size_t>{2, 1, 3},
                                            std::vector<std::size_t>{3, 2, 1}));
 
-class ParametrizedFindHexaNeighbourElementsOfConditions
+class ParametrizedFindNeighbouring3D8NElementsFixture
     : public ::testing::TestWithParam<std::vector<std::size_t>>
 {
 };
 
-TEST_P(ParametrizedFindHexaNeighbourElementsOfConditions, NeighboringHexaElementsAreFoundForDifferentNodeOrderings)
+TEST_P(ParametrizedFindNeighbouring3D8NElementsFixture, NeighboursAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D8NElement(model);
@@ -75,19 +75,19 @@ TEST_P(ParametrizedFindHexaNeighbourElementsOfConditions, NeighboringHexaElement
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindHexaNeighbourElementsOfConditions,
+                         ParametrizedFindNeighbouring3D8NElementsFixture,
                          ::testing::Values(std::vector<std::size_t>{4, 3, 2, 1},
                                            std::vector<std::size_t>{1, 4, 3, 2},
                                            std::vector<std::size_t>{2, 1, 4, 3},
                                            std::vector<std::size_t>{3, 2, 1, 4}));
 
-class ParametrizedFindQuadraticTetraNeighbourElementsOfConditions
+class ParametrizedFindNeighbouring3D10NElementsFixture
     : public ::testing::TestWithParam<std::vector<std::size_t>>
 {
 };
 
-TEST_P(ParametrizedFindQuadraticTetraNeighbourElementsOfConditions,
-       NeighboringQuadraticTetraElementsAreFoundForDifferentNodeOrderings)
+TEST_P(ParametrizedFindNeighbouring3D10NElementsFixture,
+       NeighboursAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(model);
@@ -109,18 +109,18 @@ TEST_P(ParametrizedFindQuadraticTetraNeighbourElementsOfConditions,
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindQuadraticTetraNeighbourElementsOfConditions,
+                         ParametrizedFindNeighbouring3D10NElementsFixture,
                          ::testing::Values(std::vector<std::size_t>{1, 3, 2, 7, 6, 5},
                                            std::vector<std::size_t>{2, 1, 3, 5, 7, 6},
                                            std::vector<std::size_t>{3, 2, 1, 6, 5, 7}));
 
-class ParametrizedFindQuadraticHexaNeighbourElementsOfConditions
+class ParametrizedFindNeighbouring3D20NElementsFixture
     : public ::testing::TestWithParam<std::vector<std::size_t>>
 {
 };
 
-TEST_P(ParametrizedFindQuadraticHexaNeighbourElementsOfConditions,
-       NeighboringQuadraticHexaElementsAreFoundForDifferentNodeOrderings)
+TEST_P(ParametrizedFindNeighbouring3D20NElementsFixture,
+       NeighboursAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D20NElement(model);
@@ -142,18 +142,18 @@ TEST_P(ParametrizedFindQuadraticHexaNeighbourElementsOfConditions,
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindQuadraticHexaNeighbourElementsOfConditions,
+                         ParametrizedFindNeighbouring3D20NElementsFixture,
                          ::testing::Values(std::vector<std::size_t>{4, 3, 2, 1, 11, 10, 9, 12},
                                            std::vector<std::size_t>{1, 4, 3, 2, 12, 11, 10, 9},
                                            std::vector<std::size_t>{2, 1, 4, 3, 9, 12, 11, 10},
                                            std::vector<std::size_t>{3, 2, 1, 4, 10, 9, 12, 11}));
 
-class ParametrizedFindInterfaceNeighbourElementsOfConditions
+class ParametrizedFindNeighbouring3D6NInterfaceElementsFixture
     : public ::testing::TestWithParam<std::vector<std::size_t>>
 {
 };
 
-TEST_P(ParametrizedFindInterfaceNeighbourElementsOfConditions, NeighboringInterfaceElementsAreFoundForDifferentNodeOrderings)
+TEST_P(ParametrizedFindNeighbouring3D6NInterfaceElementsFixture, NeighboursAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(model);
@@ -175,12 +175,12 @@ TEST_P(ParametrizedFindInterfaceNeighbourElementsOfConditions, NeighboringInterf
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindInterfaceNeighbourElementsOfConditions,
+                         ParametrizedFindNeighbouring3D6NInterfaceElementsFixture,
                          ::testing::Values(std::vector<std::size_t>{1, 2, 3}, // Not completely sure yet why this order is the other way around
                                            std::vector<std::size_t>{3, 1, 2},
                                            std::vector<std::size_t>{2, 3, 1}));
 
-KRATOS_TEST_CASE_IN_SUITE(FindNeighbourElementsOfConditionsProcess_TestPointCondition, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighbourElementsOfConditionsProcess_TestPointCondition)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(model);
@@ -198,7 +198,7 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighbourElementsOfConditionsProcess_TestPointCond
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FindNeighbourElementsOfConditionsProcess_Test1DElement, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,FindNeighbourElementsOfConditionsProcess_Test1DElement)
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
@@ -221,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighbourElementsOfConditionsProcess_Test1DElement
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestMultipleConditionsOnTheSameNodes, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestFindNeighboursForMultipleConditionsOnTheSameNodes)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(model);
@@ -244,13 +244,13 @@ KRATOS_TEST_CASE_IN_SUITE(TestMultipleConditionsOnTheSameNodes, KratosGeoMechani
     EXPECT_EQ(p_condition2->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
-class ParametrizedFindQuadraticHexaNeighbourElementsOfLineConditions
+class ParametrizedFindNeighbouring3D20NElementsOfLineConditionsFixture
     : public ::testing::TestWithParam<std::vector<std::size_t>>
 {
 };
 
-TEST_P(ParametrizedFindQuadraticHexaNeighbourElementsOfLineConditions,
-       NeighboringQuadraticHexaElementsAreFoundForDifferentNodeOrderings)
+TEST_P(ParametrizedFindNeighbouring3D20NElementsOfLineConditionsFixture,
+       NeighboursAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D20NElement(model);
@@ -272,16 +272,16 @@ TEST_P(ParametrizedFindQuadraticHexaNeighbourElementsOfLineConditions,
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindQuadraticHexaNeighbourElementsOfLineConditions,
+                         ParametrizedFindNeighbouring3D20NElementsOfLineConditionsFixture,
                          ::testing::Values(std::vector<std::size_t>{1, 2, 9},
                                            std::vector<std::size_t>{7, 8, 19}));
 
-class ParametrizedFindNeighbourElementsOfConditionsThrowsWhenNotFound
+class ParametrizedFindNeighbouring3D4NElementsThrowsWhenNotFoundFixture
     : public ::testing::TestWithParam<std::vector<std::size_t>>
 {
 };
 
-TEST_P(ParametrizedFindNeighbourElementsOfConditionsThrowsWhenNotFound, ProcessThrowsWhenNoNeighboringElementsAreFound)
+TEST_P(ParametrizedFindNeighbouring3D4NElementsThrowsWhenNotFoundFixture, ProcessThrowsWhenNoNeighboringElementsAreFound)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
@@ -302,7 +302,7 @@ TEST_P(ParametrizedFindNeighbourElementsOfConditionsThrowsWhenNotFound, ProcessT
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindNeighbourElementsOfConditionsThrowsWhenNotFound,
+                         ParametrizedFindNeighbouring3D4NElementsThrowsWhenNotFoundFixture,
                          ::testing::Values(std::vector<std::size_t>{1, 2, 3},
                                            std::vector<std::size_t>{4, 2, 1},
                                            std::vector<std::size_t>{1, 3, 4}));
