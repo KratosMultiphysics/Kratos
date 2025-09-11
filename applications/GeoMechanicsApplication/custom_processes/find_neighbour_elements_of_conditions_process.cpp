@@ -155,7 +155,7 @@ bool FindNeighbourElementsOfConditionsProcess::AreLinearRotatedEquivalents(std::
                                                                            const std::vector<std::size_t>& rSecond)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
-    std::ranges::rotate(First, First.begin() + amount_of_needed_rotations);
+    std::rotate(First.begin(), First.begin() + amount_of_needed_rotations, First.end());
     return First == rSecond;
 }
 
