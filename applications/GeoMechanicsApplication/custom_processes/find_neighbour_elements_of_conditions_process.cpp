@@ -34,7 +34,7 @@ void FindNeighbourElementsOfConditionsProcess::InitializeConditionMaps()
     mConditionNodeIdsToCondition.clear();
     std::ranges::transform(mrModelPart.Conditions(),
                            std::inserter(mConditionNodeIdsToCondition, mConditionNodeIdsToCondition.end()),
-                           [this](auto& rCondition) {
+                           [](auto& rCondition) {
         return NodeIdToConditionsHashMap::value_type(
             GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
     });
@@ -91,26 +91,45 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsToConditio
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         const auto element_boundary_node_ids = GetNodeIdsFromGeometry(r_boundary_geometry);
 
-        std::vector<std::size_t> adjacent_condition_node_ids;
         if (mConditionNodeIdsToCondition.contains(element_boundary_node_ids)) {
-            adjacent_condition_node_ids = element_boundary_node_ids;
+            SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
         } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
-            // condition is not found but might be a problem of ordering in 2D boundary geometries!
-            auto face_ids_sorted = element_boundary_node_ids;
-            std::ranges::sort(face_ids_sorted);
-
-            if (mSortedToUnsortedConditionNodeIds.contains(face_ids_sorted)) {
-                const auto unsorted_condition_node_ids =
-                    mSortedToUnsortedConditionNodeIds.find(face_ids_sorted)->second;
-                if (AreRotatedEquivalents(element_boundary_node_ids, unsorted_condition_node_ids,
-                                          r_boundary_geometry.GetGeometryOrderType())) {
-                    adjacent_condition_node_ids = unsorted_condition_node_ids;
-                }
-            }
+            // condition is not found directly but might be a problem of ordering in 2D boundary geometries!
+            SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
+                rElement, element_boundary_node_ids, r_boundary_geometry.GetGeometryOrderType());
         }
+    }
+}
 
-        if (!adjacent_condition_node_ids.empty()) {
-            SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(adjacent_condition_node_ids, &rElement);
+void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
+    const std::vector<std::size_t>& rConditionNodeIds, Element* pElement)
+{
+    const auto [start, end] = mConditionNodeIdsToCondition.equal_range(rConditionNodeIds);
+    for (auto it = start; it != end; ++it) {
+        const auto&                   r_conditions = it->second;
+        GlobalPointersVector<Element> vector_of_neighbours;
+        vector_of_neighbours.resize(1);
+        vector_of_neighbours(0) = Element::WeakPointer(pElement);
+
+        for (auto& p_condition : r_conditions) {
+            p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
+        }
+    }
+}
+
+void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
+    Element&                                     rElement,
+    const std::vector<std::size_t>&              element_boundary_node_ids,
+    const GeometryData::KratosGeometryOrderType& r_order_type)
+{
+    auto sorted_boundary_node_ids = element_boundary_node_ids;
+    std::ranges::sort(sorted_boundary_node_ids);
+
+    if (mSortedToUnsortedConditionNodeIds.contains(sorted_boundary_node_ids)) {
+        const auto unsorted_condition_node_ids =
+            mSortedToUnsortedConditionNodeIds.find(sorted_boundary_node_ids)->second;
+        if (AreRotatedEquivalents(element_boundary_node_ids, unsorted_condition_node_ids, r_order_type)) {
+            SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(unsorted_condition_node_ids, &rElement);
         }
     }
 }
@@ -156,22 +175,6 @@ bool FindNeighbourElementsOfConditionsProcess::AllConditionsHaveAtLeastOneNeighb
     return std::ranges::all_of(mrModelPart.Conditions(), [](auto& rCondition) {
         return rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() >= 1;
     });
-}
-
-void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
-    const std::vector<std::size_t>& rConditionNodeIds, Element* pElement)
-{
-    const auto [start, end] = mConditionNodeIdsToCondition.equal_range(rConditionNodeIds);
-    for (auto it = start; it != end; ++it) {
-        const auto&                   r_conditions = it->second;
-        GlobalPointersVector<Element> vector_of_neighbours;
-        vector_of_neighbours.resize(1);
-        vector_of_neighbours(0) = Element::WeakPointer(pElement);
-
-        for (auto& p_condition : r_conditions) {
-            p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
-        }
-    }
 }
 
 void FindNeighbourElementsOfConditionsProcess::ReportConditionsWithoutNeighbours() const

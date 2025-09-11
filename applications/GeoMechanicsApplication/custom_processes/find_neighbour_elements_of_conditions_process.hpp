@@ -63,9 +63,13 @@ private:
                                                                   Element* pElement);
 
     void FindConditionNeighboursBasedOnBoundaryType(auto generate_boundaries);
+
     void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
 
+    void                      SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(Element& rElement,
+                                                                                 const std::vector<std::size_t>& element_boundary_node_ids,
+                                                                                 const GeometryData::KratosGeometryOrderType& r_order_type);
     [[nodiscard]] static bool AreRotatedEquivalents(const std::vector<std::size_t>& rFirst,
                                                     const std::vector<std::size_t>& rSecond,
                                                     const GeometryData::KratosGeometryOrderType& rOrderType);
