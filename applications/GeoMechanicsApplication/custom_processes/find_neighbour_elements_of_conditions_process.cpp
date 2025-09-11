@@ -12,7 +12,6 @@
 
 #include "find_neighbour_elements_of_conditions_process.hpp"
 #include "geometries/geometry.h"
-#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -90,12 +89,9 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsToConditio
     Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
-        std::vector<std::size_t> element_boundary_node_ids(r_boundary_geometry.size());
-        std::ranges::transform(r_boundary_geometry, element_boundary_node_ids.begin(),
-                               [](const Node& rNode) { return rNode.Id(); });
+        auto element_boundary_node_ids = GetNodeIdsFromGeometry(r_boundary_geometry);
 
         std::vector<std::size_t> adjacent_condition_node_ids;
-
         if (mConditionNodeIdsToCondition.contains(element_boundary_node_ids)) {
             adjacent_condition_node_ids = element_boundary_node_ids;
         } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
@@ -121,7 +117,7 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsToConditio
 
 bool FindNeighbourElementsOfConditionsProcess::AreRotatedEquivalents(const std::vector<std::size_t>& rFirst,
                                                                      const std::vector<std::size_t>& rSecond,
-                                                                     const GeometryData::KratosGeometryOrderType& rOrderType) const
+                                                                     const GeometryData::KratosGeometryOrderType& rOrderType)
 {
     switch (rOrderType) {
         using enum GeometryData::KratosGeometryOrderType;
@@ -135,15 +131,15 @@ bool FindNeighbourElementsOfConditionsProcess::AreRotatedEquivalents(const std::
 }
 
 bool FindNeighbourElementsOfConditionsProcess::AreLinearRotatedEquivalents(std::vector<std::size_t> First,
-                                                                           const std::vector<std::size_t>& rSecond) const
+                                                                           const std::vector<std::size_t>& rSecond)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
     std::ranges::rotate(First, First.begin() + amount_of_needed_rotations);
     return First == rSecond;
 }
 
-bool FindNeighbourElementsOfConditionsProcess::AreQuadraticRotatedEquivalents(
-    std::vector<std::size_t> First, const std::vector<std::size_t>& rSecond) const
+bool FindNeighbourElementsOfConditionsProcess::AreQuadraticRotatedEquivalents(std::vector<std::size_t> First,
+                                                                              const std::vector<std::size_t>& rSecond)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
 
@@ -189,7 +185,7 @@ void FindNeighbourElementsOfConditionsProcess::ReportConditionsWithoutNeighbours
     }
 }
 
-std::vector<std::size_t> FindNeighbourElementsOfConditionsProcess::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry) const
+std::vector<std::size_t> FindNeighbourElementsOfConditionsProcess::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry)
 {
     std::vector<std::size_t> result(rGeometry.size());
     std::ranges::transform(rGeometry, result.begin(), [](const auto& rNode) { return rNode.Id(); });

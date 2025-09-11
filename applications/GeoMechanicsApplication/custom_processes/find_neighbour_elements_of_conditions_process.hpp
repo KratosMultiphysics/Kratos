@@ -66,17 +66,17 @@ private:
     void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
 
-    bool AreRotatedEquivalents(const std::vector<std::size_t>&              rFirst,
-                               const std::vector<std::size_t>&              rSecond,
-                               const GeometryData::KratosGeometryOrderType& rOrderType) const;
-    [[nodiscard]] bool AreLinearRotatedEquivalents(std::vector<std::size_t> elements_boundary_node_ids,
-                                                   const std::vector<std::size_t>& condition_node_ids) const;
-    [[nodiscard]] bool AreQuadraticRotatedEquivalents(std::vector<std::size_t> elements_boundary_node_ids,
-                                                      const std::vector<std::size_t>& condition_node_ids) const;
+    [[nodiscard]] static bool AreRotatedEquivalents(const std::vector<std::size_t>& rFirst,
+                                                    const std::vector<std::size_t>& rSecond,
+                                                    const GeometryData::KratosGeometryOrderType& rOrderType);
+    [[nodiscard]] static bool AreLinearRotatedEquivalents(std::vector<std::size_t> elements_boundary_node_ids,
+                                                          const std::vector<std::size_t>& condition_node_ids);
+    [[nodiscard]] static bool AreQuadraticRotatedEquivalents(std::vector<std::size_t> elements_boundary_node_ids,
+                                                             const std::vector<std::size_t>& condition_node_ids);
 
-    [[nodiscard]] bool       AllConditionsHaveAtLeastOneNeighbour() const;
-    std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry) const;
-    void                     ReportConditionsWithoutNeighbours() const;
+    [[nodiscard]] bool AllConditionsHaveAtLeastOneNeighbour() const;
+    [[nodiscard]] static std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
+    void ReportConditionsWithoutNeighbours() const;
 };
 
 inline std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfConditionsProcess& rThis)
