@@ -24,6 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/reaction_utilities.cpp"
 
 
 namespace Kratos{
