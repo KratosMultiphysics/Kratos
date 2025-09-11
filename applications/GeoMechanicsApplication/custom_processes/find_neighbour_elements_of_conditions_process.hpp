@@ -61,6 +61,7 @@ private:
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
 
     [[nodiscard]] bool AllConditionsHaveAtLeastOneNeighbour() const;
+    void               FindNeighbouringElementsForAllBoundaryTypes();
     void               InitializeConditionMaps();
 
     void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,
@@ -69,12 +70,14 @@ private:
     void AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
 
-    [[nodiscard]] bool FindPermutations(std::vector<std::size_t>        elements_boundary_node_ids,
-                                        const std::vector<std::size_t>& condition_node_ids) const;
-    [[nodiscard]] bool FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
-                                                 const std::vector<std::size_t>& condition_node_ids) const;
+    [[nodiscard]] bool AreLinearRotatedEquivalents(std::vector<std::size_t> elements_boundary_node_ids,
+                                                   const std::vector<std::size_t>& condition_node_ids) const;
+    [[nodiscard]] bool AreQuadraticRotatedEquivalents(std::vector<std::size_t> elements_boundary_node_ids,
+                                                      const std::vector<std::size_t>& condition_node_ids) const;
     void FindConditionNeighboursBasedOnBoundaryType(auto generate_boundaries);
-
+    bool AreRotatedEquivalents(const std::vector<std::size_t>&              rFirst,
+                               const std::vector<std::size_t>&              rSecond,
+                               const GeometryData::KratosGeometryOrderType& rOrderType) const;
     void ReportConditionsWithoutNeighbours() const;
 };
 
