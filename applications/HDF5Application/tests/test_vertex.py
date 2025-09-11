@@ -71,9 +71,9 @@ class TestVertex(KratosUnittest.TestCase):
             KratosMultiphysics.Configuration.Initial,
             1e-6)
 
-        vertices = []
-        vertices.append(HDF5Application.Vertex([0.5, 0.5, 0.0], locator, True))
-        vertices.append(HDF5Application.Vertex([1.5, 0.5, 0.0], locator, True))
+        vertices: 'list[HDF5Application.Vertex]' = []
+        vertices.append(HDF5Application.Vertex([0.5, 0.5, 0.0], locator, 1))
+        vertices.append(HDF5Application.Vertex([1.5, 0.5, 0.0], locator, 2))
 
         for vertex in vertices:
             self.assertTrue(vertex.IsLocated())
