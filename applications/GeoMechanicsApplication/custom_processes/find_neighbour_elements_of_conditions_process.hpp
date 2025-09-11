@@ -16,6 +16,8 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 
+#include <unordered_map>
+
 namespace Kratos
 {
 

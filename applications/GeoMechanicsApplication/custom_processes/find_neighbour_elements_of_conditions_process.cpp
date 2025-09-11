@@ -13,6 +13,7 @@
 
 #include "find_neighbour_elements_of_conditions_process.hpp"
 #include "geometries/geometry.h"
+#include <algorithm>
 
 namespace Kratos
 {
