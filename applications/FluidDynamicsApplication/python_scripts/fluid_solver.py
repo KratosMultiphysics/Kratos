@@ -94,8 +94,7 @@ class FluidSolver(PythonSolver):
             if not materials_imported:
                 KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
-            use_input_model_part = self.settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part"
-            if not (use_input_model_part and self._enforce_element_and_conditions_replacement):
+            if self._enforce_element_and_conditions_replacement:
                 self._ReplaceElementsAndConditions()
             ## Set and fill buffer
             self._SetAndFillBuffer()
