@@ -63,39 +63,27 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     if (const auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
     const auto& r_geom = GetGeometry();
+    const auto  element_Id = this->Id(); 
 
-    CheckUtilities::CheckDomainSize(r_geom.DomainSize(), this->Id());
+    CheckUtilities::CheckDomainSize(r_geom.DomainSize(), element_Id);
 
     // check pressure geometry pointer
     KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
 
-    // Verify specific properties
     const auto& r_prop = this->GetProperties();
-
-    const CheckProperties check_properties(r_prop, "parameter list", this->Id(),
+    const CheckProperties check_properties(r_prop, "parameter list", element_Id,
                                            CheckProperties::Bounds::AllExclusive);
     check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_prop[IGNORE_UNDRAINED])
         check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
-    ConstitutiveLaw::Features LawFeatures;
-    r_prop.GetValue(CONSTITUTIVE_LAW)->GetLawFeatures(LawFeatures);
-
-    KRATOS_ERROR_IF(std::find(LawFeatures.mStrainMeasures.cbegin(), LawFeatures.mStrainMeasures.cend(),
-                              ConstitutiveLaw::StrainMeasure_Infinitesimal) ==
-                    LawFeatures.mStrainMeasures.cend())
-        << "In element " << this->Id()
-        << " the constitutive law is not compatible with the element "
-           "type StrainMeasure_Infinitesimal."
-        << std::endl;
-
-    r_prop.GetValue(CONSTITUTIVE_LAW)->Check(r_prop, r_geom, rCurrentProcessInfo);
+    r_prop[CONSTITUTIVE_LAW]->Check(r_prop, r_geom, rCurrentProcessInfo);
     const auto expected_sizes =
         (r_geom.WorkingSpaceDimension() == 2 ? std::vector<std::size_t>{VOIGT_SIZE_2D_PLANE_STRAIN}
                                              : std::vector<std::size_t>{VOIGT_SIZE_3D});
-    ConstitutiveLawUtilities::CheckStrainSize(r_prop, expected_sizes,
-                                              r_geom.WorkingSpaceDimension(), this->Id());
+    ConstitutiveLawUtilities::CheckStrainSize(r_prop, expected_sizes, r_geom.WorkingSpaceDimension(), element_Id);
+    ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(r_prop, element_Id);
 
     return RetentionLaw::Check(mRetentionLawVector, r_prop, rCurrentProcessInfo);
 
