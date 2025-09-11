@@ -45,7 +45,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
     for (const auto& r_boundary_generator : boundary_generators) {
         FindConditionNeighboursBasedOnBoundaryType(r_boundary_generator);
-
         if (AllConditionsHaveAtLeastOneNeighbour()) return;
     }
 
@@ -93,32 +92,30 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
         std::ranges::transform(r_boundary_geometry, element_boundary_node_ids.begin(),
                                [](const Node& rNode) { return rNode.Id(); });
         std::vector<std::size_t> adjacent_condition_node_ids;
-        auto itFace = mConditionNodeIdsToCondition.find(element_boundary_node_ids);
-        if (itFace != mConditionNodeIdsToCondition.end()) {
-            adjacent_condition_node_ids = itFace->first;
-        }
 
-        if (itFace == mConditionNodeIdsToCondition.end() && r_boundary_geometry.LocalSpaceDimension() == 2) {
+        if (mConditionNodeIdsToCondition.contains(element_boundary_node_ids)) {
+            adjacent_condition_node_ids = element_boundary_node_ids;
+        } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
             // condition is not found but might be a problem of ordering in 2D boundary geometries!
-            std::vector<std::size_t> face_ids_sorted = element_boundary_node_ids;
+            auto face_ids_sorted = element_boundary_node_ids;
             std::ranges::sort(face_ids_sorted);
 
-            auto it = mSortedToUnsortedConditionNodeIds.find(face_ids_sorted);
-            if (it != mSortedToUnsortedConditionNodeIds.end()) {
+            if (mSortedToUnsortedConditionNodeIds.contains(face_ids_sorted)) {
+                const auto unsorted_ids = mSortedToUnsortedConditionNodeIds.find(face_ids_sorted)->second;
                 bool permutations_found = false;
                 switch (r_boundary_geometry.GetGeometryOrderType()) {
                     using enum GeometryData::KratosGeometryOrderType;
                 case Kratos_Linear_Order:
-                    permutations_found = FindPermutations(element_boundary_node_ids, it->second);
+                    permutations_found = FindPermutations(element_boundary_node_ids, unsorted_ids);
                     break;
                 case Kratos_Quadratic_Order:
-                    permutations_found = FindPermutationsQuadratic(element_boundary_node_ids, it->second);
+                    permutations_found = FindPermutationsQuadratic(element_boundary_node_ids, unsorted_ids);
                     break;
                 default:
                     break;
                 }
                 if (permutations_found) {
-                    adjacent_condition_node_ids = it->second;
+                    adjacent_condition_node_ids = unsorted_ids;
                 }
             }
         }
