@@ -95,7 +95,7 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsToConditio
         if (mConditionNodeIdsToCondition.contains(element_boundary_node_ids)) {
             SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
         } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
-            // condition is not found directly but might be a problem of ordering in 2D boundary geometries!
+            // Condition is not found directly but might be a problem of ordering in 2D boundary geometries
             SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
                 rElement, element_boundary_node_ids, r_boundary_geometry.GetGeometryOrderType());
         }
