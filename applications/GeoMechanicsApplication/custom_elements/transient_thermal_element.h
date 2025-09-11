@@ -122,7 +122,7 @@ public:
         }
     }
 
-    int Check(const ProcessInfo&) const override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
@@ -137,9 +137,8 @@ public:
         const CheckProperties check_properties(r_properties, "properties at thermal element",
                                                element_Id, CheckProperties::Bounds::AllInclusive);
         check_properties.Check(DENSITY_WATER);
-        check_properties.Check(POROSITY);
-        check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SaturatedLaw");
-        check_properties.Check(SATURATED_SATURATION);
+        constexpr auto max_value = 1.0;
+        check_properties.Check(POROSITY, max_value);
         check_properties.Check(DENSITY_SOLID);
         check_properties.Check(SPECIFIC_HEAT_CAPACITY_WATER);
         check_properties.Check(SPECIFIC_HEAT_CAPACITY_SOLID);
@@ -156,9 +155,10 @@ public:
 
         if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(GetGeometry());
 
-        KRATOS_CATCH("")
+        check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SaturatedLaw");
+        return RetentionLawFactory::Clone(r_properties)->Check(r_properties, rCurrentProcessInfo);
 
-        return 0;
+        KRATOS_CATCH("")
     }
 
     std::unique_ptr<IntegrationCoefficientModifier> CloneIntegrationCoefficientModifier() const
