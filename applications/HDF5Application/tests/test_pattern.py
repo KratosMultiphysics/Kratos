@@ -1,9 +1,7 @@
 from typing import Any
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.HDF5Application.core.pattern import PatternEntity
-from KratosMultiphysics.HDF5Application.core.pattern import GetMatchingEntities
-from KratosMultiphysics.HDF5Application.core.pattern import IdentifyPattern
+from KratosMultiphysics.HDF5Application.core.pattern import PatternEntity, GetMatchingEntities, IdentifyPattern
 
 class TestGetMachingEntitiesString(KratosUnittest.TestCase):
     class StringPatternEntity(PatternEntity):
