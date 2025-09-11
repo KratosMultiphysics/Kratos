@@ -73,7 +73,7 @@ private:
                                         const std::vector<std::size_t>& condition_node_ids) const;
     [[nodiscard]] bool FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
                                                  const std::vector<std::size_t>& condition_node_ids) const;
-    void CheckBoundaryTypeForAllElements(auto generate_boundaries);
+    void FindConditionNeighboursBasedOnBoundaryType(auto generate_boundaries);
 
     void ReportConditionsWithoutNeighbours() const;
 };

@@ -29,7 +29,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
     InitializeConditionMaps();
 
-    auto generate_boundaries = [](const auto& rGeometry) {
+    auto generate_generic_boundaries = [](const auto& rGeometry) {
         return rGeometry.GenerateBoundariesEntities();
     };
     auto generate_points   = [](const auto& rGeometry) { return rGeometry.GeneratePoints(); };
@@ -45,10 +45,11 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     // Note the order in the generators: the 1D elements are only added
     // as neighbours when the condition is not neighbouring 2D or 3D elements
     const std::vector<std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)>> boundary_generators = {
-        generate_boundaries, generate_points, generate_edges_3d, generate_edges_1d};
+        generate_generic_boundaries, generate_points, generate_edges_3d, generate_edges_1d};
 
-    for (const auto& r_generator : boundary_generators) {
-        CheckBoundaryTypeForAllElements(r_generator);
+    for (const auto& r_boundary_generator : boundary_generators) {
+        FindConditionNeighboursBasedOnBoundaryType(r_boundary_generator);
+
         if (AllConditionsAreVisited()) return;
     }
 
@@ -79,7 +80,7 @@ void FindNeighbourElementsOfConditionsProcess::InitializeConditionMaps()
     });
 }
 
-void FindNeighbourElementsOfConditionsProcess::CheckBoundaryTypeForAllElements(auto generate_boundaries)
+void FindNeighbourElementsOfConditionsProcess::FindConditionNeighboursBasedOnBoundaryType(auto generate_boundaries)
 {
     for (auto& r_element : mrModelPart.Elements()) {
         const auto& rGeometryElement    = r_element.GetGeometry();
