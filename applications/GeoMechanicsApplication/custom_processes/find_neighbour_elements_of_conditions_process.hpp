@@ -56,13 +56,16 @@ public:
     void PrintData(std::ostream& rOStream) const override { this->PrintInfo(rOStream); }
 
 private:
-    ModelPart& mrModelPart;
+    ModelPart&                     mrModelPart;
+    NodeIdToConditionsHashMap      mConditionNodeIdsToCondition;
+    SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
 
     [[nodiscard]] bool AllConditionsAreVisited() const;
-
-    static void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(NodeIdToConditionsHashMap&      rFacesMap,
-                                                    const std::vector<std::size_t>& rConditionNodeIds,
-                                                    Element*                        pElement);
+    void InitializeConditionMaps();
+    
+    static void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(NodeIdToConditionsHashMap& rFacesMap,
+                                                                         const std::vector<std::size_t>& rConditionNodeIds,
+                                                                         Element* pElement);
 
     void AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         NodeIdToConditionsHashMap&                 FacesMap,

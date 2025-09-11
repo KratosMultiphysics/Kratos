@@ -12,6 +12,7 @@
 
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
 
+#include "find_neighbour_elements_of_conditions_process.hpp"
 #include "geometries/geometry.h"
 #include "includes/kratos_flags.h"
 
@@ -22,26 +23,11 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     if (mrModelPart.Conditions().empty()) return;
 
-    NodeIdToConditionsHashMap condition_node_ids_to_condition;
     for (auto& r_condition : mrModelPart.Conditions()) {
         r_condition.Set(VISITED, false);
-        auto& r_geometry = r_condition.GetGeometry();
-
-        std::vector<IndexType> Ids(r_geometry.size());
-        std::ranges::transform(r_geometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
-
-        condition_node_ids_to_condition.insert(NodeIdToConditionsHashMap::value_type(Ids, {&r_condition}));
     }
 
-    SortedToUnsortedNodeIdsHashMap sorted_to_unsorted_condition_node_ids;
-    std::ranges::transform(
-        condition_node_ids_to_condition,
-        std::inserter(sorted_to_unsorted_condition_node_ids, sorted_to_unsorted_condition_node_ids.end()),
-        [](const auto& rPair) {
-        auto sorted_ids = rPair.first;
-        std::ranges::sort(sorted_ids);
-        return std::make_pair(sorted_ids, rPair.first);
-    });
+    InitializeConditionMaps();
 
     auto generate_boundaries = [](const auto& rGeometry) {
         return rGeometry.GenerateBoundariesEntities();
@@ -62,8 +48,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
         generate_boundaries, generate_points, generate_edges_3d, generate_edges_1d};
 
     for (const auto& r_generator : boundary_generators) {
-        CheckBoundaryTypeForAllElements(r_generator, condition_node_ids_to_condition,
-                                        sorted_to_unsorted_condition_node_ids);
+        CheckBoundaryTypeForAllElements(r_generator, mConditionNodeIdsToCondition, mSortedToUnsortedConditionNodeIds);
         if (AllConditionsAreVisited()) return;
     }
 
@@ -128,7 +113,8 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
         if (!adjacent_condition_node_ids.empty()) {
             // condition is found!
             // but check if there are more than one condition on the element
-            SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(FacesMap, adjacent_condition_node_ids, &rElement);
+            SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
+                FacesMap, adjacent_condition_node_ids, &rElement);
         }
     }
 }
@@ -137,6 +123,27 @@ bool FindNeighbourElementsOfConditionsProcess::AllConditionsAreVisited() const
 {
     return std::ranges::all_of(mrModelPart.Conditions(),
                                [](const auto& rCondition) { return rCondition.Is(VISITED); });
+}
+
+void FindNeighbourElementsOfConditionsProcess::InitializeConditionMaps()
+{
+    for (auto& r_condition : mrModelPart.Conditions()) {
+        auto& r_geometry = r_condition.GetGeometry();
+
+        std::vector<IndexType> Ids(r_geometry.size());
+        std::ranges::transform(r_geometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
+
+        mConditionNodeIdsToCondition.insert(NodeIdToConditionsHashMap::value_type(Ids, {&r_condition}));
+    }
+    
+    std::ranges::transform(
+        mConditionNodeIdsToCondition,
+        std::inserter(mSortedToUnsortedConditionNodeIds, mSortedToUnsortedConditionNodeIds.end()),
+        [](const auto& rPair) {
+        auto sorted_ids = rPair.first;
+        std::ranges::sort(sorted_ids);
+        return std::make_pair(sorted_ids, rPair.first);
+    });
 }
 
 void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
