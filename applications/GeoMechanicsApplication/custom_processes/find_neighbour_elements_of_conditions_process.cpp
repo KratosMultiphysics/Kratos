@@ -56,6 +56,29 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     KRATOS_ERROR << "Some conditions found without any corresponding element" << std::endl;
 }
 
+void FindNeighbourElementsOfConditionsProcess::InitializeConditionMaps()
+{
+    mConditionNodeIdsToCondition.clear();
+    for (auto& r_condition : mrModelPart.Conditions()) {
+        auto& r_geometry = r_condition.GetGeometry();
+
+        std::vector<IndexType> Ids(r_geometry.size());
+        std::ranges::transform(r_geometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
+
+        mConditionNodeIdsToCondition.insert(NodeIdToConditionsHashMap::value_type(Ids, {&r_condition}));
+    }
+
+    mSortedToUnsortedConditionNodeIds.clear();
+    std::ranges::transform(
+        mConditionNodeIdsToCondition,
+        std::inserter(mSortedToUnsortedConditionNodeIds, mSortedToUnsortedConditionNodeIds.end()),
+        [](const auto& rPair) {
+        auto sorted_ids = rPair.first;
+        std::ranges::sort(sorted_ids);
+        return std::make_pair(sorted_ids, rPair.first);
+    });
+}
+
 void FindNeighbourElementsOfConditionsProcess::CheckBoundaryTypeForAllElements(auto generate_boundaries)
 {
     for (auto& r_element : mrModelPart.Elements()) {
@@ -115,29 +138,6 @@ bool FindNeighbourElementsOfConditionsProcess::AllConditionsAreVisited() const
 {
     return std::ranges::all_of(mrModelPart.Conditions(),
                                [](const auto& rCondition) { return rCondition.Is(VISITED); });
-}
-
-void FindNeighbourElementsOfConditionsProcess::InitializeConditionMaps()
-{
-    mConditionNodeIdsToCondition.clear();
-    for (auto& r_condition : mrModelPart.Conditions()) {
-        auto& r_geometry = r_condition.GetGeometry();
-
-        std::vector<IndexType> Ids(r_geometry.size());
-        std::ranges::transform(r_geometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
-
-        mConditionNodeIdsToCondition.insert(NodeIdToConditionsHashMap::value_type(Ids, {&r_condition}));
-    }
-
-    mSortedToUnsortedConditionNodeIds.clear();
-    std::ranges::transform(
-        mConditionNodeIdsToCondition,
-        std::inserter(mSortedToUnsortedConditionNodeIds, mSortedToUnsortedConditionNodeIds.end()),
-        [](const auto& rPair) {
-        auto sorted_ids = rPair.first;
-        std::ranges::sort(sorted_ids);
-        return std::make_pair(sorted_ids, rPair.first);
-    });
 }
 
 void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
