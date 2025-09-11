@@ -193,6 +193,26 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckIntegerProperty, KratosGeoMechanic
                                       "invalid value: 3 is out of the range (1; 3.000000)")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckAvailabilityAndEquality, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties{};
+    const CheckProperties check_properties(properties, "property at element", CheckProperties::Bounds::AllInclusive);
+    // Act and Assert
+    properties.SetValue(UDSM_NUMBER, 3);
+    EXPECT_NO_THROW(check_properties.CheckAvailabilityAndEquality(UDSM_NUMBER, 3));
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckAvailabilityAndEquality(UDSM_NUMBER, 5),
+        "UDSM_NUMBER has a value of (3) instead of (5) at element 0.");
+
+    properties.SetValue(RETENTION_LAW, "SaturatedLaw");
+    EXPECT_NO_THROW(check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SaturatedLaw"));
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SLaw"),
+        "RETENTION_LAW has a value of (SaturatedLaw) instead of (SLaw) at element 0.")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesThrowsErrorsForWrongProperties,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {

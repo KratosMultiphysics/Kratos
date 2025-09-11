@@ -95,14 +95,6 @@ public:
         CheckRangeBounds(rVariable, LowerBound, UpperBound);
     }
 
-    void Check(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
-    {
-        CheckAvailability(rVariable);
-        KRATOS_ERROR_IF_NOT(mrProperties[rVariable] == rName)
-            << rVariable.Name() << " has a value of (" << mrProperties[rVariable]
-            << ") instead of (" << rName << ") at element " << mId << std::endl;
-    }
-
     template <typename T>
     void CheckAvailability(const Variable<T>& rVariable) const
     {
@@ -118,6 +110,15 @@ public:
         if (mrProperties[rVariable].empty())
             KRATOS_ERROR << rVariable.Name() << " is empty in the " << mrPrintName << " with Id "
                          << mId << "." << std::endl;
+    }
+
+    template <typename T, typename Eq>
+    void CheckAvailabilityAndEquality(const Kratos::Variable<T>& rVariable, const Eq& rName) const
+    {
+        CheckAvailability(rVariable);
+        KRATOS_ERROR_IF_NOT(mrProperties[rVariable] == rName)
+            << rVariable.Name() << " has a value of (" << mrProperties[rVariable]
+            << ") instead of (" << rName << ") at element " << mId << "." << std::endl;
     }
 
     void CheckPermeabilityProperties(size_t Dimension) const;

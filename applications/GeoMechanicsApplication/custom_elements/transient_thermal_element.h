@@ -138,7 +138,7 @@ public:
                                                element_Id, CheckProperties::Bounds::AllInclusive);
         check_properties.Check(DENSITY_WATER);
         check_properties.Check(POROSITY);
-        check_properties.Check(RETENTION_LAW, "SaturatedLaw");
+        check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SaturatedLaw");
         check_properties.Check(SATURATED_SATURATION);
         check_properties.Check(DENSITY_SOLID);
         check_properties.Check(SPECIFIC_HEAT_CAPACITY_WATER);
