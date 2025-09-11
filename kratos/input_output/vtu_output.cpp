@@ -682,7 +682,7 @@ std::string WritePartitionedUnstructuredGridData(
                 "Source", std::filesystem::relative(
                               std::filesystem::absolute(r_file_name),
                               std::filesystem::absolute(p_vtu_file_name).parent_path())
-                              .string());
+                              .generic_string());
             p_unstructured_grid_element->AddElement(piece);
         }
 
@@ -1764,7 +1764,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
                         "file", std::filesystem::relative(
                                     std::filesystem::absolute(current_vtu_file_name),
                                     std::filesystem::absolute(rOutputFileNamePrefix).parent_path())
-                                    .string());
+                                    .generic_string());
                     collection_element->AddElement(current_element);
                 }
             }
