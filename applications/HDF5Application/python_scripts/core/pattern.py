@@ -94,7 +94,7 @@ class Pattern:
     def GetNumberOfDataItems(self) -> int:
         return len(self.__converters)
 
-def __GetMachingEntities(starting_entity: PatternEntity, patterns: 'list[str]', tag_type_dict: 'dict[str, typing.Any]', common_data: 'list[typing.Any]') -> 'typing.Generator[tuple[PatternEntity, typing.Any]]':
+def __GetMatchingEntities(starting_entity: PatternEntity, patterns: 'list[str]', tag_type_dict: 'dict[str, typing.Any]', common_data: 'list[typing.Any]') -> 'typing.Generator[tuple[PatternEntity, typing.Any]]':
     if len(patterns) == 1:
         # this is the file pattern. hence we now try to find matching files
         pattern = Pattern(patterns[0], tag_type_dict)
@@ -110,12 +110,12 @@ def __GetMachingEntities(starting_entity: PatternEntity, patterns: 'list[str]', 
             if not itr.IsLeaf():
                 is_valid, dir_pattern_data = pattern.GetData(itr.Name())
                 if is_valid:
-                    for data in __GetMachingEntities(itr, patterns[1:], tag_type_dict, [*common_data, *dir_pattern_data]):
+                    for data in __GetMatchingEntities(itr, patterns[1:], tag_type_dict, [*common_data, *dir_pattern_data]):
                         yield data
 
-def GetMachingEntities(starting_entity: PatternEntity, tagged_pattern: str, tag_type_dict: 'dict[str, typing.Any]') -> 'typing.Generator[tuple[PatternEntity, typing.Any]]':
+def GetMatchingEntities(starting_entity: PatternEntity, tagged_pattern: str, tag_type_dict: 'dict[str, typing.Any]') -> 'typing.Generator[tuple[PatternEntity, typing.Any]]':
     sub_patterns = tagged_pattern.split("/")
-    for data in __GetMachingEntities(starting_entity, sub_patterns, tag_type_dict, []):
+    for data in __GetMatchingEntities(starting_entity, sub_patterns, tag_type_dict, []):
         yield data
 
 def EvaluatePattern(pattern: str, model_part: Kratos.ModelPart, time_format='') -> str:
@@ -132,6 +132,22 @@ def EvaluatePattern(pattern: str, model_part: Kratos.ModelPart, time_format='') 
     return pattern
 
 def IdentifyPattern(entity_name: str) -> 'tuple[str, dict[str, typing.Any]]':
+    """
+    Identifies and replaces all floating-point number patterns in the given entity name string.
+
+    This function scans the input string for substrings that match the floating-point number pattern
+    (including scientific notation, but omitting the '-' sign), and replaces each occurrence with a
+    placeholder tag in the format <float_N>, where N is the 1-based index of the float found.
+    It also constructs a dictionary mapping each placeholder tag to the `float` type.
+
+    Args:
+        entity_name (str): The input string potentially containing floating-point numbers.
+
+    Returns:
+        tuple[str, dict[str, typing.Any]]:
+            - pattern (str): The input string with all float values replaced by their corresponding tags.
+            - tags_dict (dict[str, typing.Any]): A dictionary mapping each tag to the `float` type.
+    """
     # all the tag types are assumed to be of float type
     # here the "-" sign is omitted.
     float_pattern = re.compile(r"([0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)")

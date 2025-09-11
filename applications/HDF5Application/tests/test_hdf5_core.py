@@ -79,14 +79,14 @@ class TestFileIO(KratosUnittest.TestCase):
 
     def test_KeepMostRecentFilesWithDelete(self):
         with patch('KratosMultiphysics.HDF5Application.core.file_io.kratos_utils.DeleteFileIfExisting', autospec=True) as p1:
-            with patch("KratosMultiphysics.HDF5Application.core.file_io.GetMachingEntities", autospec=True) as p2:
+            with patch("KratosMultiphysics.HDF5Application.core.file_io.GetMatchingEntities", autospec=True) as p2:
                 p2.return_value = ["file1", "file2", "file3", "file4", "file5", "file6", "file7", "file8"]
                 file_io.KeepMostRecentFiles("file<step>", 4, 2)
                 self.assertEqual(p1.call_args_list, [call('file3'), call('file4'), call('file5'), call('file6')])
 
     def test_KeepMostRecentFilesWithOutDelete(self):
         with patch('KratosMultiphysics.HDF5Application.core.file_io.kratos_utils.DeleteFileIfExisting', autospec=True) as p1:
-            with patch("KratosMultiphysics.HDF5Application.core.file_io.GetMachingEntities", autospec=True) as p2:
+            with patch("KratosMultiphysics.HDF5Application.core.file_io.GetMatchingEntities", autospec=True) as p2:
                 p2.return_value = ["file1", "file2", "file3", "file4", "file5", "file6", "file7", "file8"]
                 file_io.KeepMostRecentFiles("file<step>", 8, 2)
                 self.assertEqual(p1.call_args_list, [])
