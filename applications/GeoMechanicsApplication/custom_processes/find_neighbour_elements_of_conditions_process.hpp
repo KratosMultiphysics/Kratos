@@ -61,25 +61,19 @@ private:
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
 
     [[nodiscard]] bool AllConditionsAreVisited() const;
-    void InitializeConditionMaps();
-    
-    static void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(NodeIdToConditionsHashMap& rFacesMap,
-                                                                         const std::vector<std::size_t>& rConditionNodeIds,
-                                                                         Element* pElement);
+    void               InitializeConditionMaps();
+
+    void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,
+                                                                  Element* pElement);
 
     void AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-        NodeIdToConditionsHashMap&                 FacesMap,
-        const SortedToUnsortedNodeIdsHashMap&      FacesMapSorted,
-        Element&                                   rElement,
-        const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries) const;
+        Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
 
     [[nodiscard]] bool FindPermutations(std::vector<std::size_t>        elements_boundary_node_ids,
                                         const std::vector<std::size_t>& condition_node_ids) const;
     [[nodiscard]] bool FindPermutationsQuadratic(std::vector<std::size_t> elements_boundary_node_ids,
                                                  const std::vector<std::size_t>& condition_node_ids) const;
-    void CheckBoundaryTypeForAllElements(auto                       generate_boundaries,
-                                         NodeIdToConditionsHashMap& condition_node_ids_to_condition,
-                                         SortedToUnsortedNodeIdsHashMap& sorted_condition_node_ids_to_condition);
+    void CheckBoundaryTypeForAllElements(auto generate_boundaries);
 
     void ReportConditionsWithoutNeighbours() const;
 };
