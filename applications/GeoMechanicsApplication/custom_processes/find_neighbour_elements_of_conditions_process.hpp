@@ -33,10 +33,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighbourElementsOfConditionsPro
 public:
     KRATOS_CLASS_POINTER_DEFINITION(FindNeighbourElementsOfConditionsProcess);
 
-    using IndexType    = std::size_t;
-    using NodeType     = Node;
-    using GeometryType = Geometry<NodeType>;
-
     explicit FindNeighbourElementsOfConditionsProcess(ModelPart& rModelPart)
         : mrModelPart(rModelPart)
     {
@@ -60,25 +56,27 @@ private:
     NodeIdToConditionsHashMap      mConditionNodeIdsToCondition;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
 
-    [[nodiscard]] bool AllConditionsHaveAtLeastOneNeighbour() const;
-    void               FindNeighbouringElementsForAllBoundaryTypes();
-    void               InitializeConditionMaps();
+    void InitializeConditionMaps();
+    void FindNeighbouringElementsForAllBoundaryTypes();
 
     void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,
                                                                   Element* pElement);
 
-    void AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+    void FindConditionNeighboursBasedOnBoundaryType(auto generate_boundaries);
+    void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
 
+    bool AreRotatedEquivalents(const std::vector<std::size_t>&              rFirst,
+                               const std::vector<std::size_t>&              rSecond,
+                               const GeometryData::KratosGeometryOrderType& rOrderType) const;
     [[nodiscard]] bool AreLinearRotatedEquivalents(std::vector<std::size_t> elements_boundary_node_ids,
                                                    const std::vector<std::size_t>& condition_node_ids) const;
     [[nodiscard]] bool AreQuadraticRotatedEquivalents(std::vector<std::size_t> elements_boundary_node_ids,
                                                       const std::vector<std::size_t>& condition_node_ids) const;
-    void FindConditionNeighboursBasedOnBoundaryType(auto generate_boundaries);
-    bool AreRotatedEquivalents(const std::vector<std::size_t>&              rFirst,
-                               const std::vector<std::size_t>&              rSecond,
-                               const GeometryData::KratosGeometryOrderType& rOrderType) const;
-    void ReportConditionsWithoutNeighbours() const;
+
+    [[nodiscard]] bool       AllConditionsHaveAtLeastOneNeighbour() const;
+    std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry) const;
+    void                     ReportConditionsWithoutNeighbours() const;
 };
 
 inline std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfConditionsProcess& rThis)

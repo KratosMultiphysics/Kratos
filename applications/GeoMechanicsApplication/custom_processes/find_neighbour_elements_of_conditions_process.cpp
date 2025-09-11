@@ -33,14 +33,12 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 void FindNeighbourElementsOfConditionsProcess::InitializeConditionMaps()
 {
     mConditionNodeIdsToCondition.clear();
-    for (auto& r_condition : mrModelPart.Conditions()) {
-        auto& r_geometry = r_condition.GetGeometry();
-
-        std::vector<IndexType> Ids(r_geometry.size());
-        std::ranges::transform(r_geometry, Ids.begin(), [](const auto& rNode) { return rNode.Id(); });
-
-        mConditionNodeIdsToCondition.insert(NodeIdToConditionsHashMap::value_type(Ids, {&r_condition}));
-    }
+    std::ranges::transform(mrModelPart.Conditions(),
+                           std::inserter(mConditionNodeIdsToCondition, mConditionNodeIdsToCondition.end()),
+                           [this](auto& rCondition) {
+        return NodeIdToConditionsHashMap::value_type(
+            GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
+    });
 
     mSortedToUnsortedConditionNodeIds.clear();
     std::ranges::transform(
@@ -84,18 +82,18 @@ void FindNeighbourElementsOfConditionsProcess::FindConditionNeighboursBasedOnBou
     for (auto& r_element : mrModelPart.Elements()) {
         const auto& rGeometryElement    = r_element.GetGeometry();
         const auto  rBoundaryGeometries = generate_boundaries(rGeometryElement);
-        AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(r_element, rBoundaryGeometries);
+        AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(r_element, rBoundaryGeometries);
     }
 }
 
-void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
     Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         std::vector<std::size_t> element_boundary_node_ids(r_boundary_geometry.size());
         std::ranges::transform(r_boundary_geometry, element_boundary_node_ids.begin(),
                                [](const Node& rNode) { return rNode.Id(); });
-        
+
         std::vector<std::size_t> adjacent_condition_node_ids;
 
         if (mConditionNodeIdsToCondition.contains(element_boundary_node_ids)) {
@@ -189,6 +187,13 @@ void FindNeighbourElementsOfConditionsProcess::ReportConditionsWithoutNeighbours
     for (const auto& r_condition : conditions_without_neighbours) {
         KRATOS_INFO("Condition without any corresponding element, ID ") << r_condition.Id() << std::endl;
     }
+}
+
+std::vector<std::size_t> FindNeighbourElementsOfConditionsProcess::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry) const
+{
+    std::vector<std::size_t> result(rGeometry.size());
+    std::ranges::transform(rGeometry, result.begin(), [](const auto& rNode) { return rNode.Id(); });
+    return result;
 }
 
 } // namespace Kratos
