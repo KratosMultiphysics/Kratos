@@ -24,16 +24,12 @@ class ComputeReactionProcess(KratosMultiphysics.OutputProcess):
         self.params = settings
         self.params.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.format = self.params["print_format"].GetString()
-        self.interval = KratosMultiphysics.IntervalUtility(self.params)
-        self.controller = KratosMultiphysics.OutputController(model, self.params)
-
-        # Getting the ModelPart from the Model
-        model_part_name = self.params["model_part_name"].GetString()
-        if model_part_name == "":
+        self.model = model
+        self.model_part_name = self.params["model_part_name"].GetString()
+        if self.model_part_name == "":
             raise Exception('No "model_part_name" was specified!')
-        else:
-            self.model_part = model[self.params["model_part_name"].GetString()]
+        elif self.model_part_name.startswith('Background_Grid'):
+            self.model_part_name = self.model_part_name.replace('Background_Grid','MPM_Material')
 
     @staticmethod
     def GetDefaultParameters():
@@ -48,9 +44,14 @@ class ComputeReactionProcess(KratosMultiphysics.OutputProcess):
             }
             """)
 
-    def ExecuteInitialize(self):
-        file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
+    def ExecuteBeforeSolutionLoop(self):
+        self.model_part = self.model[self.model_part_name]
 
+        self.format = self.params["print_format"].GetString()
+        self.interval = KratosMultiphysics.IntervalUtility(self.params)
+        self.controller = KratosMultiphysics.OutputController(self.model, self.params)
+
+        file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
         output_file_name = self.params["model_part_name"].GetString() + "_reaction.dat"
         if file_handler_params.Has("file_name"):
             warn_msg  = 'Unexpected user-specified entry found in "output_file_settings": {"file_name": '
@@ -60,7 +61,6 @@ class ComputeReactionProcess(KratosMultiphysics.OutputProcess):
         else:
             file_handler_params.AddEmptyValue("file_name")
             file_handler_params["file_name"].SetString(output_file_name)
-
         self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_params, self._GetFileHeader()).file
         self.output_file.flush()
 
