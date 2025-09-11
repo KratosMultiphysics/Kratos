@@ -119,8 +119,8 @@ Element::Pointer ElementSetupUtilities::Create2D3NElement()
 Element::Pointer ElementSetupUtilities::Create2D2NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    const auto contributions = {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-                                CalculationContribution::FluidBodyFlow};
+    using enum CalculationContribution;
+    const auto contributions = {Permeability, Compressibility, FluidBodyFlow};
 
     return make_intrusive<TransientPwLineElement<2, 2>>(
         1, Kratos::make_shared<Line2D2<Node>>(rNodes), rProperties, contributions, nullptr);
