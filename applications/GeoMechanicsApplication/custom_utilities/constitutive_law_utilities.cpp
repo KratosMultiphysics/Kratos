@@ -128,7 +128,7 @@ void ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(co
     });
 
     KRATOS_ERROR_IF_NOT(correct_strain_measure)
-        << "Constitutive law is not compatible with the element type "
+        << "Constitutive law is not compatible with the strain type "
            "StrainMeasure_Infinitesimal at element "
         << ElementId << "." << std::endl;
 }
