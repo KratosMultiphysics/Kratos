@@ -1,0 +1,6 @@
+# place in folder with all kratos wheels and the wheel of this repo
+# python -m pip install --no-index --find-links=./ -r requirements.txt
+kratos-optistruct-optimization==0.0.6
+kratos-external-solver-optimization==0.0.1
+KratosMultiphysics_all==10.2.1.dev0
+

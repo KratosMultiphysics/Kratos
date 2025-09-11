@@ -1,0 +1,8 @@
+{
+    "solver_settings": {
+        "case_name": "dummy_case",
+        "file_path": "Dummy",
+        "number_of_nodes_x": 41,
+        "number_of_nodes_y": 41
+    }
+}

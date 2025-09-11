@@ -1,0 +1,37 @@
+{
+    "model_settings" : {
+        "design_surface_sub_model_part_name" : "design_surface",
+        "damping" : {
+            "apply_damping" : true,
+            "damping_regions" : [
+                {
+                    "sub_model_part_name"   : "edges",
+                    "damp_X"                : false,
+                    "damp_Y"                : false,
+                    "damp_Z"                : true,
+                    "damping_function_type" : "cosine",
+                    "damping_radius"        : 7.0
+                }]
+        }
+    },
+    "objectives" : [{
+        "identifier" : "response_1",
+        "type"       : "minimization",
+        "analyzer"   : "dummy_solver"
+    }],
+    "design_variables" : [{
+        "type"                           : "vertex_morphing",
+        "filter" : {
+            "filter_function_type"       : "linear",
+            "filter_radius"              : 10.0
+        }
+    }],
+    "optimization_algorithm" : {
+        "name"                        : "steepest_descent",
+        "max_iterations"              : 10,
+        "relative_tolerance"          : -1e-8,
+        "line_search" : {
+            "step_size"               : 1.0
+        }
+    }
+}
