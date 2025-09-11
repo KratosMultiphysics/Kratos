@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Vahid Galavi
+//                   Richard Faasse
 //
 
 #include "find_neighbour_elements_of_conditions_process.hpp"
