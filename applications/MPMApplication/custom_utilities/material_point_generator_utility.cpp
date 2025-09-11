@@ -550,11 +550,11 @@ namespace Kratos::MaterialPointGeneratorUtility
         block_for_each(rBackgroundGridModelPart.Nodes(), [&](Node& rNode)
         {
             const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
-            double modified_factor;
+            double modified_tangential_penalty_coefficient;
 
             if (rNode.Is(SLIP)){
-                modified_factor = rConstNode.GetValue(NODAL_AREA) * rConstNode.GetValue(TANGENTIAL_PENALTY_COEFFICIENT);
-                rNode.SetValue(TANGENTIAL_PENALTY_COEFFICIENT, modified_factor);
+                modified_tangential_penalty_coefficient = rConstNode.GetValue(NODAL_AREA) * rConstNode.GetValue(TANGENTIAL_PENALTY_COEFFICIENT);
+                rNode.SetValue(TANGENTIAL_PENALTY_COEFFICIENT, modified_tangential_penalty_coefficient);
             }
         });
 
