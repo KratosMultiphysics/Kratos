@@ -89,7 +89,7 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsToConditio
     Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
-        auto element_boundary_node_ids = GetNodeIdsFromGeometry(r_boundary_geometry);
+        const auto element_boundary_node_ids = GetNodeIdsFromGeometry(r_boundary_geometry);
 
         std::vector<std::size_t> adjacent_condition_node_ids;
         if (mConditionNodeIdsToCondition.contains(element_boundary_node_ids)) {
