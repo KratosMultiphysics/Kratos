@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos
@@ -45,63 +46,34 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
     int ierr = Element::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType&   Geom = this->GetGeometry();
+    const PropertiesType& r_properties = this->GetProperties();
+    const GeometryType&   r_geometry   = this->GetGeometry();
 
     if (this->Id() < 1)
         KRATOS_ERROR << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
 
-    // Verify dof variables
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        if (Geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+    CheckUtilities::CheckHasNodalSolutionStepData(
+        r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+    CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-        if (Geom[i].SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
-
-        if (Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false)
-            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << Geom[i].Id() << std::endl;
-
-        if (Geom[i].HasDofFor(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
-    }
-
-    // Verify specific properties
-    if (Prop.Has(MINIMUM_JOINT_WIDTH) == false || Prop[MINIMUM_JOINT_WIDTH] <= 0.0)
-        KRATOS_ERROR << "MINIMUM_JOINT_WIDTH has Key zero, is not defined or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (Prop.Has(TRANSVERSAL_PERMEABILITY) == false || Prop[TRANSVERSAL_PERMEABILITY] < 0.0)
-        KRATOS_ERROR << "TRANSVERSAL_PERMEABILITY has Key zero, is not defined "
-                        "or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (Prop.Has(DYNAMIC_VISCOSITY) == false || Prop[DYNAMIC_VISCOSITY] <= 0.0)
-        KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero, is not defined or has "
-                        "an invalid value at element"
-                     << this->Id() << std::endl;
-
-    // Verify properties
-    if (Prop.Has(DENSITY_WATER) == false || Prop[DENSITY_WATER] < 0.0)
-        KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (Prop.Has(POROSITY) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY does not exist in the material properties or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
+    const CheckProperties check_properties(r_properties, "property at element", this->Id(),
+                                           CheckProperties::Bounds::AllExclusive);
+    check_properties.Check(MINIMUM_JOINT_WIDTH);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive).Check(TRANSVERSAL_PERMEABILITY);
+    check_properties.Check(DYNAMIC_VISCOSITY);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive).Check(DENSITY_WATER);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
 
     // Verify the constitutive law
-    if (Prop.Has(CONSTITUTIVE_LAW) == false)
+    if (!r_properties.Has(CONSTITUTIVE_LAW))
         KRATOS_ERROR << "CONSTITUTIVE_LAW has Key zero or is not defined at "
                         "element "
                      << this->Id() << std::endl;
 
-    if (Prop[CONSTITUTIVE_LAW] != NULL) {
+    if (r_properties[CONSTITUTIVE_LAW] != NULL) {
         // Check constitutive law
-        ierr = Prop[CONSTITUTIVE_LAW]->Check(Prop, this->GetGeometry(), rCurrentProcessInfo);
+        ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the "
                         "element "
@@ -122,28 +94,28 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rL
     KRATOS_TRY
 
     // Previous definitions
-    const PropertiesType&                           Prop = this->GetProperties();
-    const GeometryType&                             Geom = this->GetGeometry();
+    const PropertiesType&                           r_properties = this->GetProperties();
+    const GeometryType&                             r_geometry   = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-        Geom.IntegrationPoints(mThisIntegrationMethod);
+        r_geometry.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
 
     // Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues(mThisIntegrationMethod);
+    const Matrix& NContainer = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
     const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer =
-        Geom.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+        r_geometry.ShapeFunctionsLocalGradients(mThisIntegrationMethod);
     GeometryType::JacobiansType JContainer(NumGPoints);
-    Geom.Jacobian(JContainer, mThisIntegrationMethod);
+    r_geometry.Jacobian(JContainer, mThisIntegrationMethod);
     Vector detJContainer(NumGPoints);
-    Geom.DeterminantOfJacobian(detJContainer, mThisIntegrationMethod);
+    r_geometry.DeterminantOfJacobian(detJContainer, mThisIntegrationMethod);
 
     // Element variables
     InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
+    this->InitializeElementVariables(Variables, r_geometry, r_properties, CurrentProcessInfo);
 
     // VG: TODO
     // Perhaps a new parameter to get join width and not minimum joint width
-    Variables.JointWidth = Prop[MINIMUM_JOINT_WIDTH];
+    Variables.JointWidth = r_properties[MINIMUM_JOINT_WIDTH];
 
     // Auxiliary variables
     array_1d<double, TDim> RelDispVector;
@@ -168,7 +140,7 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAll(MatrixType& rL
             Variables.BodyAcceleration, NContainer, Variables.VolumeAcceleration, GPoint);
 
         InterfaceElementUtilities::FillPermeabilityMatrix(
-            Variables.LocalPermeabilityMatrix, Variables.JointWidth, Prop[TRANSVERSAL_PERMEABILITY]);
+            Variables.LocalPermeabilityMatrix, Variables.JointWidth, r_properties[TRANSVERSAL_PERMEABILITY]);
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -189,7 +161,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                         InterfaceElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix, rVariables);
 
@@ -201,7 +173,7 @@ void SteadyStatePwInterfaceElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorTy
                                                                         InterfaceElementVariables& rVariables,
                                                                         unsigned int GPoint)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);

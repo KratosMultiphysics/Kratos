@@ -21,7 +21,8 @@ from test_hdf5_xdmf import TestCreateXdmfTemporalGridFromMultifile
 from test_vertex import TestVertex
 from test_point_set_output_process import TestPointSetOutputProcess as TestHDF5PointSetOutputProcess
 from test_line_output_process import TestLineOutputProcess as TestHDF5LineOutputProcess
-
+from test_hdf5_tensor_adaptor_io import TestTensorAdaptorIO
+from test_hdf5_nd_data_io import TestNDDataIO
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
@@ -41,6 +42,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFindMatchingFiles]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreateXdmfTemporalGridFromMultifile]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertex, TestHDF5PointSetOutputProcess, TestHDF5LineOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestNDDataIO]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTensorAdaptorIO]))
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     allSuite = suites['all']
