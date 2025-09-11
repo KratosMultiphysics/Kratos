@@ -70,6 +70,16 @@ namespace Python{
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
+
+        namespace py = pybind11;
+
+        // Calculate reaction forces
+        py::class_<ReactionUtilities> (m,"ReactionUtilities")
+            .def(py::init<>())
+            .def("CalculateGridConformingReaction", &ReactionUtilities::CalculateGridConformingReaction)
+            .def("CalculateNonConformingReaction", &ReactionUtilities::CalculateNonConformingReaction)
+            ;
+
     }
 
 }  // namespace Python.
