@@ -89,13 +89,10 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
     AddNodalVariablesToModelPart(result, rNodalVariables);
 
     auto nodes =
-        CreateNewNodes(result, {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
+        CreateNewNodes(result, {ElementSetupUtilities::CreatePointsFor3D4NElement()});
     AddDofsToNodes(result.Nodes(), rNodalVariables);
 
-    auto element = make_intrusive<UPwSmallStrainElement<3, 4>>(
-        1, Kratos::make_shared<Tetrahedra3D4<Node>>(nodes), result.CreateNewProperties(0),
-        std::make_unique<ThreeDimensionalStressState>());
-
+    auto element = ElementSetupUtilities::Create3D4NElement(nodes, result.CreateNewProperties(0));
     result.AddElement(element);
 
     return result;

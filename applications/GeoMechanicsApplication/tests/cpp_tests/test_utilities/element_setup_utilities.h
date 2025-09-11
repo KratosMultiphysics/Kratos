@@ -29,6 +29,7 @@ public:
     static std::vector<Point> CreatePointsFor2D6NElement();
     static std::vector<Point> CreatePointsFor2D10NElement();
     static std::vector<Point> CreatePointsFor2D15NElement();
+    static std::vector<Point> CreatePointsFor3D4NElement();
     static std::vector<Point> CreatePointsFor3D8NElement();
     static std::vector<Point> CreatePointsFor3D10NElement();
     static std::vector<Point> CreatePointsFor3D20NElement();
@@ -69,6 +70,9 @@ public:
 
     static Element::Pointer Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
                                                        const Properties::Pointer& rProperties);
+
+    static Element::Pointer Create3D4NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties);
 
     static Element::Pointer Create3D10NElement(const PointerVector<Node>& rNodes,
                                                const Properties::Pointer& rProperties);

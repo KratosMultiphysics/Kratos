@@ -93,12 +93,10 @@ std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor3D10NElement()
 
 std::vector<Point> ElementSetupUtilities::CreatePointsFor3D20NElement()
 {
-    return {
-        {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0},
-    };
+    return {{0.0, 1.0, 1.0}, {0.0, 1.0, 0.5}, {0.5, 1.0, 1.0}, {0.0, 0.5, 1.0}, {0.0, 0.0, 1.0},
+            {1.0, 1.0, 1.0}, {0.0, 1.0, 0.0}, {1.0, 0.5, 1.0}, {1.0, 1.0, 0.5}, {0.0, 0.0, 0.5},
+            {0.5, 1.0, 0.0}, {0.0, 0.5, 0.0}, {0.5, 0.0, 1.0}, {1.0, 1.0, 0.0}, {1.0, 0.0, 1.0},
+            {0.0, 0.0, 0.0}, {0.5, 0.0, 0.0}, {1.0, 0.5, 0.0}, {1.0, 0.0, 0.5}, {1.0, 0.0, 0.0}};
 }
 
 std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor3D6NInterfaceElement()
@@ -113,6 +111,11 @@ std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor2D15NElement()
             {0.50, 0.00, 0.0}, {0.75, 0.00, 0.0}, {0.75, 0.25, 0.0}, {0.50, 0.50, 0.0},
             {0.25, 0.75, 0.0}, {0.00, 0.75, 0.0}, {0.00, 0.50, 0.0}, {0.00, 0.25, 0.0},
             {0.25, 0.25, 0.0}, {0.50, 0.25, 0.0}, {0.25, 0.50, 0.0}};
+}
+
+std::vector<Point> ElementSetupUtilities::CreatePointsFor3D4NElement()
+{
+    return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 }
 
 std::vector<Point> ElementSetupUtilities::CreatePointsFor3D8NElement()
@@ -239,6 +242,14 @@ Element::Pointer ElementSetupUtilities::Create3D6NInterfaceElement(const Pointer
 {
     return make_intrusive<InterfaceElement>(1, std::make_shared<InterfaceGeometry<Triangle3D3<Node>>>(rNodes),
                                             rProperties, std::make_unique<SurfaceInterfaceStressState>());
+}
+
+Element::Pointer ElementSetupUtilities::Create3D4NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<3, 4>>(
+        1, Kratos::make_shared<Tetrahedra3D4<Node>>(rNodes), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
 }
 
 Element::Pointer ElementSetupUtilities::Create3D10NElement(const PointerVector<Node>& rNodes,
