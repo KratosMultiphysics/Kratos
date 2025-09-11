@@ -60,7 +60,7 @@ private:
     NodeIdToConditionsHashMap      mConditionNodeIdsToCondition;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
 
-    [[nodiscard]] bool AllConditionsAreVisited() const;
+    [[nodiscard]] bool AllConditionsHaveAtLeastOneNeighbour() const;
     void               InitializeConditionMaps();
 
     void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,

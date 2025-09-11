@@ -23,10 +23,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     if (mrModelPart.Conditions().empty()) return;
 
-    for (auto& r_condition : mrModelPart.Conditions()) {
-        r_condition.Set(VISITED, false);
-    }
-
     InitializeConditionMaps();
 
     auto generate_generic_boundaries = [](const auto& rGeometry) {
@@ -50,7 +46,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     for (const auto& r_boundary_generator : boundary_generators) {
         FindConditionNeighboursBasedOnBoundaryType(r_boundary_generator);
 
-        if (AllConditionsAreVisited()) return;
+        if (AllConditionsHaveAtLeastOneNeighbour()) return;
     }
 
     ReportConditionsWithoutNeighbours();
@@ -135,10 +131,11 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighboringElementsToCondition
     }
 }
 
-bool FindNeighbourElementsOfConditionsProcess::AllConditionsAreVisited() const
+bool FindNeighbourElementsOfConditionsProcess::AllConditionsHaveAtLeastOneNeighbour() const
 {
-    return std::ranges::all_of(mrModelPart.Conditions(),
-                               [](const auto& rCondition) { return rCondition.Is(VISITED); });
+    return std::ranges::all_of(mrModelPart.Conditions(), [](auto& rCondition) {
+        return rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() >= 1;
+    });
 }
 
 void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
@@ -152,7 +149,6 @@ void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllConditi
         vector_of_neighbours(0) = Element::WeakPointer(pElement);
 
         for (auto& p_condition : r_conditions) {
-            p_condition->Set(VISITED, true);
             p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
         }
     }
@@ -187,10 +183,11 @@ bool FindNeighbourElementsOfConditionsProcess::FindPermutationsQuadratic(
 
 void FindNeighbourElementsOfConditionsProcess::ReportConditionsWithoutNeighbours() const
 {
-    std::vector<Condition> unvisited_conditions;
-    std::ranges::copy_if(mrModelPart.Conditions(), std::back_inserter(unvisited_conditions),
-                         [](const auto& rCondition) { return !rCondition.Is(VISITED); });
-    for (const auto& r_condition : unvisited_conditions) {
+    std::vector<Condition> conditions_without_neighbours;
+    std::ranges::copy_if(
+        mrModelPart.Conditions(), std::back_inserter(conditions_without_neighbours),
+        [](const auto& rCondition) { return rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() == 0; });
+    for (const auto& r_condition : conditions_without_neighbours) {
         KRATOS_INFO("Condition without any corresponding element, ID ") << r_condition.Id() << std::endl;
     }
 }
