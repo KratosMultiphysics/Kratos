@@ -62,15 +62,15 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 
     if (const auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
-    const auto& r_geom = GetGeometry();
-    const auto  element_Id = this->Id(); 
+    const auto& r_geom     = GetGeometry();
+    const auto  element_Id = this->Id();
 
     CheckUtilities::CheckDomainSize(r_geom.DomainSize(), element_Id);
 
     // check pressure geometry pointer
     KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
 
-    const auto& r_prop = this->GetProperties();
+    const auto&           r_prop = this->GetProperties();
     const CheckProperties check_properties(r_prop, "parameter list", element_Id,
                                            CheckProperties::Bounds::AllExclusive);
     check_properties.CheckAvailability(IGNORE_UNDRAINED);
