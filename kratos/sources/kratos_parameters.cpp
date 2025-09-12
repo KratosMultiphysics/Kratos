@@ -1486,8 +1486,6 @@ void Parameters::RecursivelyAddMissingParameters(const Parameters& rDefaultParam
 
 void Parameters::Validate(const Parameters& rSchema) const
 {
-    KRATOS_TRY
-
     // 1. Create the validator instance.
     using ValidatorType = nlohmann::json_schema::json_validator;
     ValidatorType validator;
@@ -1518,8 +1516,6 @@ void Parameters::Validate(const Parameters& rSchema) const
         msg << "Schema used for validation:\n" << rSchema.PrettyPrintJsonString() << "\n";
         KRATOS_ERROR << msg.str() << std::endl;
     }
-
-    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
