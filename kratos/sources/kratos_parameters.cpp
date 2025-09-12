@@ -1455,6 +1455,35 @@ void Parameters::RecursivelyValidateDefaults(const Parameters& rDefaultParameter
 /***********************************************************************************/
 /***********************************************************************************/
 
+void Parameters::RecursivelyAddMissingParameters(const Parameters& rDefaultParameters)
+{
+    KRATOS_TRY
+
+    // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
+    if (rDefaultParameters.IsSubParameter()) {
+        for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
+            const std::string& r_item_name = itr.key();
+
+            if(mpValue->find(r_item_name) == mpValue->end()) {
+                (*mpValue)[r_item_name] = itr.value();
+            }
+
+            // Now walk the tree recursively
+            if(itr->is_object()) {
+                Parameters subobject = (*this)[r_item_name];
+                Parameters defaults_subobject = rDefaultParameters[r_item_name];
+
+                subobject.RecursivelyAddMissingParameters(defaults_subobject);
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::Validate(const Parameters& rSchema) const
 {
     KRATOS_TRY
@@ -1488,50 +1517,6 @@ void Parameters::Validate(const Parameters& rSchema) const
         msg << "Parameters object being validated:\n" << this->PrettyPrintJsonString() << "\n\n";
         msg << "Schema used for validation:\n" << rSchema.PrettyPrintJsonString() << "\n";
         KRATOS_ERROR << msg.str() << std::endl;
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void Parameters::Validate(const std::string& rSchemaString) const
-{
-    KRATOS_TRY
-
-    // Create a temporary Parameters object from the schema string and call the main Validate method.
-    // This avoids code duplication and properly handles any include directives within the schema string.
-    Parameters schema(rSchemaString);
-    this->Validate(schema);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void Parameters::RecursivelyAddMissingParameters(const Parameters& rDefaultParameters)
-{
-    KRATOS_TRY
-
-    // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
-    if (rDefaultParameters.IsSubParameter()) {
-        for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
-            const std::string& r_item_name = itr.key();
-
-            if(mpValue->find(r_item_name) == mpValue->end()) {
-                (*mpValue)[r_item_name] = itr.value();
-            }
-
-            // Now walk the tree recursively
-            if(itr->is_object()) {
-                Parameters subobject = (*this)[r_item_name];
-                Parameters defaults_subobject = rDefaultParameters[r_item_name];
-
-                subobject.RecursivelyAddMissingParameters(defaults_subobject);
-            }
-        }
     }
 
     KRATOS_CATCH("")

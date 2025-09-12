@@ -933,15 +933,6 @@ public:
      */
     void Validate(const Parameters& rSchema) const;
 
-    /**
-     * @brief Validates the current parameters against a given JSON schema provided as a string.
-     * @details This is an overload that takes a raw string as the schema. It constructs
-     * a temporary Parameters object from the string and then performs the validation.
-     * It throws a detailed error if the validation fails.
-     * @param rSchemaString The string containing the JSON schema definition.
-     */
-    void Validate(const std::string& rSchemaString) const;
-
     ///@}
     ///@name Access
     ///@{
