@@ -59,7 +59,7 @@ void TetrahedralMeshOrientationCheck::Execute()
             const bool switched = this->Orient(r_geometry);
             if (switched) {
                 ++elem_switch_count;
-                ss_elements << "Element number" << it_elem->Id() << " is inverted. Volume: " << r_geometry->DomainSize() << "\n";
+                ss_elements << "Element number" << it_elem->Id() << " is inverted. Volume: " << r_geometry.DomainSize() << "\n";
             }
         }
     }
@@ -173,7 +173,7 @@ void TetrahedralMeshOrientationCheck::Execute()
                         r_face_geom(0).swap(r_face_geom(1));
                         face_normal = -face_normal;
                         ++cond_switch_count;
-                        ss_conditions << "Condition number" << (list_conditions[0])->Id() << " is inverted. Area: " << r_face_geom->DomainSize() << "\n";
+                        ss_conditions << "Condition number" << (list_conditions[0])->Id() << " is inverted. Area: " << r_face_geom.DomainSize() << "\n";
                     }
 
                     if(mrOptions.Is(COMPUTE_NODAL_NORMALS)) {
