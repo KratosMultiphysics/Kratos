@@ -1098,6 +1098,130 @@ class TestParameters(KratosUnittest.TestCase):
 
         self.assertEqual(check, loaded_parameters.WriteJsonString())
 
+# Helper string for a valid JSON Schema
+solver_schema = """{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "SolverSettings",
+    "description": "Schema for solver settings in Kratos",
+    "type": "object",
+    "properties": {
+        "solver_type": {
+            "description": "The type of linear solver",
+            "type": "string",
+            "enum": ["AMGCL", "GMRES", "Direct"]
+        },
+        "max_iteration": {
+            "type": "integer",
+            "minimum": 1
+        },
+        "tolerance": {
+            "type": "number",
+            "exclusiveMinimum": 0.0
+        },
+        "preconditioner": {
+            "type": "object",
+            "properties": {
+                "preconditioner_type": { "type": "string" },
+                "max_sweeps": { "type": "integer" }
+            },
+            "required": ["preconditioner_type"]
+        }
+    },
+    "required": ["solver_type", "max_iteration"]
+}"""
+
+class TestParametersJSONSchemaValidation(KratosUnittest.TestCase):
+    """Test suite for the Parameters.Validate(schema) method.
+
+    This class verifies that the Python bindings for JSON schema validation
+    behave as expected, covering successful validation, various common
+    failure modes, and error handling for invalid schemas.
+    """
+
+    def setUp(self):
+        """Set up the test case by creating a reusable schema object."""
+        self.schema = Parameters(solver_schema)
+
+    def test_successful_validation(self):
+        """Checks that a fully valid Parameters object passes validation without raising an exception."""
+        valid_params = Parameters("""{
+            "solver_type": "AMGCL",
+            "max_iteration": 500,
+            "tolerance": 1e-9
+        }""")
+        # This call should execute without throwing any errors.
+        valid_params.Validate(self.schema)
+
+    def test_successful_nested_validation(self):
+        """Checks that a valid Parameters object with nested sub-objects also passes validation."""
+        valid_params_nested = Parameters("""{
+            "solver_type": "GMRES",
+            "max_iteration": 1000,
+            "preconditioner": {
+                "preconditioner_type": "ILU0",
+                "max_sweeps": 5
+            }
+        }""")
+        # This should not throw, confirming that nested structures are handled correctly.
+        valid_params_nested.Validate(self.schema)
+
+    def test_validation_fails_on_wrong_type(self):
+        """Checks that a type mismatch (e.g., string instead of integer) correctly raises a RuntimeError."""
+        invalid_type_params = Parameters("""{
+            "solver_type": "AMGCL",
+            "max_iteration": "one_thousand"
+        }""")
+        # Expect a RuntimeError because "max_iteration" must be an integer.
+        with self.assertRaisesRegex(RuntimeError, "JSON schema validation failed."):
+            invalid_type_params.Validate(self.schema)
+
+    def test_validation_fails_on_missing_required_property(self):
+        """Checks that a missing property marked as 'required' in the schema correctly raises a RuntimeError."""
+        missing_property_params = Parameters("""{
+            "solver_type": "Direct"
+        }""")
+        # Expect a RuntimeError because "max_iteration" is required by the schema but is missing.
+        with self.assertRaisesRegex(RuntimeError, "JSON schema validation failed."):
+            missing_property_params.Validate(self.schema)
+
+    def test_validation_fails_on_constraint_violation(self):
+        """Checks that violating a numerical constraint (e.g., minimum, exclusiveMinimum) raises a RuntimeError."""
+        constraint_violation_params = Parameters("""{
+            "solver_type": "GMRES",
+            "max_iteration": 200,
+            "tolerance": 0.0
+        }""")
+        # Expect a RuntimeError because "tolerance" must be exclusively greater than 0.0.
+        with self.assertRaisesRegex(RuntimeError, "JSON schema validation failed."):
+            constraint_violation_params.Validate(self.schema)
+
+    def test_validation_fails_on_nested_error(self):
+        """Checks that an error deep in a nested object is correctly found, proving recursive validation."""
+        nested_error_params = Parameters("""{
+            "solver_type": "GMRES",
+            "max_iteration": 1000,
+            "preconditioner": {
+                "max_sweeps": 5
+            }
+        }""")
+        # Expect a RuntimeError because "preconditioner_type" is required inside the nested object.
+        with self.assertRaisesRegex(RuntimeError, "JSON schema validation failed."):
+            nested_error_params.Validate(self.schema)
+
+    def test_validation_fails_on_invalid_schema(self):
+        """Checks that using a malformed schema itself raises a specific RuntimeError."""
+        # This schema is invalid because "minimum" expects a number, not a string "zero".
+        invalid_schema = Parameters("""{
+            "type": "object",
+            "properties": {
+                "age": { "type": "integer", "minimum": "zero" }
+            }
+        }""")
+        data_for_invalid_schema = Parameters('{"age": 30}')
+
+        # Expect a specific error message indicating that the schema, not the data, is the problem.
+        with self.assertRaisesRegex(RuntimeError, "The provided JSON schema is invalid"):
+            data_for_invalid_schema.Validate(invalid_schema)
 
 if __name__ == '__main__':
     KratosUnittest.main()
