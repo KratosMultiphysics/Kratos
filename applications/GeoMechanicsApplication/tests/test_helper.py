@@ -444,7 +444,7 @@ def want_test_plots() -> bool:
     return os.environ.get("KRATOS_GEO_MAKE_TEST_PLOTS", "off").lower() == "on"
 
 
-def get_data_points_from_file(file_path, line_to_data_point):
+def get_data_points_from_file(file_path, data_point_extractor):
     result = []
     with open(file_path, "r") as f:
         for line in f:
@@ -452,7 +452,7 @@ def get_data_points_from_file(file_path, line_to_data_point):
             if not line or line.startswith("#"):
                 continue
 
-            result.append(line_to_data_point(line))
+            result.append(data_point_extractor(line))
 
     return result
 

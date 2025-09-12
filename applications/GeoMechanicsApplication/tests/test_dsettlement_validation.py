@@ -482,7 +482,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             {
                 "output_data": output_stage_3,
                 "time_in_s": unit_conversions.days_to_seconds(0.1) + 1.0,
-                "expected_total_u_y": 0.0,
+                "expected_total_u_y": 0.0,  # analytical value
                 "delta": 0.01,
             },
             {
@@ -500,7 +500,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             {
                 "output_data": output_stage_3,
                 "time_in_s": unit_conversions.days_to_seconds(100),
-                "expected_total_u_y": -1.75,
+                "expected_total_u_y": -1.75,  # analytical value
                 "delta": 0.06,
             },
             {
@@ -518,7 +518,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             {
                 "output_data": output_stage_5,
                 "time_in_s": unit_conversions.days_to_seconds(10000),
-                "expected_total_u_y": -7.90,
+                "expected_total_u_y": -7.90,  # analytical value
                 "delta": 0.12,
             },
         ]
