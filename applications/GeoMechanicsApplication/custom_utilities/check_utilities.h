@@ -112,6 +112,15 @@ public:
                          << mId << "." << std::endl;
     }
 
+    template <typename T, typename Eq>
+    void CheckAvailabilityAndEquality(const Kratos::Variable<T>& rVariable, const Eq& rName) const
+    {
+        CheckAvailability(rVariable);
+        KRATOS_ERROR_IF_NOT(mrProperties[rVariable] == rName)
+            << rVariable.Name() << " has a value of (" << mrProperties[rVariable]
+            << ") instead of (" << rName << ") at element " << mId << "." << std::endl;
+    }
+
     void CheckPermeabilityProperties(size_t Dimension) const;
 
 private:
