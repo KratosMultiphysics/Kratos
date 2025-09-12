@@ -1455,6 +1455,62 @@ void Parameters::RecursivelyValidateDefaults(const Parameters& rDefaultParameter
 /***********************************************************************************/
 /***********************************************************************************/
 
+void Parameters::Validate(const Parameters& rSchema) const
+{
+    KRATOS_TRY
+
+    // 1. Create the validator instance.
+    using ValidatorType = nlohmann::json_schema::json_validator;
+    ValidatorType validator;
+
+    // 2. The schema validator library may throw an error if the schema itself is invalid.
+    // We catch this to provide a more informative Kratos error message.
+    try {
+        // Set the root schema using the underlying nlohmann::json object.
+        validator.set_root_schema(*(rSchema.GetUnderlyingStorage()));
+    } catch (const std::exception& e) {
+        std::stringstream msg;
+        msg << "The provided JSON schema is invalid and could not be parsed.\n";
+        msg << "Schema parsing error: " << e.what() << "\n\n";
+        msg << "Invalid Schema:\n" << rSchema.PrettyPrintJsonString() << "\n";
+        KRATOS_ERROR << msg.str() << std::endl;
+    }
+
+    // 3. Perform the validation. This call will throw on failure.
+    try {
+        // Validate the current object's underlying nlohmann::json (mpValue).
+        validator.validate(*mpValue);
+    } catch (const std::exception& e) {
+        // 4. On validation failure, catch the standard exception and re-throw a detailed KRATOS_ERROR.
+        std::stringstream msg;
+        msg << "JSON schema validation failed.\n";
+        msg << "Validation Error: " << e.what() << "\n\n";
+        msg << "Parameters object being validated:\n" << this->PrettyPrintJsonString() << "\n\n";
+        msg << "Schema used for validation:\n" << rSchema.PrettyPrintJsonString() << "\n";
+        KRATOS_ERROR << msg.str() << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void Parameters::Validate(const std::string& rSchemaString) const
+{
+    KRATOS_TRY
+
+    // Create a temporary Parameters object from the schema string and call the main Validate method.
+    // This avoids code duplication and properly handles any include directives within the schema string.
+    Parameters schema(rSchemaString);
+    this->Validate(schema);
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::RecursivelyAddMissingParameters(const Parameters& rDefaultParameters)
 {
     KRATOS_TRY
