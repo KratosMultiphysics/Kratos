@@ -11,11 +11,24 @@
 //
 
 #include "element_setup_utilities.h"
+#include "custom_conditions/Pw_point_flux_condition.hpp"
+#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
 #include "custom_conditions/line_load_2D_diff_order_condition.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/calculation_contribution.h"
+#include "custom_elements/interface_element.h"
+#include "custom_elements/interface_stress_state.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/three_dimensional_stress_state.h"
+#include "custom_elements/transient_Pw_line_element.h"
+#include "custom_geometries/interface_geometry.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_8.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/point_3d.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/triangle_2d_10.h"
 #include "geometries/triangle_2d_15.h"
@@ -78,12 +91,37 @@ std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor3D10NElement()
             {0.5, 0.5, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}};
 }
 
+std::vector<Point> ElementSetupUtilities::CreatePointsFor3D20NElement()
+{
+    return {{0.0, 1.0, 1.0}, {0.0, 1.0, 0.5}, {0.5, 1.0, 1.0}, {0.0, 0.5, 1.0}, {0.0, 0.0, 1.0},
+            {1.0, 1.0, 1.0}, {0.0, 1.0, 0.0}, {1.0, 0.5, 1.0}, {1.0, 1.0, 0.5}, {0.0, 0.0, 0.5},
+            {0.5, 1.0, 0.0}, {0.0, 0.5, 0.0}, {0.5, 0.0, 1.0}, {1.0, 1.0, 0.0}, {1.0, 0.0, 1.0},
+            {0.0, 0.0, 0.0}, {0.5, 0.0, 0.0}, {1.0, 0.5, 0.0}, {1.0, 0.0, 0.5}, {1.0, 0.0, 0.0}};
+}
+
+std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor3D6NInterfaceElement()
+{
+    return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0},
+            {0.0, 0.0, 0.1}, {1.0, 0.0, 0.1}, {0.0, 1.0, 0.1}};
+}
+
 std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor2D15NElement()
 {
     return {{0.00, 0.00, 0.0}, {1.00, 0.00, 0.0}, {0.00, 1.00, 0.0}, {0.25, 0.00, 0.0},
             {0.50, 0.00, 0.0}, {0.75, 0.00, 0.0}, {0.75, 0.25, 0.0}, {0.50, 0.50, 0.0},
             {0.25, 0.75, 0.0}, {0.00, 0.75, 0.0}, {0.00, 0.50, 0.0}, {0.00, 0.25, 0.0},
             {0.25, 0.25, 0.0}, {0.50, 0.25, 0.0}, {0.25, 0.50, 0.0}};
+}
+
+std::vector<Point> ElementSetupUtilities::CreatePointsFor3D4NElement()
+{
+    return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
+}
+
+std::vector<Point> ElementSetupUtilities::CreatePointsFor3D8NElement()
+{
+    return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.0, 1.0, 0.0},
+            {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}, {1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}};
 }
 
 Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<Node>& rNodes,
@@ -97,6 +135,53 @@ Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<No
 Element::Pointer ElementSetupUtilities::Create2D3NElement()
 {
     return Create2D3NElement(GenerateNodes(CreatePointsFor2D3NElement()), std::make_shared<Properties>(0));
+}
+
+Element::Pointer ElementSetupUtilities::Create2D2NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
+{
+    using enum CalculationContribution;
+    const auto contributions = {Permeability, Compressibility, FluidBodyFlow};
+
+    return make_intrusive<TransientPwLineElement<2, 2>>(
+        1, Kratos::make_shared<Line2D2<Node>>(rNodes), rProperties, contributions, nullptr);
+}
+
+Condition::Pointer ElementSetupUtilities::Create3D3NCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 3>>(1, Kratos::make_shared<Triangle3D3<Node>>(rNodes));
+}
+
+Condition::Pointer ElementSetupUtilities::Create3D4NCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 4>>(
+        1, Kratos::make_shared<Quadrilateral3D4<Node>>(rNodes));
+}
+
+Condition::Pointer ElementSetupUtilities::Create3D6NCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 6>>(1, Kratos::make_shared<Triangle3D6<Node>>(rNodes));
+}
+
+Condition::Pointer ElementSetupUtilities::Create3D8NCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 8>>(
+        1, Kratos::make_shared<Quadrilateral3D8<Node>>(rNodes));
+}
+
+Condition::Pointer ElementSetupUtilities::Create3D1NCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<PwPointFluxCondition<3, 1>>(1, Kratos::make_shared<Point3D<Node>>(rNodes));
+}
+
+Condition::Pointer ElementSetupUtilities::Create2D2NCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<UPwNormalFaceLoadCondition<2, 2>>(1, Kratos::make_shared<Line2D2<Node>>(rNodes));
+}
+
+Condition::Pointer ElementSetupUtilities::Create3D3NLineCondition(const PointerVector<Node>& rNodes)
+{
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 3>>(1, Kratos::make_shared<Line3D3<Node>>(rNodes));
 }
 
 Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
@@ -152,6 +237,21 @@ Element::Pointer ElementSetupUtilities::Create2D15NElement()
     return Create2D15NElement(GenerateNodes(CreatePointsFor2D15NElement()), std::make_shared<Properties>(0));
 }
 
+Element::Pointer ElementSetupUtilities::Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                                   const Properties::Pointer& rProperties)
+{
+    return make_intrusive<InterfaceElement>(1, std::make_shared<InterfaceGeometry<Triangle3D3<Node>>>(rNodes),
+                                            rProperties, std::make_unique<SurfaceInterfaceStressState>());
+}
+
+Element::Pointer ElementSetupUtilities::Create3D4NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<3, 4>>(
+        1, Kratos::make_shared<Tetrahedra3D4<Node>>(rNodes), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
+}
+
 Element::Pointer ElementSetupUtilities::Create3D10NElement(const PointerVector<Node>& rNodes,
                                                            const Properties::Pointer& rProperties)
 {
@@ -163,6 +263,22 @@ Element::Pointer ElementSetupUtilities::Create3D10NElement(const PointerVector<N
 Element::Pointer ElementSetupUtilities::Create3D10NElement()
 {
     return Create3D10NElement(GenerateNodes(CreatePointsFor3D10NElement()), std::make_shared<Properties>(0));
+}
+
+Element::Pointer ElementSetupUtilities::Create3D8NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<3, 8>>(
+        1, Kratos::make_shared<Hexahedra3D8<Node>>(rNodes), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
+}
+
+Element::Pointer ElementSetupUtilities::Create3D20NElement(const PointerVector<Node>& rNodes,
+                                                           const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<3, 20>>(
+        1, Kratos::make_shared<Hexahedra3D20<Node>>(rNodes), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
 }
 
 Condition::Pointer ElementSetupUtilities::Create2D3NLineCondition(const PointerVector<Node>& rNodes,
