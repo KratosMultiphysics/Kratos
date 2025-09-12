@@ -21,7 +21,6 @@
 
 // Project includes
 #include "includes/kratos_parameters.h"
-#include "includes/define.h"
 #include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
 
