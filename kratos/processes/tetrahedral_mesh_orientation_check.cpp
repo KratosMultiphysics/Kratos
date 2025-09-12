@@ -157,7 +157,11 @@ void TetrahedralMeshOrientationCheck::Execute()
             const bool switched = this->Orient(r_geometry);
             if (switched) {
                 ++elem_switch_count;
-                ss_elements << "Element number" << it_elem->Id() << " is inverted. Volume: " << r_geometry.DomainSize() << "\n";
+                if (mOptions.Is(DETAILED_INVERTED_ENTITIES_MESSAGE)) {
+                    ss_elements << "Element number: " << it_elem->Id() << " is inverted. Volume: " << r_geometry.DomainSize() << "\n";
+                } else {
+                    ss_elements << "\t" << it_elem->Id() << ",";
+                }
             }
         }
     }
@@ -167,7 +171,11 @@ void TetrahedralMeshOrientationCheck::Execute()
     if (elem_switch_count > 0) {
         out_message << "Mesh orientation check found " << elem_switch_count << " inverted elements.\n";
         if (mOptions.Is(DETAILED_INVERTED_ENTITIES_MESSAGE)) {
-            out_message << ss_elements.str() << "\n";
+            out_message << "The following elements were inverted:\n"
+                        << ss_elements.str();
+        } else {
+            out_message << "The IDs of the inverted elements are:\n"
+                        << ss_elements.str() << "\n";
         }
     } else {
         out_message << "No inverted elements found" << std::endl;
@@ -274,7 +282,11 @@ void TetrahedralMeshOrientationCheck::Execute()
                         r_face_geom(0).swap(r_face_geom(1));
                         face_normal = -face_normal;
                         ++cond_switch_count;
-                        ss_conditions << "Condition number" << (list_conditions[0])->Id() << " is inverted. Area: " << r_face_geom.DomainSize() << "\n";
+                        if (mOptions.Is(DETAILED_INVERTED_ENTITIES_MESSAGE)) {
+                            ss_conditions << "Condition number: " << (list_conditions[0])->Id() << " is inverted. Area: " << r_face_geom.DomainSize() << "\n";
+                        } else {
+                            ss_conditions << "\t" << (list_conditions[0])->Id() << ",";
+                        }
                     }
 
                     if (mOptions.Is(COMPUTE_NODAL_NORMALS)) {
@@ -285,7 +297,7 @@ void TetrahedralMeshOrientationCheck::Execute()
                     }
                     if (mOptions.Is(COMPUTE_CONDITION_NORMALS)) {
                         for (const Condition::Pointer& p_cond : list_conditions) {
-                            p_cond->SetValue(NORMAL, face_normal );
+                            p_cond->SetValue(NORMAL, face_normal);
                         }
                     }
 
@@ -306,7 +318,11 @@ void TetrahedralMeshOrientationCheck::Execute()
     if (cond_switch_count > 0) {
         out_message << "Mesh orientation check found " << cond_switch_count << " inverted conditions.\n";
         if (mOptions.Is(DETAILED_INVERTED_ENTITIES_MESSAGE)) {
-            out_message << ss_conditions.str() << std::endl;
+            out_message << "The following conditions were inverted:\n"
+                        << ss_conditions.str();
+        } else {
+            out_message << "The IDs of the inverted conditions are:\n"
+                        << ss_conditions.str() << "\n";
         }
     } else {
         out_message << "No inverted conditions found" << std::endl;
