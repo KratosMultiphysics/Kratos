@@ -250,7 +250,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         end_time = 1.0
         nodal_stress_tensors = test_helper.GiDOutputFileReader.nodal_values_at_time("CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
         expected_stress_yy = -1e4
-        self.assertNotEqual(0, len(nodal_stress_tensors))
+        self.assertEqual(len(bottom_node_ids), len(nodal_stress_tensors))
         for stress_tensor in nodal_stress_tensors:
             self.assertAlmostEqual(stress_tensor[1], expected_stress_yy)
 
