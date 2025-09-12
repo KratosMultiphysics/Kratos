@@ -40,9 +40,8 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         n_dim = 2
         self.assert_linear_elastic_block(simulation, output_data, top_node_nbrs, n_dim)
 
-        # FIXME: At present the Cauchy stresses at the _nodes_ are not being output
-        #bottom_node_ids = [5, 7, 9]
-        #self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
+        bottom_node_ids = [5, 7, 9]
+        self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
 
         with open(os.path.join(file_path,f"{test_name}_json_output.json")) as f:
             calculated_results = json.load(f)
