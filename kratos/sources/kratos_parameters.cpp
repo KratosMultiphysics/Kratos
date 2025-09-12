@@ -17,6 +17,7 @@
 
 // External includes
 #include "json/json.hpp" // Import nlohmann json library
+#include "json-schema-validator/nlohmann-json-schema-validator.hpp" // Import nlohmann json schema validator
 
 // Project includes
 #include "includes/kratos_parameters.h"
