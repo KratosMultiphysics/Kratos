@@ -278,44 +278,15 @@ void UPwSmallStrainElement<TDim, TNumNodes>::SaveGPStress(Matrix&       rStressC
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& StressContainer)
+void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix&)
 {
     KRATOS_TRY
 
     GeometryType&               r_geometry = this->GetGeometry();
     const double&               area       = r_geometry.Area(); // In 3D this is volume
-    array_1d<Vector, TNumNodes> nodal_stress_vector;            // List with stresses at each node
-    array_1d<Matrix, TNumNodes> nodal_stress_tensor;
-
-    auto const StressTensorSize = this->GetStressStatePolicy().GetStressTensorSize();
-    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {
-        nodal_stress_vector[iNode].resize(this->GetStressStatePolicy().GetVoigtSize());
-        nodal_stress_tensor[iNode].resize(StressTensorSize, StressTensorSize);
-    }
-
-    BoundedMatrix<double, TNumNodes, TNumNodes> extrapolation_matrix;
-    this->CalculateExtrapolationMatrix(extrapolation_matrix);
-
-    Matrix AuxNodalStress;
-    AuxNodalStress.resize(TNumNodes, this->GetStressStatePolicy().GetVoigtSize());
-    noalias(AuxNodalStress) = prod(extrapolation_matrix, StressContainer);
-
-    /* INFO:
-     *
-     *                  |S0-0 S1-0 S2-0|
-     * AuxNodalStress = |S0-1 S1-1 S2-1|
-     *                  |S0-2 S1-2 S2-2|
-     *
-     * S1-0 = S[1] at node 0
-     */
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        noalias(nodal_stress_vector[i]) = row(AuxNodalStress, i) * area;
-        noalias(nodal_stress_tensor[i]) = MathUtils<double>::StressVectorToTensor(nodal_stress_vector[i]);
-
         r_geometry[i].SetLock();
-        noalias(r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) +=
-            nodal_stress_tensor[i];
         r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += area;
         r_geometry[i].UnSetLock();
     }
