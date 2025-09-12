@@ -4,16 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:           BSD License
-//                          Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//
 
-#ifndef KRATOS_TETRAHEDRAL_MESH_ORIENTATION_CHECK_H
-#define KRATOS_TETRAHEDRAL_MESH_ORIENTATION_CHECK_H
+#pragma once
 
 // System includes
 
@@ -29,12 +27,6 @@ namespace Kratos
 {
 ///@name Type Definitions
 ///@{
-
-/// The definition of the node
-typedef Node NodeType;
-
-/// The definition of the geometry
-typedef Geometry<NodeType> GeometryType;
 
 ///@}
 ///@name Kratos Classes
@@ -56,7 +48,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    //DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
+    // DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
     KRATOS_DEFINE_LOCAL_FLAG(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_NODAL_NORMALS);
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_CONDITION_NORMALS);
@@ -67,45 +59,48 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedralMeshOrientationCheck);
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t ;
 
-    /// Definition of the node type
-    typedef Node NodeType;
-
-    // Definition of the geometry
-    typedef Geometry<NodeType> GeometryType;
+    /// Definition of the geometry
+    using GeometryType = Geometry<Node>;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor for TetrahedralMeshOrientationCheck Process
     /**
+     * @brief Constructor for TetrahedralMeshOrientationCheck Process
      * @param rModelPart The model part to check.
      * @param ThrowErrors If true, an error will be thrown if the input model part contains malformed elements or conditions.
+     * @param Options The flags to be set
      */
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
         bool ThrowErrors,
-        const Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
+        const Flags Options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(ThrowErrors), //to be changed to a flag
-            mrOptions(options)
+            mrOptions(Options)
 
     {
     }
 
+    /**
+     * @brief Constructor for TetrahedralMeshOrientationCheck Process (simplified)
+     * @param rModelPart The model part to check.
+     * @param Options The flags to be set
+     */
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
-        const Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
+        const Flags Options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(false),
-            mrOptions(options)
+            mrOptions(Options)
     {
     }
 
@@ -126,23 +121,27 @@ public:
     ///@name Operations
     ///@{
 
-
-    /// Check elements to make sure that their jacobian is positive and conditions to ensure that their face normals point outwards
+    /**
+     * @brief Checks elements for positive Jacobian and conditions for outward-pointing normals.
+     * @details This method iterates through all tetrahedral elements in the `ModelPart` to verify that their Jacobian is positive,
+     * which ensures they are not inverted. It also checks that the face normals of all conditions point outwards from the mesh.
+     * If the `ThrowErrors` flag is set in the constructor, an exception will be thrown upon finding an invalid element or condition.
+     */
     void Execute() override;
 
+    /**
+     * @brief Swaps the orientation of all tetrahedral elements in the mesh.
+     * @details This method reverses the connectivity (node order) of every tetrahedral element and condition in the `ModelPart`.
+     * This is useful for correcting the global orientation of a mesh.
+     */
     void SwapAll();
 
+    /**
+     * @brief Swaps the orientation of elements with a negative Jacobian.
+     * @details This method is specifically designed to correct inverted elements. It iterates through the elements, and if an element's
+     * Jacobian is found to be negative, its connectivity is reversed to correct its orientation and ensure a positive Jacobian.
+     */
     void SwapNegativeElements();
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -166,17 +165,12 @@ public:
         this->PrintInfo(rOStream);
     }
 
-
     ///@}
-    ///@name Friends
+protected:
+    ///@name Operations
     ///@{
 
-
-    ///@}
-
-protected:
-
-/**
+    /**
      * @brief tells if the element is linear or higher order
      * @param rGeometry The element geometry
      * @return true if linear, false if not
@@ -211,9 +205,6 @@ protected:
      */
     SizeType NumberOfNodesInEachBoundary(const GeometryType& rGeometry);
 
-
-
-
     /**
      * @brief Finds the nodes of each of the boundaries of the element
      * @param rGeometry The element geometry
@@ -221,11 +212,10 @@ protected:
      */
     void NodesOfBoundaries(const GeometryType& rGeometry, DenseMatrix<int>& rNodesIds);
 
-
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -239,6 +229,13 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Checks the orientation of a given geometry and corrects it if necessary.
+     * @param rGeom The geometry whose orientation is to be checked.
+     * @return `true` if the geometry was originally correctly oriented or was successfully corrected; `false` otherwise.
+     * @details This method verifies if the geometry has a positive volume (or "Jacobian" for elements). If the volume is found to be negative, the method
+     * attempts to reverse the connectivity of the geometry (e.g., swapping node indices) to correct its orientation.
+     */
     bool Orient(GeometryType& rGeom);
 
     ///@}
@@ -256,14 +253,12 @@ private:
 }; // Class Process
 
 ///@}
-
 ///@name Type Definitions
 ///@{
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -281,9 +276,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
-
 } // namespace Kratos
-
-
-#endif // KRATOS_TETRAHEDRAL_MESH_ORIENTATION_PROCESS_H

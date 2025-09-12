@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:           BSD License
-//                          Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -15,6 +15,7 @@
 // System includes
 #include <unordered_map>
 #include <utility>
+#include <sstream>
 
 // External includes
 
@@ -46,6 +47,9 @@ void TetrahedralMeshOrientationCheck::Execute()
         VariableUtils().SetVariable(NORMAL, ZeroVector(3), mrModelPart.Nodes());
     }
 
+    // Create a stringstream object for the error message
+    std::stringstream ss_elements, ss_conditions;
+
     // Begin by orienting all of the elements in the volume
     SizeType elem_switch_count = 0;
 
@@ -53,15 +57,17 @@ void TetrahedralMeshOrientationCheck::Execute()
         GeometryType& r_geometry = it_elem->GetGeometry();
         if (SupportedElement(r_geometry)) { //acceptable quadratic geoms
             const bool switched = this->Orient(r_geometry);
-            if (switched)
-                elem_switch_count++;
+            if (switched) {
+                ++elem_switch_count;
+                ss_elements << "Element number" << it_elem->Id() << " is inverted. Volume: " << r_geometry->DomainSize() << "\n";
+            }
         }
     }
 
     // Generate output message, throw error if necessary
     std::stringstream out_message;
     if (elem_switch_count > 0) {
-        out_message << "Mesh orientation check found " << elem_switch_count << " inverted elements." << std::endl;
+        out_message << "Mesh orientation check found " << elem_switch_count << " inverted elements.\n" << ss_elements.str() << std::endl;
     } else {
         out_message << "No inverted elements found" << std::endl;
     }
@@ -166,8 +172,8 @@ void TetrahedralMeshOrientationCheck::Execute()
                     if(dotprod > 0.0) {
                         r_face_geom(0).swap(r_face_geom(1));
                         face_normal = -face_normal;
-
-                        cond_switch_count++;
+                        ++cond_switch_count;
+                        ss_conditions << "Condition number" << (list_conditions[0])->Id() << " is inverted. Area: " << r_face_geom->DomainSize() << "\n";
                     }
 
                     if(mrOptions.Is(COMPUTE_NODAL_NORMALS)) {
@@ -197,7 +203,7 @@ void TetrahedralMeshOrientationCheck::Execute()
     }
 
     if (cond_switch_count > 0) {
-        out_message << "Mesh orientation check found " << cond_switch_count << " inverted conditions." << std::endl;
+        out_message << "Mesh orientation check found " << cond_switch_count << " inverted conditions.\n" << ss_conditions.str() << std::endl;
     } else {
         out_message << "No inverted conditions found" << std::endl;
     }
@@ -260,11 +266,17 @@ bool TetrahedralMeshOrientationCheck::Orient(GeometryType& rGeometry)
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool TetrahedralMeshOrientationCheck::LinearElement(const GeometryType& rGeometry)
 {
     const GeometryData::KratosGeometryType geometry_type = rGeometry.GetGeometryType();
     return (geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 bool TetrahedralMeshOrientationCheck::SupportedElement(const GeometryType& rGeometry)
 {
@@ -273,12 +285,18 @@ bool TetrahedralMeshOrientationCheck::SupportedElement(const GeometryType& rGeom
             geometry_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 || geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle2D6); //acceptable quadratic geoms
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool TetrahedralMeshOrientationCheck::SupportedCondition(const GeometryType& rGeometry)
 {
     const GeometryData::KratosGeometryType geometry_type = rGeometry.GetGeometryType();
     return (geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || //acceptable linear geoms
             geometry_type == GeometryData::KratosGeometryType::Kratos_Triangle3D6 || geometry_type == GeometryData::KratosGeometryType::Kratos_Line2D3); //acceptable quadratic geoms
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 SizeType TetrahedralMeshOrientationCheck::BoundariesEntitiesNumber(const GeometryType& rGeometry) 
 {
@@ -290,6 +308,9 @@ SizeType TetrahedralMeshOrientationCheck::BoundariesEntitiesNumber(const Geometr
     }
     return 0;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 SizeType TetrahedralMeshOrientationCheck::NumberOfNodesInEachBoundary(const GeometryType& rGeometry) 
 {
@@ -305,6 +326,9 @@ SizeType TetrahedralMeshOrientationCheck::NumberOfNodesInEachBoundary(const Geom
     }
     return 0;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void TetrahedralMeshOrientationCheck::NodesOfBoundaries(const GeometryType& rGeometry, DenseMatrix<int>& rNodesIds){
     IndexType n_boundaries = BoundariesEntitiesNumber(rGeometry);
@@ -331,6 +355,5 @@ void TetrahedralMeshOrientationCheck::NodesOfBoundaries(const GeometryType& rGeo
         }
     }
 }
-
 
 } // namespace Kratos
