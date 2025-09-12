@@ -100,7 +100,7 @@ std::string GeometryUtils::GetGeometryName(const GeometryData::KratosGeometryTyp
         case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface:
             return "Nurbs_Curve_On_Surface";
         case GeometryData::KratosGeometryType::Kratos_Nurbs_Surface_On_Volume:
-            return "Nurbs_Surface_On_Volum";
+            return "Nurbs_Surface_On_Volume";
         case GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume:
             return "Surface_In_Nurbs_Volume";
         case GeometryData::KratosGeometryType::Kratos_Brep_Curve:

@@ -392,7 +392,7 @@ public:
      */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::KratosGeometryType::Kratos_Brep_Surface;
+        return GeometryData::KratosGeometryType::Kratos_Brep_Volume;
     }
 
     /**
@@ -511,8 +511,8 @@ private:
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
         rSerializer.load("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.load("IsTrimmed", mIsTrimmed);
-        rSerializer.save("SurrogateInnerLoopGeometries", mpSurrogateInnerLoopGeometries);
-        rSerializer.save("SurrogateOuterLoopGeometries", mpSurrogateOuterLoopGeometries);
+        rSerializer.load("SurrogateInnerLoopGeometries", mpSurrogateInnerLoopGeometries);
+        rSerializer.load("SurrogateOuterLoopGeometries", mpSurrogateOuterLoopGeometries);
     }
 
     BrepVolume()
