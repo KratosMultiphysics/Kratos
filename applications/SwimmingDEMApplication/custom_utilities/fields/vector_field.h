@@ -93,7 +93,6 @@ virtual void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& va
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
 virtual std::string Info() const
 {

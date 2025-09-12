@@ -12,6 +12,7 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
@@ -47,37 +48,15 @@ int SteadyStatePwPipingElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurre
     if (ierr != 0) return ierr;
 
     KRATOS_TRY
-    const PropertiesType& rProp = this->GetProperties();
-    // Verify properties
-    if (rProp.Has(PIPE_ETA) == false || rProp[PIPE_ETA] < 0.0)
-        KRATOS_ERROR << "PIPE_ETA has Key zero, is not defined or has an "
-                        "invalid value at element "
-                     << this->Id() << std::endl;
+    const CheckProperties check_properties(this->GetProperties(), "property at element", this->Id(),
+                                           CheckProperties::Bounds::AllInclusive);
+    check_properties.Check(PIPE_ETA);
+    check_properties.Check(PIPE_THETA);
+    check_properties.Check(PIPE_D_70);
+    check_properties.CheckAvailability(PIPE_START_ELEMENT);
+    check_properties.CheckAvailability(PIPE_MODIFIED_D);
+    check_properties.CheckAvailability(PIPE_MODEL_FACTOR);
 
-    if (rProp.Has(PIPE_THETA) == false || rProp[PIPE_THETA] < 0.0)
-        KRATOS_ERROR << "PIPE_THETA has Key zero, is not defined or has an "
-                        "invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (rProp.Has(PIPE_D_70) == false || rProp[PIPE_D_70] < 0.0)
-        KRATOS_ERROR << "PIPE_D_70 has Key zero, is not defined or has an "
-                        "invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (rProp.Has(PIPE_START_ELEMENT) == false)
-        KRATOS_ERROR << "PIPE_START_ELEMENT has Key zero, is not defined or "
-                        "has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (rProp.Has(PIPE_MODIFIED_D) == false)
-        KRATOS_ERROR << "PIPE_MODIFIED_D has Key zero, is not defined or has "
-                        "an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (rProp.Has(PIPE_MODEL_FACTOR) == false)
-        KRATOS_ERROR << "PIPE_MODEL_FACTOR has Key zero, is not defined or has "
-                        "an invalid value at element "
-                     << this->Id() << std::endl;
     KRATOS_CATCH("")
 
     return ierr;
@@ -123,27 +102,11 @@ void SteadyStatePwPipingElement<2, 4>::CalculateLength(const GeometryType& Geom)
     KRATOS_CATCH("")
 }
 
-template <>
-void SteadyStatePwPipingElement<3, 6>::CalculateLength(const GeometryType& Geom)
-{
-    KRATOS_ERROR << " Length of SteadyStatePwPipingElement3D6N element is not "
-                    "implemented"
-                 << std::endl;
-}
-
-template <>
-void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
-{
-    KRATOS_ERROR << " Length of SteadyStatePwPipingElement3D8N element is not "
-                    "implemented"
-                 << std::endl;
-}
-
 template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<bool>& rVariable, std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     if (rVariable == PIPE_ACTIVE) {
         const GeometryType& Geom = this->GetGeometry();
@@ -163,7 +126,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     if (rVariable == PIPE_HEIGHT) {
         const GeometryType& Geom = this->GetGeometry();
@@ -262,26 +225,6 @@ double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const PropertiesT
     return std::abs((nodalHead[3] + nodalHead[0]) / 2 - (nodalHead[2] + nodalHead[1]) / 2) / dx;
 }
 
-template <>
-double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const PropertiesType& Prop,
-                                                               const GeometryType&   Geom,
-                                                               double                dx)
-{
-    KRATOS_ERROR << " head gradient calculation of "
-                    "SteadyStatePwPipingElement3D6N element is not implemented"
-                 << std::endl;
-}
-
-template <>
-double SteadyStatePwPipingElement<3, 8>::CalculateHeadGradient(const PropertiesType& Prop,
-                                                               const GeometryType&   Geom,
-                                                               double                dx)
-{
-    KRATOS_ERROR << " head gradient calculation of "
-                    "SteadyStatePwPipingElement3D8N element is not implemented"
-                 << std::endl;
-}
-
 /// <summary>
 /// Calculates the equilibrium pipe height of a piping element according to Sellmeijers rule
 /// </summary>
@@ -321,6 +264,4 @@ bool SteadyStatePwPipingElement<TDim, TNumNodes>::InEquilibrium(const Properties
 }
 
 template class SteadyStatePwPipingElement<2, 4>;
-template class SteadyStatePwPipingElement<3, 6>;
-template class SteadyStatePwPipingElement<3, 8>;
 } // Namespace Kratos
