@@ -519,6 +519,7 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
 
     const Matrix integration_point_list_on_true_boundary  = this->GetValue(INTEGRATION_POINTS);
     const Vector integration_weight_list_on_true_boundary = this->GetValue(INTEGRATION_WEIGHTS);
+    const Matrix normals_on_true = this->GetValue(INTEGRATION_NORMALS);
     
     // Create a matrix: each row is a result vector (p_true, weight, gp_x, gp_y, fx, fy)
     const std::size_t num_results = integration_weight_list_on_true_boundary.size();
@@ -535,6 +536,12 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
         const Vector& gp = row(integration_point_list_on_true_boundary, i_gauss);
         const double weight = integration_weight_list_on_true_boundary[i_gauss];
         Vector d = gp - r_geometry.Center();
+
+        // normals
+        array_1d<double,3> true_normal;
+        true_normal[0] = normals_on_true(i_gauss,0);
+        true_normal[1] = normals_on_true(i_gauss,1);
+        true_normal[2] = normals_on_true(i_gauss,2);
 
         // === 1. Pressure at true boundary ===
         double p_true = 0.0;
@@ -570,32 +577,53 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
         ApplyConstitutiveLawTrue(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
         const Vector& r_stress_vector_on_true = values_true.GetStressVector();
 
-            std::string loop_identifier = this->GetValue(IDENTIFIER);
-            // Need also the second closest condition in 2D
-            Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
-            Condition candidate_closest_skin_segment_2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1] ;
-            array_1d<double,3> vector_skin_segment_1 = candidate_closest_skin_segment_1.GetGeometry()[1] - candidate_closest_skin_segment_1.GetGeometry()[0];
-            array_1d<double,3> vector_skin_segment_2 = candidate_closest_skin_segment_2.GetGeometry()[1] - candidate_closest_skin_segment_2.GetGeometry()[0];
-            array_1d<double,3> vector_out_of_plane = ZeroVector(3);
-            vector_out_of_plane[2] = 1.0;
+            // // Use the normal at the projection node if available (preferred over segment-based average)
+            // array_1d<double, 3> true_normal = ZeroVector(3);
+            // std::string loop_identifier = this->GetValue(IDENTIFIER);
+            // if (mpProjectionNode != nullptr) {
+            //     true_normal = mpProjectionNode->GetValue(NORMAL);
+            //     const double nrm = MathUtils<double>::Norm(true_normal);
+            //     // Enforce unit normal at projection node
+            //     KRATOS_ERROR_IF(std::abs(nrm - 1.0) > 1e-12)
+            //         << "Projection node NORMAL is not unit-length. Norm = " << nrm
+            //         << ". Node Id: " << mpProjectionNode->Id() << std::endl;
+            //     // Flip if inner
+            //     if (loop_identifier == "outer") {
+            //         true_normal = -true_normal;
+            //     }
+            // } else {
+            //     KRATOS_ERROR << "Projection node not set for condition with ID " << this->Id() << std::endl;
+            // }
+
+
+
+            // std::string loop_identifier = this->GetValue(IDENTIFIER);
+            // // Need also the second closest condition in 2D
+            // Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
+            // Condition candidate_closest_skin_segment_2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1] ;
+            // array_1d<double,3> vector_skin_segment_1 = candidate_closest_skin_segment_1.GetGeometry()[1] - candidate_closest_skin_segment_1.GetGeometry()[0];
+            // array_1d<double,3> vector_skin_segment_2 = candidate_closest_skin_segment_2.GetGeometry()[1] - candidate_closest_skin_segment_2.GetGeometry()[0];
+            // array_1d<double,3> vector_out_of_plane = ZeroVector(3);
+            // vector_out_of_plane[2] = 1.0;
             
-            array_1d<double,3> crossProductSkinSegment1;
-            array_1d<double,3> crossProductSkinSegment2; 
-            MathUtils<double>::CrossProduct(crossProductSkinSegment1, vector_out_of_plane, vector_skin_segment_1);
-            MathUtils<double>::CrossProduct(crossProductSkinSegment2, vector_out_of_plane, vector_skin_segment_2);
+            // array_1d<double,3> crossProductSkinSegment1;
+            // array_1d<double,3> crossProductSkinSegment2; 
+            // MathUtils<double>::CrossProduct(crossProductSkinSegment1, vector_out_of_plane, vector_skin_segment_1);
+            // MathUtils<double>::CrossProduct(crossProductSkinSegment2, vector_out_of_plane, vector_skin_segment_2);
             
-            array_1d<double, 3> true_normal = crossProductSkinSegment1 / MathUtils<double>::Norm(crossProductSkinSegment1) + crossProductSkinSegment2 / MathUtils<double>::Norm(crossProductSkinSegment2);
-            if (loop_identifier == "inner") {
-                true_normal = -true_normal / MathUtils<double>::Norm(true_normal) ; // TODO: check this
-            } else { // outer
-                true_normal = true_normal / MathUtils<double>::Norm(true_normal) ; // TODO: check this
-            }
+            // array_1d<double, 3> true_normal = crossProductSkinSegment1 / MathUtils<double>::Norm(crossProductSkinSegment1) + crossProductSkinSegment2 / MathUtils<double>::Norm(crossProductSkinSegment2);
+            // if (loop_identifier == "inner") {
+            //     true_normal = -true_normal / MathUtils<double>::Norm(true_normal) ; // TODO: check this
+            // } else { // outer
+            //     true_normal = true_normal / MathUtils<double>::Norm(true_normal) ; // TODO: check this
+            // }
+        
         
         // === 4. Compute traction = σ · n ===
         Vector normal_stress_true_old = ZeroVector(3);
         normal_stress_true_old[0] = (r_stress_vector_on_true[0] * true_normal[0] + r_stress_vector_on_true[2] * true_normal[1]);
         normal_stress_true_old[1] = (r_stress_vector_on_true[2] * true_normal[0] + r_stress_vector_on_true[1] * true_normal[1]);
-
+        
         // === 5. Compute force contribution ===
         Vector force = (normal_stress_true_old - p_true * true_normal);
 

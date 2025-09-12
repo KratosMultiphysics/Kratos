@@ -848,9 +848,10 @@ void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_p
         points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
         i_cond.SetValue(INTEGRATION_POINTS, Matrix(0, 3)); // 0 rows, 3D points
         i_cond.SetValue(INTEGRATION_WEIGHTS, Vector(0));
+        i_cond.SetValue(INTEGRATION_NORMALS,  Matrix(0,3)); // Nx3
     }
 
-    int order = 3;
+    int order = 0;
     if (mParameters.Has("precision_order_on_integration")) {
         order = mParameters["precision_order_on_integration"].GetInt();
     } 
@@ -858,13 +859,8 @@ void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_p
 
     DynamicBins testBins(points.begin(), points.end());
 
-    // KRATOS_WATCH(*mpModel)
-
     Vector meshSizes_uv_inner = analysis_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
     Vector meshSizes_uv_outer = analysis_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
-    
-    // KRATOS_WATCH(meshSizes_uv_inner)
-    // KRATOS_WATCH(meshSizes_uv_outer)
 
     const double meshSize= std::max(std::max(std::max(meshSizes_uv_inner[0], meshSizes_uv_inner[1]), meshSizes_uv_outer[0]), meshSizes_uv_outer[1]);
     const double radius = 2*sqrt(2)*(meshSize);
@@ -885,8 +881,27 @@ void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_p
             const CoordinateVector U_1 = i_cond.GetGeometry()[1];
             CoordinateVector distance_u = U_1 - U_0;
             const double length_u = norm_2(distance_u);
-            // Compue the integration points on this true segment
-            for (SizeType u = 0; u < num_points; ++u)
+
+            // Compute the normals at the integration points
+            // const auto& G = i_cond.GetGeometry(); // 2 nodes
+            // array_1d<double,3> n_avg = G[0].GetValue(NORMAL) + G[1].GetValue(NORMAL);
+            // const double nrm = norm_2(n_avg);
+            // if (nrm > 1e-15) {
+            //     n_avg /= nrm; // normalize average normal
+            // }
+            const auto& G = i_cond.GetGeometry();
+            array_1d<double,3> t = G[1].Coordinates() - G[0].Coordinates(); // tangente fisica
+            const double L = norm_2(t);
+            KRATOS_ERROR_IF(L < 1e-14) << "Zero-length skin segment (condition " << i_cond.Id() << ")" << std::endl;
+            t /= L;
+            // Normale "destra" (= rotazione -90°) del segmento
+            array_1d<double,3> n_avg;
+            n_avg[0] =  t[1];
+            n_avg[1] = -t[0];
+            n_avg[2] =  0.0;
+
+            // Compute the integration points on this true segment
+            for (SizeType u = 0; u < static_cast<SizeType>(num_points); ++u)
             {
                 const CoordinateVector curr_integration_point = U_0 + distance_u * integration_point_list_u[u][0];
                 const double curr_integration_weight = integration_point_list_u[u][1] * length_u;
@@ -936,6 +951,15 @@ void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_p
                 integration_weight_vector[old_size] = curr_integration_weight;
                 // Set back
                 r_condition.SetValue(INTEGRATION_WEIGHTS, integration_weight_vector);
+
+                // === INTEGRATION_NORMALS ===
+                Matrix normals_matrix = r_condition.GetValue(INTEGRATION_NORMALS);
+                const SizeType old_rows_normals = normals_matrix.size1();
+                normals_matrix.resize(old_rows_normals + 1, 3, true);
+                normals_matrix(old_rows_normals,0) = n_avg[0];
+                normals_matrix(old_rows_normals,1) = n_avg[1];
+                normals_matrix(old_rows_normals,2) = n_avg[2];
+                r_condition.SetValue(INTEGRATION_NORMALS, normals_matrix);
             }
         }
     }
