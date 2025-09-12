@@ -45,7 +45,7 @@ class FluidSolver(PythonSolver):
         self.element_name = None
         self.condition_name = None
         self.min_buffer_size = 3
-        self._enforce_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
+        self._enforce_element_and_conditions_replacement = True #TODO: Remove once we remove the I/O from the solver
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
