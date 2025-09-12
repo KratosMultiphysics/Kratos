@@ -1,6 +1,6 @@
 # Settlement of a soil column with the phreatic line below the soil surface
 
-This test is based on Test Case 3.  The model consists of a rectangular soil domain, $`1 [\mathrm{m}]`$ wide and $`50 [\mathrm{m}]`$ deep.  The mesh consists of `SmallStrainUPwDiffOrderElement2D6N` elements.  The phreatic line is located $`10 [\mathrm{m}]`$ below the soil surface, namely at $y = 40 [\mathrm{m}]$. Assuming a hydrostatic pressure distribution, the pressure boundary at the bottom is fixed at $`40 [\mathrm{kPa}]`$. Using the `fix_model_part_above_phreatic_line_process`, the pressure above the phreatic line is fixed at $`0 [\mathrm{kPa}]`$. Here, the material property `"USE_HENCKY_STRAIN"` is set to `false`. In combination with `"MOVE_MESH_FLAG"` as `false`, it leads to a NEN-Bjerrum formulation. The test is done with high intrinsic permeability ($`1.5041E-12 [\mathrm{m^2}]`$).
+This test is based on Test Case 3.  The model consists of a rectangular soil domain, $`1 [\mathrm{m}]`$ wide and $`50 [\mathrm{m}]`$ deep.  The mesh consists of `SmallStrainUPwDiffOrderElement2D6N` elements.  The phreatic line is located $`10 [\mathrm{m}]`$ below the soil surface, namely at $y = 40 [\mathrm{m}]$. Assuming a hydrostatic pressure distribution, the pressure boundary at the bottom is fixed at $`400 [\mathrm{kPa}]`$. Using the `fix_model_part_above_phreatic_line_process`, the pressure above the phreatic line is fixed at $`0 [\mathrm{kPa}]`$. Here, the material property `"USE_HENCKY_STRAIN"` is set to `false`. In combination with `"MOVE_MESH_FLAG"` as `false`, it leads to a NEN-Bjerrum formulation. The test is done with high intrinsic permeability ($`1.5041E-12 [\mathrm{m^2}]`$).
 
 A schematic can be found in the figure below:
 ![Schematic](column_partially_saturated.svg)
@@ -18,7 +18,7 @@ The following common conditions hold for all stages:
 - Displacements on the bottom are fixed in all directions.
 - Displacements on the sides are fixed in the $`X`$ direction.
 - Gravity is applied to the entire domain ($`-9.81 [\mathrm{m}/\mathrm{s}^2]`$ in the negative $`Y`$ direction).
-- Water pressures at the bottom are fixed at $`40 [\mathrm{kPa}]`$.
+- Water pressures at the bottom are fixed at $`400 [\mathrm{kPa}]`$.
 - Water pressures above the phreatic line are fixed at $`0 [\mathrm{kPa}]`$.
 
 From stage 4 onwards:
