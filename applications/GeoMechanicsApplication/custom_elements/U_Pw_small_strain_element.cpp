@@ -225,7 +225,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
 
     const auto number_of_integration_points =
         this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-    Matrix StressContainer(number_of_integration_points, mStressVector[0].size());
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         this->CalculateKinematics(Variables, integration_point);
@@ -243,42 +242,15 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
         mConstitutiveLawVector[integration_point]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
             STATE_VARIABLES, mStateVariablesFinalized[integration_point]);
-
-        if (rCurrentProcessInfo[NODAL_SMOOTHING])
-            this->SaveGPStress(StressContainer, mStressVector[integration_point], integration_point);
     }
 
-    if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues(StressContainer);
+    if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues();
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::SaveGPStress(Matrix&       rStressContainer,
-                                                          const Vector& StressVector,
-                                                          unsigned int  GPoint)
-{
-    KRATOS_TRY
-
-    for (unsigned int i = 0; i < StressVector.size(); ++i) {
-        rStressContainer(GPoint, i) = StressVector[i];
-    }
-
-    /* INFO: (Quadrilateral_2D_4 with GI_GAUSS_2)
-     *
-     *                      |S0-0 S1-0 S2-0|
-     * rStressContainer =   |S0-1 S1-1 S2-1|
-     *                      |S0-2 S1-2 S2-2|
-     *                      |S0-3 S1-3 S2-3|
-     *
-     * S1-0 = S[1] at GP 0
-     */
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix&)
+void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues()
 {
     KRATOS_TRY
 
