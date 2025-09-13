@@ -254,8 +254,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues()
 {
     KRATOS_TRY
 
-    GeometryType&               r_geometry = this->GetGeometry();
-    const double&               area       = r_geometry.Area(); // In 3D this is volume
+    GeometryType& r_geometry = this->GetGeometry();
+    const double& area       = r_geometry.Area(); // In 3D this is volume
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         r_geometry[i].SetLock();
