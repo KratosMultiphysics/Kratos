@@ -65,11 +65,8 @@ public:
         KRATOS_TRY
 
         if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING]) {
-            const unsigned int dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-            const auto stress_tensor_size = dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D;
-
             // Clear nodal variables
-            block_for_each(rModelPart.Nodes(), [&stress_tensor_size](Node& rNode) {
+            block_for_each(rModelPart.Nodes(), [](Node& rNode) {
                 rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
                 rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
                 rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA)      = 0.0;
