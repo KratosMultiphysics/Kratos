@@ -64,7 +64,7 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
 
-    const auto expected_sizes = (TDim == 2 ? std::vector<std::size_t>{3, 4} : std::vector<std::size_t>{6});
+    const auto expected_sizes = (TDim == 2 ? std::vector<std::size_t>{4} : std::vector<std::size_t>{6});
     ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_sizes, TDim, this->Id());
 
     return ierr;
