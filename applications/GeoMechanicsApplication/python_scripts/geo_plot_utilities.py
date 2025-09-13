@@ -23,6 +23,8 @@ def _make_plot(
         axes.set_xscale(xscale)
 
     for series in data_series_collection:
+        # Unpack the data from pairs into two lists. See
+        # https://stackoverflow.com/questions/21519203/plotting-a-list-of-x-y-coordinates for details.
         axes.plot(
             *zip(*series.data_points),
             label=series.label,
