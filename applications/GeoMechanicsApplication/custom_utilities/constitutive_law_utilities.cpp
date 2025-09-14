@@ -102,10 +102,9 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
 void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId)
 {
     const std::size_t strain_size = rProperties[CONSTITUTIVE_LAW]->GetStrainSize();
-    if (strain_size != ExpectedSize) {
-        KRATOS_ERROR << "Wrong constitutive law is used: strain size is " << strain_size << " when it has to be "
-                     << ExpectedSize << " at element Id = " << ElementId << "." << std::endl;
-    }
+    KRATOS_ERROR_IF_NOT(strain_size == ExpectedSize)
+        << "Wrong constitutive law is used: strain size is " << strain_size << " when it is expected to be "
+        << ExpectedSize << " at element Id = " << ElementId << "." << std::endl;
 }
 
 void ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(const Properties& rProperties,

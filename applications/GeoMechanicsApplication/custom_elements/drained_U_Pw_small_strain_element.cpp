@@ -55,8 +55,8 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     const CheckProperties check_properties(r_properties, "property", CheckProperties::Bounds::AllExclusive);
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
-    ConstitutiveLawUtilities::CheckStrainSize(
-        r_properties, this->GetStressStatePolicy().GetVoigtSize(), this->Id());
+    const auto expected_size = this->GetStressStatePolicy().GetVoigtSize();
+    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, this->Id());
 
     return ierr;
 

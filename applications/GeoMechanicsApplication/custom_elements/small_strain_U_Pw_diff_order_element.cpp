@@ -79,7 +79,8 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     r_prop[CONSTITUTIVE_LAW]->Check(r_prop, r_geom, rCurrentProcessInfo);
-    ConstitutiveLawUtilities::CheckStrainSize(r_prop, this->GetStressStatePolicy().GetVoigtSize(), element_Id);
+    const auto expected_size = this->GetStressStatePolicy().GetVoigtSize();
+    ConstitutiveLawUtilities::CheckStrainSize(r_prop, expected_size, element_Id);
     ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(r_prop, element_Id);
 
     return RetentionLaw::Check(mRetentionLawVector, r_prop, rCurrentProcessInfo);

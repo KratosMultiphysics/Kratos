@@ -72,8 +72,8 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     }
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
-    ConstitutiveLawUtilities::CheckStrainSize(
-        r_properties, this->GetStressStatePolicy().GetVoigtSize(), this->Id());
+    const auto expected_size = this->GetStressStatePolicy().GetVoigtSize();
+    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, this->Id());
 
     const auto error_code = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
 
