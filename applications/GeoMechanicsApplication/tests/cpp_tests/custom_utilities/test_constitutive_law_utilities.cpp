@@ -133,11 +133,6 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetStateVariableIndex, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
-    auto                     properties       = Properties{};
-    ConstitutiveLaw::Pointer constitutive_law = Kratos::make_shared<MockConstitutiveLaw>();
-    properties.GetValue(CONSTITUTIVE_LAW)     = constitutive_law;
-
     // Act and Assert
     constexpr auto expected_index = 1;
     KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::GetStateVariableIndex(STATE_VARIABLE_2), expected_index);
