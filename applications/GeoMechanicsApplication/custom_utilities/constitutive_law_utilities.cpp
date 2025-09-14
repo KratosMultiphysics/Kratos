@@ -99,21 +99,12 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
     return result;
 }
 
-void ConstitutiveLawUtilities::CheckStrainSize(const Properties&               rProperties,
-                                               const std::vector<std::size_t>& rExpectedStrainSizes,
-                                               std::size_t                     Dim,
-                                               std::size_t                     ElementId)
+void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId)
 {
     const std::size_t strain_size = rProperties[CONSTITUTIVE_LAW]->GetStrainSize();
-    const auto        size_exists =
-        std::any_of(rExpectedStrainSizes.begin(), rExpectedStrainSizes.end(),
-                    [strain_size](std::size_t expected_size) { return strain_size == expected_size; });
-    if (!size_exists) {
-        std::stringstream ss;
-        std::copy(rExpectedStrainSizes.begin(), rExpectedStrainSizes.end(),
-                  std::ostream_iterator<std::size_t>(ss, " "));
-        KRATOS_ERROR << "Wrong constitutive law used. This is a " << Dim << "D element! Expected strain size is "
-                     << ss.str() << " (element Id = " << ElementId << ")." << std::endl;
+    if (strain_size != ExpectedSize) {
+        KRATOS_ERROR << "Wrong constitutive law is used: strain size is " << strain_size << " when it has to be "
+                     << ExpectedSize << " at element Id = " << ElementId << "." << std::endl;
     }
 }
 

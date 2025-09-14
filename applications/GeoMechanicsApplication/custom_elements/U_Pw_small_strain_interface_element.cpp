@@ -88,8 +88,8 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 
     ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(r_properties, element_Id);
 
-    const auto expected_size = (TDim == 2 ? std::vector<std::size_t>{2} : std::vector<std::size_t>{3});
-    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, TDim, element_Id);
+    ConstitutiveLawUtilities::CheckStrainSize(
+        r_properties, this->GetStressStatePolicy().GetVoigtSize(), element_Id);
 
     return ierr;
 

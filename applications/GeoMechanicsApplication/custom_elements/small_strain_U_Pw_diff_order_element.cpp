@@ -79,10 +79,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     r_prop[CONSTITUTIVE_LAW]->Check(r_prop, r_geom, rCurrentProcessInfo);
-    const auto expected_sizes =
-        (r_geom.WorkingSpaceDimension() == 2 ? std::vector<std::size_t>{VOIGT_SIZE_2D_PLANE_STRAIN}
-                                             : std::vector<std::size_t>{VOIGT_SIZE_3D});
-    ConstitutiveLawUtilities::CheckStrainSize(r_prop, expected_sizes, r_geom.WorkingSpaceDimension(), element_Id);
+    ConstitutiveLawUtilities::CheckStrainSize(r_prop, this->GetStressStatePolicy().GetVoigtSize(), element_Id);
     ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(r_prop, element_Id);
 
     return RetentionLaw::Check(mRetentionLawVector, r_prop, rCurrentProcessInfo);

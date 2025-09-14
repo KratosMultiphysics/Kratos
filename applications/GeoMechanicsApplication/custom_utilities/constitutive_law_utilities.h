@@ -43,10 +43,7 @@ public:
                                                   std::size_t TractionSize,
                                                   std::size_t NumberOfNormalComponents);
 
-    static void CheckStrainSize(const Properties&               rProperties,
-                                const std::vector<std::size_t>& rExpectedStrainSizes,
-                                std::size_t                     Dim,
-                                std::size_t                     ElementId);
+    static void CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId);
 
     static void CheckAvailabilityOfStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
 

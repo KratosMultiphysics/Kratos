@@ -72,9 +72,8 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     }
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
-    const auto expected_sizes = (TDim == 2 ? std::vector<std::size_t>{VOIGT_SIZE_2D_PLANE_STRAIN}
-                                           : std::vector<std::size_t>{VOIGT_SIZE_3D});
-    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_sizes, TDim, this->Id());
+    ConstitutiveLawUtilities::CheckStrainSize(
+        r_properties, this->GetStressStatePolicy().GetVoigtSize(), this->Id());
 
     const auto error_code = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
 
