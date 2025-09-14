@@ -86,7 +86,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
 
-    ConstitutiveLawUtilities::CheckAvailabilityOfStrainMeasure_Infinitesimal(r_properties, element_Id);
+    ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(r_properties, element_Id);
 
     const auto expected_size = VOIGT_SIZE_2D_INTERFACE;
     ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, element_Id);
