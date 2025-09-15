@@ -39,7 +39,7 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
     {
         "wake_normal"                      : [0.0,0.0,1.0],
         "wake_stl_file_name"               : "",
-        "wake_translation_direction"              : [0.0,0.0,0.0],
+        "wake_translation_direction"       : [0.0,0.0,0.0],
         "tolerance"                        : 1e-9,
         "visualize_wake_vtk"               : false,
         "upper_surface_model_part_name"    : "",
@@ -58,7 +58,7 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
 
     mWakeNormal                  = ThisParameters["wake_normal"].GetVector();
     mWakeSTLFileName             = ThisParameters["wake_stl_file_name"].GetString();
-    mWakedrTraslation            = ThisParameters["wake_dr_translation"].GetVector();
+    mWakedrTraslation            = ThisParameters["wake_translation_direction"].GetVector();
     mTolerance                   = ThisParameters["tolerance"].GetDouble();
     mVisualizeWakeVTK            = ThisParameters["visualize_wake_vtk"].GetBool();
     mUpperSurfaceModelPartName   = ThisParameters["upper_surface_model_part_name"].GetString();

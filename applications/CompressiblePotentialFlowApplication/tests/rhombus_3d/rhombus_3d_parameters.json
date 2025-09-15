@@ -41,7 +41,7 @@
                     "tolerance"                    : 1e-6,
                     "wake_normal"                  : [0.0,0.0,1.0],
                     "wake_stl_file_name"           : "wake_stl.stl",
-                    "wake_dr_translation"          : [0.0,0.0,-0.00001], 
+                    "wake_translation_direction"   : [0.0,0.0,-0.00001], 
                     "shed_wake_from_trailing_edge" : false,
                     "shed_wake_length"             : 5.0,
                     "shed_wake_element_size"       : 10,

@@ -21,7 +21,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "wake_process_cpp_parameters":    {
                 "wake_normal"                      : [0.0,0.0,1.0],
                 "wake_stl_file_name"               : "",
-                "wake_dr_translation"              : [0.0,0.0,0.0],
+                "wake_translation_direction"       : [0.0,0.0,0.0],
                 "tolerance"                        : 1e-9,
                 "visualize_wake_vtk"               : false,
                 "upper_surface_model_part_name"    : "",
