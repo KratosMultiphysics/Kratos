@@ -1,8 +1,12 @@
+# STD Imports
+from typing import Optional
+
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
+from KratosMultiphysics.step_controller import StepController, DefaultStepController, GeometricStepController
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -59,11 +63,36 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-        while self.KeepAdvancingSolutionLoop():
-            self.time = self._AdvanceTime()
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            is_converged = self._GetSolver().SolveSolutionStep()
+        step_controller_parameters: KratosMultiphysics.Parameters = KratosMultiphysics.Parameters("""{
+            "end_time" : 0,
+            "max_substeps" : 2e1
+        }""")
+        step_controller_parameters["end_time"].SetDouble(self.end_time)
+        step_controller: StepController = GeometricStepController(step_controller_parameters)
+
+        self.time: Optional[float] = 0.0
+        while isinstance(self.time, float):
+            begin: float = self.time
+            end: float = self._AdvanceTime()
+
+            converged: bool = False
+            i_substep: int = 0
+            while not converged and isinstance(self.time, float):
+                self.time = step_controller.GetNextStep(
+                    begin,
+                    end,
+                    True if i_substep == 0 else converged,
+                    i_substep)
+
+                print(f"{begin} => {self.time}")
+
+                if isinstance(self.time, float):
+                    self._GetSolver().ReduceTime(self.time)
+                    self.InitializeSolutionStep()
+                    self._GetSolver().Predict()
+                    converged = self._GetSolver().SolveSolutionStep()
+                i_substep += 1
+
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
