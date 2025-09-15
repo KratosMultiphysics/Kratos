@@ -113,7 +113,7 @@ public:
     }
 
     template <typename T>
-    void CheckAvailabilityAndSpecified(const Variable<T>& rVariable) const
+    std::enable_if_t<!std::is_same<T, bool>::value> CheckAvailabilityAndSpecified(const Variable<T>& rVariable) const
     {
         CheckAvailability(rVariable);
         if (!mrProperties[rVariable])
