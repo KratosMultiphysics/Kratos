@@ -45,7 +45,6 @@
             "process_name"  : "AssignGravityToMaterialPointProcess",
             "Parameters"    : {
                 "model_part_name" : "MPM_Material",
-                "variable_name"   : "MP_VOLUME_ACCELERATION",
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0]
             }

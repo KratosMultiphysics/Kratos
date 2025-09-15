@@ -20,6 +20,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "includes/cfd_variables.h"
+#include "includes/serializer.h"
 #include "utilities/math_utils.h"
 
 // Application includes
@@ -71,11 +72,11 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     // Verify specific properties
     const auto& r_prop = this->GetProperties();
 
-    if (!r_prop.Has(IGNORE_UNDRAINED))
-        KRATOS_ERROR << "IGNORE_UNDRAINED does not exist in the parameter list" << this->Id() << std::endl;
-
+    const CheckProperties check_properties(r_prop, "parameter list", this->Id(),
+                                           CheckProperties::Bounds::AllExclusive);
+    check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_prop[IGNORE_UNDRAINED])
-        GeoElementUtilities::CheckPermeabilityProperties(r_prop, r_geom.WorkingSpaceDimension());
+        check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW))
@@ -108,12 +109,7 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
             << " in element id: " << this->Id() << std::endl;
     }
 
-    // Check retention law
-    if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(r_prop, rCurrentProcessInfo);
-    }
-
-    return 0;
+    return RetentionLaw::Check(mRetentionLawVector, r_prop, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
@@ -357,10 +353,11 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable
     KRATOS_TRY
 
     if (rVariable == CAUCHY_STRESS_VECTOR) {
-        KRATOS_ERROR_IF(rValues.size() != mStressVector.size())
+        KRATOS_ERROR_IF(rValues.size() != GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod))
             << "Unexpected number of values for "
                "SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints"
             << std::endl;
+        mStressVector.resize(rValues.size());
         std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
     } else {
         KRATOS_ERROR_IF(rValues.size() < mConstitutiveLawVector.size())
@@ -624,11 +621,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     KRATOS_TRY
 
     const GeometryType& r_geom = GetGeometry();
-
-    rOutput.resize(r_geom.IntegrationPointsNumber(this->GetIntegrationMethod()));
+    const auto number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    rOutput.resize(number_of_integration_points);
 
     if (rVariable == CAUCHY_STRESS_VECTOR) {
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+        for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
             if (rOutput[GPoint].size() != mStressVector[GPoint].size())
                 rOutput[GPoint].resize(mStressVector[GPoint].size(), false);
 
@@ -1473,6 +1470,18 @@ void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
         KRATOS_ERROR << "Unexpected geometry type for different order interpolation element "
                      << this->Id() << std::endl;
     }
+}
+
+void SmallStrainUPwDiffOrderElement::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
+    rSerializer.save("PressureGeometry", mpPressureGeometry);
+}
+
+void SmallStrainUPwDiffOrderElement::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
+    rSerializer.load("PressureGeometry", mpPressureGeometry);
 }
 
 Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector() const

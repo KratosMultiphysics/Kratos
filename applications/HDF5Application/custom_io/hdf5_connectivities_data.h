@@ -4,14 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_HDF5_CONNECTIVITIES_DATA_H_INCLUDED)
-#define KRATOS_HDF5_CONNECTIVITIES_DATA_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -22,6 +22,7 @@
 #include "includes/define.h"
 
 // Application includes
+#include "custom_io/hdf5_file.h"
 #include "hdf5_application_define.h"
 
 namespace Kratos
@@ -41,87 +42,66 @@ namespace Internals
 
 /// Represents connectivities information of a single element or condition type in a mesh.
 /**
- * Acts as the intermediary between the HDF5 file and the Kratos elements and conditions.
+ * @tparam TContainerType A container of @ref Element "elements" or @ref Condition "conditions".
+ * @details Acts as the intermediary between the HDF5 file and the Kratos elements and conditions.
+ * @see ElementsContainerType
+ * @see ConditionsContainerType
  */
-class KRATOS_API(HDF5_APPLICATION) ConnectivitiesData
+template<class TContainerType>
+class ConnectivitiesData
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    using IndexType = unsigned int;
+
+    using EntityType = typename TContainerType::value_type;
+
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(ConnectivitiesData);
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /// @brief Construct an IO reading/writing from the specified file at the given prefix.
+    /// @param rPrefix Group path within the file to read from or write to.
+    /// @param pFile Pointer to the HDF5 file.
+    ConnectivitiesData(
+        const std::string& rPrefix,
+        File::Pointer pFile);
+
     ///@}
     ///@name Operations
     ///@{
-    inline std::string const& Name() const
-    {
-        return mName;
-    }
-
-    inline unsigned size() const
-    {
-        return mIds.size();
-    }
 
     /// Read data from a file.
     /**
      * Ensures valid element or condition data is read from the given path on
      * return. Previously stored data is replaced.
      */
-    void ReadData(File& rFile, const std::string& rPath, unsigned StartIndex, unsigned BlockSize);
+    void Read(
+        const std::string& rEntityName,
+        NodesContainerType& rNodes,
+        PropertiesContainerType& rProperties,
+        TContainerType& rEntities);
 
     /// Write data to a file.
-    void WriteData(File& rFile, const std::string& rPath, WriteInfo& rInfo);
+    void Write(
+        const TContainerType& rEntities,
+        const bool WriteProperties = true);
 
-    // Create and append new elements to the container.
-    void CreateEntities(NodesContainerType& rNodes,
-                        PropertiesContainerType& rProperties,
-                        ElementsContainerType& rElements) const;
-
-    // Create and append new conditions to the container.
-    void CreateEntities(NodesContainerType& rNodes,
-                        PropertiesContainerType& rProperties,
-                        ConditionsContainerType& rConditions) const;
-
-    // Fill data from elements of a single element type.
-    /**
-     * Expects a uniform, non-empty container of a single element type.
-     */
-    void SetData(ElementsContainerType const& rElements);
-
-    // Fill data from elements of a single element type.
-    /**
-     * Expects a registered element name and a uniform container of the
-     * corresponding element type. The container may be empty.
-     */
-    void SetData(const std::string& rName, ElementsContainerType const& rElements);
-
-    // Fill data from conditions of a single condition type.
-    /**
-     * Expects a uniform, non-empty container of a single condition type.
-     */
-    void SetData(ConditionsContainerType const& rConditions);
-
-    // Fill data from conditions of a single condition type.
-    /**
-     * Expects a registered condition name and a uniform container of the
-     * corresponding condition type. The container may be empty.
-     */
-    void SetData(const std::string& rName, ConditionsContainerType const& rConditions);
-
-    void Clear();
     ///@}
+
 private:
     ///@name Member Variables
     ///@{
-    std::string mName;
-    Vector<int> mIds;
-    Vector<int> mPropertiesIds;
-    Matrix<int> mConnectivities;
+
+    File::Pointer mpFile;
+
+    std::string mPrefix;
+
     ///@}
 }; // class ConnectivitiesData
 
@@ -130,5 +110,3 @@ private:
 } // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.
-
-#endif // KRATOS_HDF5_CONNECTIVITIES_DATA_H_INCLUDED defined

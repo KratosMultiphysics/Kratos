@@ -61,7 +61,6 @@ void NodeAddDof(Node& rThisNode, TVariableType const& rThisVariable)
 template<class TVariableType> inline
 void NodeAddDofwithReaction(Node& rThisNode, TVariableType const& rThisVariable,  TVariableType const& rReactionVariable)
 {
-// 	      KRATOS_WATCH(rReactionVariable);
     rThisNode.pAddDof(rThisVariable, rReactionVariable);
 }
 
@@ -69,36 +68,6 @@ template<class TVariableType>
 bool NodeSolutionStepsDataHas(Node& rThisNode, const TVariableType& rThisVariable)
 {
     return rThisNode.SolutionStepsDataHas(rThisVariable);
-}
-
-void PointSetX0(Node& ThisPoint, double Value)
-{
-    ThisPoint.X0() = Value;
-}
-
-void PointSetY0(Node& ThisPoint, double Value)
-{
-    ThisPoint.Y0() = Value;
-}
-
-void PointSetZ0(Node& ThisPoint, double Value)
-{
-    ThisPoint.Z0() = Value;
-}
-
-double PointGetX0(Node& ThisPoint)
-{
-    return ThisPoint.X0();
-}
-
-double PointGetY0(Node& ThisPoint)
-{
-    return ThisPoint.Y0();
-}
-
-double PointGetZ0(Node& ThisPoint)
-{
-    return ThisPoint.Z0();
 }
 
 template< class TBinderType, typename TContainerType, typename TVariableType > void IndexingUtility(TBinderType& binder)
@@ -115,9 +84,9 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
         binder.def("HasSolutionStepValue", [](const TContainerType& node, const TVariableType& rV){return node.SolutionStepsDataHas(rV);} );
         binder.def("SetSolutionStepValue",  [](TContainerType& node, const TVariableType& rV,const typename TVariableType::Type rValue){node.GetSolutionStepValue(rV) = rValue;} );
         binder.def("SetSolutionStepValue",  [](TContainerType& node,
-                                               const TVariableType& rV,
-                                               typename TContainerType::IndexType SolutionStepIndex,
-                                               const typename TVariableType::Type rValue){node.GetSolutionStepValue(rV, SolutionStepIndex) = rValue;} );
+                                              const TVariableType& rV,
+                                              typename TContainerType::IndexType SolutionStepIndex,
+                                              const typename TVariableType::Type rValue){node.GetSolutionStepValue(rV, SolutionStepIndex) = rValue;} );
         binder.def("GetSolutionStepValue", [](TContainerType& node, const TVariableType& rV){return node.GetSolutionStepValue(rV);} );
         binder.def("GetSolutionStepValue", [](TContainerType& node, const TVariableType& rV, typename TContainerType::IndexType SolutionStepIndex ){return node.GetSolutionStepValue(rV, SolutionStepIndex);} );
     }
@@ -171,14 +140,21 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<DenseMatrix<double> > >);
     node_binder.def("__str__", PrintObject<Node>);
     node_binder.def("OverwriteSolutionStepData", &Node::OverwriteSolutionStepData);
-    node_binder.def_property("X0", PointGetX0, PointSetX0);
-    node_binder.def_property("Y0", PointGetY0, PointSetY0);
-    node_binder.def_property("Z0", PointGetZ0, PointSetZ0);
+    node_binder.def("GetInitialPosition", [](Node& rNode) { return rNode.GetInitialPosition(); });
+    node_binder.def("SetInitialPosition", [](Node& rNode, const double X0, const double Y0, const double Z0) { rNode.SetInitialPosition(X0, Y0, Z0); });
+    node_binder.def("SetInitialPosition", [](Node& rNode, const Point& rPoint) { rNode.SetInitialPosition(rPoint); });
+    node_binder.def_property("X0",
+        [](Node& rNode) { return rNode.X0(); },
+        [](Node& rNode, double Value) { rNode.X0() = Value; });
+    node_binder.def_property("Y0",
+        [](Node& rNode) { return rNode.Y0(); },
+        [](Node& rNode, double Value) { rNode.Y0() = Value; });
+    node_binder.def_property("Z0",
+        [](Node& rNode) { return rNode.Z0(); },
+        [](Node& rNode, double Value) { rNode.Z0() = Value; });
     node_binder.def_property("Id", &Node::GetId, &Node::SetId);
 
     PointerVectorSetPythonInterface<MeshType::NodesContainerType>().CreateInterface(m,"NodesArray");
-
 }
 
-}  // namespace Kratos::Python.
-
+}  // namespace Kratos::Python

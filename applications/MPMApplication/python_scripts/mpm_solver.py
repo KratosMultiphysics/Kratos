@@ -85,7 +85,6 @@ class MPMSolver(PythonSolver):
                 "verbosity" : 0,
                 "tolerance": 1e-7,
                 "scaling": false,
-                "block_size": 3,
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 50
             }
