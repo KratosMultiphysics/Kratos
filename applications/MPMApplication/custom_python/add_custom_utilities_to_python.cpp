@@ -24,6 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/reaction_utilities.cpp"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "custom_utilities/mpm_volume_sum_utility.h"
 
@@ -78,6 +79,16 @@ namespace Python{
         m.def("CalculateTotalEnergy", pybind11::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), pybind11::arg("MPMModelPart"));
         m.def("CalculateTotalEnergy", pybind11::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), pybind11::arg("MPMModelPart"));
         m.def("CalculateTotalMPVolume", pybind11::overload_cast<const ModelPart&>(&MPMVolumeSumUtility::AddModelPartMPMVolumeIntoGrid), pybind11::arg("MPMModelPart"));
+
+        namespace py = pybind11;
+
+        // Calculate reaction forces
+        py::class_<ReactionUtilities> (m,"ReactionUtilities")
+            .def(py::init<>())
+            .def("CalculateGridConformingReaction", &ReactionUtilities::CalculateGridConformingReaction)
+            .def("CalculateNonConformingReaction", &ReactionUtilities::CalculateNonConformingReaction)
+            ;
+
     }
 
 }  // namespace Python.
