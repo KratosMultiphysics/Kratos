@@ -881,7 +881,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         integrand = self.resistance * (nodal_velocity_norm**2) #component-wise multiplication
         self.fluid_functionals[0] = np.dot(self.nodal_domain_sizes, integrand)
         if self.IsMpiParallelism():
-            self.fluid_functionals[0] = self.MpiSynchronizeLocalValue(self.fluid_functionals[0])
+            self.fluid_functionals[0] = self.MpiSumLocalValues(self.fluid_functionals[0])
         if (self.first_iteration):
             self.initial_fluid_functionals_values[0] = self.fluid_functionals[0] 
         if (print_functional):
@@ -899,7 +899,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         mu = self._GetViscosity()
         self.fluid_functionals[1] = 2.0*mu* np.dot(vel_symmetric_gradient_norm_squared, self.nodal_domain_sizes)
         if self.IsMpiParallelism():
-            self.fluid_functionals[1] = self.MpiSynchronizeLocalValue(self.fluid_functionals[1])
+            self.fluid_functionals[1] = self.MpiSumLocalValues(self.fluid_functionals[1])
         if (self.first_iteration):
             self.initial_fluid_functionals_values[1] = self.fluid_functionals[1]
         if (print_functional):
@@ -919,7 +919,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         mu = self._GetViscosity()
         self.fluid_functionals[1] = 2.0*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.nodal_domain_sizes)
         if self.IsMpiParallelism():
-            self.fluid_functionals[2] = self.MpiSynchronizeLocalValue(self.fluid_functionals[2])
+            self.fluid_functionals[2] = self.MpiSumLocalValues(self.fluid_functionals[2])
         if (self.first_iteration):
             self.initial_fluid_functionals_values[2] = self.fluid_functionals[2]
         if (print_functional):
@@ -1252,7 +1252,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Initialize Discrete Diffusive Filter")
         mp = self._GetComputingModelPart()
         mask = self._GetOptimizationDomainNodesMask()
-        only_opt_mp_nodes = self._GetModelPartNodesSubset(mp, self.nodes_ids_local_partition_to_global_dictionary[mask])
+        global_ids = [self.nodes_ids_local_partition_to_global_dictionary[int(i)] for i in mask]
+        only_opt_mp_nodes = self._GetModelPartNodesSubset(mp, global_ids)
         points = self._GetNodesSetCoordinates(only_opt_mp_nodes)
         nodes_tree = KDTree(points)
         self.nodes_connectivity_matrix = nodes_tree.sparse_distance_matrix(nodes_tree, self.diffusive_filter_radius, output_type="dok_matrix").tocsr()
@@ -1958,7 +1959,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.weighted_functionals  = self.functional_weights * self.functionals
             self.functional  = np.dot(self.functional_weights, self.functionals)
 
-    def MpiSynchronizeLocalValue(self, local_value):
+    def MpiSumLocalValues(self, local_value):
         # Sum the values across all ranks
         total_value = self.data_communicator.SumAll(local_value)
         return total_value
