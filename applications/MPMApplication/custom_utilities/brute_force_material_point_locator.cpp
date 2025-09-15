@@ -49,8 +49,6 @@ void BruteForceMaterialPointLocator::FindObject(
     int& rObjectId,
     const double tolerance) const
 {
-    int object_found = 0;
-
     const int num_objects = rObjects.size();
 
     KRATOS_WARNING_IF("BruteForceMaterialPointLocator", num_objects == 0)
@@ -70,12 +68,11 @@ void BruteForceMaterialPointLocator::FindObject(
 
         if (distance < tolerance && distance < closest_object_distance) {
             closest_object_distance = distance;
-            object_found = 1;
             rObjectId = r_object.Id();
         }
     }
 
-    KRATOS_WARNING_IF("BruteForceMaterialPointLocator", !object_found)
+    KRATOS_WARNING_IF("BruteForceMaterialPointLocator", rObjectId == -1)
         << "No " << rObjectName << " close to point: " << rThePoint << std::endl;
 }
 
