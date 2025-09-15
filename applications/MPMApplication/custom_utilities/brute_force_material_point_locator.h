@@ -29,6 +29,33 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class KRATOS_API(MPM_APPLICATION) MinDistanceReduction
+{
+public:
+    using value_type = std::pair<double,int>;
+    using return_type = std::pair<double,int>;
+
+    value_type mValue = {std::numeric_limits<double>::max(), -1};
+
+    /// access to reduced value
+    value_type GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const value_type value){
+        mValue = value.first < mValue.first ? value : mValue;
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(const MinDistanceReduction& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        LocalReduce(rOther.mValue);
+    }
+};
+
 /**
  * @class BruteForceMaterialPointLocator
  * @ingroup MPMApplication
@@ -109,10 +136,10 @@ private:
     /**
      * @brief This function finds an object based on a location
      * @param rObjects the objects to search
-     * @param rObjectType type of the object => "Element"/"Condition"
+     * @param rObjectType type of the object: "Element"/"Condition"
      * @param rThePoint the location to search
-     * @param rObjectId Id of the found condition. -1 if no object was found
-     * @param tolerance tolerance local-coordinates for IsInside
+     * @param rObjectId Id of the found object
+     * @param tolerance tolerance for finding closest material point condition
      */
     template<typename TObjectType>
     void FindObject(
