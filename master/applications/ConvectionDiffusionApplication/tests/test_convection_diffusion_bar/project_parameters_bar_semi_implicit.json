@@ -1,0 +1,52 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "eulerian_convection_semi_implicit",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 0.4,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "model_part_name" : "MainModelPart",
+        "domain_size": 2,
+        "echo_level": 0,
+        "time_integration_method": "semi_implicit",
+        "solver_type": "transient",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "test_convection_diffusion_bar/bar"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "test_convection_diffusion_bar/materials_bar.json"
+        },
+        "time_stepping" : {
+            "time_step": 0.1
+        },
+        "compute_reactions": false,
+        "problem_domain_sub_model_part_list": ["Parts_Domain"],
+        "processes_sub_model_part_list": ["Subpart_Boundary"]
+    },
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart",
+                "variable_name"   : "VELOCITY_X",
+                "constrained"     : false,
+                "value"           : "cos(t)",
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart",
+                "variable_name"   : "TEMPERATURE",
+                "constrained"     : false,
+                "value"           : "x",
+                "interval"        : [0.0,0.0]
+            }
+        }]
+    }
+}

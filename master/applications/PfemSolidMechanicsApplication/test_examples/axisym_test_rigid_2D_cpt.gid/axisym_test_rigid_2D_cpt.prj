@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gid version="12.2">
+  <pre>
+    <layer_to_use name="workpiece"/>
+    <groups>
+      <group id="1" name="Tool" color="#999999ff"/>
+      <group id="2" name="Soil" color="#0000ffff"/>
+    </groups>
+    <entities_groups>
+      <entities_group name="lines">
+        <vector name="entity_ids" length="4" type="integer">81 82 92 100</vector>
+        <vector name="entity_num_groups" length="4" type="ushort">1x4</vector>
+        <vector name="entity_groups" length="4" type="ushort">1x4</vector>
+      </entities_group>
+      <entities_group name="surfaces">
+        <vector name="entity_ids" length="1" type="integer">2</vector>
+        <vector name="entity_num_groups" length="1" type="ushort">1</vector>
+        <vector name="entity_groups" length="1" type="ushort">2</vector>
+      </entities_group>
+      <entities_group name="nodes">
+        <vector name="entity_ids" length="1245" type="integer">1:1245</vector>
+        <vector name="entity_num_groups" length="1245" type="ushort">1x1245</vector>
+        <vector name="entity_groups" length="1245" type="ushort">1x38 2 2 1 2 2 1 2 2 1 2 2 1 1 2x1194</vector>
+      </entities_group>
+      <entities_group name="elements">
+        <vector name="entity_ids" length="2306" type="integer">1:2306</vector>
+        <vector name="entity_num_groups" length="2306" type="ushort">1x2306</vector>
+        <vector name="entity_groups" length="2306" type="ushort">2x2264 1x42</vector>
+      </entities_group>
+    </entities_groups>
+  </pre>
+</gid>

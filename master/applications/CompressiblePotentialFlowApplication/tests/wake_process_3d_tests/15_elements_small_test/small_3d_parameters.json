@@ -1,0 +1,56 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "small_3d",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1
+    },
+    "solver_settings"  : {
+        "model_part_name"        : "FluidModelPart",
+        "domain_size"            : 3,
+        "solver_type"            : "potential_flow",
+        "model_import_settings"  : {
+            "input_type"     : "mdpa",
+            "input_filename" : "small_3d"
+        },
+        "maximum_iterations"     : 0,
+        "echo_level"             : 0,
+        "volume_model_part_name" : "FluidModelPart",
+        "skin_parts"             : ["PotentialWallCondition3D_Far_field_Auto1","Body3D_Body_Auto1"],
+        "no_skin_parts"          : ["Wake3D_Wake_Auto1","Tip3D_Wing_Tips_Auto1"],
+        "auxiliary_variables_list" : ["DISTANCE"]
+    },
+    "processes"        : {
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_far_field_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.PotentialWallCondition3D_Far_field_Auto1",
+                "angle_of_attack" : 0.0,
+                "mach_infinity"   : 0.03,
+                "speed_of_sound"  : 340.0
+            }
+        },{
+            "python_module" : "define_wake_process_3d",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Wake3D_Wake_Auto1",
+                "body_model_part_name": "FluidModelPart.Body3D_Body_Auto1",
+                "wake_stl_file_name" : "wake_stl.stl",
+                "output_wake": false,
+                "wake_process_cpp_parameters":    {
+                    "tolerance"                     : 1e-6,
+                    "wake_normal"                   : [0.0,0.0,1.0],
+                    "switch_wake_normal"            : false,
+                    "count_elements_number"         : false,
+                    "write_elements_ids_to_file"    : false,
+                    "shed_wake_from_trailing_edge"  : false,
+                    "shedded_wake_distance"         : 12.5,
+                    "shedded_wake_element_size"     : 0.2,
+                    "echo_level"                    : 0
+                }
+            }
+        }]
+    }
+}

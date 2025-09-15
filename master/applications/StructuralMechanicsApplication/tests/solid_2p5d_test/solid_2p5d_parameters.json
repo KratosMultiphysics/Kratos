@@ -1,0 +1,76 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "solid_2p5d",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "solver_type"                     : "Static",
+        "model_part_name"                 : "Structure",
+        "domain_size"                     : 2,
+        "echo_level"                      : 0,
+        "analysis_type"                   : "non_linear",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "solid_2p5d_test/solid_2p5d"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "solid_2p5d_test/solid_2p5d_materials.json"
+        },
+        "time_stepping"                   : {
+            "time_step" : 1.1
+        },
+        "line_search"                     : false,
+        "convergence_criterion"           : "and_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 0.0001,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 10,
+        "rotation_dofs"                   : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Disp_central_point",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Disp_central_line_x",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,null,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Disp_central_line_y",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,true,true],
+                "value"           : [null,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "impose_z_strain_process",
+            "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "Structure.Parts_Solid_part",
+                "z_strain_value"  : -0.02
+            }
+        }],
+        "list_other_processes"     : []
+    }
+}

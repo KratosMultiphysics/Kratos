@@ -1,0 +1,56 @@
+{
+    "analysis_stage" : "KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis",
+    "problem_data"     : {
+        "problem_name"  : "simple_airfoil",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1
+    },
+    "output_processes" : {
+    },
+    "solver_settings"  : {
+        "model_part_name"          : "FluidModelPart",
+        "domain_size"              : 2,
+        "solver_type"              : "potential_flow",
+        "model_import_settings"    : {
+            "input_type"     : "mdpa",
+            "input_filename" : "simple_airfoil"
+        },
+        "material_import_settings" : {
+            "materials_filename" : "FluidMaterials.json"
+        },
+        "formulation" :{
+            "element_type" : "perturbation_compressible"
+        },
+        "maximum_iterations"       : 10,
+        "echo_level"               : 0,
+        "volume_model_part_name"   : "Parts_Parts_Auto1",
+        "skin_parts"               : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
+        "no_skin_parts"            : [],
+        "reform_dofs_at_each_step" : false
+    },
+    "processes"        : {
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_far_field_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "FarFieldProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "angle_of_attack" : 0.0,
+                "mach_infinity"   : 0.03,
+                "speed_of_sound"  : 340.0,
+                "initialize_flow_field": false,
+                "perturbation_field": true
+            }
+        },{
+            "python_module" : "define_wake_process_2d",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "DefineWakeProcess2D",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.Body2D_Body"
+            }
+        }],
+        "auxiliar_process_list"            : []
+    }
+}

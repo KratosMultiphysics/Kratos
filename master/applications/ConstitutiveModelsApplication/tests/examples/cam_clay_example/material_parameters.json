@@ -1,0 +1,47 @@
+{
+    "material_model":{
+        "python_module"   : "test_constitutive_model_process",
+        "kratos_module"   : "KratosMultiphysics.ConstitutiveModelsApplication",
+        "help"            : "This process tests a constitutive model",
+	"parameters"      : {
+	    "model_part_name" : "MaterialDomain",
+	    "properties_id"   : 1,
+            "material_name"   : "steel",
+	    "constitutive_law": {
+                "law_name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw",
+		"model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.CamClayModel"
+            },
+	    "variables": {
+		"KratosMultiphysics.C10": 3.84615384615384615385e10,
+	        "KratosMultiphysics.YOUNG_MODULUS": 206.9e7,
+		"KratosMultiphysics.POISSON_RATIO": 0.29,
+		"KratosMultiphysics.PRE_CONSOLIDATION_STRESS": 80.0,
+		"KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 4.0,
+		"KratosMultiphysics.SWELLING_SLOPE": 0.0078,
+		"KratosMultiphysics.NORMAL_COMPRESSION_SLOPE": 0.085,
+		"KratosMultiphysics.INITIAL_SHEAR_MODULUS": 0.0,
+		"KratosMultiphysics.ALPHA_SHEAR": 120.0,
+		"KratosMultiphysics.CRITICAL_STATE_LINE": 0.90
+            },
+	    "tables": {
+		"table1": {
+	            "input_variable"  : "KratosMultiphysics.TEMPERATURE",
+	            "output_variable" : "KratosMultiphysics.YOUNG_MODULUS",
+	            "data": [
+			[0.0, 200e9],
+			[200.0, 200e9]
+		    ]
+		}
+	    },
+	    "element_type": "Tetrahedra3D4",
+            "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
+            "strain": {
+		"deformation_gradient" : [ [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
+		"jacobian": 1.0
+	    },
+	    "echo_level" : 0
+
+        }
+    }
+
+}

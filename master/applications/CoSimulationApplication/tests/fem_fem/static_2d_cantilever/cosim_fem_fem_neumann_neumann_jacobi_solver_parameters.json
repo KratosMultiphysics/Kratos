@@ -1,0 +1,118 @@
+{
+  "problem_data": {
+    "start_time": 0.0,
+    "end_time": 1.0,
+    "echo_level": 0,
+    "print_colors": true,
+    "parallel_type": "OpenMP"
+  },
+  "solver_settings": {
+    "type": "coupled_solvers.jacobi_strong",
+    "echo_level": 0,
+    "num_coupling_iterations": 10,
+    "convergence_accelerators": [
+      {
+        "type": "mvqn",
+        "alpha": 9e7,
+        "solver": "structure1",
+        "data_name": "load",
+        "residual_computation": {
+          "type": "different_data_difference",
+          "data_name1": "disp_intermediate",
+          "data_name2": "disp"
+        }
+      }
+    ],
+    "convergence_criteria": [
+      {
+        "type": "relative_norm_previous_residual",
+        "solver": "structure1",
+        "data_name": "disp",
+        "abs_tolerance": 1e-7,
+        "rel_tolerance": 1e-7
+      }
+    ],
+    "data_transfer_operators": {
+      "mapper": {
+        "type": "kratos_mapping",
+        "mapper_settings": {
+          "mapper_type": "nearest_neighbor",
+          "use_initial_configuration": true
+        }
+      }
+    },
+    "coupling_sequence": [
+      {
+        "name": "structure1",
+        "input_data_list": [],
+        "output_data_list": []
+      },
+      {
+        "name": "structure2",
+        "input_data_list": [
+          {
+            "data":"load",
+            "from_solver":"structure1",
+            "from_solver_data":"load",
+            "data_transfer_operator":"mapper",
+            "data_transfer_operator_options"  : ["use_transpose","swap_sign"]
+          }
+        ],
+        "output_data_list": [{
+            "data":"disp",
+            "to_solver":"structure1",
+            "to_solver_data":"disp_intermediate",
+            "data_transfer_operator" : "mapper"
+		}]
+      }
+    ],
+    "solvers": {
+      "structure1": {
+        "type": "solver_wrappers.kratos.structural_mechanics_wrapper",
+        "solver_wrapper_settings": {
+          "input_file": "fem_fem/static_2d_cantilever/ProjectParameters1"
+        },
+        "data": {
+          "disp": {
+            "model_part_name": "Structure.INTERFACE_point_load1",
+            "dimension": 2,
+            "variable_name": "DISPLACEMENT"
+          },
+          "disp_intermediate": {
+            "model_part_name": "Structure.INTERFACE_point_load1",
+            "dimension": 2,
+            "variable_name": "VECTOR_LAGRANGE_MULTIPLIER"
+          },
+          "load": {
+            "model_part_name": "Structure.INTERFACE_point_load1",
+            "dimension": 2,
+            "variable_name": "POINT_LOAD"
+          }
+        }
+      },
+      "structure2": {
+        "type": "solver_wrappers.kratos.structural_mechanics_wrapper",
+        "solver_wrapper_settings": {
+          "input_file": "fem_fem/static_2d_cantilever/ProjectParameters2"
+        },
+        "data": {
+          "disp": {
+            "model_part_name": "Structure.INTERFACE_point_load2",
+            "dimension": 2,
+            "variable_name": "DISPLACEMENT"
+          },
+          "load": {
+            "model_part_name": "Structure.INTERFACE_point_load2",
+            "dimension": 2,
+            "variable_name": "POINT_LOAD"
+          },
+          "load_intermediate": {
+            "model_part_name": "Structure.INTERFACE_point_load2",
+            "dimension": 2,
+            "variable_name": "VECTOR_LAGRANGE_MULTIPLIER"
+          }
+        }
+      }
+    }
+  }
+}

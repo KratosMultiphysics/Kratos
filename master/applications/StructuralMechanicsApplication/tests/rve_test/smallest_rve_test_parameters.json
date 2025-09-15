@@ -1,0 +1,37 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "smallest_rve_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "rve_settings"     : {
+        "boundary_mp_name"  : "Structure.Boundaries",
+        "averaging_mp_name" : "Structure",
+        "print_rve_post"    : false,
+        "perturbation"      : 1e-6
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "static",
+        "model_part_name"                    : "Structure",
+        "multi_point_constraints_used"       : true,
+        "domain_size"                        : 0,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "linear",
+        "builder_and_solver_settings"        : {
+            "use_block_builder" : true
+        },
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "TO_BE_SET_IN_TEST"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "TO_BE_SET_IN_TEST"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        }
+    },
+    "output_processes" : { }
+}

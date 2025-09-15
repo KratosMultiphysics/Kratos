@@ -1,0 +1,109 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 0.2,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 0,
+        "data_transfer_operators" : {
+            "mapper_1" : {
+                "type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                }
+            }
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "dem",
+                "input_data_list": [],
+                "output_data_list": []
+            },
+            {
+                "name": "structure",
+                "input_data_list": [
+                    {
+                        "data"              : "load",
+                        "from_solver"       : "dem",
+                        "from_solver_data"  : "contact_force",
+                        "data_transfer_operator" : "mapper_1"
+                    }
+                ],
+                "output_data_list": [
+                    {
+                        "data"           : "disp",
+                        "to_solver"      : "dem",
+                        "to_solver_data" : "disp",
+                        "data_transfer_operator" : "mapper_1"
+                    },
+                    {
+                        "data"           : "velocity",
+                        "to_solver"      : "dem",
+                        "to_solver_data" : "velocity",
+                        "data_transfer_operator" : "mapper_1"
+                    }
+                ]
+            }
+        ],
+        "solvers" :
+        {
+            "dem":
+            {
+                "type" : "solver_wrappers.kratos.dem_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"           : "ring_set_up_dem_fem/ProjectParametersDEM",
+                    "move_mesh_model_part" : ["RigidFacePart.0"],
+                    "working_directory"    : "ring_set_up_dem_fem"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "RigidFacePart.0",
+                        "variable_name"   : "DISPLACEMENT",
+                        "dimension"       : 3
+                    },
+                    "contact_force" : {
+                        "model_part_name" : "RigidFacePart.0",
+                        "variable_name"   : "CONTACT_FORCES",
+                        "dimension"       : 3
+                    },
+                    "velocity" : {
+                        "model_part_name" : "RigidFacePart.0",
+                        "variable_name"   : "VELOCITY",
+                        "dimension"       : 3
+                    }
+                }
+            },
+            "structure" :
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "ring_set_up_dem_fem/FEMProjectParameter"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "Structure.struct_sub",
+                        "variable_name"   : "DISPLACEMENT",
+                        "dimension"       : 3
+                    },
+                    "load" : {
+                        "model_part_name" : "Structure.struct_sub",
+                        "variable_name"   : "POINT_LOAD",
+                        "dimension"       : 3
+                    },
+                    "velocity" : {
+                        "model_part_name" : "Structure.struct_sub",
+                        "variable_name"   : "VELOCITY",
+                        "dimension"       : 3
+                    }
+                }
+            }
+        }
+    }
+}

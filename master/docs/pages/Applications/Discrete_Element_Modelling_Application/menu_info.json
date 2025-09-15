@@ -1,0 +1,8 @@
+{
+    "side_bar_name": "discrete_element_modelling",
+    "landing_page": "General/Basic-DEM-Benchmarking.md",
+    "additional_menu_options": {
+        "product": "Discrete Element Modelling Application",
+        "title": "sidebar"
+    }
+}

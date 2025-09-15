@@ -1,0 +1,16 @@
+# Ignore everything
+*
+# But not these files...
+!doxyfile
+!doxygen-awesome.css
+!py_filter.sh
+!readme.md
+!html_layout.xml
+!kratos_small.png
+!mkdocs.sh
+!.gitignore
+
+# ...even if they are in subdirectories
+!*/
+html/*
+latex/*

@@ -1,0 +1,395 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   1.0000000000   0.0000000000
+    2   0.1666666667   1.0000000000   0.0000000000
+    3   0.0000000000   0.8333333333   0.0000000000
+    4   0.2000000000   0.8000000000   0.0000000000
+    5   0.0000000000   0.6666666667   0.0000000000
+    6   0.3333333333   1.0000000000   0.0000000000
+    7   0.3332984605   0.8332984605   0.0000000000
+    8   0.1658843797   0.6654702942   0.0000000000
+    9   0.2500000000   0.6300000000   0.0000000000
+   10   0.5000000000   1.0000000000   0.0000000000
+   11   0.0000000000   0.5000000000   0.0000000000
+   12   0.1666666667   0.5000000000   0.0000000000
+   13   0.5000000000   0.8333333333   0.0000000000
+   14   0.5000000000   0.6666666667   0.0000000000
+   15   0.3333333333   0.5000000000   0.0000000000
+   16   0.6666666667   1.0000000000   0.0000000000
+   17   0.0000000000   0.3333333333   0.0000000000
+   18   0.2500000000   0.3486187594   0.0000000000
+   19   0.5000000000   0.5000000000   0.0000000000
+   20   0.7052332661   0.8577317364   0.0000000000
+   21   0.6700864487   0.7068441783   0.0000000000
+   22   0.1250000000   0.2500000000   0.0000000000
+   23   0.3611111111   0.2500000000   0.0000000000
+   24   0.8333333333   1.0000000000   0.0000000000
+   25   0.6666666667   0.5000000000   0.0000000000
+   26   0.5000000000   0.3333333333   0.0000000000
+   27   0.0000000000   0.1666666667   0.0000000000
+   28   0.8000000000   0.6333333333   0.0000000000
+   29   0.2500000000   0.1513812406   0.0000000000
+   30   0.8486187594   0.7500000000   0.0000000000
+   31   0.7000000000   0.3000000000   0.0000000000
+   32   0.8333333333   0.5000000000   0.0000000000
+   33   0.5000000000   0.1666666667   0.0000000000
+   34   0.0000000000   0.0000000000   0.0000000000
+   35   1.0000000000   1.0000000000   0.0000000000
+   36   0.1666666667   0.0000000000   0.0000000000
+   37   1.0000000000   0.8333333333   0.0000000000
+   38   0.3333333333   0.0000000000   0.0000000000
+   39   1.0000000000   0.6666666667   0.0000000000
+   40   0.8000000000   0.3500000000   0.0000000000
+   41   0.6661379902   0.1661646820   0.0000000000
+   42   0.5000000000   0.0000000000   0.0000000000
+   43   1.0000000000   0.5000000000   0.0000000000
+   44   0.8319598254   0.1654918919   0.0000000000
+   45   0.6666666667   0.0000000000   0.0000000000
+   46   1.0000000000   0.3333333333   0.0000000000
+   47   0.8333333333   0.0000000000   0.0000000000
+   48   1.0000000000   0.1666666667   0.0000000000
+   49   1.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements ShellThinElementCorotational3D3N// GUI group identifier: Surface_T3_thin
+         1          0         34         36         27
+         2          0         33         26         23
+         3          0         12         11         17
+         4          0         38         42         33
+         5          0         19         15         26
+         6          0         17         27         22
+         7          0         36         38         29
+         8          0         15         12         18
+         9          0         23         26         15
+        10          0         22         27         29
+        11          0         29         38         23
+        12          0         18         12         17
+        13          0         33         23         38
+        14          0         29         23         18
+        15          0         18         23         15
+        16          0         17         22         18
+        17          0         18         22         29
+        18          0         29         27         36
+End Elements
+
+Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: Surface_T3_thick
+        37          0         19         25         14
+        38          0         39         37         30
+        39          0         16         10         13
+        40          0         32         43         39
+        41          0         35         24         37
+        42          0         13         14         21
+        43          0         25         32         28
+        44          0         24         16         20
+        45          0         30         37         24
+        46          0         21         14         25
+        47          0         28         32         39
+        48          0         20         16         13
+        49          0         39         30         28
+        50          0         28         30         21
+        51          0         28         21         25
+        52          0         13         21         20
+        53          0         20         21         30
+        54          0         20         30         24
+End Elements
+
+Begin Elements ShellThickElementCorotational3D4N// GUI group identifier: Surface_Q4_thick
+        19          0         15         19         14          9
+        20          0         10          6          7         13
+        21          0          7          9         14         13
+        22          0          2          1          3          4
+        23          0          6          2          4          7
+        24          0          5         11         12          8
+        25          0          3          5          8          4
+        26          0          7          4          8          9
+        27          0          9          8         12         15
+End Elements
+
+Begin Elements ShellThinElementCorotational3D4N// GUI group identifier: Surface_Q4_thin
+        28          0         47         49         48         44
+        29          0         43         32         40         46
+        30          0         40         44         48         46
+        31          0         25         19         26         31
+        32          0         32         25         31         40
+        33          0         33         42         45         41
+        34          0         26         33         41         31
+        35          0         40         31         41         44
+        36          0         44         41         45         47
+End Elements
+
+Begin SubModelPart Parts_Surface_T3_thin // Group Surface_T3_thin // Subtree Parts
+    Begin SubModelPartNodes
+        11
+        12
+        15
+        17
+        18
+        19
+        22
+        23
+        26
+        27
+        29
+        33
+        34
+        36
+        38
+        42
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+        17
+        18
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Parts_Surface_T3_thick // Group Surface_T3_thick // Subtree Parts
+    Begin SubModelPartNodes
+        10
+        13
+        14
+        16
+        19
+        20
+        21
+        24
+        25
+        28
+        30
+        32
+        35
+        37
+        39
+        43
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        37
+        38
+        39
+        40
+        41
+        42
+        43
+        44
+        45
+        46
+        47
+        48
+        49
+        50
+        51
+        52
+        53
+        54
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Parts_Surface_Q4_thick // Group Surface_Q4_thick // Subtree Parts
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        19
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        19
+        20
+        21
+        22
+        23
+        24
+        25
+        26
+        27
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Parts_Surface_Q4_thin // Group Surface_Q4_thin // Subtree Parts
+    Begin SubModelPartNodes
+        19
+        25
+        26
+        31
+        32
+        33
+        40
+        41
+        42
+        43
+        44
+        45
+        46
+        47
+        48
+        49
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        28
+        29
+        30
+        31
+        32
+        33
+        34
+        35
+        36
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_edge // Group edge // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+         3
+         5
+        11
+        17
+        27
+        34
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SelfWeight3D_Surface_Q4_thick // Group Surface_Q4_thick // Subtree SelfWeight3D
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        19
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SelfWeight3D_Surface_Q4_thin // Group Surface_Q4_thin // Subtree SelfWeight3D
+    Begin SubModelPartNodes
+        19
+        25
+        26
+        31
+        32
+        33
+        40
+        41
+        42
+        43
+        44
+        45
+        46
+        47
+        48
+        49
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SelfWeight3D_Surface_T3_thick // Group Surface_T3_thick // Subtree SelfWeight3D
+    Begin SubModelPartNodes
+        10
+        13
+        14
+        16
+        19
+        20
+        21
+        24
+        25
+        28
+        30
+        32
+        35
+        37
+        39
+        43
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SelfWeight3D_Surface_T3_thin // Group Surface_T3_thin // Subtree SelfWeight3D
+    Begin SubModelPartNodes
+        11
+        12
+        15
+        17
+        18
+        19
+        22
+        23
+        26
+        27
+        29
+        33
+        34
+        36
+        38
+        42
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart GENERIC_ref_node // Group ref_node // Subtree GENERIC
+    Begin SubModelPartNodes
+        43
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

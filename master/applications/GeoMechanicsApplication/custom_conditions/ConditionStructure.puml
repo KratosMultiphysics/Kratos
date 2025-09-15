@@ -1,0 +1,101 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+abstract class Condition
+class UPwCondition
+{
+    void CalculateLocalSystem();
+    void CalculateRightHandSide();
+}
+Condition <|-- UPwCondition
+
+class UPwForceCondition
+class UPwFaceLoadCondition
+class UPwFaceLoadInterfaceCondition
+class UPwNormalFaceLoadCondition
+
+UPwCondition <|-- UPwForceCondition
+UPwCondition <|-- UPwFaceLoadCondition
+UPwCondition <|-- UPwNormalFaceLoadCondition
+UPwCondition <|-- UPwFaceLoadInterfaceCondition
+
+class AxisymmetricUPwNormalFaceLoadCondition
+
+UPwNormalFaceLoadCondition <|-- AxisymmetricUPwNormalFaceLoadCondition
+
+class UPwNormalFluxCondition
+
+UPwFaceLoadCondition <|-- UPwNormalFluxCondition
+
+class UPwNormalFluxFICCondition
+UPwNormalFluxCondition <|-- UPwNormalFluxFICCondition
+
+class UPwNormalFluxInterfaceCondition
+
+UPwFaceLoadInterfaceCondition <|-- UPwNormalFluxInterfaceCondition
+
+class UPwLysmerAbsorbingCondition
+
+UPwFaceLoadCondition <|-- UPwLysmerAbsorbingCondition
+
+class GeneralUPwDiffOrderCondition
+{
+    void CalculateLocalSystem();
+    void CalculateRightHandSide();
+}
+Condition <|-- GeneralUPwDiffOrderCondition
+
+class LineLoad2DDiffOrderCondition
+class SurfaceLoad3DDiffOrderCondition
+
+GeneralUPwDiffOrderCondition <|-- LineLoad2DDiffOrderCondition
+GeneralUPwDiffOrderCondition <|-- SurfaceLoad3DDiffOrderCondition
+
+class LineNormalLoad2DDiffOrderCondition
+class LineNormalFluidFlux2DDiffOrderCondition
+
+LineLoad2DDiffOrderCondition <|-- LineNormalLoad2DDiffOrderCondition
+LineLoad2DDiffOrderCondition <|-- LineNormalFluidFlux2DDiffOrderCondition
+
+class AxisymmetricLineNormalLoad2DDiffOrderCondition
+
+LineNormalLoad2DDiffOrderCondition <|-- AxisymmetricLineNormalLoad2DDiffOrderCondition
+
+class AxisymmetricLineNormalFluidFlux2DDiffOrderCondition
+LineNormalFluidFlux2DDiffOrderCondition <|-- AxisymmetricLineNormalFluidFlux2DDiffOrderCondition
+
+class SurfaceNormalFluidFlux3DDiffOrderCondition
+class SurfaceNormalLoad3DDiffOrderCondition
+
+SurfaceLoad3DDiffOrderCondition <|-- SurfaceNormalFluidFlux3DDiffOrderCondition
+SurfaceLoad3DDiffOrderCondition <|-- SurfaceNormalLoad3DDiffOrderCondition
+
+class PwCondition
+{
+    void CalculateLocalSystem();
+    void CalculateRightHandSide();
+}
+Condition <|-- PwCondition
+
+class PwNormalFluxCondition
+class PwPointFluxCondition
+
+PwCondition <|-- PwPointFluxCondition
+PwCondition <|-- PwNormalFluxCondition
+
+class GeoTCondition
+{
+    void CalculateLocalSystem();
+    void CalculateRightHandSide();
+}
+Condition <|-- GeoTCondition
+
+class GeoThermalPointFluxCondition
+class GeoTNormalFluxCondition
+class GeoTMicroClimateFluxCondition
+
+GeoTCondition <|-- GeoThermalPointFluxCondition
+GeoTCondition <|-- GeoTNormalFluxCondition
+GeoTCondition <|-- GeoTMicroClimateFluxCondition
+
+@enduml

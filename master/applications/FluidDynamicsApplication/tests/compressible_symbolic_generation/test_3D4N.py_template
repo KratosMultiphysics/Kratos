@@ -1,0 +1,262 @@
+import KratosMultiphysics
+import math
+
+
+class _ElementData:
+    "Struct containing data mimicking CompressibleNavierStokesExplicit::ElementDataStruct."
+    def __init__(self, dim, num_nodes):
+        block_size = dim + 2
+
+        self.U = self._ZeroMatrix(num_nodes, block_size)
+        self.dUdt = self._ZeroMatrix(num_nodes, block_size)
+
+        self.m_ext = self._ZeroVector(num_nodes)
+        self.r_ext = self._ZeroVector(num_nodes)
+        self.f_ext = self._ZeroMatrix(num_nodes, dim)
+
+        self.alpha_sc_nodes = self._ZeroVector(num_nodes)
+        self.beta_sc_nodes = self._ZeroVector(num_nodes)
+        self.lamb_sc_nodes = self._ZeroVector(num_nodes)
+        self.mu_sc_nodes = self._ZeroVector(num_nodes)
+        self.alpha = 0.0
+        self.beta = 0.0
+        self.lambda_ = 0.0
+        self.mu = 0.0
+        self.h = 0.0
+        self.gamma = 0.0
+        self.c_v = 0.0
+        self.ResProj = self._ZeroMatrix(num_nodes, block_size)
+
+    @classmethod
+    def _ZeroMatrix(cls, rows, cols):
+        m = KratosMultiphysics.Matrix(rows, cols)
+        for r in range(rows):
+            for c in range(cols):
+                m[r,c] = 0.0
+        return m
+
+    @classmethod
+    def _ZeroVector(cls, rows):
+        v = KratosMultiphysics.Vector(rows)
+        for r in range(rows):
+            v[r] = 0.0
+        return v
+
+class SubTestSuite:
+    num_nodes = 4
+    dim = 3
+    block_size = dim + 2
+
+    @classmethod
+    def __ShapeFunctions(cls, x, y, z):
+        N = KratosMultiphysics.Vector(cls.num_nodes)
+        N[0] = -(1+x+y+z)/3
+        N[1] = (1+x)/2
+        N[2] = (1+y)/2
+        N[3] = (1+z)/2
+
+        DN_DX = KratosMultiphysics.Matrix(cls.num_nodes, cls.block_size)
+        DN_DX[0,0] = -1/3.0
+        DN_DX[0,1] = -1/3.0
+        DN_DX[0,2] = -1/3.0
+        DN_DX[1,0] =  0.5
+        DN_DX[1,1] =  0
+        DN_DX[1,2] = 0
+        DN_DX[2,0] =  0
+        DN_DX[2,1] =  0.5
+        DN_DX[2,2] = 0
+        DN_DX[3,0] =  0
+        DN_DX[3,1] =  0
+        DN_DX[3,2] = 0.5
+
+        return N, DN_DX
+
+    @classmethod
+    def __FillVector(cls, rows, value):
+        v = KratosMultiphysics.Vector(rows)
+        for r in range(rows):
+            v[r] = value
+        return v
+
+    def __init__(self):
+        self.N, self.DN_DX = self.__ShapeFunctions(0, 0, 0)
+
+        # Filling data
+        rho_0 = 1.16927
+        rho_1 = 1.46426
+
+        mom = 467.707
+
+        et_0 = 346854
+        et_1 = 422234
+
+        self.data = _ElementData(self.dim, self.num_nodes)
+
+        self.data.U[0,0] = rho_0
+        self.data.U[1,0] = rho_1
+        self.data.U[2,0] = rho_0
+        self.data.U[3,0] = rho_0
+
+        self.data.U[0,1] = mom
+        self.data.U[1,1] = mom
+        self.data.U[2,1] = mom
+        self.data.U[3,1] = mom
+
+        self.data.U[0,4] = et_0
+        self.data.U[1,4] = et_1
+        self.data.U[2,4] = et_0
+        self.data.U[3,4] = et_0
+
+        self.data.alpha_sc_nodes = self.__FillVector(self.num_nodes, 1.5e-4)
+        self.data.beta_sc_nodes = self.__FillVector(self.num_nodes, 2.8e-5)
+        self.data.lamb_sc_nodes = self.__FillVector(self.num_nodes, 1.3e-7)
+        self.data.mu_sc_nodes = self.__FillVector(self.num_nodes, 2.3e-6)
+
+        self.data.alpha = 0
+        self.data.beta = 1.13e-4
+        self.data.lambda_ = 6.84e-6
+        self.data.mu = 1.26e-4
+
+        self.data.gamma = 1.4
+        self.data.c_v = 722.14
+        self.data.h = 2.0
+
+    def test_substitute_rho_proj_3D(self):
+        N = self.N
+        DN_DX = self.DN_DX
+        data = self.data
+
+        rho_proj = KratosMultiphysics.Vector(self.num_nodes)
+
+        #substitute_rho_proj_3D:
+        //substitute_rho_proj_3D
+
+        expected = KratosMultiphysics.Vector(self.num_nodes)
+        expected[0] = -77.951166666666665606
+        expected[1] = -77.951166666666665606
+        expected[2] = -77.951166666666665606
+        expected[3] = -77.951166666666665606
+
+        return (rho_proj, expected)
+
+
+    def test_substitute_mom_proj_3D(self):
+        N = self.N
+        DN_DX = self.DN_DX
+        data = self.data
+
+        mom_proj = KratosMultiphysics.Vector(self.dim * self.num_nodes)
+
+        #substitute_mom_proj_3D:
+        //substitute_mom_proj_3D
+
+        expected = KratosMultiphysics.Vector(self.dim * self.num_nodes)
+        expected[0]  = -45889.2750050228
+        expected[1]  = -16907.891379201792
+        expected[2]  = -16907.891379201792
+        expected[3]  = -47191.06452683102
+        expected[4]  = -16950.908952085905
+        expected[5]  = -16950.908952085905
+        expected[6]  = -45889.2750050228
+        expected[7]  = -16907.891379201792
+        expected[8]  = -16907.891379201792
+        expected[9]  = -45889.275005022806
+        expected[10] = -16907.891379201792
+        expected[11] = -16907.891379201792
+
+        return (mom_proj, expected)
+
+    def test_substitute_tot_ener_proj_3D(self):
+        N = self.N
+        DN_DX = self.DN_DX
+        data = self.data
+
+        tot_ener_proj = KratosMultiphysics.Vector(self.num_nodes)
+
+        #substitute_tot_ener_proj_3D:
+        //substitute_tot_ener_proj_3D
+
+        expected = KratosMultiphysics.Vector(self.num_nodes)
+        expected[0] = -30079467.71620096
+        expected[1] = -29953919.120589163
+        expected[2] = -30079467.71620097
+        expected[3] = -30079467.71620096
+
+        return (tot_ener_proj, expected)
+
+
+    def test_substitute_rhs_3D_OSS(self):
+        N = self.N
+        DN_DX = self.DN_DX
+        data = self.data
+
+        rRightHandSideBoundedVector = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
+
+        stab_c1 = 12
+        stab_c2 = 2
+        stab_c3 = 1
+
+        #substitute_rhs_3D_OSS:
+        //substitute_rhs_3D_OSS
+
+        expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
+        expected[0]  = 68.26488866957148
+        expected[1]  = 35325.200048254206
+        expected[2]  = 9032.334489289658
+        expected[3]  = 9032.334489289658
+        expected[4]  = 31401957.676319435
+        expected[5]  = -204.5930505405032
+        expected[6]  = -130827.40310772619
+        expected[7]  = -33487.04668676353
+        expected[8]  = -33487.04668676353
+        expected[9]  = -85964509.7899978
+        expected[10] = -124.29226623192696
+        expected[11] = -61986.315172143804
+        expected[12] = -35819.91114761498
+        expected[13] = -15890.930088727864
+        expected[14] = -47562058.48372695
+        expected[15] = -124.29226623192696
+        expected[16] = -61986.315172143804
+        expected[17] = -15890.930088727862
+        expected[18] = -35819.91114761498
+        expected[19] = -47562058.48372696
+
+        return (rRightHandSideBoundedVector, expected)
+
+    def test_substitute_rhs_3D_ASGS(self):
+        N = self.N
+        DN_DX = self.DN_DX
+        data = self.data
+
+        rRightHandSideBoundedVector = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
+
+        stab_c1 = 12
+        stab_c2 = 2
+        stab_c3 = 1
+
+        #substitute_rhs_3D_ASGS:
+        //substitute_rhs_3D_ASGS
+
+        expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
+        expected[0]  = 68.26488866957148
+        expected[1]  = 35325.20004825419
+        expected[2]  = 9032.334489289658
+        expected[3]  = 9032.334489289658
+        expected[4]  = 31401957.676319435
+        expected[5]  = -204.5930505405032
+        expected[6]  = -130827.40310772619
+        expected[7]  = -33487.04668676353
+        expected[8]  = -33487.04668676353
+        expected[9]  = -85964509.7899978
+        expected[10] = -124.29226623192696
+        expected[11] = -61986.315172143804
+        expected[12] = -35819.91114761496
+        expected[13] = -15890.930088727864
+        expected[14] = -47562058.48372695
+        expected[15] = -124.29226623192696
+        expected[16] = -61986.315172143804
+        expected[17] = -15890.930088727862
+        expected[18] = -35819.91114761496
+        expected[19] = -47562058.48372696
+
+        return (rRightHandSideBoundedVector, expected)

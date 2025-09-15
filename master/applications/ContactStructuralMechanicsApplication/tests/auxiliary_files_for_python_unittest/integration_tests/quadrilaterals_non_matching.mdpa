@@ -1,0 +1,114 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Properties 1
+End Properties
+Begin Nodes
+    195    4.0000E+00    4.0000E+00    0.0000E+00
+    196    4.0000E+00    4.0000E+00    0.0000E+00
+    240    4.0000E+00    5.0000E+00    0.0000E+00
+    241    5.0000E+00    4.0000E+00    0.0000E+00
+    242    4.0000E+00    4.7000E+00    0.0000E+00
+    243    4.7000E+00    4.0000E+00    0.0000E+00
+    278    5.0000E+00    5.0000E+00    0.0000E+00
+    285    4.7000E+00    4.7000E+00    0.0000E+00
+    290    4.0000E+00    6.0000E+00    0.0000E+00
+    292    6.0000E+00    4.0000E+00    0.0000E+00
+    296    6.0000E+00    4.0000E+00    0.0000E+00
+    297    4.0000E+00    6.0000E+00    0.0000E+00
+    332    5.0000E+00    6.0000E+00    0.0000E+00
+    333    6.0000E+00    5.0000E+00    0.0000E+00
+    337    4.7000E+00    6.0000E+00    0.0000E+00
+    338    6.0000E+00    4.7000E+00    0.0000E+00
+    371    6.0000E+00    6.0000E+00    0.0000E+00
+    372    6.0000E+00    6.0000E+00    0.0000E+00
+End Nodes
+
+
+Begin Elements MembraneElement3D4N// GUI group identifier: Parts Auto1
+    1    0    297    242    285    337
+    2    0    337    285    338    372
+    3    0    242    196    243    285
+    4    0    285    243    296    338
+End Elements
+
+Begin Elements MembraneElement3D4N// GUI group identifier: Parts Auto2
+    5    1    371    333    278    332
+    6    1    332    278    240    290
+    7    1    333    292    241    278
+    8    1    278    241    195    240
+End Elements
+
+Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto1 // Subtree Parts
+    Begin SubModelPartNodes
+        371
+        333
+        278
+        332
+        240
+        290
+        292
+        241
+        195
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        5
+        6
+        7
+        8
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto2 // Subtree Parts
+    Begin SubModelPartNodes
+        297
+        242
+        285
+        337
+        338
+        372
+        196
+        243
+        296
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        1
+        2
+        3
+        4
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DISPLACEMENT_Displacement_Auto2 // Group Displacement Auto3 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        195
+        196
+        240
+        241
+        242
+        243
+        278
+        285
+        290
+        292
+        296
+        297
+        332
+        333
+        337
+        338
+        371
+        372
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

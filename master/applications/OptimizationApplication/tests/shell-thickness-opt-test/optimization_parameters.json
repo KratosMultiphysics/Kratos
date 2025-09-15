@@ -1,0 +1,156 @@
+{
+    "optimization_settings": {
+        "model_parts": [
+            {
+                "name": "shell",
+                "type": "mdpa",
+                "settings": {
+                    "domain_size": 3,
+                    "input_filename": "shell"
+                }
+            }
+        ],
+        "analyses": [
+            {
+                "name": "shell_static",
+                "type": "stepping_analysis_execution_policy",
+                "settings": {
+                    "model_part_names": [
+                        "shell"
+                    ],
+                    "analysis_type": "StructuralMechanicsAnalysis",
+                    "analysis_settings": {
+                        "@include_json": "primal_parameters.json"
+                    }
+                }
+            }
+        ],
+        "responses": [
+            {
+                "name": "mass_shell",
+                "type": "mass",
+                "settings": {
+                    "evaluated_objects": [
+                        "shell"
+                    ],
+                    "control_types": [
+                        "thickness"
+                    ],
+                    "controlled_objects": [
+                        "shell"
+                    ],
+                    "gradient_settings": {
+                        "step_size": 1e-8,
+                        "gradient_mode": "finite_differencing"
+                    }
+                }
+            },
+            {
+                "name": "strain_energy_shell",
+                "type": "strain_energy",
+                "settings": {
+                    "analysis_name": "shell_static",
+                    "evaluated_objects": [
+                        "shell"
+                    ],
+                    "control_types": [
+                        "thickness"
+                    ],
+                    "controlled_objects": [
+                        "shell"
+                    ],
+                    "gradient_settings": {
+                        "step_size": 1e-8,
+                        "gradient_mode": "semi_analytic"
+                    }
+                }
+            }
+        ],
+        "controls": [
+            {
+                "name": "hm1",
+                "type": "thickness",
+                "settings": {
+                    "technique": "helmholtz_thickness",
+                    "controlling_objects": [
+                        "shell"
+                    ],
+                    "technique_settings": {
+                        "filter_radius": 0.2,
+                        "initial_thickness": 0.07,
+                        "physical_thicknesses": [
+                            0.01,
+                            0.02,
+                            0.04,
+                            0.06,
+                            0.08,
+                            0.1
+                        ],
+                        "beta_settings": {
+                            "initial_value": 10,
+                            "max_value": 30,
+                            "adaptive": false,
+                            "increase_fac": 1.5,
+                            "update_period": 30
+                        },
+                        "fixed_model_parts": [],
+                        "fixed_model_parts_thicknesses": [],
+                        "linear_solver_settings": {
+                            "solver_type": "amgcl",
+                            "smoother_type": "ilu0",
+                            "krylov_type": "gmres",
+                            "coarsening_type": "aggregation",
+                            "max_iteration": 200,
+                            "provide_coordinates": false,
+                            "gmres_krylov_space_dimension": 100,
+                            "verbosity": 0,
+                            "tolerance": 1e-7,
+                            "scaling": false,
+                            "block_size": 1,
+                            "use_block_matrices_if_possible": true,
+                            "coarse_enough": 5000
+                        }
+                    }
+                }
+            }
+        ],
+        "optimizations": [
+            {
+                "name": "Opt1",
+                "type": "gradient_based",
+                "settings": {
+                    "objectives": [
+                        "strain_energy_shell"
+                    ],
+                    "objectives_improvements": [
+                        10
+                    ],
+                    "constraints": [
+                        "mass_shell"
+                    ],
+                    "constraints_types": [
+                        "initial_value_equality"
+                    ],
+                    "constraints_ref_values": [
+                        0.384
+                    ],
+                    "controls": [
+                        "hm1"
+                    ],
+                    "objectives_controls_weights": [
+                        1.0
+                    ],
+                    "constraints_controls_weights": [
+                        1.0
+                    ],
+                    "algorithm": "gradient_projection",
+                    "algorithm_settings": {
+                        "max_iterations": 10,
+                        "projection_step_size": 0.1,
+                        "correction_step_size": 0.1
+                    }
+                }
+            }
+        ]
+    }
+}

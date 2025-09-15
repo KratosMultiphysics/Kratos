@@ -1,0 +1,582 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    1   0.0000000000   0.0000000000   0.0000000000
+    2   0.1375949707   0.1207540454   0.0000000000
+    3   0.1882710364   0.0000000000   0.0000000000
+    4   0.0000000000   0.2000000000   0.0000000000
+    5   0.1827881864   0.2393729638   0.0000000000
+    6   0.2872994724   0.1379806503   0.0000000000
+    7   0.3520060604   0.0000000000   0.0000000000
+    8   0.1244785795   0.3573164199   0.0000000000
+    9   0.0000000000   0.4000000000   0.0000000000
+   10   0.3071637170   0.2701866671   0.0000000000
+   11   0.2401923789   0.3500000000   0.0000000000
+   12   0.4313803545   0.1108386542   0.0000000000
+   13   0.3973939568   0.2180922138   0.0000000000
+   14   0.2045576740   0.4479055473   0.0000000000
+   15   0.4977881367   0.0000000000   0.0000000000
+   16   0.1048352130   0.5000000007   0.0000000000
+   17   0.4999999997   0.2000000000   0.0000000000
+   18   0.5686196446   0.1108386540   0.0000000000
+   19   0.2045576742   0.5520944538   0.0000000000
+   20   0.0000000000   0.6000000000   0.0000000000
+   21   0.6026060426   0.2180922136   0.0000000000
+   22   0.6450122801   0.0000000000   0.0000000000
+   23   0.1244785796   0.6426835806   0.0000000000
+   24   0.2401923790   0.6500000003   0.0000000000
+   25   0.7120816315   0.1379806500   0.0000000000
+   26   0.6928362825   0.2701866667   0.0000000000
+   27   0.1829288528   0.7606270364   0.0000000000
+   28   0.3071637173   0.7298133331   0.0000000000
+   29   0.0000000000   0.8000000000   0.0000000000
+   30   0.8106034543   0.0000000000   0.0000000000
+   31   0.7598076211   0.3500000000   0.0000000000
+   32   0.8170711472   0.2393729636   0.0000000000
+   33   0.8621799273   0.1207540452   0.0000000000
+   34   0.3973939571   0.7819077863   0.0000000000
+   35   0.1378200727   0.8792459547   0.0000000000
+   36   0.2879183684   0.8620193499   0.0000000000
+   37   0.7954423259   0.4479055466   0.0000000000
+   38   0.5000000000   0.8000000000   0.0000000000
+   39   0.8755214206   0.3573164195   0.0000000000
+   40   0.7954423259   0.5520944531   0.0000000000
+   41   0.6026060435   0.7819077860   0.0000000000
+   42   0.4313803549   0.8891613459   0.0000000000
+   43   0.7598076213   0.6499999997   0.0000000000
+   44   0.0000000000   1.0000000000   0.0000000000
+   45   1.0000000000   0.0000000000   0.0000000000
+   46   0.6928362833   0.7298133326   0.0000000000
+   47   0.1893965457   1.0000000000   0.0000000000
+   48   1.0000000000   0.2000000000   0.0000000000
+   49   0.8951647870   0.4999999998   0.0000000000
+   50   0.5686196456   0.8891613464   0.0000000000
+   51   0.3549877199   1.0000000000   0.0000000000
+   52   1.0000000000   0.4000000000   0.0000000000
+   53   0.8755214206   0.6426835802   0.0000000000
+   54   0.8172118137   0.7606270361   0.0000000000
+   55   0.7127005278   0.8620193497   0.0000000000
+   56   0.5022118633   1.0000000000   0.0000000000
+   57   1.0000000000   0.6000000000   0.0000000000
+   58   0.6479939396   1.0000000000   0.0000000000
+   59   0.8624050294   0.8792459545   0.0000000000
+   60   1.0000000000   0.8000000000   0.0000000000
+   61   0.8117289636   1.0000000000   0.0000000000
+   62   1.0000000000   1.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements Element2D3N// GUI group identifier: Body
+        1          0    38    41    50 
+        2          0    21    17    18 
+        3          0    28    34    36 
+        4          0    40    37    49 
+        5          0    11    14     8 
+        6          0    46    43    54 
+        7          0    31    26    32 
+        8          0    13    10     6 
+        9          0    19    24    23 
+       10          0    41    46    55 
+       11          0    17    13    12 
+       12          0    34    38    42 
+       13          0    37    31    39 
+       14          0    14    19    16 
+       15          0    43    40    53 
+       16          0    26    21    25 
+       17          0    10    11     5 
+       18          0    24    28    27 
+       19          0    50    41    55 
+       20          0    23    24    27 
+       21          0     5    11     8 
+       22          0     8    14    16 
+       23          0    39    31    32 
+       24          0    36    34    42 
+       25          0    32    26    25 
+       26          0    12    13     6 
+       27          0    53    40    49 
+       28          0    18    17    12 
+       29          0    55    46    54 
+       30          0    27    28    36 
+       31          0    54    43    53 
+       32          0    16    19    23 
+       33          0    49    37    39 
+       34          0     6    10     5 
+       35          0    42    38    50 
+       36          0    25    21    18 
+       37          0    50    55    58 
+       38          0    50    58    56 
+       39          0    50    56    42 
+       40          0    42    56    51 
+       41          0    42    51    36 
+       42          0    53    49    57 
+       43          0    53    57    60 
+       44          0    39    32    48 
+       45          0    54    53    60 
+       46          0     5     8     4 
+       47          0    32    25    33 
+       48          0    55    54    59 
+       49          0    49    39    52 
+       50          0    52    39    48 
+       51          0    23    27    29 
+       52          0    18    12    15 
+       53          0    15    12     7 
+       54          0    18    15    22 
+       55          0    18    22    25 
+       56          0     7    12     6 
+       57          0    16    23    20 
+       58          0    20    23    29 
+       59          0     8    16     9 
+       60          0     8     9     4 
+       61          0    27    36    35 
+       62          0     6     5     2 
+       63          0    33    25    30 
+       64          0    59    54    60 
+       65          0    35    36    47 
+       66          0     2     5     4 
+       67          0    32    33    48 
+       68          0    55    61    58 
+       69          0    27    35    29 
+       70          0     6     3     7 
+       71          0    57    49    52 
+       72          0    16    20     9 
+       73          0     3     6     2 
+       74          0     3     2     1 
+       75          0    61    55    59 
+       76          0    61    59    62 
+       77          0    22    30    25 
+       78          0    33    30    45 
+       79          0    51    47    36 
+       80          0    35    47    44 
+       81          0    59    60    62 
+       82          0     2     4     1 
+       83          0    48    33    45 
+       84          0    29    35    44 
+End Elements
+
+Begin Conditions LineCondition2D2N// GUI group identifier: Left_Wall
+    1 0 1 4
+    2 0 4 9
+    3 0 9 20
+    4 0 20 29
+    5 0 29 44
+End Conditions
+
+Begin Conditions LineCondition2D2N// GUI group identifier: Top_Wall
+    6 0 44 47
+    7 0 47 51
+    8 0 51 56
+    9 0 56 58
+    10 0 58 61
+    11 0 61 62
+End Conditions
+
+Begin Conditions LineCondition2D2N// GUI group identifier: Right_Wall
+    12 0 62 60
+    13 0 60 57
+    14 0 57 52
+    15 0 52 48
+    16 0 48 45
+End Conditions
+
+Begin Conditions LineCondition2D2N// GUI group identifier: Bottom_Wall
+    17 0 45 30
+    18 0 30 22
+    19 0 22 15
+    20 0 15 7
+    21 0 7 3
+    22 0 3 1
+End Conditions
+
+Begin Conditions LineCondition2D2N// GUI group identifier: Interface_outside
+    23 0 38 34
+    24 0 34 28
+    25 0 28 24
+    26 0 24 19
+    27 0 19 14
+    28 0 14 11
+    29 0 11 10
+    30 0 10 13
+    31 0 13 17
+    32 0 17 21
+    33 0 21 26
+    34 0 26 31
+    35 0 31 37
+    36 0 37 40
+    37 0 40 43
+    38 0 43 46
+    39 0 46 41
+    40 0 41 38
+End Conditions
+
+Begin SubModelPart GENERIC_Interface_outside // Group Interface_outside // Subtree GENERIC
+    Begin SubModelPartNodes
+           10
+           11
+           13
+           14
+           17
+           19
+           21
+           24
+           26
+           28
+           31
+           34
+           37
+           38
+           40
+           41
+           43
+           46
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart CNVDFFParts_Body // Group Body // Subtree CNVDFFParts
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+           41
+           42
+           43
+           44
+           45
+           46
+           47
+           48
+           49
+           50
+           51
+           52
+           53
+           54
+           55
+           56
+           57
+           58
+           59
+           60
+           61
+           62
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+           41
+           42
+           43
+           44
+           45
+           46
+           47
+           48
+           49
+           50
+           51
+           52
+           53
+           54
+           55
+           56
+           57
+           58
+           59
+           60
+           61
+           62
+           63
+           64
+           65
+           66
+           67
+           68
+           69
+           70
+           71
+           72
+           73
+           74
+           75
+           76
+           77
+           78
+           79
+           80
+           81
+           82
+           83
+           84
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart TEMPERATURE_Body // Group Body // Subtree TEMPERATURE
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+           41
+           42
+           43
+           44
+           45
+           46
+           47
+           48
+           49
+           50
+           51
+           52
+           53
+           54
+           55
+           56
+           57
+           58
+           59
+           60
+           61
+           62
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ImposedTemperature2D_Left_Wall // Group Left_Wall // Subtree ImposedTemperature2D
+    Begin SubModelPartNodes
+            1
+            4
+            9
+           20
+           29
+           44
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            1
+            2
+            3
+            4
+            5
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ImposedTemperature2D_Top_Wall // Group Top_Wall // Subtree ImposedTemperature2D
+    Begin SubModelPartNodes
+           44
+           47
+           51
+           56
+           58
+           61
+           62
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            6
+            7
+            8
+            9
+           10
+           11
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ImposedTemperature2D_Right_Wall // Group Right_Wall // Subtree ImposedTemperature2D
+    Begin SubModelPartNodes
+           45
+           48
+           52
+           57
+           60
+           62
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+           12
+           13
+           14
+           15
+           16
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ImposedTemperature2D_Bottom_Wall // Group Bottom_Wall // Subtree ImposedTemperature2D
+    Begin SubModelPartNodes
+            1
+            3
+            7
+           15
+           22
+           30
+           45
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+           17
+           18
+           19
+           20
+           21
+           22
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ThermalFace2D_Right_Wall // Group Right_Wall // Subtree ThermalFace2D
+    Begin SubModelPartNodes
+           45
+           48
+           52
+           57
+           60
+           62
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+           12
+           13
+           14
+           15
+           16
+    End SubModelPartConditions
+End SubModelPart

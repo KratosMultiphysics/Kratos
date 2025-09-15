@@ -1,0 +1,17 @@
+{
+    "properties" : [{
+        "model_part_name" : "cook_membrane.Parts_Solid",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 0.0,
+                "YOUNG_MODULUS" : 200,
+                "POISSON_RATIO" : 0.4999
+            },
+            "Tables"           : {}
+        }
+    }]
+}

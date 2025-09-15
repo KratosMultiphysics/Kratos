@@ -1,0 +1,145 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time"   : 0.6,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_strong",
+        "echo_level" : 0,
+        "num_coupling_iterations" : 12,
+        "convergence_accelerators" : [
+            {
+                "type"      : "aitken",
+                "solver"    : "pfem",
+                "data_name" : "vel"
+            }
+        ],
+        "convergence_criteria" : [
+            {
+                "type"          : "relative_norm_previous_residual",
+                "solver"        : "structure",
+                "data_name"     : "vel",
+                "abs_tolerance" : 1e-5,
+                "rel_tolerance" : 1e-5
+            }
+        ],
+        "coupling_operations" : {
+            "compute_boundary_force_process": {
+                "type"       : "compute_boundary_force",
+                "echo_level" : 0,
+                "solver"            : "pfem",
+                "model_part_name"   : "PfemFluidModelPart.InterfaceWall",
+                "write_output_file" : false,
+                "width"             : 1,
+                "interval"               : [0.0,"End"],
+                "output_file_settings": {
+                    "output_path": "force_output"
+                    }
+            },
+            "reset_pfem_kinematics_fluid": {
+                "type"       : "reset_pfem_kinematics",
+                "echo_level" : 0,
+                "solver"            : "pfem",
+                "model_part_name"   : "PfemFluidModelPart.Fluid",
+                "interval"               : [0.0,"End"]
+            }
+        },
+        "data_transfer_operators" : {
+            "mapper_1" : {
+                "type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                }
+            }
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "pfem",
+                "input_data_list": [],
+                "output_data_list": []
+            },
+            {
+                "name": "structure",
+                "input_data_list": [
+                    {
+                        "data"              : "load",
+                        "from_solver"       : "pfem",
+                        "from_solver_data"  : "contact_force",
+                        "data_transfer_operator" : "mapper_1",
+                        "before_data_transfer_operations" : ["compute_boundary_force_process"],
+                        "data_transfer_operator_options" : ["use_transpose"]
+                    }
+                ],
+                "output_data_list": [{
+                    "data"           : "disp",
+                    "to_solver"      : "pfem",
+                    "to_solver_data" : "disp",
+                    "data_transfer_operator" : "mapper_1"
+                },{
+                    "data"           : "vel",
+                    "to_solver"      : "pfem",
+                    "to_solver_data" : "vel",
+                    "data_transfer_operator" : "mapper_1"
+                }]
+            }
+        ],
+        "solvers" :
+        {
+            "pfem":
+            {
+                "type" : "solver_wrappers.kratos.pfem_fluid_dynamics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"           : "pfem_fem_waterslide2d/ProjectParametersPFEM",
+                    "fix_free_vel_model_part" : ["PfemFluidModelPart.InterfaceWall"]
+                },
+                "data" : {
+                    "disp" : {
+                    "model_part_name" : "PfemFluidModelPart.InterfaceWall",
+                    "variable_name"   : "DISPLACEMENT",
+                    "dimension"       : 2
+                    },
+                    "vel" : {
+                        "model_part_name" : "PfemFluidModelPart.InterfaceWall",
+                        "variable_name"   : "VELOCITY",
+                        "dimension"       : 2
+                    },
+                    "contact_force" : {
+                        "model_part_name" : "PfemFluidModelPart.InterfaceWall",
+                        "variable_name"   : "REACTION",
+                        "dimension"       : 2
+                    }
+                }
+            },
+            "structure" :
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "pfem_fem_waterslide2d/ProjectParametersFEM"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "Structure.struct_boundary",
+                        "variable_name"   : "DISPLACEMENT",
+                        "dimension"       : 3
+                    },
+                    "vel" : {
+                        "model_part_name" : "Structure.struct_boundary",
+                        "variable_name"   : "VELOCITY",
+                        "dimension"       : 3
+                    },
+                    "load" : {
+                        "model_part_name" : "Structure.struct_boundary",
+                        "variable_name"   : "POINT_LOAD",
+                        "dimension"       : 3
+                    }
+                }
+            }
+        }
+    }
+}

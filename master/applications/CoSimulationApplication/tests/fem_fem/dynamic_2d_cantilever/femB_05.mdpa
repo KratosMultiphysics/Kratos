@@ -1,0 +1,152 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   5.0000000000   1.0000000000   0.0000000000
+    2   5.0000000000   0.5000000000   0.0000000000
+    3   5.5000000000   1.0000000000   0.0000000000
+    4   5.5000000000   0.5000000000   0.0000000000
+    5   6.0000000000   1.0000000000   0.0000000000
+    6   5.0000000000   0.0000000000   0.0000000000
+    7   6.0000000000   0.5000000000   0.0000000000
+    8   5.5000000000   0.0000000000   0.0000000000
+    9   6.0000000000   0.0000000000   0.0000000000
+   10   6.5000000000   1.0000000000   0.0000000000
+   11   6.5000000000   0.5000000000   0.0000000000
+   12   6.5000000000   0.0000000000   0.0000000000
+   13   7.0000000000   1.0000000000   0.0000000000
+   14   7.0000000000   0.5000000000   0.0000000000
+   15   7.0000000000   0.0000000000   0.0000000000
+   16   7.5000000000   1.0000000000   0.0000000000
+   17   7.5000000000   0.5000000000   0.0000000000
+   18   7.5000000000   0.0000000000   0.0000000000
+   19   8.0000000000   1.0000000000   0.0000000000
+   20   8.0000000000   0.5000000000   0.0000000000
+   21   8.0000000000   0.0000000000   0.0000000000
+   22   8.5000000000   1.0000000000   0.0000000000
+   23   8.5000000000   0.5000000000   0.0000000000
+   24   8.5000000000   0.0000000000   0.0000000000
+   25   9.0000000000   1.0000000000   0.0000000000
+   26   9.0000000000   0.5000000000   0.0000000000
+   27   9.0000000000   0.0000000000   0.0000000000
+   28   9.5000000000   1.0000000000   0.0000000000
+   29   9.5000000000   0.5000000000   0.0000000000
+   30   9.5000000000   0.0000000000   0.0000000000
+   31  10.0000000000   1.0000000000   0.0000000000
+   32  10.0000000000   0.5000000000   0.0000000000
+   33  10.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: beam
+        1          0          8          4          2          6 
+        2          0          9          7          4          8 
+        3          0         12         11          7          9 
+        4          0         15         14         11         12 
+        5          0         18         17         14         15 
+        6          0         21         20         17         18 
+        7          0         24         23         20         21 
+        8          0         27         26         23         24 
+        9          0         30         29         26         27 
+       10          0         33         32         29         30 
+       11          0          4          3          1          2 
+       12          0          7          5          3          4 
+       13          0         11         10          5          7 
+       14          0         14         13         10         11 
+       15          0         17         16         13         14 
+       16          0         20         19         16         17 
+       17          0         23         22         19         20 
+       18          0         26         25         22         23 
+       19          0         29         28         25         26 
+       20          0         32         31         28         29 
+End Elements
+
+Begin Conditions PointLoadCondition2D1N// GUI group identifier: load
+    1 0 31
+End Conditions
+
+Begin SubModelPart Parts_beam // Group beam // Subtree Parts
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_left_edge // Group left_edge // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            2
+            6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad2D_load // Group load // Subtree PointLoad2D
+    Begin SubModelPartNodes
+           31
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            1
+    End SubModelPartConditions
+End SubModelPart

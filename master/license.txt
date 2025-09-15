@@ -1,0 +1,10 @@
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ `
+_|\_\_|  \__,_|\__|\___/ ____/
+                 Multi-Physics 
+
+The license for the Kratos Multi-Physics core can be find in kratos/license.txt
+
+For each application the license can be find in corresponding directory. 
+If the license file is missing the kratos/license.txt will be applied. 

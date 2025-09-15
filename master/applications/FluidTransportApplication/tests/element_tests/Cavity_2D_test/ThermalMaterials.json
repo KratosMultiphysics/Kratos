@@ -1,0 +1,15 @@
+{
+    "properties" : [{
+        "model_part_name" : "ThermalModelPart.Parts_air",
+        "properties_id"   : 2,
+        "Material"        : {
+            "Variables" : {
+                "DENSITY"           : 1.0,
+                "DYNAMIC_VISCOSITY" : 0.01,
+                "CONDUCTIVITY"      : 1.0,
+                "SPECIFIC_HEAT"     : 1012.0
+            },
+            "Tables"    : {}
+        }
+    }]
+}

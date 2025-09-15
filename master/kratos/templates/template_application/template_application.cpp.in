@@ -1,0 +1,38 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    @{KRATOS_APP_AUTHOR}
+//
+
+
+// System includes
+
+
+// External includes
+
+
+// Project includes
+#include "@{APP_NAME_LOW}_application.h"
+#include "@{APP_NAME_LOW}_application_variables.h"
+
+
+namespace Kratos {
+
+Kratos@{APP_NAME_CAMEL}Application::Kratos@{APP_NAME_CAMEL}Application():
+    KratosApplication("@{APP_NAME_CAMEL}Application")
+    {}
+
+void Kratos@{APP_NAME_CAMEL}Application::Register()
+{
+     KRATOS_INFO("") << "Initializing Kratos@{APP_NAME_CAMEL}Application..." << std::endl;
+
+    @{KRATOS_APP_REGISTER_VARIABLE_LIST}
+}
+
+}  // namespace Kratos.

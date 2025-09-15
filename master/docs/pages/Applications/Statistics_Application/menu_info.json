@@ -1,0 +1,15 @@
+{
+    "side_bar_name": "statistics_application",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "Statistics Application",
+        "title": "sidebar"
+    },
+    "custom_entries": [
+        "General",
+        "Norm_Methods",
+        "Statistical_Methods",
+        "Domains",
+        "Examples"
+    ]
+}

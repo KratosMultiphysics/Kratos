@@ -1,0 +1,161 @@
+{
+    "problem_data"         : {
+        "problem_name"         : "pfem_sw",
+        "start_time"           : 0.0,
+        "end_time"             : 0.5,
+        "echo_level"           : 0,
+        "parallel_type"        : "OpenMP"
+    },
+    "modelers"             : [{
+        "modeler_name"         : "MeshMovingModeler",
+        "Parameters"           : {
+            "input_file_name"                            : "rectangle_0.25",
+            "fixed_model_part_name"                      : "eulerian_model_part",
+            "moving_model_part_name"                     : "lagrangian_model_part",
+            "interface_sub_model_part_name"              : "shoreline",
+            "solid_boundary_sub_model_part_names"        : ["walls","right","left"],
+            "skip_timer"                                 : true,
+            "ignore_variables_not_in_solution_step_data" : false,
+            "relative_dry_height"                        : 0.1
+        }
+    },{
+        "kratos_module"        : "KratosMultiphysics.ShallowWaterApplication",
+        "modeler_name"         : "planar_surface_in_parabola_modeler",
+        "Parameters"           : {
+            "model_part_name"      : "eulerian_model_part",
+            "benchmark_settings"   : {
+                "depth"     : 1.0,
+                "amplitude" : 1.0
+            }
+        }
+    }],
+    "solver_settings"      : {
+        "solver_type"                : "lagrangian_shallow_water_solver",
+        "model_part_name"            : "eulerian_model_part",
+        "echo_level"                 : 1,
+        "mesh_solver_settings"       : {
+            "model_part_name"            : "lagrangian_model_part",
+            "domain_size"                : 2,
+            "echo_level"                 : 1,
+            "gravity"                    : 9.81,
+            "time_integration_scheme"    : "bdf",
+            "time_integration_order"     : 1,
+            "stabilization_factor"       : 0.1,
+            "relative_tolerance"         : 1e-6,
+            "absolute_tolerance"         : 1e-9,
+            "maximum_iterations"         : 5,
+            "compute_reactions"          : false,
+            "reform_dofs_at_each_step"   : false,
+            "move_mesh_flag"             : false,
+            "linear_solver_settings"     : {
+                "solver_type"                : "amgcl"
+            },
+            "time_stepping"              : {
+                "automatic_time_step"        : true,
+                "courant_number"             : 1.0,
+                "time_step"                  : 0.0005
+            }
+        },
+        "mesh_moving_settings"        : {
+            "map_variables_to_lagrangian" : ["TOPOGRAPHY","MANNING"],
+            "map_variables_to_eulerian"   : ["HEIGHT","VELOCITY"],
+            "maximum_results"             : 10000
+        }
+    },
+    "output_processes" : {
+        // "output_process_list" : [{
+        //     "kratos_module"   : "KratosMultiphysics",
+        //     "python_module"   : "gid_output_process",
+        //     "Parameters"      : {
+        //         "model_part_name"            : "eulerian_model_part",
+        //         "output_name"                : "parabola",
+        //         "postprocess_parameters" : {
+        //             "result_file_configuration" : {
+        //                 "output_control_type"   : "time",
+        //                 "output_interval"       : 0.1,
+        //                 "nodal_results"         : ["VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","TOPOGRAPHY"],
+        //                 "nodal_nonhistorical_results" : ["EXACT_HEIGHT","HEIGHT_ERROR"]
+        //             }
+        //         }
+        //     }
+        // },{
+        //     "kratos_module"   : "KratosMultiphysics",
+        //     "python_module"   : "gid_output_process",
+        //     "Parameters"      : {
+        //         "model_part_name"            : "lagrangian_model_part",
+        //         "output_name"                : "parabola_particles",
+        //         "postprocess_parameters" : {
+        //             "result_file_configuration" : {
+        //                 "output_control_type"   : "time",
+        //                 "output_interval"       : 0.1,
+        //                 "nodal_results"         : ["VELOCITY","HEIGHT","ACCELERATION","DISPLACEMENT","TOPOGRAPHY","FREE_SURFACE_ELEVATION","MOMENTUM"],
+        //                 "nodal_nonhistorical_results" : ["PRESSURE","FLAG_VARIABLE"]
+        //             }
+        //         }
+        //     }
+        // }]
+    },
+    "processes" : {
+        "initial_conditions_process_list"   : [{
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication.benchmarks",
+            "python_module"   : "planar_surface_in_parabola_benchmark",
+            "Parameters"      : {
+                "model_part_name"      : "eulerian_model_part",
+                "variables_list"       : ["HEIGHT","VELOCITY"],
+                "exact_variables_list" : ["EXACT_HEIGHT","EXACT_VELOCITY"],
+                "error_variables_list" : ["HEIGHT_ERROR","VELOCITY_ERROR"],
+                "benchmark_settings"   : {
+                    "depth"     : 1.0,
+                    "amplitude" : 1.0
+                }
+            }
+        }],
+        "boundary_conditions_process_list"  : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "fix_scalar_variable_process",
+            "Parameters"      : {
+                "model_part_name" : "lagrangian_model_part.walls",
+                "variable_name"   : "VELOCITY_Y",
+                "constrained"     : true
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "fix_scalar_variable_process",
+            "Parameters"      : {
+                "model_part_name" : "lagrangian_model_part.shoreline",
+                "variable_name"   : "HEIGHT",
+                "constrained"     : true
+            }
+        }],
+        "topography_process_list"  : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "process_factory",
+            "process_name"    : "ApplyConstantScalarValueProcess",
+            "Parameters"      : {
+                "model_part_name" : "eulerian_model_part",
+                "variable_name"   : "MANNING",
+                "value"           : 0.0,
+                "is_fixed"        : false
+            }
+        }],
+        "json_output_and_check_process" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "from_json_check_result_process",
+            "Parameters"      : {
+                "model_part_name"  : "eulerian_model_part",
+                "check_variables"  : ["HEIGHT"],
+                "input_file_name"  : "mesh_moving_strategy_reference.json",
+                "time_frequency"   : 0.49,
+                "tolerance"        : 1e-5
+            }
+            // "kratos_module"   : "KratosMultiphysics",
+            // "python_module"   : "json_output_process",
+            // "Parameters"      : {
+            //     "model_part_name"  : "eulerian_model_part",
+            //     "output_variables" : ["HEIGHT"],
+            //     "output_file_name" : "mesh_moving_strategy_reference.json",
+            //     "time_frequency"   : 0.49
+            // }
+        }]
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "solver_process":{
+	"solver_type"   : "models_solver",
+	"Parameters"    : {
+	    "properties_id": 0,
+	    "time_settings":{
+		"time_step": 0.05,
+		"end_time":0.05
+	    },
+	    "integration_settings":{
+		"integration_point": [0.75,0.75,0.0]
+	    },
+	    "strain_settings":{
+		"description": "shear-traction",
+		"deformation_gradient" : [ ["1+t*y","t*x",0.0], ["t*y","1+t*x",0.0], [0.0,0.0,1.0] ]
+	    },
+	    "stress_measure": "Kirchhoff",
+	    "print_output": false
+	}
+
+    }
+}

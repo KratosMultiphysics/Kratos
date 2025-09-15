@@ -1,0 +1,26 @@
+//
+//   Cluster Name: "ballast1cluster3Dred"
+//   Author: Joaquin Irazabal
+//   Date:   2016-10-26
+//
+
+Name
+ballast1cluster3Dred
+
+Begin centers_and_radii
+0.0 0.0 0.0 0.5
+End centers_and_radii
+
+Particle_center_and_diameter
+0.0 0.0 0.0 1.0
+
+Size
+1.0
+
+Volume
+0.523598667
+
+Inertia per unit mass
+0.1
+0.1
+0.1

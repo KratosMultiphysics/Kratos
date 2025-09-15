@@ -1,0 +1,52 @@
+# Recovery files
+*~
+
+# Compiled python
+*.pyc
+
+# Common build directory
+build/*
+bin/*
+
+# Export configuration file
+co_sim_io/includes/co_sim_io_api.hpp
+
+# file with compiled config
+tests/compiled_config.json
+
+# fortran module files
+*.mod
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+*.pyd
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# VTK post files
+*.vtk
+*.vtu
+
+# Backup files
+*.bak
+
+# Most used editor files
+*.vscode
+*.vs
+CMakeSettings.json

@@ -1,0 +1,19 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes // GUI group identifier: DEM celemid SwimmingDEMElement
+11 0.5000000000000000000 0.7071067811865474617 0.5773502691896257311
+End Nodes
+
+Begin Elements SphericSwimmingParticle3D   //  GUI group identifier: DEM
+80 1 11
+End Elements
+
+Begin NodalData RADIUS  // GUI group identifier: DEM Elementid SwimmingDEMElement
+11 0 0.1
+End NodalData
+

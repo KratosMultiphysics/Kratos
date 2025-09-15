@@ -1,0 +1,58 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Eigen_Q4_Thick_2x2_Plate_test",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "eigen_value",
+        "scheme_type"                        : "dynamic",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
+        "echo_level"                         : 0,
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "eigen_test/Eigen_Q4_Thick_2x2_Plate"
+        },
+        "material_import_settings" :{
+            "materials_filename": "eigen_test/Eigen_Q4_Thick_2x2_Plate_test_materials.json"
+        },
+        "eigensolver_settings":{
+            "solver_type": "feast",
+            "symmetric": true,
+            "e_min": 0.0,
+            "e_max": 1.0e4,
+            "subspace_size": 9
+        },
+        "rotation_dofs"                      : true
+    },
+    "processes" : {
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.DISPLACEMENT_support",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0]
+        }
+    }],
+    "loads_process_list"       : [],
+    "list_other_processes" :[{
+        "kratos_module" : "StructuralMechanicsApplication",
+        "python_module" : "check_eigenvalues_process",
+        "help"          : "",
+        "process_name"  : "CheckEigenvaluesProcess",
+        "Parameters"    : {
+            "model_part_name"  : "Structure",
+	    "variable_name"   : "EIGENVALUE_VECTOR",
+            "reference_values": "[88.96614452368635, 3955.0855388258715, 7796.83946434412]"
+        }
+    }]}
+}

@@ -1,0 +1,116 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "matmem",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Static",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "membrane_test/Membrane_material_and_prestress_test"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "membrane_test/Membrane_prestress_diagonal_test_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 1e-6,
+        "displacement_absolute_tolerance"    : 1e-6,
+        "residual_relative_tolerance"        : 1e-6,
+        "residual_absolute_tolerance"        : 1e-6,
+        "max_iteration"                      : 20,
+        "rotation_dofs"                      : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_dirichZ",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,false,true],
+                "value"           : [null,null,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_dirichX",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,false,false],
+                "value"           : [0.0,null,null],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_dirichY",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,false],
+                "value"           : [null,0.0,null],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PointLoad3D_forceX",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 0.0,
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.PointLoad3D_forceY",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 0.0,
+                "direction"       : [0.0,1,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"     : [{
+            "python_module" : "project_vector_on_surface_process",
+            "kratos_module" : "StructuralMechanicsApplication",
+            "Parameters"    : {
+                "model_part_name"  : "Structure",
+                "echo_level"      : 1,
+                "projection_type"        : "planar",
+                "global_direction" : [1.0,1.0,0],
+                "variable_name"    : "LOCAL_PRESTRESS_AXIS_1"
+            }
+        },{
+            "python_module" : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "",
+            "process_name"  : "FromJsonCheckResultProcess",
+            "Parameters"    : {
+                "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+                "input_file_name" : "membrane_test/Membrane_prestress_diagonal_test_results.json",
+                "model_part_name"  : "Structure.check_results",
+                "time_frequency"   : 1.00
+            }
+        }]
+    },
+    "output_processes" : {
+        "gid_output" : [],
+        "vtk_output" : []
+    }
+}

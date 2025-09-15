@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gid version="12.2">
+  <pre>
+    <layer_to_use name="Layer0"/>
+    <groups>
+      <group id="1" name="solid" color="#999999ff"/>
+    </groups>
+    <entities_groups>
+      <entities_group name="surfaces">
+        <vector name="entity_ids" length="1" type="integer">1</vector>
+        <vector name="entity_num_groups" length="1" type="ushort">1</vector>
+        <vector name="entity_groups" length="1" type="ushort">1</vector>
+      </entities_group>
+      <entities_group name="nodes">
+        <vector name="entity_ids" length="36" type="integer">1:36</vector>
+        <vector name="entity_num_groups" length="36" type="ushort">1x36</vector>
+        <vector name="entity_groups" length="36" type="ushort">1x36</vector>
+      </entities_group>
+      <entities_group name="elements">
+        <vector name="entity_ids" length="50" type="integer">1:50</vector>
+        <vector name="entity_num_groups" length="50" type="ushort">1x50</vector>
+        <vector name="entity_groups" length="50" type="ushort">1x50</vector>
+      </entities_group>
+    </entities_groups>
+  </pre>
+</gid>

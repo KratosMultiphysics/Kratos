@@ -1,0 +1,24 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes // GUI group identifier: DEMElem0 celemid SphericPartDEMElement3D
+3 -1.000000000000000000 1.000000000000000000 0.4000000000000000222
+End Nodes
+
+Begin Elements SphericParticle3D   //  GUI group identifier: DEMElem0
+10 1 3
+End Elements
+
+Begin NodalData RADIUS  // GUI group identifier: DEMElem0 Elementid SphericPartDEMElement3D
+3 0 0.5
+End NodalData
+
+Begin Table 0 TIME VELOCITY
+0.0  0.0
+1.0  0.0
+End Table
+

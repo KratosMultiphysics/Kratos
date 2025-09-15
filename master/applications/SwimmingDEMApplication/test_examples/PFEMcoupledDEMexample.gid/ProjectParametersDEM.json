@@ -1,0 +1,116 @@
+{
+"PeriodicDomainOption" : false,
+"BoundingBoxOption" : true,
+"AutomaticBoundingBoxOption" : false,
+"BoundingBoxEnlargementFactor" : 1.0,
+"BoundingBoxStartTime" : 0.0,
+"BoundingBoxStopTime" : 1000.0,
+"BoundingBoxMaxX" : 10,
+"BoundingBoxMaxY" : 10,
+"BoundingBoxMaxZ" : 10,
+"BoundingBoxMinX" : -10,
+"BoundingBoxMinY" : -10,
+"BoundingBoxMinZ" : -10,
+
+"dem_inlet_option" : false,
+
+"EnergyCalculationOption" : false,
+"VelocityTrapOption" : false,
+"RotationOption" : true,
+"CleanIndentationsOption" : false,
+"RemoveBallsInEmbeddedOption" : false,
+
+"DeltaOption" : "Absolute",
+"SearchTolerance" : 0.0001,
+"AmplifiedSearchRadiusExtension" : 0.0,
+"ModelDataInfo" : false,
+"VirtualMassCoefficient" : 1.0,
+"RollingFrictionOption" : false,
+"ContactMeshOption" : false,
+"ElementType" : "SwimmingDEMElement",
+
+"IntegrationScheme" : "Symplectic_Euler",
+"DeltaTimeSafetyFactor" : 1.0,
+
+"time_stepping" : {
+  "automatic_time_step" : false,
+  "time_step" : 5e-5
+},
+"coupling" : {
+  "coupling_level_type" : 1,
+  "coupling_weighing_type" : 2,
+  "coupling_weighing_type_comment" : "{fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)",
+  "interaction_start_time" : 0.05,
+  "forward_coupling" : {
+    "time_averaging_type" : 0
+  },
+
+  "backward_coupling" : {
+      "meso_scale_length" : 0.2,
+      "meso_scale_length_comment" : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
+      "shape_factor" : 0.5,
+      "filter_velocity_option" : false,
+      "apply_time_filter_to_fluid_fraction_option" : false,
+      "min_fluid_fraction" : 0.2,
+      "fluid_fraction_grad_type" : 0,
+      "calculate_diffusivity_option" : false,
+      "viscosity_modification_type" : 0
+  }
+},
+
+"gradient_calculation_type" : 1,
+"gradient_calculation_type_comment" : "(Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))",
+"drag_modifier_type" : 0,
+"print_particles_results_option" : false,
+"add_each_hydro_force_option" : true,
+"add_each_hydro_force_option_comment" : " add each of the hydrodynamic forces (drag, lift and virtual mass)",
+"print_debug_info_option" : false,
+"print_debug_info_option_comment" : " print a summary of global physical measures",
+"print_particles_results_cycle" : 1,
+"print_particles_results_cycle_comment" : " number of 'ticks' per printing cycle",
+"debug_tool_cycle" : 10,
+"debug_tool_cycle_comment" : " number of 'ticks' per debug computations cycle",
+"model_over_real_diameter_factor" : 1.0,
+"model_over_real_diameter_factor_comment": " not active if similarity_transformation_type = 0",
+
+
+
+"GraphExportFreq" : 1e-3,
+"VelTrapGraphExportFreq" : 1e-3,
+"OutputTimeStep" : 0.0025,
+"PostBoundingBox" : false,
+"PostDisplacement" : false,
+"PostVelocity" : true,
+"PostTotalForces" : false,
+"PostRigidElementForces" : false,
+"PostRadius" : false,
+"PostAngularVelocity" : false,
+"PostParticleMoment" : false,
+"PostEulerAngles" : false,
+"PostRollingResistanceMoment" : false,
+
+"PostElasticForces" : false,
+"PostContactForces" : false,
+"PostTangentialElasticForces" : false,
+"PostShearStress" : false,
+
+"PostNonDimensionalVolumeWear" : false,
+"PostNodalArea" : false,
+
+
+"PostRHS" : false,
+"PostDampForces" : false,
+"PostAppliedForces" : false,
+"PostGroupId" : false,
+"PostExportId" : false,
+
+"problem_data" : {
+  "problem_name" : "DEMforPFEMcoupledDEMexample",
+  "echo_level" : 1,
+  "start_time" : 0.0,
+  "end_time" : 1,
+  "parallel_type": "OpenMP",
+  "number_of_threads": 1
+}
+
+}

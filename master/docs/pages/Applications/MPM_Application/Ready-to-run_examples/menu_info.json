@@ -1,0 +1,16 @@
+{
+    "custom_entries": [
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/refs/heads/master/mpm/validation/cylinder_on_inclined_plane/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/mpm/validation/cylinder_on_inclined_plane",
+            "file_name": "Cylinder_on_inclined_plane_2D.md"
+        },
+        {
+            "type": "kratos_example",
+            "raw_url": "https://raw.githubusercontent.com/KratosMultiphysics/Examples/refs/heads/master/mpm/validation/granular_flow_2D/README.md",
+            "source_url": "https://github.com/KratosMultiphysics/Examples/tree/master/mpm/validation/granular_flow_2D",
+            "file_name": "Granular_Flow_2D.md"
+        }
+    ]
+}

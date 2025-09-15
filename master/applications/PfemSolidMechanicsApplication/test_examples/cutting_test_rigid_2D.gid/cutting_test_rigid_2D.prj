@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gid version="12.2">
+  <pre>
+    <layer_to_use name="Layer0"/>
+    <groups>
+      <group id="1" name="WorkPiece" color="#999999ff"/>
+      <group id="2" name="Tool" color="#0000ffff"/>
+    </groups>
+    <entities_groups>
+      <entities_group name="lines">
+        <vector name="entity_ids" length="6" type="integer">66:71</vector>
+        <vector name="entity_num_groups" length="6" type="ushort">1x6</vector>
+        <vector name="entity_groups" length="6" type="ushort">2x6</vector>
+      </entities_group>
+      <entities_group name="surfaces">
+        <vector name="entity_ids" length="1" type="integer">3</vector>
+        <vector name="entity_num_groups" length="1" type="ushort">1</vector>
+        <vector name="entity_groups" length="1" type="ushort">1</vector>
+      </entities_group>
+      <entities_group name="nodes">
+        <vector name="entity_ids" length="638" type="integer">1:638</vector>
+        <vector name="entity_num_groups" length="638" type="ushort">1x638</vector>
+        <vector name="entity_groups" length="638" type="ushort">2x21 1 1 2 1 2 1 2 1 2 1 1 2 1 1 2 2 1x4 2 1x6 2 1 1 2 1x7 2 1x7 2 1x9 2 1x7 2 1x6 2 1x9 2 1x8 2 1x8 2 1x10 2 1x10 2 1x8 2 1x486</vector>
+      </entities_group>
+      <entities_group name="elements">
+        <vector name="entity_ids" length="1111" type="integer">1:1111</vector>
+        <vector name="entity_num_groups" length="1111" type="ushort">1x1111</vector>
+        <vector name="entity_groups" length="1111" type="ushort">1x1070 2x41</vector>
+      </entities_group>
+    </entities_groups>
+  </pre>
+</gid>

@@ -1,0 +1,8 @@
+{
+    "side_bar_name": "documentation_guide",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "Documentation Guide",
+        "title": "sidebar"
+    }
+}

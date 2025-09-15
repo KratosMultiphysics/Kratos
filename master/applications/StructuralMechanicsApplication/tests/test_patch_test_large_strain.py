@@ -1,0 +1,1302 @@
+import KratosMultiphysics
+
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
+
+class TestPatchTestLargeStrain(KratosUnittest.TestCase):
+    def setUp(self):
+        pass
+
+    def _add_variables(self,mp):
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+
+    def _apply_material_properties(self, mp, dim, small_strain = True):
+        #define properties
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
+
+        g = [0,0,0]
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
+
+        if(dim == 2):
+            if (small_strain == True):
+                cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+            else:
+                self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+                cl = ConstitutiveLawsApplication.HyperElasticPlaneStrain2DLaw()
+        else:
+            if (small_strain == True):
+                cl = StructuralMechanicsApplication.LinearElastic3DLaw()
+            else:
+                self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+                cl = ConstitutiveLawsApplication.HyperElastic3DLaw()
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+
+    def _set_buffer(self,mp):
+        buffer_size = 3
+        mp.SetBufferSize(buffer_size)
+        # Cycle the buffer. This sets all historical nodal solution step data to
+        # the current value and initializes the time stepping in the process info.
+        mp.ProcessInfo[KratosMultiphysics.DELTA_TIME] = 1.0
+        delta_time = mp.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        time = mp.ProcessInfo[KratosMultiphysics.TIME]
+        step =-buffer_size + 1
+        time = time - delta_time * buffer_size
+        mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+        for i in range(0, buffer_size):
+            step = step + 1
+            time = time + delta_time
+            mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
+            mp.CloneTimeStep(time)
+        return delta_time
+
+    def _ResetDisplacementAndPosition(self,mp):
+        zero = KratosMultiphysics.Vector(3)
+        zero[0] = 0.0
+        zero[1] = 0.0
+        zero[2] = 0.0
+
+        for node in mp.Nodes:
+            node.X = node.X0
+            node.Y = node.Y0
+            node.Z = node.Z0
+
+            for step in range(mp.GetBufferSize()):
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,step,zero)
+
+    def _apply_BCs(self,mp,A,b):
+        for node in mp.Nodes:
+            node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+            node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+            node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+
+        for node in mp.Nodes:
+            xvec = KratosMultiphysics.Vector(3)
+            u = KratosMultiphysics.Vector()
+
+            xvec[0] = node.X0
+            xvec[1] = node.Y0
+            xvec[2] = node.Z0
+
+            u = A*xvec
+            u += b
+
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u)
+
+    def _define_movement(self,dim, coeff = 1.0):
+        if(dim == 2):
+            #define the applied motion - the idea is that the displacement is defined as u = A*xnode + b
+            #so that the displcement is linear and the exact F = I + A
+            A = KratosMultiphysics.Matrix(3,3)
+            A[0,0] = coeff *   0.10;  A[0,1] = coeff * 0.12; A[0,2] = coeff * 0.0
+            A[1,0] = coeff * - 0.05;  A[1,1] = coeff * 0.07; A[1,2] = coeff * 0.0
+            A[2,0] = coeff *   0.00;  A[2,1] = coeff * 0.0;  A[2,2] = coeff * 0.0
+
+            b = KratosMultiphysics.Vector(3)
+            b[0] = coeff *  0.05
+            b[1] = coeff * -0.02
+            b[2] = coeff *  0.00
+
+        else:
+            #define the applied motion - the idea is that the displacement is defined as u = A*xnode + b
+            #so that the displcement is linear and the exact F = I + A
+            A = KratosMultiphysics.Matrix(3,3)
+            A[0,0] = coeff *   0.10; A[0,1] = coeff * 0.12; A[0,2] = coeff *  0.0
+            A[1,0] = coeff * - 0.05; A[1,1] = coeff * 0.07; A[1,2] = coeff *  0.1
+            A[2,0] = coeff * - 0.02; A[2,1] = coeff * 0.0;  A[2,2] = coeff * -0.3
+
+            b = KratosMultiphysics.Vector(3)
+            b[0] = coeff *   0.05
+            b[1] = coeff * - 0.02
+            b[2] = coeff *   0.07
+
+        return A,b
+
+    def _solve(self,mp, builder_type, linearize_on_previous_iteration):
+        strategy = self._create_strategy(mp, builder_type, linearize_on_previous_iteration)
+        strategy.Check()
+        strategy.Solve()
+
+    def _create_strategy(self, mp, builder_type, linearize_on_previous_iteration):
+        # Define a minimal newton raphson solver
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        if builder_type == "elimination_builder":
+            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        elif builder_type == "block_builder":
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        else:
+            raise Exception("builder_type unknown")
+        # Define a minimal newton raphson solver
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        convergence_criterion = KratosMultiphysics.DisplacementCriteria(1e-10,1e-20)
+        convergence_criterion.SetEchoLevel(0)
+
+        #max_iters = 1
+        max_iters = 20
+        compute_reactions = True
+        reform_step_dofs = True
+        move_mesh_flag = True
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                        scheme,
+                                                                        convergence_criterion,
+                                                                        builder_and_solver,
+                                                                        max_iters,
+                                                                        compute_reactions,
+                                                                        reform_step_dofs,
+                                                                        move_mesh_flag)
+        strategy.SetEchoLevel(0)
+        strategy.SetUseOldStiffnessInFirstIterationFlag(linearize_on_previous_iteration)
+
+        return strategy
+
+    def _solve_with_strategy(self, strategy, lhs, step):
+        strategy.Check()
+        strategy.Initialize()
+        strategy.InitializeSolutionStep()
+        strategy.Predict()
+        strategy.SolveSolutionStep()
+        lhs = strategy.GetSystemMatrix()
+        strategy.FinalizeSolutionStep()
+
+    def _check_results(self,mp,A,b):
+
+        ##check that the results are exact on the nodes
+        for node in mp.Nodes:
+            xvec = KratosMultiphysics.Vector(3)
+            xvec[0] = node.X0
+            xvec[1] = node.Y0
+            xvec[2] = node.Z0
+
+            u = A*xvec
+            u += b
+
+            d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            self.assertAlmostEqual(d[0], u[0])
+            self.assertAlmostEqual(d[1], u[1])
+            self.assertAlmostEqual(d[2], u[2])
+
+    def _check_outputs(self,mp,A,dim, tolerance = 1.0e-4):
+
+        E = mp.GetProperties()[1].GetValue(KratosMultiphysics.YOUNG_MODULUS)
+        NU =mp.GetProperties()[1].GetValue(KratosMultiphysics.POISSON_RATIO)
+
+        #given the matrix A, the analytic deformation gradient is F+I
+        F = A
+        for i in range(3):
+            F[i,i] += 1.0
+
+        #here compute the Cauchy green strain tensor
+        Etensor = KratosMultiphysics.Matrix(3,3)
+
+        for i in range(3):
+            for j in range(3):
+                Etensor[i,j] = 0.0
+
+        for i in range(3):
+            for j in range(3):
+                for k in range(3):
+                    Etensor[i,j] += A[k,i]*A[k,j]
+
+        for i in range(3):
+            Etensor[i,i] -= 1.0
+
+        for i in range(3):
+            for j in range(3):
+                Etensor[i,j] = 0.5*Etensor[i,j]
+
+        if(dim == 2):
+            #verify strain
+            reference_strain = KratosMultiphysics.Vector(3)
+            reference_strain[0] = Etensor[0,0]
+            reference_strain[1] = Etensor[1,1]
+            reference_strain[2] = 2.0*Etensor[0,1]
+        else:
+            reference_strain = KratosMultiphysics.Vector(6)
+            reference_strain[0] = Etensor[0,0]
+            reference_strain[1] = Etensor[1,1]
+            reference_strain[2] = Etensor[2,2]
+            reference_strain[3] = 2.0*Etensor[0,1]
+            reference_strain[4] = 2.0*Etensor[1,2]
+            reference_strain[5] = 2.0*Etensor[0,2]
+
+        for elem in mp.Elements:
+            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, mp.ProcessInfo)
+            for strain in out:
+                for i in range(len(reference_strain)):
+                    check = abs((reference_strain[i] - strain[i])/strain[i])
+                    #print(reference_strain, "\t", strain, "\t", check)
+                    self.assertLess(check, tolerance)
+
+        #finally compute stress
+        if dim == 2:
+            #here assume plane stress
+            c1 = E / (1.00 - NU*NU);
+            c2 = c1 * NU;
+            c3 = 0.5* E / (1 + NU);
+            reference_stress = KratosMultiphysics.Vector(3)
+            reference_stress[0] = c1*reference_strain[0] + c2 * (reference_strain[1])	;
+            reference_stress[1] = c1*reference_strain[1] + c2 * (reference_strain[0])	;
+            reference_stress[2] = c3*reference_strain[2];
+        else:
+            c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
+            c2 = c1 * ( 1 - NU );
+            c3 = c1 * NU;
+            c4 = c1 * 0.5 * ( 1 - 2 * NU );
+            reference_stress = KratosMultiphysics.Vector(6)
+            reference_stress[0] = c2*reference_strain[0] + c3 * (reference_strain[1] + reference_strain[2])
+            reference_stress[1] = c2*reference_strain[1] + c3 * (reference_strain[0] + reference_strain[2])
+            reference_stress[2] = c2*reference_strain[2] + c3 * (reference_strain[0] + reference_strain[1])
+            reference_stress[3] = c4*reference_strain[3]
+            reference_stress[4] = c4*reference_strain[4]
+            reference_stress[5] = c4*reference_strain[5]
+
+        for elem in mp.Elements:
+            out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR, mp.ProcessInfo)
+            for stress in out:
+                for i in range(len(reference_stress)):
+                    check = abs((reference_stress[i] - stress[i])/stress[i])
+                    #print(reference_stress, "\t", stress, "\t", check)
+                    self.assertLess(check, tolerance)
+
+    def _compare_TL_UL_2D_triangle(self, builder_and_type, linearize_on_old_iteration):
+        dim = 2
+
+        bc_nodes = [1, 2]
+        load_nodes = [3, 4]
+
+        current_model = KratosMultiphysics.Model()
+        tl_mp = current_model.CreateModelPart("tl_solid_part")
+
+        self._add_variables(tl_mp)
+        self._apply_material_properties(tl_mp, dim, False)
+
+        # Create nodes
+        tl_mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        tl_mp.CreateNewNode(2, 1.0, 0.0, 0.0)
+        tl_mp.CreateNewNode(3, 1.0, 1.0, 0.0)
+        tl_mp.CreateNewNode(4, 0.0, 1.0, 0.0)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,tl_mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,tl_mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,tl_mp)
+
+        # Create a submodelpart for boundary conditions
+        tl_bcs = tl_mp.CreateSubModelPart("BoundaryCondtions")
+        tl_bcs.AddNodes(bc_nodes)
+        for node in tl_bcs.Nodes:
+            node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0.0)
+            node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0.0)
+
+        # Create Element and condition
+        tl_elem = tl_mp.CreateNewElement("TotalLagrangianElement2D4N", 1, [1,2,3,4], tl_mp.GetProperties()[1])
+        tl_load = tl_mp.CreateSubModelPart("LoadConditions")
+        tl_load.AddNodes(load_nodes)
+        tl_cond = tl_mp.CreateNewCondition("LineLoadCondition2D2N", 1, load_nodes, tl_mp.GetProperties()[1])
+
+        self._set_buffer(tl_mp)
+        tl_lhs = KratosMultiphysics.CompressedMatrix()
+
+        current_model = KratosMultiphysics.Model()
+        ul_mp = current_model.CreateModelPart("ul_solid_part")
+        self._add_variables(ul_mp)
+        self._apply_material_properties(ul_mp, dim, False)
+
+        # Create nodes
+        ul_mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        ul_mp.CreateNewNode(2, 1.0, 0.0, 0.0)
+        ul_mp.CreateNewNode(3, 1.0, 1.0, 0.0)
+        ul_mp.CreateNewNode(4, 0.0, 1.0, 0.0)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,ul_mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,ul_mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,ul_mp)
+
+        # Create a submodelpart for boundary conditions
+        ul_bcs = ul_mp.CreateSubModelPart("BoundaryCondtions")
+        ul_bcs.AddNodes(bc_nodes)
+        for node in ul_bcs.Nodes:
+            node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0.0)
+            node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0.0)
+
+        # Create Element
+        ul_elem = ul_mp.CreateNewElement("UpdatedLagrangianElement2D4N", 1, [1,2,3,4], ul_mp.GetProperties()[1])
+        ul_load = ul_mp.CreateSubModelPart("LoadCondtions")
+        ul_load.AddNodes(load_nodes)
+        ul_cond = ul_mp.CreateNewCondition("LineLoadCondition2D2N", 1, load_nodes, tl_mp.GetProperties()[1])
+
+        self._set_buffer(ul_mp)
+        ul_lhs = KratosMultiphysics.CompressedMatrix()
+
+        # Now we solve
+        load = KratosMultiphysics.Vector(3)
+        load[0] = 0.0
+        load[1] = 0.0
+        load[2] = 0.0
+
+        delta_time = ul_mp.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        time = ul_mp.ProcessInfo[KratosMultiphysics.TIME]
+
+        tl_strategy = self._create_strategy(tl_mp, builder_and_type, linearize_on_old_iteration)
+
+        ul_strategy = self._create_strategy(ul_mp, builder_and_type, linearize_on_old_iteration)
+
+        for iter in range(1, 4):
+
+            time += iter * delta_time
+            tl_mp.CloneTimeStep(time)
+            ul_mp.CloneTimeStep(time)
+
+            #load[1] = iter * 1.0e10
+            #tl_cond.SetValue(StructuralMechanicsApplication.LINE_LOAD, load)
+            #ul_cond.SetValue(StructuralMechanicsApplication.LINE_LOAD, load)
+
+            for node in tl_load.Nodes:
+                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, iter * 5.0e-1)
+            for node in ul_load.Nodes:
+                node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+                node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, iter * 5.0e-1)
+            #for node in tl_load.Nodes:
+                #node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                #node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, iter * 5.0e-1)
+            #for node in ul_load.Nodes:
+                #node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+                #node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, iter * 5.0e-1)
+
+            self._solve_with_strategy(tl_strategy, tl_lhs, iter)
+            self._solve_with_strategy(ul_strategy, ul_lhs, iter)
+
+            # Check displacement
+            for i in range(2, 4):
+                tl_dx = tl_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                tl_dy = tl_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+                ul_dx = ul_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                ul_dy = ul_mp.Nodes[i].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+
+                if(abs(tl_dx) > 1e-20):
+                    self.assertLess(abs(tl_dx - ul_dx) / abs(tl_dx), 1.0e-10)
+                if(abs(tl_dy) > 1e-20):
+                    self.assertLess(abs(tl_dy - ul_dy) / abs(tl_dy), 1.0e-10)
+
+            # Compare matrices
+            for i in range(ul_lhs.Size1()):
+                for j in range(ul_lhs.Size2()):
+                    self.assertLess(abs(ul_lhs[i, j] - tl_lhs[i, j]) / abs(tl_lhs[i, j]), 1.0e-10)
+
+        #self.__post_process(tl_mp)
+        #self.__post_process(ul_mp)
+
+    def test_compare_TL_UL_2D_triangle_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._compare_TL_UL_2D_triangle(builder_type, linearize_on_old_iteration )
+
+    def test_compare_TL_UL_2D_triangle_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._compare_TL_UL_2D_triangle(builder_type, linearize_on_old_iteration )
+
+    def test_compare_TL_UL_2D_triangle_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._compare_TL_UL_2D_triangle(builder_type, linearize_on_old_iteration )
+
+
+    def _TL_2D_triangle(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.5,0.5,0.0)
+        mp.CreateNewNode(2,0.7,0.2,0.0)
+        mp.CreateNewNode(3,0.9,0.8,0.0)
+        mp.CreateNewNode(4,0.3,0.7,0.0)
+        mp.CreateNewNode(5,0.6,0.6,0.0)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4])
+
+        #create Element
+        mp.CreateNewElement("TotalLagrangianElement2D3N", 1, [1,2,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D3N", 2, [2,3,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D3N", 3, [3,4,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D3N", 4, [4,1,5], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
+        #self.__post_process(mp)
+
+    def test_TL_2D_triangle_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_triangle(builder_type, linearize_on_old_iteration,6 )
+
+    def test_TL_2D_triangle_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_2D_triangle(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_2D_triangle_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_triangle(builder_type, linearize_on_old_iteration,6 )
+
+    def _TL_2D_triangle_10N(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1 , 0.00, 0.00, 0.0)
+        mp.CreateNewNode(2 , 0.50, 0.00, 0.0)
+        mp.CreateNewNode(3 , 1.00, 0.00, 0.0)
+        mp.CreateNewNode(4 , 1.50, 0.00, 0.0)
+        mp.CreateNewNode(5 , 1.70, 0.20, 0.0)
+        mp.CreateNewNode(6 , 1.90, 0.40, 0.0)
+        mp.CreateNewNode(7 , 2.10, 0.60, 0.0)
+        mp.CreateNewNode(8 , 2.10, 1.00, 0.0)
+        mp.CreateNewNode(9 , 2.10, 1.40, 0.0)
+        mp.CreateNewNode(10, 2.10, 1.80, 0.0)
+        mp.CreateNewNode(11, 1.40, 1.70, 0.0)
+        mp.CreateNewNode(12, 0.70, 1.60, 0.0)
+        mp.CreateNewNode(13, 0.00, 1.50, 0.0)
+        mp.CreateNewNode(14, 0.00, 1.00, 0.0)
+        mp.CreateNewNode(15, 0.00, 0.50, 0.0)
+        mp.CreateNewNode(16, 0.90, 0.90, 0.0)
+        mp.CreateNewNode(17, 0.30, 0.30, 0.0)
+        mp.CreateNewNode(18, 0.60, 0.60, 0.0)
+        mp.CreateNewNode(19, 1.30, 0.30, 0.0)
+        mp.CreateNewNode(20, 1.10, 0.60, 0.0)
+        mp.CreateNewNode(21, 1.70, 0.70, 0.0)
+        mp.CreateNewNode(22, 1.30, 0.80, 0.0)
+        mp.CreateNewNode(23, 1.70, 1.50, 0.0)
+        mp.CreateNewNode(24, 1.30, 1.20, 0.0)
+        mp.CreateNewNode(25, 0.30, 1.30, 0.0)
+        mp.CreateNewNode(26, 0.60, 1.10, 0.0)
+        mp.CreateNewNode(27, 0.80, 0.30, 0.0)
+        mp.CreateNewNode(28, 1.50, 0.50, 0.0)
+        mp.CreateNewNode(29, 1.70, 1.11, 0.0)
+        mp.CreateNewNode(30, 1.00, 1.40, 0.0)
+        mp.CreateNewNode(31, 0.30, 0.80, 0.0)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
+
+        #create Element
+        mp.CreateNewElement("TotalLagrangianElement2D10N", 1, [ 1, 4,16, 2, 3,19,20,18,17,27], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D10N", 2, [ 4, 7,16, 5, 6,21,22,20,19,28], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D10N", 3, [ 7,10,16, 8, 9,23,24,22,21,29], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D10N", 4, [10,13,16,11,12,25,26,24,23,30], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D10N", 5, [13, 1,16,14,15,17,18,26,25,31], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
+        #self.__post_process(mp)
+
+    def test_TL_2D_triangle_10N_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_triangle_10N(builder_type, linearize_on_old_iteration,8 )
+
+    def test_TL_2D_triangle_10N_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_2D_triangle_10N(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_2D_triangle_10N_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_triangle_10N(builder_type, linearize_on_old_iteration,8 )
+
+    def _TL_2D_triangle_15N(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1 , 0.00, 0.00, 0.0)
+        mp.CreateNewNode(2 , 0.50, 0.00, 0.0)
+        mp.CreateNewNode(3 , 1.00, 0.00, 0.0)
+        mp.CreateNewNode(4 , 1.50, 0.00, 0.0)
+        mp.CreateNewNode(5 , 2.00, 0.00, 0.0)
+        mp.CreateNewNode(6 , 2.20, 0.20, 0.0)
+        mp.CreateNewNode(7 , 2.40, 0.40, 0.0)
+        mp.CreateNewNode(8 , 2.60, 0.60, 0.0)
+        mp.CreateNewNode(9 , 2.80, 0.80, 0.0)
+        mp.CreateNewNode(10, 2.35, 0.85, 0.0)
+        mp.CreateNewNode(11, 1.90, 0.90, 0.0)
+        mp.CreateNewNode(12, 1.45, 0.95, 0.0)
+        mp.CreateNewNode(13, 1.00, 1.00, 0.0)
+        mp.CreateNewNode(14, 0.75, 1.00, 0.0)
+        mp.CreateNewNode(15, 0.50, 1.00, 0.0)
+        mp.CreateNewNode(16, 0.25, 1.00, 0.0)
+        mp.CreateNewNode(17, 0.00, 1.00, 0.0)
+        mp.CreateNewNode(18, 0.00, 0.75, 0.0)
+        mp.CreateNewNode(19, 0.00, 0.50, 0.0)
+        mp.CreateNewNode(20, 0.00, 0.25, 0.0)
+        mp.CreateNewNode(21, 0.25, 0.25, 0.0)
+        mp.CreateNewNode(22, 0.50, 0.50, 0.0)
+        mp.CreateNewNode(23, 0.75, 0.70, 0.0)
+        mp.CreateNewNode(24, 1.75, 0.25, 0.0)
+        mp.CreateNewNode(25, 1.50, 0.50, 0.0)
+        mp.CreateNewNode(26, 1.25, 0.75, 0.0)
+        mp.CreateNewNode(27, 0.75, 0.25, 0.0)
+        mp.CreateNewNode(28, 1.25, 0.25, 0.0)
+        mp.CreateNewNode(29, 1.00, 0.50, 0.0)
+        mp.CreateNewNode(30, 2.15, 0.65, 0.0)
+        mp.CreateNewNode(31, 1.70, 0.70, 0.0)
+        mp.CreateNewNode(32, 1.95, 0.45, 0.0)
+        mp.CreateNewNode(33, 0.25, 0.75, 0.0)
+        mp.CreateNewNode(34, 0.50, 0.75, 0.0)
+        mp.CreateNewNode(35, 0.25, 0.50, 0.0)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+
+        #create Element
+        mp.CreateNewElement("TotalLagrangianElement2D15N", 1, [ 1,5,13, 2, 3, 4,24,25,26,23,22,21,27,28,29], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D15N", 2, [ 5,9,13, 6, 7, 8,10,11,12,26,25,24,32,30,31], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D15N", 3, [17,1,13,18,19,20,21,22,23,14,15,16,33,35,34], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
+        #self.__post_process(mp)
+
+    def test_TL_2D_triangle_15N_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_triangle_15N(builder_type, linearize_on_old_iteration,8 )
+
+    def test_TL_2D_triangle_15N_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_2D_triangle_15N(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_2D_triangle_15N_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_triangle_15N(builder_type, linearize_on_old_iteration,8 )
+
+    def _TL_2D_quadrilateral(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.00,3.00,0.00)
+        mp.CreateNewNode(2,1.00,2.25,0.00)
+        mp.CreateNewNode(3,0.75,1.00,0.00)
+        mp.CreateNewNode(4,2.25,2.00,0.00)
+        mp.CreateNewNode(5,0.00,0.00,0.00)
+        mp.CreateNewNode(6,3.00,3.00,0.00)
+        mp.CreateNewNode(7,2.00,0.75,0.00)
+        mp.CreateNewNode(8,3.00,0.00,0.00)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,5,6,8])
+
+        #create Element
+        mp.CreateNewElement("TotalLagrangianElement2D4N", 1, [8,7,3,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D4N", 2, [6,4,7,8], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D4N", 3, [1,2,4,6], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D4N", 4, [4,2,3,7], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement2D4N", 5, [2,1,5,3], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
+        #self.__post_process(mp)
+
+    def test_TL_2D_quadrilateral_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_quadrilateral(builder_type, linearize_on_old_iteration,6 )
+
+    def test_TL_2D_quadrilateral_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_2D_quadrilateral(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_2D_quadrilateral_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_2D_quadrilateral(builder_type, linearize_on_old_iteration,6 )
+
+    def _TL_3D_tetra(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0, 1.0, 0.0)
+        mp.CreateNewNode(2,0.0, 1.0, 0.1)
+        mp.CreateNewNode(3, 0.28739360416666665, 0.27808503701741405, 0.05672979583333333)
+        mp.CreateNewNode(4, 0.0, 0.1, 0.0)
+        mp.CreateNewNode(5, 0.1, 0.1, 0.1)
+        mp.CreateNewNode(6, 1.0, 0.0, 0.0)
+        mp.CreateNewNode(7, 1.2, 0.0, 0.1)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,4,5,6,7])
+
+        #create Element
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 1,[5,3,1,2], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 2,[3,1,2,6], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 3,[6,4,7,3], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 4,[5,4,1,3], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 5,[4,1,3,6], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 6,[5,4,3,7], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 7,[3,5,7,2], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D4N", 8,[6,7,2,3], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
+        #self.__post_process(mp)
+
+    def test_TL_3D_tetra_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_tetra(builder_type, linearize_on_old_iteration,10 )
+
+    def test_TL_3D_tetra_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_3D_tetra(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_3D_tetra_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_tetra(builder_type, linearize_on_old_iteration,10 )
+
+    def _TL_3D_prism(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.5,0.5,0.0)
+        mp.CreateNewNode(2,0.7,0.2,0.0)
+        mp.CreateNewNode(3,0.9,0.8,0.0)
+        mp.CreateNewNode(4,0.3,0.7,0.0)
+        mp.CreateNewNode(5,0.6,0.6,0.0)
+        mp.CreateNewNode(6,0.5,0.5,0.1)
+        mp.CreateNewNode(7,0.7,0.2,0.1)
+        mp.CreateNewNode(8,0.9,0.8,0.1)
+        mp.CreateNewNode(9,0.3,0.7,0.1)
+        mp.CreateNewNode(10,0.6,0.6,0.1)
+        mp.CreateNewNode(11,0.5,0.5,0.2)
+        mp.CreateNewNode(12,0.7,0.2,0.2)
+        mp.CreateNewNode(13,0.9,0.8,0.2)
+        mp.CreateNewNode(14,0.3,0.7,0.2)
+        mp.CreateNewNode(15,0.6,0.6,0.2)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4,5,6,7,8,9,11,12,13,14,15])
+
+        #create Element
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 1, [1,2,5,6,7,10], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 2, [2,3,5,7,8,10], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 3, [3,4,5,8,9,10], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 4, [4,1,5,9,6,10], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 5, [6,7,10,11,12,15], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 6, [7,8,10,12,13,15], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 7, [8,9,10,13,14,15], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D6N", 8, [9,6,10,14,11,15], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
+
+        #self.__post_process(mp)
+
+    def test_TL_3D_prism_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_prism(builder_type, linearize_on_old_iteration,7 )
+
+    def test_TL_3D_prism_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_3D_prism(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_3D_prism_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_prism(builder_type, linearize_on_old_iteration,7 )
+
+    def _TL_3D_hexa(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1, 0.00000,  1.00000,  1.00000)
+        mp.CreateNewNode(2, 0.16500,  0.74500,  0.70200)
+        mp.CreateNewNode(3, 0.27300,  0.75000,  0.23000)
+        mp.CreateNewNode(4, 0.78800,  0.69300,  0.64400)
+        mp.CreateNewNode(5, 0.32000,  0.18600,  0.64300)
+        mp.CreateNewNode(6, 0.00000,  1.00000,  0.00000)
+        mp.CreateNewNode(7, 0.00000,  0.00000,  1.00000)
+        mp.CreateNewNode(8, 1.00000,  1.00000,  1.00000)
+        mp.CreateNewNode(9, 0.67700,  0.30500,  0.68300)
+        mp.CreateNewNode(10, 0.24900,  0.34200,  0.19200)
+        mp.CreateNewNode(11, 0.85000,  0.64900,  0.26300)
+        mp.CreateNewNode(12, 0.82600,  0.28800,  0.28800)
+        mp.CreateNewNode(13, 0.00000,  0.00000,  0.00000)
+        mp.CreateNewNode(14, 1.00000,  1.00000,  0.00000)
+        mp.CreateNewNode(15, 1.00000,  0.00000,  1.00000)
+        mp.CreateNewNode(16, 1.00000,  0.00000,  0.00000)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,6,7,8,13,14,15,16])
+
+        #create Element
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 1,[10,5,2,3,13,7,1,6], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 2,[12,9,5,10,16,15,7,13], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 3,[12,11,3,10,9,4,2,5], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 4,[9,4,2,5,15,8,1,7], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 5,[4,11,3,2,8,14,6,1], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 6,[11,4,9,12,14,8,15,16], mp.GetProperties()[1])
+        mp.CreateNewElement("TotalLagrangianElement3D8N", 7,[11,12,10,3,14,16,13,6], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
+        #self.__post_process(mp)
+
+    def test_TL_3D_hexa_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_hexa(builder_type, linearize_on_old_iteration,8 )
+
+    def test_TL_3D_hexa_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._TL_3D_hexa(builder_type, linearize_on_old_iteration,2 )
+
+    def test_TL_3D_hexa_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._TL_3D_hexa(builder_type, linearize_on_old_iteration,8 )
+
+
+    def _UL_2D_triangle(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.5,0.5,0.0)
+        mp.CreateNewNode(2,0.7,0.2,0.0)
+        mp.CreateNewNode(3,0.9,0.8,0.0)
+        mp.CreateNewNode(4,0.3,0.7,0.0)
+        mp.CreateNewNode(5,0.6,0.6,0.0)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4])
+
+        #create Element
+        mp.CreateNewElement("UpdatedLagrangianElement2D3N", 1, [1,2,5], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D3N", 2, [2,3,5], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D3N", 3, [3,4,5], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D3N", 4, [4,1,5], mp.GetProperties()[1])
+
+        dt = self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
+
+        step = mp.ProcessInfo[KratosMultiphysics.STEP]
+        time = mp.ProcessInfo[KratosMultiphysics.TIME]
+        end_time = 1.0
+        while time <= end_time:
+            A,b = self._define_movement(dim, step * 0.05)
+            self._apply_BCs(bcs,A,b)
+            self._solve(mp, builder_and_type, linearize_on_old_iteration)
+            self._check_results(mp,A,b)
+            self._check_outputs(mp,A,dim, 5.0e-3)
+            self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations[step - 1])
+            #self.__post_process(mp)
+
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            mp.ProcessInfo[KratosMultiphysics.STEP] = step
+
+    def test_UL_2D_triangle_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 5] )
+
+    def test_UL_2D_triangle_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[2, 2])
+
+    def test_UL_2D_triangle_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 5] )
+
+    def _UL_2D_triangle_10N(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1 , 0.00, 0.00, 0.0)
+        mp.CreateNewNode(2 , 0.50, 0.00, 0.0)
+        mp.CreateNewNode(3 , 1.00, 0.00, 0.0)
+        mp.CreateNewNode(4 , 1.50, 0.00, 0.0)
+        mp.CreateNewNode(5 , 1.70, 0.20, 0.0)
+        mp.CreateNewNode(6 , 1.90, 0.40, 0.0)
+        mp.CreateNewNode(7 , 2.10, 0.60, 0.0)
+        mp.CreateNewNode(8 , 2.10, 1.00, 0.0)
+        mp.CreateNewNode(9 , 2.10, 1.40, 0.0)
+        mp.CreateNewNode(10, 2.10, 1.80, 0.0)
+        mp.CreateNewNode(11, 1.40, 1.70, 0.0)
+        mp.CreateNewNode(12, 0.70, 1.60, 0.0)
+        mp.CreateNewNode(13, 0.00, 1.50, 0.0)
+        mp.CreateNewNode(14, 0.00, 1.00, 0.0)
+        mp.CreateNewNode(15, 0.00, 0.50, 0.0)
+        mp.CreateNewNode(16, 0.90, 0.90, 0.0)
+        mp.CreateNewNode(17, 0.30, 0.30, 0.0)
+        mp.CreateNewNode(18, 0.60, 0.60, 0.0)
+        mp.CreateNewNode(19, 1.30, 0.30, 0.0)
+        mp.CreateNewNode(20, 1.10, 0.60, 0.0)
+        mp.CreateNewNode(21, 1.70, 0.70, 0.0)
+        mp.CreateNewNode(22, 1.30, 0.80, 0.0)
+        mp.CreateNewNode(23, 1.70, 1.50, 0.0)
+        mp.CreateNewNode(24, 1.30, 1.20, 0.0)
+        mp.CreateNewNode(25, 0.30, 1.30, 0.0)
+        mp.CreateNewNode(26, 0.60, 1.10, 0.0)
+        mp.CreateNewNode(27, 0.80, 0.30, 0.0)
+        mp.CreateNewNode(28, 1.50, 0.50, 0.0)
+        mp.CreateNewNode(29, 1.70, 1.11, 0.0)
+        mp.CreateNewNode(30, 1.00, 1.40, 0.0)
+        mp.CreateNewNode(31, 0.30, 0.80, 0.0)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
+
+        #create Element
+        mp.CreateNewElement("UpdatedLagrangianElement2D10N", 1, [ 1, 4,16, 2, 3,19,20,18,17,27], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D10N", 2, [ 4, 7,16, 5, 6,21,22,20,19,28], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D10N", 3, [ 7,10,16, 8, 9,23,24,22,21,29], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D10N", 4, [10,13,16,11,12,25,26,24,23,30], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D10N", 5, [13, 1,16,14,15,17,18,26,25,31], mp.GetProperties()[1])
+
+        dt = self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
+
+        step = mp.ProcessInfo[KratosMultiphysics.STEP]
+        time = mp.ProcessInfo[KratosMultiphysics.TIME]
+        end_time = 1.0
+        while time <= end_time:
+            A,b = self._define_movement(dim, step * 0.05)
+            self._apply_BCs(bcs,A,b)
+            self._solve(mp, builder_and_type, linearize_on_old_iteration)
+            self._check_results(mp,A,b)
+            self._check_outputs(mp,A,dim, 5.0e-3)
+            self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations[step - 1])
+            #self.__post_process(mp)
+
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            mp.ProcessInfo[KratosMultiphysics.STEP] = step
+
+    def test_UL_2D_triangle_10N_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[6, 6] )
+
+    def test_UL_2D_triangle_10N_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[2, 2])
+
+    def test_UL_2D_triangle_10N_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_triangle_10N(builder_type, linearize_on_old_iteration,[6, 6] )
+
+
+    def _UL_2D_triangle_15N(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1 , 0.00, 0.00, 0.0)
+        mp.CreateNewNode(2 , 0.50, 0.00, 0.0)
+        mp.CreateNewNode(3 , 1.00, 0.00, 0.0)
+        mp.CreateNewNode(4 , 1.50, 0.00, 0.0)
+        mp.CreateNewNode(5 , 2.00, 0.00, 0.0)
+        mp.CreateNewNode(6 , 2.20, 0.20, 0.0)
+        mp.CreateNewNode(7 , 2.40, 0.40, 0.0)
+        mp.CreateNewNode(8 , 2.60, 0.60, 0.0)
+        mp.CreateNewNode(9 , 2.80, 0.80, 0.0)
+        mp.CreateNewNode(10, 2.35, 0.85, 0.0)
+        mp.CreateNewNode(11, 1.90, 0.90, 0.0)
+        mp.CreateNewNode(12, 1.45, 0.95, 0.0)
+        mp.CreateNewNode(13, 1.00, 1.00, 0.0)
+        mp.CreateNewNode(14, 0.75, 1.00, 0.0)
+        mp.CreateNewNode(15, 0.50, 1.00, 0.0)
+        mp.CreateNewNode(16, 0.25, 1.00, 0.0)
+        mp.CreateNewNode(17, 0.00, 1.00, 0.0)
+        mp.CreateNewNode(18, 0.00, 0.75, 0.0)
+        mp.CreateNewNode(19, 0.00, 0.50, 0.0)
+        mp.CreateNewNode(20, 0.00, 0.25, 0.0)
+        mp.CreateNewNode(21, 0.25, 0.25, 0.0)
+        mp.CreateNewNode(22, 0.50, 0.50, 0.0)
+        mp.CreateNewNode(23, 0.75, 0.70, 0.0)
+        mp.CreateNewNode(24, 1.75, 0.25, 0.0)
+        mp.CreateNewNode(25, 1.50, 0.50, 0.0)
+        mp.CreateNewNode(26, 1.25, 0.75, 0.0)
+        mp.CreateNewNode(27, 0.75, 0.25, 0.0)
+        mp.CreateNewNode(28, 1.25, 0.25, 0.0)
+        mp.CreateNewNode(29, 1.00, 0.50, 0.0)
+        mp.CreateNewNode(30, 2.15, 0.65, 0.0)
+        mp.CreateNewNode(31, 1.70, 0.70, 0.0)
+        mp.CreateNewNode(32, 1.95, 0.45, 0.0)
+        mp.CreateNewNode(33, 0.25, 0.75, 0.0)
+        mp.CreateNewNode(34, 0.50, 0.75, 0.0)
+        mp.CreateNewNode(35, 0.25, 0.50, 0.0)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+
+        #create Element
+        mp.CreateNewElement("UpdatedLagrangianElement2D15N", 1, [ 1,5,13, 2, 3, 4,24,25,26,23,22,21,27,28,29], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D15N", 2, [ 5,9,13, 6, 7, 8,10,11,12,26,25,24,32,30,31], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D15N", 3, [17,1,13,18,19,20,21,22,23,14,15,16,33,35,34], mp.GetProperties()[1])
+
+        dt = self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
+
+        step = mp.ProcessInfo[KratosMultiphysics.STEP]
+        time = mp.ProcessInfo[KratosMultiphysics.TIME]
+        end_time = 1.0
+        while time <= end_time:
+            A,b = self._define_movement(dim, step * 0.05)
+            self._apply_BCs(bcs,A,b)
+            self._solve(mp, builder_and_type, linearize_on_old_iteration)
+            self._check_results(mp,A,b)
+            self._check_outputs(mp,A,dim, 5.0e-3)
+            self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations[step - 1])
+            #self.__post_process(mp)
+
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            mp.ProcessInfo[KratosMultiphysics.STEP] = step
+
+    def test_UL_2D_triangle_15N_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_triangle_15N(builder_type, linearize_on_old_iteration,[6, 6] )
+
+    def test_UL_2D_triangle_15N_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._UL_2D_triangle_15N(builder_type, linearize_on_old_iteration,[2, 2])
+
+    def test_UL_2D_triangle_15N_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_triangle_15N(builder_type, linearize_on_old_iteration,[6, 6] )
+
+
+    def _UL_2D_quadrilateral(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
+        dim = 2
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.00,3.00,0.00)
+        mp.CreateNewNode(2,1.00,2.25,0.00)
+        mp.CreateNewNode(3,0.75,1.00,0.00)
+        mp.CreateNewNode(4,2.25,2.00,0.00)
+        mp.CreateNewNode(5,0.00,0.00,0.00)
+        mp.CreateNewNode(6,3.00,3.00,0.00)
+        mp.CreateNewNode(7,2.00,0.75,0.00)
+        mp.CreateNewNode(8,3.00,0.00,0.00)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,5,6,8])
+
+        #create Element
+        mp.CreateNewElement("UpdatedLagrangianElement2D4N", 1, [8,7,3,5], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D4N", 2, [6,4,7,8], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D4N", 3, [1,2,4,6], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D4N", 4, [4,2,3,7], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement2D4N", 5, [2,1,5,3], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
+
+    def test_UL_2D_quadrilateral_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_quadrilateral(builder_type, linearize_on_old_iteration, 11 )
+
+    def test_UL_2D_quadrilateral_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._UL_2D_quadrilateral(builder_type, linearize_on_old_iteration, 2 )
+
+    def test_UL_2D_quadrilateral_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._UL_2D_quadrilateral(builder_type, linearize_on_old_iteration,11 )
+
+    def _UL_3D_hexa(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._set_buffer(mp)
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1, 0.00000,  1.00000,  1.00000)
+        mp.CreateNewNode(2, 0.16500,  0.74500,  0.70200)
+        mp.CreateNewNode(3, 0.27300,  0.75000,  0.23000)
+        mp.CreateNewNode(4, 0.78800,  0.69300,  0.64400)
+        mp.CreateNewNode(5, 0.32000,  0.18600,  0.64300)
+        mp.CreateNewNode(6, 0.00000,  1.00000,  0.00000)
+        mp.CreateNewNode(7, 0.00000,  0.00000,  1.00000)
+        mp.CreateNewNode(8, 1.00000,  1.00000,  1.00000)
+        mp.CreateNewNode(9, 0.67700,  0.30500,  0.68300)
+        mp.CreateNewNode(10, 0.24900,  0.34200,  0.19200)
+        mp.CreateNewNode(11, 0.85000,  0.64900,  0.26300)
+        mp.CreateNewNode(12, 0.82600,  0.28800,  0.28800)
+        mp.CreateNewNode(13, 0.00000,  0.00000,  0.00000)
+        mp.CreateNewNode(14, 1.00000,  1.00000,  0.00000)
+        mp.CreateNewNode(15, 1.00000,  0.00000,  1.00000)
+        mp.CreateNewNode(16, 1.00000,  0.00000,  0.00000)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,6,7,8,13,14,15,16])
+
+
+        #create Element
+        mp.CreateNewElement("UpdatedLagrangianElement3D8N", 1,[10,5,2,3,13,7,1,6], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement3D8N", 2,[12,9,5,10,16,15,7,13], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement3D8N", 3,[12,11,3,10,9,4,2,5], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement3D8N", 4,[9,4,2,5,15,8,1,7], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement3D8N", 5,[4,11,3,2,8,14,6,1], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement3D8N", 6,[11,4,9,12,14,8,15,16], mp.GetProperties()[1])
+        mp.CreateNewElement("UpdatedLagrangianElement3D8N", 7,[11,12,10,3,14,16,13,6], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+        A *= 0.25 #@Vicente, i need to do this for this specific test. It shouldn't be needed ...
+
+        self._set_buffer(mp)
+
+        self._ResetDisplacementAndPosition(mp)
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp, builder_and_type, linearize_on_old_iteration)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+        self.assertEqual(mp.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER], expected_iterations)
+
+    def test_UL_3D_hexa_block(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = False
+        self._UL_3D_hexa(builder_type, linearize_on_old_iteration,11 )
+
+    def test_UL_3D_hexa_linearized_on_old_iteration(self):
+        builder_type = "block_builder"
+        linearize_on_old_iteration = True
+        self._UL_3D_hexa(builder_type, linearize_on_old_iteration,2 )
+
+    def test_UL_3D_hexa_elimination(self):
+        builder_type = "elimination_builder"
+        linearize_on_old_iteration = False
+        self._UL_3D_hexa(builder_type, linearize_on_old_iteration,11 )
+
+    def __post_process(self, main_model_part):
+        from gid_output_process import GiDOutputProcess
+        self.gid_output = GiDOutputProcess(main_model_part,
+                                    "gid_output",
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "nodal_results"       : ["DISPLACEMENT"],
+                                                "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR"]
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        self.gid_output.ExecuteInitialize()
+        self.gid_output.ExecuteBeforeSolutionLoop()
+        self.gid_output.ExecuteInitializeSolutionStep()
+        self.gid_output.PrintOutput()
+        self.gid_output.ExecuteFinalizeSolutionStep()
+        self.gid_output.ExecuteFinalize()
+
+if __name__ == '__main__':
+    KratosUnittest.main()

@@ -1,0 +1,765 @@
+BOOK: Nodal Markers
+
+CONDITION: group_MOVEMENT_MARKER
+CONDTYPE: over groups
+GROUPALLOW: points lines surfaces volumes nodes elements
+QUESTION: Linear_Variable#CB#(NONE,DISPLACEMENT,VELOCITY,ACCELERATION,ALL)
+VALUE: NONE
+QUESTION: Single_Entities#CB#(False,True)
+VALUE: False
+QUESTION: File_Name
+VALUE: Movement_Marker
+QUESTION: Marker_ID#CB#(1,2,3,4,5,6,7,8,9,10)
+VALUE: 1
+END CONDITION
+
+CONDITION: group_MECHANICAL_MARKER
+CONDTYPE: over groups
+GROUPALLOW: points lines surfaces volumes nodes elements
+QUESTION: Variable#CB#(REACTION,CONTACT_FORCE,PRESSURE,ALL)
+VALUE: REACTION
+QUESTION: Single_Entities#CB#(False,True)
+VALUE: False
+QUESTION: File_Name
+VALUE: Mechanical_Marker
+QUESTION: Marker_ID#CB#(1,2,3,4,5,6,7,8,9,10)
+VALUE: 1
+END CONDITION
+
+CONDITION: group_CUSTOM_MARKER
+CONDTYPE: over groups
+GROUPALLOW: points lines surfaces volumes nodes elements
+QUESTION: Variable:(KRATOS_VARIABLE_NAME)
+VALUE: #N# 1 2
+QUESTION: Single_Entities#CB#(False,True)
+VALUE: False
+QUESTION: File_Name
+VALUE: Custom_Marker
+QUESTION: Marker_ID#CB#(1,2,3,4,5,6,7,8,9,10)
+VALUE: 1
+END CONDITION
+
+# Nodal variables assigned in points, lines, surfaces and volumes
+BOOK: Constraints
+
+CONDITION: group_LINEAR_MOVEMENT
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines surfaces volumes nodes elements
+QUESTION: Variable#CB#(DISPLACEMENT,VELOCITY,ACCELERATION)
+VALUE: VELOCITY
+QUESTION: Set_X#CB#(True,False)
+VALUE: True
+DEPENDENCIES: (False,HIDE,by_function_X,False,HIDE,X_Value,0.0,HIDE,X_Function,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,X_Value,#CURRENT#,RESTORE,by_function_X,False,HIDE,X_Function,#CURRENT#)
+QUESTION: by_function_X#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,X_Value,#CURRENT#,RESTORE,X_Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,X_Value,#CURRENT#,HIDE,X_Function,#CURRENT#)
+QUESTION: X_Value
+VALUE: 0.0
+QUESTION: X_Function
+VALUE: 
+QUESTION: Set_Y#CB#(True,False)
+VALUE: True
+DEPENDENCIES: (False,HIDE,by_function_Y,False,HIDE,Y_Value,0.0,HIDE,Y_Function,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Y_Value,#CURRENT#,RESTORE,by_function_Y,False,HIDE,Y_Function,#CURRENT#)
+QUESTION: by_function_Y#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Y_Value,#CURRENT#,RESTORE,Y_Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Y_Value,#CURRENT#,HIDE,Y_Function,#CURRENT#)
+QUESTION: Y_Value
+VALUE: 0.0
+QUESTION: Y_Function
+VALUE: 
+QUESTION: Set_Z#CB#(True,False)
+VALUE: True
+DEPENDENCIES: (False,HIDE,by_function_Z,False,HIDE,Z_Value,0.0,HIDE,Z_Function,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Z_Value,#CURRENT#,RESTORE,by_function_Z,False,HIDE,Z_Function,#CURRENT#)
+QUESTION: by_function_Z#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Z_Value,#CURRENT#,RESTORE,Z_Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Z_Value,#CURRENT#,HIDE,Z_Function,#CURRENT#)
+QUESTION: Z_Value
+VALUE: 0.0
+QUESTION: Z_Function
+VALUE: 
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+END CONDITION
+
+CONDITION: group_ANGULAR_MOVEMENT
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines surfaces volumes nodes elements
+QUESTION: VariableToImpose#CB#(ROTATION,ANGULAR_VELOCITY,ANGULAR_ACCELERATION)
+VALUE:  ANGULAR_VELOCITY
+QUESTION: Set_X#CB#(True,False)
+VALUE: True
+DEPENDENCIES: (False,HIDE,by_function_X,False,HIDE,X_Value,0.0,HIDE,X_Function,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,X_Value,#CURRENT#,RESTORE,by_function_X,False,HIDE,X_Function,#CURRENT#)
+QUESTION: by_function_X#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,X_Value,#CURRENT#,RESTORE,X_Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,X_Value,#CURRENT#,HIDE,X_Function,#CURRENT#)
+QUESTION: X_Value
+VALUE: 0.0
+QUESTION: X_Function
+VALUE: 
+QUESTION: Set_Y#CB#(True,False)
+VALUE: True
+DEPENDENCIES: (False,HIDE,by_function_Y,False,HIDE,Y_Value,0.0,HIDE,Y_Function,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Y_Value,#CURRENT#,RESTORE,by_function_Y,False,HIDE,Y_Function,#CURRENT#)
+QUESTION: by_function_Y#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Y_Value,#CURRENT#,RESTORE,Y_Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Y_Value,#CURRENT#,HIDE,Y_Function,#CURRENT#)
+QUESTION: Y_Value
+VALUE: 0.0
+QUESTION: Y_Function
+VALUE: 
+QUESTION: Set_Z#CB#(True,False)
+VALUE: True
+DEPENDENCIES: (False,HIDE,by_function_Z,False,HIDE,Z_Value,0.0,HIDE,Z_Function,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Z_Value,#CURRENT#,RESTORE,by_function_Z,False,HIDE,Z_Function,#CURRENT#)
+QUESTION: by_function_Z#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Z_Value,#CURRENT#,RESTORE,Z_Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Z_Value,#CURRENT#,HIDE,Z_Function,#CURRENT#)
+QUESTION: Z_Value
+VALUE: 0.0
+QUESTION: Z_Function
+VALUE: 
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+END CONDITION
+
+
+CONDITION: group_WATER_PRESSURE
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines surfaces volumes nodes elements
+QUESTION: by_function#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Value,#CURRENT#,RESTORE,Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Value,#CURRENT#,HIDE,Function,#CURRENT#)
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Function
+VALUE:
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+END CONDITION
+
+
+CONDITION: group_WATER_MOVEMENT
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines surfaces volumes nodes elements
+QUESTION: Variable#CB#(WATER_DISPLACEMENT,WATER_VELOCITY,WATER_ACCELERATION)
+VALUE: WATER_DISPLACEMENT
+QUESTION: Set_X#CB#(True,False)
+VALUE: True
+DEPENDENCIES: (False,HIDE,by_function_X,False,HIDE,X_Value,0.0,HIDE,X_Function,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,X_Value,#CURRENT#,RESTORE,by_function_X,False,HIDE,X_Function,#CURRENT#)
+QUESTION: by_function_X#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,X_Value,#CURRENT#,RESTORE,X_Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,X_Value,#CURRENT#,HIDE,X_Function,#CURRENT#)
+QUESTION: X_Value
+VALUE: 0.0
+QUESTION: X_Function
+VALUE: 
+QUESTION: Set_Y#CB#(True,False)
+VALUE: True
+DEPENDENCIES: (False,HIDE,by_function_Y,False,HIDE,Y_Value,0.0,HIDE,Y_Function,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Y_Value,#CURRENT#,RESTORE,by_function_Y,False,HIDE,Y_Function,#CURRENT#)
+QUESTION: by_function_Y#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Y_Value,#CURRENT#,RESTORE,Y_Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Y_Value,#CURRENT#,HIDE,Y_Function,#CURRENT#)
+QUESTION: Y_Value
+VALUE: 0.0
+QUESTION: Y_Function
+VALUE: 
+QUESTION: Set_Z#CB#(True,False)
+VALUE: True
+DEPENDENCIES: (False,HIDE,by_function_Z,False,HIDE,Z_Value,0.0,HIDE,Z_Function,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Z_Value,#CURRENT#,RESTORE,by_function_Z,False,HIDE,Z_Function,#CURRENT#)
+QUESTION: by_function_Z#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Z_Value,#CURRENT#,RESTORE,Z_Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Z_Value,#CURRENT#,HIDE,Z_Function,#CURRENT#)
+QUESTION: Z_Value
+VALUE: 0.0
+QUESTION: Z_Function
+VALUE: 
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+END CONDITION
+
+
+# Loads
+
+BOOK: Loads
+
+CONDITION: group_POINT_LOAD
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points nodes
+QUESTION: Variable#CB#(FORCE_LOAD)
+VALUE: FORCE_LOAD
+QUESTION: ConditionType#CB#(PointLoadCondition2D1N,AxisymPointLoadCondition2D1N,PointLoadCondition3D1N)
+VALUE: PointLoadCondition2D1N
+QUESTION: by_function#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Value,#CURRENT#,RESTORE,Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Value,#CURRENT#,HIDE,Function,#CURRENT#)
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Function
+VALUE: 
+QUESTION: Direction
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+QUESTION: SetToRigidBody#CB#(True,False)
+VALUE: False
+DEPENDENCIES:(False,HIDE,Rigid_Body_ID,#CURRENT#)
+DEPENDENCIES:(True,RESTORE,Rigid_Body_ID,#CURRENT#)
+QUESTION: Rigid_Body_ID#CB#(1,2,3,4,5,6,7,8,9,10)
+VALUE: 1
+END CONDITION
+
+CONDITION: group_LINE_LOAD
+CONDTYPE: over groups
+CONDMESHTYPE: over elements faces 
+GROUPALLOW: lines nodes elements faces
+QUESTION: Variable#CB#(FORCE_LOAD)
+VALUE: FORCE_LOAD
+QUESTION: ConditionType#CB#(LineLoadCondition2D2N,AxisymLineLoadCondition2D2N)
+VALUE: LineLoadCondition2D2N
+QUESTION: by_function#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Value,#CURRENT#,RESTORE,Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Value,#CURRENT#,HIDE,Function,#CURRENT#)
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Function
+VALUE: 
+QUESTION: Direction
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+QUESTION: SetToRigidBody#CB#(True,False)
+VALUE: False
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: group_SURFACE_LOAD
+CONDTYPE: over groups
+CONDMESHTYPE: over elements faces 
+GROUPALLOW: surfaces nodes elements faces
+QUESTION: Variable#CB#(SURFACE_LOAD)
+VALUE: SURFACE_LOAD
+QUESTION: ConditionType#CB#(SurfaceLoadCondition3D3N)
+VALUE: SurfaceLoadCondition3D3N
+QUESTION: by_function#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Value,#CURRENT#,RESTORE,Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Value,#CURRENT#,HIDE,Function,#CURRENT#)
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Function
+VALUE: 
+QUESTION: Direction
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+QUESTION: SetToRigidBody#CB#(True,False)
+VALUE: False
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: group_LINE_PRESSURE
+CONDTYPE: over groups
+CONDMESHTYPE: over elements faces
+GROUPALLOW: lines nodes elements faces
+QUESTION: Variable#CB#(POSITIVE_FACE_PRESSURE)
+VALUE: POSITIVE_FACE_PRESSURE
+QUESTION: ConditionType#CB#(LineLoadCondition2D2N,AxisymLineLoadCondition2D2N)
+VALUE: LineLoadCondition2D2N
+QUESTION: by_function#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Value,#CURRENT#,RESTORE,Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Value,#CURRENT#,HIDE,Function,#CURRENT#)
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Function
+VALUE: 
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+QUESTION: SetToRigidBody#CB#(True,False)
+VALUE: False
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: group_SURFACE_PRESSURE
+CONDTYPE: over groups
+CONDMESHTYPE: over elements faces
+GROUPALLOW: lines nodes elements faces
+QUESTION: Variable#CB#(POSITIVE_FACE_PRESSURE)
+VALUE: POSITIVE_FACE_PRESSURE
+QUESTION: ConditionType#CB#(SurfaceLoadCondition3D3N)
+VALUE: SurfaceLoadCondition3D3N
+QUESTION: by_function#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Value,#CURRENT#,RESTORE,Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Value,#CURRENT#,HIDE,Function,#CURRENT#)
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Function
+VALUE: 
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+QUESTION: SetToRigidBody#CB#(True,False)
+VALUE: False
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: group_POINT_MOMENT
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points nodes
+QUESTION: Variable#CB#(MOMENT_LOAD)
+VALUE: MOMENT_LOAD
+QUESTION: ConditionType#CB#(PointMomentCondition3D1N)
+VALUE: PointMomentCondition3D1N
+QUESTION: by_function#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Value,#CURRENT#,RESTORE,Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Value,#CURRENT#,HIDE,Function,#CURRENT#)
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Function
+VALUE: 
+QUESTION: Direction
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+QUESTION: SetToRigidBody#CB#(True,False)
+VALUE: False
+DEPENDENCIES:(False,HIDE,Rigid_Body_ID,#CURRENT#)
+DEPENDENCIES:(True,RESTORE,Rigid_Body_ID,#CURRENT#)
+QUESTION: Rigid_Body_ID#CB#(1,2,3,4,5,6,7,8,9,10)
+VALUE: 1
+END CONDITION
+
+CONDITION: group_VOLUME_ACCELERATION
+CONDTYPE: over groups
+GROUPALLOW: points lines surfaces volumes nodes elements
+QUESTION: Variable#CB#(VOLUME_ACCELERATION)
+VALUE: VOLUME_ACCELERATION
+QUESTION: ConditionType#CB#(SelfWeight)
+VALUE: SelfWeight
+QUESTION: by_function#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Value,#CURRENT#,RESTORE,Function,#CURRENT#)
+DEPENDENCIES: (False,RESTORE,Value,#CURRENT#,HIDE,Function,#CURRENT#)
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Function
+VALUE: 
+QUESTION: Direction
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Time_Evolution#CB#(INITIAL,FULL,INTERVAL)
+VALUE: FULL
+DEPENDENCIES:(INTERVAL,RESTORE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(INITIAL,HIDE,Time_Interval,#CURRENT#)
+DEPENDENCIES:(FULL,HIDE,Time_Interval,#CURRENT#)
+QUESTION: Time_Interval:(Start,End)
+VALUE: #N# 2 0 0
+QUESTION: SetToRigidBody#CB#(True,False)
+VALUE: False
+DEPENDENCIES:(False,HIDE,Rigid_Body_ID,#CURRENT#)
+DEPENDENCIES:(True,RESTORE,Rigid_Body_ID,#CURRENT#)
+QUESTION: Rigid_Body_ID#CB#(1,2,3,4,5,6,7,8,9,10)
+VALUE: 1
+END CONDITION
+
+
+BOOK: Elements
+
+CONDITION: surface_UpdatedLagrangianElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_UpdatedLagrangianUJElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_AxisymUpdatedLagrangianElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_UpdatedLagrangianUwPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_UpdatedLagrangianUwPStabElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_UpdatedLagrangianUWwPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_UpdatedLagrangianUJWwPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_UpdatedLagrangianUWElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_AxisymUpdatedLagrangianUJElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_AxisymUpdatedLagrangianUwPStabElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_AxisymUpdatedLagrangianUJwPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_AxisymUpdatedLagrangianUJWwPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: volume_UpdatedLagrangianElement3D4N
+CONDTYPE: over volumes
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: volume_UpdatedLagrangianUwPStabElement3D4N
+CONDTYPE: over volumes
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: volume_UpdatedLagrangianUJElement3D4N
+CONDTYPE: over volumes
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: volume_UpdatedLagrangianUJwPElement3D4N
+CONDTYPE: over volumes
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+BOOK: Mixed U-P Elements
+
+CONDITION: surface_UpdatedLagrangianUPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_AxisymUpdatedLagrangianUPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: volume_UpdatedLagrangianUPElement3D4N
+CONDTYPE: over volumes
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+# Conditions related to domain identification
+
+BOOK: Model Domains
+
+CONDITION: group_DeformableBodies
+CONDTYPE: over groups
+# CONDMESHTYPE: over body elements
+GROUPALLOW: surfaces volumes elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Structural_Type#CB#(Beam,Shell,Membrane,Solid)
+VALUE: Solid
+DEPENDENCIES:(Solid,RESTORE,Transfer,#CURRENT#,RESTORE,Remesh,#CURRENT#)
+DEPENDENCIES:(#DEFAULT#,HIDE,Transfer,#CURRENT#,HIDE,Remesh,#CURRENT#)
+QUESTION: Transfer#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(False,RESTORE,Remesh,#CURRENT#)
+DEPENDENCIES:(True,HIDE,Remesh,False)
+QUESTION: Remesh#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,MeshingElement,#CURRENT#,RESTORE,Constrained,#CURRENT#,RESTORE,MeshSmoothing,#CURRENT#,RESTORE,JacobiSmoothing,#CURRENT#,RESTORE,Meshing_Frequency,#CURRENT#,RESTORE,Refine,#CURRENT#)
+DEPENDENCIES:(False,HIDE,MeshingElement,#CURRENT#,HIDE,Constrained,#CURRENT#,HIDE,MeshSmoothing,#CURRENT#,HIDE,JacobiSmoothing,#CURRENT#,HIDE,Meshing_Frequency,#CURRENT#,HIDE,Refine,False)
+QUESTION: MeshingElement#CB#(UpdatedLagrangianElement2D3N,UpdatedLagrangianUPElement2D3N,AxisymUpdatedLagrangianElement2D3N,AxisymUpdatedLagrangianUPElement2D3N,UpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUwPStabElement2D3N,AxisymUpdatedLagrangianUwPElement2D3N,AxisymUpdatedLagrangianUJwPElement2D3N,UpdatedLagrangianElement3D4N,UpdatedLagrangianUPElement3D4N)
+VALUE: UpdatedLagrangianUPElement2D3N
+QUESTION: Constrained#CB#(False,True)
+VALUE: True
+QUESTION: MeshSmoothing#CB#(False,True)
+VALUE: True
+QUESTION: JacobiSmoothing#CB#(False,True)
+VALUE: True
+QUESTION: Meshing_Frequency
+VALUE: 0.01
+QUESTION: Refine#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Dissipation_Variable,#CURRENT#,RESTORE,Critical_Dissipation,#CURRENT#,RESTORE,Error_Variable,#CURRENT#,RESTORE,Critical_Error,#CURRENT#,RESTORE,Tip_Radius_Refine,#CURRENT#,RESTORE,Refine_on_box_only,#CURRENT#,RESTORE,LSInterpolation,#CURRENT#)
+DEPENDENCIES:(False,HIDE,Critical_Mesh_Size,#CURRENT#,HIDE,Dissipation_Variable,#CURRENT#,HIDE,Critical_Dissipation,#CURRENT#,HIDE,Error_Variable,#CURRENT#,HIDE,Critical_Error,#CURRENT#,HIDE,Tip_Radius_Refine,False,HIDE,Refine_on_box_only,False,HIDE,LSInterpolation,0)
+QUESTION: Critical_Mesh_Size
+VALUE: 0.025
+QUESTION: Dissipation_Variable#CB#(PLASTIC_DISSIPATION,PLASTIC_STRAIN,NORM_ISOCHORIC_STRESS,DELTA_PLASTIC_STRAIN)
+VALUE: PLASTIC_DISSIPATION
+QUESTION: Critical_Dissipation
+VALUE: 100
+QUESTION: Error_Variable#CB#(PLASTIC_STRAIN,NORM_ISOCHORIC_STRESS,PLASTIC_DISSIPATION)
+VALUE: PLASTIC_STRAIN
+QUESTION: Critical_Error(%)
+VALUE: 2
+QUESTION: Tip_Radius_Refine#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Critical_Tip_Radius,#CURRENT#)
+DEPENDENCIES:(False,HIDE,Critical_Tip_Radius,#CURRENT#)
+QUESTION: Critical_Tip_Radius
+VALUE: 0.0004
+QUESTION: Refine_on_box_only#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Upper_Point_rbox,#CURRENT#,RESTORE,Lower_Point_rbox,#CURRENT#,RESTORE,Velocity_rbox,#CURRENT#)
+DEPENDENCIES:(False,HIDE,Upper_Point_rbox,#CURRENT#,HIDE,Lower_Point_rbox,#CURRENT#,HIDE,Velocity_rbox,#CURRENT#)
+QUESTION: Upper_Point_rbox
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Lower_Point_rbox
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Velocity_rbox
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: LSInterpolation
+VALUE: 0
+END CONDITION
+
+
+CONDITION: group_RigidBodies
+CONDTYPE: over groups
+# CONDMESHTYPE: over points body elements
+GROUPALLOW: points lines surfaces elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Structural_Type#CB#(Rigid)
+VALUE: Rigid
+QUESTION: Rigid_Element#CB#(TranslatoryRigidBodyElement2D1N,TranslatoryRigidBodyElement3D1N,RigidBodyElement2D1N,RigidBodyElement3D1N,RigidBodyEMCElement2D1N,RigidBodyEMCElement3D1N)
+VALUE: TranslatoryRigidBodyElement2D1N
+QUESTION: Parametric_Wall#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Wall_Type,#CURRENT#,HIDE,Body_Surface,True)
+DEPENDENCIES:(#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Wall_Type,#CURRENT#,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,HIDE,Plane_Size,#CURRENT#,RESTORE,Body_Surface,#CURRENT#)
+QUESTION: Contact_Condition#CB#(PointContactPenaltyCondition2D1N,AxisymPointContactPenaltyCondition2D1N,PointContactPenaltyCondition3D1N,EPPointContactPenaltyCondition2D1N,EPAxisymPointContactPenaltyCondition2D1N,EPPointContactPenaltyCondition3D1N)
+VALUE: PointContactPenaltyCondition2D1N
+QUESTION: Penalty_Parameter
+VALUE: 1000
+QUESTION: Wall_Type#CB#(PLANE,CIRCLE,NOSE-WALL,CYLINDER,SPHERE)
+VALUE: PLANE
+DEPENDENCIES:(PLANE,RESTORE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,RESTORE,Plane_Size,#CURRENT#)
+DEPENDENCIES:(CIRCLE,HIDE,Wall_Plane,#CURRENT#,RESTORE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,HIDE,Plane_Size,#CURRENT#)
+DEPENDENCIES:(NOSE-WALL,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,RESTORE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,RESTORE,Plane_Size,#CURRENT#)
+DEPENDENCIES:(CYLINDER,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,RESTORE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,HIDE,Plane_Size,#CURRENT#)
+DEPENDENCIES:(SPHERE,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,RESTORE,Wall_Sphere,#CURRENT#,HIDE,Plane_Size,#CURRENT#)
+QUESTION: Wall_Plane:(Px,Py,Pz,Nx,Ny,Nz,Convexity)
+VALUE: #N# 7 0 0 0 0 0 0 1 
+QUESTION: Wall_Circle:(Cx,Cy,Cz,Radius,Convexity)
+VALUE: #N# 5 0 0 0 0.004 1 
+QUESTION: Wall_Noses:(TipCx,TipCy,TipCz,Tip_Radius,Rake_Angle,Clearance_Angle,Convexity)
+VALUE: #N# 7 0 0 0 0.0004 5 5 1
+QUESTION: Wall_Cylinder:(Cx,Cy,Cz,Radius,C0x,C1y,C1z,Convexity)
+VALUE: #N# 8 0 0 0 0.004 0 0 0 1 
+QUESTION: Wall_Sphere:(Cx,Cy,Cz,Radius,Convexity)
+VALUE: #N# 5 0 0 0 0.004 1 
+QUESTION: Plane_Size
+VALUE: 1.0
+QUESTION: Hydraulic_Condition#CB#(False,True)
+VALUE: False
+DEPENDENCIES: (False,HIDE,Hydraulic_Contact_Condition,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Hydraulic_Contact_Condition,#CURRENT#)
+QUESTION: Hydraulic_Contact_Condition#CB#(HydraulicPointContactCondition2D1N,HydraulicAxisymPointContactCondition2D1N)
+VALUE: HydraulicPointContactCondition2D1N
+QUESTION: Imposed_Movement#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Linear_Velocity,#CURRENT#,RESTORE,Angular_Velocity,#CURRENT#,RESTORE,Rotation_Center,#CURRENT#)
+DEPENDENCIES:(#DEFAULT#,HIDE,Linear_Velocity,#CURRENT#,HIDE,Angular_Velocity,#CURRENT#,HIDE,Rotation_Center,#CURRENT#)
+QUESTION: Linear_Velocity
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Angular_Velocity
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Rotation_Center
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Body_Surface#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,SET,Compute_Weight_Centroid_and_Inertia,False)
+DEPENDENCIES:(False,RESTORE,Compute_Weight_Centroid_and_Inertia,#DEFAULT#)
+QUESTION: Compute_Weight_Centroid_and_Inertia#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(#DEFAULT#,RESTORE,Mass,#CURRENT#,RESTORE,Centroid,#CURRENT#,RESTORE,LocalInertiaTensor,#CURRENT#,RESTORE,LocalAxisX,#CURRENT#,RESTORE,LocalAxisY,#CURRENT#,RESTORE,LocalAxisZ,#CURRENT#,RESTORE,Imposed_Movement,#CURRENT#)
+DEPENDENCIES:(True,HIDE,Mass,#CURRENT#,HIDE,Centroid,#CURRENT#,HIDE,LocalInertiaTensor,#CURRENT#,HIDE,LocalAxisX,#CURRENT#,HIDE,LocalAxisY,#CURRENT#,HIDE,LocalAxisZ,#CURRENT#)
+QUESTION: Mass
+VALUE: 0
+QUESTION: Centroid
+VALUE: 0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: LocalInertiaTensor(Ixx,Iyy,Izz,Ixy,Iyz,Izx)
+VALUE:  #N# 6 0 0 0 0 0 0 
+QUESTION: LocalAxisX
+VALUE:  1 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: LocalAxisY
+VALUE:  0 1 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: LocalAxisZ
+VALUE:  0 0 1
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Friction_active#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Static_friction_coeffitient,#CURRENT#,RESTORE,Dynamic_friction_coeffitient,#CURRENT#,RESTORE,Tangent_penalty_ratio,#CURRENT#)
+DEPENDENCIES:(False,HIDE,Static_friction_coeffitient,#CURRENT#,HIDE,Dynamic_friction_coeffitient,#CURRENT#,HIDE,Tangent_penalty_ratio,#CURRENT#)
+QUESTION: Static_friction_coeffitient
+VALUE:  0.2
+QUESTION: Dynamic_friction_coeffitient
+VALUE:  0.3
+QUESTION: Tangent_penalty_ratio
+VALUE:  0.1
+
+END CONDITION

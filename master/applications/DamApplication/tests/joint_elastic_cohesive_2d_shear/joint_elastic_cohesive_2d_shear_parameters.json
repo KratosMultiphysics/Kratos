@@ -1,0 +1,106 @@
+{
+    "analysis_stage"             : "KratosMultiphysics.DamApplication.dam_analysis",
+    "problem_data"               : {
+        "problem_name"          : "joint_elastic_cohesive_2d_shear",
+        "model_part_name"       : "MainModelPart",
+        "domain_size"           : 2,
+        "parallel_type"         : "OpenMP",
+        "number_of_threads"     : 4,
+        "start_time"            : 0.0,
+        "end_time"              : 40,
+        "time_step"             : 1,
+        "time_scale"            : "Seconds",
+        "consider_selfweight"   : false,
+        "consider_construction" : false,
+        "streamlines_utility"   : false
+    },
+    "solver_settings"            : {
+        "solver_type"                   : "dam_mechanical_solver",
+        "model_import_settings"         : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "joint_elastic_cohesive_2d_shear/joint_elastic_cohesive_2d_shear",
+            "input_file_label" : 0
+        },
+        "echo_level"                    : 1,
+        "buffer_size"                   : 2,
+        "processes_sub_model_part_list" : ["DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1"],
+        "mechanical_solver_settings"    : {
+            "solution_type"                        : "Quasi-Static",
+            "strategy_type"                        : "Newton-Raphson",
+            "scheme_type"                          : "Newmark",
+            "convergence_criterion"                : "And_criterion",
+            "displacement_relative_tolerance"      : 0.0001,
+            "displacement_absolute_tolerance"      : 1e-9,
+            "residual_relative_tolerance"          : 0.0001,
+            "residual_absolute_tolerance"          : 1e-9,
+            "max_iteration"                        : 10,
+            "echo_level"                           : 0,
+            "buffer_size"                          : 2,
+            "compute_reactions"                    : true,
+            "reform_dofs_at_each_step"             : false,
+            "move_mesh_flag"                       : true,
+            "block_builder"                        : true,
+            "clear_storage"                        : false,
+            "rayleigh_m"                           : 0.0,
+            "rayleigh_k"                           : 0.0,
+            "nonlocal_damage"                      : false,
+            "linear_solver_settings"               : {
+                "solver_type"         : "bicgstab",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
+                "preconditioner_type" : "ilu0",
+                "scaling"             : false
+            },
+            "problem_domain_sub_model_part_list"   : ["Parts_Parts_Auto1","Parts_Parts_Auto2","Parts_Parts_Auto3"],
+            "body_domain_sub_model_part_list"      : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+            "mechanical_loads_sub_model_part_list" : ["LineLoad2D_Load_on_lines_Auto1"],
+            "loads_sub_model_part_list"            : [],
+            "loads_variable_list"                  : []
+        }
+    },
+    "output_configuration"       : {},
+    "constraints_process_list"   : [{
+        "python_module" : "apply_constraint_vector_dam_table_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "ApplyConstraintVectorDamTableProcess",
+        "Parameters"    : {
+            "model_part_name" : "MainModelPart.DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "interval"        : [0.0,"End"],
+            "is_fixed"        : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "Value_Table"     : [0,0,0]
+        }
+    }],
+    "loads_process_list"         : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "model_part_name" : "MainModelPart.LineLoad2D_Load_on_lines_Auto1",
+            "variable_name"   : "LINE_LOAD",
+            "interval"        : [0.0,"End"],
+            "modulus"         : "6e2*sin(0.1*3.141592*t)",
+            "direction"       : [1.0,1.0,0.0]
+        }
+    }],
+    "construction_process"       : [],
+    "transfer_results_process"   : {
+        "save_intermediate_mechanical_variables" : false,
+        "save_intermediate_thermal_variables"    : false,
+        "save_intermediate_variables_step"       : 0,
+        "save_final_mechanical_variables"        : false,
+        "save_final_thermal_variables"           : false,
+        "add_previous_results"                   : false,
+        "type_of_results"                        : "Thermo-Mechanical",
+        "add_displacement"                       : false,
+        "add_stress"                             : false,
+        "add_temperature"                        : false,
+        "add_reference_temperature"              : false,
+        "file_name_mechanical"                   : "- No File -",
+        "file_name_thermal"                      : "- No File -"
+    },
+    "temperature_by_device_list" : [],
+    "output_device_list"         : []
+}

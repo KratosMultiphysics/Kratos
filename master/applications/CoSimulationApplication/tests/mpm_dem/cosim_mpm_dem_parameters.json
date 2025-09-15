@@ -1,0 +1,111 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 0.05,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 0,
+        "data_transfer_operators" : {
+            "mapper_1" : {
+                "type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                }
+            }
+        },
+        "coupling_operations" : {},
+        "coupling_sequence":
+        [
+            {
+                "name": "dem",
+                "input_data_list": [],
+                "output_data_list": []
+            },
+            {
+                "name": "structure",
+                "input_data_list": [
+                    {
+                        "data"              : "load",
+                        "from_solver"       : "dem",
+                        "from_solver_data"  : "contact_force",
+                        "data_transfer_operator" : "mapper_1",
+                        "data_transfer_operator_options"  : ["use_transpose"]
+                    }
+                ],
+                "output_data_list": [
+                    {
+                        "data"           : "disp",
+                        "to_solver"      : "dem",
+                        "to_solver_data" : "disp",
+                        "data_transfer_operator" : "mapper_1"
+                    },
+                    {
+                        "data"           : "velocity",
+                        "to_solver"      : "dem",
+                        "to_solver_data" : "velocity",
+                        "data_transfer_operator" : "mapper_1"
+                    }
+                ]
+            }
+        ],
+        "solvers" :
+        {
+            "dem":
+            {
+                "type" : "solver_wrappers.kratos.dem_wrapper",
+              "solver_wrapper_settings": {
+                "input_file": "mpm_dem/ProjectParametersDEM",
+                "move_mesh_model_part": [ "RigidFacePart" ],
+                "working_directory": "mpm_dem"
+              },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "RigidFacePart",
+                        "variable_name"   : "DISPLACEMENT",
+                        "dimension"       : 2
+                    },
+                    "contact_force" : {
+                        "model_part_name" : "RigidFacePart",
+                        "variable_name"   : "CONTACT_FORCES",
+                        "dimension"       : 2
+                    },
+                    "velocity" : {
+                        "model_part_name" : "RigidFacePart",
+                        "variable_name"   : "VELOCITY",
+                        "dimension"       : 2
+                    }
+                }
+            },
+          "structure": {
+            "type": "solver_wrappers.kratos.mpm_neumann_wrapper",
+            "solver_wrapper_settings": {
+              "input_file": "mpm_dem/ProjectParametersMPM",
+              "interface_model_part_name": "MPM_Material.INTERFACE_coupling_to_dem"
+            },
+            "data": {
+              "disp": {
+                "model_part_name": "MPM_Coupling_Neumann_Interface",
+                "variable_name": "DISPLACEMENT",
+                "dimension": 2
+              },
+              "load": {
+                "model_part_name": "MPM_Coupling_Neumann_Interface",
+                "variable_name": "CONTACT_FORCE",
+                "dimension": 2
+              },
+              "velocity": {
+                "model_part_name": "MPM_Coupling_Neumann_Interface",
+                "variable_name": "VELOCITY",
+                "dimension": 2
+              }
+            }
+          }
+        }
+    }
+}

@@ -1,0 +1,34 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+   43        2.00000        2.00000        0.00000
+   45        2.00000        1.00000        0.00000
+   49        1.00000        2.00000        0.00000
+   50        1.00000        1.00000        0.00000
+End Nodes
+
+
+Begin Elements MPMUpdatedLagrangian2D4N// GUI group identifier: bar
+       31          0         45         43         49         50 
+End Elements
+
+Begin SubModelPart Parts_bar // Group bar // Subtree Parts
+    Begin SubModelPartNodes
+           43
+           45
+           49
+           50
+    End SubModelPartNodes
+    Begin SubModelPartElements
+           31
+           31
+           31
+           31
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

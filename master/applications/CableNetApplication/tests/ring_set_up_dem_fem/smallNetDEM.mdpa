@@ -1,0 +1,41 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes // GUI group identifier: sphererock celemid SphericPartDEMElement3D
+188 2.500000000000000000 2.50 0.5000000000000008882
+End Nodes
+
+Begin Elements SphericParticle3D   //  GUI group identifier: sphererock
+1 1 188
+End Elements
+
+Begin NodalData RADIUS  // GUI group identifier: sphererock Elementid SphericPartDEMElement3D
+188 0 0.4
+End NodalData
+
+Begin SubModelPart 1 // GUI conditionid DEM-VelocityIC group identifier: sphererock
+  Begin SubModelPartData
+  INITIAL_VELOCITY_X_VALUE 0.0
+  INITIAL_VELOCITY_Y_VALUE 0.0
+  INITIAL_VELOCITY_Z_VALUE -24
+  INITIAL_ANGULAR_VELOCITY_X_VALUE 0.0
+  INITIAL_ANGULAR_VELOCITY_Y_VALUE 0.0
+  INITIAL_ANGULAR_VELOCITY_Z_VALUE 0.0
+  End SubModelPartData
+  Begin SubModelPartNodes
+  188
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  1
+  End SubModelPartElements
+End SubModelPart
+
+Begin Table 0 TIME VELOCITY
+0.0  0.0
+1.0  0.0
+End Table
+

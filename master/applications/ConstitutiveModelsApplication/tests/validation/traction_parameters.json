@@ -1,0 +1,23 @@
+{
+    "solver_process":{
+	"solver_type"   : "models_solver",
+	"Parameters"    : {
+	    "properties_id": 0,
+	    "time_settings":{
+		"time_step": 0.1,
+		"end_time":10
+	    },
+	    "integration_settings":{
+		"integration_point": [0.0,0.0,0.0]
+	    },
+	    "strain_settings":{
+		"description": "shear",
+		"deformation_gradient" : [ ["1.0+t",0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ]
+	    },
+	    "stress_measure": "Kirchhoff",
+	    "print_output": true
+
+	}
+    }
+
+}

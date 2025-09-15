@@ -1,0 +1,80 @@
+#VRML V2.0 utf8
+Background {
+	skyColor [ 0.627451 0.627451 0.627451 ]
+}
+Shape { # triangle mesh
+	appearance Appearance {
+		material 	Material {
+		ambientIntensity 0
+		diffuseColor     0 0 0
+		specularColor    0 0 0
+		emissiveColor    0 0 0
+		shininess        1
+		transparency     0
+		}
+	} # appearance
+	geometry IndexedFaceSet { # triangle mesh
+		ccw    TRUE
+		convex TRUE
+		solid  FALSE
+		coordIndex [
+			    4,    1,    0, -1, # triangle    0
+			    4,    0,    3, -1,
+			    5,    2,    1, -1,
+			    5,    1,    4, -1,
+			    7,    4,    3, -1,
+			    7,    3,    6, -1,
+			    8,    5,    4, -1,
+			    8,    4,    7, -1
+		] # 8 triangles
+		coord Coordinate { point [
+			-10 0 0, # coord point    0
+			-10 0 5,
+			-10 0 10,
+			-5 0 0,
+			-5 0 5,
+			-5 0 10,
+			0 0 0,
+			0 0 5,
+			0 0 10
+		] } # 8 coord points
+	} # geometry
+} # triangle mesh
+Shape { # triangle mesh
+	appearance Appearance {
+		material 	Material {
+		ambientIntensity 0
+		diffuseColor     0 0 0
+		specularColor    0 0 0
+		emissiveColor    0 0 0
+		shininess        1
+		transparency     0
+		}
+	} # appearance
+	geometry IndexedFaceSet { # triangle mesh
+		ccw    TRUE
+		convex TRUE
+		solid  FALSE
+		coordIndex [
+			    4,    1,    0, -1, # triangle    0
+			    4,    0,    3, -1,
+			    5,    2,    1, -1,
+			    5,    1,    4, -1,
+			    7,    4,    3, -1,
+			    7,    3,    6, -1,
+			    8,    5,    4, -1,
+			    8,    4,    7, -1
+		] # 8 triangles
+		coord Coordinate { point [
+			-10 0 0, # coord point    0
+			-10 5 0,
+			-10 10 0,
+			-5 0 0,
+			-5 5 0,
+			-5 10 0,
+			0 0 0,
+			0 5 0,
+			0 10 0
+		] } # 8 coord points
+	} # geometry
+} # triangle mesh

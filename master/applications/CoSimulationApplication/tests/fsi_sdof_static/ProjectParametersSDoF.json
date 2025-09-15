@@ -1,0 +1,19 @@
+{
+    "system_parameters":{
+        "stiffness" : 50000.00
+    },
+    "initial_values":{
+        "displacement": 0.0
+     },
+     "boundary_conditions":{
+        "external_load": 10000.0
+     },
+     "solver_parameters": {
+         "buffer_size": 3
+     },
+     "output_parameters":{
+        "write_output_file": false,
+        "file_name": "fsi_sdof_static/results_final_sdof.dat"
+     }
+
+}

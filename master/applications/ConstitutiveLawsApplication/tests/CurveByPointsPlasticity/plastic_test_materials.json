@@ -1,0 +1,23 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Solid_Solid_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+					"name" : "SmallStrainIsotropicPlasticity3DVonMisesTresca"
+                },
+					"Variables"        : {
+					"DENSITY"       : 7850.0,
+					"YOUNG_MODULUS" : 201.0e9,
+					"POISSON_RATIO" : 0.263,
+					"FRACTURE_ENERGY" : 120e5,
+					"YIELD_STRESS"   : 885.0e6,
+					"HARDENING_CURVE" : 6,
+					"PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE" : [0.00E+00, 5.00E-04, 1.00E-03, 1.50E-03, 2.00E-03, 2.50E-03, 3.00E-03, 3.50E-03, 4.00E-03, 4.50E-03, 5.00E-03],
+					"EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE" : [8.85E+08, 9.55E+08, 9.75E+08, 9.85E+08, 9.90E+08, 9.85E+08, 9.80E+08, 9.60E+08, 9.40E+08, 9.20E+08, 8.90E+08],
+					"HIGH_CYCLE_FATIGUE_COEFFICIENTS"    :  [0.418079096, 1.575, 0.6, 0.000226800, 5.58800, -0.00031840, 0.002]
+                },
+            "Tables"           : {}
+        }
+    }]
+}

@@ -1,0 +1,67 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "harmonic_analysis_test",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "eigen_value",
+        "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
+        "model_import_settings"              : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "harmonic_analysis_test/harmonic_analysis_test"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "harmonic_analysis_test/harmonic_analysis_test_materials.json"
+        },
+        "rotation_dofs"                      : true
+    },
+    "processes" : {
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.DISPLACEMENT_support",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.PointLoad3D_load",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : 1.0,
+            "direction"       : [0.0,0.0,1.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "list_other_processes"  : [{
+        "python_module" : "eigen_solution_output_process",
+        "kratos_module" : "StructuralMechanicsApplication",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+            "model_part_name" : "Structure",
+            "file_settings" : {
+                "file_name" : "harmonic_analysis_test/eigen_results.h5",
+                "file_access_mode" : "truncate"
+            },
+            "prefix" : "/ModelData"
+        }
+    }]}
+}

@@ -1,0 +1,50 @@
+{
+    "optimization_parameters" : {
+        "simp_property"                 : 1,
+        "material_interpolation"        : "ramp",
+        "penalty"                       : 4,
+        "continuation_strategy"         : 0,
+        "initial_volume_fraction"       : 0.5,
+        "density_filter"	            : "densit",
+        "filter_type"                   : "sensitivity",
+        "filter_kernel"                 : "linear",
+        "filter_radius"     		    : 1.5,
+        "max_elements_in_filter_radius" : 500,
+        "grey_scale_filter"             : 0, 
+        "q_max"                         : 2.0,
+        "optimization_algorithm"        : "oc_algorithm",
+        "max_opt_iterations"            : 100,
+        "relative_tolerance"            : 0.001,
+        "objectives"    :{
+            "strain_energy":    {
+                "grad"      :"provided"
+            }
+        },
+        "constraints"    :{
+            "volume_fraction":    {
+                "type"      :"eq",
+                "grad"      : "provided"
+            }
+        },
+        "restart_input_file"            : "Small_Cantilever_Hex.mdpa",
+        "restart_output_file"           : "Small_Cantilever_Restart_File.mdpa",
+        "restart_write_frequency"       : 10,
+        "GiD_output_file_name"          : "Topology_Optimization_Results",
+        "nodal_results"                 :["DISPLACEMENT","REACTION"],
+        "gauss_points_results"          :["X_PHYS"],
+        "VolumeOutput"                  : true,
+        "GiDPostMode"                   : "Binary",
+        "GiDWriteMeshFlag"              : false,
+        "GiDWriteConditionsFlag"        : false,
+        "GiDWriteParticlesFlag"         : false,
+        "GiDMultiFileFlag"              : "Single",
+        "result_file_configuration": {
+            "gidpost_flags": {
+                "GiDPostMode": "GiD_PostBinary",
+                "MultiFileFlag": "SingleFile",
+                "WriteConditionsFlag": "WriteElementsOnly",
+                "WriteDeformedMeshFlag": "WriteUndeformed"
+            }
+        }
+    }
+}

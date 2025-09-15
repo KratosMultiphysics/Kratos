@@ -1,0 +1,20 @@
+{
+	"properties" : [{
+		"model_part_name" : "Structure.Parts_trusses",
+		"properties_id"   : 1,
+		"Material"        : {
+			"constitutive_law" : {
+				"name" : "TrussConstitutiveLaw"
+			},
+			"Variables"        : {
+				"DENSITY"               : 7850.0,
+				"YOUNG_MODULUS"         : 70.00E+04,
+				"CROSS_AREA"            : 1.256637061E-05,
+				"TRUSS_PRESTRESS_PK2"   : 1000000000.0,
+				"RAYLEIGH_ALPHA"        : 20.00,
+				"RAYLEIGH_BETA"         : 0.000000000010000
+			},
+			"Tables"  : {}
+		}
+	}]
+}

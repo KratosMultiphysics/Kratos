@@ -1,0 +1,148 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
+// System includes
+#include <iostream>
+
+// External includes
+
+// Project includes
+#include "custom_constitutive/linear_plane_strain.h"
+#include "structural_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
+
+namespace Kratos
+{
+
+//******************************CONSTRUCTOR*******************************************
+/***********************************************************************************/
+
+LinearPlaneStrain::LinearPlaneStrain()
+    : ElasticIsotropic3D()
+{
+}
+
+//******************************COPY CONSTRUCTOR**************************************
+/***********************************************************************************/
+
+LinearPlaneStrain::LinearPlaneStrain(const LinearPlaneStrain& rOther)
+    : ElasticIsotropic3D(rOther)
+{
+}
+
+//********************************CLONE***********************************************
+/***********************************************************************************/
+
+ConstitutiveLaw::Pointer LinearPlaneStrain::Clone() const
+{
+    return Kratos::make_shared<LinearPlaneStrain>(*this);
+}
+
+//*******************************DESTRUCTOR*******************************************
+/***********************************************************************************/
+
+LinearPlaneStrain::~LinearPlaneStrain()
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool& LinearPlaneStrain::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+{
+    // This Constitutive Law has been checked with Stenberg Stabilization
+    if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) {
+        rValue = true;
+    }
+
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Matrix& LinearPlaneStrain::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
+{
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector& LinearPlaneStrain::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+{
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double& LinearPlaneStrain::GetValue(const Variable<double>& rThisVariable, double& rValue)
+{
+    return rValue;
+}
+
+//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
+/***********************************************************************************/
+
+void LinearPlaneStrain::GetLawFeatures(Features& rFeatures)
+{
+    //Set the type of law
+    rFeatures.mOptions.Set( PLANE_STRAIN_LAW);
+    rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
+    rFeatures.mOptions.Set( ISOTROPIC );
+
+    //Set strain measure required by the consitutive law
+    rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
+    rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+
+    //Set the strain size
+    rFeatures.mStrainSize = 3;
+
+    //Set the spacedimension
+    rFeatures.mSpaceDimension = 2;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearPlaneStrain::CalculateElasticMatrix(VoigtSizeMatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+{
+    const auto &r_props = rValues.GetMaterialProperties();
+    const double E = r_props[YOUNG_MODULUS];
+    const double NU = r_props[POISSON_RATIO];
+    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStrain(rC, E, NU);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearPlaneStrain::CalculatePK2Stress(
+    const ConstitutiveLaw::StrainVectorType& rStrainVector,
+    ConstitutiveLaw::StressVectorType& rStressVector,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
+
+    ConstitutiveLawUtilities<3>::CalculatePK2StressFromStrainPlaneStrain(rStressVector, rStrainVector, E, NU);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, ConstitutiveLaw::StrainVectorType& rStrainVector)
+{
+    ConstitutiveLawUtilities<3>::CalculateCauchyGreenStrain(rValues, rStrainVector);
+}
+
+} // Namespace Kratos

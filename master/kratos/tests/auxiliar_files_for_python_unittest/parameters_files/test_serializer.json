@@ -1,0 +1,103 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "ProblemZero",
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 0.01
+    },
+    "solver_settings"                  : {
+        "solver_type"                     : "Monolithic",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "auxiliar_files_for_python_unittest/mdpa_files/test_serializer"
+        },
+        "domain_size"                     : 2,
+        "model_part_name"                 : "MainModelPart",
+        "compute_reactions"               : true,
+        "maximum_iterations"     : 25,
+        "reform_dofs_at_each_step": false,
+        "linear_solver_settings" : {
+            "solver_type"         : "amgcl",
+            "max_iteration"       : 400,
+            "tolerance"           : 1e-3,
+            "provide_coordinates" : false,
+            "smoother_type"       : "damped_jacobi",
+            "krylov_type"         : "lgmres",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false,
+            "verbosity"           : 0
+        },
+        "volume_model_part_name"          : "Parts_fluid",
+        "skin_parts"                      : ["AutomaticInlet2D_inlet","Outlet2D_outlet","Slip2D","NoSlip2D_structure","NoSlip2D_ground"],
+        "time_stepping"                   : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.01
+        }
+    },
+    "processes" : {
+        "initial_conditions_process_list"  : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Outlet2D_outlet",
+                "variable_name"   : "PRESSURE",
+                "constrained"     : false,
+                "value"           : 0.0
+            }
+        }],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_inlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.AutomaticInlet2D_inlet",
+                "variable_name"   : "VELOCITY",
+                "modulus"         : 10.0,
+                "constrained"     : true,
+                "direction"       : [1.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "apply_outlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name"    : "MainModelPart.Outlet2D_outlet",
+                "variable_name"      : "PRESSURE",
+                "constrained"        : true,
+                "value"              : 0.0,
+                "hydrostatic_outlet" : false,
+                "h_top"              : 0.0
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.NoSlip2D_structure"
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.NoSlip2D_ground"
+            }
+        },{
+            "python_module" : "apply_slip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplySlipProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Slip2D"
+            }
+        }],
+        "gravity"                          : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Parts_fluid",
+                "variable_name"   : "BODY_FORCE",
+                "modulus"         : 0.0,
+                "constrained"     : false,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+            }]
+    }
+}

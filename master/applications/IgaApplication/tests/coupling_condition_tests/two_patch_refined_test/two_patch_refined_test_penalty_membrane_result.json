@@ -1,0 +1,153 @@
+{
+    "TIME": [0.1],
+    "NODE_1": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_2": {
+        "DISPLACEMENT_X": [9.999999999996629e-05],
+        "DISPLACEMENT_Y": [7.392903563635533e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_3": {
+        "DISPLACEMENT_X": [0.0001999999999999062],
+        "DISPLACEMENT_Y": [-4.7718448116518264e-17],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_4": {
+        "DISPLACEMENT_X": [0.0002999999999999078],
+        "DISPLACEMENT_Y": [-1.0355772183764602e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_5": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_6": {
+        "DISPLACEMENT_X": [9.999999999997226e-05],
+        "DISPLACEMENT_Y": [7.206556315239587e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_7": {
+        "DISPLACEMENT_X": [0.00019999999999997163],
+        "DISPLACEMENT_Y": [-4.767779053505006e-17],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_8": {
+        "DISPLACEMENT_X": [0.0002999999999999083],
+        "DISPLACEMENT_Y": [-1.0325167266242207e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_9": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_10": {
+        "DISPLACEMENT_X": [9.999999999998824e-05],
+        "DISPLACEMENT_Y": [-7.213332578817622e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_11": {
+        "DISPLACEMENT_X": [0.00020000000000000115],
+        "DISPLACEMENT_Y": [-2.0837010502455788e-17],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_12": {
+        "DISPLACEMENT_X": [0.00029999999999995487],
+        "DISPLACEMENT_Y": [-1.0292192703739515e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_13": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_14": {
+        "DISPLACEMENT_X": [0.00010000000000001188],
+        "DISPLACEMENT_Y": [-7.318364664277155e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_15": {
+        "DISPLACEMENT_X": [0.00019999999999999814],
+        "DISPLACEMENT_Y": [-2.0925101928970236e-17],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_16": {
+        "DISPLACEMENT_X": [0.0003000000000000451],
+        "DISPLACEMENT_Y": [-1.0259653486393211e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_25": {
+        "DISPLACEMENT_X": [0.0003000999999999077],
+        "DISPLACEMENT_Y": [-1.0357518879025585e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_26": {
+        "DISPLACEMENT_X": [0.0004500999999998704],
+        "DISPLACEMENT_Y": [-1.9567138707932141e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_27": {
+        "DISPLACEMENT_X": [0.0006000999999998858],
+        "DISPLACEMENT_Y": [-3.1433053859428184e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_28": {
+        "DISPLACEMENT_X": [0.00030009999999990885],
+        "DISPLACEMENT_Y": [-1.0309153297737364e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_29": {
+        "DISPLACEMENT_X": [0.00045009999999998356],
+        "DISPLACEMENT_Y": [-2.0623727606337156e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_30": {
+        "DISPLACEMENT_X": [0.0006000999999999526],
+        "DISPLACEMENT_Y": [-3.0962103540754793e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_31": {
+        "DISPLACEMENT_X": [0.00030010000000004535],
+        "DISPLACEMENT_Y": [-1.0257907804428479e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_32": {
+        "DISPLACEMENT_X": [0.0004501000000000082],
+        "DISPLACEMENT_Y": [-2.1684043449710089e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_33": {
+        "DISPLACEMENT_X": [0.0006001000000000236],
+        "DISPLACEMENT_Y": [-3.0487765090292385e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "ELEMENT_1": {},
+    "ELEMENT_2": {},
+    "ELEMENT_3": {},
+    "ELEMENT_4": {},
+    "ELEMENT_5": {},
+    "ELEMENT_6": {},
+    "ELEMENT_7": {},
+    "ELEMENT_8": {},
+    "ELEMENT_9": {},
+    "ELEMENT_10": {},
+    "ELEMENT_11": {},
+    "ELEMENT_12": {},
+    "ELEMENT_13": {},
+    "ELEMENT_14": {},
+    "ELEMENT_15": {},
+    "ELEMENT_16": {},
+    "ELEMENT_17": {},
+    "ELEMENT_18": {},
+    "ELEMENT_19": {},
+    "ELEMENT_20": {},
+    "ELEMENT_21": {},
+    "ELEMENT_22": {},
+    "ELEMENT_23": {},
+    "ELEMENT_24": {},
+    "ELEMENT_25": {}
+}

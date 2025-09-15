@@ -1,0 +1,660 @@
+KRATOS_BENCHMARK | Float | Time | 0.125663706144 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.997719538825 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5113 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.157079632679 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.997254238779 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5251 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.188495559215 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.996307900904 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5251 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.219911485751 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995972922723 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5449 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.251327412287 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.997294359615 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5449 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.282743338823 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.996991797913 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5592 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.314159265359 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.997084584318 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5656 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.345575191895 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.99677366377 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5799 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.376991118431 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.996122183407 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5871 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.408407044967 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.996109928986 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5871 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.439822971503 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.996327604981 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6017 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.471238898038 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.996995469273 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6088 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.502654824574 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995710603431 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6241 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.53407075111 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.996689604119 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6308 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.565486677646 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995635005522 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6394 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.596902604182 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995963223939 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6394 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.628318530718 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995279002283 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6463 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.659734457254 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.996292219499 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6623 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.69115038379 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.996472111911 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6706 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.722566310326 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995400357243 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6792 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.753982236862 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995683506581 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6792 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.785398163397 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.99589080595 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6869 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.816814089933 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995175333067 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6961 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.848230016469 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.99480528985 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7118 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.879645943005 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994869190091 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7052 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.911061869541 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.99501213684 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7135 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.942477796077 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994355176431 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7232 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 0.973893722613 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994303004375 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7232 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.00530964915 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995283228331 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7329 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.03672557568 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995316478398 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7418 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.06814150222 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994303491589 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7522 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.09955742876 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.99501843042 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7522 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.13097335529 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.995009513654 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7625 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.16238928183 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.993923369633 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7555 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.19380520836 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994810021379 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7660 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.2252211349 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994069896559 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7768 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.25663706144 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994358233491 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7768 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.28805298797 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.993506289729 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7869 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.31946891451 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994834790478 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7809 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.35088484104 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994261778985 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7921 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.38230076758 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994123012198 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7862 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.41371669412 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.993521041277 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7971 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.44513262065 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.993500190429 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7971 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.47654854719 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.993911387895 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7924 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.50796447372 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.993797289098 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 8040 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.53938040026 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.994192730749 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7982 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.57079632679 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.992540728921 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 8102 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.60221225333 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.99320443666 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 8056 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.63362817987 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.992909429204 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 8056 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.6650441064 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.993492338848 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 8001 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.69646003294 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.992478723689 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7960 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.72787595947 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.992977340074 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 8082 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.75929188601 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.992773304492 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 8047 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.79070781255 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.992070030733 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 8047 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.82212373908 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.992863634982 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7997 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.85353966562 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.992639610305 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7962 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.88495559215 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.991516066179 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7931 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.91637151869 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.991430142413 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7931 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.94778744523 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.991877566357 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7894 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 1.97920337176 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.991549382695 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7860 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.0106192983 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.990445970029 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7825 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.04203522483 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.991320370279 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7825 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.07345115137 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.991727161776 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7801 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.10486707791 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.991176123169 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7775 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.13628300444 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.99044904996 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7775 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.16769893098 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.990989710363 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7746 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.19911485751 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.990177291197 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7718 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.23053078405 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.990617721071 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7562 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.26194671058 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.990675671138 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7547 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.29336263712 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989546967396 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7547 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.32477856366 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98970835521 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7529 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.35619449019 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989798763327 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7377 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.38761041673 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.990506794562 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7363 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.41902634326 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989130453587 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7215 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.4504422698 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.990113128768 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7201 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.48185819634 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988797787542 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7201 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.51327412287 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988866505237 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7044 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.54469004941 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989803605834 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 7044 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.57610597594 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988960005337 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6901 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.60752190248 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989796242957 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6894 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.63893782902 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989468905059 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6752 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.67035375555 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988198288401 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6745 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.70176968209 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988492528778 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6605 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.73318560862 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98918094916 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6605 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.76460153516 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989616946071 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6469 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.79601746169 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988756052298 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6337 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.82743338823 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988405515113 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6333 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.85884931477 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988309820294 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6202 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.8902652413 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988429917308 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6202 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.92168116784 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989331152526 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6071 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.95309709437 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989300244309 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5953 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 2.98451302091 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988380056572 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5826 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.01592894745 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98892277751 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5826 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.04734487398 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989394705454 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5704 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.07876080052 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988981842927 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5588 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.11017672705 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98793797443 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5588 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.14159265359 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988808258857 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5466 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.17300858013 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988594128616 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5350 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.20442450666 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988182848252 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5226 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.2358404332 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988798123021 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5114 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.26725635973 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988110915888 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5002 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.29867228627 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988841072469 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5002 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.33008821281 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988641765315 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4887 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.36150413934 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988512123544 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4769 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.39292006588 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.989034954728 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4662 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.42433599241 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987558346197 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4662 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.45575191895 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987772834782 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4437 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.48716784548 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988623770488 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4437 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.51858377202 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988635475392 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4334 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.54999969856 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988852199206 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4222 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.58141562509 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988433650186 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4118 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.61283155163 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988352538862 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4008 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.64424747816 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988074512982 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4008 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.6756634047 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987401701937 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3913 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.70707933124 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988990868194 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3804 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.73849525777 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988484367323 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3699 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.76991118431 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98803999083 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3607 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.80132711084 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988209361193 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3505 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.83274303738 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988100011711 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3505 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.86415896392 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988781301986 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3401 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.89557489045 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988194089923 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3299 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.92699081699 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987615367667 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3213 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.95840674352 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987658357591 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3114 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 3.98982267006 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987128260502 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3114 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.02123859659 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988308444552 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3018 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.05265452313 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988477650793 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2925 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.08407044967 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987659091634 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2834 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.1154863762 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987746593202 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2834 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.14690230274 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988283173535 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2743 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.17831822927 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987781271927 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2657 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.20973415581 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987229572492 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2654 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.24115008235 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987258062819 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2570 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.27256600888 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987032297131 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2570 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.30398193542 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988320025439 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2487 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.33539786195 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98825728366 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2411 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.36681378849 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986656712312 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2331 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.39822971503 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986950575357 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2336 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.42964564156 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98710078536 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2336 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.4610615681 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.988126986281 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2263 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.49247749463 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986936769931 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2188 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.52389342117 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987830755432 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2197 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.55530934771 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986807563988 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2124 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.58672527424 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986459618664 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2124 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.61814120078 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987225502455 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2138 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.64955712731 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987208683001 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2067 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.68097305385 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987616530721 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2078 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.71238898038 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986547861438 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2013 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.74380490692 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.987000409991 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2032 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.77522083346 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986584742477 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2032 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.80663675999 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986627515264 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2051 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.83805268653 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986574754753 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 1989 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.86946861306 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98728228853 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2009 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.9008845396 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986347628141 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2031 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.93230046614 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.985989924282 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2031 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.96371639267 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986000317138 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2058 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 4.99513231921 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.985874169518 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 1999 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.02654824574 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986559762228 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2023 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.05796417228 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986102236552 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2056 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.08938009882 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.985573004799 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2056 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.12079602535 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986473141843 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2085 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.15221195189 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98639088418 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2119 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.18362787842 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.985341448257 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2150 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.21504380496 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.985667246658 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2150 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.24645973149 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.986017267262 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2189 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.27787565803 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.985289548218 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2224 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.30929158457 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.984532794816 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2314 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.3407075111 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98441712489 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2358 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.37212343764 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.984700823488 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2358 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.40353936417 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.985674118478 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2395 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.43495529071 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.985168179301 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2446 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.46637121725 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.983872057232 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2540 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.49778714378 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98414799571 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2587 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.52920307032 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.984629627509 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2587 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.56061899685 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.984725343397 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2634 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.59203492339 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.984293249999 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2731 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.62345084993 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.984660491254 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2788 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.65486677646 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.983009086302 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2890 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.686282703 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.983350323132 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2947 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.71769862953 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.984053772382 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 2947 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.74911455607 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.983447416965 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3049 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.78053048261 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.984056736979 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3107 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.81194640914 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.983607110522 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3217 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.84336233568 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.982533137694 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3275 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.87477826221 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.982489694121 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3382 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.90619418875 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.983286400664 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3382 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.93761011528 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.983379336982 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3500 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 5.96902604182 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.981880080319 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3614 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.00044196836 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.982558437363 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3671 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.03185789489 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.981902103427 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3793 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.06327382143 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.982484986658 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3793 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.09468974796 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.982912025184 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 3911 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.1261056745 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.982262184746 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4028 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.15752160104 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.981290160526 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4028 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.18893752757 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.982137959014 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4149 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.22035345411 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.982076262969 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4271 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.25176938064 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.981131689659 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4395 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.28318530718 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98126109754 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4395 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.31460123372 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.981845538051 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4521 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.34601716025 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.981439928035 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4658 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.37743308679 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.979972939975 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4658 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.40884901332 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.980729726751 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4788 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.44026493986 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.980182688246 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4919 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.47168086639 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.98052284137 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 4974 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.50309679293 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.980691283072 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5113 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.53451271947 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.979270035514 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5251 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.565928646 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.979599800758 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5251 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.59734457254 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.979276588101 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5307 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.62876049907 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.980292014699 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5449 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.66017642561 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.978942967852 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5592 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.69159235215 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.9795056462 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5656 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.72300827868 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.978322298992 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5656 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.75442420522 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.978163408278 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5799 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.78584013175 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.97914366122 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 5871 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.81725605829 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.978247698551 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6017 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.84867198483 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.979064657527 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6088 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.88008791136 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.977307039643 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6160 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.9115038379 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.977735716558 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6308 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.94291976443 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.977457147283 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6308 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 6.97433569097 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.978255385126 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6394 | 0.0 | None
+KRATOS_BENCHMARK | Float | Time | 7.00575161751 | None | None
+KRATOS_BENCHMARK | Float | minimum temperature | 0.977295531847 | 1e-05 | None
+KRATOS_BENCHMARK | Integer | Id of the node with maximum temperature | 6463 | 0.0 | None

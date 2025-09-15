@@ -1,0 +1,69 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Eigen_3D3N_Thin_Circle_test",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "eigen_value",
+        "scheme_type"                        : "dynamic",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
+        "echo_level"                         : 0,
+        "model_import_settings"              : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "eigen_test/Eigen_3D3N_Thin_Circle_test"
+        },
+        "material_import_settings" :{
+            "materials_filename": "eigen_test/Eigen_3D3N_Thin_Circle_test_materials.json"
+        },
+        "eigensolver_settings":{
+            "solver_type": "feast",
+            "symmetric": true,
+            "e_min": 0.0,
+            "e_max": 4.0e5,
+            "subspace_size": 15
+        },
+        "rotation_dofs"                      : true
+    },
+    "processes" : {
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.DISPLACEMENT_support",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.ROTATION_support",
+            "variable_name"   : "ROTATION",
+            "constrained"     : [false,false,false],
+            "value"           : [0.0,0.0,0.0]
+        }
+    }],
+    "loads_process_list"       : [],
+    "list_other_processes" :[{
+        "kratos_module" : "StructuralMechanicsApplication",
+        "python_module" : "check_eigenvalues_process",
+        "help"          : "First eigenfrequencies of a circular plate according to Leissa, A. (1993). Vibration of plates.",
+        "process_name"  : "CheckEigenvaluesProcess",
+        "Parameters"    : {
+            "model_part_name"  : "Structure",
+	        "variable_name"    : "EIGENVALUE_VECTOR",
+            "reference_values" : "[5870.389149394735, 46368.8484822989, 46368.848484378315, 156722.65667084238, 156722.65668679585, 211940.23752820952, 379353.4270953061, 379353.42713109404]"
+        }
+    }]}
+}

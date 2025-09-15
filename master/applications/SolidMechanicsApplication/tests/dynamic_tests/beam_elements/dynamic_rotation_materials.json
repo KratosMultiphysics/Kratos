@@ -1,0 +1,21 @@
+{
+    "material_models_list" : [{
+        "python_module" : "assign_sections_process",
+        "kratos_module" : "SolidMechanicsApplication",
+        "help"          : "This process creates a section and assigns its properties",
+        "process_name"  : "AssignSectionsProcess",
+        "Parameters"    : {
+            "model_part_name" : "Parts_Parts_Auto1",
+            "properties_id"   : 1,
+            "material_name"   : "Steel",
+            "section_type"    : "Circular",
+            "variables"       : {
+                "DENSITY"       : 7850.0,
+                "YOUNG_MODULUS" : 206900000000.0,
+                "POISSON_RATIO" : 0.29,
+                "DIAMETER"      : 0.1
+            },
+            "tables"          : {}
+        }
+    }]
+}

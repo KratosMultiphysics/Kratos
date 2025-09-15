@@ -1,0 +1,109 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   1.0000000000   2.0000000000
+    2   1.0000000000   1.0000000000   2.0000000000
+    3   0.0000000000   1.0000000000   1.0000000000
+    4   0.0000000000   0.0000000000   2.0000000000
+    5   0.0000000000   1.0000000000   1.0000000000
+    6   1.0000000000   0.0000000000   2.0000000000
+    7   0.0000000000   0.0000000000   1.0000000000
+    8   1.0000000000   1.0000000000   1.0000000000
+    9   0.0000000000   0.0000000000   1.0000000000
+   10   1.0000000000   1.0000000000   1.0000000000
+   11   1.0000000000   0.0000000000   1.0000000000
+   12   1.0000000000   0.0000000000   1.0000000000
+   13   0.0000000000   1.0000000000   0.0000000000
+   14   0.0000000000   1.0000000000   0.0000000000
+   15   0.0000000000   0.0000000000   0.0000000000
+   16   1.0000000000   1.0000000000   0.0000000000
+   17   0.0000000000   0.0000000000   0.0000000000
+   18   1.0000000000   1.0000000000   0.0000000000
+   19   1.0000000000   0.0000000000   0.0000000000
+   20   1.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements Element3D4N// GUI group identifier: grid
+        1          0         15         13          5         16 
+        2          0         16          8          5         15 
+        3          0          7          5          8         15 
+        4          0         15          7         11          8 
+        5          0         15         19         16          8 
+        6          0         19         11          8         15 
+        7          0          4          1          2          5 
+        8          0          5          8          2          4 
+        9          0          6          2          8          4 
+       10          0          4          6         11          8 
+       11          0          4          7          5          8 
+       12          0          7         11          8          4 
+End Elements
+
+Begin SubModelPart Parts_grid // Group grid // Subtree Parts
+    Begin SubModelPartNodes
+            1
+            2
+            4
+            5
+            6
+            7
+            8
+           11
+           13
+           15
+           16
+           19
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_bc // Group bc // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           13
+           15
+           16
+           19
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_bclat // Group bclat // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            2
+            4
+            5
+            6
+            7
+            8
+           11
+           13
+           15
+           16
+           19
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
