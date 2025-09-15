@@ -148,11 +148,17 @@ void ConductMPMNumericalStiffnessMatrixTest(Element::Pointer pElement, const boo
     {
         KRATOS_EXPECT_EQ(pElement->IsActive(), rRefIsActive);
         
+        double tolerance = 1e-8;
         Matrix lhs = ZeroMatrix(8,8);
         Vector rhs = ZeroVector(8);
-        pElement->CalculateLocalSystem(lhs, rhs, rCurrentProcessInfo);
+
+        pElement->CalculateRightHandSide(rhs, rCurrentProcessInfo);
+        KRATOS_EXPECT_VECTOR_NEAR(rhs, rRefRHS, tolerance);
+
+        pElement->CalculateLeftHandSide(lhs, rCurrentProcessInfo);
+        KRATOS_EXPECT_MATRIX_NEAR(lhs, rRefLHS, tolerance);
         
-        double tolerance = 1e-8;
+        pElement->CalculateLocalSystem(lhs, rhs, rCurrentProcessInfo);
         KRATOS_EXPECT_VECTOR_NEAR(rhs, rRefRHS, tolerance);
         KRATOS_EXPECT_MATRIX_NEAR(lhs, rRefLHS, tolerance);
     }
