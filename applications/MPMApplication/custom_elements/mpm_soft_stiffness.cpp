@@ -179,6 +179,13 @@ void MPMSoftStiffness::Initialize(const ProcessInfo& rCurrentProcessInfo)
         InitializeMaterial(rCurrentProcessInfo);
     }
 
+    const SizeType mat_size = GetNumberOfDofs() * GetGeometry().size();
+    if (mGridVariables.LeftHandSideMatrix.size1() != mat_size && mGridVariables.LeftHandSideMatrix.size2() != mat_size) {
+        mGridVariables.LeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    noalias(mGridVariables.LeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+    CalculateInitialStiffness(mGridVariables.LeftHandSideMatrix, rCurrentProcessInfo);
+
     KRATOS_CATCH( "" )
 }
 
@@ -242,72 +249,20 @@ void MPMSoftStiffness::CalculateElementalSystem(
     const bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
-    GeometryType& rGeometry = this->GetGeometry(); // Should return background grid geometry
-
-    // Create and initialize element variables:
-    GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-
-    // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    Flags &ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    Variables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-    
-    // Note: soft stiffness geometry is the background grid geometry, not gauss quadrature
-    const GeometryType::IntegrationMethod& rThisIntegrationMethod = rGeometry.GetDefaultIntegrationMethod();
-    // KRATOS_INFO("MPMSoftStiffness") << "Integration method used: " << rThisIntegrationMethod << std::endl; // TODO: Remove this
-
-    // Get geometry's default shape functions, it's derivatives and Jacobian
-    VectorType DeterminantsOfJacobian;
-    Variables.ShapeFunctions = rGeometry.ShapeFunctionsValues();
-    // KRATOS_WATCH(this->Id())
-    // KRATOS_WATCH(IsActive())
-    // KRATOS_WATCH(mGridVariables.volume_ratio)
-    // KRATOS_WATCH(this->GetValue(TOTAL_MP_VOLUME))
-    // const GeometryType::PointsArrayType& nodes = rGeometry.Points();
-    // for (auto& node : nodes) {
-    //     KRATOS_WATCH(node)
-    // }
-    // KRATOS_WATCH(Variables.ShapeFunctions);
-    rGeometry.ShapeFunctionsIntegrationPointsGradients(Variables.ShapeFunctionsGradients, DeterminantsOfJacobian, rThisIntegrationMethod);
-    
-    // Computing in all integrations points  
-    const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints = rGeometry.IntegrationPoints(rThisIntegrationMethod);
-    for ( IndexType gp_number = 0; gp_number < rThisIntegrationPoints.size(); ++gp_number ) {
-        // KRATOS_WATCH(gp_number)
-        // Set all components to zero
-        Variables.N.clear();
-        Variables.DN_DX.clear();
-        Variables.B.clear();
-
-        // Compute element kinematics B
-        this->CalculateKinematics(Variables, gp_number, rCurrentProcessInfo);
-        
-        // Set general variables to constitutivelaw parameters of current GP
-        this->SetGeneralVariables(Variables, Values, gp_number);
-
-        // Compute material response
-        mConstitutiveLawVector[gp_number]->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-        // Calculating weights for integration on the reference configuration
-        double integration_weight = CalculateIntegrationWeight(rThisIntegrationPoints[gp_number].Weight(), DeterminantsOfJacobian[gp_number]);
-        // KRATOS_WATCH(integration_weight)
-        
-        // Contributions to stiffness matrix calculated on the initial reference config
-        if ( CalculateStiffnessMatrixFlag ) {
-            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables, integration_weight, rCurrentProcessInfo);
-        }
-        // 
-        
+    // Contributions to stiffness matrix calculated on the initial reference config
+    if ( CalculateStiffnessMatrixFlag ) {
+        rLeftHandSideMatrix = mGridVariables.stiffness_multiplier * mGridVariables.LeftHandSideMatrix;
     }
     // KRATOS_WATCH(rLeftHandSideMatrix)
-    rLeftHandSideMatrix *= mGridVariables.stiffness_multiplier;
     if ( CalculateResidualVectorFlag )
     {
-        this->CalculateAndAddRHS(rLeftHandSideMatrix, rRightHandSideVector, Variables, rCurrentProcessInfo);
+        rLeftHandSideMatrix = mGridVariables.stiffness_multiplier * mGridVariables.LeftHandSideMatrix;
+        VectorType current_displacement;
+        this->GetCurrentDisp(current_displacement, rCurrentProcessInfo);
+        VectorType internal_forces = prod(rLeftHandSideMatrix, current_displacement);
+        noalias( rRightHandSideVector ) -= internal_forces;
+
+        // this->CalculateAndAddRHS(rLeftHandSideMatrix, rRightHandSideVector, Variables, rCurrentProcessInfo);
     }
     // KRATOS_WATCH(mGridVariables.stiffness_multiplier)
     // KRATOS_WATCH(rLeftHandSideMatrix)
@@ -484,6 +439,70 @@ void MPMSoftStiffness::CalculateAndAddKuum(
     KRATOS_CATCH( "" )
 }
 
+void MPMSoftStiffness::CalculateInitialStiffness(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+
+    GeometryType& rGeometry = this->GetGeometry(); // Should return background grid geometry
+
+    // Create and initialize element variables:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    Flags &ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    Variables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+    
+    // Note: soft stiffness geometry is the background grid geometry, not gauss quadrature
+    const GeometryType::IntegrationMethod& rThisIntegrationMethod = rGeometry.GetDefaultIntegrationMethod();
+    // KRATOS_INFO("MPMSoftStiffness") << "Integration method used: " << rThisIntegrationMethod << std::endl; // TODO: Remove this
+
+    // Get geometry's default shape functions, it's derivatives and Jacobian
+    VectorType DeterminantsOfJacobian;
+    Variables.ShapeFunctions = rGeometry.ShapeFunctionsValues();
+    // KRATOS_WATCH(this->Id())
+    // KRATOS_WATCH(IsActive())
+    // KRATOS_WATCH(mGridVariables.volume_ratio)
+    // KRATOS_WATCH(this->GetValue(TOTAL_MP_VOLUME))
+    // const GeometryType::PointsArrayType& nodes = rGeometry.Points();
+    // for (auto& node : nodes) {
+    //     KRATOS_WATCH(node)
+    // }
+    // KRATOS_WATCH(Variables.ShapeFunctions);
+    rGeometry.ShapeFunctionsIntegrationPointsGradients(Variables.ShapeFunctionsGradients, DeterminantsOfJacobian, rThisIntegrationMethod);
+    
+    // Computing in all integrations points  
+    const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints = rGeometry.IntegrationPoints(rThisIntegrationMethod);
+    for ( IndexType gp_number = 0; gp_number < rThisIntegrationPoints.size(); ++gp_number ) {
+        // KRATOS_WATCH(gp_number)
+        // Set all components to zero
+        Variables.N.clear();
+        Variables.DN_DX.clear();
+        Variables.B.clear();
+
+        // Compute element kinematics B
+        this->CalculateKinematics(Variables, gp_number, rCurrentProcessInfo);
+        
+        // Set general variables to constitutivelaw parameters of current GP
+        this->SetGeneralVariables(Variables, Values, gp_number);
+
+        // Compute material response
+        mConstitutiveLawVector[gp_number]->CalculateMaterialResponse(Values, Variables.StressMeasure);
+
+        // Calculating weights for integration on the reference configuration
+        double integration_weight = CalculateIntegrationWeight(rThisIntegrationPoints[gp_number].Weight(), DeterminantsOfJacobian[gp_number]);
+        // KRATOS_WATCH(integration_weight)
+        
+        // Contributions to stiffness matrix calculated on the initial reference config
+        this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables, integration_weight, rCurrentProcessInfo);
+    }
+}
+
 
 //************************************************************************************
 //************************************************************************************
@@ -503,7 +522,7 @@ void MPMSoftStiffness::CalculateRightHandSide(
     rRightHandSideVector = ZeroVector(mat_size);
 
     CalculateElementalSystem(left_hand_side_matrix, rRightHandSideVector,
-        rCurrentProcessInfo, true, true);
+        rCurrentProcessInfo, false, true);
 }
 
 //************************************************************************************
@@ -572,6 +591,7 @@ void MPMSoftStiffness::InitializeSolutionStep(const ProcessInfo& rCurrentProcess
     {
         this->Set(ACTIVE, true);
         mGridVariables.stiffness_multiplier = this->GetProperties()[PENALTY_FACTOR] * std::max(0.0, 1.0 - volume_ratio);
+        
     }
     else if (volume_ratio == 0 || volume_ratio > GetProperties()[VOLUME_RATIO_THRESHOLD])
     {

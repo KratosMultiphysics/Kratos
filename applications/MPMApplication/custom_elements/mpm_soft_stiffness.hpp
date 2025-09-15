@@ -487,6 +487,8 @@ protected:
                                      GeneralVariables& rVariables,
                                      const double& rIntegrationWeight);
 
+    void CalculateInitialStiffness(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+    
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
