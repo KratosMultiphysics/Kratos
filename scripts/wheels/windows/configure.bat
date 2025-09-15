@@ -37,7 +37,7 @@ CALL :add_app %KRATOS_APP_DIR%\CableNetApplication;
 CALL :add_app %KRATOS_APP_DIR%\RANSApplication;
 CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
 CALL :add_app %KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
-CALL :add_app %KRATOS_APP_DIR%\HDF5Application;
+@REM CALL :add_app %KRATOS_APP_DIR%\HDF5Application;
 CALL :add_app %KRATOS_APP_DIR%\MedApplication;
 CALL :add_app %KRATOS_APP_DIR%\IgaApplication;
 CALL :add_app %KRATOS_APP_DIR%\ChimeraApplication;
@@ -58,6 +58,7 @@ echo %KRATOS_BUILD%\%KRATOS_BUILD_TYPE%
 
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
 -DCMAKE_INSTALL_PREFIX=%3                                                                   ^
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                                          ^
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                                               ^
 -DCMAKE_C_FLAGS="/MP24 /Gm- /Zm10"                                                          ^
 -DCMAKE_CXX_FLAGS="/MP24 /Gm- /Zm10"                                                        ^

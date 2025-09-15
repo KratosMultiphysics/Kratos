@@ -9,6 +9,8 @@
 #   Author: Thomas Oberbichler
 #
 
+add_library(KratosLinearSolversCore SHARED)
+
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
 message( "**** configuring KratosLinearSolversApplication ****" )
@@ -57,6 +59,9 @@ if( USE_EIGEN_MKL MATCHES ON )
     endif()
 
     add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
+    target_sources(KratosLinearSolversCore PRIVATE
+                   "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_smoother_base.cpp"
+                   "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_ilu.cpp")
 endif()
 
 if( USE_EIGEN_FEAST MATCHES ON )
@@ -85,10 +90,9 @@ if (USE_EIGEN_SUITESPARSE)
 endif()
 
 ## generate variables with the sources
-set( KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp
-)
+target_sources(KratosLinearSolversCore PRIVATE
+               ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp)
 
 # Sources for the Python module
 file(
@@ -99,7 +103,6 @@ file(
 
 ###############################################################
 ## LinearSolversApplication core library (C++ parts)
-add_library( KratosLinearSolversCore SHARED ${KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES} )
 target_link_libraries( KratosLinearSolversCore PUBLIC KratosCore )
 set_target_properties( KratosLinearSolversCore PROPERTIES COMPILE_DEFINITIONS "LINEARSOLVERS_APPLICATION=EXPORT,API")
 

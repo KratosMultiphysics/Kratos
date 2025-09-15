@@ -1016,6 +1016,24 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateTangentTensorByPertu
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TVoigtSize>
+BoundedMatrix<double, 3, 3> AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculatePOperator()
+{
+    BoundedMatrix<double, 3, 3> P;
+    P.clear();
+
+    P(0, 0) = 2.0;
+    P(0, 1) = -1.0;
+    P(1, 0) = -1.0;
+    P(1, 1) = 2.0;
+    P(2, 2) = 6.0;
+
+    return P / 3.0;
+}
+
 
 template class AdvancedConstitutiveLawUtilities<3>;
 template class AdvancedConstitutiveLawUtilities<6>;

@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
@@ -69,24 +70,17 @@ int InterfaceCoulombWithTensionCutOff::Check(const Properties&   rMaterialProper
 {
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_COHESION);
-    // Since `CheckProperty` doesn't accept a custom range yet, we have inlined a modified version
-    // of `CheckProperty` to check the friction angle
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(GEO_FRICTION_ANGLE))
-        << GEO_FRICTION_ANGLE.Name() << " is not defined for property " << rMaterialProperties.Id()
-        << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[GEO_FRICTION_ANGLE] <= 0.0 || rMaterialProperties[GEO_FRICTION_ANGLE] >= 90.0)
-        << "value of " << GEO_FRICTION_ANGLE.Name() << " for property " << rMaterialProperties.Id()
-        << " is out of range: " << rMaterialProperties[GEO_FRICTION_ANGLE]
-        << " is not in (0.0, 90.0)" << std::endl;
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_DILATANCY_ANGLE,
-                                            rMaterialProperties[GEO_FRICTION_ANGLE]);
-    ConstitutiveLawUtilities::CheckProperty(
-        rMaterialProperties, GEO_TENSILE_STRENGTH,
+    const CheckProperties check_properties(rMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
+    check_properties.Check(GEO_COHESION);
+    constexpr auto max_value_angle = 90.0;
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(GEO_FRICTION_ANGLE, 0.0, max_value_angle);
+    check_properties.Check(GEO_DILATANCY_ANGLE, rMaterialProperties[GEO_FRICTION_ANGLE]);
+    check_properties.Check(
+        GEO_TENSILE_STRENGTH,
         rMaterialProperties[GEO_COHESION] /
             std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, INTERFACE_NORMAL_STIFFNESS);
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, INTERFACE_SHEAR_STIFFNESS);
+    check_properties.Check(INTERFACE_NORMAL_STIFFNESS);
+    check_properties.Check(INTERFACE_SHEAR_STIFFNESS);
     return result;
 }
 
@@ -160,9 +154,11 @@ Vector InterfaceCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vec
                                                                        double NormalStiffness,
                                                                        double ShearStiffness) const
 {
-    return mTractionVectorFinalized + prod(ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
-                                               NormalStiffness, ShearStiffness, GetStrainSize()),
-                                           rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
+    constexpr auto number_of_normal_components = std::size_t{1};
+    return mTractionVectorFinalized +
+           prod(ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+                    NormalStiffness, ShearStiffness, GetStrainSize(), number_of_normal_components),
+                rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
 }
 
 void InterfaceCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters)
@@ -176,9 +172,11 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitut
                                                           Matrix&                 rValue)
 {
     if (rVariable == CONSTITUTIVE_MATRIX) {
-        const auto& r_properties = rConstitutiveLawParameters.GetMaterialProperties();
-        rValue                   = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
-            r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS], GetStrainSize());
+        const auto&    r_properties = rConstitutiveLawParameters.GetMaterialProperties();
+        constexpr auto number_of_normal_components = std::size_t{1};
+        rValue = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+            r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS],
+            GetStrainSize(), number_of_normal_components);
     } else {
         KRATOS_ERROR << "Can't calculate value of " << rVariable.Name() << ": unsupported variable\n";
     }
