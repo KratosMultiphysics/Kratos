@@ -208,7 +208,7 @@ const array_1d<double, 9> mUxCoefficients;
 const array_1d<double, 9> mUyCoefficients;
 const array_1d<double, 9> mUzCoefficients;
 const array_1d<double, 3> mX0;
-array_1d<std::vector<double>, 8> mVars;
+array_1d<std::vector<double>, 9> mVars;
 
 
 ///@}

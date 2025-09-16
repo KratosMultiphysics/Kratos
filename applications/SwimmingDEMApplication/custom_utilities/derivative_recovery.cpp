@@ -905,12 +905,12 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeComponent(ModelP
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container, unsigned int& ord)
 {
     mCalculatingTheGradient = true;
     if (mFirstGradientRecovery){
         KRATOS_INFO("SwimmingDEM") << "Constructing first-step neighbour clouds for material derivative..." << std::endl;
-        SetNeighboursAndWeights(r_model_part);
+        SetNeighboursAndWeights(r_model_part, ord);
         mFirstGradientRecovery = false;
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for material derivative." << std::endl;
     }
@@ -1090,12 +1090,13 @@ void DerivativeRecovery<TDim>::SmoothVectorField(ModelPart& r_model_part, Variab
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
 template <class TScalarVariable>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, unsigned int& ord)
 {
     mCalculatingTheGradient = true;
     if (mFirstGradientRecovery){
         KRATOS_INFO("SwimmingDEM") << "Constructing first-step neighbour clouds for gradient recovery..." << std::endl;
-        SetNeighboursAndWeights(r_model_part);
+        SetEdgeNodesAndWeights(r_model_part);
+        SetNeighboursAndWeights(r_model_part, ord);
         mFirstGradientRecovery = false;
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for gradient recovery." << std::endl;
     }
@@ -1105,6 +1106,9 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
 
     // Solving least squares problem (Zhang, 2006)
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+        if(inode->GetValue(IS_EDGE_NODE))
+            continue;
+        
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
         if (!n_neigh){ // we keep the defualt value
@@ -1121,24 +1125,25 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
                 gradient[d] += nodal_weights[TDim * i_neigh + d] * neigh_nodal_value;
             }
         }
-        for (unsigned int d = 0; d < TDim; ++d){
+
+        for (unsigned int d = 0; d < TDim; ++d)
+        {
             recovered_gradient[d] = gradient[d];
         }
-
     }
     mCalculatingTheGradient = false;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord)
 {
     std::cout << "Entering RecoverSuperconvergentLaplacian" << std::endl;
 
     mCalculatingTheLaplacian = true;
     if (mFirstLaplacianRecovery){
         KRATOS_INFO("SwimmingDEM") << "Constructing first-step neighbour clouds for laplacian recovery..." << std::endl;
-        SetNeighboursAndWeights(r_model_part);
+        SetNeighboursAndWeights(r_model_part, ord);
         mFirstLaplacianRecovery = false;
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for laplacian recovery." << std::endl;
     }
@@ -1183,14 +1188,14 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_mode
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord)
 {
     std::cout << "Entering RecoverSuperconvergentVelocityLaplacianFromGradient" << std::endl;
 
     mCalculatingTheGradient = true;
     if (mFirstLaplacianRecovery){
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for laplacian recovery." << std::endl;
-        SetNeighboursAndWeights(r_model_part);
+        SetNeighboursAndWeights(r_model_part, ord);
         mFirstLaplacianRecovery = false;
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for laplacian recovery." << std::endl;
     }
@@ -1235,14 +1240,14 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradie
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container, Variable<array_1d<double, 3> >& laplacian_container)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord)
 {
     std::cout << "Entering RecoverSuperconvergentMatDerivAndLaplacian" << std::endl;
 
     mCalculatingGradientAndLaplacian = true;
     if (mFirstLaplacianRecovery){
         KRATOS_INFO("SwimmingDEM") << "Constructing first-step neighbour clouds for material derivative and laplacian recovery..." << std::endl;
-        SetNeighboursAndWeights(r_model_part);
+        SetNeighboursAndWeights(r_model_part, ord);
         mFirstLaplacianRecovery = false;
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for material derivative and laplacian recovery." << std::endl;
     }
@@ -1394,7 +1399,42 @@ void DerivativeRecovery<TDim>::CalculateVelocityLaplacianRate(ModelPart& r_model
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
+bool DerivativeRecovery<TDim>::IsEdgeNode(Geometry<Node>::GeometriesArrayType& edge, Node::Pointer& p_node)
+{
+    return false;
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::SetEdgeNodesAndWeights(ModelPart& r_model_part)
+{
+    // If quadratic elements are used in the superconvergent recovery,
+    // then we have to be careful about the edge nodes. For an edge
+    // node, its recovered gradient is the weighted mean of the recovery
+    // of its vertex nodes.
+
+    std::vector<int> ids;
+    std::vector<int>::iterator it;
+    for(ElementIteratorType ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem)
+    {
+        Geometry<Node >& geom = ielem->GetGeometry();
+        Geometry<Node>::GeometriesArrayType edges = geom.GenerateEdges();
+
+        for(unsigned int n = 0; n < edges.size(); n++)
+        {
+            Geometry<Node>& edge = edges[n];
+            if (edge.size() == 2)
+                continue;
+
+            Node::NodeType& edge_node = edge[edge.size() - 1];  // Last node is the edge node
+            edge_node.SetValue(IS_EDGE_NODE, true);
+        }
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, unsigned int& ord)
 {
     // Finding elements concurrent to each node. The nodes of these elements will form the initial cloud of points
     FindNodalNeighboursProcess neighbour_finder(r_model_part);
@@ -1402,11 +1442,11 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
     const unsigned int n_max_iterations = 100;
     unsigned int i = 0;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
+        bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()), ord);
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int iteration = 0;
         while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
-            the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()));
+            the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()), ord);
             ++iteration;
         }
         if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
@@ -1422,7 +1462,7 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart& r_model_part)
+void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart& r_model_part, unsigned int& ord)
 {
     // Finding elements concurrent to each node. The nodes of these elements will form the initial cloud of points
     FindNodalNeighboursProcess neighbour_finder(r_model_part);
@@ -1430,11 +1470,11 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart&
     const unsigned int n_max_iterations = 100;
     unsigned int i = 0;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
+        bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()), ord);
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int iteration = 0;
         while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
-            the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()));
+            the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()), ord);
             ++iteration;
         }
         if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
@@ -1476,7 +1516,7 @@ void DerivativeRecovery<TDim>::OrderByDistance(Node::Pointer &p_node, GlobalPoin
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer &p_node)
+bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer &p_node, unsigned int& ord)
 {
     GlobalPointersVector<Element>& neigh_elems = p_node->GetValue(NEIGHBOUR_ELEMENTS);
     GlobalPointersVector<Node >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
@@ -1497,17 +1537,18 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
         }
     }
     OrderByDistance(p_node, neigh_nodes);
-    if (neigh_nodes.size() < 10){ // Not worthwhile checking, since there are 10 independent coefficients to be determined
+    unsigned int min_neighbours = Factorial(TDim + ord) / (Factorial(TDim) * Factorial(ord));
+    if (neigh_nodes.size() < min_neighbours){ // Not worthwhile checking, since there are 10 independent coefficients to be determined
         return false;
     }
     else {
-        return SetWeightsAndRunLeastSquaresTest(r_model_part, p_node);
+        return SetWeightsAndRunLeastSquaresTest(r_model_part, p_node, ord);
     }
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-bool DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer& p_node)
+bool DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer& p_node, unsigned int& ord)
 {
     GlobalPointersVector<Node >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     const unsigned int node_increase_per_neighbour = 1;
@@ -1538,11 +1579,13 @@ bool DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, 
     OrderByDistance(p_node, neigh_nodes);
     const unsigned int new_size = std::min(n_neigh + node_increase_overall, (unsigned int)neigh_nodes.size());
     neigh_nodes.resize(new_size); // keeping only nearest nodes
-    if (neigh_nodes.size() < 10){ // it is not worthwhile checking, since there are 10 independent coefficients to be determined
+
+    unsigned int min_neighbours = Factorial(TDim + ord) / (Factorial(TDim) * Factorial(ord));
+    if (neigh_nodes.size() < min_neighbours){ // it is not worthwhile checking, since there are 10 independent coefficients to be determined
         return false;
     }
     else {
-        return SetWeightsAndRunLeastSquaresTest(r_model_part, p_node);
+        return SetWeightsAndRunLeastSquaresTest(r_model_part, p_node, ord);
     }
 }
 //**************************************************************************************************************************************************
@@ -1588,9 +1631,9 @@ inline int DerivativeRecovery<TDim>:: Factorial(const unsigned int n){
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node::Pointer& p_node)
+bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node::Pointer& p_node, unsigned int& ord)
 {
-    unsigned int n_poly_terms = Factorial(TDim + 2) / (2 * Factorial(TDim)); // 2 is the polynomial order
+    unsigned int n_poly_terms = Factorial(TDim + ord) / (Factorial(ord) * Factorial(TDim)); // 2 is the polynomial order
     //KRATOS_ERROR_IF(TDim == 2) << "Gradient recovery not implemented yet in 2D!)" << std::endl;
     GlobalPointersVector<Node >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     unsigned int n_nodal_neighs = (unsigned int)neigh_nodes.size();
@@ -1598,27 +1641,105 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
     const array_1d <double, 3> origin = p_node->Coordinates();
     DenseMatrix<double> TestNodalValues(n_nodal_neighs, 1);
     DenseMatrix<double> A(n_nodal_neighs, n_poly_terms);
+
+    // Write the A matrix from Zhang (2005), each row being (1 xi_i eta_i ... xi_i^k eta_i^l ... eta_i^(k+1))
+    // where the i-th row correspoinds to the ith neighbor (in relative coords)
+    unsigned int min_neighbours = Factorial(TDim + ord) / (Factorial(TDim) * Factorial(ord));
     for (unsigned int i = 0; i < n_nodal_neighs; ++i){
         A(i, 0) = 1.0;
         if constexpr (TDim == 3){
             Node& neigh = neigh_nodes[i];
             const array_1d <double, 3> rel_coordinates = (neigh.Coordinates() - origin) * h_inv;
             TestNodalValues(i, 0) = SecondDegreeTestPolynomial(rel_coordinates);
-            for (unsigned int d = 1; d < 10; ++d){
-                if (d < 4){
-                    A(i, d) = rel_coordinates[d - 1];
+
+            for (unsigned int k = 1; k < n_poly_terms; ++k)
+            {
+                // Terms of order 1
+                if (ord >= 1)
+                {
+                    if (k < 4)
+                    {
+                        A(i, k) = rel_coordinates[k - 1]; // x, y and z
+                    }
                 }
-                else if (d == 4){
-                    A(i, d) = rel_coordinates[0] * rel_coordinates[1];
+
+                // Terms of order 2
+                if (ord >= 2)
+                {
+                    if (k == 4)
+                    {
+                        A(i, k) = rel_coordinates[0] * rel_coordinates[1]; // x y
+                    }
+                    else if (k == 5)
+                    {
+                        A(i, k) = rel_coordinates[0] * rel_coordinates[2]; // x z
+                    }
+                    else if (k == 6)
+                    {
+                        A(i, k) = rel_coordinates[1] * rel_coordinates[2]; // y z
+                    }
+                    else if (k == 7)
+                    {
+                        A(i, k) = rel_coordinates[0] * rel_coordinates[0]; // x^2
+                    }
+                    else if (k == 8)
+                    {
+                        A(i, k) = rel_coordinates[1] * rel_coordinates[1]; // y^2
+                    }
+                    else if (k == 9)
+                    {
+                        A(i, k) = rel_coordinates[2] * rel_coordinates[2]; // z^2
+                    }
                 }
-                else if (d == 5){
-                    A(i, d) = rel_coordinates[0] * rel_coordinates[2];
+
+                // Terms of order 3
+                if (ord == 3)
+                {
+                    if (k == 10)
+                    {
+                        A(i, k) == rel_coordinates[0] * rel_coordinates[1] * rel_coordinates[2];  // x y z
+                    }
+                    else if (k == 11)
+                    {
+                        A(i, k) = rel_coordinates[0] * rel_coordinates[0] * rel_coordinates[1];  // x^2 y
+                    }
+                    else if (k == 12)
+                    {
+                        A(i, k) = rel_coordinates[0] * rel_coordinates[0] * rel_coordinates[2];  // x^2 z
+                    }
+                    else if (k == 13)
+                    {
+                        A(i, k) = rel_coordinates[0] * rel_coordinates[1] * rel_coordinates[1];  // x y^2
+                    }
+                    else if (k == 14)
+                    {
+                        A(i, k) = rel_coordinates[0] * rel_coordinates[2] * rel_coordinates[2];  // x z^2
+                    }
+                    else if (k == 15)
+                    {
+                        A(i, k) = rel_coordinates[1] * rel_coordinates[1] * rel_coordinates[2];  // y^2 z
+                    }
+                    else if (k == 16)
+                    {
+                        A(i, k) = rel_coordinates[1] * rel_coordinates[2] * rel_coordinates[2];  // y z^2
+                    }
+                    else if (k == 17)
+                    {
+                        A(i, k) = rel_coordinates[0] * rel_coordinates[0] * rel_coordinates[0];  // x^3
+                    }
+                    else if (k == 18)
+                    {
+                        A(i, k) = rel_coordinates[1] * rel_coordinates[1] * rel_coordinates[1]; // y^3
+                    }
+                    else if (k == 19)
+                    {
+                        A(i, k) = rel_coordinates[2] * rel_coordinates[2] * rel_coordinates[2];  // z^3
+                    }
                 }
-                else if (d == 6){
-                    A(i, d) = rel_coordinates[1] * rel_coordinates[2];
-                }
-                else {
-                    A(i, d) = rel_coordinates[d - 7] * rel_coordinates[d - 7];
+
+                if (ord > 3)
+                {
+                    KRATOS_ERROR << "Superconvergent gradient recovery of order " << ord << "not implemented yet in 3D!" << std::endl;
                 }
             }
         }
@@ -1771,7 +1892,7 @@ double DerivativeRecovery<TDim>::CalculateTheMaximumEdgeLength(ModelPart& r_mode
     double max_distance_yet = 0.0;
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         Geometry<Node >& geom = ielem->GetGeometry();
-        unsigned int n_nodes = static_cast<unsigned int>(TDim + 1);
+        unsigned int n_nodes = geom.size();
         for (unsigned int k = 1; k < n_nodes - 1; ++k){
             for (unsigned int i = k; i < n_nodes; ++i){
                 array_1d <double, 3> delta_i = geom[k - 1] - geom[i];
@@ -1796,7 +1917,8 @@ double DerivativeRecovery<TDim>::CalculateTheMinumumEdgeLength(ModelPart& r_mode
             double distance_2 = DEM_INNER_PRODUCT_3(delta, delta);
             min_distance_yet = distance_2;
         }
-        unsigned int n_nodes = static_cast<unsigned int>(TDim + 1);
+        unsigned int n_nodes = geom.size();
+        // unsigned int n_nodes = static_cast<unsigned int>(TDim + 1);
         for (unsigned int k = 1; k < n_nodes - 1; ++k){
             for (unsigned int i = k; i < n_nodes; ++i){
                 array_1d <double, 3> delta_i = geom[k - 1] - geom[i];
@@ -1812,8 +1934,8 @@ double DerivativeRecovery<TDim>::CalculateTheMinumumEdgeLength(ModelPart& r_mode
 // Explicit instantiations
 template class DerivativeRecovery<2>;
 template class DerivativeRecovery<3>;
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&, unsigned int&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&, unsigned int&);
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
 }  // namespace Kratos.

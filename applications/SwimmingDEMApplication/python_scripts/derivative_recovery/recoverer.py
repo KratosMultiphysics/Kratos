@@ -13,6 +13,7 @@ class DerivativesRecoverer:
             self.cplusplus_recovery_tool = SDEM.DerivativeRecoveryTool2D(model_part, project_parameters)
         else:
             self.cplusplus_recovery_tool = SDEM.DerivativeRecoveryTool3D(model_part, project_parameters)
+        self.recovery_order = project_parameters["derivative_recovery_order"].GetInt()  # For superconvergent recoverer
 
 class EmptyGradientRecoverer(DerivativesRecoverer):
     def __init__(self, project_parameters, model_part):

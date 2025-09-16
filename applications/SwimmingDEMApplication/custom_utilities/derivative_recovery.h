@@ -80,6 +80,7 @@ typedef NodesArrayType::ContainerType                         ResultNodesContain
 typedef std::vector<ResultNodesContainerType>                 VectorResultNodesContainerType;
 typedef std::vector<Node::Pointer>                         NodalPointersContainerType;
 typedef ModelPart::NodesContainerType::iterator               NodeIteratorType;
+typedef ModelPart::ElementsContainerType::iterator            ElementIteratorType;
 
 typedef std::size_t                                           ListIndexType;
 typedef SpatialSearch::DistanceType                           DistanceType;
@@ -140,15 +141,15 @@ void AddTimeDerivativeComponent(ModelPart& r_model_part, Variable<array_1d<doubl
 void RecoverGradientOfAScalar(const VariableData& origin_variable, const VariableData& destination_variable);
 
 template <class TScalarVariable>
-void RecoverSuperconvergentGradient(ModelPart& r_model_part,  TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container);
+void RecoverSuperconvergentGradient(ModelPart& r_model_part,  TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, unsigned int& ord);
 
-void RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container);
+void RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, unsigned int& ord);
 
-void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container);
+void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord);
 
-void RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container);
+void RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord);
 
-void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container);
+void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord);
 
 void CalculateLocalMassMatrix(const unsigned&, const ModelPart::ElementsContainerType::iterator&, Matrix&);
 
@@ -302,15 +303,17 @@ struct IsCloser{
     }
 };
 
-void SetNeighboursAndWeights(ModelPart& r_model_part);
-void SetNeighboursAndWeightsForTheLaplacian(ModelPart& r_model_part);
+inline int Factorial(const unsigned int n);
+bool IsEdgeNode(Geometry<Node>::GeometriesArrayType&, Node::Pointer&);
+void SetEdgeNodesAndWeights(ModelPart&);
+void SetNeighboursAndWeights(ModelPart& r_model_part, unsigned int&);
+void SetNeighboursAndWeightsForTheLaplacian(ModelPart& r_model_part, unsigned int&);
 void OrderByDistance(Node::Pointer &p_node, GlobalPointersVector<Node >& neigh_nodes);
-bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer &p_node);
-bool SetNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer& p_node);
+bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer &p_node, unsigned int&);
+bool SetNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer& p_node, unsigned int&);
 double SecondDegreeTestPolynomial(const array_1d <double, 3>& coordinates);
 double SecondDegreeGenericPolynomial(DenseMatrix<double> C, const array_1d <double, 3>& coordinates);
-inline int Factorial(const unsigned int n);
-bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node::Pointer& p_node);
+bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node::Pointer& p_node, unsigned int&);
 unsigned int GetNumberOfUniqueNeighbours(const int my_id, const GlobalPointersVector<Element>& my_neighbour_elements);
 double CalculateTheMaximumDistanceToNeighbours(Node::Pointer& p_node);
 double CalculateTheMaximumEdgeLength(ModelPart& r_model_part);

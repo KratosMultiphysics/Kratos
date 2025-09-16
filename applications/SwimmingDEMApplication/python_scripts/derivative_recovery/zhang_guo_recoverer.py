@@ -9,22 +9,16 @@ class ZhangGuoGradientRecoverer(recoverer.GradientRecoverer):
     def __init__(self, project_parameters, model_part):
         recoverer.GradientRecoverer.__init__(self, project_parameters, model_part)
     def RecoverGradientOfScalar(self, scalar_variable, gradient_variable):
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, scalar_variable, gradient_variable)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, scalar_variable, gradient_variable, self.recovery_order)
     def RecoverGradientOfVelocity(self):
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.VELOCITY_X, Kratos.VELOCITY_X_GRADIENT)
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.VELOCITY_Y, Kratos.VELOCITY_Y_GRADIENT)
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.VELOCITY_Z, Kratos.VELOCITY_Z_GRADIENT)
-
-        import numpy as np
-        for node in self.model_part.Nodes:
-            grad_v_x = node.GetSolutionStepValue(Kratos.VELOCITY_X_GRADIENT)
-            grad_v_y = node.GetSolutionStepValue(Kratos.VELOCITY_Y_GRADIENT)
-            grad_v_z = node.GetSolutionStepValue(Kratos.VELOCITY_Z_GRADIENT)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.VELOCITY_X, Kratos.VELOCITY_X_GRADIENT, self.recovery_order)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.VELOCITY_Y, Kratos.VELOCITY_Y_GRADIENT, self.recovery_order)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.VELOCITY_Z, Kratos.VELOCITY_Z_GRADIENT, self.recovery_order)
 
     def RecoverPressureGradient(self):
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.PRESSURE, Fluid.RECOVERED_PRESSURE_GRADIENT)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.PRESSURE, Fluid.RECOVERED_PRESSURE_GRADIENT, self.recovery_order)
     def RecoverFluidFractionGradient(self):
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.FLUID_FRACTION, Kratos.FLUID_FRACTION_GRADIENT)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.FLUID_FRACTION, Kratos.FLUID_FRACTION_GRADIENT, self.recovery_order)
 
 class ZhangGuoMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer, ZhangGuoGradientRecoverer):
     def __init__(self, project_parameters, model_part):
