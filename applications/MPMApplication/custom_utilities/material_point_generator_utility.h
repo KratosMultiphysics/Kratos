@@ -54,7 +54,7 @@ namespace Kratos::MaterialPointGeneratorUtility
 
     /// Get integration method and shape function values for the given element
     void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType MaterialPointsPerElement,
-        IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
+        IntegrationMethod& rIntegrationMethod, Matrix& rN);
 
     /// Get integration method and shape function values for the given condition
     void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType MaterialPointsPerCondition,
