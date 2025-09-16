@@ -15,6 +15,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/stub_constitutive_law.h"
 
 using namespace Kratos;
 
@@ -279,5 +280,25 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckForNonZeroZCoordinateIn2D, KratosG
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(CheckUtilities::CheckForNonZeroZCoordinateIn2D(line_geometry),
                                       "Node with Id: 0 has non-zero Z coordinate.")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckAvailabilityAndSpecified, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Properties properties(1);
+    const CheckProperties check_properties(properties, "properties", CheckProperties::Bounds::AllExclusive);
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW),
+        " CONSTITUTIVE_LAW does not exist in the properties with Id 1.")
+
+    properties.SetValue(CONSTITUTIVE_LAW, nullptr);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW),
+        "CONSTITUTIVE_LAW needs to be specified in the properties with Id 1.")
+
+    properties.SetValue(CONSTITUTIVE_LAW, std::make_shared<StubConstitutiveLaw>());
+    EXPECT_NO_THROW(check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW));
 }
 } // namespace Kratos::Testing
