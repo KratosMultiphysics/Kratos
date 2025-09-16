@@ -410,7 +410,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateTaus(const int& stabilization_type,
 
     const double constant1=1.0;
     const double constant2=1.0;
-    //double characteristic_element_size;
+    double characteristic_element_size;
     ComputeElementSize(characteristic_element_size);
 
     //double characteristic_element_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
