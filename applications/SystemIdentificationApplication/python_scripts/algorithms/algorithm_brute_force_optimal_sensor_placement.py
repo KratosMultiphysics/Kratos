@@ -109,14 +109,18 @@ class AlgorithmBruteForceOptimalSensorPlacement(Algorithm):
                     buffered_data.SetValue("best_sensor_ids", buffered_data.GetValue("best_sensor_ids", 1), overwrite=True)
                     buffered_data.SetValue("best_maximum_cluster_size", buffered_data.GetValue("best_maximum_cluster_size", 1), overwrite=True)
                     buffered_data.SetValue("best_maximum_cluster_size_ratio", buffered_data.GetValue("best_maximum_cluster_size_ratio", 1), overwrite=True)
+
                 if (i == 0) or (buffered_data.GetValue("best_maximum_cluster_size_ratio", 1) - current_max_cluster_size_ratio > self.cluster_size_ratio_comparison_tolerance):
                     buffered_data.SetValue("best_sensor_ids", buffered_data[f"current_sensor_ids"], overwrite=True)
                     buffered_data.SetValue("best_maximum_cluster_size", current_max_cluster_size, overwrite=True)
                     buffered_data.SetValue("best_maximum_cluster_size_ratio", current_max_cluster_size_ratio, overwrite=True)
+                    best_cluster = self.algorithm_data.GetUnBufferedData().GetValue("clustering").Clone()
+
                 elif abs(buffered_data.GetValue("best_maximum_cluster_size_ratio", 1) - current_max_cluster_size_ratio) < self.cluster_size_ratio_comparison_tolerance:
                     buffered_data.SetValue("best_sensor_ids", "[" + buffered_data["best_sensor_ids"][1:-1] + ":" + buffered_data[f"current_sensor_ids"][1:-1] + "]", overwrite=True)
                     buffered_data.SetValue("best_maximum_cluster_size", buffered_data.GetValue("best_maximum_cluster_size", 0), overwrite=True)
                     buffered_data.SetValue("best_maximum_cluster_size_ratio", buffered_data.GetValue("best_maximum_cluster_size_ratio", 0), overwrite=True)
+                    best_cluster = self.algorithm_data.GetUnBufferedData().GetValue("clustering").Clone()
 
                 for sensor_id_str in buffered_data["best_sensor_ids"][1:-1].split(":"):
                     self.model[self.sensor_group_name].GetNode(int(sensor_id_str)).SetValue(KratosSI.SENSOR_STATUS, 1.0)
@@ -125,6 +129,7 @@ class AlgorithmBruteForceOptimalSensorPlacement(Algorithm):
                 Kratos.Expression.VariableExpressionIO.Read(exp, KratosSI.SENSOR_STATUS, False)
 
                 self.algorithm_data.GetUnBufferedData().SetValue("sensor_status", exp.Clone(), overwrite=True)
+                self.algorithm_data.GetUnBufferedData().SetValue("best_clustering", best_cluster, overwrite=True)
 
                 self._FinalizeIteration()
 
