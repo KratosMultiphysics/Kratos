@@ -10,14 +10,15 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
+#include "custom_processes/find_neighbour_elements_of_conditions_process.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 namespace Kratos::Testing
 {
-class ParametrizedFindNeighbouring3D4NElementsFixture : public ::testing::TestWithParam<std::vector<std::size_t>>
+class ParametrizedFindNeighbouring3D4NElementsFixture
+    : public ::testing::TestWithParam<std::vector<std::size_t>>
 {
 };
 
@@ -86,8 +87,7 @@ class ParametrizedFindNeighbouring3D10NElementsFixture
 {
 };
 
-TEST_P(ParametrizedFindNeighbouring3D10NElementsFixture,
-       NeighboursAreFoundForDifferentNodeOrderings)
+TEST_P(ParametrizedFindNeighbouring3D10NElementsFixture, NeighboursAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(model);
@@ -119,8 +119,7 @@ class ParametrizedFindNeighbouring3D20NElementsFixture
 {
 };
 
-TEST_P(ParametrizedFindNeighbouring3D20NElementsFixture,
-       NeighboursAreFoundForDifferentNodeOrderings)
+TEST_P(ParametrizedFindNeighbouring3D20NElementsFixture, NeighboursAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D20NElement(model);
@@ -198,7 +197,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighbourElementsOfConditio
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,FindNeighbourElementsOfConditionsProcess_Test1DElement)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighbourElementsOfConditionsProcess_Test1DElement)
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
@@ -249,8 +248,7 @@ class ParametrizedFindNeighbouring3D20NElementsOfLineConditionsFixture
 {
 };
 
-TEST_P(ParametrizedFindNeighbouring3D20NElementsOfLineConditionsFixture,
-       NeighboursAreFoundForDifferentNodeOrderings)
+TEST_P(ParametrizedFindNeighbouring3D20NElementsOfLineConditionsFixture, NeighboursAreFoundForDifferentNodeOrderings)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D20NElement(model);

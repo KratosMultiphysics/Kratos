@@ -88,8 +88,7 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
     ModelPart& result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(result, rNodalVariables);
 
-    auto nodes =
-        CreateNewNodes(result, {ElementSetupUtilities::CreatePointsFor3D4NElement()});
+    auto nodes = CreateNewNodes(result, {ElementSetupUtilities::CreatePointsFor3D4NElement()});
     AddDofsToNodes(result.Nodes(), rNodalVariables);
 
     auto element = ElementSetupUtilities::Create3D4NElement(nodes, result.CreateNewProperties(0));

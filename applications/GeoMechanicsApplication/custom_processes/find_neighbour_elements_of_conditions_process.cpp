@@ -11,9 +11,10 @@
 //                   Richard Faasse
 //
 
-#include "find_neighbour_elements_of_conditions_process.hpp"
+#include "find_neighbour_elements_of_conditions_process.h"
 #include "geometries/geometry.h"
 #include <algorithm>
+#include <iterator>
 
 namespace Kratos
 {
@@ -78,12 +79,12 @@ void FindNeighbourElementsOfConditionsProcess::FindNeighbouringElementsForAllBou
     }
 }
 
-void FindNeighbourElementsOfConditionsProcess::FindConditionNeighboursBasedOnBoundaryType(auto generate_boundaries)
+void FindNeighbourElementsOfConditionsProcess::FindConditionNeighboursBasedOnBoundaryType(auto GenerateBoundaries)
 {
     for (auto& r_element : mrModelPart.Elements()) {
-        const auto& rGeometryElement    = r_element.GetGeometry();
-        const auto  rBoundaryGeometries = generate_boundaries(rGeometryElement);
-        AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(r_element, rBoundaryGeometries);
+        const auto& r_element_geometry  = r_element.GetGeometry();
+        const auto  boundary_geometries = GenerateBoundaries(r_element_geometry);
+        AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(r_element, boundary_geometries);
     }
 }
 
@@ -108,10 +109,8 @@ void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllConditi
 {
     const auto [start, end] = mConditionNodeIdsToCondition.equal_range(rConditionNodeIds);
     for (auto it = start; it != end; ++it) {
-        const auto&                   r_conditions = it->second;
-        GlobalPointersVector<Element> vector_of_neighbours;
-        vector_of_neighbours.resize(1);
-        vector_of_neighbours(0) = Element::WeakPointer(pElement);
+        const auto& r_conditions  = it->second;
+        auto vector_of_neighbours = GlobalPointersVector<Element>{Element::WeakPointer{pElement}};
 
         for (auto& p_condition : r_conditions) {
             p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
@@ -163,11 +162,10 @@ bool FindNeighbourElementsOfConditionsProcess::AreQuadraticRotatedEquivalents(st
                                                                               const std::vector<std::size_t>& rSecond)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
+    auto       first_mid_side_node_id     = First.begin() + First.size() / 2;
+    std::rotate(First.begin(), First.begin() + amount_of_needed_rotations, first_mid_side_node_id);
 
-    std::rotate(First.begin(), First.begin() + amount_of_needed_rotations, First.begin() + First.size() / 2);
-
-    std::rotate(First.begin() + First.size() / 2,
-                First.begin() + First.size() / 2 + amount_of_needed_rotations, First.end());
+    std::rotate(first_mid_side_node_id, first_mid_side_node_id + amount_of_needed_rotations, First.end());
 
     return First == rSecond;
 }
@@ -175,7 +173,7 @@ bool FindNeighbourElementsOfConditionsProcess::AreQuadraticRotatedEquivalents(st
 bool FindNeighbourElementsOfConditionsProcess::AllConditionsHaveAtLeastOneNeighbour() const
 {
     return std::ranges::all_of(mrModelPart.Conditions(), [](auto& rCondition) {
-        return rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() >= 1;
+        return rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() > 0;
     });
 }
 
@@ -192,8 +190,10 @@ void FindNeighbourElementsOfConditionsProcess::ReportConditionsWithoutNeighbours
 
 std::vector<std::size_t> FindNeighbourElementsOfConditionsProcess::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry)
 {
-    std::vector<std::size_t> result(rGeometry.size());
-    std::ranges::transform(rGeometry, result.begin(), [](const auto& rNode) { return rNode.Id(); });
+    std::vector<std::size_t> result;
+    result.reserve(rGeometry.size());
+    std::ranges::transform(rGeometry, std::back_inserter(result),
+                           [](const auto& rNode) { return rNode.Id(); });
     return result;
 }
 
