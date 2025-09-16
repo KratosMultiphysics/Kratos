@@ -8,6 +8,8 @@
     <group n="Excavated Soil 1" onoff="1" color="orange" type=""/>
     <group n="Excavated Soil 2" onoff="1" color="pink" type=""/>
     <group n="Excavated Soil 3" onoff="1" color="AntiqueWhite3" type=""/>
+    <group n="Self Weight" onoff="1" color="aquamarine2" type=""/>
+    <group n="Distributed Load" onoff="1" color="blue violet" type=""/>
   </groups>
   <units/>
   <!-- Fill this fields to automatically active an App without the init window -->
@@ -21,7 +23,7 @@
       <blockdata n="stage 1" pn="Stage 1" name="Stage 1" editable_name="unique" morebutton="false" can_delete_last_item="false" before_update_proc="before_delete_stage" update_proc="update_stage" delete_proc="delete_stage" check_values="check_stage" icon="stage" sequence="1" is_stage="1" tree_state="open">
         <container n="StageInfo" pn="Model information" help="Stage information" icon="analysis" state="normal" open_window="0" tree_state="open">
           <value n="CalculationType" pn="Calculation Type" un="STCalcType,GEOMCalcType" v="U_Pw" values="U_Pw,Pw" help="Solution type" actualize_tree="1" update_proc="UpdatePartsState" tree_state="close"/>
-          <value n="SolutionType" pn="Solver Type" un="STSoluType,GEOMSoluType" v="Quasi-static" values="Quasi-static" dict="[GetSolverTypesGeoMechanics]" actualize_tree="1" actualize="1" tree_state="active,open,selected"/>
+          <value n="SolutionType" pn="Solver Type" un="STSoluType,GEOMSoluType" v="Quasi-static" values="Quasi-static" dict="[GetSolverTypesGeoMechanics]" actualize_tree="1" actualize="1" tree_state="open"/>
           <value n="SolStratCombo" pn="Time integration method" un="STSolStrat,GEOMSolStrat" v="newton_raphson" values="newton_raphson,linear" dict="[GetSolutionStrategiesGeoMechanics]" actualize_tree="1" tree_state="close"/>
           <value n="Scheme" pn="Scheme" un="STScheme,GEOMScheme" v="newmark" values="newmark,Backward_Euler" dict="[GetSchemes]" actualize_tree="1" tree_state="close"/>
           <value n="AnalysisType" pn="Analysis type" un="STAnalysisType,GEOMAnalysisType" v="non_linear" values="linear,non_linear" dict="linear,Linear,non_linear,Nonlinear" help="Analysis type" tree_state="close"/>
@@ -1869,14 +1871,14 @@
             <value n="FRACTURE_ENERGY" pn="Fracture energy" v="100" units="J/m^2" unit_magnitude="Energy/L^2" help="Fracture energy" string_is="double" state="[PartParamState]" show_in_window="1"/>
             <value n="SOFTENING_TYPE" pn="Softening type" v="0" help="Defines the softening type (linear softening=0, exponential softening=1)" string_is="double" state="[PartParamState]" show_in_window="1"/>
           </condition>
-          <condition n="Parts_Truss" pn="Truss" ov="line" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="close">
+          <condition n="Parts_Truss" pn="Truss" ov="line" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="active,open,selected">
             <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Truss]" state="normal">
               <dependencies node="../value[@n!='Material']" actualize="1"/>
             </value>
-            <value n="ConstitutiveLaw" pn="Constitutive law" v="GeoLinearElasticPlaneStrain2DLaw" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]">
+            <value n="ConstitutiveLaw" pn="Constitutive law" v="GeoLinearElasticPlaneStrain2DLaw" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="">
               <dependencies node="../value[@n!='Material']" actualize="1"/>
             </value>
-            <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" v="" state="disabled">
+            <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" v="Default Barcelona Basic Model" state="disabled">
               <edit_command n="Update material data" pn="Update material data" icon="refresh" proc="EditDatabaseList"/>
             </value>
             <value n="IGNORE_UNDRAINED" pn="Ignore undrained" v="false" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1"/>
@@ -2221,8 +2223,8 @@
           </blockdata>
         </container>
         <include n="InitialConditions" active="0" path="apps/Structural/xml/InitialConditions.spd"/>
-        <container n="Boundary Conditions" pn="Boundary conditions" un="STNodalConditions,GEOMNodalConditions" icon="nodal" open_window="0" tree_state="close">
-          <condition n="DISPLACEMENT" pn="Displacement" ov="point,line,surface" ovm="" icon="shells16" help="Displacement" state="[CheckNodalConditionStateGeoMechanical]" update_proc="[OkNewCondition]" check="UpdateTree">
+        <container n="Boundary Conditions" pn="Boundary conditions" un="STNodalConditions,GEOMNodalConditions" icon="nodal" open_window="0" tree_state="open">
+          <condition n="DISPLACEMENT" pn="Displacement" ov="point,line,surface" ovm="" icon="shells16" help="Displacement" state="[CheckNodalConditionStateGeoMechanical]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="close">
             <value n="activeX" pn="X Active" v="false" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1"/>
             <value n="activeY" pn="Y Active" v="false" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1"/>
             <value n="activeZ" pn="Z Active" v="false" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1"/>
@@ -2236,7 +2238,7 @@
             <value n="value_table_Y" wn="DISPLACEMENT _Y" pn="Value Y" v="0" units="" unit_magnitude="" help="Table" show_in_window="1"/>
             <value n="value_table_Z" wn="DISPLACEMENT _Z" pn="Value Z" v="0" units="" unit_magnitude="" help="Table" state="[CheckDimension 3D]" show_in_window="1"/>
           </condition>
-          <condition n="WATER_PRESSURE" pn="Water Pressure" ov="point,line,surface" ovm="" icon="shells16" help="Water Pressure" state="[CheckNodalConditionStateGeoMechanical]" update_proc="[OkNewCondition]" check="UpdateTree">
+          <condition n="WATER_PRESSURE" pn="Water Pressure" ov="point,line,surface" ovm="" icon="shells16" help="Water Pressure" state="[CheckNodalConditionStateGeoMechanical]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="close">
             <value n="is_fixed" pn="Fixed" v="true" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1"/>
             <value n="fluid_pressure_type" pn="Pressure type" v="Hydrostatic" values="Uniform,Hydrostatic" dict="Uniform,Uniform,Hydrostatic,Hydrostatic" actualize_tree="1" state="[ConditionParameterState]" help="Pressure type" show_in_window="1" cal_state="normal">
               <dependencies condition="@v='Hydrostatic'" node="../value[@n='gravity_direction']" att1="state" v1="normal"/>
@@ -2278,8 +2280,8 @@
             <value n="value_direction_Y" wn="SelfWeight3D _Y" pn="Value Y" v="0.0" help="Direction" show_in_window="1"/>
             <value n="value_direction_Z" wn="SelfWeight3D _Z" pn="Value Z" v="-1.0" help="Direction" state="[CheckDimension 3D]" show_in_window="1"/>
           </condition>
-          <condition n="SelfWeight2D" pn="Self weight" ov="line,surface" ovm="" icon="shells16" help="Self weight application by means of the AssignVectorByDirectionProcess in the core" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction" tree_state="close">
-            <value n="constrained" pn="Constrained" v="false" values="true,false" help="Constrained" state="[ConditionParameterState]" show_in_window="1"/>
+          <condition n="SelfWeight2D" pn="Self weight" ov="line,surface" ovm="" icon="shells16" help="Self weight application by means of the AssignVectorByDirectionProcess in the core" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction" tree_state="open">
+            <value n="constrained" pn="Constrained" v="false" values="true,false" help="Constrained" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
               <dependencies value="No" node="../value[@n='modulus']" att1="state" v1="normal"/>
               <dependencies value="Yes" node="../value[@n='modulus']" att1="state" v1="hidden"/>
@@ -2288,9 +2290,18 @@
             </value>
             <value n="function_modulus" pn="Function" v="" help="Value" state="hidden" show_in_window="1" cal_state="normal"/>
             <value n="modulus" pn="Modulus" v="9.81" units="m/s^2" unit_magnitude="Acceleration" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
-            <value n="value_direction_X" wn="SelfWeight2D _X" pn="Value X" v="0.0" help="Direction" show_in_window="1"/>
-            <value n="value_direction_Y" wn="SelfWeight2D _Y" pn="Value Y" v="-1.0" help="Direction" show_in_window="1"/>
+            <value n="value_direction_X" wn="SelfWeight2D _X" pn="Value X" v="0.0" help="Direction" show_in_window="1" state=""/>
+            <value n="value_direction_Y" wn="SelfWeight2D _Y" pn="Value Y" v="-1.0" help="Direction" show_in_window="1" state=""/>
             <value n="value_direction_Z" wn="SelfWeight2D _Z" pn="Value Z" v="0.0" help="Direction" state="[CheckDimension 3D]" show_in_window="1"/>
+            <group n="Self Weight" ov="surface" tree_state="close">
+              <value n="constrained" pn="Constrained" values="true,false" help="Constrained" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="No" tree_state="close"/>
+              <value n="function_modulus" pn="Function" help="Value" state="hidden" show_in_window="1" cal_state="normal" v=""/>
+              <value n="modulus" pn="Modulus" unit_magnitude="Acceleration" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="9.81" units="m/s^2" tree_state="close"/>
+              <value n="value_direction_X" wn="SelfWeight2D _X" pn="Value X" help="Direction" show_in_window="1" state="normal" v="0.0" tree_state="close"/>
+              <value n="value_direction_Y" wn="SelfWeight2D _Y" pn="Value Y" help="Direction" show_in_window="1" state="normal" v="-1.0" tree_state="close"/>
+              <value n="value_direction_Z" wn="SelfWeight2D _Z" pn="Value Z" help="Direction" state="[CheckDimension 3D]" show_in_window="1" v="0.0"/>
+            </group>
           </condition>
           <condition n="SelfWeight2Da" pn="Self weight" ov="line,surface" ovm="" icon="shells16" help="Self weight application by means of the AssignVectorByDirectionProcess in the core" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction">
             <value n="constrained" pn="Constrained" v="false" values="true,false" help="Constrained" state="[ConditionParameterState]" show_in_window="1"/>
@@ -2358,7 +2369,7 @@
             <value n="value_direction_Y" wn="PointMoment3D _Y" pn="Value Y" v="0.0" help="Direction" show_in_window="1"/>
             <value n="value_direction_Z" wn="PointMoment3D _Z" pn="Value Z" v="0.0" help="Direction" state="[CheckDimension 3D]" show_in_window="1"/>
           </condition>
-          <condition n="LineLoad2D" pn="Load on lines" ov="line" ovm="" icon="shells16" help="Load on lines, load vector referred to global axes" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction" tree_state="close">
+          <condition n="LineLoad2D" pn="Load on lines" ov="line" ovm="" icon="shells16" help="Load on lines, load vector referred to global axes" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction" tree_state="open">
             <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
               <dependencies value="No" node="../value[@n='modulus']" att1="state" v1="normal"/>
               <dependencies value="Yes" node="../value[@n='modulus']" att1="state" v1="hidden"/>
@@ -2367,9 +2378,17 @@
             </value>
             <value n="function_modulus" pn="Function" v="" help="Modulus" state="hidden" show_in_window="1" cal_state="normal"/>
             <value n="modulus" pn="Modulus" v="1.0" units="N/m" unit_magnitude="F/L" help="Modulus" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
-            <value n="value_direction_X" wn="LineLoad2D _X" pn="Value X" v="0.0" help="Direction" show_in_window="1"/>
-            <value n="value_direction_Y" wn="LineLoad2D _Y" pn="Value Y" v="0.0" help="Direction" show_in_window="1"/>
+            <value n="value_direction_X" wn="LineLoad2D _X" pn="Value X" v="0.0" help="Direction" show_in_window="1" state=""/>
+            <value n="value_direction_Y" wn="LineLoad2D _Y" pn="Value Y" v="0.0" help="Direction" show_in_window="1" state=""/>
             <value n="value_direction_Z" wn="LineLoad2D _Z" pn="Value Z" v="0.0" help="Direction" state="[CheckDimension 3D]" show_in_window="1"/>
+            <group n="Distributed Load" ov="line" tree_state="close">
+              <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="No" tree_state="close"/>
+              <value n="function_modulus" pn="Function" help="Modulus" state="hidden" show_in_window="1" cal_state="normal" v=""/>
+              <value n="modulus" pn="Modulus" unit_magnitude="F/L" help="Modulus" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="5000" units="N/m" tree_state="close"/>
+              <value n="value_direction_X" wn="LineLoad2D _X" pn="Value X" help="Direction" show_in_window="1" state="normal" v="0.0" tree_state="close"/>
+              <value n="value_direction_Y" wn="LineLoad2D _Y" pn="Value Y" help="Direction" show_in_window="1" state="normal" v="0.0" tree_state="close"/>
+              <value n="value_direction_Z" wn="LineLoad2D _Z" pn="Value Z" help="Direction" state="[CheckDimension 3D]" show_in_window="1" v="0.0"/>
+            </group>
           </condition>
           <condition n="LineLoad2DAxisym" pn="Load on lines" ov="line" ovm="" icon="shells16" help="Load on lines, load vector referred to global axes" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction">
             <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
@@ -2434,8 +2453,8 @@
             <value n="specific_weight" pn="Specific weight" v="10000" units="" unit_magnitude="" help="Specific weight" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <value n="table" pn="Table" v="0, 0" fieldtype="vector" dimensions="2" help="Table" state="[ConditionParameterState]" show_in_window="1"/>
           </condition>
-          <condition n="K0 procedure" pn="K0 procedure" ov="surface" ovm="" icon="shells16" help="Apply the K0 procedure to an area" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="close">
-            <value n="use_standard_procedure" pn="Use Standard Procedure" v="true" values="true,false" help="Use Standard Procedure" state="[ConditionParameterState]" show_in_window="1"/>
+          <condition n="K0 procedure" pn="K0 procedure" ov="surface" ovm="" icon="shells16" help="Apply the K0 procedure to an area" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="open">
+            <value n="use_standard_procedure" pn="Use Standard Procedure" v="true" values="true,false" help="Use Standard Procedure" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
           </condition>
           <condition n="C/Phi reduction" pn="C/Phi reduction" ov="surface" ovm="" icon="shells16" help="Apply this to your entire model" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="close"/>
         </container>
@@ -4332,6 +4351,7 @@
       <unit_magnitude_user_sel n="Acceleration" values="m/s^2"/>
       <unit_magnitude_user_sel n="L" values="m"/>
       <unit_magnitude_user_sel n="time" values="time"/>
+      <unit_magnitude_user_sel n="F/L" values="N/m"/>
     </units>
     <tree_preferences/>
   </global_preferences>
