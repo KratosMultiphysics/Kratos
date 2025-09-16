@@ -341,7 +341,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         self._check_results(perimeter1, perimeter2, 1e-9, 1e-9)
 
 class NightlyPotentialFlowTests(UnitTest.TestCase):
-    pass
+
     @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication", "MappingApplication")
     def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
         if not is_xmc_available:
