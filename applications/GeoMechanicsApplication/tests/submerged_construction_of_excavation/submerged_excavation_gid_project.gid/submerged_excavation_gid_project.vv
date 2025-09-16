@@ -1,6 +1,6 @@
 BeginZE
-   x -24.8668861389160156 116.756095886230469
-   y 62.0536270141601562 -44.4983100891113281
+   x -6.29301786422729492 82.88525390625
+   y 30.5052223205566406 -36.5703353881835938
    z -127.2301025390625 127.2301025390625
    e 42.4100341796875
    v 0 0 0
@@ -12,7 +12,7 @@ BeginZE
    pfo 0
    pf 4
    pv 0
-   NowUse 0
+   NowUse 1
    DrawingType 0
    LightVector 90 90 150 0
    OGLShadow(UseShadows) 0
@@ -30,4 +30,8 @@ BeginZE
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
 EndZE
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
 
