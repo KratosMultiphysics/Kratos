@@ -47,8 +47,8 @@ namespace Kratos::Future
  * matrix. The value of the diagonal term is computed according to the scaling type.
  * @author Ruben Zorrilla
  */
-template<class TThreadLocalStorage, class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
-class BlockBuilder : public Builder<TThreadLocalStorage, TSparseMatrixType, TSystemVectorType, TSparseGraphType>
+template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
+class BlockBuilder : public Builder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>
 {
 public:
     ///@name Type Definitions
@@ -69,7 +69,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(BlockBuilder);
 
     /// Base builder type definition
-    using BaseType = Builder<TThreadLocalStorage, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using BaseType = Builder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// Data type definition from sparse matrix
     using DataType = typename TSparseMatrixType::DataType;

@@ -51,8 +51,8 @@ namespace Kratos::Future
  * the nodal database.
  * @author Ruben Zorrilla
  */
-template<class TThreadLocalStorage, class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
-class EliminationBuilder : public Builder<TThreadLocalStorage, TSparseMatrixType, TSystemVectorType, TSparseGraphType>
+template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
+class EliminationBuilder : public Builder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>
 {
 public:
     ///@name Type Definitions
@@ -62,7 +62,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(EliminationBuilder);
 
     /// Base builder type definition
-    using BaseType = Builder<TThreadLocalStorage, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using BaseType = Builder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// Index type definition from sparse matrix
     using IndexType = typename TSparseMatrixType::IndexType;

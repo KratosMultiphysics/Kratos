@@ -50,7 +50,7 @@ namespace Kratos::Future
  * This class is thought to never be used, but to serve as basis for all the derived build types (e.g., block and elimination)
  * @author Ruben Zorrilla
  */
-template<class TThreadLocalStorage, class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
+template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
 class Builder
 {
 public:

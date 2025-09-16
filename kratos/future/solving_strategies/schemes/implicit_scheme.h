@@ -120,13 +120,13 @@ public:
     using TLSType = ImplicitThreadLocalStorage<DataType>;
 
     /// Block builder type
-    using BuilderType = Future::Builder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using BuilderType = Future::Builder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// Block builder type
-    using BlockBuilderType = Future::BlockBuilder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using BlockBuilderType = Future::BlockBuilder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// Elimination builder type
-    using EliminationBuilderType = Future::EliminationBuilder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using EliminationBuilderType = Future::EliminationBuilder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// DoF type definition
     using DofType = Dof<DataType>;
