@@ -296,13 +296,6 @@ void UPwSmallStrainInterfaceElement<2, 4>::ExtrapolateGPValues(const std::vector
 {
     KRATOS_TRY
 
-    array_1d<double, 2> DamageContainer; // 2 Lobatto Points
-
-    for (unsigned int i = 0; i < 2; ++i) { // NumLobattoPoints
-        DamageContainer[i] = 0.0;
-        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue(DAMAGE_VARIABLE, DamageContainer[i]);
-    }
-
     GeometryType& rGeom = this->GetGeometry();
     const double& Area  = rGeom.Area();
 
@@ -312,16 +305,9 @@ void UPwSmallStrainInterfaceElement<2, 4>::ExtrapolateGPValues(const std::vector
     NodalJointWidth[2] = JointWidthContainer[1] * Area;
     NodalJointWidth[3] = JointWidthContainer[0] * Area;
 
-    array_1d<double, 4> NodalDamage;
-    NodalDamage[0] = DamageContainer[0] * Area;
-    NodalDamage[1] = DamageContainer[1] * Area;
-    NodalDamage[2] = DamageContainer[1] * Area;
-    NodalDamage[3] = DamageContainer[0] * Area;
-
     for (unsigned int i = 0; i < 4; ++i) { // NumNodes
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -334,14 +320,6 @@ void UPwSmallStrainInterfaceElement<3, 6>::ExtrapolateGPValues(const std::vector
 {
     KRATOS_TRY
 
-    array_1d<double, 3> DamageContainer; // 3 Lobatto Points
-
-    for (unsigned int i = 0; i < 3; ++i) // NumLobattoPoints
-    {
-        DamageContainer[i] = 0.0;
-        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue(DAMAGE_VARIABLE, DamageContainer[i]);
-    }
-
     GeometryType& rGeom = this->GetGeometry();
     const double& Area  = rGeom.Area();
 
@@ -353,19 +331,10 @@ void UPwSmallStrainInterfaceElement<3, 6>::ExtrapolateGPValues(const std::vector
     NodalJointWidth[4] = JointWidthContainer[1] * Area;
     NodalJointWidth[5] = JointWidthContainer[2] * Area;
 
-    array_1d<double, 6> NodalDamage;
-    NodalDamage[0] = DamageContainer[0] * Area;
-    NodalDamage[1] = DamageContainer[1] * Area;
-    NodalDamage[2] = DamageContainer[2] * Area;
-    NodalDamage[3] = DamageContainer[0] * Area;
-    NodalDamage[4] = DamageContainer[1] * Area;
-    NodalDamage[5] = DamageContainer[2] * Area;
-
     for (unsigned int i = 0; i < 6; ++i) // NumNodes
     {
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -377,14 +346,6 @@ template <>
 void UPwSmallStrainInterfaceElement<3, 8>::ExtrapolateGPValues(const std::vector<double>& JointWidthContainer)
 {
     KRATOS_TRY
-
-    array_1d<double, 4> DamageContainer; // 4 Lobatto Points
-
-    for (unsigned int i = 0; i < 4; ++i) // NumLobattoPoints
-    {
-        DamageContainer[i] = 0.0;
-        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue(DAMAGE_VARIABLE, DamageContainer[i]);
-    }
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area  = rGeom.Area();
@@ -399,21 +360,10 @@ void UPwSmallStrainInterfaceElement<3, 8>::ExtrapolateGPValues(const std::vector
     NodalJointWidth[6] = JointWidthContainer[2] * Area;
     NodalJointWidth[7] = JointWidthContainer[3] * Area;
 
-    array_1d<double, 8> NodalDamage;
-    NodalDamage[0] = DamageContainer[0] * Area;
-    NodalDamage[1] = DamageContainer[1] * Area;
-    NodalDamage[2] = DamageContainer[2] * Area;
-    NodalDamage[3] = DamageContainer[3] * Area;
-    NodalDamage[4] = DamageContainer[0] * Area;
-    NodalDamage[5] = DamageContainer[1] * Area;
-    NodalDamage[6] = DamageContainer[2] * Area;
-    NodalDamage[7] = DamageContainer[3] * Area;
-
     for (unsigned int i = 0; i < 8; ++i) // NumNodes
     {
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
