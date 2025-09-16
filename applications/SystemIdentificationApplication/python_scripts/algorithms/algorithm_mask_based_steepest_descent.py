@@ -1,5 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
@@ -72,6 +73,8 @@ class AlgorithmMaskBasedSteepestDescent(AlgorithmSteepestDescent):
                     # now we raw sensitivities for each sensor
                     response.damage_response_function.AddSensor(sensor)
                     raw_sensor_grad = self._control_field.Clone()
+
+                    control.GetEmptyField().GetModelPart().ProcessInfo[KratosSI.SENSOR_NAME] = sensor.GetName()
 
                     response.CalculateGradient({Kratos.YOUNG_MODULUS: raw_sensor_grad})
                     mapped_sensor_grad = control.MapGradient({Kratos.YOUNG_MODULUS: raw_sensor_grad.GetContainerExpressions()[0]})
