@@ -64,62 +64,32 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-
-    KRATOS_ERROR_IF(this->Id() < 1)
-        << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
+    const auto element_Id = this->Id();
+    KRATOS_ERROR_IF(element_Id < 1)
+        << "Element found with Id 0 or negative, element: " << element_Id << std::endl;
 
     // Verify generic variables
     int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const CheckProperties check_properties(r_properties, "property at element", this->Id(),
+    const PropertiesType& r_properties = this->GetProperties();
+    const CheckProperties check_properties(r_properties, "property at element", element_Id,
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
-
+    check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_properties[IGNORE_UNDRAINED]) {
         check_properties.Check(TRANSVERSAL_PERMEABILITY);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
     }
 
-    // Verify the constitutive law
-    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-        << "CONSTITUTIVE_LAW has Key zero or is not defined at element " << this->Id() << std::endl;
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
+    ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
 
-    if (r_properties[CONSTITUTIVE_LAW]) {
-        // Verify compatibility of the element with the constitutive law
-        ConstitutiveLaw::Features LawFeatures;
-        r_properties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-        bool correct_strain_measure = false;
-        for (unsigned int i = 0; i < LawFeatures.mStrainMeasures.size(); ++i) {
-            if (LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-                correct_strain_measure = true;
-        }
-        KRATOS_ERROR_IF_NOT(correct_strain_measure)
-            << "constitutive law is not compatible with the element type "
-               "StrainMeasure_Infinitesimal "
-            << this->Id() << std::endl;
+    ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(r_properties, element_Id);
 
-        // Check constitutive law
-        ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
-    } else
-        KRATOS_ERROR << "A constitutive law needs to be specified for the "
-                        "element "
-                     << this->Id() << std::endl;
-
-    const SizeType strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    if (TDim == 2) {
-        KRATOS_ERROR_IF_NOT(strain_size == 2)
-            << "Wrong constitutive law used. This is a 2D element! expected "
-               "strain size is 2 (el id = ) "
-            << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 3)
-            << "Wrong constitutive law used. This is a 3D element! expected "
-               "strain size is 3 (el id = ) "
-            << this->Id() << std::endl;
-    }
+    constexpr auto expected_size = TDim == 2 ? VOIGT_SIZE_2D_INTERFACE : VOIGT_SIZE_3D_INTERFACE;
+    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, element_Id);
 
     return ierr;
 

@@ -112,6 +112,16 @@ public:
                          << mId << "." << std::endl;
     }
 
+    template <typename T>
+    requires (!std::is_same_v<T, bool>)
+    void CheckAvailabilityAndSpecified(const Variable<T>& rVariable) const
+    {
+        CheckAvailability(rVariable);
+        if (!mrProperties[rVariable])
+            KRATOS_ERROR << rVariable.Name() << " needs to be specified in the " << mrPrintName
+                         << " with Id " << mId << "." << std::endl;
+    }
+
     void CheckPermeabilityProperties(size_t Dimension) const;
 
 private:

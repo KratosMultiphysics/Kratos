@@ -1,7 +1,6 @@
 import sys
 import os
 import json
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
@@ -249,8 +248,9 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def assertVerticalStressAtBottomNodes(self, output_data, bottom_node_ids):
         end_time = 1.0
-        nodal_stress_tensors = test_helper.GiDOutputFileReader.nodal_values_at_time("NODAL_CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
+        nodal_stress_tensors = test_helper.GiDOutputFileReader.nodal_values_at_time("CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
         expected_stress_yy = -1e4
+        self.assertEqual(len(bottom_node_ids), len(nodal_stress_tensors))
         for stress_tensor in nodal_stress_tensors:
             self.assertAlmostEqual(stress_tensor[1], expected_stress_yy)
 
