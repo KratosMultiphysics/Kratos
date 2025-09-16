@@ -12,6 +12,15 @@ from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
 import os
 
+try:
+    import KratosMultiphysics.MultilevelMonteCarloApplication
+    import xmc
+    import exaqute
+    import numpy as np
+    is_xmc_available = True
+except:
+    is_xmc_available = False
+
 class WorkFolderScope:
     # TODO use KratosUnittest.WorkFolderScope
     def __init__(self, work_folder):
@@ -204,15 +213,15 @@ class PotentialFlowTests(UnitTest.TestCase):
         kratos_utilities.DeleteDirectoryIfExisting(work_folder+"/Optimization_Results")
         kratos_utilities.DeleteDirectoryIfExisting(work_folder+"/__pycache__")
 
-    # @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication", "MappingApplication")
-    # def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
-    #     if not is_xmc_available:
-    #         self.skipTest("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication", "MappingApplication")
+    def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
+        if not is_xmc_available:
+            self.skipTest("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
 
-    #     work_folder = "stochastic_body_fitted_opt"
+        work_folder = "stochastic_body_fitted_opt"
 
-    #     with UnitTest.WorkFolderScope(work_folder, __file__):
-    #         __import__(work_folder+".run_test")
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            __import__(work_folder+".run_test")
 
     def _validateWakeProcess(self,reference_element_id_list, variable_name):
         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
@@ -333,15 +342,15 @@ class PotentialFlowTests(UnitTest.TestCase):
 
 class NightlyPotentialFlowTests(UnitTest.TestCase):
     pass
-    # @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication", "MappingApplication")
-    # def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
-    #     if not is_xmc_available:
-    #         self.skipTest("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication", "MappingApplication")
+    def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
+        if not is_xmc_available:
+            self.skipTest("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
 
-    #     work_folder = "stochastic_body_fitted_opt"
+        work_folder = "stochastic_body_fitted_opt"
 
-    #     with UnitTest.WorkFolderScope(work_folder, __file__):
-    #         __import__(work_folder+".run_mlmc_test")
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            __import__(work_folder+".run_mlmc_test")
 
 if __name__ == '__main__':
     UnitTest.main()
