@@ -376,7 +376,7 @@ public:
      * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystemArrays(
+    virtual void AllocateLinearSystem(
         const DofsArrayType::Pointer pDofSet,
         const DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
@@ -385,7 +385,7 @@ public:
 
         // Call the builder to allocate and initialize the required arrays
         BuiltinTimer lin_system_allocation_time;
-        (this->GetBuilder()).AllocateLinearSystemArrays(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+        (this->GetBuilder()).AllocateLinearSystem(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 2) << "Linear system arrays allocation time: " << lin_system_allocation_time << std::endl;
 
         KRATOS_CATCH("")
@@ -1475,7 +1475,7 @@ protected:
 
         // Allocating the system vectors to their correct sizes
         BuiltinTimer linear_system_allocation_time;
-        this->AllocateLinearSystemArrays(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+        this->AllocateLinearSystem(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
         KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
 
         KRATOS_CATCH("")

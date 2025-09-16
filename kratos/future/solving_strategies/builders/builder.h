@@ -108,17 +108,42 @@ public:
      * @brief Allocates the memory for the linear system arrays
      * This method allocates the memory for the linear system arrays
      * Note that the sizes of the resultant arrays depend on the build type
+     * @param rSparseGraph Reference to the linear system sparse graph
      * @param pDofSet The array of DOFs from elements and conditions
      * @param pEffectiveDofSet The array of DOFs to be solved after the application of constraints
      * @param pLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystemArrays(
+    virtual void AllocateLinearSystem(
+        const TSparseGraphType& rSparseGraph,
         const typename DofsArrayType::Pointer pDofSet,
         const typename DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
-        {
-            KRATOS_ERROR << "Calling base class 'AllocateLinearSystemArrays'." << std::endl;
-        }
+    {
+        KRATOS_ERROR << "Calling base class 'AllocateLinearSystem'." << std::endl;
+    }
+
+    /**
+     * @brief Allocates the memory for the linear system arrays
+     * This method calculates the sparse graph and allocates the memory for the linear system arrays
+     * Note that the sizes of the resultant arrays depend on the build type
+     * @param pDofSet The array of DOFs from elements and conditions
+     * @param pEffectiveDofSet The array of DOFs to be solved after the application of constraints
+     * @param pLinearSystemContainer Auxiliary container with the linear system arrays
+     */
+    virtual void AllocateLinearSystem(
+        const typename DofsArrayType::Pointer pDofSet,
+        const typename DofsArrayType::Pointer pEffectiveDofSet,
+        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    {
+        // Set up the system sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
+        BuiltinTimer sparse_matrix_graph_time;
+        TSparseGraphType sparse_matrix_graph(pDofSet->size());
+        this->SetUpSparseMatrixGraph(sparse_matrix_graph);
+        KRATOS_INFO_IF("BlockBuilder", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
+
+        // Allocate the linear system
+        this->AllocateLinearSystem(sparse_matrix_graph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+    }
 
     /**
      * @brief Allocates the linear system constraints arrays
@@ -133,7 +158,7 @@ public:
         const DofsArrayType& rEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
-        KRATOS_ERROR << "Calling base class 'AllocateLinearSystemArrays'." << std::endl;
+        KRATOS_ERROR << "Calling base class 'AllocateLinearSystemConstraints'." << std::endl;
     }
 
     /**

@@ -96,26 +96,21 @@ public:
     ///@name Operations
     ///@{
 
-    void AllocateLinearSystemArrays(
+    void AllocateLinearSystem(
+        const TSparseGraphType& rSparseGraph,
         const typename DofsArrayType::Pointer pDofSet,
         const typename DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
     {
-        // // Set up the system sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
-        BuiltinTimer sparse_matrix_graph_time;
-        TSparseGraphType sparse_matrix_graph(pDofSet->size());
-        this->SetUpSparseMatrixGraph(sparse_matrix_graph);
-        KRATOS_INFO_IF("BlockBuilder", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
-
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
-        auto p_dx = Kratos::make_shared<TSystemVectorType>(sparse_matrix_graph);
+        auto p_dx = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
         rLinearSystemContainer.pDx.swap(p_dx);
 
-        auto p_rhs = Kratos::make_shared<TSystemVectorType>(sparse_matrix_graph);
+        auto p_rhs = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
         rLinearSystemContainer.pRhs.swap(p_rhs);
 
-        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(sparse_matrix_graph);
+        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
         rLinearSystemContainer.pLhs.swap(p_lhs);
 
         // Get the number of free DOFs to allocate the effective system arrays
