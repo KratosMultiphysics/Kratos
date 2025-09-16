@@ -104,12 +104,14 @@ class StandardizedConstraint(ResponseRoutine):
 
             if save_value:
                 if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+                if self.__buffered_data.HasValue("std_value"): del self.__buffered_data["std_value"]
                 self.__buffered_data["value"] = response_value
+                self.__buffered_data["std_value"] = standardized_response_value
 
             DictLogger("Constraint info",self.GetInfo())
 
         return standardized_response_value
-    
+
     def IsActive(self):
         return self.GetStandardizedValue() > 0.0
 

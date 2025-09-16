@@ -72,7 +72,6 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
             critical_head_found, length = self.linear_search(file_path, heads)
         return critical_head_found, length
 
-
     @parameterized.expand(
         [('7.10', 3.00E-04, 1.157E-12, 10.29, 11.3, 7.5, 'test_compare_sellmeijer/HeightAquiferD10L30line')])
     def test_sellmeijers_rule_height_line(self, name, d70, kappa, h_c, h_n, length_n, test_name_line):
