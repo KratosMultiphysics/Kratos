@@ -73,28 +73,41 @@ class AnalysisStage(object):
         self.time: Optional[float] = 0.0
         while isinstance(self.time, float):
             begin: float = self.time
+            last_converged_step: float = begin
             end: float = self._AdvanceTime()
 
             converged: bool = False
             i_substep: int = 0
             while not converged and isinstance(self.time, float):
                 self.time = step_controller.GetNextStep(
-                    begin,
+                    last_converged_step,
                     end,
                     True if i_substep == 0 else converged,
                     i_substep)
 
                 print(f"{begin} => {self.time}")
+                import KratosMultiphysics.StructuralMechanicsApplication as KratosSA
 
+                ta = KratosMultiphysics.TensorAdaptors.VariableTensorAdaptor(self.model["Structure.PointLoad2D_neumann"].Conditions, KratosSA.POINT_LOAD)
                 if isinstance(self.time, float):
+                    ta.CollectData()
+                    print("t1", ta.data, flush=True)
                     self._GetSolver().ReduceTime(self.time)
                     self.InitializeSolutionStep()
-                    self._GetSolver().Predict()
+                    #ta.data[0,1] = -5e4
+                    #ta.StoreData()
+                    ta.CollectData()
+                    print("t2", ta.data, flush=True)
+                    #self._GetSolver().Predict()
                     converged = self._GetSolver().SolveSolutionStep()
-                i_substep += 1
+                    ta.CollectData()
+                    print("t3", ta.data, flush=True)
+                    self.FinalizeSolutionStep()
+                    self.OutputSolutionStep()
 
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
+                    if converged:
+                        last_converged_step = self.time
+                i_substep += 1
 
     def Initialize(self):
         """This function initializes the AnalysisStage
