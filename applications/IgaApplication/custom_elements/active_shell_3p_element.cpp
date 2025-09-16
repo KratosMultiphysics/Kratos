@@ -356,7 +356,8 @@ namespace Kratos
 
         // definition of problem size
         const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType u = number_of_nodes * 3; // displacement dofs
+        const SizeType mat_size = u; // original system size
 
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
@@ -478,6 +479,44 @@ namespace Kratos
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
             }
         }
+
+    // === Erweiterung: Matrix und Vektor auf neue Größe bringen ===
+    if (CalculateStiffnessMatrixFlag) {
+        if (rLeftHandSideMatrix.size1() != u + 6 || rLeftHandSideMatrix.size2() != u + 6) {
+            MatrixType extended_matrix(u + 6, u + 6, 0.0);
+
+            // Kopiere die bestehende Matrix in den linken oberen Block
+            for (SizeType i = 0; i < u; ++i)
+                for (SizeType j = 0; j < u; ++j)
+                    extended_matrix(i, j) = rLeftHandSideMatrix(i, j);
+
+            // Rechts unten: Identitätsmatrix (6 x 6)
+            for (SizeType i = 0; i < 6; ++i)
+                extended_matrix(u + i, u + i) = 1.0;
+
+            rLeftHandSideMatrix.swap(extended_matrix);
+        }
+    }
+
+    if (CalculateResidualVectorFlag) {
+        if (rRightHandSideVector.size() != u + 6) {
+            VectorType extended_vector(u + 6, 0.0);
+
+            for (SizeType i = 0; i < u; ++i)
+                extended_vector[i] = rRightHandSideVector[i];
+
+            // Unten: Aktuierungsparameter
+            extended_vector[u + 0] = mACTUATION_ALPHA;
+            extended_vector[u + 1] = mACTUATION_BETA;
+            extended_vector[u + 2] = mACTUATION_GAMMA;
+            extended_vector[u + 3] = mACTUATION_KAPPA_1;
+            extended_vector[u + 4] = mACTUATION_KAPPA_2;
+            extended_vector[u + 5] = mACTUATION_KAPPA_12;
+
+            rRightHandSideVector.swap(extended_vector);
+        }
+    }
+
         KRATOS_CATCH("");
     }
 

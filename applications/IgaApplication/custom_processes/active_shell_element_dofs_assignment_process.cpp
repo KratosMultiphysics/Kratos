@@ -60,9 +60,18 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
     r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_KAPPA_2);
     r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_KAPPA_12);
 
+    r_active_shell_mp.AddNodalSolutionStepVariable(REACTION_ACTIVE_SHELL_ALPHA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(REACTION_ACTIVE_SHELL_BETA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(REACTION_ACTIVE_SHELL_GAMMA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(REACTION_ACTIVE_SHELL_KAPPA_1);
+    r_active_shell_mp.AddNodalSolutionStepVariable(REACTION_ACTIVE_SHELL_KAPPA_2);
+    r_active_shell_mp.AddNodalSolutionStepVariable(REACTION_ACTIVE_SHELL_KAPPA_12);
+
     // KRATOS_WATCH(mIgaModelPartName) //CHECK LEO
     // KRATOS_WATCH(mActiveShellDofModelPartName) //CHECK LEO
+
     // KRATOS_WATCH(mrModel) //CHECK LEO
+
     // KRATOS_WATCH(r_iga_model_part) //CHECK LEO
     // KRATOS_WATCH(r_iga_model_part.rProperties()) //CHECK LEO
     // KRATOS_WATCH(r_iga_model_part.Elements()) //CHECK LEO
@@ -75,6 +84,8 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
         if (!r_geometry.Has(ACTIVE_SHELL_NODE_GP)) {
             const auto& r_center = r_geometry.Center();
             auto p_active_shell_node = r_active_shell_mp.CreateNewNode(r_geometry.Id(), r_center[0], r_center[1], r_center[2]);
+            
+            //std::cout << "Active shell node created with ID: " << p_active_shell_node->Id() << std::endl; //CHECKLEO ausgabe der Global Node ID
             
             // Security: Check lengths
             KRATOS_ERROR_IF(mAppliedActuationList.size() != mAppliedActuationValue.size())
@@ -137,13 +148,42 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
     }
 
     for (auto& r_node : r_active_shell_mp.Nodes()) {
-        r_node.AddDof(ACTIVE_SHELL_ALPHA);
-        r_node.AddDof(ACTIVE_SHELL_BETA);
-        r_node.AddDof(ACTIVE_SHELL_GAMMA);
-        r_node.AddDof(ACTIVE_SHELL_KAPPA_1);
-        r_node.AddDof(ACTIVE_SHELL_KAPPA_2);
-        r_node.AddDof(ACTIVE_SHELL_KAPPA_12);
+        r_node.AddDof(ACTIVE_SHELL_ALPHA, REACTION_ACTIVE_SHELL_ALPHA);
+        r_node.AddDof(ACTIVE_SHELL_BETA, REACTION_ACTIVE_SHELL_BETA);
+        r_node.AddDof(ACTIVE_SHELL_GAMMA, REACTION_ACTIVE_SHELL_GAMMA);
+        r_node.AddDof(ACTIVE_SHELL_KAPPA_1, REACTION_ACTIVE_SHELL_KAPPA_1);
+        r_node.AddDof(ACTIVE_SHELL_KAPPA_2, REACTION_ACTIVE_SHELL_KAPPA_2);
+        r_node.AddDof(ACTIVE_SHELL_KAPPA_12, REACTION_ACTIVE_SHELL_KAPPA_12);
+
+        // Überprüfe die Werte der Dofs
+        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA));
+        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA));
+        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA));
+        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1));
+        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2));
+        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12));
+
+        // Fixiere und setze die Werte für die Aktuierungs-Dofs
+        r_node.Fix(ACTIVE_SHELL_ALPHA);
+        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = 0.5; // Beispielwert
+
+        r_node.Fix(ACTIVE_SHELL_BETA);
+        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA) = 0.0;
+
+        r_node.Fix(ACTIVE_SHELL_GAMMA);
+        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA) = 0.0;
+
+        r_node.Fix(ACTIVE_SHELL_KAPPA_1);
+        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1) = 0.0;
+
+        r_node.Fix(ACTIVE_SHELL_KAPPA_2);
+        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2) = 0.0;
+
+        r_node.Fix(ACTIVE_SHELL_KAPPA_12);
+        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12) = 0.0;
     }
+
+
 
     std::cout << "Created " << r_active_shell_mp.NumberOfNodes() << " active shell nodes" << std::endl;
 
