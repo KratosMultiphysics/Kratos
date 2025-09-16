@@ -266,6 +266,8 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
             self._EvaluateTransportScalarDecayFunctional(print_functional)
         if (abs(self.normalized_transport_functional_weights[5]) > 1e-10):
             self._EvaluateTransportScalarSourceFunctional(print_functional)   
+        if (abs(self.normalized_transport_functional_weights[6]) > 1e-10):
+            self._EvaluateTransportScalar1stOrderDecayFunctional(print_functional)  
 
     def EvaluateTotalFunctional(self):
         self.functionals = np.concatenate((self.fluid_functionals, self.transport_functionals))
@@ -465,6 +467,23 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional")
 
+    def _EvaluateTransportScalar1stOrderDecayFunctional(self, print_functional=False):
+        """
+        This method computes the Transport Scalar Decay functional: int_{\Omega}{kT^2}
+        """
+        mp = self._GetComputingModelPart()
+        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE, 0))
+        integrand = self.decay*transport_scalar
+        self.transport_functionals[6] = np.dot(integrand, self.nodal_domain_sizes)
+        if _CheckIsDistributed():
+            self.transport_functionals[6] = self.MpiSumLocalValues(self.transport_functionals[6])
+        if (self.first_iteration):
+            self.initial_transport_functionals_values[6] = self.transport_functionals[6]
+        if (print_functional):
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar 1st Order Decay Functional (no weight): " + str(self.transport_functionals[6]))
+        else:
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar 1st Order Decay Functional")
+    
     def _ComputeFunctionalDerivativesFunctionalContribution(self):
         return self._ComputeFunctionalDerivativesFluidFunctionalContribution() + self._ComputeFunctionalDerivativesTransportFunctionalContribution()
     
@@ -570,6 +589,9 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
                             "weight": 0.0
                         },
                         "source_transfer" : {
+                            "weight": 0.0
+                        },
+                        "decay_1st_order_transport" : {
                             "weight": 0.0
                         }
                     },

@@ -141,6 +141,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Decay Functional (" + str(self.functional_weights[7]) + "): " + str(self.weighted_functionals[7]), min_echo=0)
         if (abs(self.functional_weights[8]) > 1e-10):
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional (" + str(self.functional_weights[8]) + "): " + str(self.weighted_functionals[8]), min_echo=0)
+        if (abs(self.functional_weights[9]) > 1e-10):
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar 1st Order Decay Functional (" + str(self.functional_weights[9]) + "): " + str(self.weighted_functionals[9]), min_echo=0)
 
     def _InitializeFunctionalWeights(self):
         transport_functional_weights = self._ImportTransportFunctionalWeights()
@@ -160,16 +162,17 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self.functional_weights = self._RescaleFunctionalWeightsByInitialValues()
 
     def _ImportTransportFunctionalWeights(self):
-        transport_weights = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        transport_weights = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         functional_weights_parameters = self.optimization_parameters["optimization_settings"]["optimization_problem_settings"]["functional_weights"]["transport_functionals"]
         transport_weights[0] = functional_weights_parameters["outlet_transport_scalar"]["weight"].GetDouble()
         if (abs(transport_weights[0] > 1e-10)):
             raise RuntimeError("OUTLET_TRANSPORT_SCALAR FUNCTIONAL NOT WORKIUNG AND ITS WEIGHT IS DIFFERENT FROM ZERO", "Running '_ImportTransportFunctionalWeights' with the wrong transport_weights[0].")
         transport_weights[1] = functional_weights_parameters["focus_region_transport_scalar"]["weight"].GetDouble()
-        transport_weights[2] = functional_weights_parameters["conductivity_transfer"]["weight"].GetDouble()
-        transport_weights[3] = functional_weights_parameters["convection_transfer"]["weight"].GetDouble()
-        transport_weights[4] = functional_weights_parameters["decay_transfer"]["weight"].GetDouble()
-        transport_weights[5] = functional_weights_parameters["source_transfer"]["weight"].GetDouble()
+        transport_weights[2] = functional_weights_parameters["conductivity_transport"]["weight"].GetDouble()
+        transport_weights[3] = functional_weights_parameters["convection_transport"]["weight"].GetDouble()
+        transport_weights[4] = functional_weights_parameters["decay_transport"]["weight"].GetDouble()
+        transport_weights[5] = functional_weights_parameters["source_transport"]["weight"].GetDouble()
+        transport_weights[6] = functional_weights_parameters["decay_1st_order_transport"]["weight"].GetDouble()
         return transport_weights
     
     def _SetInitialFunctionals(self):
@@ -209,6 +212,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
             self._EvaluateTransportScalarDecayFunctional(print_functional)
         if (abs(self.normalized_transport_functional_weights[5]) > 1e-10):
             self._EvaluateTransportScalarSourceFunctional(print_functional)
+        if (abs(self.normalized_transport_functional_weights[6]) > 1e-10):
+            self._EvaluateTransportScalar1stOrderDecayFunctional(print_functional)
 
     def EvaluateTotalFunctional(self):
         self.functionals = np.concatenate((np.zeros(self.n_functionals-self.n_transport_functionals), self.transport_functionals, ))
@@ -345,6 +350,24 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar Source Functional")
 
+    def _EvaluateTransportScalar1stOrderDecayFunctional(self, print_functional=False):
+        """
+        This method computes the Transport Scalar Decay functional: int_{\Omega}{kT^2}
+        """
+        mp = self._GetComputingModelPart()
+        transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE, 0))
+        integrand = self.decay*transport_scalar
+        self.MpiPrint("integrand:"+integrand)
+        self.transport_functionals[6] = np.dot(integrand, self.nodal_domain_sizes)
+        if _CheckIsDistributed():
+            self.transport_functionals[6] = self.MpiSumLocalValues(self.transport_functionals[6])
+        if (self.first_iteration):
+            self.initial_transport_functionals_values[6] = self.transport_functionals[6]
+        if (print_functional):
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar 1st Order Decay Functional (no weight): " + str(self.transport_functionals[6]))
+        else:
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar 1st Order Decay Functional")
+
     def SetTargetOutletTransportScalar(self):
         functional_settings = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["transport_functionals"]["outlet_transport_scalar"]
         self.target_outlet_transport_scalar_model_part_name = functional_settings["outlet_model_part"].GetString()
@@ -366,11 +389,12 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(local_mesh_nodes, KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
         transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(local_mesh_nodes, KratosMultiphysics.TEMPERATURE, 0))
         transport_scalar_gradient = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(local_mesh_nodes, KratosMultiphysics.TEMPERATURE_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        transport_diffusion_functional_derivatives_wrt_design  = self.functional_weights[5] * self.conductivity_derivative_wrt_design_base * np.einsum('ij,ij->i', transport_scalar_gradient, transport_scalar_gradient) * self.nodal_domain_sizes
-        transport_convection_functional_derivatives_wrt_design = self.functional_weights[6] * self.convection_coefficient_derivative_wrt_design_base * (transport_scalar*(np.einsum('ij,ij->i', velocity, transport_scalar_gradient))) * self.nodal_domain_sizes
-        transport_decay_functional_derivatives_wrt_design      = self.functional_weights[7] * self.decay_derivative_wrt_design_base * (transport_scalar**2) * self.nodal_domain_sizes
-        transport_source_functional_derivatives_wrt_design     = self.functional_weights[8] * self.transport_source_derivative_wrt_design_base * transport_scalar * self.nodal_domain_sizes
-        return transport_diffusion_functional_derivatives_wrt_design+transport_convection_functional_derivatives_wrt_design+transport_decay_functional_derivatives_wrt_design + transport_source_functional_derivatives_wrt_design
+        transport_diffusion_functional_derivatives_wrt_design       = self.functional_weights[5] * self.conductivity_derivative_wrt_design_base * np.einsum('ij,ij->i', transport_scalar_gradient, transport_scalar_gradient) * self.nodal_domain_sizes
+        transport_convection_functional_derivatives_wrt_design      = self.functional_weights[6] * self.convection_coefficient_derivative_wrt_design_base * (transport_scalar*(np.einsum('ij,ij->i', velocity, transport_scalar_gradient))) * self.nodal_domain_sizes
+        transport_decay_functional_derivatives_wrt_design           = self.functional_weights[7] * self.decay_derivative_wrt_design_base * (transport_scalar**2) * self.nodal_domain_sizes
+        transport_source_functional_derivatives_wrt_design          = self.functional_weights[8] * self.transport_source_derivative_wrt_design_base * transport_scalar * self.nodal_domain_sizes
+        transport_1st_order_decay_functional_derivatives_wrt_design = self.functional_weights[9] * self.decay_derivative_wrt_design_base * transport_scalar * self.nodal_domain_sizes
+        return transport_diffusion_functional_derivatives_wrt_design+transport_convection_functional_derivatives_wrt_design+transport_decay_functional_derivatives_wrt_design + transport_source_functional_derivatives_wrt_design + transport_1st_order_decay_functional_derivatives_wrt_design
     
     def _ComputeFunctionalDerivativesTransportPhysicsContribution(self):
         local_mesh_nodes = self._GetLocalMeshNodes()
@@ -636,16 +660,19 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
                             "focus_region_model_part": "FocusRegion",
                             "target_value": 0.0
                         },
-                        "conductivity_transfer" : {
+                        "conductivity_transport" : {
                             "weight": 1.0
                         },
-                        "convection_transfer" : {
+                        "convection_transport" : {
                             "weight": 0.0
                         },
-                        "decay_transfer" : {
+                        "decay_transport" : {
                             "weight": 0.0
                         },
-                        "source_transfer" : {
+                        "source_transport" : {
+                            "weight": 0.0
+                        },
+                        "decay_1st_order_transport" : {
                             "weight": 0.0
                         }
                     }

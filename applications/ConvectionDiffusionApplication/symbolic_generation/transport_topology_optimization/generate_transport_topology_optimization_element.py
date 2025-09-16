@@ -225,10 +225,11 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         # region_transport_scalar functional
         rv_funct_region_transport_scalar  = -2.0*(q_adj_gauss.transpose()*opt_t_gauss)
         # transport_scalar_transfer
-        rv_funct_transport_scalar_diffusion  = -2.0*Conductivity_gauss*(grad_q_adj.transpose()*grad_t_physics)
-        rv_funct_transport_scalar_convection = -ConvCoeff_gauss*((vconv_physics_gauss.transpose()*grad_t_physics)*q_adj_gauss + t_physics_gauss*(vconv_physics_gauss.transpose()*grad_q_adj)) 
-        rv_funct_transport_scalar_decay      = -2.0*Decay_gauss*(q_adj_gauss*t_physics_gauss)
-        rv_funct_transport_scalar_source     = f_physics_gauss*q_adj_gauss
+        rv_funct_transport_scalar_diffusion       = -2.0*Conductivity_gauss*(grad_q_adj.transpose()*grad_t_physics)
+        rv_funct_transport_scalar_convection      = -ConvCoeff_gauss*((vconv_physics_gauss.transpose()*grad_t_physics)*q_adj_gauss + t_physics_gauss*(vconv_physics_gauss.transpose()*grad_q_adj)) 
+        rv_funct_transport_scalar_decay           = -2.0*Decay_gauss*(q_adj_gauss*t_physics_gauss)
+        rv_funct_transport_scalar_source          = f_physics_gauss*q_adj_gauss
+        rv_funct_transport_scalar_1st_order_decay = -Decay_gauss*q_adj_gauss
         
         # SUM FUNCTIONAL CONTRIBUTIONS TO ADJ RESIDUAL
         rv_adj += functional_weights[4]*rv_funct_region_transport_scalar 
@@ -236,6 +237,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv_adj += functional_weights[6]*rv_funct_transport_scalar_convection
         rv_adj += functional_weights[7]*rv_funct_transport_scalar_decay
         rv_adj += functional_weights[8]*rv_funct_transport_scalar_source
+        rv_adj += functional_weights[9]*rv_funct_transport_scalar_1st_order_decay
     
     ## HANDLE CONVECTION 
     if (convective_term):
@@ -294,6 +296,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
             mass_residual_adj += functional_weights[6]*((vconv_physics_gauss.transpose()*grad_ConvCoeff)*t_physics_gauss)
             mass_residual_adj += -functional_weights[7]*(2.0*Decay_gauss*t_physics_gauss)
             mass_residual_adj += functional_weights[8]*(f_physics_gauss) 
+            mass_residual_adj += -functional_weights[9]*(Decay_gauss)
 
         # Temperature subscales
         temperature_subscale_adj = tau1_adj*mass_residual_adj

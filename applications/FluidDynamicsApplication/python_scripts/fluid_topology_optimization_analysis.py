@@ -247,7 +247,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.normalized_fluid_functional_weights = self._NormalizeFunctionalWeights(np.asarray(fluid_functional_weights))
         # get number of functionals
         self.n_fluid_functionals = len(self.normalized_fluid_functional_weights)
-        self.n_functionals = self.n_fluid_functionals + 6 # 6 = transport fucntionals
+        self.n_functionals = self.n_fluid_functionals + 7 # 7 = transport fucntionals
         # initialize initial functionals vector container
         self.initial_fluid_functionals_values = np.zeros(self.n_fluid_functionals)
         self.initial_functionals_values = np.zeros(self.n_functionals)
@@ -1698,6 +1698,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                             "weight": 0.0
                         },
                         "source_transfer" : {
+                            "weight": 0.0
+                        },
+                        "decay_1st_order_transport" : {
                             "weight": 0.0
                         }
                     },
