@@ -14,6 +14,7 @@
 
 #include <numeric>
 
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/math_utilities.h"
@@ -99,7 +100,7 @@ public:
     int Check(const ProcessInfo&) const override
     {
         KRATOS_TRY
-        CheckDomainSize();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
         CheckHasSolutionStepsDataFor(WATER_PRESSURE);
         CheckHasDofsFor(WATER_PRESSURE);
         CheckProperties();
@@ -225,14 +226,6 @@ public:
     std::string Info() const override { return "GeoSteadyStatePwPipingElement"; }
 
 private:
-    void CheckDomainSize() const
-    {
-        constexpr auto min_domain_size = 1.0e-15;
-        KRATOS_ERROR_IF(GetGeometry().DomainSize() < min_domain_size)
-            << "DomainSize (" << GetGeometry().DomainSize() << ") is smaller than "
-            << min_domain_size << " for element " << Id() << std::endl;
-    }
-
     void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
     {
         for (const auto& node : GetGeometry()) {
@@ -274,8 +267,7 @@ private:
     void CheckForNonZeroZCoordinate() const
     {
         const auto& r_geometry = GetGeometry();
-        auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
-                                              [](const auto& node) { return node.Z() != 0.0; });
+        auto pos = std::ranges::find_if(r_geometry, [](const auto& node) { return node.Z() != 0.0; });
         KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
             << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
     }
@@ -319,8 +311,8 @@ private:
 
         auto result = Vector{r_integration_points.size()};
         // all governed by PIPE_HEIGHT and element length so without CROSS_AREA
-        std::transform(r_integration_points.begin(), r_integration_points.end(), rDetJContainer.begin(),
-                       result.begin(), [](const auto& rIntegrationPoint, const auto& rDetJ) {
+        std::ranges::transform(r_integration_points, rDetJContainer, result.begin(),
+                               [](const auto& rIntegrationPoint, const auto& rDetJ) {
             return rIntegrationPoint.Weight() * rDetJ;
         });
         return result;
@@ -358,7 +350,7 @@ private:
     {
         auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
-        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
+        std::ranges::transform(r_geometry, result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;

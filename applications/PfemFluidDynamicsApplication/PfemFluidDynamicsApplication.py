@@ -1,7 +1,7 @@
 
 from KratosMultiphysics import _ImportApplication
 
-# Applications requiered
+# Applications required
 from KratosDelaunayMeshingApplication import *
 
 # Application dependent names and paths

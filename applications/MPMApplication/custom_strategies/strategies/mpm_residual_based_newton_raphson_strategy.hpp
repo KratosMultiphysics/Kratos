@@ -270,7 +270,7 @@ public:
 
 
         //calculate reactions if required
-        if (mCalculateReactionsFlag == true){
+        if (this->mCalculateReactionsFlag == true){
             // due to the assembly procedure the friction related values need to be reset
             if (friction_active){
                 for (Node &curr_node : BaseType::GetModelPart().Nodes()){
@@ -312,7 +312,7 @@ public:
                 if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
             }
 
-            if (mCalculateReactionsFlag == true){
+            if (this->mCalculateReactionsFlag == true){
                 // due to the assembly procedure the friction related values need to be reset
                 if (friction_active){
                     for (Node &curr_node : BaseType::GetModelPart().Nodes()){
@@ -330,7 +330,7 @@ public:
 
 private:
     /**
-     * @brief Auxilliary function to perform a single Newton-Rhapson iteration. For use in the SolveSolutionStep
+     * @brief Auxiliary function to perform a single Newton-Rhapson iteration. For use in the SolveSolutionStep
      */
     void inline SolveSolutionStepIteration(typename TSchemeType::Pointer p_scheme,
                                     typename TBuilderAndSolverType::Pointer p_builder_and_solver,

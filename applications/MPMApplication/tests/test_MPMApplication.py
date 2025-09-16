@@ -159,7 +159,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TMPMRestartTestDynamicCantilever2D('test_execution'))
 
     ### Adding Validation Tests
-    ## For very long tests that should not be in nighly and you can use to validate
+    ## For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(ManufacturedSolutionTestMPM('testManufacturedSolutionMPM'))
 

@@ -26,7 +26,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model -- the model contaning the model_parts
+        model -- the model containing the model_parts
         parameter -- Kratos parameters containing process settings.
         """
         KratosMultiphysics.Process.__init__(self)
@@ -65,7 +65,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
 
 
     def Check(self):
-        """ This method is executed at the begining to verify that the input is correct.
+        """ This method is executed at the beginning to verify that the input is correct.
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
@@ -82,7 +82,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
 
-        # loop over sensitivty variables for which integration should performed
+        # loop over sensitivity variables for which integration should performed
         for variable_i in self.element_sensitivity_variables:
             if CheckAvailabilityOfSensitivities(variable_i, self.sensitivity_model_part):
                 # loop over integration domains

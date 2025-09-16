@@ -115,7 +115,7 @@ public:
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Called at the end of eahc solution step
+     * @brief Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;

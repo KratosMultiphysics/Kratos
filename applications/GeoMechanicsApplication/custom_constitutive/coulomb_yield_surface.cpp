@@ -25,17 +25,33 @@ CoulombYieldSurface::CoulombYieldSurface(double FrictionAngleInRad, double Cohes
 {
 }
 
-double CoulombYieldSurface::YieldFunctionValue(const Vector& rPrincipalStress) const
+double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
-    return 0.5 * (rPrincipalStress(0) - rPrincipalStress(2)) +
-           0.5 * (rPrincipalStress(0) + rPrincipalStress(2)) * std::sin(mFrictionAngle) -
-           mCohesion * std::cos(mFrictionAngle);
+    return rSigmaTau[1] + rSigmaTau[0] * std::sin(mFrictionAngle) - mCohesion * std::cos(mFrictionAngle);
 }
 
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rPrincipalStress) const
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
 {
-    Vector result(3);
-    result <<= 0.5 * (1.0 + std::sin(mDilatationAngle)), 0.0, -0.5 * (1.0 - std::sin(mDilatationAngle));
+    return DerivativeOfFlowFunction(rSigmaTau, CoulombAveragingType::NO_AVERAGING);
+}
+
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const
+{
+    Vector result(2);
+    switch (AveragingType) {
+        using enum CoulombAveragingType;
+    case LOWEST_PRINCIPAL_STRESSES:
+        result <<= -(1.0 - 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 - std::sin(mDilatationAngle)) / 4.0;
+        break;
+    case NO_AVERAGING:
+        result <<= std::sin(mDilatationAngle), 1.0;
+        break;
+    case HIGHEST_PRINCIPAL_STRESSES:
+        result <<= (1.0 + 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 + std::sin(mDilatationAngle)) / 4.0;
+        break;
+    default:
+        KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
+    }
     return result;
 }
 

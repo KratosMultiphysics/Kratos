@@ -30,7 +30,7 @@ namespace Kratos
         // Get label of the reaction which should be traced
         // by this response function e.g. REACTION_X, REACTION_MOMENT_X,...
         mTracedReactionLabel = ResponseSettings["traced_reaction"].GetString();
-        // Get the label of the correspondig displacement e.g. REACTION_X --> DISPLACEMENT_X
+        // Get the label of the corresponding displacement e.g. REACTION_X --> DISPLACEMENT_X
         mTracedDisplacementLabel = this->GetCorrespondingDisplacementLabel(mTracedReactionLabel);
 
         if(ResponseSettings.Has("adjust_adjoint_displacement"))

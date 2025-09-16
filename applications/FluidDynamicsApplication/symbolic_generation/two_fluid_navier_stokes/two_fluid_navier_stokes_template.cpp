@@ -70,7 +70,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
     VectorType &rRightHandSideVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
@@ -742,7 +742,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
 {
     // Set the positive and negative enrichment interpolation matrices
     // Note that the enrichment is constructed using the standard shape functions such that:
-    // In the negative distance region, the enrichment functions correspondig to the negative
+    // In the negative distance region, the enrichment functions corresponding to the negative
     // distance nodes are null and the positive distance nodes are equal to the standard shape
     // functions. On the contrary, for the positive distance region, the enrichment functions
     // corresponding to the positive distance nodes are null meanwhile the negative distance
