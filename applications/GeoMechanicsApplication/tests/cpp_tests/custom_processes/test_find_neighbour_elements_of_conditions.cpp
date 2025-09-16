@@ -18,7 +18,7 @@
 namespace Kratos::Testing
 {
 class ParametrizedFindNeighbouring3D4NElementsFixture
-    : public ::testing::TestWithParam<std::vector<std::size_t>>
+    : public ::testing::TestWithParam<std::tuple<std::vector<std::size_t>, std::function<Condition::Pointer(const PointerVector<Node>&)>>>
 {
 };
 
@@ -28,12 +28,12 @@ TEST_P(ParametrizedFindNeighbouring3D4NElementsFixture, NeighboursAreFoundForDif
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
 
     PointerVector<Node> nodes;
-    const auto&         order = GetParam();
+    const auto&         [order, condition_creator] = GetParam();
     for (const auto& r_node_id : order) {
         nodes.push_back(r_model_part.pGetNode(r_node_id));
     }
 
-    auto p_condition = ElementSetupUtilities::Create3D3NCondition(nodes);
+    auto p_condition = condition_creator(nodes);
     r_model_part.AddCondition(p_condition);
 
     FindNeighbourElementsOfConditionsProcess process(r_model_part);
@@ -45,9 +45,13 @@ TEST_P(ParametrizedFindNeighbouring3D4NElementsFixture, NeighboursAreFoundForDif
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                          ParametrizedFindNeighbouring3D4NElementsFixture,
-                         ::testing::Values(std::vector<std::size_t>{1, 3, 2},
-                                           std::vector<std::size_t>{2, 1, 3},
-                                           std::vector<std::size_t>{3, 2, 1}));
+                         ::testing::Values(std::make_tuple(std::vector<std::size_t>{1, 3, 2},
+                                                           ElementSetupUtilities::Create3D3NCondition),
+                                           std::make_tuple(std::vector<std::size_t>{2, 1, 3},
+                                                           ElementSetupUtilities::Create3D3NCondition),
+                                           std::make_tuple(std::vector<std::size_t>{3, 2, 1},
+                                                           ElementSetupUtilities::Create3D3NCondition)));
+
 
 class ParametrizedFindNeighbouring3D8NElementsFixture
     : public ::testing::TestWithParam<std::vector<std::size_t>>
