@@ -7,6 +7,7 @@ from scipy.spatial import KDTree
 from scipy.sparse import dok_matrix, lil_matrix
 import mmapy as MMA # import the MMA subroutines python library: https://github.com/arjendeetman/GCMMA-MMA-Python
 import time
+import shutil
 from pathlib import Path
 
 # Import Kratos
@@ -1149,11 +1150,21 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional (" + str(self.functional_weights[2]) + "): " + str(self.weighted_functionals[2]), min_echo=0)
     
     def _PrintFunctionalsToFile(self):
-        with open("functional_history.txt", "a") as file:
-            file.write(str(self.functional) + " ")
-            for ifunc in range(self.n_functionals): 
-                file.write(str(self.weighted_functionals[ifunc]) + " ")
-            file.write("\n")
+        if self.MpiRunOnlyRank(0):
+            if self.project_parameters["output_processes"].Has("vtu_output"):
+                destination_path = self.project_parameters["output_processes"]["vtu_output"][0]["Parameters"]["output_path"].GetString()
+                with open(destination_path+"/functional_history.txt", "a") as file:
+                    file.write(str(self.functional) + " ")
+                    for ifunc in range(self.n_functionals): 
+                        file.write(str(self.weighted_functionals[ifunc]) + " ")
+                    file.write("\n")
+            if self.project_parameters["output_processes"].Has("vtk_output"):
+                destination_path = self.project_parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].GetString()
+                with open(destination_path+"/functional_history.txt", "a") as file:
+                    file.write(str(self.functional) + " ")
+                    for ifunc in range(self.n_functionals): 
+                        file.write(str(self.weighted_functionals[ifunc]) + " ")
+                    file.write("\n")
 
     def _EvaluateDesignParameterChange(self):
             design_parameter_converged = False
@@ -1180,12 +1191,15 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             return design_parameter_converged       
 
     def _ResetFunctionalOutput(self):
-        with open("functional_history.txt", "w") as file:
-            file.write("TOTAL | RESISTANCE | STRAIN-RATE | VORTICITY | OUTLET CONCENTRATION | NONE\n")
-            file.write("1 ")
-            for ifunc in range(self.n_functionals):
-                file.write(str(self.functional_weights[ifunc]) + " ")
-            file.write("\n")
+        if self.MpiRunOnlyRank(0):
+            if self.project_parameters["output_processes"].Has("vtu_output"):
+                destination_path = self.project_parameters["output_processes"]["vtu_output"][0]["Parameters"]["output_path"].GetString()
+                with open(destination_path+"/functional_history.txt", "w") as file:
+                    file.write("TOTAL | RESISTANCE | STRAIN_RATE | 2*VORTICITY | OUTLET_CONCENTRATION | REGION_TEMPERATURE | DIFFUSIVE_TRANSPORT | CONVECTIVE_TRASNPORT | REACTIVE_TRASNPORT | SOURCE_TRANSPORT\n")
+                    file.write("1 ")
+                    for ifunc in range(self.n_functionals):
+                        file.write(str(self.functional_weights[ifunc]) + " ")
+                    file.write("\n")
 
     def _PrintConstraints(self):
         self._PrintVolumeConstraint()
@@ -1410,6 +1424,27 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.OutputSolutionStep()
         self._CorrectPvtuFilesInVtuOutput()
         self._PrintFunctionalsToFile()
+        if self.first_iteration:
+            self._CopyInputFiles()
+        
+    def _CopyInputFiles(self):
+        if self.MpiRunOnlyRank(0):
+            if self.project_parameters["output_processes"].Has("vtu_output"):
+                destination_path = self.project_parameters["output_processes"]["vtu_output"][0]["Parameters"]["output_path"].GetString()
+                self._CopyFile(src_path="ProjectParameters.json", dst_path=destination_path+"/ProjectParameters.json")
+                self._CopyFile(src_path="OptimizationParameters.json", dst_path=destination_path+"/OptimizationParameters.json")
+            if self.project_parameters["output_processes"].Has("vtk_output"):
+                destination_path = self.project_parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].GetString()
+                self._CopyFile(src_path="ProjectParameters.json", dst_path=destination_path+"/ProjectParameters.json")
+                self._CopyFile(src_path="OptimizationParameters.json", dst_path=destination_path+"/OptimizationParameters.json")
+
+    def _CopyFile(self, src_path, dst_path):
+        src = Path(src_path)
+        dst = Path(dst_path)
+        if not src.exists():
+            raise FileNotFoundError(f"Source file not found: {src}")
+        dst.parent.mkdir(parents=True, exist_ok=True)  # ensure destination folder exists
+        shutil.copy2(src, dst)
 
     def _InitializeRemeshing(self):
         self.remeshing_settings = self.optimization_settings["remeshing_settings"]
