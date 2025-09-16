@@ -64,8 +64,6 @@ class AlgorithmMaskBasedSteepestDescent(AlgorithmSteepestDescent):
 
                 obj_grad = self._control_field.Clone() * 0.0
                 for sensor in response.list_of_sensors:
-                    # mask = Kratos.Expression.ElementExpression(self._control_field.GetContainerExpressions()[0].GetModelPart())
-                    # Kratos.Expression.LiteralExpressionIO.SetData(mask, 1.0)
                     mask = sensor.GetContainerExpression(self.mask_name)
 
                     # clear all the sensors
