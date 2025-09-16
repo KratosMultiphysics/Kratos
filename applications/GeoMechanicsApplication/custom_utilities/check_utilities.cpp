@@ -8,11 +8,16 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Gennady Markelov
+//                   Richard Faasse
 //
 
 // Project includes
 #include "check_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/exception.h"
+#include "tests/cpp_tests/test_utilities.h"
+
+#include <sstream>
 
 namespace Kratos
 {
@@ -25,65 +30,73 @@ void CheckUtilities::CheckDomainSize(double DomainSize, std::size_t Id, const st
         << min_domain_size << " for element " << Id << std::endl;
 }
 
-void CheckUtilities::CheckHasSolutionStepsDataFor(const Geometry<Node>& rGeometry, const VariableData& rVariable)
+void CheckUtilities::CheckHasNodalSolutionStepData(const Geometry<Node>&             rGeometry,
+                                                   const Geo::ConstVariableDataRefs& rVariableRefs)
 {
-    for (const auto& node : rGeometry) {
-        KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
-            << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
+    for (const auto& r_variable_ref : rVariableRefs) {
+        std::vector<std::size_t> missing_node_ids;
+        for (const auto& node : rGeometry) {
+            if (!node.SolutionStepsDataHas(r_variable_ref.get())) {
+                missing_node_ids.push_back(node.Id());
+            }
+        }
+        if (!missing_node_ids.empty())
+            KRATOS_ERROR << "Missing variable " << r_variable_ref.get().Name() << " on nodes "
+                         << PrintVectorContent(missing_node_ids) << std::endl;
     }
 }
 
-void CheckUtilities::CheckHasDofsFor(const Geometry<Node>& rGeometry, const Variable<double>& rVariable)
+void CheckUtilities::CheckHasDofs(const Geometry<Node>& rGeometry, const Geo::ConstVariableDataRefs& rVariableRefs)
 {
-    for (const auto& node : rGeometry) {
-        KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
-            << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
-            << std::endl;
+    for (const auto& r_variable_ref : rVariableRefs) {
+        std::vector<std::size_t> missing_node_ids;
+        for (const auto& node : rGeometry) {
+            if (!node.HasDofFor(r_variable_ref.get())) {
+                missing_node_ids.push_back(node.Id());
+            }
+        }
+
+        if (!missing_node_ids.empty())
+            KRATOS_ERROR << "Missing the DoF for the variable " << r_variable_ref.get().Name()
+                         << " on nodes " << PrintVectorContent(missing_node_ids) << std::endl;
     }
 }
 
-void CheckUtilities::CheckProperty(size_t                          Id,
-                                   const Properties&               rProperties,
-                                   const Kratos::Variable<double>& rVariable,
-                                   std::optional<double>           MaxValue)
+std::string CheckUtilities::PrintVectorContent(const std::vector<size_t>& rVector)
 {
-    KRATOS_ERROR_IF_NOT(rProperties.Has(rVariable))
-        << rVariable.Name() << " does not exist in the material properties (Id = " << rProperties.Id()
-        << ") at element " << Id << std::endl;
-    constexpr auto min_value = 0.0;
-    if (MaxValue.has_value()) {
-        KRATOS_ERROR_IF(rProperties[rVariable] < min_value || rProperties[rVariable] > MaxValue.value())
-            << rVariable.Name() << " of material Id = " << rProperties.Id() << " at element " << Id
-            << " has an invalid value " << rProperties[rVariable] << " which is outside of the range [ "
-            << min_value << ", " << MaxValue.value() << "]" << std::endl;
-    } else {
-        KRATOS_ERROR_IF(rProperties[rVariable] < min_value)
-            << rVariable.Name() << " of material Id = " << rProperties.Id() << " at element " << Id
-            << " has an invalid value " << rProperties[rVariable]
-            << " which is below the minimum allowed value of " << min_value << std::endl;
+    std::ostringstream oss;
+    for (const auto& r_value : rVector)
+        oss << r_value << " ";
+
+    std::string output = oss.str();
+    if (!output.empty()) output.pop_back();
+
+    return output;
+}
+
+void CheckProperties::CheckPermeabilityProperties(size_t Dimension) const
+{
+    const auto original_bounds_type = mRangeBoundsType;
+    SetNewRangeBounds(Bounds::InclusiveLowerAndExclusiveUpper);
+    Check(PERMEABILITY_XX);
+    if (Dimension > 1) {
+        Check(PERMEABILITY_YY);
+        Check(PERMEABILITY_XY);
     }
-}
-
-void CheckUtilities::CheckProperty(size_t                               Id,
-                                   const Properties&                    rProperties,
-                                   const Kratos::Variable<std::string>& rVariable,
-                                   const std::string&                   rName)
-{
-    KRATOS_ERROR_IF_NOT(rProperties.Has(rVariable))
-        << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
-    KRATOS_ERROR_IF_NOT(rProperties[rVariable] == rName)
-        << rVariable.Name() << " has a value of (" << rProperties[rVariable] << ") instead of ("
-        << rName << ") at element " << Id << std::endl;
-}
-
-void CheckUtilities::CheckForNonZeroZCoordinateIn2D(size_t Dimension, const Geometry<Node>& rGeometry)
-{
-    if (Dimension == 2) {
-        auto pos = std::find_if(rGeometry.begin(), rGeometry.end(),
-                                [](const auto& node) { return node.Z() != 0.0; });
-        KRATOS_ERROR_IF_NOT(pos == rGeometry.end())
-            << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
+    if (Dimension > 2) {
+        Check(PERMEABILITY_ZZ);
+        Check(PERMEABILITY_YZ);
+        Check(PERMEABILITY_ZX);
     }
+    mRangeBoundsType = original_bounds_type;
 }
 
+void CheckUtilities::CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeometry)
+{
+    auto pos = std::ranges::find_if(rGeometry, [](const auto& node) {
+        return std::abs(node.Z()) > Testing::Defaults::absolute_tolerance;
+    });
+    KRATOS_ERROR_IF_NOT(pos == rGeometry.end())
+        << "Node with Id: " << pos->Id() << " has non-zero Z coordinate." << std::endl;
+}
 } /* namespace Kratos.*/

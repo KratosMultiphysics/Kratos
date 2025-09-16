@@ -242,7 +242,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
     const auto p_geometry2 = std::make_shared<Line2D2<Node>>(CreateTwoNodes());
     const GeoSteadyStatePwPipingElement<2, 2> element1(1, p_geometry2, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element1.Check(dummy_process_info),
-                                      "Error: Missing variable WATER_PRESSURE on node 1")
+                                      "Missing variable WATER_PRESSURE on nodes 1 2")
 
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
@@ -250,40 +250,39 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
         CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithoutPWDofs(r_model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_new_element->Check(dummy_process_info),
-        "Error: Missing degree of freedom for WATER_PRESSURE on node 1")
+        "Missing the DoF for the variable WATER_PRESSURE on nodes 1 2")
 
     auto p_element2 =
         CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "DENSITY_WATER does not exist in the material properties (Id = 0) at element 2")
+        "DENSITY_WATER does not exist in the material properties at element with Id 2.")
     p_element2->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_element2->Check(dummy_process_info),
-        "DENSITY_WATER of material Id = 0 at element 2 has an invalid value -1000 which is below "
-        "the minimum allowed value of 0")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element2->Check(dummy_process_info),
+                                      "DENSITY_WATER in the material properties at element with Id "
+                                      "2 has an invalid value: -1000 is out of the range [0; -).")
     p_element2->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "DYNAMIC_VISCOSITY does not exist in the material properties (Id = 0) at element 2")
+        "DYNAMIC_VISCOSITY does not exist in the material properties at element with Id 2.")
     p_element2->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "DYNAMIC_VISCOSITY of material Id = 0 at element 2 has an invalid value -0.01 which is "
-        "below the minimum allowed value of 0")
+        "DYNAMIC_VISCOSITY in the material properties at element with Id 2 has an invalid value: "
+        "-0.01 is out of the range [0; -).")
     p_element2->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "PIPE_HEIGHT does not exist in the material properties (Id = 0) at element 2")
+        "PIPE_HEIGHT does not exist in the material properties at element with Id 2.")
     p_element2->GetProperties().SetValue(PIPE_HEIGHT, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element2->Check(dummy_process_info),
-                                      "PIPE_HEIGHT of material Id = 0 at element 2 has an invalid "
-                                      "value -1 which is below the minimum allowed value of 0")
+                                      "PIPE_HEIGHT in the material properties at element with Id 2 "
+                                      "has an invalid value: -1 is out of the range [0; -).")
     p_element2->GetProperties().SetValue(PIPE_HEIGHT, 1.0);
 
     p_element2->GetGeometry().begin()->Z() += 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element2->Check(dummy_process_info),
-                                      "Error: Node with non-zero Z coordinate found. Id: 1")
+                                      "Node with Id: 1 has non-zero Z coordinate.")
     p_element2->GetGeometry().begin()->Z() = 0;
 
     // No exceptions on correct input

@@ -110,14 +110,15 @@ public:
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
         switch (this->GetGeometry().GetGeometryOrderType()) {
-        case GeometryData::Kratos_Cubic_Order:
-            return this->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D10
-                       ? GeometryData::IntegrationMethod::GI_GAUSS_4
-                       : GeometryData::IntegrationMethod::GI_GAUSS_3;
-        case GeometryData::Kratos_Quartic_Order:
-            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+            using enum GeometryData::KratosGeometryOrderType;
+            using enum GeometryData::KratosGeometryType;
+            using enum GeometryData::IntegrationMethod;
+        case Kratos_Cubic_Order:
+            return this->GetGeometry().GetGeometryType() == Kratos_Triangle2D10 ? GI_GAUSS_4 : GI_GAUSS_3;
+        case Kratos_Quartic_Order:
+            return GI_GAUSS_5;
         default:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+            return GI_GAUSS_2;
         }
     }
 
@@ -125,13 +126,39 @@ public:
     {
         KRATOS_TRY
 
-        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
-        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), TEMPERATURE);
-        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), DT_TEMPERATURE);
-        CheckUtilities::CheckHasDofsFor(this->GetGeometry(), TEMPERATURE);
-        CheckProperties();
-        CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, this->GetGeometry());
+        const auto element_Id = this->Id();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), element_Id);
 
+        CheckUtilities::CheckHasNodalSolutionStepData(
+            GetGeometry(), {std::cref(TEMPERATURE), std::cref(DT_TEMPERATURE)});
+        CheckUtilities::CheckHasDofs(GetGeometry(), {std::cref(TEMPERATURE)});
+
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), element_Id);
+
+        CheckUtilities::CheckHasNodalSolutionStepData(
+            GetGeometry(), {std::cref(TEMPERATURE), std::cref(DT_TEMPERATURE)});
+        CheckUtilities::CheckHasDofs(GetGeometry(), {std::cref(TEMPERATURE)});
+
+        const PropertiesType& r_properties = this->GetProperties();
+        const CheckProperties check_properties(r_properties, "properties at thermal element",
+                                               element_Id, CheckProperties::Bounds::AllInclusive);
+        check_properties.Check(DENSITY_WATER);
+        constexpr auto max_value = 1.0;
+        check_properties.Check(POROSITY, max_value);
+        check_properties.Check(DENSITY_SOLID);
+        check_properties.Check(SPECIFIC_HEAT_CAPACITY_WATER);
+        check_properties.Check(SPECIFIC_HEAT_CAPACITY_SOLID);
+        check_properties.Check(THERMAL_CONDUCTIVITY_WATER);
+        check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XX);
+        check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_YY);
+        check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XY);
+
+        if constexpr (TDim == 3) {
+            check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_ZZ);
+            check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_YZ);
+            check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XZ);
+        }
+        if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(GetGeometry());
         KRATOS_CATCH("")
 
         return 0;
@@ -144,27 +171,6 @@ public:
 
 private:
     IntegrationCoefficientsCalculator mIntegrationCoefficientsCalculator;
-
-    void CheckProperties() const
-    {
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_WATER);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), POROSITY);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), RETENTION_LAW, "SaturatedLaw");
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), SATURATED_SATURATION);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_SOLID);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), SPECIFIC_HEAT_CAPACITY_WATER);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), SPECIFIC_HEAT_CAPACITY_SOLID);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_WATER);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_XX);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_YY);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_XY);
-
-        if constexpr (TDim == 3) {
-            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_ZZ);
-            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_YZ);
-            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), THERMAL_CONDUCTIVITY_SOLID_XZ);
-        }
-    }
 
     static void AddContributionsToLhsMatrix(MatrixType& rLeftHandSideMatrix,
                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& rConductivityMatrix,
@@ -234,7 +240,7 @@ private:
     {
         auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
-        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
+        std::ranges::transform(r_geometry, result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;

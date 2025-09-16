@@ -102,7 +102,6 @@ private:
             noalias(result) += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
                 shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
                 relative_permeability, integration_coefficients[integration_point_index]);
-
         }
         return result;
     }

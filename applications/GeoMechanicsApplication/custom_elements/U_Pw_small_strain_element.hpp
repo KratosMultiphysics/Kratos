@@ -189,9 +189,7 @@ protected:
         Matrix UVoigtMatrix;
     };
 
-    void SaveGPStress(Matrix& rStressContainer, const Vector& rStressVector, unsigned int GPoint);
-
-    void ExtrapolateGPValues(const Matrix& rStressContainer);
+    void ExtrapolateGPValues();
 
     void CalculateMaterialStiffnessMatrix(MatrixType&        rStiffnessMatrix,
                                           const ProcessInfo& CurrentProcessInfo) override;

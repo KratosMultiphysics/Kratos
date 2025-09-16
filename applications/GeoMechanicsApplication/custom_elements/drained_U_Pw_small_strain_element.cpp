@@ -13,6 +13,7 @@
 // Application includes
 #include "custom_elements/drained_U_Pw_small_strain_element.hpp"
 #include "custom_utilities/check_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -38,16 +39,6 @@ Element::Pointer DrainedUPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void DrainedUPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    UPwSmallStrainElement<TDim, TNumNodes>::InitializeSolutionStep(rCurrentProcessInfo);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -56,35 +47,16 @@ int DrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCur
     int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType&   Geom = this->GetGeometry();
+    const PropertiesType& r_properties = this->GetProperties();
+    const GeometryType&   r_geometry   = this->GetGeometry();
 
-    CheckUtilities::CheckDomainSize(Geom.DomainSize(), this->Id());
+    CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
-    // Verify specific properties
-
-    // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(this->GetProperties().Has(CONSTITUTIVE_LAW))
-        << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
-
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    if (TDim == 2) {
-        KRATOS_ERROR_IF(strain_size < 3 || strain_size > 4)
-            << "Wrong constitutive law used. This is a 2D element! expected "
-               "strain size is 3 or 4 (el id = ) "
-            << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 6)
-            << "Wrong constitutive law used. This is a 3D element! expected "
-               "strain size is 6 (el id = ) "
-            << this->Id() << std::endl;
-    }
-
-    // Check constitutive law
-    if (!mConstitutiveLawVector.empty()) {
-        return mConstitutiveLawVector[0]->Check(Prop, Geom, rCurrentProcessInfo);
-    }
+    const CheckProperties check_properties(r_properties, "property", CheckProperties::Bounds::AllExclusive);
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
+    ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
+    const auto expected_size = this->GetStressStatePolicy().GetVoigtSize();
+    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, this->Id());
 
     return ierr;
 
@@ -95,7 +67,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                        ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
 
@@ -107,7 +79,7 @@ void DrainedUPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorTyp
                                                                        ElementVariables& rVariables,
                                                                        unsigned int      GPoint)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector,
                                                                           rVariables, GPoint);

@@ -65,16 +65,9 @@ public:
         KRATOS_TRY
 
         if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING]) {
-            const unsigned int dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-            const auto stress_tensor_size = dim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D;
-
             // Clear nodal variables
-            block_for_each(rModelPart.Nodes(), [&stress_tensor_size](Node& rNode) {
-                rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-                Matrix& r_nodal_stress = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
-                if (r_nodal_stress.size1() != stress_tensor_size)
-                    r_nodal_stress.resize(stress_tensor_size, stress_tensor_size, false);
-                noalias(r_nodal_stress) = ZeroMatrix(stress_tensor_size, stress_tensor_size);
+            block_for_each(rModelPart.Nodes(), [](Node& rNode) {
+                rNode.FastGetSolutionStepValue(NODAL_AREA)            = 0.0;
                 rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
                 rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA)      = 0.0;
                 rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH)     = 0.0;
@@ -87,7 +80,6 @@ public:
             block_for_each(rModelPart.Nodes(), [](Node& rNode) {
                 if (const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA); nodal_area > 1.0e-20) {
                     const double inv_nodal_area = 1.0 / nodal_area;
-                    rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) *= inv_nodal_area;
                     rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= inv_nodal_area;
                 }
 

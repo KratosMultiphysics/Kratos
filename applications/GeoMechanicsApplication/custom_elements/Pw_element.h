@@ -289,15 +289,40 @@ public:
         CheckUtilities::CheckDomainSize(
             GetGeometry().DomainSize(), Id(),
             GetGeometry().LocalSpaceDimension() == 1 ? "Length" : std::optional<std::string>{});
-        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), WATER_PRESSURE);
-        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), DT_WATER_PRESSURE);
-        CheckUtilities::CheckHasSolutionStepsDataFor(this->GetGeometry(), VOLUME_ACCELERATION);
-        CheckUtilities::CheckHasDofsFor(this->GetGeometry(), WATER_PRESSURE);
-        CheckProperties();
-        CheckUtilities::CheckForNonZeroZCoordinateIn2D(TDim, this->GetGeometry());
-        if (!mRetentionLawVector.empty()) {
-            return mRetentionLawVector[0]->Check(this->GetProperties(), rCurrentProcessInfo);
+
+        const auto r_geometry = this->GetGeometry();
+        CheckUtilities::CheckHasNodalSolutionStepData(
+            r_geometry,
+            {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+        CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
+
+        const auto            r_properties = this->GetProperties();
+        const CheckProperties check_properties(r_properties, "material properties at element",
+                                               this->Id(), CheckProperties::Bounds::AllInclusive);
+        check_properties.Check(DENSITY_WATER);
+        check_properties.Check(DENSITY_SOLID);
+        constexpr auto max_value_porosity = 1.0;
+        check_properties.Check(POROSITY, max_value_porosity);
+        check_properties.Check(BULK_MODULUS_SOLID);
+        check_properties.Check(BULK_MODULUS_FLUID);
+        check_properties.Check(DYNAMIC_VISCOSITY);
+        check_properties.Check(BIOT_COEFFICIENT);
+        check_properties.Check(BULK_MODULUS_SOLID);
+
+        check_properties.Check(PERMEABILITY_XX);
+        if (GetGeometry().LocalSpaceDimension() > 1) {
+            check_properties.Check(PERMEABILITY_YY);
+            check_properties.Check(PERMEABILITY_XY);
+            if constexpr (TDim > 2) {
+                check_properties.Check(PERMEABILITY_ZZ);
+                check_properties.Check(PERMEABILITY_YZ);
+                check_properties.Check(PERMEABILITY_ZX);
+            }
         }
+        if (this->GetGeometry().WorkingSpaceDimension() == 2)
+            CheckUtilities::CheckForNonZeroZCoordinateIn2D(this->GetGeometry());
+
+        return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
 
@@ -338,28 +363,6 @@ private:
     Matrix                               mNContainer;
     Vector                               mDetJCcontainer;
     std::vector<double>                  mFluidPressures;
-
-    void CheckProperties() const
-    {
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_WATER);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DENSITY_SOLID);
-        constexpr auto max_value = 1.0;
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), POROSITY, max_value);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), BULK_MODULUS_SOLID);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), BULK_MODULUS_FLUID);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), DYNAMIC_VISCOSITY);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), BIOT_COEFFICIENT);
-        CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_XX);
-        if (GetGeometry().LocalSpaceDimension() > 1) {
-            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_YY);
-            CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_XY);
-            if constexpr (TDim > 2) {
-                CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_ZZ);
-                CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_YZ);
-                CheckUtilities::CheckProperty(this->Id(), this->GetProperties(), PERMEABILITY_ZX);
-            }
-        }
-    }
 
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {
