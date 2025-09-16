@@ -202,10 +202,8 @@ int InterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
             << "Number of integration points (" << mIntegrationScheme->GetNumberOfIntegrationPoints()
             << ") and constitutive laws (" << mConstitutiveLaws.size() << ") do not match.\n";
 
-        for (const auto& r_constitutive_law : mConstitutiveLaws) {
-            error = r_constitutive_law->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
-            if (error != 0) return error;
-        }
+        error = GetProperties()[CONSTITUTIVE_LAW]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+        return error;
     }
 
     return 0;
