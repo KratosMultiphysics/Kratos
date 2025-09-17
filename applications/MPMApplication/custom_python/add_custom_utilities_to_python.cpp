@@ -24,6 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/brute_force_material_point_locator.h"
 #include "custom_utilities/reaction_utilities.cpp"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "custom_utilities/mpm_volume_sum_utility.h"
@@ -70,6 +71,8 @@ namespace Python{
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
+        namespace py = pybind11;
+
         m.def("SearchElement", SearchElementAccordingToDimension, pybind11::arg("BackgroundGridModelPart"), pybind11::arg("MPMModelPart"), pybind11::arg("MaxNumberOfResults"), pybind11::arg("Tolerance"));
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension, pybind11::arg("BackgroundGridModelPart"),  pybind11::arg("InitialModelPart"), pybind11::arg("MPMModelPart"), pybind11::arg("IsMixedFormulation"));
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension, pybind11::arg("BackgroundGridModelPart"),  pybind11::arg("InitialModelPart"), pybind11::arg("MPMModelPart"));
@@ -89,8 +92,14 @@ namespace Python{
             .def("CalculateNonConformingReaction", &ReactionUtilities::CalculateNonConformingReaction)
             ;
 
+
+        // Brute force material point (element/condition) locator
+        py::class_<BruteForceMaterialPointLocator> (m, "BruteForceMaterialPointLocator")
+            .def(py::init<ModelPart& >())
+            .def("FindElement", &BruteForceMaterialPointLocator::FindElement)
+            .def("FindCondition", &BruteForceMaterialPointLocator::FindCondition)
+            ;
     }
 
 }  // namespace Python.
 } // Namespace Kratos
-
