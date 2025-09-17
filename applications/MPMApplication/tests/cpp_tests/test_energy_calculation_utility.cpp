@@ -21,9 +21,7 @@
 #include "mpm_application_variables.h"
 #include "containers/model.h"
 
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
     void PrepareModelPart(ModelPart& rModelPart)
     {
@@ -97,7 +95,7 @@ namespace Testing
         PrepareModelPart(r_model_part);
 
         // Check energy
-        MPMEnergyCalculationUtility::CalculateTotalEnergy(r_model_part);
+        MPMEnergyCalculationUtility().CalculateTotalEnergy(r_model_part);
 
         const std::size_t element_id = 1;
 
@@ -105,7 +103,7 @@ namespace Testing
         const ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_POTENTIAL_ENERGY, r_MP_PotentialEnergy, r_current_process_info);
-        
+
         std::vector<double> r_MP_KineticEnergy(1);
         r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_KINETIC_ENERGY, r_MP_KineticEnergy, r_current_process_info);
 
@@ -121,5 +119,4 @@ namespace Testing
         KRATOS_EXPECT_NEAR(r_MP_TotalEnergy[0]    , 29.225, 1e-6);
     }
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

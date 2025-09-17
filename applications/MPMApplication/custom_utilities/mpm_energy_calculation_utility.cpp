@@ -16,16 +16,12 @@
 // External includes
 
 // Project includes
+#include "utilities/reduction_utilities.h"
 #include "mpm_energy_calculation_utility.h"
 
 namespace Kratos
 {
-namespace MPMEnergyCalculationUtility
-{
-    /**
-     * @brief Assign and compute potential energy*
-     */
-    double CalculatePotentialEnergy(Element& rElement)
+    double MPMEnergyCalculationUtility::CalculatePotentialEnergy(Element& rElement)
     {
         const ProcessInfo& process_info = ProcessInfo();
 
@@ -45,19 +41,13 @@ namespace MPMEnergyCalculationUtility
         return mp_potential_energy;
     }
 
-    double CalculatePotentialEnergy(ModelPart& rModelPart)
+    double MPMEnergyCalculationUtility::CalculatePotentialEnergy(ModelPart& rModelPart)
     {
-        double model_part_potential_energy = 0.0;
-        for(SizeType i = 0; i < rModelPart.Elements().size(); ++i) {
-
-            auto element_itr = rModelPart.Elements().begin() + i;
-            model_part_potential_energy += CalculatePotentialEnergy(**(element_itr.base()));
-        }
-        return model_part_potential_energy;
+        return block_for_each<SumReduction<double>>(rModelPart.Elements(),
+                [&](auto& r_element) { return this->CalculatePotentialEnergy(r_element); });
     }
 
-     //Assign and compute kinetic energy
-    double CalculateKineticEnergy(Element& rElement)
+    double MPMEnergyCalculationUtility::CalculateKineticEnergy(Element& rElement)
     {
         const ProcessInfo& process_info = ProcessInfo();
 
@@ -74,19 +64,13 @@ namespace MPMEnergyCalculationUtility
         return MP_kinetic_energy;
     }
 
-    double CalculateKineticEnergy(ModelPart& rModelPart)
+    double MPMEnergyCalculationUtility::CalculateKineticEnergy(ModelPart& rModelPart)
     {
-        double model_part_kinetic_energy = 0.0;
-        for(SizeType i = 0; i < rModelPart.Elements().size(); ++i){
-
-            auto element_itr = rModelPart.Elements().begin() + i;
-            model_part_kinetic_energy += CalculateKineticEnergy(**(element_itr.base()));
-        }
-        return model_part_kinetic_energy;
+        return block_for_each<SumReduction<double>>(rModelPart.Elements(),
+                [&](auto& r_element) { return this->CalculateKineticEnergy(r_element); });
     }
 
-     //Assign and compute strain energy
-    double CalculateStrainEnergy(Element& rElement)
+    double MPMEnergyCalculationUtility::CalculateStrainEnergy(Element& rElement)
     {
         const ProcessInfo& process_info = ProcessInfo();
 
@@ -108,23 +92,13 @@ namespace MPMEnergyCalculationUtility
         return mp_strain_energy;
     }
 
-    double CalculateStrainEnergy(ModelPart& rModelPart)
+    double MPMEnergyCalculationUtility::CalculateStrainEnergy(ModelPart& rModelPart)
     {
-        double model_part_strain_energy = 0.0;
-        for(SizeType i = 0; i < rModelPart.Elements().size(); ++i){
-
-            auto element_itr = rModelPart.Elements().begin() + i;
-            model_part_strain_energy += CalculateStrainEnergy(**(element_itr.base()));
-        }
-        return model_part_strain_energy;
+        return block_for_each<SumReduction<double>>(rModelPart.Elements(),
+                [&](auto& r_element) { return this->CalculateStrainEnergy(r_element); });
     }
 
-    /**
-     * @brief Assign and compute total energy
-     * @details Compute total energy inside material point, summing potential, kinetic and strain energy
-     *
-     */
-    double CalculateTotalEnergy(Element& rElement)
+    double MPMEnergyCalculationUtility::CalculateTotalEnergy(Element& rElement)
     {
         const double r_MP_potential_energy = CalculatePotentialEnergy(rElement);
         const double r_MP_kinetic_energy   = CalculateKineticEnergy(rElement);
@@ -133,20 +107,10 @@ namespace MPMEnergyCalculationUtility
         return (r_MP_potential_energy + r_MP_kinetic_energy + r_MP_strain_energy);
     }
 
-
-    double CalculateTotalEnergy(ModelPart& rModelPart)
+    double MPMEnergyCalculationUtility::CalculateTotalEnergy(ModelPart& rModelPart)
     {
-        double model_part_total_energy = 0.0;
-        for(SizeType i = 0; i < rModelPart.Elements().size(); ++i){
-
-            auto element_itr = rModelPart.Elements().begin() + i;
-            model_part_total_energy += CalculateTotalEnergy(**(element_itr.base()));
-        }
-        return model_part_total_energy;
+        return block_for_each<SumReduction<double>>(rModelPart.Elements(),
+                [&](auto& r_element) { return this->CalculateTotalEnergy(r_element); });
     }
 
-} // end namespace MPMEnergyCalculationUtility
-
 } // end namespace Kratos
-
-
