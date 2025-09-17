@@ -113,23 +113,16 @@ public:
     }
 
     template <typename T, typename Eq>
-    requires(std::is_same_v<T, int>) void CheckAvailabilityAndEquality(const Kratos::Variable<T>& rVariable,
-                                                                       const Eq& rName) const
+    void CheckAvailabilityAndEquality(const Kratos::Variable<T>& rVariable, const Eq& rName) const
     {
         CheckAvailability(rVariable);
+        std::string quotes = "";
+        if constexpr (std::is_same_v<T, std::string>) {
+            quotes = "\"";
+        }
         KRATOS_ERROR_IF_NOT(mrProperties[rVariable] == rName)
-            << rVariable.Name() << " has a value of " << mrProperties[rVariable] << " instead of "
-            << rName << " at element " << mId << "." << std::endl;
-    }
-
-    template <typename T, typename Eq>
-    requires(std::is_same_v<T, std::string>) void CheckAvailabilityAndEquality(const Kratos::Variable<T>& rVariable,
-                                                                               const Eq& rName) const
-    {
-        CheckAvailability(rVariable);
-        KRATOS_ERROR_IF_NOT(mrProperties[rVariable] == rName)
-            << rVariable.Name() << " has a value of \"" << mrProperties[rVariable]
-            << "\" instead of \"" << rName << "\" at element " << mId << "." << std::endl;
+            << rVariable.Name() << " has a value of " << quotes << mrProperties[rVariable] << quotes
+            << " instead of " << quotes << rName << quotes << " at element " << mId << "." << std::endl;
     }
 
     template <typename T>
@@ -182,12 +175,35 @@ private:
                 UpperBound && ((mRangeBoundsType == AllInclusive) ||
                                (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper));
             print_range << (include_lower_bound ? "[" : "(") << LowerBound << ", "
-                        << (UpperBound ? std::format("{:g}", *UpperBound) : "-")
+                        << (UpperBound ? format_double_no_trailing_zeros(*UpperBound) : "-")
                         << (include_upper_bound ? "]" : ")");
             KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " with Id " << mId
                          << " has an invalid value: " << value << " is out of the range "
                          << print_range.str() << "." << std::endl;
         }
+    }
+
+    // instead of c++20 std::format(:g)
+    std::string format_double_no_trailing_zeros(double value) const
+    {
+        std::ostringstream oss;
+
+        oss << value;
+
+        // Convert the result to a string
+        std::string result = oss.str();
+
+        // Remove trailing zeros
+        if (result.find('.') != std::string::npos) {
+            // Remove trailing zeros after the decimal point
+            result.erase(result.find_last_not_of('0') + 1, std::string::npos);
+            // If there's a decimal point left at the end (after removing zeros), remove it
+            if (result.back() == '.') {
+                result.pop_back();
+            }
+        }
+
+        return result;
     }
 };
 

@@ -95,8 +95,7 @@ double ApplyCPhiReductionProcess::GetAndCheckPhi(const Element::PropertiesType& 
     const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(part_properties);
     KRATOS_ERROR_IF(phi < 0. || phi > 90.)
         << "Friction angle Phi in the model part property with Id " << rProp.Id()
-        << " has an invalid value: " << std::format("{:e}", phi)
-        << " is out of range [0,90] (degrees)." << std::endl;
+        << " has an invalid value: " << phi << " is out of range [0,90] (degrees)." << std::endl;
     return phi;
 }
 

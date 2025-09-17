@@ -133,11 +133,11 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     umat_parameters(3) = -0.0001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()), "Friction angle Phi in the model part property with Id 0 has an invalid value: -1.000000e-04 is out of range [0,90] (degrees).")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()), "Friction angle Phi in the model part property with Id 0 has an invalid value: -0.0001 is out of range [0,90] (degrees).")
 
-    umat_parameters(3) = 90.00001;
+    umat_parameters(3) = 90.0001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()), "Friction angle Phi in the model part property with Id 0 has an invalid value: 9.000001e+01 is out of range [0,90] (degrees).")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()), "Friction angle Phi in the model part property with Id 0 has an invalid value: 90.0001 is out of range [0,90] (degrees).")
 
     umat_parameters(3) = 25.0;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
