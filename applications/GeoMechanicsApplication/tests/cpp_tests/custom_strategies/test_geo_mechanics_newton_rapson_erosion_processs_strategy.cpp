@@ -151,14 +151,12 @@ auto SetupPipingStrategy(Model& rModel)
 
     // Create other piping elements
     p_piping_element = make_intrusive<GeoSteadyStatePwPipingElement<2, 2>>(
-        2, CreateLine2D2N(r_model_part, std::vector{3, 4}, 2.0, 3.0, 500.0, 1000.0),
-        p_piping_element_props);
+        2, CreateLine2D2N(r_model_part, std::vector{3, 4}, 2.0, 3.0, 500.0, 1000.0), p_piping_element_props);
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
     p_piping_element = make_intrusive<GeoSteadyStatePwPipingElement<2, 2>>(
-        3, CreateLine2D2N(r_model_part, std::vector{5, 6}, 1.0, 2.0, 1000.0, 1500.0),
-        p_piping_element_props);
+        3, CreateLine2D2N(r_model_part, std::vector{5, 6}, 1.0, 2.0, 1000.0, 1500.0), p_piping_element_props);
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
