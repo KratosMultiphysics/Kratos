@@ -157,21 +157,22 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsElementId, Kra
     // Arrange
     auto                  properties = Properties{};
     constexpr auto        element_Id = 1;
-    const CheckProperties check_properties(properties, "property at element", element_Id,
+    const CheckProperties check_properties(properties, "property", element_Id,
                                            CheckProperties::Bounds::AllInclusive);
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         check_properties.CheckAvailability(UDSM_NAME),
-        "UDSM_NAME does not exist in the property at element with Id 1.")
+        "UDSM_NAME does not exist in the property with Id 0 at element with Id 1.")
     properties.SetValue(UDSM_NAME, "");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityAndNotEmpty(UDSM_NAME),
-                                      "UDSM_NAME is empty in the property at element with Id 1.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckAvailabilityAndNotEmpty(UDSM_NAME),
+        "UDSM_NAME is empty in the property with Id 0 at element with Id 1.");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         check_properties.CheckAvailability(UDSM_NUMBER),
-        "UDSM_NUMBER does not exist in the property at element with Id 1.")
+        "UDSM_NUMBER does not exist in the property with Id 0 at element with Id 1.")
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         check_properties.CheckAvailability(IS_FORTRAN_UDSM),
-        "IS_FORTRAN_UDSM does not exist in the property at element with Id 1.")
+        "IS_FORTRAN_UDSM does not exist in the property with Id 0 at element with Id 1.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckIntegerProperty, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -202,13 +203,14 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckAvailabilityAndEquality, KratosGeo
     // Act and Assert
     properties.SetValue(UDSM_NUMBER, 3);
     EXPECT_NO_THROW(check_properties.CheckAvailabilityAndEquality(UDSM_NUMBER, 3));
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityAndEquality(UDSM_NUMBER, 5),
-                                      "UDSM_NUMBER has a value of 3 instead of 5 at element 0.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        check_properties.CheckAvailabilityAndEquality(UDSM_NUMBER, 5),
+        "UDSM_NUMBER has a value of 3 instead of 5 in the property with Id 0.");
 
     properties.SetValue(RETENTION_LAW, "SaturatedLaw");
     EXPECT_NO_THROW(check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SaturatedLaw"));
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "VanGenuchtenLaw"), "RETENTION_LAW has a value of \"SaturatedLaw\" instead of \"VanGenuchtenLaw\" at element 0.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "VanGenuchtenLaw"), "RETENTION_LAW has a value of \"SaturatedLaw\" instead of \"VanGenuchtenLaw\" in the property with Id 0.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesThrowsErrorsForWrongProperties,
