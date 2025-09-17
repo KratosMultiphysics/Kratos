@@ -57,13 +57,13 @@ ModelPart& CreateModelPart3D6NInterface(Model& rModel)
 
 class ParametrizedFindNeighbouringElementsForDifferentTypesAndOrderingsFixture
     : public ::testing::TestWithParam<
-          std::tuple<std::vector<std::size_t>, std::function<Condition::Pointer(const PointerVector<Node>&)>, std::function<ModelPart&(Model&)>>>
+          std::tuple<std::vector<std::size_t>, std::string, std::function<ModelPart&(Model&)>>>
 {
 };
 
 TEST_P(ParametrizedFindNeighbouringElementsForDifferentTypesAndOrderingsFixture, NeighboursAreFoundForDifferentNodeOrderings)
 {
-    const auto& [order, condition_creator, model_part_creator] = GetParam();
+    const auto& [order, condition_type, model_part_creator] = GetParam();
 
     Model model;
     auto& r_model_part = model_part_creator(model);
@@ -73,7 +73,7 @@ TEST_P(ParametrizedFindNeighbouringElementsForDifferentTypesAndOrderingsFixture,
         nodes.push_back(r_model_part.pGetNode(r_node_id));
     }
 
-    auto p_condition = condition_creator(nodes);
+    auto p_condition = ElementSetupUtilities::CreateCondition(condition_type, nodes);
     r_model_part.AddCondition(p_condition);
 
     FindNeighbourElementsOfConditionsProcess process(r_model_part);
@@ -87,27 +87,27 @@ INSTANTIATE_TEST_SUITE_P(
     KratosGeoMechanicsFastSuiteWithoutKernel,
     ParametrizedFindNeighbouringElementsForDifferentTypesAndOrderingsFixture,
     ::testing::Values(
-        std::make_tuple(std::vector<std::size_t>{1, 3, 2}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D4N),
-        std::make_tuple(std::vector<std::size_t>{2, 1, 3}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D4N),
-        std::make_tuple(std::vector<std::size_t>{3, 2, 1}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D4N),
-        std::make_tuple(std::vector<std::size_t>{4, 3, 2, 1}, ElementSetupUtilities::Create3D4NCondition, CreateModelPart3D8N),
-        std::make_tuple(std::vector<std::size_t>{1, 4, 3, 2}, ElementSetupUtilities::Create3D4NCondition, CreateModelPart3D8N),
-        std::make_tuple(std::vector<std::size_t>{2, 1, 4, 3}, ElementSetupUtilities::Create3D4NCondition, CreateModelPart3D8N),
-        std::make_tuple(std::vector<std::size_t>{3, 2, 1, 4}, ElementSetupUtilities::Create3D4NCondition, CreateModelPart3D8N),
-        std::make_tuple(std::vector<std::size_t>{1, 3, 2, 7, 6, 5}, ElementSetupUtilities::Create3D6NCondition, CreateModelPart3D10N),
-        std::make_tuple(std::vector<std::size_t>{2, 1, 3, 5, 7, 6}, ElementSetupUtilities::Create3D6NCondition, CreateModelPart3D10N),
-        std::make_tuple(std::vector<std::size_t>{3, 2, 1, 6, 5, 7}, ElementSetupUtilities::Create3D6NCondition, CreateModelPart3D10N),
-        std::make_tuple(std::vector<std::size_t>{4, 3, 2, 1, 11, 10, 9, 12}, ElementSetupUtilities::Create3D8NCondition, CreateModelPart3D20N),
-        std::make_tuple(std::vector<std::size_t>{1, 4, 3, 2, 12, 11, 10, 9}, ElementSetupUtilities::Create3D8NCondition, CreateModelPart3D20N),
-        std::make_tuple(std::vector<std::size_t>{2, 1, 4, 3, 9, 12, 11, 10}, ElementSetupUtilities::Create3D8NCondition, CreateModelPart3D20N),
-        std::make_tuple(std::vector<std::size_t>{3, 2, 1, 4, 10, 9, 12, 11}, ElementSetupUtilities::Create3D8NCondition, CreateModelPart3D20N),
-        std::make_tuple(std::vector<std::size_t>{1, 2, 3}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface),
-        std::make_tuple(std::vector<std::size_t>{3, 1, 2}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface),
-        std::make_tuple(std::vector<std::size_t>{2, 3, 1}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface),
-        std::make_tuple(std::vector<std::size_t>{1}, ElementSetupUtilities::Create3D1NCondition, CreateModelPart3D6NInterface),
-        std::make_tuple(std::vector<std::size_t>{1, 2, 9}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D20N),
-        std::make_tuple(std::vector<std::size_t>{7, 8, 19}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D20N),
-        std::make_tuple(std::vector<std::size_t>{1, 2}, ElementSetupUtilities::Create2D2NCondition, CreateModelPart2D2N)));
+        std::make_tuple(std::vector<std::size_t>{1, 3, 2}, "3D3NCondition", CreateModelPart3D4N),
+        std::make_tuple(std::vector<std::size_t>{2, 1, 3}, "3D3NCondition", CreateModelPart3D4N),
+        std::make_tuple(std::vector<std::size_t>{3, 2, 1}, "3D3NCondition", CreateModelPart3D4N),
+        std::make_tuple(std::vector<std::size_t>{4, 3, 2, 1}, "3D4NCondition", CreateModelPart3D8N),
+        std::make_tuple(std::vector<std::size_t>{1, 4, 3, 2}, "3D4NCondition", CreateModelPart3D8N),
+        std::make_tuple(std::vector<std::size_t>{2, 1, 4, 3}, "3D4NCondition", CreateModelPart3D8N),
+        std::make_tuple(std::vector<std::size_t>{3, 2, 1, 4}, "3D4NCondition", CreateModelPart3D8N),
+        std::make_tuple(std::vector<std::size_t>{1, 3, 2, 7, 6, 5}, "3D6NCondition", CreateModelPart3D10N),
+        std::make_tuple(std::vector<std::size_t>{2, 1, 3, 5, 7, 6}, "3D6NCondition", CreateModelPart3D10N),
+        std::make_tuple(std::vector<std::size_t>{3, 2, 1, 6, 5, 7}, "3D6NCondition", CreateModelPart3D10N),
+        std::make_tuple(std::vector<std::size_t>{4, 3, 2, 1, 11, 10, 9, 12}, "3D8NCondition", CreateModelPart3D20N),
+        std::make_tuple(std::vector<std::size_t>{1, 4, 3, 2, 12, 11, 10, 9}, "3D8NCondition", CreateModelPart3D20N),
+        std::make_tuple(std::vector<std::size_t>{2, 1, 4, 3, 9, 12, 11, 10}, "3D8NCondition", CreateModelPart3D20N),
+        std::make_tuple(std::vector<std::size_t>{3, 2, 1, 4, 10, 9, 12, 11}, "3D8NCondition", CreateModelPart3D20N),
+        std::make_tuple(std::vector<std::size_t>{1, 2, 3}, "3D3NCondition", CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{3, 1, 2}, "3D3NCondition", CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{2, 3, 1}, "3D3NCondition", CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{1}, "3D1NCondition", CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{1, 2, 9}, "3D3NCondition", CreateModelPart3D20N),
+        std::make_tuple(std::vector<std::size_t>{7, 8, 19}, "3D3NCondition", CreateModelPart3D20N),
+        std::make_tuple(std::vector<std::size_t>{1, 2}, "2D2NCondition", CreateModelPart2D2N)));
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestFindNeighboursForMultipleConditionsOnTheSameNodes)
 {

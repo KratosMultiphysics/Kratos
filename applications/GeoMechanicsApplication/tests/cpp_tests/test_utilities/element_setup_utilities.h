@@ -42,6 +42,7 @@ public:
     static Element::Pointer Create2D2NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
 
+    static Condition::Pointer CreateCondition(const std::string& rType, const PointerVector<Node>& rNodes);
     static Condition::Pointer Create3D3NCondition(const PointerVector<Node>& rNodes);
 
     static Condition::Pointer Create3D4NCondition(const PointerVector<Node>& rNodes);

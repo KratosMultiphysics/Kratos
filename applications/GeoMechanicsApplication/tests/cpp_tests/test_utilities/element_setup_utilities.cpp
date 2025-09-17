@@ -55,6 +55,20 @@ PointerVector<Node> GenerateNodes(const std::vector<Point>& rPoints)
 namespace Kratos::Testing
 {
 
+Condition::Pointer ElementSetupUtilities::CreateCondition(const std::string&         rType,
+                                                          const PointerVector<Node>& rNodes)
+{
+    if (rType == "3D3NCondition") return Create3D3NCondition(rNodes);
+    if (rType == "3D4NCondition") return Create3D4NCondition(rNodes);
+    if (rType == "3D6NCondition") return Create3D6NCondition(rNodes);
+    if (rType == "3D8NCondition") return Create3D8NCondition(rNodes);
+    if (rType == "3D1NCondition") return Create3D1NCondition(rNodes);
+    if (rType == "2D2NCondition") return Create2D2NCondition(rNodes);
+    if (rType == "3D3NLineCondition") return Create3D3NLineCondition(rNodes);
+
+    KRATOS_ERROR << "Condition type " << rType << " not recognized.";
+}
+
 std::vector<Point> ElementSetupUtilities::CreatePointsFor2D2NElement()
 {
     return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}};
