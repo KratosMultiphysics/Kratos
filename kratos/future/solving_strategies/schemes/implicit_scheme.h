@@ -368,51 +368,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    //TODO: Think on how to do the overloads for the mass and damping matrices
-    /**
-     * @brief Allocate the system arrays
-     * This method calls the builder to allocate the linear system arrays
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
-     */
-    virtual void AllocateLinearSystem(
-        const DofsArrayType::Pointer pDofSet,
-        const DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
-    {
-        KRATOS_TRY
-
-        // Call the builder to allocate and initialize the required arrays
-        BuiltinTimer lin_system_allocation_time;
-        (this->GetBuilder()).AllocateLinearSystem(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 2) << "Linear system arrays allocation time: " << lin_system_allocation_time << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Allocate the linear system constraints arrays
-     * This method calls the builder to allocate the linear system constraints arrays
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
-     */
-    virtual void AllocateLinearSystemConstraints(
-        const DofsArrayType::Pointer pDofSet,
-        const DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
-    {
-        KRATOS_TRY
-
-        // Call the builder to set the master-slave constraints structure
-        BuiltinTimer system_constraints_allocation_time;
-        (this->GetBuilder()).AllocateLinearSystemConstraints(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
-        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() >= 2) << "System constraints allocation time: " << system_constraints_allocation_time << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
     virtual void Build(
         TSparseMatrixType& rLHS,
         TSystemVectorType& rRHS)
@@ -1459,24 +1414,24 @@ protected:
         // Setting up the DOFs list
         BuiltinTimer setup_dofs_time;
         auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(pDofSet, pEffectiveDofSet);
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
         // Set up the equation ids
         BuiltinTimer setup_system_ids_time;
         this->SetUpSystemIds(pDofSet, pEffectiveDofSet);
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_ids_time << std::endl;
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << eff_eq_system_size << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_ids_time << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << eff_eq_system_size << std::endl;
 
         // Allocating the system constraints arrays
         BuiltinTimer constraints_allocation_time;
-        this->AllocateLinearSystemConstraints(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
+        (this->GetBuilder()).AllocateLinearSystemConstraints(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
 
-        // Allocating the system vectors to their correct sizes
+        // Call the builder to allocate and initialize the system vectors
         BuiltinTimer linear_system_allocation_time;
-        this->AllocateLinearSystem(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
+        (this->GetBuilder()).AllocateLinearSystem(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1497,11 +1452,6 @@ protected:
             // The element is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalEqIds.clear();
-            rTLS.LocalVector.clear();
-            rTLS.LocalMatrix.clear();
-
             // The element is inactive and is not to be assembled
             return false;
         }
@@ -1523,10 +1473,6 @@ protected:
             // The element is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalEqIds.clear();
-            rTLS.LocalVector.clear();
-
             // The element is inactive and is not to be assembled
             return false;
         }
@@ -1548,10 +1494,6 @@ protected:
             // The element is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalEqIds.clear();
-            rTLS.LocalMatrix.clear();
-
             // The element is inactive and is not to be assembled
             return false;
         }
@@ -1573,10 +1515,6 @@ protected:
             // The element is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalEqIds.clear();
-            rTLS.LocalMatrix.clear();
-
             // The element is inactive and is not to be assembled
             return false;
         }
@@ -1598,10 +1536,6 @@ protected:
             // The element is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalEqIds.clear();
-            rTLS.LocalMatrix.clear();
-
             // The element is inactive and is not to be assembled
             return false;
         }
@@ -1619,10 +1553,6 @@ protected:
             // The constraint is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalVector.clear();
-            rTLS.LocalMatrix.clear();
-
             // The constraint is inactive and is not to be assembled
             return false;
         }
