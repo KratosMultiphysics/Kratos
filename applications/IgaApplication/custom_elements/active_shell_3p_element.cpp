@@ -480,42 +480,65 @@ namespace Kratos
             }
         }
 
-    // === Erweiterung: Matrix und Vektor auf neue Größe bringen ===
-    if (CalculateStiffnessMatrixFlag) {
-        if (rLeftHandSideMatrix.size1() != u + 6 || rLeftHandSideMatrix.size2() != u + 6) {
-            MatrixType extended_matrix(u + 6, u + 6, 0.0);
+        MatrixType k_act_col(u, 6, 0.0);
+        BuildActuationColumnMatrix(k_act_col, u, 6);
 
-            // Kopiere die bestehende Matrix in den linken oberen Block
-            for (SizeType i = 0; i < u; ++i)
-                for (SizeType j = 0; j < u; ++j)
-                    extended_matrix(i, j) = rLeftHandSideMatrix(i, j);
+        MatrixType k_act_diag(6, 6, 0.0);
+        BuildActuationDiagonalMatrix(k_act_diag, 6);
 
-            // Rechts unten: Identitätsmatrix (6 x 6)
-            for (SizeType i = 0; i < 6; ++i)
-                extended_matrix(u + i, u + i) = 1.0;
+        // === Erweiterung: Matrix und Vektor auf neue Größe bringen ===
+        if (CalculateStiffnessMatrixFlag) {
+            if (rLeftHandSideMatrix.size1() != u + 6 || rLeftHandSideMatrix.size2() != u + 6) {
+                MatrixType extended_matrix(u + 6, u + 6, 0.0);
 
-            rLeftHandSideMatrix.swap(extended_matrix);
+                // Kopiere die bestehende Matrix in den linken oberen Block
+                for (SizeType i = 0; i < u; ++i)
+                    for (SizeType j = 0; j < u; ++j)
+                        extended_matrix(i, j) = rLeftHandSideMatrix(i, j);
+
+
+
+                // Rechte obere Ecke: k_act_col
+                for (SizeType i = 0; i < u; ++i)
+                    for (SizeType j = 0; j < 6; ++j)
+                        extended_matrix(i, u + j) = k_act_col(i, j);
+                
+                // Linke untere Ecke: k_act_col^T
+                for (SizeType i = 0; i < 6; ++i)
+                    for (SizeType j = 0; j < u; ++j)
+                        extended_matrix(u + i, j) = k_act_col(j, i); // Transposed
+
+                // Untere rechte Ecke: k_act_diag
+                for (SizeType i = 0; i < 6; ++i)
+                    for (SizeType j = 0; j < 6; ++j)
+                        extended_matrix(u + i, u + j) = k_act_diag(i, j);
+
+                // Rechts unten: Identitätsmatrix (6 x 6)
+                for (SizeType i = 0; i < 6; ++i)
+                    extended_matrix(u + i, u + i) = 1.0;
+
+                rLeftHandSideMatrix.swap(extended_matrix);
+            }
         }
-    }
 
-    if (CalculateResidualVectorFlag) {
-        if (rRightHandSideVector.size() != u + 6) {
-            VectorType extended_vector(u + 6, 0.0);
+        if (CalculateResidualVectorFlag) {
+            if (rRightHandSideVector.size() != u + 6) {
+                VectorType extended_vector(u + 6, 0.0);
 
-            for (SizeType i = 0; i < u; ++i)
-                extended_vector[i] = rRightHandSideVector[i];
+                for (SizeType i = 0; i < u; ++i)
+                    extended_vector[i] = rRightHandSideVector[i];
 
-            // Unten: Aktuierungsparameter
-            extended_vector[u + 0] = mACTUATION_ALPHA;
-            extended_vector[u + 1] = mACTUATION_BETA;
-            extended_vector[u + 2] = mACTUATION_GAMMA;
-            extended_vector[u + 3] = mACTUATION_KAPPA_1;
-            extended_vector[u + 4] = mACTUATION_KAPPA_2;
-            extended_vector[u + 5] = mACTUATION_KAPPA_12;
+                // Unten: Aktuierungsparameter
+                extended_vector[u + 0] = mACTUATION_ALPHA;
+                extended_vector[u + 1] = mACTUATION_BETA;
+                extended_vector[u + 2] = mACTUATION_GAMMA;
+                extended_vector[u + 3] = mACTUATION_KAPPA_1;
+                extended_vector[u + 4] = mACTUATION_KAPPA_2;
+                extended_vector[u + 5] = mACTUATION_KAPPA_12;
 
-            rRightHandSideVector.swap(extended_vector);
+                rRightHandSideVector.swap(extended_vector);
+            }
         }
-    }
 
         KRATOS_CATCH("");
     }
@@ -1181,6 +1204,19 @@ namespace Kratos
             }
         }
     }
+
+    void ActiveShell3pElement::BuildActuationColumnMatrix(MatrixType& rMatrix, const SizeType u, const SizeType k) const
+    {
+        // rMatrix.resize(u, k, false); // falls nicht schon richtig
+        // ... Berechnung von k_act_col ...
+    }
+
+    void ActiveShell3pElement::BuildActuationDiagonalMatrix(MatrixType& rMatrix, const SizeType k) const
+    {
+        // rMatrix.resize(k, k, false); // falls nicht schon richtig
+        // ... Berechnung von k_act_diag ...
+}
+
 
     ///@}
     ///@name Stress recovery

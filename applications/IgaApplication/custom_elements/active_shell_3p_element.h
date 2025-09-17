@@ -503,6 +503,11 @@ private:
         const Vector& rSD,
         const double IntegrationWeight) const;
 
+    void BuildActuationColumnMatrix(MatrixType& rMatrix, const SizeType u, const SizeType k) const;
+    
+    void BuildActuationDiagonalMatrix(MatrixType& rMatrix, const SizeType k) const;
+
+
     // Calculation of the PK2 stress
     void CalculatePK2Stress(
         const IndexType IntegrationPointIndex,
