@@ -27,8 +27,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
     FindNeighbouringElementsForAllBoundaryTypes();
 
     if (!AllConditionsHaveAtLeastOneNeighbour()) {
-        ReportConditionsWithoutNeighbours();
-        KRATOS_ERROR << "Some conditions found without any corresponding element" << std::endl;
+        ReportConditionsWithoutNeighboursAndThrow();
     }
 }
 
@@ -177,15 +176,21 @@ bool FindNeighbourElementsOfConditionsProcess::AllConditionsHaveAtLeastOneNeighb
     });
 }
 
-void FindNeighbourElementsOfConditionsProcess::ReportConditionsWithoutNeighbours() const
+void FindNeighbourElementsOfConditionsProcess::ReportConditionsWithoutNeighboursAndThrow() const
 {
     std::vector<Condition> conditions_without_neighbours;
     std::ranges::copy_if(
         mrModelPart.Conditions(), std::back_inserter(conditions_without_neighbours),
         [](const auto& rCondition) { return rCondition.GetValue(NEIGHBOUR_ELEMENTS).size() == 0; });
-    for (const auto& r_condition : conditions_without_neighbours) {
-        KRATOS_INFO("Condition without any corresponding element, ID ") << r_condition.Id() << std::endl;
-    }
+
+    std::vector<std::size_t> ids_of_conditions_without_neighbours;
+    std::ranges::transform(conditions_without_neighbours,
+                           std::back_inserter(ids_of_conditions_without_neighbours),
+                           [](const auto& rCondition) { return rCondition.Id(); });
+
+    KRATOS_ERROR << "The condition(s) with the following ID(s) is/are found without any "
+                    "corresponding element: "
+                 << ids_of_conditions_without_neighbours << std::endl;
 }
 
 std::vector<std::size_t> FindNeighbourElementsOfConditionsProcess::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry)

@@ -142,7 +142,8 @@ TEST_P(ParametrizedFindNeighbouring3D4NElementsThrowsWhenNotFoundFixture, Proces
     FindNeighbourElementsOfConditionsProcess process(r_model_part);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Execute(),
-                                      "Some conditions found without any corresponding element");
+                                      "The condition(s) with the following ID(s) is/are found "
+                                      "without any corresponding element: [1]");
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
