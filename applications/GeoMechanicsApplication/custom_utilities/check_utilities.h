@@ -102,8 +102,8 @@ public:
     void CheckAvailability(const Variable<T>& rVariable) const
     {
         if (!mrProperties.Has(rVariable))
-            KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName << " with Id "
-                         << mrProperties.Id() << print_element_id() << "." << std::endl;
+            KRATOS_ERROR << rVariable.Name() << " does not exist" << print_property_id()
+                         << print_element_id() << "." << std::endl;
     }
 
     template <typename T>
@@ -111,8 +111,8 @@ public:
     {
         CheckAvailability(rVariable);
         if (mrProperties[rVariable].empty())
-            KRATOS_ERROR << rVariable.Name() << " is empty in the " << mrPrintName << " with Id "
-                         << mrProperties.Id() << print_element_id() << "." << std::endl;
+            KRATOS_ERROR << rVariable.Name() << " is empty" << print_property_id()
+                         << print_element_id() << "." << std::endl;
     }
 
     template <typename T, typename Eq>
@@ -125,8 +125,8 @@ public:
         }
         KRATOS_ERROR_IF_NOT(mrProperties[rVariable] == rName)
             << rVariable.Name() << " has a value of " << quotes << mrProperties[rVariable] << quotes
-            << " instead of " << quotes << rName << quotes << " in the " << mrPrintName
-            << " with Id " << mrProperties.Id() << print_element_id() << "." << std::endl;
+            << " instead of " << quotes << rName << quotes << print_property_id()
+            << print_element_id() << "." << std::endl;
     }
 
     template <typename T>
@@ -134,8 +134,8 @@ public:
     {
         CheckAvailability(rVariable);
         if (!mrProperties[rVariable])
-            KRATOS_ERROR << rVariable.Name() << " needs to be specified in the " << mrPrintName
-                         << " with Id " << mrProperties.Id() << print_element_id() << "." << std::endl;
+            KRATOS_ERROR << rVariable.Name() << " needs to be specified" << print_property_id()
+                         << print_element_id() << "." << std::endl;
     }
 
     void CheckPermeabilityProperties(size_t Dimension) const;
@@ -181,9 +181,9 @@ private:
             print_range << (include_lower_bound ? "[" : "(") << LowerBound << ", "
                         << (UpperBound ? format_double_no_trailing_zeros(*UpperBound) : "-")
                         << (include_upper_bound ? "]" : ")");
-            KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " with Id "
-                         << mrProperties.Id() << print_element_id() << " has an invalid value: " << value
-                         << " is out of the range " << print_range.str() << "." << std::endl;
+            KRATOS_ERROR << rVariable.Name() << print_property_id() << print_element_id()
+                         << " has an invalid value: " << value << " is out of the range "
+                         << print_range.str() << "." << std::endl;
         }
     }
 
@@ -208,6 +208,13 @@ private:
         }
 
         return result;
+    }
+
+    std::string print_property_id() const
+    {
+        std::ostringstream oss;
+        oss << " in the " << mrPrintName << " with Id " << mrProperties.Id();
+        return oss.str();
     }
 
     std::string print_element_id() const
