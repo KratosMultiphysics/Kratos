@@ -358,8 +358,10 @@ namespace Kratos
         const SizeType number_of_nodes = r_geometry.size();
         const SizeType u = number_of_nodes * 3; // displacement dofs
         const SizeType mat_size = u; // original system size
-
         const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        // === ColumnMatrix initialisieren ===
+        MatrixType k_act_col(u, 6, 0.0);
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
             // Compute Kinematics and Metric
@@ -383,28 +385,6 @@ namespace Kratos
                 constitutive_law_parameters,
                 ConstitutiveLaw::StressMeasure_PK2);
 
-            //CHECKLEO - output of the actuated constitutive variables
-            //std::cout << "L~ CalculateAll:: StrainVector membrane: " << constitutive_variables_membrane.StrainVector << std::endl;
-            //std::cout << "L~ CalculateAll:: StrainVector curvature: " << constitutive_variables_curvature.StrainVector << std::endl;
-            //############
-
-            // //CHECKLEO
-            // ConstitutiveVariables actuated_constitutive_variables_membrane(3);
-            // ConstitutiveVariables actuated_constitutive_variables_curvature(3);
-            // CalculateActuatedConstitutiveVariables(
-            //     point_number,
-            //     kinematic_variables,
-            //     actuated_constitutive_variables_membrane,
-            //     actuated_constitutive_variables_curvature,
-            //     constitutive_law_parameters,
-            //     ConstitutiveLaw::StressMeasure_PK2);
-            // //############
-
-            // //CHECKLEO - output of the actuated constitutive variables
-            // std::cout << "L~ CalculateAll:: StrainVector membrane: " << actuated_constitutive_variables_membrane.StrainVector << std::endl;
-            // std::cout << "L~ CalculateAll:: StrainVector curvature: " << actuated_constitutive_variables_curvature.StrainVector << std::endl;
-            // //############
-
             // calculate B MATRICES
             Matrix BMembrane = ZeroMatrix(3, mat_size);
             Matrix BCurvature = ZeroMatrix(3, mat_size);
@@ -417,17 +397,8 @@ namespace Kratos
                 BCurvature,
                 kinematic_variables);
 
-            // calculate ACTUATED B MATRICES
-            Matrix ActuatedBMembrane = ZeroMatrix(3, mat_size);
-            // Matrix BCurvature = ZeroMatrix(3, mat_size);
-            CalculateActuatedBMembrane(
-                point_number,
-                ActuatedBMembrane,
-                kinematic_variables);
-            // CalculateActuatedBCurvature(
-            //     point_number,
-            //     BCurvature,
-            //     kinematic_variables);
+            Matrix ActuatedBMembrane = ZeroMatrix(3, 6);
+            CalculateActuatedBMembrane(point_number, ActuatedBMembrane, kinematic_variables);
 
             // Nonlinear Deformation
             SecondVariations second_variations_strain(mat_size);
@@ -470,7 +441,15 @@ namespace Kratos
                     second_variations_curvature,
                     constitutive_variables_curvature.StressVector,
                     integration_weight);
+            
+                // === ColumnMatrix berechnen und ABZIEHEN ===
+                // k_act_col -= B^T * D * B_act * weight
+                noalias(k_act_col) -= integration_weight * prod(trans(BMembrane), Matrix(prod(constitutive_variables_membrane.ConstitutiveMatrix, ActuatedBMembrane)));
             }
+
+
+
+
             // RIGHT HAND SIDE VECTOR
             if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
             {
@@ -479,9 +458,6 @@ namespace Kratos
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
             }
         }
-
-        MatrixType k_act_col(u, 6, 0.0);
-        BuildActuationColumnMatrix(k_act_col, u, 6);
 
         MatrixType k_act_diag(6, 6, 0.0);
         BuildActuationDiagonalMatrix(k_act_diag, 6);
@@ -529,12 +505,12 @@ namespace Kratos
                     extended_vector[i] = rRightHandSideVector[i];
 
                 // Unten: Aktuierungsparameter
-                extended_vector[u + 0] = mACTUATION_ALPHA;
-                extended_vector[u + 1] = mACTUATION_BETA;
-                extended_vector[u + 2] = mACTUATION_GAMMA;
-                extended_vector[u + 3] = mACTUATION_KAPPA_1;
-                extended_vector[u + 4] = mACTUATION_KAPPA_2;
-                extended_vector[u + 5] = mACTUATION_KAPPA_12;
+                extended_vector[u + 0] = 0;
+                extended_vector[u + 1] = 0;
+                extended_vector[u + 2] = 0;
+                extended_vector[u + 3] = 0;
+                extended_vector[u + 4] = 0;
+                extended_vector[u + 5] = 0;
 
                 rRightHandSideVector.swap(extended_vector);
             }
@@ -823,7 +799,7 @@ namespace Kratos
         array_1d<double, 3> total_curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
 
         array_1d<double, 3> actuated_curvature_vector;
-        actuated_curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: This might not be coorect as it is not multiplied with the zeta -> preintegration 
+        actuated_curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: multiplication with the zeta is covered by the preintegration 
         actuated_curvature_vector[1] = mACTUATION_KAPPA_2;
         actuated_curvature_vector[2] = mACTUATION_KAPPA_12;
 
@@ -945,35 +921,38 @@ namespace Kratos
     }
 
     void ActiveShell3pElement::CalculateActuatedBMembrane(
-        const IndexType IntegrationPointIndex,
-        Matrix& rB,
-        const KinematicVariables& rActualKinematic) const
+    const IndexType IntegrationPointIndex,
+    Matrix& rB,
+    const KinematicVariables& rActualKinematic) const
     {
-        const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 3;
+        // Aktuierter B-Operator: 3 x 6
+        if (rB.size1() != 3 || rB.size2() != 6)
+            rB.resize(3, 6, false);
+        noalias(rB) = ZeroMatrix(3, 6);
 
-        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
+        // Hole die benötigten Werte
+        const double alpha = mACTUATION_ALPHA;
+        const double beta = mACTUATION_BETA;
+        const double gamma = mACTUATION_GAMMA;
+        const double kappa_1 = mACTUATION_KAPPA_1;
+        const double kappa_2 = mACTUATION_KAPPA_2;
+        const double kappa_12 = mACTUATION_KAPPA_12;
+        const double A11 = m_A_ab_covariant_vector[IntegrationPointIndex][0];
+        const double A22 = m_A_ab_covariant_vector[IntegrationPointIndex][1];
+        const double A12 = m_A_ab_covariant_vector[IntegrationPointIndex][2];
+        const double h   = m_dA_vector[IntegrationPointIndex];
 
-        if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size);
-        noalias(rB) = ZeroMatrix(3, mat_size);
+        // Setze die Werte gemäß deiner Vorgabe
+        rB(0, 0) = (1.0 + alpha) * A11;
+        rB(0, 3) = kappa_1;
 
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            // local node number kr and dof direction dirr
-            IndexType kr = r / 3;
-            IndexType dirr = r % 3;
+        rB(1, 1) = (1.0 + beta) * A22;
+        rB(1, 4) = kappa_2;
 
-            array_1d<double, 3> dE_curvilinear;
-            // strain
-            dE_curvilinear[0] = r_DN_De(kr, 0) * rActualKinematic.a1(dirr);
-            dE_curvilinear[1] = r_DN_De(kr, 1) * rActualKinematic.a2(dirr);
-            dE_curvilinear[2] = 0.5 * (r_DN_De(kr, 0) * rActualKinematic.a2(dirr) + rActualKinematic.a1(dirr) * r_DN_De(kr, 1));
-
-            rB(0, r) = m_T_vector[IntegrationPointIndex](0, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](0, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](0, 2) * dE_curvilinear[2];
-            rB(1, r) = m_T_vector[IntegrationPointIndex](1, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](1, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](1, 2) * dE_curvilinear[2];
-            rB(2, r) = m_T_vector[IntegrationPointIndex](2, 0) * dE_curvilinear[0] + m_T_vector[IntegrationPointIndex](2, 1) * dE_curvilinear[1] + m_T_vector[IntegrationPointIndex](2, 2) * dE_curvilinear[2];
-        }
+        rB(2, 0) = 0.5 * (1.0 + beta) * A12;
+        rB(2, 1) = 0.5 * (1.0 + alpha) * A12;
+        rB(2, 2) = (-A12 * std::sin(gamma) + h * std::cos(gamma));
+        rB(2, 5) = kappa_12;
     }
 
     void ActiveShell3pElement::CalculateBCurvature(
