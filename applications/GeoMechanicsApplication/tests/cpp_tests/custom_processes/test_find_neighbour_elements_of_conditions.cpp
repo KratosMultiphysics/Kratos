@@ -76,6 +76,7 @@ TEST_P(ParametrizedFindNeighbouringElementsForDifferentTypesAndOrderingsFixture,
 
     // Assert
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -129,7 +130,11 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestFindNeighboursForMultipleCo
 
     // Assert
     EXPECT_EQ(p_condition1->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    EXPECT_EQ(p_condition1->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
+
     EXPECT_EQ(p_condition2->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    EXPECT_EQ(p_condition2->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
+
 }
 
 class ParametrizedFindNeighbouring3D4NElementsThrowsWhenNotFoundFixture
