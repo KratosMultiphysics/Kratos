@@ -67,9 +67,9 @@ public:
         if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING]) {
             // Clear nodal variables
             block_for_each(rModelPart.Nodes(), [](Node& rNode) {
-                rNode.FastGetSolutionStepValue(NODAL_AREA)            = 0.0;
-                rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA)      = 0.0;
-                rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH)     = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_AREA)        = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA)  = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
             });
 
             this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);

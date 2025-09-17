@@ -91,11 +91,10 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
         // Verify compatibility of the element with the constitutive law
         ConstitutiveLaw::Features LawFeatures;
         r_properties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-        bool correct_strain_measure = false;
-        for (unsigned int i = 0; i < LawFeatures.mStrainMeasures.size(); ++i) {
-            if (LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-                correct_strain_measure = true;
-        }
+        const auto correct_strain_measure =
+            std::ranges::any_of(LawFeatures.mStrainMeasures, [](const auto& rStrainMeasure) {
+            return rStrainMeasure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
+        });
         KRATOS_ERROR_IF_NOT(correct_strain_measure)
             << "constitutive law is not compatible with the element type "
                "StrainMeasure_Infinitesimal "
