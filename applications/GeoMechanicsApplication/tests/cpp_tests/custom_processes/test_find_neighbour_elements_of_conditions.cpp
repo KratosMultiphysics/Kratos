@@ -15,20 +15,55 @@
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
+// namespace
+// {
+
+// using namespace Kratos;
+
+// }
+
 namespace Kratos::Testing
 {
+
+ModelPart& CreateModelPart3D4N(Model& rModel)
+{
+    return ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(rModel);
+}
+
+ModelPart& CreateModelPart3D8N(Model& rModel)
+{
+    return ModelSetupUtilities::CreateModelPartWithASingle3D8NElement(rModel);
+}
+
+ModelPart& CreateModelPart3D10N(Model& rModel)
+{
+    return ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(rModel);
+}
+
+ModelPart& CreateModelPart3D20N(Model& rModel)
+{
+    return ModelSetupUtilities::CreateModelPartWithASingle3D20NElement(rModel);
+}
+
+ModelPart& CreateModelPart3D6NInterface(Model& rModel)
+{
+    return ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(rModel);
+}
+
 class ParametrizedFindNeighbouring3D4NElementsFixture
-    : public ::testing::TestWithParam<std::tuple<std::vector<std::size_t>, std::function<Condition::Pointer(const PointerVector<Node>&)>>>
+    : public ::testing::TestWithParam<
+          std::tuple<std::vector<std::size_t>, std::function<Condition::Pointer(const PointerVector<Node>&)>, std::function<ModelPart&(Model&)>>>
 {
 };
 
 TEST_P(ParametrizedFindNeighbouring3D4NElementsFixture, NeighboursAreFoundForDifferentNodeOrderings)
 {
+    const auto& [order, condition_creator, model_part_creator] = GetParam();
+
     Model model;
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
+    auto& r_model_part = model_part_creator(model);
 
     PointerVector<Node> nodes;
-    const auto&         [order, condition_creator] = GetParam();
     for (const auto& r_node_id : order) {
         nodes.push_back(r_model_part.pGetNode(r_node_id));
     }
@@ -43,145 +78,32 @@ TEST_P(ParametrizedFindNeighbouring3D4NElementsFixture, NeighboursAreFoundForDif
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
-INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindNeighbouring3D4NElementsFixture,
-                         ::testing::Values(std::make_tuple(std::vector<std::size_t>{1, 3, 2},
-                                                           ElementSetupUtilities::Create3D3NCondition),
-                                           std::make_tuple(std::vector<std::size_t>{2, 1, 3},
-                                                           ElementSetupUtilities::Create3D3NCondition),
-                                           std::make_tuple(std::vector<std::size_t>{3, 2, 1},
-                                                           ElementSetupUtilities::Create3D3NCondition)));
-
-
-class ParametrizedFindNeighbouring3D8NElementsFixture
-    : public ::testing::TestWithParam<std::vector<std::size_t>>
-{
-};
-
-TEST_P(ParametrizedFindNeighbouring3D8NElementsFixture, NeighboursAreFoundForDifferentNodeOrderings)
-{
-    Model model;
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D8NElement(model);
-
-    PointerVector<Node> nodes;
-    const auto&         order = GetParam();
-    for (const auto& r_node_id : order) {
-        nodes.push_back(r_model_part.pGetNode(r_node_id));
-    }
-
-    auto p_condition = ElementSetupUtilities::Create3D4NCondition(nodes);
-    r_model_part.AddCondition(p_condition);
-
-    FindNeighbourElementsOfConditionsProcess process(r_model_part);
-
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
-    process.Execute();
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
-}
-
-INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindNeighbouring3D8NElementsFixture,
-                         ::testing::Values(std::vector<std::size_t>{4, 3, 2, 1},
-                                           std::vector<std::size_t>{1, 4, 3, 2},
-                                           std::vector<std::size_t>{2, 1, 4, 3},
-                                           std::vector<std::size_t>{3, 2, 1, 4}));
-
-class ParametrizedFindNeighbouring3D10NElementsFixture
-    : public ::testing::TestWithParam<std::vector<std::size_t>>
-{
-};
-
-TEST_P(ParametrizedFindNeighbouring3D10NElementsFixture, NeighboursAreFoundForDifferentNodeOrderings)
-{
-    Model model;
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(model);
-
-    PointerVector<Node> nodes;
-    const auto&         order = GetParam();
-    for (const auto& r_node_id : order) {
-        nodes.push_back(r_model_part.pGetNode(r_node_id));
-    }
-
-    auto p_condition = ElementSetupUtilities::Create3D6NCondition(nodes);
-    r_model_part.AddCondition(p_condition);
-
-    FindNeighbourElementsOfConditionsProcess process(r_model_part);
-
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
-    process.Execute();
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
-}
-
-INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindNeighbouring3D10NElementsFixture,
-                         ::testing::Values(std::vector<std::size_t>{1, 3, 2, 7, 6, 5},
-                                           std::vector<std::size_t>{2, 1, 3, 5, 7, 6},
-                                           std::vector<std::size_t>{3, 2, 1, 6, 5, 7}));
-
-class ParametrizedFindNeighbouring3D20NElementsFixture
-    : public ::testing::TestWithParam<std::vector<std::size_t>>
-{
-};
-
-TEST_P(ParametrizedFindNeighbouring3D20NElementsFixture, NeighboursAreFoundForDifferentNodeOrderings)
-{
-    Model model;
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D20NElement(model);
-
-    PointerVector<Node> nodes;
-    const auto&         order = GetParam();
-    for (const auto& r_node_id : order) {
-        nodes.push_back(r_model_part.pGetNode(r_node_id));
-    }
-
-    auto p_condition = ElementSetupUtilities::Create3D8NCondition(nodes);
-    r_model_part.AddCondition(p_condition);
-
-    FindNeighbourElementsOfConditionsProcess process(r_model_part);
-
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
-    process.Execute();
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
-}
-
-INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindNeighbouring3D20NElementsFixture,
-                         ::testing::Values(std::vector<std::size_t>{4, 3, 2, 1, 11, 10, 9, 12},
-                                           std::vector<std::size_t>{1, 4, 3, 2, 12, 11, 10, 9},
-                                           std::vector<std::size_t>{2, 1, 4, 3, 9, 12, 11, 10},
-                                           std::vector<std::size_t>{3, 2, 1, 4, 10, 9, 12, 11}));
-
-class ParametrizedFindNeighbouring3D6NInterfaceElementsFixture
-    : public ::testing::TestWithParam<std::vector<std::size_t>>
-{
-};
-
-TEST_P(ParametrizedFindNeighbouring3D6NInterfaceElementsFixture, NeighboursAreFoundForDifferentNodeOrderings)
-{
-    Model model;
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(model);
-
-    PointerVector<Node> nodes;
-    const auto&         order = GetParam();
-    for (const auto& r_node_id : order) {
-        nodes.push_back(r_model_part.pGetNode(r_node_id));
-    }
-
-    auto p_condition = ElementSetupUtilities::Create3D3NCondition(nodes);
-    r_model_part.AddCondition(p_condition);
-
-    FindNeighbourElementsOfConditionsProcess process(r_model_part);
-
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
-    process.Execute();
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
-}
-
-INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedFindNeighbouring3D6NInterfaceElementsFixture,
-                         ::testing::Values(std::vector<std::size_t>{1, 2, 3}, // Not completely sure yet why this order is the other way around
-                                           std::vector<std::size_t>{3, 1, 2},
-                                           std::vector<std::size_t>{2, 3, 1}));
+INSTANTIATE_TEST_SUITE_P(
+    KratosGeoMechanicsFastSuiteWithoutKernel,
+    ParametrizedFindNeighbouring3D4NElementsFixture,
+    ::testing::Values(
+        std::make_tuple(std::vector<std::size_t>{1, 3, 2}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D4N),
+        std::make_tuple(std::vector<std::size_t>{2, 1, 3}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D4N),
+        std::make_tuple(std::vector<std::size_t>{3, 2, 1}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D4N),
+        std::make_tuple(std::vector<std::size_t>{4, 3, 2, 1}, ElementSetupUtilities::Create3D4NCondition, CreateModelPart3D8N),
+        std::make_tuple(std::vector<std::size_t>{1, 4, 3, 2}, ElementSetupUtilities::Create3D4NCondition, CreateModelPart3D8N),
+        std::make_tuple(std::vector<std::size_t>{2, 1, 4, 3}, ElementSetupUtilities::Create3D4NCondition, CreateModelPart3D8N),
+        std::make_tuple(std::vector<std::size_t>{3, 2, 1, 4}, ElementSetupUtilities::Create3D4NCondition, CreateModelPart3D8N),
+        std::make_tuple(std::vector<std::size_t>{1, 3, 2, 7, 6, 5}, ElementSetupUtilities::Create3D6NCondition, CreateModelPart3D10N),
+        std::make_tuple(std::vector<std::size_t>{2, 1, 3, 5, 7, 6}, ElementSetupUtilities::Create3D6NCondition, CreateModelPart3D10N),
+        std::make_tuple(std::vector<std::size_t>{3, 2, 1, 6, 5, 7}, ElementSetupUtilities::Create3D6NCondition, CreateModelPart3D10N),
+        std::make_tuple(std::vector<std::size_t>{4, 3, 2, 1, 11, 10, 9, 12}, ElementSetupUtilities::Create3D8NCondition, CreateModelPart3D20N),
+        std::make_tuple(std::vector<std::size_t>{1, 4, 3, 2, 12, 11, 10, 9}, ElementSetupUtilities::Create3D8NCondition, CreateModelPart3D20N),
+        std::make_tuple(std::vector<std::size_t>{2, 1, 4, 3, 9, 12, 11, 10}, ElementSetupUtilities::Create3D8NCondition, CreateModelPart3D20N),
+        std::make_tuple(std::vector<std::size_t>{3, 2, 1, 4, 10, 9, 12, 11}, ElementSetupUtilities::Create3D8NCondition, CreateModelPart3D20N),
+        std::make_tuple(std::vector<std::size_t>{1, 2, 3}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{3, 1, 2}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{2, 3, 1}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{2, 3, 1}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{2, 3, 1}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{2, 3, 1}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{2, 3, 1}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface),
+        std::make_tuple(std::vector<std::size_t>{3, 2, 1}, ElementSetupUtilities::Create3D3NCondition, CreateModelPart3D6NInterface)));
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighbourElementsOfConditionsProcess_TestPointCondition)
 {
