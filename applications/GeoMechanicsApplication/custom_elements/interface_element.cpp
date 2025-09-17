@@ -12,6 +12,7 @@
 //
 #include "interface_element.h"
 
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
@@ -19,7 +20,6 @@
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 #include "lumped_integration_scheme.h"
-#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace
 {
@@ -203,7 +203,7 @@ int InterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
             << "Number of integration points (" << mIntegrationScheme->GetNumberOfIntegrationPoints()
             << ") and constitutive laws (" << mConstitutiveLaws.size() << ") do not match.\n";
 
-        const auto r_properties = GetProperties();
+        const auto r_properties  = GetProperties();
         const auto expected_size = mpStressStatePolicy->GetVoigtSize();
         ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
 
