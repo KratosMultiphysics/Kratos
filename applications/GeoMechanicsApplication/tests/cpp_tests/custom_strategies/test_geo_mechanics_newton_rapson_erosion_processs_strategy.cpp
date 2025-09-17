@@ -141,7 +141,6 @@ auto SetupPipingStrategy(Model& rModel)
     p_piping_element_props->SetValue(PIPE_MODIFIED_D, false);
     p_piping_element_props->SetValue(PIPE_MODEL_FACTOR, 1);
     p_piping_element_props->SetValue(PIPE_START_ELEMENT, 1);
-    p_piping_element_props->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
     // Create the start piping element
     auto p_piping_element = make_intrusive<GeoSteadyStatePwPipingElement<2, 2>>(
