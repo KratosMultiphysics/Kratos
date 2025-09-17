@@ -66,9 +66,8 @@ public:
         auto relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
             rRetentionLawVector, rProperties,
             GeoTransportEquationUtilities::CalculateFluidPressures(N_container, pressure_vector));
-        std::transform(relative_permeability_values.cbegin(), relative_permeability_values.cend(),
-                       rPermeabilityUpdateFactors.cbegin(), relative_permeability_values.begin(),
-                       std::multiplies<>{});
+        std::ranges::transform(relative_permeability_values, rPermeabilityUpdateFactors,
+                               relative_permeability_values.begin(), std::multiplies<>{});
         const auto dynamic_viscosity_inverse = 1.0 / rProperties[DYNAMIC_VISCOSITY];
         array_1d<double, TNumNodes * TDim> volume_acceleration;
         GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(volume_acceleration, rGeometry,

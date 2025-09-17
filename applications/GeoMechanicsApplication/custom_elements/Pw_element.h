@@ -272,13 +272,13 @@ public:
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
         switch (this->GetGeometry().GetGeometryOrderType()) {
+            using enum GeometryData::IntegrationMethod;
         case GeometryData::Kratos_Cubic_Order:
-            return GetGeometry().LocalSpaceDimension() == 1 ? GeometryData::IntegrationMethod::GI_GAUSS_3
-                                                            : IntegrationMethod::GI_GAUSS_4;
+            return GetGeometry().LocalSpaceDimension() == 1 ? GI_GAUSS_3 : GI_GAUSS_4;
         case GeometryData::Kratos_Quartic_Order:
-            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+            return GI_GAUSS_5;
         default:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+            return GI_GAUSS_2;
         }
     }
 
@@ -368,7 +368,7 @@ private:
     {
         auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
-        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
+        std::ranges::transform(r_geometry, result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;
@@ -429,16 +429,17 @@ private:
                                                                         const ProcessInfo& rCurrentProcessInfo)
     {
         switch (rContribution) {
-        case CalculationContribution::Permeability:
+            using enum CalculationContribution;
+        case Permeability:
             return std::make_unique<PermeabilityCalculator<TNumNodes>>(CreatePermeabilityInputProvider());
-        case CalculationContribution::Compressibility:
+        case Compressibility:
             if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
                 return std::make_unique<FilterCompressibilityCalculator<TNumNodes>>(
                     CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
             }
             return std::make_unique<CompressibilityCalculator<TNumNodes>>(
                 CreateCompressibilityInputProvider(rCurrentProcessInfo));
-        case CalculationContribution::FluidBodyFlow:
+        case FluidBodyFlow:
             return std::make_unique<FluidBodyFlowCalculator<TNumNodes>>(CreateFluidBodyFlowInputProvider());
         default:
             KRATOS_ERROR << "Unknown contribution" << std::endl;

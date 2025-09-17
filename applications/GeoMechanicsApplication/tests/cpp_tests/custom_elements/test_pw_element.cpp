@@ -40,11 +40,11 @@ ModelPart& CreateModelPartWithSolutionStepVariables(Model& rModel)
 PwElement<2, 2> TransientPwLineElementWithoutPWDofs(const Properties::Pointer&     rProperties,
                                                     const Geometry<Node>::Pointer& rGeometry)
 {
+    using enum CalculationContribution;
     return PwElement<2, 2>{1,
                            rGeometry,
                            rProperties,
-                           {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-                            CalculationContribution::FluidBodyFlow},
+                           {Permeability, Compressibility, FluidBodyFlow},
                            std::make_unique<IntegrationCoefficientModifierForLineElement>()};
 }
 
@@ -53,11 +53,10 @@ intrusive_ptr<Element> CreatePwLineElementWithoutPWDofs(ModelPart& rModelPart, c
     PointerVector<Node> nodes;
     nodes.push_back(rModelPart.CreateNewNode(0, 0.0, 0.0, 0.0));
     nodes.push_back(rModelPart.CreateNewNode(1, 1.0, 1.0, 0.0));
-    const auto                                 p_geometry = std::make_shared<Line2D2<Node>>(nodes);
-    const std::vector<CalculationContribution> contributions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility,
-        CalculationContribution::FluidBodyFlow};
-    auto element = make_intrusive<PwElement<2, 2>>(
+    const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
+    using enum CalculationContribution;
+    const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
+    auto              element       = make_intrusive<PwElement<2, 2>>(
         rModelPart.NumberOfElements() + 1, p_geometry, rProperties, contributions,
         std::make_unique<IntegrationCoefficientModifierForLineElement>());
     rModelPart.AddElement(element);
@@ -137,10 +136,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 intrusive_ptr<PwElement<TDim, TNumNodes>> CreateTransientPwLineElementWithPWDofs(ModelPart& rModelPart,
                                                                                  const Properties::Pointer& rProperties)
 {
-    intrusive_ptr<PwElement<TDim, TNumNodes>>  p_element;
-    const std::vector<CalculationContribution> contributions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility,
-        CalculationContribution::FluidBodyFlow};
+    intrusive_ptr<PwElement<TDim, TNumNodes>> p_element;
+    using enum CalculationContribution;
+    const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
     if constexpr (TDim == 2) {
         p_element = make_intrusive<PwElement<TDim, TNumNodes>>(
             GetNextElementNumber(rModelPart),
@@ -162,10 +160,9 @@ intrusive_ptr<PwElement<TDim, TNumNodes>> CreateTransientPwLineElementWithPWDofs
 intrusive_ptr<PwElement<2, 3>> CreateTriangleTransientPwLineElementWithoutPWDofs(ModelPart& rModelPart,
                                                                                  const Properties::Pointer& rProperties)
 {
-    const std::vector<CalculationContribution> contributions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility,
-        CalculationContribution::FluidBodyFlow};
-    auto p_element = make_intrusive<PwElement<2, 3>>(
+    using enum CalculationContribution;
+    const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
+    auto              p_element     = make_intrusive<PwElement<2, 3>>(
         GetNextElementNumber(rModelPart),
         std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<3>(rModelPart)), rProperties,
         contributions, nullptr);
@@ -230,12 +227,12 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_ReturnsTheExpectedLeftHandSideA
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 1.0, 1.0));
     const auto p_geometry = std::make_shared<Line2D2<Node>>(nodes);
-    auto       element    = PwElement<2, 2>{1,
-                                            p_geometry,
-                                            p_properties,
-                                            {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-                                             CalculationContribution::FluidBodyFlow},
-                                            std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    using enum CalculationContribution;
+    auto element = PwElement<2, 2>{1,
+                                   p_geometry,
+                                   p_properties,
+                                   {Permeability, Compressibility, FluidBodyFlow},
+                                   std::make_unique<IntegrationCoefficientModifierForLineElement>()};
     for (auto& node : element.GetGeometry()) {
         node.AddDof(WATER_PRESSURE);
         node.AddDof(DT_WATER_PRESSURE);
@@ -426,10 +423,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CreateInstanceWithGeometryInput
 {
     // Arrange
     const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
-    const std::vector<CalculationContribution> contributions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility,
-        CalculationContribution::FluidBodyFlow};
-    const auto            p_properties = std::make_shared<Properties>();
+    using enum CalculationContribution;
+    const std::vector     contributions = {Permeability, Compressibility, FluidBodyFlow};
+    const auto            p_properties  = std::make_shared<Properties>();
     const PwElement<2, 3> element(0, p_geometry, p_properties, contributions, nullptr);
 
     // Act
@@ -445,10 +441,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CreateInstanceWithGeometryInput
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CreateInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto                                 p_properties  = std::make_shared<Properties>();
-    const std::vector<CalculationContribution> contributions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility,
-        CalculationContribution::FluidBodyFlow};
+    const auto p_properties = std::make_shared<Properties>();
+    using enum CalculationContribution;
+    const std::vector     contributions = {Permeability, Compressibility, FluidBodyFlow};
     const PwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()),
                                   p_properties, contributions, nullptr);
 
@@ -508,9 +503,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_EquationIdVector, KratosGeoMech
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_IntegrationMethod, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const std::vector<CalculationContribution> contributions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility,
-        CalculationContribution::FluidBodyFlow};
+    using enum CalculationContribution;
+    const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
     const PwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
                                   std::make_shared<Properties>(), contributions, nullptr);
 
@@ -525,10 +519,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_IntegrationMethod, KratosGeoMec
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput2, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const std::vector<CalculationContribution> contributions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility,
-        CalculationContribution::FluidBodyFlow};
-    const auto            p_properties = std::make_shared<Properties>();
+    using enum CalculationContribution;
+    const std::vector     contributions = {Permeability, Compressibility, FluidBodyFlow};
+    const auto            p_properties  = std::make_shared<Properties>();
     const PwElement<2, 3> element_with_coincident_nodes(
         1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()), p_properties, contributions, nullptr);
 
@@ -979,10 +972,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
     nodes.push_back(r_model_part.CreateNewNode(1, 0.0000000000, 1.9600000000, 0.0000000000));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0100000000, 1.9400000000, 0.0000000000));
 
-    const std::vector<CalculationContribution> contributions = {
-        CalculationContribution::Permeability, CalculationContribution::Compressibility,
-        CalculationContribution::FluidBodyFlow};
-    auto properties = std::make_shared<Properties>();
+    using enum CalculationContribution;
+    const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
+    auto              properties    = std::make_shared<Properties>();
     properties->SetValue(IGNORE_UNDRAINED, false);
     properties->SetValue(YOUNG_MODULUS, 10000);
     properties->SetValue(POISSON_RATIO, 0.2);
@@ -1255,9 +1247,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystemWithPre
     Model model;
     auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    const std::vector contributions = {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-                                       CalculationContribution::FluidBodyFlow};
-    auto p_element = make_intrusive<PwElement<2, 3>>(
+    using enum CalculationContribution;
+    const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
+    auto              p_element     = make_intrusive<PwElement<2, 3>>(
         GetNextElementNumber(r_model_part), std::make_shared<Line2D3<Node>>(CreateInclinedLine(r_model_part)),
         std::make_shared<Properties>(), contributions, nullptr);
     SetBasicPropertiesAndVariables(p_element);

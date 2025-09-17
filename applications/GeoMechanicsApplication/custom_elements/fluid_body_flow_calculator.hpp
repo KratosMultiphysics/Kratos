@@ -116,9 +116,8 @@ private:
 
         auto result = std::vector<double>{};
         result.reserve(rFluidPressures.size());
-        std::transform(mInputProvider.GetRetentionLaws().begin(), mInputProvider.GetRetentionLaws().end(),
-                       rFluidPressures.begin(), std::back_inserter(result),
-                       [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+        std::ranges::transform(mInputProvider.GetRetentionLaws(), rFluidPressures, std::back_inserter(result),
+                               [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
             retention_law_params.SetFluidPressure(FluidPressure);
             return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
         });
