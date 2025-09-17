@@ -86,7 +86,7 @@ double ApplyCPhiReductionProcess::GetAndCheckPhi(const Element::PropertiesType& 
     // properties objects are not linked to the original ones.
     const auto& part_properties = mrModelPart.GetProperties(rProp.Id());
 
-    const CheckProperties check_properties(part_properties, "model part property", rProp.Id(),
+    const CheckProperties check_properties(part_properties, "model part property",
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.CheckAvailability(UMAT_PARAMETERS);
     check_properties.Check(INDEX_OF_UMAT_PHI_PARAMETER, 1,
