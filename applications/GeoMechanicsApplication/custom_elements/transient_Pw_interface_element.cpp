@@ -60,8 +60,8 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-    const CheckProperties check_properties(r_properties, "material properties at element",
-                                           this->Id(), CheckProperties::Bounds::AllInclusive);
+    const CheckProperties check_properties(r_properties, "material properties", this->Id(),
+                                           CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
     check_properties.Check(TRANSVERSAL_PERMEABILITY);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);

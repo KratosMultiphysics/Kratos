@@ -73,7 +73,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     if (ierr != 0) return ierr;
 
     const PropertiesType& r_properties = this->GetProperties();
-    const CheckProperties check_properties(r_properties, "property at element", element_Id,
+    const CheckProperties check_properties(r_properties, "property", element_Id,
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
     check_properties.CheckAvailability(IGNORE_UNDRAINED);

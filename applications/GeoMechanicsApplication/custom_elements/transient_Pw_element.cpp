@@ -159,8 +159,8 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
         r_geom, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geom, {std::cref(WATER_PRESSURE)});
 
-    const CheckProperties check_properties(r_properties, "material properties at element",
-                                           this->Id(), CheckProperties::Bounds::AllInclusive);
+    const CheckProperties check_properties(r_properties, "material properties", this->Id(),
+                                           CheckProperties::Bounds::AllInclusive);
     check_properties.Check(DENSITY_WATER);
     check_properties.Check(BULK_MODULUS_SOLID);
     constexpr auto max_value_porosity = 1.0;

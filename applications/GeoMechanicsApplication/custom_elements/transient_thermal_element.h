@@ -134,8 +134,8 @@ public:
         CheckUtilities::CheckHasDofs(GetGeometry(), {std::cref(TEMPERATURE)});
 
         const PropertiesType& r_properties = this->GetProperties();
-        const CheckProperties check_properties(r_properties, "properties at thermal element",
-                                               element_Id, CheckProperties::Bounds::AllInclusive);
+        const CheckProperties check_properties(r_properties, "properties", element_Id,
+                                               CheckProperties::Bounds::AllInclusive);
         check_properties.Check(DENSITY_WATER);
         constexpr auto max_value = 1.0;
         check_properties.Check(POROSITY, max_value);

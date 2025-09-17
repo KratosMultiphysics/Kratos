@@ -62,7 +62,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
-    const CheckProperties check_properties(r_properties, "property at element", this->Id(),
+    const CheckProperties check_properties(r_properties, "property", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_properties[IGNORE_UNDRAINED]) {

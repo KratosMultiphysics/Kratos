@@ -159,8 +159,8 @@ public:
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
         const PropertiesType& r_properties = GetProperties();
-        const CheckProperties check_properties(r_properties, "material properties at element",
-                                               element_Id, CheckProperties::Bounds::AllInclusive);
+        const CheckProperties check_properties(r_properties, "material properties", element_Id,
+                                               CheckProperties::Bounds::AllInclusive);
         check_properties.Check(DENSITY_WATER);
         check_properties.Check(DENSITY_SOLID);
         constexpr auto max_value = 1.0;

@@ -54,12 +54,12 @@ public:
     };
 
     CheckProperties(const Properties& rProperties, const std::string& rPrintName, Bounds RangeBoundsType)
-        : mrProperties(rProperties), mrPrintName(rPrintName), mId(rProperties.Id()), mRangeBoundsType(RangeBoundsType)
+        : mrProperties(rProperties), mrPrintName(rPrintName), mRangeBoundsType(RangeBoundsType)
     {
     }
 
-    CheckProperties(const Properties& rProperties, const std::string& rPrintName, std::size_t Id, Bounds RangeBoundsType)
-        : mrProperties(rProperties), mrPrintName(rPrintName), mId(Id), mRangeBoundsType(RangeBoundsType)
+    CheckProperties(const Properties& rProperties, const std::string& rPrintName, std::size_t ElementId, Bounds RangeBoundsType)
+        : mrProperties(rProperties), mrPrintName(rPrintName), mElementId(ElementId), mRangeBoundsType(RangeBoundsType)
     {
     }
 
@@ -69,7 +69,10 @@ public:
 
     CheckProperties SingleUseBounds(Bounds RangeBoundsType) const
     {
-        return CheckProperties(mrProperties, mrPrintName, mId, RangeBoundsType);
+        if (mElementId) {
+            return CheckProperties(mrProperties, mrPrintName, *mElementId, RangeBoundsType);
+        }
+        return CheckProperties(mrProperties, mrPrintName, RangeBoundsType);
     }
 
     void SetNewRangeBounds(Bounds RangeBoundsType) const { mRangeBoundsType = RangeBoundsType; }
@@ -99,8 +102,8 @@ public:
     void CheckAvailability(const Variable<T>& rVariable) const
     {
         if (!mrProperties.Has(rVariable))
-            KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName
-                         << " with Id " << mId << "." << std::endl;
+            KRATOS_ERROR << rVariable.Name() << " does not exist in the " << mrPrintName << " with Id "
+                         << mrProperties.Id() << print_element_id() << "." << std::endl;
     }
 
     template <typename T>
@@ -109,7 +112,7 @@ public:
         CheckAvailability(rVariable);
         if (mrProperties[rVariable].empty())
             KRATOS_ERROR << rVariable.Name() << " is empty in the " << mrPrintName << " with Id "
-                         << mId << "." << std::endl;
+                         << mrProperties.Id() << print_element_id() << "." << std::endl;
     }
 
     template <typename T, typename Eq>
@@ -122,7 +125,8 @@ public:
         }
         KRATOS_ERROR_IF_NOT(mrProperties[rVariable] == rName)
             << rVariable.Name() << " has a value of " << quotes << mrProperties[rVariable] << quotes
-            << " instead of " << quotes << rName << quotes << " at element " << mId << "." << std::endl;
+            << " instead of " << quotes << rName << quotes << " in the " << mrPrintName
+            << " with Id " << mrProperties.Id() << print_element_id() << "." << std::endl;
     }
 
     template <typename T>
@@ -131,17 +135,17 @@ public:
         CheckAvailability(rVariable);
         if (!mrProperties[rVariable])
             KRATOS_ERROR << rVariable.Name() << " needs to be specified in the " << mrPrintName
-                         << " with Id " << mId << "." << std::endl;
+                         << " with Id " << mrProperties.Id() << print_element_id() << "." << std::endl;
     }
 
     void CheckPermeabilityProperties(size_t Dimension) const;
 
 private:
-    const Properties& mrProperties;
-    const std::string mrPrintName;
-    const std::size_t mId;
-    mutable Bounds    mRangeBoundsType;
-    const double      mDefaultLowerBound = 0.0;
+    const Properties&                mrProperties;
+    const std::string                mrPrintName;
+    const std::optional<std::size_t> mElementId = std::nullopt;
+    mutable Bounds                   mRangeBoundsType;
+    const double                     mDefaultLowerBound = 0.0;
 
     template <typename T>
     void CheckRangeBounds(const Variable<T>& rVariable, double LowerBound, std::optional<double> UpperBound) const
@@ -168,22 +172,22 @@ private:
             break;
         }
         if (!in_range) {
-            std::ostringstream print_range;
-            const auto         include_lower_bound = (mRangeBoundsType == AllInclusive) ||
+            const auto include_lower_bound = (mRangeBoundsType == AllInclusive) ||
                                              (mRangeBoundsType == InclusiveLowerAndExclusiveUpper);
             const auto include_upper_bound =
                 UpperBound && ((mRangeBoundsType == AllInclusive) ||
                                (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper));
+            std::ostringstream print_range;
             print_range << (include_lower_bound ? "[" : "(") << LowerBound << ", "
                         << (UpperBound ? format_double_no_trailing_zeros(*UpperBound) : "-")
                         << (include_upper_bound ? "]" : ")");
-            KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " with Id " << mId
-                         << " has an invalid value: " << value << " is out of the range "
-                         << print_range.str() << "." << std::endl;
+            KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " with Id "
+                         << mrProperties.Id() << print_element_id() << " has an invalid value: " << value
+                         << " is out of the range " << print_range.str() << "." << std::endl;
         }
     }
 
-    // instead of c++20 std::format(:g)
+    // mimics c++20 std::format(:g)
     std::string format_double_no_trailing_zeros(double value) const
     {
         std::ostringstream oss;
@@ -204,6 +208,13 @@ private:
         }
 
         return result;
+    }
+
+    std::string print_element_id() const
+    {
+        std::ostringstream oss;
+        if (mElementId) oss << " at element with Id " << *mElementId;
+        return oss.str();
     }
 };
 
