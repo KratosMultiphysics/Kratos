@@ -1032,7 +1032,7 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     // const double bdf0 = rData.bdf0;
     
     // Get constitutive matrix
-    const BoundedMatrix<double,4,4>& C = rData.C;
+    const BoundedMatrix<double,6,6>& C = rData.C;
 
     // Get shape function values
     const array_1d<double,4>& N = rData.N;
@@ -1196,7 +1196,7 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     // const double bdf0 = rData.bdf0;
     
     // Get constitutive matrix
-    const BoundedMatrix<double,4,4>& C = rData.C;
+    const BoundedMatrix<double,6,6>& C = rData.C;
 
     // Get shape function values
     const array_1d<double,4>& N = rData.N;
