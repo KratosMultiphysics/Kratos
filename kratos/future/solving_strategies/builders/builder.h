@@ -189,14 +189,19 @@ public:
 
         // Add the elements and conditions DOF equation connectivities
         // Note that we add all the DOFs regardless their fixity status
-        Element::EquationIdVectorType eq_ids;
-        for (auto& r_elem : mpModelPart->Elements()) {
-            r_elem.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
-            rSparseGraph.AddEntries(eq_ids);
-        }
-        for (auto& r_cond : mpModelPart->Conditions()) {
-            r_cond.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
-            rSparseGraph.AddEntries(eq_ids);
+        if constexpr (TSparseGraphType::IsThreadSafe) {
+            //TODO: DO the parallel version based on the IsThreadSafe
+            KRATOS_ERROR << "TO BE IMPLEMENTED" << std::endl;
+        } else {
+            Element::EquationIdVectorType eq_ids;
+            for (auto& r_elem : mpModelPart->Elements()) {
+                r_elem.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
+                rSparseGraph.AddEntries(eq_ids);
+            }
+            for (auto& r_cond : mpModelPart->Conditions()) {
+                r_cond.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
+                rSparseGraph.AddEntries(eq_ids);
+            }
         }
     }
 
