@@ -501,7 +501,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When3DPropertyHasInvalidValue, Kra
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(r_current_process_info),
         "THERMAL_CONDUCTIVITY_SOLID_ZZ in the properties at thermal element with Id 1 has an "
-        "invalid value: -5 is out of the range [0; -).")
+        "invalid value: -5 is out of the range [0, -).")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D4N, KratosGeoMechanicsFastSuiteWithoutKernel)

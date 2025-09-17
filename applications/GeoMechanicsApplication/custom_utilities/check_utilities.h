@@ -113,12 +113,23 @@ public:
     }
 
     template <typename T, typename Eq>
-    void CheckAvailabilityAndEquality(const Kratos::Variable<T>& rVariable, const Eq& rName) const
+    requires(std::is_same_v<T, int>) void CheckAvailabilityAndEquality(const Kratos::Variable<T>& rVariable,
+                                                                       const Eq& rName) const
     {
         CheckAvailability(rVariable);
         KRATOS_ERROR_IF_NOT(mrProperties[rVariable] == rName)
-            << rVariable.Name() << " has a value of (" << mrProperties[rVariable]
-            << ") instead of (" << rName << ") at element " << mId << "." << std::endl;
+            << rVariable.Name() << " has a value of " << mrProperties[rVariable] << " instead of "
+            << rName << " at element " << mId << "." << std::endl;
+    }
+
+    template <typename T, typename Eq>
+    requires(std::is_same_v<T, std::string>) void CheckAvailabilityAndEquality(const Kratos::Variable<T>& rVariable,
+                                                                               const Eq& rName) const
+    {
+        CheckAvailability(rVariable);
+        KRATOS_ERROR_IF_NOT(mrProperties[rVariable] == rName)
+            << rVariable.Name() << " has a value of \"" << mrProperties[rVariable]
+            << "\" instead of \"" << rName << "\" at element " << mId << "." << std::endl;
     }
 
     template <typename T>
@@ -170,8 +181,8 @@ private:
             const auto include_upper_bound =
                 UpperBound && ((mRangeBoundsType == AllInclusive) ||
                                (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper));
-            print_range << (include_lower_bound ? "[" : "(") << LowerBound << "; "
-                        << (UpperBound ? std::to_string(*UpperBound) : "-")
+            print_range << (include_lower_bound ? "[" : "(") << LowerBound << ", "
+                        << (UpperBound ? std::format("{:g}", *UpperBound) : "-")
                         << (include_upper_bound ? "]" : ")");
             KRATOS_ERROR << rVariable.Name() << " in the " << mrPrintName << " with Id " << mId
                          << " has an invalid value: " << value << " is out of the range "
