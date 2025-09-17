@@ -24,10 +24,10 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/mpm_energy_calculation_utility.cpp"
 
 
-namespace Kratos{
-namespace Python{
+namespace Kratos::Python{
 
     void SearchElementAccordingToDimension(
         ModelPart& rBackgroundGridModelPart,
@@ -67,11 +67,25 @@ namespace Python{
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
+
+        namespace py = pybind11;
+
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
+
+        // Calculate energy utility
+        py::class_< MPMEnergyCalculationUtility> (m,"EnergyCalculationUtility")
+            .def(py::init<>())
+            .def("CalculatePotentialEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculatePotentialEnergy),py::arg("element"))
+            .def("CalculatePotentialEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculatePotentialEnergy),py::arg("model_part"))
+            .def("CalculateStrainEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateStrainEnergy),py::arg("element"))
+            .def("CalculateStrainEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateStrainEnergy),py::arg("model_part"))
+            .def("CalculateKineticEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateKineticEnergy),py::arg("element"))
+            .def("CalculateKineticEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateKineticEnergy),py::arg("model_part"))
+            .def("CalculateTotalEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy),py::arg("element"))
+            .def("CalculateTotalEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy),py::arg("model_part"))
+            ;
     }
 
-}  // namespace Python.
-} // Namespace Kratos
-
+}  // namespace Kratos::Python.
