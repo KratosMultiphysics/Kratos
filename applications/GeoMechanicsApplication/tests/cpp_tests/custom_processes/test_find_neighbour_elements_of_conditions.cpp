@@ -44,36 +44,6 @@ ModelPart& CreateModelPartWithSingleElement(const std::string& rType, Model& rMo
 namespace Kratos::Testing
 {
 
-ModelPart& CreateModelPart2D2N(Model& rModel)
-{
-    return ModelSetupUtilities::CreateModelPartWithASingle2D2NElement(rModel);
-}
-
-ModelPart& CreateModelPart3D4N(Model& rModel)
-{
-    return ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(rModel);
-}
-
-ModelPart& CreateModelPart3D8N(Model& rModel)
-{
-    return ModelSetupUtilities::CreateModelPartWithASingle3D8NElement(rModel);
-}
-
-ModelPart& CreateModelPart3D10N(Model& rModel)
-{
-    return ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(rModel);
-}
-
-ModelPart& CreateModelPart3D20N(Model& rModel)
-{
-    return ModelSetupUtilities::CreateModelPartWithASingle3D20NElement(rModel);
-}
-
-ModelPart& CreateModelPart3D6NInterface(Model& rModel)
-{
-    return ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(rModel);
-}
-
 class ParametrizedFindNeighbouringElementsForDifferentTypesAndOrderingsFixture
     : public ::testing::TestWithParam<std::tuple<std::vector<std::size_t>, std::string, std::string>>
 {
@@ -123,8 +93,8 @@ INSTANTIATE_TEST_SUITE_P(
         std::make_tuple(std::vector<std::size_t>{3, 1, 2}, "3D3NCondition", "3D6NInterfaceElement"),
         std::make_tuple(std::vector<std::size_t>{2, 3, 1}, "3D3NCondition", "3D6NInterfaceElement"),
         std::make_tuple(std::vector<std::size_t>{1}, "3D1NCondition", "3D6NInterfaceElement"),
-        std::make_tuple(std::vector<std::size_t>{1, 2, 9}, "3D3NCondition", "3D20NElement"),
-        std::make_tuple(std::vector<std::size_t>{7, 8, 19}, "3D3NCondition", "3D20NElement"),
+        std::make_tuple(std::vector<std::size_t>{1, 2, 9}, "3D3NLineCondition", "3D20NElement"),
+        std::make_tuple(std::vector<std::size_t>{7, 8, 19}, "3D3NLineCondition", "3D20NElement"),
         std::make_tuple(std::vector<std::size_t>{1, 2}, "2D2NCondition", "2D2NElement")));
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestFindNeighboursForMultipleConditionsOnTheSameNodes)
