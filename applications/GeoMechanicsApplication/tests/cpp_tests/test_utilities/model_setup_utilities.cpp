@@ -125,6 +125,20 @@ ModelPart& CreateModelPartWithASingle3D20NElement(Model& rModel, const Geo::Cons
     return result;
 }
 
+ModelPart& CreateModelPartWithASingle2D2NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    ModelPart& result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(result, rNodalVariables);
+
+    auto nodes = CreateNewNodes(result, ElementSetupUtilities::CreatePointsFor2D2NElement());
+    AddDofsToNodes(result.Nodes(), rNodalVariables);
+
+    auto element = ElementSetupUtilities::Create2D2NElement(nodes, result.CreateNewProperties(0));
+    result.AddElement(element);
+
+    return result;
+}
+
 ModelPart& CreateModelPartWithASingle2D10NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
 {
     ModelPart& result = rModel.CreateModelPart("Main");

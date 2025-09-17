@@ -40,6 +40,9 @@ ModelPart& CreateModelPartWithASingle3D8NElement(Model& rModel,
 ModelPart& CreateModelPartWithASingle3D20NElement(Model& rModel,
                                                   const Geo::ConstVariableRefs& rNodalVariables = {});
 
+ModelPart& CreateModelPartWithASingle2D2NElement(Model& rModel,
+                                                 const Geo::ConstVariableRefs& rNodalVariables = {});
+
 ModelPart& CreateModelPartWithASingle2D10NElement(Model& rModel,
                                                   const Geo::ConstVariableRefs& rNodalVariables = {});
 

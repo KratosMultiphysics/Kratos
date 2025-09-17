@@ -55,6 +55,11 @@ PointerVector<Node> GenerateNodes(const std::vector<Point>& rPoints)
 namespace Kratos::Testing
 {
 
+std::vector<Point> ElementSetupUtilities::CreatePointsFor2D2NElement()
+{
+    return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}};
+}
+
 std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor2D3NElement()
 {
     return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}};

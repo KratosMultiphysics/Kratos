@@ -24,6 +24,7 @@ namespace Kratos::Testing
 class ElementSetupUtilities
 {
 public:
+    static std::vector<Point> CreatePointsFor2D2NElement();
     static std::vector<Point> CreatePointsFor2D3NElement();
     static std::vector<Point> CreatePointsFor2D3NLineEntity();
     static std::vector<Point> CreatePointsFor2D6NElement();
