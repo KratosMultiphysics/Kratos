@@ -2,11 +2,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosSystemIdentificationApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/OptimizationApplication)
+
 ################### PYBIND11
 include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( $(KRATOS_SOURCE_DIR)/external_libraries/nanoflann )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/OptimizationApplication )
 
 ## SystemIdentification Core sources
 file(GLOB_RECURSE KRATOS_DIGITAL_TWIN_APPLICATION_CORE
@@ -27,7 +30,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_DIGITAL_TWIN_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosSystemIdentificationCore SHARED ${KRATOS_DIGITAL_TWIN_APPLICATION_CORE} ${KRATOS_DIGITAL_TWIN_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosSystemIdentificationCore PUBLIC KratosCore)
+target_link_libraries(KratosSystemIdentificationCore PUBLIC KratosCore KratosOptimizationCore)
 set_target_properties(KratosSystemIdentificationCore PROPERTIES COMPILE_DEFINITIONS "SYSTEM_IDENTIFICATION_APPLICATION=EXPORT,API")
 
 ###############################################################

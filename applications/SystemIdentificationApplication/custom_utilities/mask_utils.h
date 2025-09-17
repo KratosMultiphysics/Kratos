@@ -220,6 +220,13 @@ public:
         const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rMasksList,
         const IndexType RequiredMinimumRedundancy = 1);
 
+
+    template<class TContainerType>
+    static std::vector<typename ContainerExpression<TContainerType>::Pointer> SmoothenMasks(
+        const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rMaskList,
+        const double Radius,
+        const IndexType MaxLeafSize = 10);
+
     ///@}
 
 private:

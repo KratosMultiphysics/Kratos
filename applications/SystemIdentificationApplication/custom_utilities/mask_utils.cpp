@@ -25,6 +25,9 @@
 #include "expression/literal_flat_expression.h"
 
 // Application includes
+#include "custom_utilities/filtering/filter_utils.h"
+#include "custom_utilities/optimization_utils.h"
+#include "custom_utilities/smooth_clamper.h"
 
 // Include base h
 #include "mask_utils.h"
@@ -470,6 +473,73 @@ void MaskUtils::FillModelPartUsingClusterMask(
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+std::vector<typename ContainerExpression<TContainerType>::Pointer> MaskUtils::SmoothenMasks(
+    const std::vector<typename ContainerExpression<TContainerType>::Pointer>& rMaskList,
+    const double Radius,
+    const IndexType MaxLeafSize)
+{
+    KRATOS_TRY
+
+    using position_adaptor_type = NanoFlannSingleContainerPositionAdapter<TContainerType>;
+
+    using pointer_vector_type = typename position_adaptor_type::PointerVectorType;
+
+    using distance_metric_type = typename nanoflann::metric_L2_Simple::traits<double, position_adaptor_type>::distance_t;
+
+    using k_d_tree_index_type = nanoflann::KDTreeSingleIndexAdaptor<distance_metric_type, position_adaptor_type, 3>;
+
+    using k_d_tree_thread_local_storage = NanoFlannKDTreeThreadLocalStorage<pointer_vector_type>;
+
+    std::vector<typename ContainerExpression<TContainerType>::Pointer> smooth_mask_list;
+
+    // do nothing if the input array is empty.
+    if (rMaskList.empty()) {
+        return smooth_mask_list;
+    }
+
+    const auto& r_container = rMaskList.front()->GetContainer();
+
+    // first construct the Kd tree for all masks
+    position_adaptor_type adaptor(&r_container);
+    k_d_tree_index_type k_d_tree_index(3, adaptor, nanoflann::KDTreeSingleIndexAdaptorParams(MaxLeafSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, 0));
+    k_d_tree_index.buildIndex();
+
+    const double radius_square = Radius * Radius;
+
+    SmoothClamper<TContainerType> clamper(0, 1);
+
+    for (const auto& p_mask : rMaskList) {
+        const auto& r_container = p_mask->GetContainer();
+        const auto& r_mask_exp = p_mask->GetExpression();
+
+        auto p_result = p_mask->Clone();
+        auto p_result_exp = LiteralFlatExpression<double>::Create(r_container.size(), p_mask->GetItemShape());
+        p_result->SetExpression(p_result_exp);
+
+        IndexPartition<IndexType>(r_container.size()).for_each(k_d_tree_thread_local_storage(), [&k_d_tree_index, &r_container, &r_mask_exp, &p_result_exp, &clamper, radius_square](const IndexType Index, auto& rTLS){
+            // search for entities within radius
+            k_d_tree_index.radiusSearch(OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)).data().begin(), radius_square + std::numeric_limits<double>::epsilon(), rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
+
+            auto& r_value = *(p_result_exp->begin() + Index);
+            r_value = 1.0;
+            for (const auto& r_result : rTLS.mNeighbourIndicesAndSquaredDistances) {
+                if (r_mask_exp.Evaluate(r_result.first, r_result.first, 1) == 0) {
+                    const auto distance_ratio = std::sqrt(r_result.second / radius_square);
+                    r_value = clamper.ProjectForward(distance_ratio);
+                    break;
+                }
+            }
+        });
+
+        smooth_mask_list.push_back(p_result);
+    }
+
+    return smooth_mask_list;
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 #ifndef KRATOS_SI_APP_MASK_UTILS_INSTANTIATION
 #define KRATOS_SI_APP_MASK_UTILS_INSTANTIATION(CONTAINER_TYPE)                                                                                                                             \
@@ -504,8 +574,12 @@ void MaskUtils::FillModelPartUsingClusterMask(
         const IndexType);                                                                                                                                                                  \
     template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) void MaskUtils::FillModelPartUsingClusterMask(                                                                                  \
         ModelPart&,                                                                                                                                                                        \
-        const ContainerExpression<CONTAINER_TYPE>&,                                                                                                                             \
+        const ContainerExpression<CONTAINER_TYPE>&,                                                                                                                                        \
         const IndexType);                                                                                                                                                                  \
+    template KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) std::vector<ContainerExpression<CONTAINER_TYPE>::Pointer> MaskUtils::SmoothenMasks<CONTAINER_TYPE>(                                             \
+    const std::vector<ContainerExpression<CONTAINER_TYPE>::Pointer>&,                                                                                                                      \
+    const double,                                                                                                                                                                          \
+    const IndexType);                                                                                                                                                                      \
 
 #endif
 
