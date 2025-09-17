@@ -39,6 +39,15 @@ ModelPart& CreateModelPartWithSingleElement(const std::string& rType, Model& rMo
     KRATOS_ERROR << "Element type " << rType << " not recognized.";
 }
 
+PointerVector<Node> GetNodesFromIds(const std::vector<std::size_t>& rNodeIds, ModelPart& rModelPart)
+{
+    PointerVector<Node> result(rNodeIds.size());
+    std::ranges::transform(rNodeIds, result.ptr_begin(),
+                           [&rModelPart](auto Id) { return rModelPart.pGetNode(Id); });
+
+    return result;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -51,23 +60,21 @@ class ParametrizedFindNeighbouringElementsForDifferentTypesAndOrderingsFixture
 
 TEST_P(ParametrizedFindNeighbouringElementsForDifferentTypesAndOrderingsFixture, NeighboursAreFoundForDifferentNodeOrderings)
 {
+    // Arrange
     const auto& [order, condition_type, element_type] = GetParam();
 
     Model model;
     auto& r_model_part = CreateModelPartWithSingleElement(element_type, model);
-
-    PointerVector<Node> nodes;
-    for (const auto& r_node_id : order) {
-        nodes.push_back(r_model_part.pGetNode(r_node_id));
-    }
-
+    auto nodes = GetNodesFromIds(order, r_model_part);
     auto p_condition = ElementSetupUtilities::CreateCondition(condition_type, nodes);
     r_model_part.AddCondition(p_condition);
-
     FindNeighbourElementsOfConditionsProcess process(r_model_part);
-
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+
+    // Act
     process.Execute();
+
+    // Assert
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
@@ -99,6 +106,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestFindNeighboursForMultipleConditionsOnTheSameNodes)
 {
+    // Arrange
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(model);
 
@@ -115,7 +123,11 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestFindNeighboursForMultipleCo
 
     EXPECT_EQ(p_condition1->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
     EXPECT_EQ(p_condition2->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+
+    // Act
     process.Execute();
+
+    // Assert
     EXPECT_EQ(p_condition1->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
     EXPECT_EQ(p_condition2->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
@@ -127,20 +139,19 @@ class ParametrizedFindNeighbouring3D4NElementsThrowsWhenNotFoundFixture
 
 TEST_P(ParametrizedFindNeighbouring3D4NElementsThrowsWhenNotFoundFixture, ProcessThrowsWhenNoNeighboringElementsAreFound)
 {
+    // Arrange
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
 
-    PointerVector<Node> nodes;
     const auto&         order = GetParam();
-    for (const auto& r_node_id : order) {
-        nodes.push_back(r_model_part.pGetNode(r_node_id));
-    }
+    auto nodes = GetNodesFromIds(order, r_model_part);
 
     auto p_condition = ElementSetupUtilities::Create3D3NCondition(nodes);
     r_model_part.AddCondition(p_condition);
 
     FindNeighbourElementsOfConditionsProcess process(r_model_part);
 
+    // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Execute(),
                                       "The condition(s) with the following ID(s) is/are found "
                                       "without any corresponding element: [1]");
