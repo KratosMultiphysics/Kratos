@@ -363,6 +363,9 @@ namespace Kratos
         // === ColumnMatrix initialisieren ===
         MatrixType k_act_col(u, 6, 0.0);
 
+        // === Aktuierter Load-Vector initialisieren ===
+        VectorType f_int_act(6, 0.0);
+
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
             // Compute Kinematics and Metric
             KinematicVariables kinematic_variables(
@@ -456,6 +459,10 @@ namespace Kratos
                 // operation performed: rRightHandSideVector -= Weight*IntForce
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
+            
+                // Aktuierter Anteil: bop_act * S * fac_ele
+                // bop_act = ActuatedBMembrane, S = constitutive_variables_membrane.StressVector, fac_ele = integration_weight
+                noalias(f_int_act) += integration_weight * prod(ActuatedBMembrane, constitutive_variables_membrane.StressVector);
             }
         }
 
@@ -504,13 +511,9 @@ namespace Kratos
                 for (SizeType i = 0; i < u; ++i)
                     extended_vector[i] = rRightHandSideVector[i];
 
-                // Unten: Aktuierungsparameter
-                extended_vector[u + 0] = 0;
-                extended_vector[u + 1] = 0;
-                extended_vector[u + 2] = 0;
-                extended_vector[u + 3] = 0;
-                extended_vector[u + 4] = 0;
-                extended_vector[u + 5] = 0;
+                // Unten: Aktuierter Load-Vector einfügen
+                for (SizeType i = 0; i < 6; ++i)
+                    extended_vector[u + i] = f_int_act[i];
 
                 rRightHandSideVector.swap(extended_vector);
             }
