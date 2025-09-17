@@ -307,7 +307,7 @@ public:
         });
 
         // Compute the solution vector as x = T * y + q
-        rConstraintsRelationMatrix.SpMV(1.0, y, 1.0, rSolutionVector); // Note that this performs the operation x = A*y + x
+        rConstraintsRelationMatrix.SpMV(1.0, y, 1.0, rSolutionVector); // Note that this performs the operation x = A*y + q
     }
 
     /**
