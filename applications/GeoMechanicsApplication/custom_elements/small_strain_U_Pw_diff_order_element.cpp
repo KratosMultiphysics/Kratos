@@ -801,6 +801,36 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         // Contributions to the right hand side
         if (CalculateResidualVectorFlag)
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+        /*
+        Variables needed for internal forces:
+        B 
+        StressVector
+        IntegrationCoefficient,
+        BiotCoefficient,
+        BishopCoefficient
+        Np
+        DegreeOfSaturation
+        VelocityVector
+        PressureVector
+        PressureDtVector
+        BiotModulusInverse
+        DynamicViscosityInverse
+        RelativePermeability
+        IntrinsicPermeability
+        DNp_DX
+
+        Variables needed for external forces:
+        DynamicViscosityInverse
+        BishopCoefficient
+        RelativePermeability
+        DNP_DX
+        IntrinsicPermeability
+        IntegrationCoefficient
+        BodyAcceleration
+        Nu
+        DegreeOfSaturation
+        IntegrationCoefficientInitialConfiguration
+        */
     }
 
     KRATOS_CATCH("")

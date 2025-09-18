@@ -15,6 +15,7 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
@@ -139,6 +140,12 @@ Matrix ExpectedLeftHandSide()
     return result;
 }
 
+Vector ExpectedRightHandSide()
+{
+    return UblasUtilities::CreateVector({126487, -41008.2, -34731.2, -1570.05, 25555.6, -67314.3, -6200.72,
+                                         -48877.7, 40501.8, 53016.7, -151613, 92500.2, -4.8448, 4.8448, 0});
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -211,6 +218,23 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
     p_loaded_element->CalculateLeftHandSide(actual_lhs_values, dummy_process_info);
 
     KRATOS_EXPECT_MATRIX_NEAR(ExpectedLeftHandSide(), actual_lhs_values, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
+
+    SetSolutionStepValuesForGeneralCheck(p_element);
+
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    // Act
+    auto actual_rhs_values = Vector{};
+    p_element->CalculateRightHandSide(actual_rhs_values, dummy_process_info);
+
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(ExpectedRightHandSide(), actual_rhs_values, 1e-4);
 }
 
 } // namespace Kratos::Testing
