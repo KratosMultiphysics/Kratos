@@ -34,11 +34,11 @@ class SensorSensitivityHDF5OutputProcess(Kratos.OutputProcess):
     def PrintOutput(self):
         pass
 
-    def ExecuteFinalize(self):
+    def ExecuteFinalizeSolutionStep(self):
         sensor_group_data = ComponentDataView(self.sensor_group_name, self.optimization_problem)
         list_of_sensors = GetSensors(sensor_group_data)
 
-        with h5py.File(self.hdf5_file_name, "w") as h5_file:
+        with h5py.File(self.hdf5_file_name.replace("<step>", str(self.optimization_problem.GetStep())), "w") as h5_file:
             for sensor in list_of_sensors:
                 for expression_name, expression in sensor.GetContainerExpressionsMap().items():
                     expression_data = expression.Evaluate()
