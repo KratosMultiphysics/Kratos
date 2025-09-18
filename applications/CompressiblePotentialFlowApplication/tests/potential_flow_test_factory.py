@@ -306,8 +306,10 @@ class PotentialFlowTests(UnitTest.TestCase):
                                     "node_output"         : false,
                                     "skin_output"         : false,
                                     "plane_output"        : [],
-                                    "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
-                                    "nodal_nonhistorical_results": ["TRAILING_EDGE","WAKE_DISTANCE"],
+                                    "nodal_nonhistorical_results": ["PRESSURE_COEFFICIENT","POTENTIAL_JUMP","TRAILING_EDGE","WAKE_DISTANCE",
+                                                                    "WING_TIP","WING_ROOT","UPPER_SURFACE","LOWER_SURFACE",
+                                                                    "VELOCITY","DENSITY","MACH"],
+                                    "nodal_results"       : ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"],
                                     "elemental_conditional_flags_results": ["STRUCTURE"],
                                     "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
                                 },

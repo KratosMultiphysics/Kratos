@@ -32,21 +32,18 @@
                 "speed_of_sound"  : 340.0
             }
         },{
-            "python_module" : "define_wake_process_3d",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "name" : "Processes.KratosMultiphysics.CompressiblePotentialFlowApplication.Define3DWakeProcess",
             "Parameters"    : {
                 "trailing_edge_model_part_name" : "FluidModelPart.Wake3D_Wake_Auto1",
-                "body_model_part_name": "FluidModelPart.Body3D_Body_Auto1",
-                "wake_process_cpp_parameters":    {
-                    "tolerance"                    : 1e-6,
-                    "wake_normal"                  : [0.0,0.0,1.0],
-                    "wake_stl_file_name"           : "wake_stl.stl",
-                    "wake_translation_direction"   : [0.0,0.0,-0.00001], 
-                    "shed_wake_from_trailing_edge" : false,
-                    "shed_wake_length"             : 5.0,
-                    "shed_wake_element_size"       : 10,
-                    "echo_level"                   : 1
-                }
+                "body_model_part_name"          : "FluidModelPart.Body3D_Body_Auto1",
+                "wake_distance_tolerance"       : 1e-6,
+                "wake_normal"                   : [0.0,0.0,1.0],
+                "wake_stl_file_name"            : "wake_stl.stl",
+                "wake_translation_direction"    : [0.0,0.0,-0.00001], 
+                "shed_wake_from_trailing_edge"  : false,
+                "shed_wake_length"              : 5.0,
+                "shed_wake_element_size"        : 10,
+                "echo_level"                    : 0
             }
         },{
             "python_module" : "compute_lift_process",
