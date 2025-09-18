@@ -13,7 +13,6 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 
-#include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/three_dimensional_stress_state.h"
@@ -70,84 +69,138 @@ namespace Kratos::Testing::ModelSetupUtilities
 
 ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
 {
-    ModelPart& result = rModel.CreateModelPart("Main");
-    AddNodalVariablesToModelPart(result, rNodalVariables);
+    auto& r_result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(r_result, rNodalVariables);
 
-    auto nodes = CreateNewNodes(result, ElementSetupUtilities::CreatePointsFor2D3NElement());
-    AddDofsToNodes(result.Nodes(), rNodalVariables);
+    auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor2D3NElement());
+    AddDofsToNodes(r_result.Nodes(), rNodalVariables);
 
-    auto element = ElementSetupUtilities::Create2D3NElement(nodes, result.CreateNewProperties(0));
+    auto element = ElementSetupUtilities::Create2D3NElement(nodes, r_result.CreateNewProperties(0));
 
-    result.AddElement(element);
+    r_result.AddElement(element);
 
-    return result;
+    return r_result;
 }
 
 ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
 {
-    ModelPart& result = rModel.CreateModelPart("Main");
-    AddNodalVariablesToModelPart(result, rNodalVariables);
+    auto& r_result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(r_result, rNodalVariables);
 
-    auto nodes =
-        CreateNewNodes(result, {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
-    AddDofsToNodes(result.Nodes(), rNodalVariables);
+    auto nodes = CreateNewNodes(r_result, {ElementSetupUtilities::CreatePointsFor3D4NElement()});
+    AddDofsToNodes(r_result.Nodes(), rNodalVariables);
 
-    auto element = make_intrusive<UPwSmallStrainElement<3, 4>>(
-        1, Kratos::make_shared<Tetrahedra3D4<Node>>(nodes), result.CreateNewProperties(0),
-        std::make_unique<ThreeDimensionalStressState>());
+    auto element = ElementSetupUtilities::Create3D4NElement(nodes, r_result.CreateNewProperties(0));
+    r_result.AddElement(element);
 
-    result.AddElement(element);
+    return r_result;
+}
 
-    return result;
+ModelPart& CreateModelPartWithASingle3D8NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    auto& r_result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(r_result, rNodalVariables);
+
+    auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor3D8NElement());
+    AddDofsToNodes(r_result.Nodes(), rNodalVariables);
+
+    auto element = ElementSetupUtilities::Create3D8NElement(nodes, r_result.CreateNewProperties(0));
+    r_result.AddElement(element);
+
+    return r_result;
+}
+
+ModelPart& CreateModelPartWithASingle3D20NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    auto& r_result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(r_result, rNodalVariables);
+
+    auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor3D20NElement());
+    AddDofsToNodes(r_result.Nodes(), rNodalVariables);
+
+    auto element = ElementSetupUtilities::Create3D20NElement(nodes, r_result.CreateNewProperties(0));
+    r_result.AddElement(element);
+
+    return r_result;
+}
+
+ModelPart& CreateModelPartWithASingle2D2NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    auto& r_result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(r_result, rNodalVariables);
+
+    auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor2D2NElement());
+    AddDofsToNodes(r_result.Nodes(), rNodalVariables);
+
+    auto element = ElementSetupUtilities::Create2D2NElement(nodes, r_result.CreateNewProperties(0));
+    r_result.AddElement(element);
+
+    return r_result;
 }
 
 ModelPart& CreateModelPartWithASingle2D10NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
 {
-    ModelPart& result = rModel.CreateModelPart("Main");
-    AddNodalVariablesToModelPart(result, rNodalVariables);
+    auto& r_result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(r_result, rNodalVariables);
 
-    auto nodes = CreateNewNodes(result, ElementSetupUtilities::CreatePointsFor2D10NElement());
-    AddDofsToNodes(result.Nodes(), rNodalVariables);
+    auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor2D10NElement());
+    AddDofsToNodes(r_result.Nodes(), rNodalVariables);
 
-    auto element = ElementSetupUtilities::Create2D10NElement(nodes, result.CreateNewProperties(0));
+    auto element = ElementSetupUtilities::Create2D10NElement(nodes, r_result.CreateNewProperties(0));
 
-    result.AddElement(element);
+    r_result.AddElement(element);
 
-    return result;
+    return r_result;
 }
 
 ModelPart& CreateModelPartWithASingle2D15NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
 {
-    ModelPart& result = rModel.CreateModelPart("Main");
-    AddNodalVariablesToModelPart(result, rNodalVariables);
+    auto& r_result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(r_result, rNodalVariables);
 
-    auto nodes = CreateNewNodes(result, ElementSetupUtilities::CreatePointsFor2D15NElement());
-    AddDofsToNodes(result.Nodes(), rNodalVariables);
+    auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor2D15NElement());
+    AddDofsToNodes(r_result.Nodes(), rNodalVariables);
 
-    auto element = ElementSetupUtilities::Create2D15NElement(nodes, result.CreateNewProperties(0));
+    auto element = ElementSetupUtilities::Create2D15NElement(nodes, r_result.CreateNewProperties(0));
 
-    result.AddElement(element);
+    r_result.AddElement(element);
 
-    return result;
+    return r_result;
+}
+
+ModelPart& CreateModelPartWithASingle3D6NInterfaceElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+{
+    auto& r_result = rModel.CreateModelPart("Main");
+    AddNodalVariablesToModelPart(r_result, rNodalVariables);
+
+    auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor3D6NInterfaceElement());
+    AddDofsToNodes(r_result.Nodes(), rNodalVariables);
+
+    auto element =
+        ElementSetupUtilities::Create3D6NInterfaceElement(nodes, r_result.CreateNewProperties(0));
+
+    r_result.AddElement(element);
+
+    return r_result;
 }
 
 ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel)
 {
     // similar to a 1D-consolidation test
-    auto& result = rModel.CreateModelPart("Main");
+    auto& r_result = rModel.CreateModelPart("Main");
     const auto variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
                                                   std::cref(DISPLACEMENT_Z), std::cref(WATER_PRESSURE)};
-    AddNodalVariablesToModelPart(result, variables);
-    auto nodes = CreateNewNodes(result, ElementSetupUtilities::CreatePointsFor2D6NElement());
+    AddNodalVariablesToModelPart(r_result, variables);
+    auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor2D6NElement());
 
-    AddDofsToNodes(result.Nodes(), variables);
+    AddDofsToNodes(r_result.Nodes(), variables);
 
     auto element = make_intrusive<SmallStrainUPwDiffOrderElement>(
-        1, Kratos::make_shared<Triangle2D6<Node>>(nodes), result.CreateNewProperties(0),
+        1, Kratos::make_shared<Triangle2D6<Node>>(nodes), r_result.CreateNewProperties(0),
         std::make_unique<PlaneStrainStressState>());
 
-    result.AddElement(element);
-    return result;
+    r_result.AddElement(element);
+    return r_result;
 }
 
 ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)

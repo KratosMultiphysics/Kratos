@@ -16,7 +16,6 @@
 #include "geometries/point.h"
 #include "includes/condition.h"
 #include "includes/element.h"
-
 #include <vector>
 
 namespace Kratos::Testing
@@ -25,16 +24,35 @@ namespace Kratos::Testing
 class ElementSetupUtilities
 {
 public:
-    static std::vector<Kratos::Point> CreatePointsFor2D3NElement();
-    static std::vector<Kratos::Point> CreatePointsFor2D3NLineEntity();
-    static std::vector<Kratos::Point> CreatePointsFor2D6NElement();
-    static std::vector<Kratos::Point> CreatePointsFor2D10NElement();
-    static std::vector<Kratos::Point> CreatePointsFor2D15NElement();
-    static std::vector<Kratos::Point> CreatePointsFor3D10NElement();
+    static std::vector<Point> CreatePointsFor2D2NElement();
+    static std::vector<Point> CreatePointsFor2D3NElement();
+    static std::vector<Point> CreatePointsFor2D3NLineEntity();
+    static std::vector<Point> CreatePointsFor2D6NElement();
+    static std::vector<Point> CreatePointsFor2D10NElement();
+    static std::vector<Point> CreatePointsFor2D15NElement();
+    static std::vector<Point> CreatePointsFor3D4NElement();
+    static std::vector<Point> CreatePointsFor3D8NElement();
+    static std::vector<Point> CreatePointsFor3D10NElement();
+    static std::vector<Point> CreatePointsFor3D20NElement();
+    static std::vector<Point> CreatePointsFor3D6NInterfaceElement();
 
     static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
     static Element::Pointer Create2D3NElement();
+    static Element::Pointer Create2D2NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties);
+
+    static Condition::Pointer CreateCondition(const std::string& rType, const PointerVector<Node>& rNodes);
+    static Condition::Pointer Create3D3NCondition(const PointerVector<Node>& rNodes);
+
+    static Condition::Pointer Create3D4NCondition(const PointerVector<Node>& rNodes);
+
+    static Condition::Pointer Create3D6NCondition(const PointerVector<Node>& rNodes);
+
+    static Condition::Pointer Create3D8NCondition(const PointerVector<Node>& rNodes);
+    static Condition::Pointer Create3D1NCondition(const PointerVector<Node>& rNodes);
+    static Condition::Pointer Create2D2NCondition(const PointerVector<Node>& rNodes);
+    static Condition::Pointer Create3D3NLineCondition(const PointerVector<Node>& rNodes);
 
     static Element::Pointer Create2D6NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
@@ -52,9 +70,19 @@ public:
                                                const Properties::Pointer& rProperties);
     static Element::Pointer Create2D15NElement();
 
+    static Element::Pointer Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                       const Properties::Pointer& rProperties);
+
+    static Element::Pointer Create3D4NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties);
+
     static Element::Pointer Create3D10NElement(const PointerVector<Node>& rNodes,
                                                const Properties::Pointer& rProperties);
     static Element::Pointer Create3D10NElement();
+    static Element::Pointer Create3D8NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties);
+    static Element::Pointer Create3D20NElement(const PointerVector<Node>& rNodes,
+                                               const Properties::Pointer& rProperties);
 
     static Condition::Pointer Create2D3NLineCondition(const PointerVector<Node>& rNodes,
                                                       const Properties::Pointer& rProperties);
