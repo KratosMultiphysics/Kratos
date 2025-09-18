@@ -833,6 +833,17 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         */
     }
 
+
+    for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
+        this->CalculateKinematics(Variables, GPoint);
+        Variables.B                  = b_matrices[GPoint];
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+
+        if (CalculateResidualVectorFlag)
+            this->CalculateAndAddStiffnessForce(rRightHandSideVector, Variables, GPoint);
+
+    }
+
     KRATOS_CATCH("")
 }
 
@@ -1192,8 +1203,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddRHS(VectorType&       rRight
                                                         unsigned int      GPoint)
 {
     KRATOS_TRY
-
-    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
     this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
