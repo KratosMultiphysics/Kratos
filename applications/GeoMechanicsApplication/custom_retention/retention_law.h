@@ -113,11 +113,9 @@ public:
                      const Properties&                         rProperties,
                      const ProcessInfo&                        rCurrentProcessInfo)
     {
-        KRATOS_ERROR_IF(rRetentionLawVector.empty())
-            << "A retention law has to be provided." << std::endl;
+        KRATOS_ERROR_IF(rRetentionLawVector.empty()) << "A retention law has to be provided." << std::endl;
 
         return rRetentionLawVector[0]->Check(rProperties, rCurrentProcessInfo);
-        
     }
 
     /**

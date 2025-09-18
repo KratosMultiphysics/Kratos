@@ -21,6 +21,9 @@ coordinates
         15 1.000000e+00 1.000000e+00 2.000000e+00
 part	1
 Submodelpart	Main
+penta6
+	         1
+	        13		         3		         7		         4		        13		        14		        15
 tetra4
 	        12
 	         1		        12		        10		         8		         9
@@ -35,9 +38,6 @@ tetra4
 	        10		         4		         1		         6		         3
 	        11		         9		        12		        11		         8
 	        12		         3		         2		         1		         6
-penta6
-	         1
-	        13		         3		         7		         4		        13		        14		        15
 part	2
 Submodelpart	FixedEdgeNodes
 tria3
