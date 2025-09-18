@@ -142,8 +142,8 @@ Matrix ExpectedLeftHandSide()
 
 Vector ExpectedRightHandSide()
 {
-    return UblasUtilities::CreateVector({126487, -41008.2, -34731.2, -1570.05, 25555.6, -67314.3, -6200.72,
-                                         -48877.7, 40501.8, 53016.7, -151613, 92500.2, -4.8448, 4.8448, 0});
+    return UblasUtilities::CreateVector({128487, -42674.8, -34731.2, 96.6194, 23555.6, -67314.3, 465.95,
+                                         -48877.7, 33835.1, 59683.4, -151613, 85833.5, -4.8448, 4.8448, 0});
 }
 
 } // namespace
@@ -223,7 +223,9 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
+    auto properties = CreateProperties();
+    properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
