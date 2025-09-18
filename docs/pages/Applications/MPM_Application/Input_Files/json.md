@@ -155,7 +155,7 @@ Each json object in the list assigned to the `property` field is defined through
             | :-------: | :--------: | :------------: | :-------: |
             |  1        |  1         |  1             |   1       |
             |  3        |  4         |  4             |   8       |
-            |  4        |  6         |  9             |  27       |
+            |  4        |  8         |  9             |  27       |
             |  6        | 14         | 16             |  64       |
             | 12        | 24         | 25             | 125       |
 
