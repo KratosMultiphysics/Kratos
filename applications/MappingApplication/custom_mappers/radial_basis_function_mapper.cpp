@@ -85,6 +85,9 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     const bool is_origin_iga = mLocalMapperSettings["is_origin_iga"].GetBool();
     const bool is_destination_iga = mLocalMapperSettings["is_destination_iga"].GetBool();
 
+    // Determine whether we project or not the origin nodes coordinates to the plane of the panel mesh 
+    const bool project_origin_nodes_to_destination_domain_panel_solver = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["project_origin_nodes_to_destination_domain_panel_solver"].GetBool();
+
     // If the origin is IGA, determine the number of integration points over the coupling boundary
     if (is_origin_iga == 1){
         for(auto condition_it = this->GetOriginModelPart().ConditionsBegin(); condition_it != this->GetOriginModelPart().ConditionsEnd(); ++condition_it){
@@ -143,6 +146,9 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
             ++i;
         }
     } 
+
+    KRATOS_WATCH(origin_coords)
+    exit(0);
 
     if (is_destination_iga == 1) n_destination = destination_integration_points.size();
     DenseMatrixType destination_coords(n_destination, 3);

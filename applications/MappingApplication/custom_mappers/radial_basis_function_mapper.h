@@ -204,8 +204,11 @@ private:
             "destination_is_slave"          : true,
             "is_origin_iga"             : false,
             "is_destination_iga"             : false,
-             "linear_solver_settings": {
+            "linear_solver_settings": {
                 "solver_type": "skyline_lu_factorization"
+            },
+            "aerodynamic_panel_solver_settings": {
+                "project_origin_nodes_to_destination_domain_panel_solver": false
             }
         })");
     }
