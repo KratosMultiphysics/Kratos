@@ -19,6 +19,11 @@
 namespace Kratos
 {
 
+FindNeighbourElementsOfConditionsProcess::FindNeighbourElementsOfConditionsProcess(ModelPart& rModelPart)
+    : mrModelPart(rModelPart)
+{
+}
+
 void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     if (mrModelPart.Conditions().empty()) return;
@@ -33,17 +38,17 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
 void FindNeighbourElementsOfConditionsProcess::InitializeConditionMaps()
 {
-    mConditionNodeIdsToCondition.clear();
-    std::ranges::transform(mrModelPart.Conditions(),
-                           std::inserter(mConditionNodeIdsToCondition, mConditionNodeIdsToCondition.end()),
-                           [](auto& rCondition) {
-        return NodeIdToConditionsHashMap::value_type(
+    mConditionNodeIdsToConditions.clear();
+    std::ranges::transform(
+        mrModelPart.Conditions(),
+        std::inserter(mConditionNodeIdsToConditions, mConditionNodeIdsToConditions.end()), [](auto& rCondition) {
+        return NodeIdsToConditionsHashMap::value_type(
             GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
     });
 
     mSortedToUnsortedConditionNodeIds.clear();
     std::ranges::transform(
-        mConditionNodeIdsToCondition,
+        mConditionNodeIdsToConditions,
         std::inserter(mSortedToUnsortedConditionNodeIds, mSortedToUnsortedConditionNodeIds.end()),
         [](const auto& rPair) {
         auto sorted_ids = rPair.first;
@@ -93,10 +98,10 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsToConditio
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         const auto element_boundary_node_ids = GetNodeIdsFromGeometry(r_boundary_geometry);
 
-        if (mConditionNodeIdsToCondition.contains(element_boundary_node_ids)) {
+        if (mConditionNodeIdsToConditions.contains(element_boundary_node_ids)) {
             SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
         } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
-            // Condition is not found directly but might be a problem of ordering in 2D boundary geometries
+            // No condition is directly found for this boundary, but it might be a rotated equivalent
             SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
                 rElement, element_boundary_node_ids, r_boundary_geometry.GetGeometryOrderType());
         }
@@ -106,7 +111,7 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsToConditio
 void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
     const std::vector<std::size_t>& rConditionNodeIds, Element* pElement)
 {
-    const auto [start, end] = mConditionNodeIdsToCondition.equal_range(rConditionNodeIds);
+    const auto [start, end] = mConditionNodeIdsToConditions.equal_range(rConditionNodeIds);
     for (auto it = start; it != end; ++it) {
         const auto& r_conditions  = it->second;
         auto vector_of_neighbours = GlobalPointersVector<Element>{Element::WeakPointer{pElement}};
@@ -200,6 +205,25 @@ std::vector<std::size_t> FindNeighbourElementsOfConditionsProcess::GetNodeIdsFro
     std::ranges::transform(rGeometry, std::back_inserter(result),
                            [](const auto& rNode) { return rNode.Id(); });
     return result;
+}
+
+std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfConditionsProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+std::string FindNeighbourElementsOfConditionsProcess::Info() const
+{
+    return "FindNeighbourElementsOfConditionsProcess";
+}
+
+void FindNeighbourElementsOfConditionsProcess::PrintData(std::ostream& rOStream) const
+{
+    this->PrintInfo(rOStream);
 }
 
 } // namespace Kratos

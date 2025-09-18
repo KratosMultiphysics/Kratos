@@ -146,9 +146,8 @@ std::vector<Point> ElementSetupUtilities::CreatePointsFor3D8NElement()
 Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return make_intrusive<UPwSmallStrainElement<2, 3>>(
-        1, std::make_shared<Triangle2D3<Node>>(rNodes), rProperties,
-        std::make_unique<PlaneStrainStressState>(), nullptr);
+    return make_intrusive<UPwSmallStrainElement<2, 3>>(1, std::make_shared<Triangle2D3<Node>>(rNodes), rProperties,
+                                                       std::make_unique<PlaneStrainStressState>(), nullptr);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D3NElement()
@@ -162,8 +161,8 @@ Element::Pointer ElementSetupUtilities::Create2D2NElement(const PointerVector<No
     using enum CalculationContribution;
     const auto contributions = {Permeability, Compressibility, FluidBodyFlow};
 
-    return make_intrusive<TransientPwLineElement<2, 2>>(
-        1, std::make_shared<Line2D2<Node>>(rNodes), rProperties, contributions, nullptr);
+    return make_intrusive<TransientPwLineElement<2, 2>>(1, std::make_shared<Line2D2<Node>>(rNodes),
+                                                        rProperties, contributions, nullptr);
 }
 
 Condition::Pointer ElementSetupUtilities::Create3D3NCondition(const PointerVector<Node>& rNodes)
@@ -173,8 +172,7 @@ Condition::Pointer ElementSetupUtilities::Create3D3NCondition(const PointerVecto
 
 Condition::Pointer ElementSetupUtilities::Create3D4NCondition(const PointerVector<Node>& rNodes)
 {
-    return make_intrusive<UPwNormalFaceLoadCondition<3, 4>>(
-        1, std::make_shared<Quadrilateral3D4<Node>>(rNodes));
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 4>>(1, std::make_shared<Quadrilateral3D4<Node>>(rNodes));
 }
 
 Condition::Pointer ElementSetupUtilities::Create3D6NCondition(const PointerVector<Node>& rNodes)
@@ -184,8 +182,7 @@ Condition::Pointer ElementSetupUtilities::Create3D6NCondition(const PointerVecto
 
 Condition::Pointer ElementSetupUtilities::Create3D8NCondition(const PointerVector<Node>& rNodes)
 {
-    return make_intrusive<UPwNormalFaceLoadCondition<3, 8>>(
-        1, std::make_shared<Quadrilateral3D8<Node>>(rNodes));
+    return make_intrusive<UPwNormalFaceLoadCondition<3, 8>>(1, std::make_shared<Quadrilateral3D8<Node>>(rNodes));
 }
 
 Condition::Pointer ElementSetupUtilities::Create3D1NCondition(const PointerVector<Node>& rNodes)
@@ -206,9 +203,8 @@ Condition::Pointer ElementSetupUtilities::Create3D3NLineCondition(const PointerV
 Element::Pointer ElementSetupUtilities::Create2D6NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return make_intrusive<UPwSmallStrainElement<2, 6>>(
-        1, std::make_shared<Triangle2D6<Node>>(rNodes), rProperties,
-        std::make_unique<PlaneStrainStressState>(), nullptr);
+    return make_intrusive<UPwSmallStrainElement<2, 6>>(1, std::make_shared<Triangle2D6<Node>>(rNodes), rProperties,
+                                                       std::make_unique<PlaneStrainStressState>(), nullptr);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D6NElement()
@@ -266,9 +262,8 @@ Element::Pointer ElementSetupUtilities::Create3D6NInterfaceElement(const Pointer
 Element::Pointer ElementSetupUtilities::Create3D4NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return make_intrusive<UPwSmallStrainElement<3, 4>>(
-        1, std::make_shared<Tetrahedra3D4<Node>>(rNodes), rProperties,
-        std::make_unique<ThreeDimensionalStressState>());
+    return make_intrusive<UPwSmallStrainElement<3, 4>>(1, std::make_shared<Tetrahedra3D4<Node>>(rNodes), rProperties,
+                                                       std::make_unique<ThreeDimensionalStressState>());
 }
 
 Element::Pointer ElementSetupUtilities::Create3D10NElement(const PointerVector<Node>& rNodes,
@@ -287,9 +282,8 @@ Element::Pointer ElementSetupUtilities::Create3D10NElement()
 Element::Pointer ElementSetupUtilities::Create3D8NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return make_intrusive<UPwSmallStrainElement<3, 8>>(
-        1, std::make_shared<Hexahedra3D8<Node>>(rNodes), rProperties,
-        std::make_unique<ThreeDimensionalStressState>());
+    return make_intrusive<UPwSmallStrainElement<3, 8>>(1, std::make_shared<Hexahedra3D8<Node>>(rNodes), rProperties,
+                                                       std::make_unique<ThreeDimensionalStressState>());
 }
 
 Element::Pointer ElementSetupUtilities::Create3D20NElement(const PointerVector<Node>& rNodes,

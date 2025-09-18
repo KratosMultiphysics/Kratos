@@ -176,7 +176,8 @@ ModelPart& CreateModelPartWithASingle3D6NInterfaceElement(Model& rModel, const G
     auto nodes = CreateNewNodes(r_result, ElementSetupUtilities::CreatePointsFor3D6NInterfaceElement());
     AddDofsToNodes(r_result.Nodes(), rNodalVariables);
 
-    auto element = ElementSetupUtilities::Create3D6NInterfaceElement(nodes, r_result.CreateNewProperties(0));
+    auto element =
+        ElementSetupUtilities::Create3D6NInterfaceElement(nodes, r_result.CreateNewProperties(0));
 
     r_result.AddElement(element);
 

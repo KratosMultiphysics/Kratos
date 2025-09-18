@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-using NodeIdToConditionsHashMap      = std::unordered_multimap<std::vector<std::size_t>,
+using NodeIdsToConditionsHashMap     = std::unordered_multimap<std::vector<std::size_t>,
                                                                std::vector<Condition::Pointer>,
                                                                KeyHasherRange<std::vector<std::size_t>>,
                                                                KeyComparorRange<std::vector<std::size_t>>>;
@@ -35,27 +35,18 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighbourElementsOfConditionsPro
 public:
     KRATOS_CLASS_POINTER_DEFINITION(FindNeighbourElementsOfConditionsProcess);
 
-    explicit FindNeighbourElementsOfConditionsProcess(ModelPart& rModelPart)
-        : mrModelPart(rModelPart)
-    {
-    }
-
+    explicit FindNeighbourElementsOfConditionsProcess(ModelPart& rModelPart);
     FindNeighbourElementsOfConditionsProcess& operator=(const FindNeighbourElementsOfConditionsProcess&) = delete;
     FindNeighbourElementsOfConditionsProcess(const FindNeighbourElementsOfConditionsProcess&) = delete;
     ~FindNeighbourElementsOfConditionsProcess() override = default;
 
-    void Execute() override;
-
-    [[nodiscard]] std::string Info() const override
-    {
-        return "FindNeighbourElementsOfConditionsProcess";
-    }
-
-    void PrintData(std::ostream& rOStream) const override { this->PrintInfo(rOStream); }
+    void                      Execute() override;
+    [[nodiscard]] std::string Info() const override;
+    void                      PrintData(std::ostream& rOStream) const override;
 
 private:
     ModelPart&                     mrModelPart;
-    NodeIdToConditionsHashMap      mConditionNodeIdsToCondition;
+    NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
 
     void InitializeConditionMaps();
@@ -82,16 +73,9 @@ private:
 
     [[nodiscard]] bool AllConditionsHaveAtLeastOneNeighbour() const;
     [[nodiscard]] static std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
-    void ReportConditionsWithoutNeighboursAndThrow() const;
+    [[noreturn]] void ReportConditionsWithoutNeighboursAndThrow() const;
 };
 
-inline std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfConditionsProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
+std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfConditionsProcess& rThis);
 
 } // namespace Kratos
