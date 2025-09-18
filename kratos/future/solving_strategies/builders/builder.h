@@ -162,21 +162,6 @@ public:
     }
 
     /**
-     * @brief Builds the Dirichlet constraints
-     * This method does the building of the Dirichlet constraints according to the build type
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
-     */
-    virtual void BuildDirichletConstraints(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
-    {
-        KRATOS_ERROR << "Calling base class 'BuildDirichletConstraints'." << std::endl;
-    }
-
-    /**
      * @brief Set the Up Sparse Matrix Graph
      * This method builds the sparse matrix graph from the connectivities of the
      * elements and conditions in the model part the builder refers to
@@ -190,8 +175,19 @@ public:
         // Add the elements and conditions DOF equation connectivities
         // Note that we add all the DOFs regardless their fixity status
         if constexpr (TSparseGraphType::IsThreadSafe) {
-            //TODO: DO the parallel version based on the IsThreadSafe
-            KRATOS_ERROR << "TO BE IMPLEMENTED" << std::endl;
+            IndexPartition<IndexType>(mpModelPart->NumberOfElements()).for_each([&](IndexType Index) {
+                Element::EquationIdVectorType eq_ids; //TODO: we don't use TLS for this (decide what to do once we finish the parallelism discussion)
+                auto it_elem = mpModelPart->ElementsBegin() + Index;
+                it_elem->EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
+                rSparseGraph.AddEntries(eq_ids);
+            });
+            IndexPartition<IndexType>(mpModelPart->NumberOfConditions()).for_each([&](IndexType Index) {
+                Condition::EquationIdVectorType eq_ids; //TODO: we don't use TLS for this (decide what to do once we finish the parallelism discussion)
+                auto it_cond = mpModelPart->ElementsBegin() + Index;
+                it_cond->EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
+                rSparseGraph.AddEntries(eq_ids);
+            });
+            //TODO: Add the constraints in here!
         } else {
             Element::EquationIdVectorType eq_ids;
             for (auto& r_elem : mpModelPart->Elements()) {
@@ -202,6 +198,7 @@ public:
                 r_cond.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
                 rSparseGraph.AddEntries(eq_ids);
             }
+            //TODO: Add the constraints in here!
         }
     }
 
@@ -227,21 +224,39 @@ public:
 
             // Add all effective DOFs
             // Note that here effective means that the DOF is either a master DOF or a DOF that does not involve any constraint
-            for (IndexType i_dof = 0; i_dof < rEffectiveDofSet.size(); ++i_dof) { //TODO: Make it parallel when we implement the IsThreadSafe method in the sparse graphs
-                auto p_eff_dof = *(rEffectiveDofSet.ptr_begin() + i_dof);
+            auto eff_dof_addition_fn = [&](IndexType Index){
+                auto p_eff_dof = *(rEffectiveDofSet.ptr_begin() + Index);
                 const IndexType i_dof_eq_id = p_eff_dof->EquationId();
                 const IndexType i_dof_eff_eq_id = p_eff_dof->EffectiveEquationId();
                 rConstraintsSparseGraph.AddEntry(i_dof_eq_id, i_dof_eff_eq_id);
+            };
+
+            const std::size_t n_eff_dof = rEffectiveDofSet.size();
+            if constexpr (TSparseGraphType::IsThreadSafe) {
+                IndexPartition<IndexType>(n_eff_dof).for_each(eff_dof_addition_fn);
+            } else {
+                for (IndexType i_dof = 0; i_dof < n_eff_dof; ++i_dof) {
+                    eff_dof_addition_fn(i_dof);
+                }
             }
 
             // Loop the constraints to add the slave DOFs
             // Note that we assume that there constraints are always one to many (not many to many)
-            for (const auto& r_constraint : mpModelPart->MasterSlaveConstraints()) { //TODO: Make it parallel when we implement the IsThreadSafe method in the sparse graphs
-                const auto& r_masters = r_constraint.GetMasterDofsVector();
-                const IndexType slave_eq_id = (r_constraint.GetSlaveDofsVector()[0])->EquationId();
+            auto slave_dof_addition_fn = [&](IndexType Index){
+                auto it_constraint = mpModelPart->MasterSlaveConstraintsBegin() + Index;
+                const auto& r_masters = it_constraint->GetMasterDofsVector(); //TODO: we don't use TLS for this (decide what to do once we finish the parallelism discussion)
+                const IndexType slave_eq_id = (it_constraint->GetSlaveDofsVector()[0])->EquationId();
                 for (const auto& rp_master_dof : r_masters) {
                     const IndexType master_eff_eq_id = rp_master_dof->EffectiveEquationId();
                     rConstraintsSparseGraph.AddEntry(slave_eq_id, master_eff_eq_id);
+                }
+            };
+
+            if constexpr (TSparseGraphType::IsThreadSafe) {
+                IndexPartition<IndexType>(n_constraints).for_each(slave_dof_addition_fn);
+            } else {
+                for (IndexType i_constraint = 0; i_constraint < n_constraints; ++i_constraint) {
+                    slave_dof_addition_fn(i_constraint);
                 }
             }
         }

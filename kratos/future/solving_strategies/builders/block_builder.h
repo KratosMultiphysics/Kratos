@@ -174,6 +174,7 @@ public:
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         // Check if there are master-slave constraints
+        //TODO: Do the MPI sum all
         const std::size_t n_constraints = this->GetModelPart().NumberOfMasterSlaveConstraints();
         if (n_constraints) {
             // Fill the master-slave constraints graph
@@ -187,13 +188,6 @@ public:
             auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
             rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
         }
-    }
-
-    void BuildDirichletConstraints(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
-    {
     }
 
     //FIXME: Do the RHS-only version
@@ -251,6 +245,7 @@ private:
             rLinearSystemContainer.pEffectiveT->TransposeSpMV(*p_rhs, *p_eff_rhs);
 
             // Apply constraints to LHS
+            //TODO: Rethink once we figure out the LinearSystemContainer, LinearOperator and so...
             auto p_lhs = rLinearSystemContainer.pLhs;
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
             auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
@@ -305,7 +300,7 @@ private:
             }
         });
 
-        //TODO: Implement this in the CSR matrix or here?
+        //TODO: Implement this in the CSR matrix or here? @Pooyan and @Ruben think that should go to a csr_utilities.h
         // // Detect if there is a line of all zeros and set the diagonal to a certain number if this happens (1 if not scale, some norms values otherwise)
         // mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
@@ -313,6 +308,7 @@ private:
         const double diagonal_value = this->GetDiagonalScalingFactor(rLHS);
 
         // Apply the free DOFs (i.e., fixity) vector to the system arrays
+        //TODO: Why don't we put the ApplyHomogeneousDirichlet in a csr_utilities.h to eventually have a different implementation for custom needs
         rLHS.ApplyHomogeneousDirichlet(free_dofs_vector, diagonal_value, rRHS);
     }
 

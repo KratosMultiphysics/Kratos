@@ -180,15 +180,6 @@ public:
         mpDirichletT.swap(p_aux_T);
     }
 
-    void BuildDirichletConstraints(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
-    {
-        // Set ones in the entries of the Dirichlet constraints relation matrix
-        mpDirichletT->SetValue(1.0);
-    }
-
     //FIXME: Do the RHS-only version
     void ApplyLinearSystemConstraints(
         const DofsArrayType& rEffectiveDofArray,
@@ -206,6 +197,9 @@ public:
         KRATOS_ERROR_IF(p_eff_dx == nullptr) << "Effective solution increment vector has not been initialized yet." << std::endl;
         p_eff_dx->SetValue(0.0);
 
+        // Set ones in the entries of the Dirichlet constraints relation matrix
+        mpDirichletT->SetValue(1.0);
+
         // Check if there are master-slave constraints to do the constraints composition
         const auto& r_model_part = this->GetModelPart();
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
@@ -221,7 +215,7 @@ public:
             // Apply constraints to LHS
             auto p_lhs = rLinearSystemContainer.pLhs;
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT); //TODO: check if AMGCL transpose is doing a copy here
             rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
         } else {
             // Assign the Dirichlet relation matrix as the effective ones since there are no other constraints
@@ -234,7 +228,7 @@ public:
             // Apply Dirichlet constraints to LHS
             auto p_lhs = rLinearSystemContainer.pLhs;
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT); //TODO: check if AMGCL transpose is doing a copy here
             rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
         }
     }

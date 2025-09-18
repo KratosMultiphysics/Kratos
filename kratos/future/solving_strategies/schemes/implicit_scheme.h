@@ -1044,9 +1044,6 @@ public:
         // Build the master-slave constraints relation matrix and constant vector
         BuildMasterSlaveConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
 
-        // Build the Dirichlet constraints relation matrix and constant vector
-        GetBuilder().BuildDirichletConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
-
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Build linear system constraints time: " << build_linear_system_constraints_time << std::endl;
     }
 
