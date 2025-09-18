@@ -246,4 +246,36 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeo
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(ExpectedRightHandSide(), actual_rhs_values, 1e-5);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SumOfInternalAndExternalForcesAreRHS, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = CreateProperties();
+    properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
+
+    SetSolutionStepValuesForGeneralCheck(p_element);
+
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    auto r_geometry = p_element->GetGeometry();
+    for (int counter = 0; auto& node : r_geometry) {
+        node.FastGetSolutionStepValue(WATER_PRESSURE)    = counter * 1.0e5;
+        node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = counter * 5.0e5;
+        ++counter;
+    }
+
+    // Act
+    auto actual_rhs_values = Vector{};
+    p_element->CalculateRightHandSide(actual_rhs_values, dummy_process_info);
+
+    auto internal_forces = Vector{};
+    p_element->Calculate(INTERNAL_FORCES_VECTOR, internal_forces, dummy_process_info);
+
+    auto external_forces = Vector{};
+    p_element->Calculate(EXTERNAL_FORCES_VECTOR, external_forces, dummy_process_info);
+
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_rhs_values, (internal_forces + external_forces), 1e-5);
+}
+
 } // namespace Kratos::Testing

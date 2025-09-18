@@ -103,6 +103,8 @@ public:
 
     using Element::CalculateOnIntegrationPoints;
 
+    void Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo) override;
+    using Element::Calculate;
     // Turn back information as a string.
     std::string Info() const override
     {
@@ -210,6 +212,8 @@ protected:
                                  const std::vector<double>& relative_permeability_values,
                                  const std::vector<double>& bishop_coefficients);
 
+
+protected:
     void CalculateExternalForces(VectorType& rRightHandSideVector,
                                  const Geometry<Node>::IntegrationPointsArrayType& r_integration_points,
                                  ElementVariables&          Variables,

@@ -720,10 +720,77 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     KRATOS_CATCH("")
 }
 
+void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable,
+                                               Vector&                 Output,
+                                               const ProcessInfo&      rCurrentProcessInfo)
+{
+
+    Output = ZeroVector(this->GetGeometry().size() * this->GetGeometry().WorkingSpaceDimension() +
+                    mpPressureGeometry->size());
+    const PropertiesType&                           r_prop = this->GetProperties();
+    const GeometryType&                             r_geom = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points =
+        r_geom.IntegrationPoints(this->GetIntegrationMethod());
+
+    ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, r_prop, rCurrentProcessInfo);
+
+    // Stiffness matrix is needed to calculate Biot coefficient
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+    const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
+    const auto integration_coefficients =
+        this->CalculateIntegrationCoefficients(r_integration_points, Variables.detJuContainer);
+
+    const auto det_Js_initial_configuration = GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(
+        r_geom, this->GetIntegrationMethod());
+
+    const auto integration_coefficients_on_initial_configuration =
+        this->CalculateIntegrationCoefficients(r_integration_points, det_Js_initial_configuration);
+
+    const auto deformation_gradients = CalculateDeformationGradients();
+    auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+        deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
+        GetStressStatePolicy().GetVoigtSize());
+    std::vector<Matrix> constitutive_matrices;
+    this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                         Variables.NuContainer, Variables.DNu_DXContainer,
+                                         strain_vectors, mStressVector, constitutive_matrices);
+    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+        constitutive_matrices, this->GetProperties());
+    const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+        Variables.NpContainer, Variables.PressureVector);
+    const auto degrees_of_saturation     = CalculateDegreesOfSaturation(fluid_pressures);
+    const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
+    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
+    auto       relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
+    const auto permeability_update_factors  = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+    std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
+                   relative_permeability_values.cbegin(), relative_permeability_values.begin(),
+                   std::multiplies<>{});
+
+    const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
+    if (rVariable == INTERNAL_FORCES_VECTOR) {
+        CalculateInternalForces(Output, r_integration_points, Variables, b_matrices,
+                        integration_coefficients, biot_coefficients, degrees_of_saturation,
+                        biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
+    }
+    else if (rVariable == EXTERNAL_FORCES_VECTOR) {
+        CalculateExternalForces(Output, r_integration_points, Variables,
+                        integration_coefficients, integration_coefficients_on_initial_configuration,
+                        degrees_of_saturation, relative_permeability_values, bishop_coefficients);
+    }
+}
+
 void SmallStrainUPwDiffOrderElement::CalculateInternalForces(
-    Element::VectorType&                              rRightHandSideVector,
+    VectorType&                                       rRightHandSideVector,
     const Geometry<Node>::IntegrationPointsArrayType& r_integration_points,
-    SmallStrainUPwDiffOrderElement::ElementVariables& Variables,
+    ElementVariables&                                 Variables,
     const std::vector<Matrix>&                        b_matrices,
     const std::vector<double>&                        integration_coefficients,
     const std::vector<double>&                        biot_coefficients,
