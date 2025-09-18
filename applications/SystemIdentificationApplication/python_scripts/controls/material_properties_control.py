@@ -78,8 +78,6 @@ class MaterialPropertiesControl(Control):
 
         self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
 
-        self.skip_forward_filter = False
-
 
         # filter needs to be based on the primal model part
         # because, filter may keep pointers for the elements to get their center positions
@@ -186,10 +184,7 @@ class MaterialPropertiesControl(Control):
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
         # filter the control field
-        if self.skip_forward_filter:
-            filtered_phi_field_update = update.Clone()
-        else:
-            filtered_phi_field_update = self.filter.ForwardFilterField(update)
+        filtered_phi_field_update = self.filter.ForwardFilterField(update)
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_phi_field_update)
 
         # project forward the filtered thickness field to get clamped physical field
