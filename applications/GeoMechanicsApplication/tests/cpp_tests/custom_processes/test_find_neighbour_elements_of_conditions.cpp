@@ -65,8 +65,8 @@ TEST_P(ParametrizedFindNeighbouringElementsForDifferentTypesAndOrderingsFixture,
 
     Model model;
     auto& r_model_part = CreateModelPartWithSingleElement(element_type, model);
-    auto nodes = GetNodesFromIds(order, r_model_part);
-    auto p_condition = ElementSetupUtilities::CreateCondition(condition_type, nodes);
+    auto  nodes        = GetNodesFromIds(order, r_model_part);
+    auto  p_condition  = ElementSetupUtilities::CreateCondition(condition_type, nodes);
     r_model_part.AddCondition(p_condition);
     FindNeighbourElementsOfConditionsProcess process(r_model_part);
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
@@ -134,7 +134,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestFindNeighboursForMultipleCo
 
     EXPECT_EQ(p_condition2->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
     EXPECT_EQ(p_condition2->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
-
 }
 
 class ParametrizedFindNeighbouring3D4NElementsThrowsWhenNotFoundFixture
@@ -148,8 +147,8 @@ TEST_P(ParametrizedFindNeighbouring3D4NElementsThrowsWhenNotFoundFixture, Proces
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(model);
 
-    const auto&         order = GetParam();
-    auto nodes = GetNodesFromIds(order, r_model_part);
+    const auto& order = GetParam();
+    auto        nodes = GetNodesFromIds(order, r_model_part);
 
     auto p_condition = ElementSetupUtilities::Create3D3NCondition(nodes);
     r_model_part.AddCondition(p_condition);
@@ -167,5 +166,35 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                          ::testing::Values(std::vector<std::size_t>{1, 2, 3},
                                            std::vector<std::size_t>{4, 2, 1},
                                            std::vector<std::size_t>{1, 3, 4}));
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighboursWithMultipleNeighbouringElements_AddsLastElementAsNeighbour)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.pGetNode(1));
+    nodes.push_back(r_model_part.pGetNode(2));
+    nodes.push_back(r_model_part.pGetNode(3));
+
+    r_model_part.AddElement(r_model_part.GetElement(1).Clone(2, nodes));
+
+    PointerVector<Node> condition_nodes;
+    condition_nodes.push_back(r_model_part.pGetNode(1));
+    condition_nodes.push_back(r_model_part.pGetNode(2));
+    auto p_condition = ElementSetupUtilities::Create2D2NCondition(condition_nodes);
+    r_model_part.AddCondition(p_condition);
+
+    FindNeighbourElementsOfConditionsProcess process(r_model_part);
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+
+    // Act
+    process.Execute();
+
+    // Assert
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 2);
+}
 
 } // namespace Kratos::Testing
