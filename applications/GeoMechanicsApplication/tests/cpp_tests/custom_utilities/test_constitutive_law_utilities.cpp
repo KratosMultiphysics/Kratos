@@ -141,8 +141,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetStateVariableIndex, Kratos
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto                     properties       = Properties{};
-    properties.GetValue(CONSTITUTIVE_LAW)     = Kratos::make_shared<MockConstitutiveLaw>();
+    auto properties                       = Properties{};
+    properties.GetValue(CONSTITUTIVE_LAW) = Kratos::make_shared<MockConstitutiveLaw>();
 
     // Act and Assert
     std::size_t           expected_size = 2;
@@ -163,8 +163,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGe
     // Act and Assert
     constexpr std::size_t element_id = 1;
     constitutive_law->AddStrainMeasure_Infinitesimal(false);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id), " Constitutive law is not compatible with the strain type StrainMeasure_Infinitesimal at element 1.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id), " Constitutive law is not compatible with the strain type StrainMeasure_Infinitesimal at element 1.");
 
     constitutive_law->AddStrainMeasure_Infinitesimal(true);
     EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id));
