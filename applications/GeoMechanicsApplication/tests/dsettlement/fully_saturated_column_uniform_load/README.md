@@ -31,3 +31,45 @@ The expected values are based on the analytical solution of a fully saturated co
 For the low-permeability case, the following assertions are made in this test:
 1. The total vertical displacement at the top of the column is expected to be -0.496382 [m] after 100 days (stage 2). This is based on a regression value.
 2. The total vertical displacement at the top of the column is expected to be -8.48 [m] after 10000 days (stage 5). This is based on an analytical value.
+
+## Results
+
+### High permeability
+
+The following plots show some results obtained with Kratos, and compares them with results from D-Settlement 23.2.1.
+
+Settlement over time, where nodes 2, 3, and 104 are located at the top edge of the soil column:
+
+![Settlement](high_permeability/test_case_2_settlement_plot.svg)
+
+The following plots show the water pressure distribution ($`p_{\mathrm{w}}`$) as well as the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$) along the left edge of the soil column at certain times.
+After 100 days of settlement under self weight:
+
+![Stress plot after 100 days](high_permeability/test_case_2_stress_plot_after_100_days.svg)
+
+At 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ at 100 days:
+
+![Stress plot after 100.1 days](high_permeability/test_case_2_stress_plot_after_100.1_days.svg)
+
+After 10000 days of settlement:
+
+![Stress plot after 10000 days](high_permeability/test_case_2_stress_plot_after_10000_days.svg)
+
+### Low permeability
+
+Settlement over time, where nodes 2, 3, and 104 are located at the top edge of the soil column:
+
+![Settlement](low_permeability/test_case_4_settlement_plot.svg)
+
+The following plots show the water pressure distribution ($`p_{\mathrm{w}}`$) as well as the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$) along the left edge of the soil column at certain times.
+After 100 days of settlement under self weight:
+
+![Stress plot after 100 days](low_permeability/test_case_4_stress_plot_after_100_days.svg)
+
+At 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ at 100 days:
+
+![Stress plot after 100.1 days](low_permeability/test_case_4_stress_plot_after_100.1_days.svg)
+
+After 10000 days of settlement:
+
+![Stress plot after 10000 days](low_permeability/test_case_4_stress_plot_after_10000_days.svg)
