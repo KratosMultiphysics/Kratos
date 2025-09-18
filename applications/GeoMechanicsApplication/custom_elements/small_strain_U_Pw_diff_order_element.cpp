@@ -844,14 +844,24 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
     for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
         this->CalculateKinematics(Variables, GPoint);
-        Variables.B                  = b_matrices[GPoint];
-        Variables.BishopCoefficient    = bishop_coefficients[GPoint];
+        Variables.B                      = b_matrices[GPoint];
+        Variables.BishopCoefficient      = bishop_coefficients[GPoint];
         Variables.BiotCoefficient        = biot_coefficients[GPoint];
         Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
         if (CalculateResidualVectorFlag)
             this->CalculateAndAddCouplingTerms(rRightHandSideVector, Variables);
+    }
+    if (!Variables.IgnoreUndrained) {
+        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
+            this->CalculateKinematics(Variables, GPoint);
+            Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
+            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+
+            if (CalculateResidualVectorFlag)
+                this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, Variables);
+        }
     }
 
     KRATOS_CATCH("")
@@ -1217,7 +1227,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddRHS(VectorType&       rRight
     this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
     if (!rVariables.IgnoreUndrained) {
-        this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
         this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
 
