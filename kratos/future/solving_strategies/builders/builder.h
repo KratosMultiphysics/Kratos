@@ -109,14 +109,10 @@ public:
      * This method allocates the memory for the linear system arrays
      * Note that the sizes of the resultant arrays depend on the build type
      * @param rSparseGraph Reference to the linear system sparse graph
-     * @param pDofSet The array of DOFs from elements and conditions
-     * @param pEffectiveDofSet The array of DOFs to be solved after the application of constraints
      * @param pLinearSystemContainer Auxiliary container with the linear system arrays
      */
     virtual void AllocateLinearSystem(
         const TSparseGraphType& rSparseGraph,
-        const typename DofsArrayType::Pointer pDofSet,
-        const typename DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'AllocateLinearSystem'." << std::endl;
@@ -126,37 +122,28 @@ public:
      * @brief Allocates the memory for the linear system arrays
      * This method calculates the sparse graph and allocates the memory for the linear system arrays
      * Note that the sizes of the resultant arrays depend on the build type
-     * @param pDofSet The array of DOFs from elements and conditions
-     * @param pEffectiveDofSet The array of DOFs to be solved after the application of constraints
      * @param pLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystem(
-        const typename DofsArrayType::Pointer pDofSet,
-        const typename DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    virtual void AllocateLinearSystem(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         // Set up the system sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
         BuiltinTimer sparse_matrix_graph_time;
-        TSparseGraphType sparse_matrix_graph(pDofSet->size());
+        auto p_dof_set = rLinearSystemContainer.pDofSet;
+        TSparseGraphType sparse_matrix_graph(p_dof_set->size());
         this->SetUpSparseMatrixGraph(sparse_matrix_graph);
         KRATOS_INFO_IF("BlockBuilder", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
 
         // Allocate the linear system
-        this->AllocateLinearSystem(sparse_matrix_graph, pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+        this->AllocateLinearSystem(sparse_matrix_graph, rLinearSystemContainer);
     }
 
     /**
      * @brief Allocates the linear system constraints arrays
      * This method allocates the linear system constraints arrays
      * Note that the sizes of the resultant arrays depend on the build type
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystemConstraints(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    virtual void AllocateLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'AllocateLinearSystemConstraints'." << std::endl;
     }
@@ -268,12 +255,9 @@ public:
      * Note that linear system constraints includes both the master-slave and the Dirichlet
      * constraints. The way the constraints are applied will be reimplemented and applied
      * in the derived classes depending on the build type.
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void ApplyLinearSystemConstraints(
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    virtual void ApplyLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'ApplyLinearSystemConstraints'." << std::endl;
     }

@@ -133,8 +133,6 @@ public:
 
     void AllocateLinearSystem(
         const TSparseGraphType& rSparseGraph,
-        const typename DofsArrayType::Pointer pDofSet,
-        const typename DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
     {
         // Set the system arrays
@@ -149,7 +147,7 @@ public:
         rLinearSystemContainer.pLhs.swap(p_lhs);
 
         // Set the effective arrays
-        if (pDofSet == pEffectiveDofSet) {
+        if (rLinearSystemContainer.RequiresEffectiveDofSet()) {
             // If there are no constraints the effective arrays are the same as the input ones
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
             rLinearSystemContainer.pEffectiveLhs = rLinearSystemContainer.pLhs;
@@ -160,18 +158,15 @@ public:
             auto p_eff_lhs = Kratos::make_shared<TSparseMatrixType>();
             rLinearSystemContainer.pEffectiveLhs.swap(p_eff_lhs);
 
-            auto p_eff_rhs = Kratos::make_shared<TSystemVectorType>(pEffectiveDofSet->size());
+            auto p_eff_rhs = Kratos::make_shared<TSystemVectorType>(rLinearSystemContainer.pEffectiveDofSet->size());
             rLinearSystemContainer.pEffectiveRhs.swap(p_eff_rhs);
 
-            auto p_eff_dx = Kratos::make_shared<TSystemVectorType>(pEffectiveDofSet->size());
+            auto p_eff_dx = Kratos::make_shared<TSystemVectorType>(rLinearSystemContainer.pEffectiveDofSet->size());
             rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
         }
     }
 
-    void AllocateLinearSystemConstraints(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+    void AllocateLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         // Check if there are master-slave constraints
         //TODO: Do the MPI sum all
@@ -179,10 +174,12 @@ public:
         if (n_constraints) {
             // Fill the master-slave constraints graph
             TSparseGraphType constraints_sparse_graph;
-            this->SetUpMasterSlaveConstraintsGraph(rDofSet, rEffectiveDofSet, constraints_sparse_graph);
+            auto& r_dof_set = *rLinearSystemContainer.pDofSet;
+            auto& r_eff_dof_set = *rLinearSystemContainer.pEffectiveDofSet;
+            this->SetUpMasterSlaveConstraintsGraph(r_dof_set, r_eff_dof_set, constraints_sparse_graph);
 
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)
-            auto p_aux_q = Kratos::make_shared<TSystemVectorType>(rDofSet.size());
+            auto p_aux_q = Kratos::make_shared<TSystemVectorType>(r_dof_set.size());
             rLinearSystemContainer.pConstraintsQ.swap(p_aux_q);
 
             auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
@@ -191,9 +188,7 @@ public:
     }
 
     //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(
-        const DofsArrayType& rEffectiveDofArray,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+    void ApplyLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         // Calculate the effective LHS, RHS and solution vector
         ApplyBlockBuildMasterSlaveConstraints(rLinearSystemContainer);
@@ -201,7 +196,8 @@ public:
         // Apply the Dirichlet BCs in a block way by leveraging the CSR matrix implementation
         auto& r_eff_rhs = *(rLinearSystemContainer.pEffectiveRhs);
         auto& r_eff_lhs = *(rLinearSystemContainer.pEffectiveLhs);
-        ApplyBlockBuildDirichletConditions(rEffectiveDofArray, r_eff_lhs, r_eff_rhs);
+        auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
+        ApplyBlockBuildDirichletConditions(r_eff_dof_set, r_eff_lhs, r_eff_rhs);
     }
 
     ///@}

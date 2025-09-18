@@ -98,8 +98,6 @@ public:
 
     void AllocateLinearSystem(
         const TSparseGraphType& rSparseGraph,
-        const typename DofsArrayType::Pointer pDofSet,
-        const typename DofsArrayType::Pointer pEffectiveDofSet,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
     {
         // Set the system arrays
@@ -114,9 +112,9 @@ public:
         rLinearSystemContainer.pLhs.swap(p_lhs);
 
         // Get the number of free DOFs to allocate the effective system arrays
-        const auto dof_begin = pEffectiveDofSet->begin();
-        const std::size_t n_free_dofs = IndexPartition<std::size_t>(pEffectiveDofSet->size()).for_each<SumReduction<std::size_t>>([&](IndexType Index) {
-            auto p_dof = dof_begin + Index;
+        auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
+        const std::size_t n_free_dofs = IndexPartition<std::size_t>(r_eff_dof_set.size()).for_each<SumReduction<std::size_t>>([&](IndexType Index) {
+            auto p_dof = r_eff_dof_set.begin() + Index;
             return p_dof->IsFixed() ? 0 : 1;
         });
 
@@ -131,20 +129,19 @@ public:
         rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
     }
 
-    void AllocateLinearSystemConstraints(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+    void AllocateLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         // Check if there are master-slave constraints
+        auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
         const std::size_t n_constraints = this->GetModelPart().NumberOfMasterSlaveConstraints();
         if (n_constraints) {
             // Fill the master-slave constraints graph
             TSparseGraphType constraints_sparse_graph;
-            this->SetUpMasterSlaveConstraintsGraph(rDofSet, rEffectiveDofSet, constraints_sparse_graph);
+            auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
+            this->SetUpMasterSlaveConstraintsGraph(r_dof_set, r_eff_dof_set, constraints_sparse_graph);
 
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)
-            auto p_aux_q = Kratos::make_shared<TSystemVectorType>(rDofSet.size());
+            auto p_aux_q = Kratos::make_shared<TSystemVectorType>(r_dof_set.size());
             rLinearSystemContainer.pConstraintsQ.swap(p_aux_q);
 
             auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
@@ -156,15 +153,15 @@ public:
 
         // Set up Dirichlet matrix sparse graph
         // Note that the row size is the effective DOF set size as the master-slave constraints act over the already effective DOF set
-        KRATOS_ERROR_IF(rEffectiveDofSet.empty()) << "Effective DOF set is empty." << std::endl;
-        TSparseGraphType dirichlet_sparse_graph(rEffectiveDofSet.size());
+        KRATOS_ERROR_IF(r_eff_dof_set.empty()) << "Effective DOF set is empty." << std::endl;
+        TSparseGraphType dirichlet_sparse_graph(r_eff_dof_set.size());
 
         // Loop the effective DOFs to add the free ones to the graph
         // Note that this graph results in a diagonal matrix with zeros in the fixed DOFs
         unsigned int aux_count = 0;
-        for (IndexType i_dof = 0; i_dof < rEffectiveDofSet.size(); ++i_dof) {
+        for (IndexType i_dof = 0; i_dof < r_eff_dof_set.size(); ++i_dof) {
             // Get current DOF
-            auto p_dof = *(rEffectiveDofSet.ptr_begin() + i_dof);
+            auto p_dof = *(r_eff_dof_set.ptr_begin() + i_dof);
 
             // Check if current DOF is free and add it to the sparse graph
             if (p_dof->IsFree()) {
@@ -181,9 +178,7 @@ public:
     }
 
     //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(
-        const DofsArrayType& rEffectiveDofArray,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+    void ApplyLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         // Get effective arrays
         auto p_eff_dx = rLinearSystemContainer.pEffectiveDx;

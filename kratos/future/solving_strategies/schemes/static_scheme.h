@@ -171,16 +171,13 @@ public:
         return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(*this) ;
     }
 
-    void Predict(
-        DofsArrayType::Pointer pDofSet,
-        DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+    void Predict(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         KRATOS_TRY
 
         // If needed, reset the DOF sets before applying the constraints and the prediction
         if (this->GetReformDofsAtEachStep()) {
-            this->InitializeLinearSystem(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+            this->InitializeLinearSystem(rLinearSystemContainer);
         }
 
         // Applying constraints if needed
@@ -195,15 +192,17 @@ public:
             // Note that the constraints constant vector is applied only once in here as we then solve for the solution increment
             auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
             auto p_constraints_Q = rLinearSystemContainer.pConstraintsQ;
-            this->BuildMasterSlaveConstraints(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
+            this->BuildMasterSlaveConstraints(rLinearSystemContainer);
 
             // Fill the current values vector considering the master-slave constraints
             // Note that this already accounts for the Dirichlet BCs affecting the effective DOF set
-            TSystemVectorType x(pDofSet->size());
-            (this->GetBuilder()).CalculateSolutionVector(*pEffectiveDofSet, *p_constraints_T, *p_constraints_Q, x);
+            auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
+            auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
+            TSystemVectorType x(r_dof_set.size());
+            (this->GetBuilder()).CalculateSolutionVector(r_eff_dof_set, *p_constraints_T, *p_constraints_Q, x);
 
             // Update DOFs with solution values
-            block_for_each(*pDofSet, [&x](DofType& rDof){
+            block_for_each(r_dof_set, [&x](DofType& rDof){
                 rDof.GetSolutionStepValue() = x[rDof.EquationId()];
             });
 
