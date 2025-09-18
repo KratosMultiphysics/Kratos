@@ -263,6 +263,13 @@ public:
         const IndexType Precision,
         const int coef = 1);
 
+    
+    template<class TContainerType>
+    static void Heaviside(
+        ContainerExpression<TContainerType>& rOutput,
+        ContainerExpression<TContainerType>& rInputExpression,
+        const IndexType Precision);
+
     ///@}
     ///@name Static operations derived from Kratos::ExpressionUtils
     ///@{

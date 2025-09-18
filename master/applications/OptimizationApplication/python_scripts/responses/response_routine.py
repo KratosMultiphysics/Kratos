@@ -83,7 +83,6 @@ class ResponseRoutine:
         Returns:
             float: Response value.
         """
-        print("RESPONSE ROUTINE CALCULATE VALUE")
         # update using the master control and get updated states.
         self.__master_control.Update(control_field)
         compute_response_value_flag = False
@@ -117,7 +116,6 @@ class ResponseRoutine:
 
         # Update current control field state
         self.my_current_control_field = control_field.Clone()
-        print("RESPONSE ROUTINE CALCULATE VALUE END")
         return self.__response_value
 
     def CalculateGradient(self) -> KratosOA.CollectiveExpression:

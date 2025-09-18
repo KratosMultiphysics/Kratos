@@ -178,7 +178,6 @@ class MasterControl:
         Returns:
             dict[Control, bool]: A map with control and a boolean whether the update changed anything in that control.
         """
-        print("MASTER CONTROL UPDATE")
         if len(self.__list_of_controls) != len(update_collective_expressions.GetContainerExpressions()):
             raise RuntimeError(f"Controls size and update size mismatch [ number of controls: {len(self.__list_of_controls)}, number of container expressions: {len(update_collective_expressions.GetContainerExpressions())} ].")
 
@@ -189,7 +188,6 @@ class MasterControl:
                 Kratos.Logger.PrintInfo(f"Control {control.GetName()} updated.")
             else:
                 Kratos.Logger.PrintInfo(f"Control {control.GetName()} not updated")
-        print("MASTER CONTROL UPDATE END")
         return update_map
 
     def Check(self) -> None:

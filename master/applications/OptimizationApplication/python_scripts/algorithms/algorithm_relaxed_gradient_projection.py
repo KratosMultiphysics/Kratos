@@ -249,17 +249,14 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
             with OptimizationAlgorithmTimeLogger("Gradient Projection",self._optimization_problem.GetStep()):
                 self._InitializeIteration()
 
-                print("BEFORE OBJECTIVE")
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 obj_info = self.__objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
                 self.algorithm_data.GetBufferedData()["rel_change[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_change[%]"] = obj_info["abs_change [%]"]
-                print("AFTER OBJECTIVE")
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
-                print("AFTER OBJECTIVE GRADIENT")
 
                 self.__constr_value = []
                 active_constr_grad = []
@@ -273,7 +270,6 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                     print(f"RGP Constraint {constraint.GetResponseName()} is {msg}")
                     if constraint.IsActive():
                         active_constr_grad.append(constraint.CalculateStandardizedGradient())
-                print("AFTER CONSTRAINTS")
 
                 w_r, w_c = self.ComputeBufferCoefficients()
 
@@ -286,7 +282,6 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                     alpha = self.__line_search_method.ComputeStep()
 
-                    print("BEFORE CONTROL UPDATE")
                     update = self.ComputeControlUpdate(alpha)
 
                     if self.CheckLinearizedConstraints(active_constr_grad, update, w_r, w_c):
@@ -294,14 +289,10 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                     inner_iter += 1
 
-                print("BEFORE FINALIZE ITERATION")
                 self._FinalizeIteration()
-                print("BEFORE OUTPUT")
                 self.Output()
-                print("BEFORE UPDATECONTROL")
                 self.UpdateControl()
 
-                print("BEFORE CONVERGENCE CHECK")
                 converged = self.__convergence_criteria.IsConverged()
 
                 converged &= all([c.IsSatisfied() for c in self.__constraints_list]) 

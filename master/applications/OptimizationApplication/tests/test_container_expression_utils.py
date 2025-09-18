@@ -423,19 +423,19 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
     def test_EPow(self):
         input_elemental = Kratos.Expression.ElementExpression(self.model_part)
         output_elemental = Kratos.Expression.ElementExpression(self.model_part)
-        precision = 500
+        precision = 1000
 
         py_e = []
         element: Kratos.Element
         for element in self.model_part.Elements:
-            element.SetValue(Kratos.DENSITY, element.Id*100)
+            element.SetValue(Kratos.DENSITY, element.Id/10)
             # py_e.append((math.exp(-element.Id) + math.exp(element.Id))/2)
-            py_e.append(math.exp(element.Id*10))
+            py_e.append(1 / (1 + math.exp(element.Id/10)))
 
             
         Kratos.Expression.VariableExpressionIO.Read(input_elemental, Kratos.DENSITY)
 
-        KratosOA.ExpressionUtils.EPow(output_elemental, input_elemental, precision, 1)
+        KratosOA.ExpressionUtils.Heaviside(output_elemental, input_elemental, precision)
         
         print(f"\nELEMENTAL INPUT (e POWER): {input_elemental.Evaluate()}\nELEMENTAL OUTPUT (e POWER): {output_elemental.Evaluate()}\nMATH (e POWER): {py_e}")
 
