@@ -720,6 +720,83 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     KRATOS_CATCH("")
 }
 
+void SmallStrainUPwDiffOrderElement::CalculateInternalForces(
+    Element::VectorType&                              rRightHandSideVector,
+    const Geometry<Node>::IntegrationPointsArrayType& r_integration_points,
+    SmallStrainUPwDiffOrderElement::ElementVariables& Variables,
+    const std::vector<Matrix>&                        b_matrices,
+    const std::vector<double>&                        integration_coefficients,
+    const std::vector<double>&                        biot_coefficients,
+    const std::vector<double>&                        degrees_of_saturation,
+    const std::vector<double>&                        biot_moduli_inverse,
+    const std::vector<double>&                        relative_permeability_values,
+    const std::vector<double>&                        bishop_coefficients)
+{
+    for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
+        this->CalculateKinematics(Variables, GPoint);
+        Variables.B                      = b_matrices[GPoint];
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+
+        this->CalculateAndAddStiffnessForce(rRightHandSideVector, Variables, GPoint);
+    }
+
+    for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
+        this->CalculateKinematics(Variables, GPoint);
+        Variables.B                      = b_matrices[GPoint];
+        Variables.BishopCoefficient      = bishop_coefficients[GPoint];
+        Variables.BiotCoefficient        = biot_coefficients[GPoint];
+        Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
+        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+
+        this->CalculateAndAddCouplingTerms(rRightHandSideVector, Variables);
+    }
+    if (!Variables.IgnoreUndrained) {
+        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
+            this->CalculateKinematics(Variables, GPoint);
+            Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
+            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+
+            this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, Variables);
+        }
+        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
+            this->CalculateKinematics(Variables, GPoint);
+            Variables.RelativePermeability   = relative_permeability_values[GPoint];
+            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+
+            this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, Variables);
+        }
+    }
+}
+
+void SmallStrainUPwDiffOrderElement::CalculateExternalForces(
+    VectorType&                                       rRightHandSideVector,
+    const Geometry<Node>::IntegrationPointsArrayType& r_integration_points,
+    ElementVariables&                                 Variables,
+    const std::vector<double>&                        integration_coefficients,
+    const std::vector<double>& integration_coefficients_on_initial_configuration,
+    const std::vector<double>& degrees_of_saturation,
+    const std::vector<double>& relative_permeability_values,
+    const std::vector<double>& bishop_coefficients)
+{
+    for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
+        this->CalculateKinematics(Variables, GPoint);
+        Variables.DegreeOfSaturation = degrees_of_saturation[GPoint];
+        Variables.IntegrationCoefficientInitialConfiguration =
+            integration_coefficients_on_initial_configuration[GPoint];
+        this->CalculateAndAddMixBodyForce(rRightHandSideVector, Variables);
+    }
+    if (!Variables.IgnoreUndrained) {
+        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
+            this->CalculateKinematics(Variables, GPoint);
+            Variables.RelativePermeability   = relative_permeability_values[GPoint];
+            Variables.BishopCoefficient      = bishop_coefficients[GPoint];
+            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+
+            this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, Variables);
+        }
+    }
+}
+
 void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSideMatrix,
                                                   VectorType&        rRightHandSideVector,
                                                   const ProcessInfo& rCurrentProcessInfo,
@@ -801,60 +878,14 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     }
 
     if (CalculateResidualVectorFlag) {
-        // Internal Forces
-        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
-            Variables.B                      = b_matrices[GPoint];
-            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
-            this->CalculateAndAddStiffnessForce(rRightHandSideVector, Variables, GPoint);
-        }
-
-        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
-            Variables.B                      = b_matrices[GPoint];
-            Variables.BishopCoefficient      = bishop_coefficients[GPoint];
-            Variables.BiotCoefficient        = biot_coefficients[GPoint];
-            Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
-            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
-            this->CalculateAndAddCouplingTerms(rRightHandSideVector, Variables);
-        }
-        if (!Variables.IgnoreUndrained) {
-            for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-                this->CalculateKinematics(Variables, GPoint);
-                Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
-                Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
-                this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, Variables);
-            }
-            for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-                this->CalculateKinematics(Variables, GPoint);
-                Variables.RelativePermeability   = relative_permeability_values[GPoint];
-                Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
-                this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, Variables);
-            }
-        }
+        CalculateInternalForces(rRightHandSideVector, r_integration_points, Variables, b_matrices,
+                                integration_coefficients, biot_coefficients, degrees_of_saturation,
+                                biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
 
         // External Forces
-        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
-            Variables.DegreeOfSaturation = degrees_of_saturation[GPoint];
-            Variables.IntegrationCoefficientInitialConfiguration =
-                integration_coefficients_on_initial_configuration[GPoint];
-            this->CalculateAndAddMixBodyForce(rRightHandSideVector, Variables);
-        }
-        if (!Variables.IgnoreUndrained) {
-            for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-                this->CalculateKinematics(Variables, GPoint);
-                Variables.RelativePermeability   = relative_permeability_values[GPoint];
-                Variables.BishopCoefficient      = bishop_coefficients[GPoint];
-                Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-
-                this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, Variables);
-            }
-        }
+        CalculateExternalForces(rRightHandSideVector, r_integration_points, Variables,
+                                integration_coefficients, integration_coefficients_on_initial_configuration,
+                                degrees_of_saturation, relative_permeability_values, bishop_coefficients);
     }
     KRATOS_CATCH("")
 }
