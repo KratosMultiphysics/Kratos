@@ -10,20 +10,33 @@
 //  Main authors:    Inigo Lopez and Marc Nunez
 //
 
-#if !defined(KRATOS_DEFINE_3D_WAKE_PROCESS_H_INCLUDED )
-#define  KRATOS_DEFINE_3D_WAKE_PROCESS_H_INCLUDED
+#ifndef KRATOS_DEFINE_3D_WAKE_PROCESS_H
+#define KRATOS_DEFINE_3D_WAKE_PROCESS_H
 
+// External includes
 #include "concurrentqueue/concurrentqueue.h"
+
+// Project includes
+#include "includes/kratos_parameters.h"
+#include "processes/process.h"
 
 namespace Kratos
 {
+///@addtogroup CompressiblePotentialFlowApplication
+///@{
 
 ///@name Kratos Classes
 ///@{
 
-  /// Auxiliary process to define the wake in 2 dimensional problems.
-class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) Define3DWakeProcess
-    : public Process
+/**
+ * @class Define3DWakeProcess
+ * @ingroup CompressiblePotentialFlowApplication
+ * @brief This process define the wake in 3d problems.
+ * @details For a given model, this process load a modeled stl wake or creates one with minimal 
+ * geomtrical data, and uses it to select the wake and kutta elements. 
+ * @authors Inigo Lopez and Marc Nunez 
+ */
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) Define3DWakeProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -38,13 +51,19 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
-    Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
-                        ModelPart& rBodyModelPart,
-                        Parameters ThisParameters);
+    /// Default constructor.
+    Define3DWakeProcess() : Process() {};
 
-    /// Copy constructor.
-    Define3DWakeProcess(Define3DWakeProcess const& rOther) = delete;
+    /// Constructor
+
+    /**
+     * @brief Constructor with Kratos parameters and Model container
+     * @param rModel The Model container
+     * @param rParameters Kratos parameters encapsulating the settings
+     */
+    Define3DWakeProcess(
+        Model& rModel,
+        Parameters rParameters);
 
     /// Destructor.
     ~Define3DWakeProcess() override = default;
@@ -56,13 +75,35 @@ public:
     /// Assignment operator.
     Define3DWakeProcess& operator=(Define3DWakeProcess const& rOther) = delete;
 
+    /// Copy constructor.
+    Define3DWakeProcess(Define3DWakeProcess const& rOther) = delete;
+
     ///@}
     ///@name Operations
     ///@{
 
-    /// ExecuteInitialize method is used to execute the Define3DWakeProcess algorithms.
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters) override
+    {
+        return Kratos::make_shared<Define3DWakeProcess>(rModel, ThisParameters);
+    }
+
+    /**
+     * @brief This function will be executed at every time step BEFORE performing the solve phase
+     */
     void ExecuteInitialize() override;
 
+    /**
+     * @brief This function will be executed at every time step AFTER performing the solve phase
+     */
+    void ExecuteFinalizeSolutionStep() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
+    
     ///@}
     ///@name Input and output
     ///@{
@@ -86,20 +127,40 @@ public:
 
     ///@}
 private:
+    ///@name Static Member Variables
+    ///@{
+        
+    /// Registry current operation
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics.CompressiblePotentialFlowApplication", Process, Define3DWakeProcess)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, Define3DWakeProcess)
+    
+    ///@}
     ///@name Member Variables
     ///@{
 
-    // The model part containing the trailing edge
-    ModelPart& mrTrailingEdgeModelPart;
-    ModelPart& mrBodyModelPart;
-    // Tolerance to avoid nodes laying exactly on the wake
-    double mTolerance;
+    // Model parts
+    ModelPart* mrTrailingEdgeModelPart = nullptr;
+    ModelPart* mrBodyModelPart = nullptr;
+    ModelPart* mrUpperSurfaceModelPart = nullptr;
+    ModelPart* mrLowerSurfaceModelPart = nullptr;
+    ModelPart* mrRootPointsModelPart = nullptr;
+    ModelPart* mrTipPointsModelPart = nullptr;
+    ModelPart* mrBluntTESurfaceModelPart = nullptr;
+    ModelPart* mrWakeModelPart = nullptr;
+    ModelPart* mrRootModelPart = nullptr;
+
+    // Tolerances 
+    double mWakeDistanceTolerance;                  // To avoid nodes laying exactly on the wake 
+    double mCheckWakeConditionTolerance;            // To check if wake conditions are fulfilled
+
     BoundedVector<double, 3> mWakeNormal;
     BoundedVector<double, 3> mWakeDirection;
     BoundedVector<double, 3> mSpanDirection;
+    BoundedVector<double, 3> mWakedrTraslation;
 
     bool mShedWakeFromTrailingEdge;
     bool mVisualizeWakeVTK;
+
     int mEchoLevel;
     
     double mShedWakeLength;
@@ -107,22 +168,16 @@ private:
     double mShedGrowFactor;
     double mShedProjectionRootEdge;
 
-    BoundedVector<double, 3> mWakedrTraslation;
-
-    std::string mBluntTESurfaceModelPartName;
-    std::string mUpperSurfaceModelPartName;
-    std::string mLowerSurfaceModelPartName;
-    std::string mRootPointsModelPartName;
-    std::string mTipPointsModelPartName;
-    std::string mTailModelPartName;
-    
     std::unordered_set<IndexType> mBluntIds; 
     
     std::filesystem::path mWakeSTLFileName;
 
     ///@}
-    ///@name Private Operators
+    ///@name Private Operations
     ///@{
+
+    void InitializeVariables();
+
     void InitializeTrailingEdgeSubModelpart() const;
 
     void InitializeWakeSubModelpart() const;
@@ -135,13 +190,13 @@ private:
 
     void ComputeAndSaveLocalWakeNormal() const;
 
-    void ShedWakeSurfaceFromTheTrailingEdge(ModelPart& ModelPart) const;
+    void ShedWakeSurfaceFromTheTrailingEdge() const;
 
-    void LoadSTL(ModelPart& ModelPart) const;
+    void LoadSTL() const;
 
-    void MoveWakeModelPart(ModelPart& ModelPart) const;
+    void MoveWakeModelPart() const;
 
-    void VisualizeWake(ModelPart& ModelPart) const;
+    void VisualizeWake() const;
 
     void DecreaseWakeWidthAtTheWingTips(array_1d<double, 3>& rPoint1,
                                         const array_1d<double, 3>& rPoint2) const;
@@ -174,7 +229,7 @@ private:
                                    const std::array<ModelPart::IndexType, 4>& rNodes_ids,
                                    const Properties::Pointer pElemProp) const;
 
-    void MarkWakeElements(ModelPart& ModelPart) const;
+    void MarkWakeElements() const;
 
     void CheckIfTrailingEdgeElement(Element& rElement,
                                     const Geometry<NodeType>& rGeometry,
@@ -234,6 +289,8 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
+///@} addtogroup block
+
 }  // namespace Kratos.
 
-#endif // KRATOS_DEFINE_3D_WAKE_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_DEFINE_3D_WAKE_PROCESS_H
