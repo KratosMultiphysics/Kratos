@@ -724,9 +724,8 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
                                                Vector&                 rOutput,
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
-
     rOutput = ZeroVector(this->GetGeometry().size() * this->GetGeometry().WorkingSpaceDimension() +
-                    mpPressureGeometry->size());
+                         mpPressureGeometry->size());
     const PropertiesType&                           r_prop = this->GetProperties();
     const GeometryType&                             r_geom = GetGeometry();
     const GeometryType::IntegrationPointsArrayType& r_integration_points =
@@ -749,9 +748,6 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
     const auto det_Js_initial_configuration = GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(
         r_geom, this->GetIntegrationMethod());
 
-    const auto integration_coefficients_on_initial_configuration =
-        this->CalculateIntegrationCoefficients(r_integration_points, det_Js_initial_configuration);
-
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
@@ -760,30 +756,33 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
                                          strain_vectors, mStressVector, constitutive_matrices);
-    const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
-        constitutive_matrices, this->GetProperties());
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NpContainer, Variables.PressureVector);
     const auto degrees_of_saturation     = CalculateDegreesOfSaturation(fluid_pressures);
     const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
-    const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
+
     auto       relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
     const auto permeability_update_factors  = GetOptionalPermeabilityUpdateFactors(strain_vectors);
     std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
                    relative_permeability_values.cbegin(), relative_permeability_values.begin(),
                    std::multiplies<>{});
-
     const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
+
+
     if (rVariable == INTERNAL_FORCES_VECTOR) {
+        const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+            constitutive_matrices, this->GetProperties());
+        const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+            biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
         CalculateInternalForces(rOutput, r_integration_points, Variables, b_matrices,
-                        integration_coefficients, biot_coefficients, degrees_of_saturation,
-                        biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
-    }
-    else if (rVariable == EXTERNAL_FORCES_VECTOR) {
-        CalculateExternalForces(rOutput, r_integration_points, Variables,
-                        integration_coefficients, integration_coefficients_on_initial_configuration,
-                        degrees_of_saturation, relative_permeability_values, bishop_coefficients);
+                                integration_coefficients, biot_coefficients, degrees_of_saturation,
+                                biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
+    } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
+        const auto integration_coefficients_on_initial_configuration =
+            this->CalculateIntegrationCoefficients(r_integration_points, det_Js_initial_configuration);
+        CalculateExternalForces(rOutput, r_integration_points, Variables, integration_coefficients,
+                                integration_coefficients_on_initial_configuration, degrees_of_saturation,
+                                relative_permeability_values, bishop_coefficients);
     }
 }
 
