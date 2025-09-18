@@ -103,7 +103,7 @@ public:
 
     using Element::CalculateOnIntegrationPoints;
 
-    void Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo) override;
+    void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
     using Element::Calculate;
     // Turn back information as a string.
     std::string Info() const override

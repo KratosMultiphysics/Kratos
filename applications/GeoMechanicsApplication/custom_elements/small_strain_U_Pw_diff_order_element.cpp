@@ -721,11 +721,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 }
 
 void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable,
-                                               Vector&                 Output,
+                                               Vector&                 rOutput,
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
 
-    Output = ZeroVector(this->GetGeometry().size() * this->GetGeometry().WorkingSpaceDimension() +
+    rOutput = ZeroVector(this->GetGeometry().size() * this->GetGeometry().WorkingSpaceDimension() +
                     mpPressureGeometry->size());
     const PropertiesType&                           r_prop = this->GetProperties();
     const GeometryType&                             r_geom = GetGeometry();
@@ -776,12 +776,12 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
 
     const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
     if (rVariable == INTERNAL_FORCES_VECTOR) {
-        CalculateInternalForces(Output, r_integration_points, Variables, b_matrices,
+        CalculateInternalForces(rOutput, r_integration_points, Variables, b_matrices,
                         integration_coefficients, biot_coefficients, degrees_of_saturation,
                         biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
     }
     else if (rVariable == EXTERNAL_FORCES_VECTOR) {
-        CalculateExternalForces(Output, r_integration_points, Variables,
+        CalculateExternalForces(rOutput, r_integration_points, Variables,
                         integration_coefficients, integration_coefficients_on_initial_configuration,
                         degrees_of_saturation, relative_permeability_values, bishop_coefficients);
     }
