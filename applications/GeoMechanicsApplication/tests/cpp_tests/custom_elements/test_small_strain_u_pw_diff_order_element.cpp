@@ -142,8 +142,8 @@ Matrix ExpectedLeftHandSide()
 
 Vector ExpectedRightHandSide()
 {
-    return UblasUtilities::CreateVector({128487, -42674.8, -34731.2, 96.6194, 23555.6, -67314.3, 465.95,
-                                         -48877.7, 33835.1, 59683.4, -151613, 85833.5, -4.8448, 4.8448, 0});
+    return UblasUtilities::CreateVector({127876, -41008.2, -35286.7, 15096.6, -13055.6, -67314.3, 62688.2, -65544.4,
+                                         -23942.7, 136350, -118280, 9166.82, -116.855, 97.39, 154.882});
 }
 
 } // namespace
@@ -232,11 +232,18 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeo
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
 
+    auto r_geometry = p_element->GetGeometry();
+    for (int counter = 0; auto& node : r_geometry) {
+        node.FastGetSolutionStepValue(WATER_PRESSURE)    = counter * 1.0e5;
+        node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = counter * 5.0e5;
+        ++counter;
+    }
+
     // Act
     auto actual_rhs_values = Vector{};
     p_element->CalculateRightHandSide(actual_rhs_values, dummy_process_info);
 
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(ExpectedRightHandSide(), actual_rhs_values, 1e-4);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(ExpectedRightHandSide(), actual_rhs_values, 1e-5);
 }
 
 } // namespace Kratos::Testing
