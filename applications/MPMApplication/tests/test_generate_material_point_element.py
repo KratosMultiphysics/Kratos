@@ -124,6 +124,9 @@ class TestGenerateMaterialPointElement(KratosUnittest.TestCase):
 
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mp.Elements)
 
+    ###########################################################
+    # 2D TRIANGLES
+
     def test_GenerateMaterialPointElementTriangle2D1P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=1, expected_num_material_points=1)
@@ -144,21 +147,26 @@ class TestGenerateMaterialPointElement(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=12, expected_num_material_points=12)
 
+    # Expected failure: removed option for 16 material points on structured triangular elements
     @KratosUnittest.expectedFailure
     def test_GenerateMaterialPointElementTriangle2D16P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=16, expected_num_material_points=16)
 
+    # Expected failure: removed option for 33 material points on structured triangular elements
     @KratosUnittest.expectedFailure
     def test_GenerateMaterialPointElementTriangle2D33P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=33, expected_num_material_points=33)
 
-    # Expected failure
+    # Expected failure: removed default behaviour
     @KratosUnittest.expectedFailure
     def test_GenerateMaterialPointElementTriangle2DDefault(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_material_points=50, expected_num_material_points=3)
+
+    ###########################################################
+    # 3D TETRAHEDRA
 
     def test_GenerateMaterialPointElementTriangle3D1P(self):
         current_model = KratosMultiphysics.Model()
@@ -180,11 +188,14 @@ class TestGenerateMaterialPointElement(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=24, expected_num_material_points=24)
 
-    # Expected failure
+    # Expected failure: removed default behaviour
     @KratosUnittest.expectedFailure
     def test_GenerateMaterialPointElementTriangle3DDefault(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=50, expected_num_material_points=4)
+
+    ###########################################################
+    # 2D QUADRILATERALS
 
     def test_GenerateMaterialPointElementQuadrilateral2D1P(self):
         current_model = KratosMultiphysics.Model()
@@ -206,11 +217,14 @@ class TestGenerateMaterialPointElement(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_material_points=25, expected_num_material_points=25)
 
-    # Expected failure
+    # Expected failure: removed default behaviour
     @KratosUnittest.expectedFailure
     def test_GenerateMaterialPointElementQuadrilateral2DDefault(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_material_points=50, expected_num_material_points=4)
+
+    ###########################################################
+    # 3D HEXAHEDRA
 
     def test_GenerateMaterialPointElementQuadrilateral3D1P(self):
         current_model = KratosMultiphysics.Model()
@@ -232,13 +246,15 @@ class TestGenerateMaterialPointElement(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=125, expected_num_material_points=125)
 
-    # Expected failure
+    # Expected failure: removed default behaviour
     @KratosUnittest.expectedFailure
     def test_GenerateMaterialPointElementQuadrilateral3DDefault(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=50, expected_num_material_points=8)
 
+    ###########################################################
     # Tests for the correct computation of material point volume in the material point generator
+
     def test_GenerateMaterialPointElementQuadrilateral2DSkew(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_element_and_check_mp_volume(current_model, dimension=2, geometry_element="QuadrilateralSkew", num_material_points=4, expected_mp_volume=0.44716878364870316)
