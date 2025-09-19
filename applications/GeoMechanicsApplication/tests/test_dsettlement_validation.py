@@ -40,6 +40,17 @@ def get_nodal_vertical_effective_stress_at_time(time_in_s, output_data, node_ids
     )
 
 
+def get_nodal_vertical_total_stress_at_time(time_in_s, output_data, node_ids=None):
+    return make_compression_positive_and_convert_Pa_to_kPa(
+        [
+            stress_vector[1]
+            for stress_vector in test_helper.GiDOutputFileReader.nodal_values_at_time(
+                "TOTAL_STRESS_TENSOR", time_in_s, output_data, node_ids=node_ids
+            )
+        ]
+    )
+
+
 def get_nodal_water_pressures_at_time(time_in_s, output_data, node_ids=None):
     return make_compression_positive_and_convert_Pa_to_kPa(
         test_helper.GiDOutputFileReader.nodal_values_at_time(
@@ -113,7 +124,13 @@ def get_ref_y_coordinates(post_msh_file_path, node_ids):
 
 
 def make_stress_over_y_plot(
-    output_data, time_in_s, y_coordinates, node_ids_over_depth, ref_data, plot_file_path
+    output_data,
+    time_in_s,
+    y_coordinates,
+    node_ids_over_depth,
+    ref_data,
+    plot_file_path,
+    want_total_stress_plot=False,
 ):
     data_series_collection = []
 
@@ -150,6 +167,20 @@ def make_stress_over_y_plot(
             marker="+",
         )
     )
+
+    if want_total_stress_plot:
+        total_vertical_stresses = get_nodal_vertical_total_stress_at_time(
+            time_in_s, output_data, node_ids=node_ids_over_depth
+        )
+
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                zip(total_vertical_stresses, y_coordinates, strict=True),
+                r"$\sigma_{\mathrm{tot, yy}}$ [Kratos]",
+                line_style=":",
+                marker="+",
+            )
+        )
 
     plot_utils.make_stress_over_y_plot(data_series_collection, plot_file_path)
 
@@ -541,7 +572,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 )
 
         if test_helper.want_test_plots():
-            left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
             make_settlement_history_plot(
                 (output_stage_3, output_stage_4, output_stage_5),
@@ -550,6 +580,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 project_path / "test_case_3_settlement_plot.svg",
             )
 
+            left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
             ref_y_coordinates = get_ref_y_coordinates(
                 project_path / "stage1.post.msh", left_side_corner_node_ids
             )
@@ -566,6 +597,11 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                     / "ref_effective_vertical_stresses_after_100_days.txt",
                     "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
+                {
+                    "file_path": project_path
+                    / "ref_total_vertical_stresses_after_100_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
             ]
             make_stress_over_y_plot(
                 output_stage_3,
@@ -574,6 +610,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_3_stress_plot_after_100_days.svg",
+                want_total_stress_plot=True,
             )
 
             # Make a stress plot at the start of the fifth stage
@@ -588,6 +625,11 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                     / "ref_effective_vertical_stresses_after_100.1_days.txt",
                     "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
+                {
+                    "file_path": project_path
+                    / "ref_total_vertical_stresses_after_100.1_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
             ]
             make_stress_over_y_plot(
                 output_stage_5,
@@ -596,6 +638,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_3_stress_plot_after_100.1_days.svg",
+                want_total_stress_plot=True,
             )
 
             # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
@@ -610,6 +653,11 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                     / "ref_effective_vertical_stresses_after_10000_days.txt",
                     "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
+                {
+                    "file_path": project_path
+                    / "ref_total_vertical_stresses_after_10000_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
             ]
             make_stress_over_y_plot(
                 output_stage_5,
@@ -618,6 +666,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_3_stress_plot_after_10000_days.svg",
+                want_total_stress_plot=True,
             )
 
     def test_settlement_fully_saturated_column_low_permeability(self):
