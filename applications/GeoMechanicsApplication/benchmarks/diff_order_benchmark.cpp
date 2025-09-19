@@ -126,7 +126,7 @@ void testBenchmark(benchmark::State& state)
     for (auto _ : state) {
         auto LHS               = Matrix{};
         auto actual_rhs_values = Vector{};
-        p_element->CalculateRightHandSide(actual_rhs_values, dummy_process_info);
+        p_element->CalculateLocalSystem(LHS, actual_rhs_values, dummy_process_info);
     }
 }
 
