@@ -1212,11 +1212,6 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics(ElementVariables& rVari
 
     rVariables.detJ = rVariables.detJuContainer[GPoint];
 
-    Matrix J0;
-    Matrix InvJ0;
-    this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,
-                                                     rVariables.DNu_DXInitialConfiguration, GPoint);
-
     KRATOS_CATCH("")
 }
 
