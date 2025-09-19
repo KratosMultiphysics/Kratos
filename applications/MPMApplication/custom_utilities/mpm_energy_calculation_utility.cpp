@@ -16,7 +16,9 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include <tuple>
 #include "mpm_energy_calculation_utility.h"
 
 namespace Kratos
@@ -111,6 +113,28 @@ namespace Kratos
     {
         return block_for_each<SumReduction<double>>(rModelPart.Elements(),
                 [&](auto& r_element) { return this->CalculateTotalEnergy(r_element); });
+    }
+
+    void MPMEnergyCalculationUtility::CalculateTotalEnergy(
+        ModelPart& rModelPart,
+        double& rPotentialEnergy,
+        double& rKineticEnergy,
+        double& rStrainEnergy,
+        double& rTotalEnergy
+    )
+    {
+        using MultipleReduction = CombinedReduction<SumReduction<double>,SumReduction<double>,SumReduction<double>>;
+
+        std::tie(rPotentialEnergy,rKineticEnergy,rStrainEnergy) =
+        block_for_each<MultipleReduction>(rModelPart.Elements(),
+        [&](auto& r_element) {
+            auto p_energy = this->CalculatePotentialEnergy(r_element);
+            auto k_energy = this->CalculateKineticEnergy(r_element);
+            auto s_energy = this->CalculateStrainEnergy(r_element);
+            return std::make_tuple(p_energy, k_energy, s_energy);
+        });
+
+        rTotalEnergy = rKineticEnergy + rPotentialEnergy + rStrainEnergy;
     }
 
 } // end namespace Kratos

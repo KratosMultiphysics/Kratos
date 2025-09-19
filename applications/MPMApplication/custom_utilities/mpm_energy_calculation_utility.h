@@ -93,6 +93,22 @@ public:
      */
     double CalculateTotalEnergy(ModelPart& rModelPart);
 
+    /**
+     * @brief Compute the kinetic, potential, strain and total energy of a model part
+     * @param rModelPart The model part whose total energy is to be computed
+     * @param rPotentialEnergy The potential energy of the input model part
+     * @param rKineticEnergy The kinetic energy of the input model part
+     * @param rStrainEnergy The strain energy of the input model part
+     * @param rTotallEnergy The total energy of the input model part
+     */
+    void CalculateTotalEnergy(
+        ModelPart& rModelPart,
+        double& rPotentialEnergy,
+        double& rKineticEnergy,
+        double& rStrainEnergy,
+        double& rTotalEnergy
+    );
+
 };
 
 } // end namespace Kratos
