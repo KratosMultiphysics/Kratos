@@ -10,7 +10,7 @@ class KratosGeoMechanicsDirichletUConstantTests(KratosUnittest.TestCase):
     """
     def test_dirichlet_u_constant(self):
         """
-        single element compression test. The incremental elastic material should show
+        Single element compression test. The incremental elastic material should show
         constant total_strain_yy and stress_yy over the steps, the incremental_strain_yy should be 0 from step 2
         H = 1 [m]
         Young's modulus E = 10E+03 [N/m^2]
