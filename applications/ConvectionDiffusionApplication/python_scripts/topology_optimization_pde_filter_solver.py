@@ -137,15 +137,15 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]::", "ModelPart prepared for Solver.")
 
-    def _UpdateFilterDiffusionVariable(self, pdf_filter_radius):
+    def _UpdateFilterDiffusionVariable(self, pde_filter_radius):
         mp = self.GetComputingModelPart()
         for node in mp.Nodes:
-            node.SetValue(KratosCD.PDE_FILTER_DIFFUSION, pdf_filter_radius**2)
+            node.SetValue(KratosCD.PDE_FILTER_DIFFUSION, pde_filter_radius**2)
         
-    def _UpdateFilterReactionVariable(self, pdf_filter_reaction):
+    def _UpdateFilterReactionVariable(self, pde_filter_reaction):
         mp = self.GetComputingModelPart()
         for node in mp.Nodes:
-            node.SetValue(KratosCD.PDE_FILTER_REACTION, pdf_filter_reaction)
+            node.SetValue(KratosCD.PDE_FILTER_REACTION, pde_filter_reaction)
     
     def AddDofs(self):
         dofs_and_reactions_to_add = []
