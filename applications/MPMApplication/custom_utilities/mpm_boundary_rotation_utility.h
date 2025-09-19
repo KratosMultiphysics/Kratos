@@ -65,6 +65,9 @@ public:
 	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::Rotate;
     using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::RevertRotate;
 
+	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::WriteBlockMatrix;
+	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::ReadBlockMatrix;
+
 	typedef Node NodeType;
 
 	typedef Geometry< Node > GeometryType;
@@ -109,10 +112,21 @@ public:
 		TLocalVectorType& rLocalVector,
 		GeometryType& rGeometry) const override
 	{
-		if (this->GetBlockSize() == this->GetDomainSize()) // irreducible case
+		const unsigned int num_nodes = rGeometry.PointsNumber();
+		const unsigned int dimension = this->GetDomainSize();
+		const unsigned int local_size = num_nodes * dimension;
+
+		if (rLocalVector.size() == local_size) // irreducible case
 		{
 			if (this->GetDomainSize() == 2) this->template RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry);
 			else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry);
+		}
+		else if (rLocalVector.size() == dimension + local_size) // lagrange multiplier condition
+		{
+			if (this->GetDomainSize() == 2)
+				RotateLagrangeCondition<2>(rLocalMatrix,rLocalVector,rGeometry);
+			else if (this->GetDomainSize() == 3)
+				RotateLagrangeCondition<3>(rLocalMatrix,rLocalVector,rGeometry);
 		}
 		else // mixed formulation case
 		{
@@ -127,11 +141,22 @@ public:
         TLocalVectorType& rLocalVector,
         GeometryType& rGeometry) const
     {
-        if (this->GetBlockSize() == this->GetDomainSize()) // irreducible case
+        const unsigned int num_nodes = rGeometry.PointsNumber();
+		const unsigned int dimension = this->GetDomainSize();
+		const unsigned int local_size = num_nodes * dimension;
+
+		if (rLocalVector.size() == local_size) // irreducible case
         {
             if (this->GetDomainSize() == 2) this->template RotateAuxPure<2,true>(rLocalMatrix,rLocalVector,rGeometry);
             else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3,true>(rLocalMatrix,rLocalVector,rGeometry);
         }
+		else if (rLocalVector.size() == dimension + local_size) // lagrange multiplier condition
+		{
+			if (this->GetDomainSize() == 2)
+				RotateLagrangeCondition<2, true>(rLocalMatrix,rLocalVector,rGeometry);
+			else if (this->GetDomainSize() == 3)
+				RotateLagrangeCondition<3, true>(rLocalMatrix,rLocalVector,rGeometry);
+		}
         else // mixed formulation case
         {
             if (this->GetDomainSize() == 2) this->template RotateAux<2,3,true>(rLocalMatrix,rLocalVector,rGeometry);
@@ -500,6 +525,92 @@ public:
 	///@{
 
 	///@}
+
+template<unsigned int TDim, bool TRevertRotation = false>
+void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
+			TLocalVectorType& rLocalVector,
+			GeometryType& rGeometry) const
+{
+	const unsigned int num_nodes = rGeometry.PointsNumber();
+	const unsigned int NumBlocks = num_nodes + 1;
+	DenseVector<bool> NeedRotation( NumBlocks, false);
+	int rotations_needed = 0;
+
+	std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
+	BoundedMatrix<double,TDim,TDim> tmp;
+	for(unsigned int i = 0; i < NumBlocks; ++i)
+	{
+		if (i<num_nodes){
+			if( this->IsSlip(rGeometry[i]) )
+			{
+				NeedRotation[i] = true;
+				rotations_needed++;
+				this->LocalRotationOperatorPure(rRot[i],rGeometry[i]);
+				if constexpr (TRevertRotation)
+				{
+					noalias(tmp) = trans(rRot[i]);
+					rRot[i] = tmp;
+				}
+			}
+		}
+		else{
+			auto pLagrangeNode = rGeometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+			
+			if( this->IsSlip(*pLagrangeNode) )
+			{
+				NeedRotation[i] = true;
+				rotations_needed++;
+				this->LocalRotationOperatorPure(rRot[i],*pLagrangeNode);
+				if constexpr (TRevertRotation)
+				{
+					noalias(tmp) = trans(rRot[i]);
+					rRot[i] = tmp;
+				}
+			}
+		}
+	}
+	
+	BoundedMatrix<double,TDim,TDim> mat_block;
+	array_1d<double,TDim> aux, aux1;
+
+	if(rotations_needed > 0)
+	{
+		for(unsigned int i=0; i<NumBlocks; i++)
+		{
+			if(NeedRotation[i] == true)
+			{	
+				for(unsigned int j=0; j<NumBlocks; j++)
+				{
+					if(NeedRotation[j] == true)
+					{	
+						this->template ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
+						noalias(tmp) = prod(mat_block,trans(rRot[j]));
+						noalias(mat_block) = prod(rRot[i],tmp);
+						
+						// avoid numerical instabilities
+						for(unsigned int k=0; k<TDim; k++)
+						{
+							for(unsigned int l=0; l<TDim; l++)
+							{
+								if (std::abs(mat_block(k,l))<std::numeric_limits<double>::epsilon())
+									mat_block(k,l) = 0.0;
+							}
+						}
+						this->template WriteBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
+					}
+				}
+
+				for(unsigned int k=0; k<TDim; k++)
+					aux[k] = rLocalVector[i*TDim+k];
+
+				noalias(aux1) = prod(rRot[i],aux);
+
+				for(unsigned int k=0; k<TDim; k++)
+					rLocalVector[i*TDim+k] = aux1[k];
+			}
+		}
+	}
+}
 
 protected:
 	///@name Protected static Member Variables
