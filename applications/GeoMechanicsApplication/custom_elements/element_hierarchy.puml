@@ -16,7 +16,6 @@ class UPwUpdatedLagrangianElement
 class UPwSmallStrainInterfaceElement
 class TransientPwInterfaceElement
 class SteadyStatePwInterfaceElement
-class SteadyStatePwPipingElement
 class UPwSmallStrainLinkInterfaceElement
 
 Element <|-- UPwBaseElement
@@ -40,7 +39,6 @@ SmallStrainUPwDiffOrderElement <|-- UpdatedLagrangianUPwDiffOrderElement
 UPwBaseElement <|-- UPwSmallStrainInterfaceElement
 UPwSmallStrainInterfaceElement <|-- TransientPwInterfaceElement
 TransientPwInterfaceElement <|-- SteadyStatePwInterfaceElement
-SteadyStatePwInterfaceElement <|-- SteadyStatePwPipingElement
 UPwSmallStrainInterfaceElement <|-- UPwSmallStrainLinkInterfaceElement
 
 class InterfaceElement

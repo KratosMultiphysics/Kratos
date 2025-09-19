@@ -173,6 +173,7 @@ namespace Kratos::MPMSearchElementUtility
         const ModelPart& rBackgroundGridModelPart,
         std::vector<std::vector<Element::Pointer>>& rThreadMissingElements,
         std::vector<std::vector<IndexType>>& rThreadActiveNodeIds,
+        std::vector<std::unordered_map<GeometryType*, std::size_t>>& rThreadMpCounts,
         const double Tolerance
         )
     {
@@ -209,6 +210,8 @@ namespace Kratos::MPMSearchElementUtility
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j) {
                         rThreadActiveNodeIds[thread_id].push_back(r_found_geom.Points()[j].Id());
                     }
+                    // counts the number of MPs in a background grid element
+                    rThreadMpCounts[thread_id][&r_found_geom]++;
                 }
             } else {
                 rThreadMissingElements[thread_id].push_back(&*element_itr);
@@ -248,7 +251,7 @@ namespace Kratos::MPMSearchElementUtility
 
                     condition_itr->Set(ACTIVE);
 
-                    
+           
                     for (IndexType j = 0; j < r_found_geom.PointsNumber(); ++j) {
                         rThreadActiveNodeIds[thread_id].push_back(r_found_geom.Points()[j].Id());
                     }
@@ -286,6 +289,7 @@ namespace Kratos::MPMSearchElementUtility
         std::vector<typename Element::Pointer>& rMissingElements,
         std::vector<typename Condition::Pointer>& rMissingConditions,
         std::vector<std::vector<IndexType>>& rThreadActiveNodeIds,
+        std::vector<std::unordered_map<GeometryType*, std::size_t>>& rThreadMpCounts,
         const std::size_t MaxNumberOfResults,
         const double Tolerance
         )
@@ -355,6 +359,10 @@ namespace Kratos::MPMSearchElementUtility
                     for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j) {
                         rThreadActiveNodeIds[thread_id].push_back(r_geometry[j].Id());
                     }
+
+                    GeometryType* p_grid_geom = pelem->pGetGeometry().get();
+                    rThreadMpCounts[thread_id][p_grid_geom]++;
+
                 } else {
                     KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: "
                         << element_itr->Id() << " is failed. Geometry is cleared." << std::endl;
@@ -415,6 +423,8 @@ namespace Kratos::MPMSearchElementUtility
         for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
             auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
             element_itr->Reset(ACTIVE);
+            
+            element_itr->GetGeometry().SetValue(MP_COUNTER, 0);
         }
 
         // Reset all nodes 
@@ -453,9 +463,10 @@ namespace Kratos::MPMSearchElementUtility
         std::vector<std::vector<IndexType>> thread_active_node_ids(num_threads);
         std::vector<std::vector<Element::Pointer>> thread_missing_elements(num_threads);
         std::vector<std::vector<Condition::Pointer>> thread_missing_conditions(num_threads);
+        std::vector<std::unordered_map<GeometryType*, std::size_t>> thread_mp_counts(num_threads);
 
         if (!rMPMModelPart.GetProcessInfo()[IS_RESTARTED]) {
-            NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, thread_missing_elements, thread_active_node_ids, Tolerance);
+            NeighbourSearchElements(rMPMModelPart, rBackgroundGridModelPart, thread_missing_elements, thread_active_node_ids, thread_mp_counts, Tolerance);
             NeighbourSearchConditions(rMPMModelPart, rBackgroundGridModelPart, thread_missing_conditions, thread_active_node_ids, Tolerance);
             
             // Merge missing elements and conditions
@@ -480,7 +491,7 @@ namespace Kratos::MPMSearchElementUtility
 
         if (missing_conditions.size() > 0 || missing_elements.size() > 0) {
             BinBasedSearchElementsAndConditions<TDimension>(rMPMModelPart,
-                rBackgroundGridModelPart, missing_elements, missing_conditions, thread_active_node_ids,
+                rBackgroundGridModelPart, missing_elements, missing_conditions, thread_active_node_ids, thread_mp_counts,
                 MaxNumberOfResults, Tolerance);
         }
 
@@ -491,6 +502,20 @@ namespace Kratos::MPMSearchElementUtility
         }
         for (IndexType id : active_node_ids) {
             rBackgroundGridModelPart.GetNode(id).Set(ACTIVE, true);
+        }
+
+        // Global counter accumulation
+        std::unordered_map<GeometryType*, std::size_t> global_counts;
+
+        for (const auto& thread_map : thread_mp_counts) {
+            for (const auto& [p_geom, count] : thread_map) {
+                global_counts[p_geom] += count;
+            }
+        }
+
+        // Apply to MP_COUNTER
+        for (const auto& [p_geom, count] : global_counts) {
+            p_geom->SetValue(MP_COUNTER, static_cast<int>(count));
         }
     }
 } // end namespace Kratos::MPMSearchElementUtility
