@@ -441,21 +441,22 @@ private:
         Matrix& rB,
         const KinematicVariables& rActualKinematic) const;
 
-    void CalculateActuatedBMembrane(
+    //CKECKLEO funktions Beschreibung
+    void CalculateActuatedB(
     const IndexType IntegrationPointIndex,
     Matrix& rB,
     const KinematicVariables& rActualKinematic) const;
-
-    // void CalculateActuatedBCurvature(
-    //     const IndexType IntegrationPointIndex,
-    //     Matrix& rB,
-    //     const KinematicVariables& rActualKinematic) const;
-
 
     void CalculateSecondVariationStrainCurvature(
         const IndexType IntegrationPointIndex,
         SecondVariations& rSecondVariationsStrain,
         SecondVariations& rSecondVariationsCurvature,
+        const KinematicVariables& rActualKinematic) const;
+    
+    //CHECKLEO Funktionsbeschreibung
+    void CalculateSecondVariationActuationStrain(
+        const IndexType IntegrationPointIndex,
+        std::vector<Matrix>& rIKgAct,
         const KinematicVariables& rActualKinematic) const;
 
     /**
@@ -474,22 +475,22 @@ private:
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const;
 
-    /**
-     *  CHECKLEO
-    * This functions updates the ACTUATED constitutive variables
-    * @param rActualMetric: The actual metric
-    * @param rThisActuatedConstitutiveVariables: The constitutive variables to be calculated
-    * @param rValues: The CL parameters
-    * @param ThisStressMeasure: The stress measure considered
-    */
-    void CalculateActuatedConstitutiveVariables(
-        const IndexType IntegrationPointIndex,
-        KinematicVariables& rActualMetric,
-        ConstitutiveVariables& rThisActuatedConstitutiveVariablesMembrane,
-        ConstitutiveVariables& rThisActuatedConstitutiveVariablesCurvature,
-        ConstitutiveLaw::Parameters& rValues,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    ) const;
+    // /**
+    //  *  CHECKLEO
+    // * This functions updates the ACTUATED constitutive variables
+    // * @param rActualMetric: The actual metric
+    // * @param rThisActuatedConstitutiveVariables: The constitutive variables to be calculated
+    // * @param rValues: The CL parameters
+    // * @param ThisStressMeasure: The stress measure considered
+    // */
+    // void CalculateActuatedConstitutiveVariables(
+    //     const IndexType IntegrationPointIndex,
+    //     KinematicVariables& rActualMetric,
+    //     ConstitutiveVariables& rThisActuatedConstitutiveVariablesMembrane,
+    //     ConstitutiveVariables& rThisActuatedConstitutiveVariablesCurvature,
+    //     ConstitutiveLaw::Parameters& rValues,
+    //     const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    // ) const;
 
     inline void CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,
@@ -503,9 +504,14 @@ private:
         const Vector& rSD,
         const double IntegrationWeight) const;
 
-    void BuildActuationColumnMatrix(MatrixType& rMatrix, const SizeType u, const SizeType k) const;
-    
-    void BuildActuationDiagonalMatrix(MatrixType& rMatrix, const SizeType k) const;
+    void CalculateActuationDiagonalMatrix(
+        MatrixType& rKActDiag,
+        const std::vector<Matrix>& rIKgAct,
+        const Vector& rStressVector,
+        const Matrix& rActuatedB,
+        const Matrix& rCRed,
+        double integration_weight
+    ) const;
 
 
     // Calculation of the PK2 stress
