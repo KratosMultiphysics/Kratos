@@ -43,8 +43,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FreesDoFAfterFinali
 
     process.ExecuteInitializeSolutionStep();
     KRATOS_EXPECT_TRUE(std::all_of(r_model_part.NodesBegin(), r_model_part.NodesEnd(), [](const auto& rNode) {
-            return rNode.IsFixed(DISPLACEMENT_X) && rNode.FastGetSolutionStepValue(DISPLACEMENT_X) == 1.0;
-        }))
+        return rNode.IsFixed(DISPLACEMENT_X) && rNode.FastGetSolutionStepValue(DISPLACEMENT_X) == 1.0;
+    }))
 
     process.ExecuteFinalize();
     KRATOS_EXPECT_TRUE(std::all_of(r_model_part.NodesBegin(), r_model_part.NodesEnd(), [](const auto& rNode) {

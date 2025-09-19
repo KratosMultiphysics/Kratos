@@ -64,7 +64,8 @@ void GeoApplyConstantScalarValueProcess::ExecuteInitialize()
 
 void GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep()
 {
-    if (mValueIsSet) return; // Constant value process, execute once here to ensure correct total and incremental D.O.F. values
+    if (mValueIsSet)
+        return; // Constant value process, execute once here to ensure correct total and incremental D.O.F. values
 
     if (KratosComponents<Variable<double>>::Has(mVariableName)) {
         VariableUtils().SetVariable(KratosComponents<Variable<double>>::Get(mVariableName),
