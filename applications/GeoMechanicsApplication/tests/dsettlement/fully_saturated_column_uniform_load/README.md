@@ -42,7 +42,7 @@ Settlement over time, where nodes 2, 3, and 104 are located at the top edge of t
 
 ![Settlement](high_permeability/test_case_2_settlement_plot.svg)
 
-The following plots show the water pressure distribution ($`p_{\mathrm{w}}`$) as well as the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$) along the left edge of the soil column at certain times.
+The following plots show the water pressure distribution ($`p_{\mathrm{w}}`$), the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$), and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times.
 After 100 days of settlement under self weight:
 
 ![Stress plot after 100 days](high_permeability/test_case_2_stress_plot_after_100_days.svg)
