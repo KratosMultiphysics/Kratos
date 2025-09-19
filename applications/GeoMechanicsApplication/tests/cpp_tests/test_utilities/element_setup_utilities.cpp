@@ -21,7 +21,7 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/three_dimensional_stress_state.h"
-#include "custom_elements/transient_Pw_line_element.h"
+#include "custom_elements/Pw_element.h"
 #include "custom_geometries/interface_geometry.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -161,7 +161,7 @@ Element::Pointer ElementSetupUtilities::Create2D2NElement(const PointerVector<No
     using enum CalculationContribution;
     const auto contributions = {Permeability, Compressibility, FluidBodyFlow};
 
-    return make_intrusive<TransientPwLineElement<2, 2>>(1, std::make_shared<Line2D2<Node>>(rNodes),
+    return make_intrusive<PwElement<2, 2>>(1, std::make_shared<Line2D2<Node>>(rNodes),
                                                         rProperties, contributions, nullptr);
 }
 
