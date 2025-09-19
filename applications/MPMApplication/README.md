@@ -97,9 +97,9 @@ The following features are currently available and subject to development within
         * [moving point load](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/point_load.html)
         * interface condition for partitioned coupling with DEM
     * Dirichlet: fixed, slip or contact condition
-        * [penalty method](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/penalty.html)
-        * Lagrange multiplier method (*soon in the master branch*)
-        * perturbed Lagrangian method (*soon in the master branch*)
+        * [penalty method](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/dirichlet_boundary_particles.html)
+        * [Lagrange multiplier method](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/dirichlet_boundary_particles.html) (only for triangles and tetrahedra)
+        * [perturbed Lagrangian method](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/dirichlet_boundary_particles.html)
         * interface condition for partitioned coupling with FEM, RBS,...
 
 **Time schemes**

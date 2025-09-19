@@ -6,7 +6,7 @@ sidebar: mpm_application
 summary: 
 ---
 
-The [`ApplyMPMParticleDirichletConditionProcess`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/apply_mpm_particle_dirichlet_condition_process.py) imposes non-conforming Dirichlet boundary conditions by means of the **Penalty method**, **Lagrange multipliers** and **Perturbed Lagrange multipliers**, which are implemened using boundary material points conditions.
+The [`ApplyMPMParticleDirichletConditionProcess`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/apply_mpm_particle_dirichlet_condition_process.py) imposes non-conforming Dirichlet boundary conditions by means of the **Penalty method**, **Lagrange multipliers** and **Perturbed Lagrangian method**, which are implemened using boundary material points conditions.
 
 ## Parameters & Defaults
 
