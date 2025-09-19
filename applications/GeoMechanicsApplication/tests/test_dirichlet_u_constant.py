@@ -10,10 +10,10 @@ class KratosGeoMechanicsDirichletUConstantTests(KratosUnittest.TestCase):
     """
     def test_dirichlet_u_constant(self):
         """
-        4 element elongation test in 2 stages. The incremental elastic material should show 
+        single element compression test. The incremental elastic material should show
         constant total_strain_yy and stress_yy over the steps, the incremental_strain_yy should be 0 from step 2
         H = 1 [m]
-        Young's modulus E = 30E+06 [N/m^2]
+        Young's modulus E = 10E+03 [N/m^2]
         compress -0.1 [m] in 1 steps and keep constant the next step
         """
         test_name    = 'dirichlet_u_constant'
@@ -38,10 +38,9 @@ class KratosGeoMechanicsDirichletUConstantTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(-0.1, total_displacement_3_y, 2)
             incremental_displacements_3  = test_helper.GiDOutputFileReader.nodal_values_at_time("INCREMENTAL_DISPLACEMENT", time, output_data[stage_nr], [3])[0]
             incremental_displacement_3_y = incremental_displacements_3[1]
-            if time == 0.5:
-                self.assertAlmostEqual(-0.1, incremental_displacement_3_y, 2)
-            else:
-                self.assertAlmostEqual(0.0, incremental_displacement_3_y, 2)
+            # the increment has nonzero value in the first step time < 0.6 avoids an exact double comparison like time == 0.5
+            expected_incr = -0.1 if time < 0.6 else 0.0
+            self.assertAlmostEqual(expected_incr, incremental_displacement_3_y, 2)
 
             # integration point check in element 1, integration point 4 ( uniform stress and strain so an arbitrary choice )
             green_lagrange_strains_1_4    = test_helper.GiDOutputFileReader.element_integration_point_values_at_time("GREEN_LAGRANGE_STRAIN_TENSOR", time, output_data[stage_nr], [1], [3])[0][0]
