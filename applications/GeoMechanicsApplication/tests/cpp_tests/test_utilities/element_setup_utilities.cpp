@@ -14,6 +14,7 @@
 #include "custom_conditions/Pw_point_flux_condition.hpp"
 #include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
 #include "custom_conditions/line_load_2D_diff_order_condition.hpp"
+#include "custom_elements/Pw_element.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/calculation_contribution.h"
 #include "custom_elements/interface_element.h"
@@ -21,7 +22,6 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/three_dimensional_stress_state.h"
-#include "custom_elements/Pw_element.h"
 #include "custom_geometries/interface_geometry.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -161,8 +161,8 @@ Element::Pointer ElementSetupUtilities::Create2D2NElement(const PointerVector<No
     using enum CalculationContribution;
     const auto contributions = {Permeability, Compressibility, FluidBodyFlow};
 
-    return make_intrusive<PwElement<2, 2>>(1, std::make_shared<Line2D2<Node>>(rNodes),
-                                                        rProperties, contributions, nullptr);
+    return make_intrusive<PwElement<2, 2>>(1, std::make_shared<Line2D2<Node>>(rNodes), rProperties,
+                                           contributions, nullptr);
 }
 
 Condition::Pointer ElementSetupUtilities::Create3D3NCondition(const PointerVector<Node>& rNodes)

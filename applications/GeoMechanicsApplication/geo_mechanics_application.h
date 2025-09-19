@@ -94,7 +94,9 @@
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_elements/interface_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_elements/steady_state_Pw_element.hpp"
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
+#include "custom_elements/transient_Pw_element.hpp"
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_elements/transient_thermal_element.h"
 #include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
@@ -264,46 +266,46 @@ private:
 
     // elements
     // transient one-phase flow elements:
+    const TransientPwElement<2, 3> mTransientPwElement2D3N{
+        0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
+        std::make_unique<PlaneStrainStressState>()};
+    const TransientPwElement<2, 4> mTransientPwElement2D4N{
+        0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<PlaneStrainStressState>()};
+    const TransientPwElement<2, 6> mTransientPwElement2D6N{
+        0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<PlaneStrainStressState>()};
+    const TransientPwElement<2, 8> mTransientPwElement2D8N{
+        0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<PlaneStrainStressState>()};
+    const TransientPwElement<2, 9> mTransientPwElement2D9N{
+        0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
+        std::make_unique<PlaneStrainStressState>()};
+    const TransientPwElement<2, 10> mTransientPwElement2D10N{
+        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        std::make_unique<PlaneStrainStressState>()};
+    const TransientPwElement<2, 15> mTransientPwElement2D15N{
+        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
+        std::make_unique<PlaneStrainStressState>()};
+    const TransientPwElement<3, 4> mTransientPwElement3D4N{
+        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<ThreeDimensionalStressState>()};
+    const TransientPwElement<3, 8> mTransientPwElement3D8N{
+        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<ThreeDimensionalStressState>()};
+    const TransientPwElement<3, 10> mTransientPwElement3D10N{
+        0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
+        std::make_unique<ThreeDimensionalStressState>()};
+    const TransientPwElement<3, 20> mTransientPwElement3D20N{
+        0, Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
+        std::make_unique<ThreeDimensionalStressState>()};
+    const TransientPwElement<3, 27> mTransientPwElement3D27N{
+        0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
+        std::make_unique<ThreeDimensionalStressState>()};
+
     const std::vector<CalculationContribution> transient_Pw_element_contribution = {
         CalculationContribution::Permeability, CalculationContribution::Compressibility,
         CalculationContribution::FluidBodyFlow};
-    const PwElement<2, 3> mTransientPwElement2D3N{
-        0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<2, 4> mTransientPwElement2D4N{
-        0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<2, 6> mTransientPwElement2D6N{
-        0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<2, 8> mTransientPwElement2D8N{
-        0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<2, 9> mTransientPwElement2D9N{
-        0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<2, 10> mTransientPwElement2D10N{
-        0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<2, 15> mTransientPwElement2D15N{
-        0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<3, 4> mTransientPwElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<3, 8> mTransientPwElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<3, 10> mTransientPwElement3D10N{
-        0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<3, 20> mTransientPwElement3D20N{
-        0, Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
-        transient_Pw_element_contribution, nullptr};
-    const PwElement<3, 27> mTransientPwElement3D27N{
-        0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
-        transient_Pw_element_contribution, nullptr};
-
     const PwElement<2, 2> mTransientPwLineElement2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
         transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
@@ -325,7 +327,6 @@ private:
     const PwElement<3, 4> mTransientPwLineElement3D4N{
         0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-
     const TransientPwInterfaceElement<2, 4> mTransientPwInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};
@@ -337,44 +338,42 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
 
     // Steady-State one-phase flow elements:
-    const std::vector<CalculationContribution> steady_state_Pw_contribution = {
-        CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow};
-    const PwElement<2, 3> mSteadyStatePwElement2D3N{
+    const SteadyStatePwElement<2, 3> mSteadyStatePwElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<2, 4> mSteadyStatePwElement2D4N{
+        std::make_unique<PlaneStrainStressState>()};
+    const SteadyStatePwElement<2, 4> mSteadyStatePwElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<2, 6> mSteadyStatePwElement2D6N{
+        std::make_unique<PlaneStrainStressState>()};
+    const SteadyStatePwElement<2, 6> mSteadyStatePwElement2D6N{
         0, Kratos::make_shared<Triangle2D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<2, 8> mSteadyStatePwElement2D8N{
+        std::make_unique<PlaneStrainStressState>()};
+    const SteadyStatePwElement<2, 8> mSteadyStatePwElement2D8N{
         0, Kratos::make_shared<Quadrilateral2D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<2, 9> mSteadyStatePwElement2D9N{
+        std::make_unique<PlaneStrainStressState>()};
+    const SteadyStatePwElement<2, 9> mSteadyStatePwElement2D9N{
         0, Kratos::make_shared<Quadrilateral2D9<NodeType>>(Element::GeometryType::PointsArrayType(9)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<2, 10> mSteadyStatePwElement2D10N{
+        std::make_unique<PlaneStrainStressState>()};
+    const SteadyStatePwElement<2, 10> mSteadyStatePwElement2D10N{
         0, Kratos::make_shared<Triangle2D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<2, 15> mSteadyStatePwElement2D15N{
+        std::make_unique<PlaneStrainStressState>()};
+    const SteadyStatePwElement<2, 15> mSteadyStatePwElement2D15N{
         0, Kratos::make_shared<Triangle2D15<NodeType>>(Element::GeometryType::PointsArrayType(15)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<3, 4> mSteadyStatePwElement3D4N{
+        std::make_unique<PlaneStrainStressState>()};
+    const SteadyStatePwElement<3, 4> mSteadyStatePwElement3D4N{
         0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<3, 8> mSteadyStatePwElement3D8N{
+        std::make_unique<ThreeDimensionalStressState>()};
+    const SteadyStatePwElement<3, 8> mSteadyStatePwElement3D8N{
         0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<3, 10> mSteadyStatePwElement3D10N{
+        std::make_unique<ThreeDimensionalStressState>()};
+    const SteadyStatePwElement<3, 10> mSteadyStatePwElement3D10N{
         0, Kratos::make_shared<Tetrahedra3D10<NodeType>>(Element::GeometryType::PointsArrayType(10)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<3, 20> mSteadyStatePwElement3D20N{
+        std::make_unique<ThreeDimensionalStressState>()};
+    const SteadyStatePwElement<3, 20> mSteadyStatePwElement3D20N{
         0, Kratos::make_shared<Hexahedra3D20<NodeType>>(Element::GeometryType::PointsArrayType(20)),
-        steady_state_Pw_contribution, nullptr};
-    const PwElement<3, 27> mSteadyStatePwElement3D27N{
+        std::make_unique<ThreeDimensionalStressState>()};
+    const SteadyStatePwElement<3, 27> mSteadyStatePwElement3D27N{
         0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
-        steady_state_Pw_contribution, nullptr};
+        std::make_unique<ThreeDimensionalStressState>()};
 
     const SteadyStatePwInterfaceElement<2, 4> mSteadyStatePwInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
