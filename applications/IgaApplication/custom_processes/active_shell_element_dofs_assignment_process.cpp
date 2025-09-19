@@ -164,23 +164,23 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
         KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12));
 
         // Fixiere und setze die Werte für die Aktuierungs-Dofs
-        r_node.Fix(ACTIVE_SHELL_ALPHA);
-        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = 0.5; // Beispielwert
+        // r_node.Fix(ACTIVE_SHELL_ALPHA);
+        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = 0.5; // Beispielwert
 
-        r_node.Fix(ACTIVE_SHELL_BETA);
-        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA) = 0.0;
+        // r_node.Fix(ACTIVE_SHELL_BETA);
+        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA) = 0.0;
 
-        r_node.Fix(ACTIVE_SHELL_GAMMA);
-        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA) = 0.0;
+        // r_node.Fix(ACTIVE_SHELL_GAMMA);
+        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA) = 0.0;
 
-        r_node.Fix(ACTIVE_SHELL_KAPPA_1);
-        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1) = 0.0;
+        // r_node.Fix(ACTIVE_SHELL_KAPPA_1);
+        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1) = 0.0;
 
-        r_node.Fix(ACTIVE_SHELL_KAPPA_2);
-        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2) = 0.0;
+        // r_node.Fix(ACTIVE_SHELL_KAPPA_2);
+        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2) = 0.0;
 
-        r_node.Fix(ACTIVE_SHELL_KAPPA_12);
-        r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12) = 0.0;
+        // r_node.Fix(ACTIVE_SHELL_KAPPA_12);
+        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12) = 0.0;
     }
 
 
