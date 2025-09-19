@@ -35,8 +35,6 @@
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
-        "rayleigh_m":                         0.0,
-        "rayleigh_k":                         0.0,
         "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "residual_criterion",
         "residual_relative_tolerance":        1.0E-4,
@@ -46,9 +44,6 @@
         "number_cycles":                      1,
         "reduction_factor":                   1.0,
         "increase_factor":                    1.0,
-        "desired_iterations":                 4,
-        "max_radius_factor":                  10.0,
-        "min_radius_factor":                  0.1,
         "calculate_reactions":                true,
         "rotation_dofs":                      false,
         "linear_solver_settings":             {
@@ -81,7 +76,6 @@
                         "body_output":         true,
                         "node_output":         false,
                         "skin_output":         false,
-                        "plane_output":        [],
                         "nodal_results":       ["INCREMENTAL_DISPLACEMENT","DISPLACEMENT","TOTAL_DISPLACEMENT"],
                         "gauss_point_results": ["CAUCHY_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR"]
                     }
