@@ -1,4 +1,4 @@
-# Prescribed displacement test with.
+# Prescribed displacement test with incremental and total displacement output.
 
 This test is a displacements test of 1 UPwSmallStrainElement2D4N element.
 It checks whether output of incremental and total displacements works correctly in combination with non-zero Dirichlet conditions.
@@ -10,7 +10,7 @@ The mesh is a single element as shown in the figure below:
 The test is performed in a single stage of 2 steps, with the following conditions:
 
 - Constraints:
-    - Displacements on the bottom are fixed in all directions.
+    - Displacements on the bottom are fixed in Y direction.
     - Displacements on the left side are fixed in the X direction.
     - Displacements on the top are prescribed in the Y direction. These appear at the start time and remain constant.
 - Material:
