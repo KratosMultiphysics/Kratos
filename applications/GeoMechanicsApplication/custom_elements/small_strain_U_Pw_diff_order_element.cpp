@@ -643,11 +643,13 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
             Matrix J0;
             Matrix InvJ0;
+            double detJInitialConfiguration;
+            Matrix DNu_DXInitialConfiguration;
             this->CalculateDerivativesOnInitialConfiguration(
-                Variables.detJInitialConfiguration, J0, InvJ0, Variables.DNu_DXInitialConfiguration, GPoint);
+                detJInitialConfiguration, J0, InvJ0, DNu_DXInitialConfiguration, GPoint);
 
             // Calculating operator B
-            Variables.B = this->CalculateBMatrix(Variables.DNu_DXInitialConfiguration, Variables.Nu);
+            Variables.B = this->CalculateBMatrix(DNu_DXInitialConfiguration, Variables.Nu);
 
             // Compute infinitesimal strain
             Variables.StrainVector =
@@ -1060,7 +1062,6 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     for (SizeType i = 0; i < num_g_points; ++i)
         ((rVariables.DNu_DXContainer)[i]).resize(num_u_nodes, n_dim, false);
     rVariables.DNu_DX.resize(num_u_nodes, n_dim, false);
-    rVariables.DNu_DXInitialConfiguration.resize(num_u_nodes, n_dim, false);
     rVariables.detJuContainer.resize(num_g_points, false);
 
     try {

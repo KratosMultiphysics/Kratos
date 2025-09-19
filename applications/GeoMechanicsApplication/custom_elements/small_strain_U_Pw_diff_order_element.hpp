@@ -130,7 +130,6 @@ protected:
         Vector Nu;     // Contains the displacement shape functions at every node
         Vector Np;     // Contains the pressure shape functions at every node
         Matrix DNu_DX; // Contains the global derivatives of the displacement shape functions
-        Matrix DNu_DXInitialConfiguration; // Contains the global derivatives of the displacement shape functions
 
         Matrix DNp_DX; // Contains the global derivatives of the pressure shape functions
         Matrix B;
@@ -145,7 +144,6 @@ protected:
 
         // needed for updated Lagrangian:
         double detJ;                     // displacement
-        double detJInitialConfiguration; // displacement
 
         // Nodal variables
         Vector BodyAcceleration;
