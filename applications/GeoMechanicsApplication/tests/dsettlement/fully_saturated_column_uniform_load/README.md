@@ -36,7 +36,7 @@ For the low-permeability case, the following assertions are made in this test:
 
 ### High permeability
 
-The following plots show some results obtained with Kratos, and compares them with results from D-Settlement 23.2.1.
+The following plots show comparisons of results obtained with Kratos and D-Settlement 23.2.1.
 
 Settlement over time, where nodes 2, 3, and 104 are located at the top edge of the soil column:
 
