@@ -105,6 +105,7 @@ public:
 
     void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
     using Element::Calculate;
+
     // Turn back information as a string.
     std::string Info() const override
     {
@@ -143,7 +144,7 @@ protected:
         Matrix F;
 
         // needed for updated Lagrangian:
-        double detJ;                     // displacement
+        double detJ; // displacement
 
         // Nodal variables
         Vector BodyAcceleration;
@@ -209,7 +210,6 @@ protected:
                                  const std::vector<double>& biot_moduli_inverse,
                                  const std::vector<double>& relative_permeability_values,
                                  const std::vector<double>& bishop_coefficients);
-
 
 protected:
     void CalculateExternalForces(VectorType& rRightHandSideVector,

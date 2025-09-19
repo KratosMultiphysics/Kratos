@@ -645,8 +645,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             Matrix InvJ0;
             double detJInitialConfiguration;
             Matrix DNu_DXInitialConfiguration;
-            this->CalculateDerivativesOnInitialConfiguration(
-                detJInitialConfiguration, J0, InvJ0, DNu_DXInitialConfiguration, GPoint);
+            this->CalculateDerivativesOnInitialConfiguration(detJInitialConfiguration, J0, InvJ0,
+                                                             DNu_DXInitialConfiguration, GPoint);
 
             // Calculating operator B
             Variables.B = this->CalculateBMatrix(DNu_DXInitialConfiguration, Variables.Nu);
@@ -769,7 +769,6 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
                    relative_permeability_values.cbegin(), relative_permeability_values.begin(),
                    std::multiplies<>{});
     const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
-
 
     if (rVariable == INTERNAL_FORCES_VECTOR) {
         const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(

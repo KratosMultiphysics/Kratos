@@ -22,6 +22,7 @@
 #include "tests/cpp_tests/test_utilities.h"
 #include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 #include <benchmark/benchmark.h>
+
 namespace
 {
 

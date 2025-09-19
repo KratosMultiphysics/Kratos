@@ -246,7 +246,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeo
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(ExpectedRightHandSide(), actual_rhs_values, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SumOfInternalAndExternalForcesAreRHS, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SumOfInternalAndExternalForcesAreRHS,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto properties = CreateProperties();
