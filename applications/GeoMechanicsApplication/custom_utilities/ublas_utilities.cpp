@@ -18,9 +18,8 @@ namespace Kratos
 
 Vector UblasUtilities::CreateVector(const std::initializer_list<double>& rInitializerList)
 {
-    Vector result= ZeroVector(rInitializerList.size());
-    std::ranges::transform(rInitializerList, result.begin(), [](double value){ return value; });
+    Vector result = ZeroVector(rInitializerList.size());
+    std::ranges::copy(rInitializerList, result.begin());
     return result;
-
 }
 } // namespace Kratos
