@@ -40,8 +40,8 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     if (this->GetGeometry().WorkingSpaceDimension() > 2)
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(DISPLACEMENT_Z)});
 
-    const CheckProperties check_properties(r_properties, "material properties at element",
-                                           this->Id(), CheckProperties::Bounds::AllInclusive);
+    const CheckProperties check_properties(r_properties, "material properties", this->Id(),
+                                           CheckProperties::Bounds::AllInclusive);
     check_properties.Check(DENSITY_SOLID);
     check_properties.Check(DENSITY_WATER);
     check_properties.Check(BULK_MODULUS_SOLID);
