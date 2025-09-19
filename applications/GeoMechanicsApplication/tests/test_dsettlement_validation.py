@@ -760,6 +760,11 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                     / "ref_effective_vertical_stresses_after_100_days.txt",
                     "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
+                {
+                    "file_path": project_path
+                    / "ref_total_vertical_stresses_after_100_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
             ]
             make_stress_over_y_plot(
                 output_stage_2,
@@ -768,6 +773,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_4_stress_plot_after_100_days.svg",
+                want_total_stress_plot=True,
             )
 
             # Make a stress plot after applying the surface load
@@ -782,6 +788,11 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                     / "ref_effective_vertical_stresses_after_100.1_days.txt",
                     "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
+                {
+                    "file_path": project_path
+                    / "ref_total_vertical_stresses_after_100.1_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
             ]
             make_stress_over_y_plot(
                 output_stage_4,
@@ -790,6 +801,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_4_stress_plot_after_100.1_days.svg",
+                want_total_stress_plot=True,
             )
 
             # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
@@ -804,6 +816,11 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                     / "ref_effective_vertical_stresses_after_10000_days.txt",
                     "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
+                {
+                    "file_path": project_path
+                    / "ref_total_vertical_stresses_after_10000_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
             ]
             make_stress_over_y_plot(
                 output_stage_5,
@@ -812,6 +829,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_4_stress_plot_after_10000_days.svg",
+                want_total_stress_plot=True,
             )
 
 
