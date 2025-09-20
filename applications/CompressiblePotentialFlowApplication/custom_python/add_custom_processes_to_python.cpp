@@ -46,7 +46,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<Define3DWakeProcess, Define3DWakeProcess::Pointer, Process>(
         m, "Define3DWakeProcess")
-        .def(py::init<ModelPart&, ModelPart&, ModelPart&, Parameters>())
+        .def(py::init< Model&, Parameters >())
         ;
 
     py::class_<ApplyFarFieldProcess, ApplyFarFieldProcess::Pointer, Process >
