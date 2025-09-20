@@ -84,6 +84,9 @@ IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosTrilinosApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
 ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
+# Exclude from unity build
+set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/linear_solver_trilinos.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+
 # Changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .pyd)
