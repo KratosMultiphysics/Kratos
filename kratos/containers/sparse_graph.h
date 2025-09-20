@@ -406,6 +406,7 @@ public:
     ///@name Inquiry
     ///@{
 
+    static constexpr bool IsThreadSafe = false;
 
     ///@}
     ///@name Input and output
