@@ -234,8 +234,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.builder_and_solver = self._CreateBuilderAndSolver()
 
         # Solution scheme creation
-        self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
-                                            self.settings["solution_type"].GetString())
+        self.scheme = self._BaseConstructScheme()
 
         # Get the convergence criterion
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
@@ -336,6 +335,8 @@ class GeoMechanicalSolver(PythonSolver):
             if self.settings["rotation_dofs"].GetBool():
                 # Add specific variables for the problem (rotation dofs).
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+                self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.TOTAL_ROTATION)
+                self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.INCREMENTAL_ROTATION)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
                 self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
@@ -372,11 +373,8 @@ class GeoMechanicalSolver(PythonSolver):
 
     def _add_smoothing_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_CAUCHY_STRESS_TENSOR)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_DAMAGE_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_WIDTH)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_DAMAGE)
 
     def _add_dynamic_dofs(self):
         # For being consistent for Serial and Trilinos
@@ -451,6 +449,14 @@ class GeoMechanicalSolver(PythonSolver):
             return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
         return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
+
+    def _BaseConstructScheme(self):
+        if (self.settings["solution_type"].GetString().lower() == "static"):
+            return GeoMechanicsApplication.GeoStaticScheme()
+        else:
+            return self._ConstructScheme(self.settings["scheme_type"].GetString(),
+                                         self.settings["solution_type"].GetString())
+
 
     def _create_solving_strategy(self, builder_and_solver, strategy_type):
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.IS_CONVERGED, True)

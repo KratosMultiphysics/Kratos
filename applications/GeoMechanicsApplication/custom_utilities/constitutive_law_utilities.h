@@ -38,11 +38,15 @@ public:
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
 
-    static void CheckProperty(const Properties&       rMaterialProperties,
-                              const Variable<double>& rVariable,
-                              std::optional<double>   MaxValue = std::nullopt);
+    static Matrix MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
+                                                  double      ShearStiffness,
+                                                  std::size_t TractionSize,
+                                                  std::size_t NumberOfNormalComponents);
 
-    static Matrix MakeInterfaceConstitutiveMatrix(double NormalStiffness, double ShearStiffness, std::size_t TractionSize);
+    static void CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId);
+
+    static void CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
+
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos
