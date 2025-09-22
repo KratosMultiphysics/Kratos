@@ -163,6 +163,7 @@ private:
     std::string mCutElementName;
     std::string mCutInterfaceConditionName;
     SizeType mInternalDivision;
+    SizeType mCutApproximationOrder;
 
     void CreateSbmExtendedGeometries();
 
