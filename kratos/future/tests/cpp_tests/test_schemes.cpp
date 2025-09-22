@@ -52,17 +52,12 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
     using SchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
     auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
-    // Create the DOF set and set the global ids
-    // Note that in a standard case this happens at the strategy level
-    auto p_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
-    auto p_eff_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
-
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
     Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(p_dof_set, p_eff_dof_set, linear_system_container);
+    p_scheme->InitializeSolutionStep(linear_system_container);
 
     // Call the build
     auto p_lhs = linear_system_container.pLhs;
@@ -116,17 +111,12 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     using SchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
     auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
-    // Create the DOF set and set the global ids
-    // Note that in a standard case this happens at the strategy level
-    auto p_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
-    auto p_eff_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
-
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
     Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(p_dof_set, p_eff_dof_set, linear_system_container);
+    p_scheme->InitializeSolutionStep(linear_system_container);
 
     // Call the build
     auto p_lhs = linear_system_container.pLhs;

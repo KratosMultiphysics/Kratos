@@ -98,8 +98,8 @@ public:
 
     // FIXME: Does not work... ask @Charlie
     // /// Add scheme to Kratos registry
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSystemVectorType)
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSystemVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSystemVectorType, TSparseGraphType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", ImplicitScheme, ImplicitScheme, TSparseMatrixType, TSystemVectorType, TSparseGraphType)
 
     ///@name Type Definitions
     ///@{
@@ -120,13 +120,13 @@ public:
     using TLSType = ImplicitThreadLocalStorage<DataType>;
 
     /// Block builder type
-    using BuilderType = Future::Builder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using BuilderType = Future::Builder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// Block builder type
-    using BlockBuilderType = Future::BlockBuilder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using BlockBuilderType = Future::BlockBuilder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// Elimination builder type
-    using EliminationBuilderType = Future::EliminationBuilder<TLSType, TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using EliminationBuilderType = Future::EliminationBuilder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
 
     /// DoF type definition
     using DofType = Dof<DataType>;
@@ -216,19 +216,14 @@ public:
      * This method sets up the linear system of equations (DOF sets and allocation) and calls the Initialize of all entities
      * Further operations might be required depending on the time integration scheme
      * Note that steps from 1 to 4 can be done once if the DOF set does not change (i.e., the mesh and the constraints active/inactive status do not change in time)
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void Initialize(
-        DofsArrayType::Pointer pDofSet,
-        DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    virtual void Initialize(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_TRY
 
         // Set up the system
-        InitializeLinearSystem(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
+        InitializeLinearSystem(rLinearSystemContainer);
 
         // Initialize elements, conditions and constraints
         EntitiesUtilities::InitializeAllEntities(*mpModelPart);
@@ -238,14 +233,9 @@ public:
 
     /**
      * @brief Function called once at the beginning of each solution step
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void InitializeSolutionStep(
-        DofsArrayType::Pointer pDofSet,
-        DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    virtual void InitializeSolutionStep(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         // Initializes solution step for all of the elements, conditions and constraints
         EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
@@ -254,14 +244,9 @@ public:
     /**
      * @brief Performing the prediction of the solution.
      * @warning Must be defined in derived classes
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void Predict(
-        DofsArrayType::Pointer pDofSet,
-        DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    virtual void Predict(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
     }
@@ -364,51 +349,6 @@ public:
         // Call the external utility to set up the effective DOF ids
         DofArrayUtilities::SetEffectiveDofEquationIds(*pDofSet, *pEffectiveDofSet);
         KRATOS_INFO_IF("ImplicitScheme", mEchoLevel >= 2) << "Finished setting the effective DOF ids." << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    //TODO: Think on how to do the overloads for the mass and damping matrices
-    /**
-     * @brief Allocate the system arrays
-     * This method calls the builder to allocate the linear system arrays
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
-     */
-    virtual void AllocateLinearSystemArrays(
-        const DofsArrayType::Pointer pDofSet,
-        const DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
-    {
-        KRATOS_TRY
-
-        // Call the builder to allocate and initialize the required arrays
-        BuiltinTimer lin_system_allocation_time;
-        (this->GetBuilder()).AllocateLinearSystemArrays(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 2) << "Linear system arrays allocation time: " << lin_system_allocation_time << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Allocate the linear system constraints arrays
-     * This method calls the builder to allocate the linear system constraints arrays
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
-     */
-    virtual void AllocateLinearSystemConstraints(
-        const DofsArrayType::Pointer pDofSet,
-        const DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
-    {
-        KRATOS_TRY
-
-        // Call the builder to set the master-slave constraints structure
-        BuiltinTimer system_constraints_allocation_time;
-        (this->GetBuilder()).AllocateLinearSystemConstraints(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
-        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() >= 2) << "System constraints allocation time: " << system_constraints_allocation_time << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -952,10 +892,7 @@ public:
         Timer::Stop("BuildDampingMatrix");
     }
 
-    virtual void BuildMasterSlaveConstraints(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    virtual void BuildMasterSlaveConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
             Timer::Start("BuildConstraints");
@@ -985,7 +922,8 @@ public:
             r_constraints_q.BeginAssemble();
 
             TLSType aux_tls;
-            #pragma omp parallel firstprivate(rEffectiveDofSet, consts_begin, r_process_info)
+            auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
+            #pragma omp parallel firstprivate(r_eff_dof_set, consts_begin, r_process_info)
             {
                 // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
                 std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
@@ -1017,8 +955,8 @@ public:
                     }
                     for (IndexType i_master = 0; i_master < n_masters; ++i_master) {
                         auto p_master = *(r_master_dofs.begin() + i_master);
-                        auto p_master_find = rEffectiveDofSet.find(*p_master);
-                        KRATOS_ERROR_IF(p_master_find == rEffectiveDofSet.end()) << "Master DOF cannot be found in effective DOF set." << std::endl;
+                        auto p_master_find = r_eff_dof_set.find(*p_master);
+                        KRATOS_ERROR_IF(p_master_find == r_eff_dof_set.end()) << "Master DOF cannot be found in effective DOF set." << std::endl;
                         r_master_eq_ids[i_master] = p_master_find->EffectiveEquationId();
                     }
 
@@ -1047,10 +985,11 @@ public:
             // Setting the missing effective but not constrain-related DOFs into the T and C system
             // For doing so we loop the standard DOF array (the one from elements and conditions)
             // We search for each DOF in the effective DOF ids map, if present it means its effective
-            IndexPartition<IndexType>(rDofSet.size()).for_each([&](IndexType Index){
-                const auto p_dof = *(rDofSet.ptr_begin() + Index);
-                const auto p_dof_find = rEffectiveDofSet.find(*p_dof);
-                if (p_dof_find != rEffectiveDofSet.end()) {
+            auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
+            IndexPartition<IndexType>(r_dof_set.size()).for_each([&](IndexType Index){
+                const auto p_dof = *(r_dof_set.ptr_begin() + Index);
+                const auto p_dof_find = r_eff_dof_set.find(*p_dof);
+                if (p_dof_find != r_eff_dof_set.end()) {
                     r_constraints_q[p_dof->EquationId()] = 0.0;
                     r_constraints_T(p_dof->EquationId(), p_dof_find->EffectiveEquationId()) = 1.0;
                 }
@@ -1075,22 +1014,14 @@ public:
      * @brief Builds the linear system constraints
      * This method builds the linear system constraints, that is, the master-slave and eventual Dirichlet constraints
      * The master-slave constraints are build according to the scheme implementation while the Dirichlet ones depend on the build type
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void BuildLinearSystemConstraints(
-        const DofsArrayType &rDofSet,
-        const DofsArrayType &rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    virtual void BuildLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         BuiltinTimer build_linear_system_constraints_time;
 
         // Build the master-slave constraints relation matrix and constant vector
-        BuildMasterSlaveConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
-
-        // Build the Dirichlet constraints relation matrix and constant vector
-        GetBuilder().BuildDirichletConstraints(rDofSet, rEffectiveDofSet, rLinearSystemContainer);
+        BuildMasterSlaveConstraints(rLinearSystemContainer);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Build linear system constraints time: " << build_linear_system_constraints_time << std::endl;
     }
@@ -1101,13 +1032,11 @@ public:
      * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void ApplyLinearSystemConstraints(
-        const DofsArrayType &rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    virtual void ApplyLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
     {
         BuiltinTimer apply_linear_system_constraints_time;
 
-        GetBuilder().ApplyLinearSystemConstraints(rEffectiveDofSet, rLinearSystemContainer);
+        GetBuilder().ApplyLinearSystemConstraints(rLinearSystemContainer);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Apply linear system constraints time: " << apply_linear_system_constraints_time << std::endl;
     }
@@ -1445,38 +1374,35 @@ protected:
      * 2) Set up the system ids (i.e., the DOFs equation ids), including the effective DOF ids, which may not match the "standard" ones
      * 3) Allocate the memory for the linear system constraints arrays (note that the operations done in here may depend on the build type)
      * 4) Allocate the memory for the system arrays (note that this implies building the sparse matrix graph)
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The array of DOFs to be solved after the application of constraints
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    void InitializeLinearSystem(
-        DofsArrayType::Pointer pDofSet,
-        DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    void InitializeLinearSystem(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_TRY
 
         // Setting up the DOFs list
         BuiltinTimer setup_dofs_time;
-        auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(pDofSet, pEffectiveDofSet);
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
+        auto p_dof_set = rLinearSystemContainer.pDofSet;
+        auto p_eff_dof_set = rLinearSystemContainer.pEffectiveDofSet;
+        auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(p_dof_set, p_eff_dof_set);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
         // Set up the equation ids
         BuiltinTimer setup_system_ids_time;
-        this->SetUpSystemIds(pDofSet, pEffectiveDofSet);
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_ids_time << std::endl;
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << eff_eq_system_size << std::endl;
+        this->SetUpSystemIds(p_dof_set, p_eff_dof_set);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_ids_time << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << eff_eq_system_size << std::endl;
 
         // Allocating the system constraints arrays
         BuiltinTimer constraints_allocation_time;
-        this->AllocateLinearSystemConstraints(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
+        (this->GetBuilder()).AllocateLinearSystemConstraints(rLinearSystemContainer);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
 
-        // Allocating the system vectors to their correct sizes
+        // Call the builder to allocate and initialize the system vectors
         BuiltinTimer linear_system_allocation_time;
-        this->AllocateLinearSystemArrays(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-        KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
+        (this->GetBuilder()).AllocateLinearSystem(rLinearSystemContainer);
+        KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1497,11 +1423,6 @@ protected:
             // The element is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalEqIds.clear();
-            rTLS.LocalVector.clear();
-            rTLS.LocalMatrix.clear();
-
             // The element is inactive and is not to be assembled
             return false;
         }
@@ -1523,10 +1444,6 @@ protected:
             // The element is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalEqIds.clear();
-            rTLS.LocalVector.clear();
-
             // The element is inactive and is not to be assembled
             return false;
         }
@@ -1548,10 +1465,6 @@ protected:
             // The element is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalEqIds.clear();
-            rTLS.LocalMatrix.clear();
-
             // The element is inactive and is not to be assembled
             return false;
         }
@@ -1573,10 +1486,6 @@ protected:
             // The element is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalEqIds.clear();
-            rTLS.LocalMatrix.clear();
-
             // The element is inactive and is not to be assembled
             return false;
         }
@@ -1598,10 +1507,6 @@ protected:
             // The element is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalEqIds.clear();
-            rTLS.LocalMatrix.clear();
-
             // The element is inactive and is not to be assembled
             return false;
         }
@@ -1619,10 +1524,6 @@ protected:
             // The constraint is active and is to be assembled
             return true;
         } else {
-            // Clear current TLS values
-            rTLS.LocalVector.clear();
-            rTLS.LocalMatrix.clear();
-
             // The constraint is inactive and is not to be assembled
             return false;
         }

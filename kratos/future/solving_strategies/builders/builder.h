@@ -50,7 +50,7 @@ namespace Kratos::Future
  * This class is thought to never be used, but to serve as basis for all the derived build types (e.g., block and elimination)
  * @author Ruben Zorrilla
  */
-template<class TThreadLocalStorage, class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
+template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
 class Builder
 {
 public:
@@ -108,47 +108,44 @@ public:
      * @brief Allocates the memory for the linear system arrays
      * This method allocates the memory for the linear system arrays
      * Note that the sizes of the resultant arrays depend on the build type
-     * @param pDofSet The array of DOFs from elements and conditions
-     * @param pEffectiveDofSet The array of DOFs to be solved after the application of constraints
+     * @param rSparseGraph Reference to the linear system sparse graph
      * @param pLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystemArrays(
-        const typename DofsArrayType::Pointer pDofSet,
-        const typename DofsArrayType::Pointer pEffectiveDofSet,
+    virtual void AllocateLinearSystem(
+        const TSparseGraphType& rSparseGraph,
         LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
-        {
-            KRATOS_ERROR << "Calling base class 'AllocateLinearSystemArrays'." << std::endl;
-        }
+    {
+        KRATOS_ERROR << "Calling base class 'AllocateLinearSystem'." << std::endl;
+    }
+
+    /**
+     * @brief Allocates the memory for the linear system arrays
+     * This method calculates the sparse graph and allocates the memory for the linear system arrays
+     * Note that the sizes of the resultant arrays depend on the build type
+     * @param pLinearSystemContainer Auxiliary container with the linear system arrays
+     */
+    virtual void AllocateLinearSystem(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    {
+        // Set up the system sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
+        BuiltinTimer sparse_matrix_graph_time;
+        auto p_dof_set = rLinearSystemContainer.pDofSet;
+        TSparseGraphType sparse_matrix_graph(p_dof_set->size());
+        this->SetUpSparseMatrixGraph(sparse_matrix_graph);
+        KRATOS_INFO_IF("BlockBuilder", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
+
+        // Allocate the linear system
+        this->AllocateLinearSystem(sparse_matrix_graph, rLinearSystemContainer);
+    }
 
     /**
      * @brief Allocates the linear system constraints arrays
      * This method allocates the linear system constraints arrays
      * Note that the sizes of the resultant arrays depend on the build type
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystemConstraints(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    virtual void AllocateLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
-        KRATOS_ERROR << "Calling base class 'AllocateLinearSystemArrays'." << std::endl;
-    }
-
-    /**
-     * @brief Builds the Dirichlet constraints
-     * This method does the building of the Dirichlet constraints according to the build type
-     * @param rDofSet The array of DOFs from elements and conditions
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
-     */
-    virtual void BuildDirichletConstraints(
-        const DofsArrayType& rDofSet,
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
-    {
-        KRATOS_ERROR << "Calling base class 'BuildDirichletConstraints'." << std::endl;
+        KRATOS_ERROR << "Calling base class 'AllocateLinearSystemConstraints'." << std::endl;
     }
 
     /**
@@ -164,14 +161,31 @@ public:
 
         // Add the elements and conditions DOF equation connectivities
         // Note that we add all the DOFs regardless their fixity status
-        Element::EquationIdVectorType eq_ids;
-        for (auto& r_elem : mpModelPart->Elements()) {
-            r_elem.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
-            rSparseGraph.AddEntries(eq_ids);
-        }
-        for (auto& r_cond : mpModelPart->Conditions()) {
-            r_cond.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
-            rSparseGraph.AddEntries(eq_ids);
+        if constexpr (TSparseGraphType::IsThreadSafe) {
+            IndexPartition<IndexType>(mpModelPart->NumberOfElements()).for_each([&](IndexType Index) {
+                Element::EquationIdVectorType eq_ids; //TODO: we don't use TLS for this (decide what to do once we finish the parallelism discussion)
+                auto it_elem = mpModelPart->ElementsBegin() + Index;
+                it_elem->EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
+                rSparseGraph.AddEntries(eq_ids);
+            });
+            IndexPartition<IndexType>(mpModelPart->NumberOfConditions()).for_each([&](IndexType Index) {
+                Condition::EquationIdVectorType eq_ids; //TODO: we don't use TLS for this (decide what to do once we finish the parallelism discussion)
+                auto it_cond = mpModelPart->ElementsBegin() + Index;
+                it_cond->EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
+                rSparseGraph.AddEntries(eq_ids);
+            });
+            //TODO: Add the constraints in here!
+        } else {
+            Element::EquationIdVectorType eq_ids;
+            for (auto& r_elem : mpModelPart->Elements()) {
+                r_elem.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
+                rSparseGraph.AddEntries(eq_ids);
+            }
+            for (auto& r_cond : mpModelPart->Conditions()) {
+                r_cond.EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
+                rSparseGraph.AddEntries(eq_ids);
+            }
+            //TODO: Add the constraints in here!
         }
     }
 
@@ -197,21 +211,39 @@ public:
 
             // Add all effective DOFs
             // Note that here effective means that the DOF is either a master DOF or a DOF that does not involve any constraint
-            for (IndexType i_dof = 0; i_dof < rEffectiveDofSet.size(); ++i_dof) { //TODO: Make it parallel when we implement the IsThreadSafe method in the sparse graphs
-                auto p_eff_dof = *(rEffectiveDofSet.ptr_begin() + i_dof);
+            auto eff_dof_addition_fn = [&](IndexType Index){
+                auto p_eff_dof = *(rEffectiveDofSet.ptr_begin() + Index);
                 const IndexType i_dof_eq_id = p_eff_dof->EquationId();
                 const IndexType i_dof_eff_eq_id = p_eff_dof->EffectiveEquationId();
                 rConstraintsSparseGraph.AddEntry(i_dof_eq_id, i_dof_eff_eq_id);
+            };
+
+            const std::size_t n_eff_dof = rEffectiveDofSet.size();
+            if constexpr (TSparseGraphType::IsThreadSafe) {
+                IndexPartition<IndexType>(n_eff_dof).for_each(eff_dof_addition_fn);
+            } else {
+                for (IndexType i_dof = 0; i_dof < n_eff_dof; ++i_dof) {
+                    eff_dof_addition_fn(i_dof);
+                }
             }
 
             // Loop the constraints to add the slave DOFs
             // Note that we assume that there constraints are always one to many (not many to many)
-            for (const auto& r_constraint : mpModelPart->MasterSlaveConstraints()) { //TODO: Make it parallel when we implement the IsThreadSafe method in the sparse graphs
-                const auto& r_masters = r_constraint.GetMasterDofsVector();
-                const IndexType slave_eq_id = (r_constraint.GetSlaveDofsVector()[0])->EquationId();
+            auto slave_dof_addition_fn = [&](IndexType Index){
+                auto it_constraint = mpModelPart->MasterSlaveConstraintsBegin() + Index;
+                const auto& r_masters = it_constraint->GetMasterDofsVector(); //TODO: we don't use TLS for this (decide what to do once we finish the parallelism discussion)
+                const IndexType slave_eq_id = (it_constraint->GetSlaveDofsVector()[0])->EquationId();
                 for (const auto& rp_master_dof : r_masters) {
                     const IndexType master_eff_eq_id = rp_master_dof->EffectiveEquationId();
                     rConstraintsSparseGraph.AddEntry(slave_eq_id, master_eff_eq_id);
+                }
+            };
+
+            if constexpr (TSparseGraphType::IsThreadSafe) {
+                IndexPartition<IndexType>(n_constraints).for_each(slave_dof_addition_fn);
+            } else {
+                for (IndexType i_constraint = 0; i_constraint < n_constraints; ++i_constraint) {
+                    slave_dof_addition_fn(i_constraint);
                 }
             }
         }
@@ -223,12 +255,9 @@ public:
      * Note that linear system constraints includes both the master-slave and the Dirichlet
      * constraints. The way the constraints are applied will be reimplemented and applied
      * in the derived classes depending on the build type.
-     * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void ApplyLinearSystemConstraints(
-        const DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    virtual void ApplyLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'ApplyLinearSystemConstraints'." << std::endl;
     }
@@ -277,7 +306,7 @@ public:
         });
 
         // Compute the solution vector as x = T * y + q
-        rConstraintsRelationMatrix.SpMV(1.0, y, 1.0, rSolutionVector); // Note that this performs the operation x = A*y + x
+        rConstraintsRelationMatrix.SpMV(1.0, y, 1.0, rSolutionVector); // Note that this performs the operation x = A*y + q
     }
 
     /**

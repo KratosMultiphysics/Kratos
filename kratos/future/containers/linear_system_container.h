@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 
 namespace Kratos::Future
 {
@@ -56,6 +57,10 @@ struct LinearSystemContainer
 
     typename TSystemVectorType::Pointer pConstraintsQ = nullptr; // Master-slave constraints constant vector
 
+    typename ModelPart::DofsArrayType::Pointer pDofSet = Kratos::make_shared<ModelPart::DofsArrayType>(); // The PVS containing the DOFs of the system
+
+    typename ModelPart::DofsArrayType::Pointer pEffectiveDofSet = Kratos::make_shared<ModelPart::DofsArrayType>(); /// The PVS containing the effective DOFs of the system
+
     void Clear()
     {
         if (pLhs) {
@@ -85,7 +90,19 @@ struct LinearSystemContainer
         if (pConstraintsQ) {
             pConstraintsQ->Clear();
         }
+        if (pDofSet) {
+            pDofSet->clear();
+        }
+        if (pEffectiveDofSet) {
+            pEffectiveDofSet->clear();
+        }
     }
+
+    bool RequiresEffectiveDofSet() const
+    {
+        return pDofSet == pEffectiveDofSet;
+    }
+
 }; // Class LinearSolverContainer
 
 ///@}
