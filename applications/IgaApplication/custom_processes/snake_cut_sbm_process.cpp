@@ -137,7 +137,10 @@ void SnakeCutSbmProcess::CreateSbmExtendedGeometries(
 
     // Loop over the nodes of the surrogate sub model part
     IndexType iel = 1;
-    SizeType number_of_shape_functions_derivatives = 2*p_nurbs_surface->PolynomialDegree(0)+1;
+    SizeType brep_degree = p_nurbs_surface->PolynomialDegree(0);
+    SizeType number_of_shape_functions_derivatives = 2*brep_degree+1;
+
+    mCutApproximationOrder = brep_degree;
 
     IndexType first_condition_id;
     IndexType last_condition_id;
@@ -336,9 +339,7 @@ void SnakeCutSbmProcess::CreateSbmExtendedGeometries(
         
             IntegrationInfo brep_integration_info_surrogate1_skin1 = p_brep_curve_surrogate1_skin1->GetDefaultIntegrationInfo();
 
-            //FIXME: 
-            const int p = 3;
-            brep_integration_info_surrogate1_skin1.SetNumberOfIntegrationPointsPerSpan(0,2*p+1);
+            brep_integration_info_surrogate1_skin1.SetNumberOfIntegrationPointsPerSpan(0,2*mCutApproximationOrder+1);
 
             IntegrationPointsArrayType brep_integration_points_list_surrogate1_skin1;
             GeometriesArrayType brep_quadrature_point_list_surrogate1_skin1;
@@ -410,9 +411,7 @@ void SnakeCutSbmProcess::CreateSbmExtendedGeometries(
         
             IntegrationInfo brep_integration_info_surrogate2_skin2 = p_brep_curve_surrogate2_skin2->GetDefaultIntegrationInfo();
 
-            //FIXME: 
-            const int p = 3;
-            brep_integration_info_surrogate2_skin2.SetNumberOfIntegrationPointsPerSpan(0,2*p+1);
+            brep_integration_info_surrogate2_skin2.SetNumberOfIntegrationPointsPerSpan(0,2*mCutApproximationOrder+1);
 
             IntegrationPointsArrayType brep_integration_points_list_surrogate2_skin2;
             GeometriesArrayType brep_quadrature_point_list_surrogate2_skin2;
@@ -538,10 +537,10 @@ void SnakeCutSbmProcess::CreateCutAndSkinQuadraturePoints(
     //     p_skin1_brep_point, p_skin2_brep_point);
     
 
-    const int p = 2;
+    const int p = mCutApproximationOrder;
     auto p_nurbs_curve_skin1_skin2 = this->CreateBrepCurve(p_skin1_brep_point, p_skin2_brep_point, active_range_knot_vector);
 
-    if (norm_2(skin_2 - skin_1) > rBinSearchParameters.SearchRadius/10.0 && abs(id_closest_true_node-id_closest_true_node_2)> (2*p+1))
+    if (norm_2(skin_2 - skin_1) > rBinSearchParameters.SearchRadius/10.0 && abs(id_closest_true_node-id_closest_true_node_2)> (2*p+1) && p>1)
         p_nurbs_curve_skin1_skin2 = FitUV_BetweenSkinNodes_Generic<TIsInnerLoop>(
             rSkinSubModelPart, *pNurbsSurface, id_closest_true_node, id_closest_true_node_2, p, /*ridge=*/1e-14);
 
@@ -613,7 +612,7 @@ void SnakeCutSbmProcess::CreateCutAndSkinQuadraturePoints(
 
         // 2) UV-Coons Gauss points (increase Order as needed, e.g. 5–7)
         IntegrationPointsArrayType surface_integration_points =
-            CreateCoonsPatchGaussPointsUV(/*Order=*/4, *p_uv_B0, *p_uv_L0, *p_uv_L1, *p_uv_B1);
+            CreateCoonsPatchGaussPointsUV(/*Order=*/(mCutApproximationOrder+1), *p_uv_B0, *p_uv_L0, *p_uv_L1, *p_uv_B1);
 
         pNurbsSurface->CreateQuadraturePointGeometries(surface_quadrature_point_list, rIntegrationParameters.NumberOfShapeFunctionsDerivatives, 
                                                         surface_integration_points, surface_integration_info);
@@ -645,7 +644,7 @@ void SnakeCutSbmProcess::CreateCutAndSkinQuadraturePoints(
 
         // 2) UV-Coons Gauss points (increase Order as needed, e.g. 5–7)
         IntegrationPointsArrayType surface_integration_points =
-            CreateCoonsPatchGaussPointsUV(/*Order=*/4, *p_uv_B0, *p_uv_L1, *p_uv_L0, *p_uv_B1);
+            CreateCoonsPatchGaussPointsUV(/*Order=*/(mCutApproximationOrder+1), *p_uv_B0, *p_uv_L1, *p_uv_L0, *p_uv_B1);
                                                         
 
         pNurbsSurface->CreateQuadraturePointGeometries(surface_quadrature_point_list, rIntegrationParameters.NumberOfShapeFunctionsDerivatives, 
