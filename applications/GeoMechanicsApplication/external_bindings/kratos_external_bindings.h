@@ -8,9 +8,9 @@ class KratosExecute;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ExternalBindings
 {
-    KratosExecute* KratosExecute_CreateInstance();
+    static KratosExecute* KratosExecute_CreateInstance();
 
-    int execute_flow_analysis(KratosExecute* instance,
+    static int execute_flow_analysis(KratosExecute* instance,
                               const char*    workingDirectory,
                               const char*    projectFile,
                               double         minCriticalHead,
@@ -22,9 +22,9 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ExternalBindings
                               void __stdcall reportTextualProgress(const char*),
                               bool __stdcall shouldCancel());
 
-    KratosGeoSettlement* KratosGeoSettlement_CreateInstance();
+    static KratosGeoSettlement* KratosGeoSettlement_CreateInstance();
 
-    int runSettlementStage(KratosGeoSettlement* instance,
+    static int runSettlementStage(KratosGeoSettlement* instance,
                            const char*          workingDirectory,
                            const char*          projectFileName,
                            void __stdcall logCallback(const char*),
