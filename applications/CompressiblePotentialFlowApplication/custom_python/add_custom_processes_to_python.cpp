@@ -18,7 +18,6 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/kutta_condition_process.h"
 #include "custom_processes/move_model_part_process.h"
 #include "custom_processes/define_2d_wake_process.h"
 #include "custom_processes/define_3d_wake_process.h"
@@ -34,11 +33,6 @@ namespace Python {
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 	namespace py = pybind11;
-
-    py::class_<KuttaConditionProcess, KuttaConditionProcess::Pointer, Process >
-        (m, "KuttaConditionProcess")
-        .def(py::init<ModelPart&>())
-        ;
 
     py::class_<MoveModelPartProcess, MoveModelPartProcess::Pointer, Process >
         (m, "MoveModelPartProcess")
