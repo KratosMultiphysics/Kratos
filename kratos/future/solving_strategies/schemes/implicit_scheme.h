@@ -253,10 +253,7 @@ public:
 
     /**
      * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
     //TODO: Think on the arguments of this one (I'd pass all in order to provide maximum flexibility in derived classes)
     virtual void FinalizeSolutionStep(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
@@ -270,11 +267,7 @@ public:
     }
 
     /**
-     * @brief unction to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
-     * @note Take care: the elemental function with the same name is NOT called here.
-     * @warning Must be defined in derived classes
-     * @details The function is called in the builder for memory efficiency
-     * @param rModelPart The model part of the problem to solve
+     * @brief Function to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
     virtual void InitializeNonLinIteration(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
@@ -289,7 +282,6 @@ public:
 
     /**
      * @brief Function to be called when it is needed to finalize an iteration. It is designed to be called at the end of each non linear iteration
-     * @param rModelPart The model part of the problem to solve
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
     virtual void FinalizeNonLinIteration(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
@@ -1104,10 +1096,7 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-    virtual void Update(
-        DofsArrayType& rDofSet,
-        DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    virtual void Update(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Update\' method. Call derived class one." << std::endl;
     }
@@ -1119,6 +1108,7 @@ public:
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      */
+    //FIXME: Check if we need this after including the loose in the dofset
     void UpdateConstraintsLooseDofs(
         const TSystemVectorType& rEffectiveDx,
         DofsArrayType& rDofSet,
