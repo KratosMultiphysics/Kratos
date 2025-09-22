@@ -1104,10 +1104,7 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-    virtual void Update(
-        DofsArrayType& rDofSet,
-        DofsArrayType& rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    virtual void Update(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Update\' method. Call derived class one." << std::endl;
     }
@@ -1119,6 +1116,7 @@ public:
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      */
+    //FIXME: Check if we need this after including the loose in the dofset
     void UpdateConstraintsLooseDofs(
         const TSystemVectorType& rEffectiveDx,
         DofsArrayType& rDofSet,

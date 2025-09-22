@@ -35,7 +35,7 @@ namespace py = pybind11;
 
 void AddStrategiesToPython(py::module& m)
 {
-    using ImplicitBuilder = Future::Builder<Future::ImplicitThreadLocalStorage<>, CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using ImplicitBuilder = Future::Builder<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
     py::class_<ImplicitBuilder, typename ImplicitBuilder::Pointer>(m, "ImplicitBuilder")
         .def(py::init<ModelPart &, Parameters>())
         // .def("Execute",&Future::Process::Execute)

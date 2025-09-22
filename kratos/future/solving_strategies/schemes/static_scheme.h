@@ -215,25 +215,24 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Update(
-        DofsArrayType &rDofSet,
-        DofsArrayType &rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
+    void Update(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
     {
         KRATOS_TRY
 
         // Get linear system arrays
         auto& r_dx = *(rLinearSystemContainer.pDx);
         auto& r_eff_dx = *(rLinearSystemContainer.pEffectiveDx);
+        auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
+        auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
 
         // First update the constraints loose DOFs with the effective solution vector
-        this->UpdateConstraintsLooseDofs(r_eff_dx, rDofSet, rEffectiveDofSet);
+        this->UpdateConstraintsLooseDofs(r_eff_dx, r_dof_set, r_eff_dof_set);
 
         // Get the solution update vector from the effective one
         this->CalculateUpdateVector(rLinearSystemContainer);
 
         // Update DOFs with solution values (note that we solve for the increments)
-        block_for_each(rDofSet, [&r_dx](DofType& rDof){
+        block_for_each(r_dof_set, [&r_dx](DofType& rDof){
             if (rDof.IsFree()) {
                 rDof.GetSolutionStepValue() += r_dx[rDof.EquationId()];
             }
