@@ -1310,26 +1310,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
     // Act
     serializer.save("test_tag"s, p_element);
     auto p_loaded_element = make_intrusive<PwElement<2, 3>>();
-    // the following Add actions are needed to load the saved element
-    KratosComponents<VariableData>::Add("WATER_PRESSURE", WATER_PRESSURE);
-    KratosComponents<VariableData>::Add("DT_WATER_PRESSURE", DT_WATER_PRESSURE);
-    KratosComponents<VariableData>::Add("VOLUME_ACCELERATION", VOLUME_ACCELERATION);
-    KratosComponents<VariableData>::Add("HYDRAULIC_DISCHARGE", HYDRAULIC_DISCHARGE);
-    KratosComponents<VariableData>::Add("DENSITY_WATER", DENSITY_WATER);
-    KratosComponents<VariableData>::Add("DYNAMIC_VISCOSITY", DYNAMIC_VISCOSITY);
-    KratosComponents<VariableData>::Add("PERMEABILITY_XX", PERMEABILITY_XX);
-    KratosComponents<VariableData>::Add("PERMEABILITY_YY", PERMEABILITY_YY);
-    KratosComponents<VariableData>::Add("PERMEABILITY_XY", PERMEABILITY_XY);
-    KratosComponents<VariableData>::Add("PERMEABILITY_ZZ", PERMEABILITY_ZZ);
-    KratosComponents<VariableData>::Add("PERMEABILITY_YZ", PERMEABILITY_YZ);
-    KratosComponents<VariableData>::Add("PERMEABILITY_ZX", PERMEABILITY_ZX);
-    KratosComponents<VariableData>::Add("BIOT_COEFFICIENT", BIOT_COEFFICIENT);
-    KratosComponents<VariableData>::Add("BULK_MODULUS_FLUID", BULK_MODULUS_FLUID);
-    KratosComponents<VariableData>::Add("BULK_MODULUS_SOLID", BULK_MODULUS_SOLID);
-    KratosComponents<VariableData>::Add("POROSITY", POROSITY);
-    KratosComponents<VariableData>::Add("IGNORE_UNDRAINED", IGNORE_UNDRAINED);
-    KratosComponents<VariableData>::Add("RETENTION_LAW", RETENTION_LAW);
-
     serializer.load("test_tag"s, p_loaded_element);
 
     // Assert
