@@ -46,56 +46,27 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
     int ierr = Element::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
+    const auto element_Id = this->Id();
+    if (element_Id < 1)
+        KRATOS_ERROR << "Element found with Id 0 or negative, element: " << element_Id << std::endl;
+
     const PropertiesType& r_properties = this->GetProperties();
     const GeometryType&   r_geometry   = this->GetGeometry();
-
-    if (this->Id() < 1)
-        KRATOS_ERROR << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
-
     CheckUtilities::CheckHasNodalSolutionStepData(
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-    // Verify specific properties
-    if (!r_properties.Has(MINIMUM_JOINT_WIDTH) || r_properties[MINIMUM_JOINT_WIDTH] <= 0.0)
-        KRATOS_ERROR << "MINIMUM_JOINT_WIDTH has Key zero, is not defined or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
+    const CheckProperties check_properties(r_properties, "property at element", element_Id,
+                                           CheckProperties::Bounds::AllExclusive);
+    check_properties.Check(MINIMUM_JOINT_WIDTH);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive).Check(TRANSVERSAL_PERMEABILITY);
+    check_properties.Check(DYNAMIC_VISCOSITY);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive).Check(DENSITY_WATER);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
 
-    if (!r_properties.Has(TRANSVERSAL_PERMEABILITY) || r_properties[TRANSVERSAL_PERMEABILITY] < 0.0)
-        KRATOS_ERROR << "TRANSVERSAL_PERMEABILITY has Key zero, is not defined "
-                        "or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] <= 0.0)
-        KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero, is not defined or has "
-                        "an invalid value at element"
-                     << this->Id() << std::endl;
-
-    // Verify properties
-    if (!r_properties.Has(DENSITY_WATER) || r_properties[DENSITY_WATER] < 0.0)
-        KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(POROSITY) || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY does not exist in the material properties or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    // Verify the constitutive law
-    if (!r_properties.Has(CONSTITUTIVE_LAW))
-        KRATOS_ERROR << "CONSTITUTIVE_LAW has Key zero or is not defined at "
-                        "element "
-                     << this->Id() << std::endl;
-
-    if (r_properties[CONSTITUTIVE_LAW] != NULL) {
-        // Check constitutive law
-        ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
-    } else
-        KRATOS_ERROR << "A constitutive law needs to be specified for the "
-                        "element "
-                     << this->Id() << std::endl;
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
+    ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
 
     return ierr;
 

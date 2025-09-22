@@ -34,11 +34,23 @@ ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel);
 ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel,
                                                  const Geo::ConstVariableRefs& rNodalVariables = {});
 
+ModelPart& CreateModelPartWithASingle3D8NElement(Model& rModel,
+                                                 const Geo::ConstVariableRefs& rNodalVariables = {});
+
+ModelPart& CreateModelPartWithASingle3D20NElement(Model& rModel,
+                                                  const Geo::ConstVariableRefs& rNodalVariables = {});
+
+ModelPart& CreateModelPartWithASingle2D2NElement(Model& rModel,
+                                                 const Geo::ConstVariableRefs& rNodalVariables = {});
+
 ModelPart& CreateModelPartWithASingle2D10NElement(Model& rModel,
                                                   const Geo::ConstVariableRefs& rNodalVariables = {});
 
 ModelPart& CreateModelPartWithASingle2D15NElement(Model& rModel,
                                                   const Geo::ConstVariableRefs& rNodalVariables = {});
+
+ModelPart& CreateModelPartWithASingle3D6NInterfaceElement(Model& rModel,
+                                                          const Geo::ConstVariableRefs& rNodalVariables = {});
 
 ModelPart&          CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel);
 ModelPart&          CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel);
