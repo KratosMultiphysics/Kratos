@@ -1282,7 +1282,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystemWithPre
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     Model model;
@@ -1303,9 +1303,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
     Matrix actual_left_hand_side;
     p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
-    const auto triangle_2D3N       = static_cast<Triangle2D3<Node>>(p_element->GetGeometry());
     const auto scoped_registration = ScopedSerializerRegistration{
-        std::make_pair(std::string{p_element->GetGeometry().Name()}, triangle_2D3N),
         std::make_pair("SaturatedLaw"s, SaturatedLaw())};
     auto serializer = StreamSerializer{};
 
