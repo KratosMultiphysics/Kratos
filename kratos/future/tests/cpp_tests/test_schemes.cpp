@@ -27,7 +27,6 @@
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
-#include "future/solving_strategies/strategies/linear_strategy.h"
 #include "test_utilities/solving_strategies_test_utilities.h"
 #endif
 
@@ -53,17 +52,12 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
     using SchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
     auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
-    // Create the DOF set and set the global ids
-    // Note that in a standard case this happens at the strategy level
-    auto p_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
-    auto p_eff_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
-
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
     Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(p_dof_set, p_eff_dof_set, linear_system_container);
+    p_scheme->InitializeSolutionStep(linear_system_container);
 
     // Call the build
     auto p_lhs = linear_system_container.pLhs;
@@ -97,8 +91,8 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     // Set up the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-    const std::size_t num_elems_x = 2500;
-    const std::size_t num_elems_y = 2500;
+    const std::size_t num_elems_x = 25;
+    const std::size_t num_elems_y = 25;
     const double elem_size_x = 1.0;
     const double elem_size_y = 1.0;
 
@@ -117,17 +111,12 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     using SchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
     auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
-    // Create the DOF set and set the global ids
-    // Note that in a standard case this happens at the strategy level
-    auto p_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
-    auto p_eff_dof_set = Kratos::make_shared<ModelPart::DofsArrayType>();
-
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
     Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(p_dof_set, p_eff_dof_set, linear_system_container);
+    p_scheme->InitializeSolutionStep(linear_system_container);
 
     // Call the build
     auto p_lhs = linear_system_container.pLhs;
@@ -140,7 +129,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
         p_scheme->Build(*p_lhs, *p_rhs);
     std::cout << "Build time: " << timer_build << std::endl;
 
-
     p_lhs->SetValue(0.0);
     p_rhs->SetValue(0.0);
 
@@ -148,9 +136,10 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
 
     BuiltinTimer timer_build_safe;
     for(unsigned int i=0; i<20; ++i)
-    p_scheme->BuildWithSafeAssemble(*p_lhs, *p_rhs);
+        p_scheme->BuildWithSafeAssemble(*p_lhs, *p_rhs);
     std::cout << "Build w/ safe assemble time: " << timer_build_safe << std::endl;
 
+#ifdef KRATOS_USE_TBB
     p_lhs->SetValue(0.0);
     p_rhs->SetValue(0.0);
 
@@ -158,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
 
     BuiltinTimer timer_build_thread_local;
     for(unsigned int i=0; i<20; ++i)
-    p_scheme->BuildWithThreadLocal(*p_lhs, *p_rhs);
+        p_scheme->BuildWithThreadLocal(*p_lhs, *p_rhs);
     std::cout << "Build w/ thread local: " << timer_build_thread_local << std::endl;
 
     p_lhs->SetValue(0.0);
@@ -168,8 +157,9 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
 
     BuiltinTimer timer_build_local_allocation;
     for(unsigned int i=0; i<20; ++i)
-        p_scheme->BuildWithLocalAllocation(*p_lhs, *p_rhs);
+    p_scheme->BuildWithLocalAllocation(*p_lhs, *p_rhs);
     std::cout << "Build w/ local allocation: " << timer_build_local_allocation << std::endl;
+#endif
 
     // // Check resultant matrices
     // const double tol = 1.0e-12;

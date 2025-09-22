@@ -1,6 +1,6 @@
 import sys
 import os
-
+import json
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
@@ -29,6 +29,28 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
         bottom_node_ids = [5, 7, 9]
         self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
+
+    def test_triangle_3n_static_scheme(self):
+        test_name = 'test_triangle_3n_static'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        simulation = test_helper.run_kratos(file_path)
+
+        output_data = self.fetchOutputFromFile(os.path.join(file_path, f"{test_name}.post.res"))
+        top_node_nbrs = [0, 1, 5]
+        n_dim = 2
+        self.assert_linear_elastic_block(simulation, output_data, top_node_nbrs, n_dim)
+
+        bottom_node_ids = [5, 7, 9]
+        self.assertVerticalStressAtBottomNodes(output_data, bottom_node_ids)
+
+        with open(os.path.join(file_path,f"{test_name}_json_output.json")) as f:
+            calculated_results = json.load(f)
+
+        calculated_velocity_y = calculated_results["NODE_1"]["VELOCITY_Y"]
+        calculated_acceleration_y = calculated_results["NODE_1"]["ACCELERATION_Y"]
+
+        self.assertVectorAlmostEqual(calculated_velocity_y,[0,0,0,0])
+        self.assertVectorAlmostEqual(calculated_acceleration_y, [0, 0, 0,0])
 
     def test_triangle_3n_rebuild_level_0(self):
         test_name = 'test_triangle_3n_rebuild_0'
@@ -226,8 +248,9 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def assertVerticalStressAtBottomNodes(self, output_data, bottom_node_ids):
         end_time = 1.0
-        nodal_stress_tensors = test_helper.GiDOutputFileReader.nodal_values_at_time("NODAL_CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
+        nodal_stress_tensors = test_helper.GiDOutputFileReader.nodal_values_at_time("CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
         expected_stress_yy = -1e4
+        self.assertEqual(len(bottom_node_ids), len(nodal_stress_tensors))
         for stress_tensor in nodal_stress_tensors:
             self.assertAlmostEqual(stress_tensor[1], expected_stress_yy)
 

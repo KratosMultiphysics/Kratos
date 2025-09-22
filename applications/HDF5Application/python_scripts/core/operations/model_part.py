@@ -10,6 +10,7 @@ import KratosMultiphysics
 # --- HDF5 Imports ---
 import KratosMultiphysics.HDF5Application as KratosHDF5
 from ..utils import ParametersWrapper
+from ..utils import EvaluatePattern
 from ..file_io import OpenHDF5File
 
 # --- STD Imports ---
@@ -17,23 +18,6 @@ from importlib import import_module
 import sys
 import typing
 #import abc
-
-
-def Prefix(pattern, model_part, time_format=''):
-    if hasattr(model_part, 'ProcessInfo'):
-        time = model_part.ProcessInfo[KratosMultiphysics.TIME]
-        prefix = format(time, time_format).join(pattern.split('<time>'))
-        if KratosMultiphysics.STEP in model_part.ProcessInfo:
-            prefix = prefix.replace('<step>', str(model_part.ProcessInfo[KratosMultiphysics.STEP]))
-        else:
-            # to be removed once analysis stage sets the STEP variable.
-            prefix = prefix.replace('<step>', "0")
-    else:
-        prefix = pattern
-    if hasattr(model_part, 'Name'):
-        prefix = prefix.replace('<model_part_name>', model_part.Name)
-    return prefix
-
 
 class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysics.Operation, metaclass = abc.ABCMeta) # <== conflicting metaclasses
     """ @brief Base class for HDF5 IO operations."""
@@ -45,12 +29,16 @@ class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysic
         super().__init__()
         self.__model_part = model_part
         self.__file = file
-        self.__time_format = parameters["time_format"].GetString()
+        self.__parameters = parameters
 
-        # Pick necessary entries from the input parameters
-        # (assuming they're all present)
-        self.__parameters = KratosMultiphysics.Parameters()
-        self.__parameters.AddString("prefix", Prefix(parameters["prefix"].GetString(), self.model_part, self.time_format))
+        self.__parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
+        self.__time_format = ""
+        if self.__parameters.Has("time_format"):
+            self.__time_format = self.__parameters["time_format"].GetString()
+
+        if not self.__parameters.Has("prefix"):
+            raise RuntimeError(f"The parameters does not have prefix. Parameters: {self.__parameters}")
 
     #@abc.abstractmethod # <== missing the ABCMeta metaclass
     def Execute(self) -> None:
@@ -59,11 +47,7 @@ class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysic
     #@abc.abstractclassmethod # <== missing the ABCMeta metaclass
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
-        return KratosMultiphysics.Parameters("""{
-            "operation_type" : "",
-            "prefix" : "/",
-            "time_format" : "0.4f"
-        }""")
+        raise NotImplementedError("Call to a pure abstract method")
 
     @property
     def model_part(self) -> KratosMultiphysics.ModelPart:
@@ -71,62 +55,64 @@ class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysic
 
     @property
     def parameters(self) -> KratosMultiphysics.Parameters:
-        return self.__parameters
+        current_parameters = self.__parameters.Clone()
+        current_parameters["prefix"].SetString(self.prefix)
+        return current_parameters
 
     @property
     def file(self) -> KratosHDF5.HDF5File:
         return self.__file
 
     @property
-    def time_format(self) -> str:
-        return self.__time_format
+    def prefix(self) -> str:
+        prefix = self.__parameters["prefix"].GetString()
+        evaluated_prefix = EvaluatePattern(prefix, self.model_part, self.time_format)
+        return evaluated_prefix
 
     @property
-    def prefix(self) -> str:
-        return Prefix(self.parameters["prefix"].GetString(),
-                      self.model_part,
-                      self.time_format)
-
+    def time_format(self) -> str:
+        return self.__time_format
 
 class ModelPartIOOperation(IOOperation):
     """ @brief Base class for HDF5 IO operations on @ref ModelPart s."""
 
     @classmethod
-    def GetDefaultParameters(cls: "typing.Type[ModelPartIOOperation]") -> KratosMultiphysics.Parameters:
-        parameters = super().GetDefaultParameters()
-        parameters["prefix"].SetString("/ModelData")
-        return parameters
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        return KratosMultiphysics.Parameters("""{
+            "prefix"        : "/ModelData",
+            "time_format"   : "0.4f",
+            "operation_type": ""
+        }""")
 
 
 class ModelPartInput(ModelPartIOOperation):
     '''Reads a @ref ModelPart from a file.'''
 
     def Execute(self) -> None:
-        KratosHDF5.HDF5ModelPartIO(self.file, self.prefix).ReadModelPart(self.model_part)
+        KratosHDF5.HDF5ModelPartIO(self.parameters, self.file).ReadModelPart(self.model_part)
 
 
 class ModelPartOutput(ModelPartIOOperation):
     '''Writes a @ref ModelPart to a file.'''
 
     def Execute(self) -> None:
-        KratosHDF5.HDF5ModelPartIO(self.file, self.prefix).WriteModelPart(self.model_part)
+        KratosHDF5.HDF5ModelPartIO(self.parameters, self.file).WriteModelPart(self.model_part)
 
 
 class PartitionedModelPartOutput(ModelPartIOOperation):
     '''Writes a partitioned model part to a file.'''
 
     def Execute(self) -> None:
-        KratosHDF5.HDF5PartitionedModelPartIO(self.file, self.prefix).WriteModelPart(self.model_part)
+        KratosHDF5.HDF5PartitionedModelPartIO(self.parameters, self.file).WriteModelPart(self.model_part)
 
 
 class ProcessInfoIOOperation(IOOperation):
-
     @classmethod
-    def GetDefaultParameters(cls: "typing.Type[ProcessInfoIOOperation]") -> KratosMultiphysics.Parameters:
-        parameters = super().GetDefaultParameters()
-        parameters["prefix"].SetString("/ProcessInfo")
-        return parameters
-
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        return KratosMultiphysics.Parameters("""{
+            "prefix"     : "/ProcessInfo",
+            "time_format": "0.4f"
+        }""")
 
 class ProcessInfoOutput(ProcessInfoIOOperation):
     '''Writes a @ref ProcessInfo to a file.'''
@@ -141,223 +127,122 @@ class ProcessInfoInput(ProcessInfoIOOperation):
     def Execute(self) -> None:
         KratosHDF5.ReadDataValueContainer(self.file, self.prefix, self.model_part.ProcessInfo)
 
+class VariableOutputOperation(IOOperation):
+    def _MakeIO(self) -> typing.Any:
+        class_name = self.__class__.__name__
+        if class_name.endswith("Output"):
+            # This maps the output classes to their corresponding IO classes
+            # Eg. ElementDataValueOutput is mapped to ElementDataValueIO
+            class_type_name = f"HDF5{class_name[:-6]}IO"
+            if hasattr(KratosHDF5, class_type_name):
+                return getattr(KratosHDF5, class_type_name)(self.parameters, self.file)
+            else:
+                raise RuntimeError(f"The {class_type_name} not found in HDF5Application.")
+        else:
+            raise RuntimeError(f"Unsupported operation type {class_name}")
 
-class VariableIOOperation(IOOperation):
-    '''Generates json settings for variable data IO.'''
+    def Execute(self) -> None:
+        self._MakeIO().Write(self.model_part, self.parameters["custom_attributes"])
 
-    def __init__(self,
-                 model_part: KratosMultiphysics.ModelPart,
-                 parameters: KratosMultiphysics.Parameters,
-                 file: KratosHDF5.HDF5File):
-        super().__init__(model_part, parameters, file)
-        self.parameters.AddValue("list_of_variables", parameters["list_of_variables"])
-
+    '''Generates json settings for variable data output.'''
     @classmethod
-    def GetDefaultParameters(cls: "typing.Type[VariableIOOperation]") -> KratosMultiphysics.Parameters:
-        parameters = super().GetDefaultParameters()
-        parameters["prefix"].SetString("/ResultsData")
-        parameters.AddEmptyArray("list_of_variables")
-        return parameters
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        return KratosMultiphysics.Parameters("""{
+            "prefix"           : "/ResultsData",
+            "list_of_variables": [],
+            "custom_attributes": {},
+            "time_format"      : "0.4f",
+            "operation_type"   : ""
+        }""")
 
-
-class ElementDataValueOutput(VariableIOOperation):
-    '''Writes non-historical element data values to a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5ElementDataValueIO(
-            self.parameters,
-            self.file).WriteElementResults(self.model_part.Elements)
-
-
-class ElementDataValueInput(VariableIOOperation):
-    '''Reads non-historical element data values from a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5ElementDataValueIO(
-            self.parameters,
-            self.file).ReadElementResults(self.model_part.Elements,
-                                          self.model_part.GetCommunicator())
-
-
-class ElementFlagValueOutput(VariableIOOperation):
-    '''Writes non-historical element flag values to a file.'''
+class VariableInputOperation(IOOperation):
+    def _MakeIO(self) -> typing.Any:
+        class_name = self.__class__.__name__
+        if class_name.endswith("Input"):
+            class_type_name = f"HDF5{class_name[:-5]}IO"
+            # This maps the input classes to their corresponding IO classes
+            # Eg. ElementDataValueInput is mapped to ElementDataValueIO
+            if hasattr(KratosHDF5, class_type_name):
+                return getattr(KratosHDF5, class_type_name)(self.parameters, self.file)
+            else:
+                raise RuntimeError(f"The {class_type_name} not found in HDF5Application.")
+        else:
+            raise RuntimeError(f"Unsupported operation type {class_name}")
 
     def Execute(self) -> None:
-        KratosHDF5.HDF5ElementFlagValueIO(
-            self.parameters,
-            self.file).WriteElementFlags(self.model_part.Elements)
+        self._attributes = self._MakeIO().Read(self.model_part)
+
+    '''Generates json settings for variable data output.'''
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        return KratosMultiphysics.Parameters("""{
+            "prefix"           : "/ResultsData",
+            "list_of_variables": [],
+            "time_format"      : "0.4f",
+            "operation_type"   : ""
+        }""")
+
+    @property
+    def attributes(self) -> 'dict[str, KratosMultiphysics.Parameters]':
+        if hasattr("_attributes", self):
+            return self._attributes
+        else:
+            raise RuntimeError("Please run Execute method before retireving attributes.")
 
 
-class ElementFlagValueInput(VariableIOOperation):
-    '''Reads non-historical element flag values from a file.'''
+class ElementDataValueOutput(VariableOutputOperation): pass
+class ElementDataValueInput(VariableInputOperation): pass
+class ElementFlagValueOutput(VariableOutputOperation): pass
+class ElementFlagValueInput(VariableInputOperation): pass
+class ElementGaussPointOutput(VariableOutputOperation): pass
+class ConditionDataValueOutput(VariableOutputOperation): pass
+class ConditionDataValueInput(VariableInputOperation): pass
+class ConditionFlagValueOutput(VariableOutputOperation): pass
+class ConditionFlagValueInput(VariableInputOperation): pass
+class ConditionGaussPointOutput(VariableOutputOperation): pass
+class NodalSolutionStepDataOutput(VariableOutputOperation): pass
+class NodalSolutionStepDataInput(VariableInputOperation): pass
+class NodalDataValueOutput(VariableOutputOperation): pass
+class NodalDataValueInput(VariableInputOperation): pass
+class NodalFlagValueOutput(VariableOutputOperation): pass
+class NodalFlagValueInput(VariableInputOperation): pass
 
-    def Execute(self) -> None:
-        KratosHDF5.HDF5ElementFlagValueIO(
-            self.parameters,
-            self.file).ReadElementFlags(self.model_part.Elements,
-                                        self.model_part.GetCommunicator())
-
-
-class ElementGaussPointOutput(VariableIOOperation):
-    '''Write element integration point values to a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5ElementGaussPointIO(
-            self.parameters,
-            self.file).WriteElementGaussPointValues(self.model_part.Elements,
-                                                    self.model_part.GetCommunicator().GetDataCommunicator(),
-                                                    self.model_part.ProcessInfo)
-
-
-class ConditionDataValueOutput(VariableIOOperation):
-    '''Writes non-historical element data values to a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5ConditionDataValueIO(
-            self.parameters,
-            self.file).WriteConditionResults(self.model_part.Conditions)
-
-
-class ConditionDataValueInput(VariableIOOperation):
-    '''Reads non-historical element data values from a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5ConditionDataValueIO(
-            self.parameters,
-            self.file).ReadConditionResults(self.model_part.Conditions,
-                                            self.model_part.GetCommunicator())
-
-
-class ConditionFlagValueOutput(VariableIOOperation):
-    '''Writes non-historical element flag values to a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5ConditionFlagValueIO(
-            self.parameters,
-            self.file).WriteConditionFlags(self.model_part.Conditions)
-
-
-class ConditionFlagValueInput(VariableIOOperation):
-    '''Reads non-historical element flag values from a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5ConditionFlagValueIO(
-            self.parameters,
-            self.file).ReadConditionFlags(self.model_part.Conditions,
-                                          self.model_part.GetCommunicator())
-
-
-class ConditionGaussPointOutput(VariableIOOperation):
-    '''Write condition integration point values to a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5ConditionGaussPointIO(
-            self.parameters,
-            self.file).WriteConditionGaussPointValues(self.model_part.Conditions,
-                                                      self.model_part.GetCommunicator().GetDataCommunicator(),
-                                                      self.model_part.ProcessInfo)
-
-
-class NodalSolutionStepDataOutput(VariableIOOperation):
-    '''Writes nodal solution step data to a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5NodalSolutionStepDataIO(
-            self.parameters,
-            self.file).WriteNodalResults(self.model_part, 0)
-
-
-class NodalSolutionStepDataInput(VariableIOOperation):
-    '''Reads nodal solution step data from a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5NodalSolutionStepDataIO(
-            self.parameters,
-            self.file).ReadNodalResults(self.model_part, 0)
-
-
-class NodalDataValueOutput(VariableIOOperation):
-    '''Writes non-historical nodal data values to a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5NodalDataValueIO(
-            self.parameters,
-            self.file).WriteNodalResults(self.model_part.Nodes)
-
-
-class NodalDataValueInput(VariableIOOperation):
-    '''Reads non-historical nodal data values from a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5NodalDataValueIO(
-            self.parameters,
-            self.file).ReadNodalResults(self.model_part.Nodes,
-                                        self.model_part.GetCommunicator())
-
-
-class NodalFlagValueOutput(VariableIOOperation):
-    '''Writes non-historical nodal flag values to a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5NodalFlagValueIO(
-            self.parameters,
-            self.file).WriteNodalFlags(self.model_part.Nodes)
-
-
-class NodalFlagValueInput(VariableIOOperation):
-    '''Reads non-historical nodal flag values from a file.'''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5NodalFlagValueIO(
-            self.parameters,
-            self.file).ReadNodalFlags(self.model_part.Nodes,
-                                      self.model_part.GetCommunicator())
-
-
-class PrimalBossakOutput(VariableIOOperation):
-    '''Writes nodal solution step data to a file for Bossak time schemes.
-
-    Behaves the same as NodalSolutionStepDataOutput except for ACCELERATION,
-    which is computed as
-    (1 - alpha_bossak) * node.GetSolutionStepValue(ACCELERATION, 0) +
-          alpha_bossak * node.GetSolutionStepValue(ACCELERATION, 1)
-    and written to the file for the current time step. This is used by the
-    transient adjoint solvers.
-    '''
-
+class PrimalBossakOutput(VariableOutputOperation):
     def __init__(self,
                  model_part: KratosMultiphysics.ModelPart,
                  parameters: KratosMultiphysics.Parameters,
                  file: KratosHDF5.HDF5File):
-        self.__alpha_bossak = parameters["alpha_bossak"].GetDouble()
         super().__init__(model_part, parameters, file)
+        self.__alpha_bossak = parameters["alpha_bossak"].GetDouble()
+
+    def _MakeIO(self) -> typing.Any:
+        io = KratosHDF5.HDF5NodalSolutionStepBossakIO(self.parameters, self.file)
+        io.SetAlphaBossak(self.__alpha_bossak)
+        return io
 
     @property
     def alpha_bossak(self) -> float:
         return self.__alpha_bossak
 
-    def Execute(self) -> None:
-        primal_io = KratosHDF5.HDF5NodalSolutionStepBossakIO(self.parameters, self.file)
-        primal_io.SetAlphaBossak(self.__alpha_bossak)
-        primal_io.WriteNodalResults(self.model_part)
-
     @classmethod
     def GetDefaultParameters(cls: "typing.Type[PrimalBossakOutput]") -> KratosMultiphysics.Parameters:
-        parameters = super().GetDefaultParameters()
-        parameters.AddDouble("alpha_bossak", -0.3)
-        return parameters
+        return KratosMultiphysics.Parameters("""{
+            "prefix"           : "/ResultsData",
+            "list_of_variables": [],
+            "custom_attributes": {},
+            "time_format"      : "0.4f",
+            "alpha_bossak"     : -0.3,
+            "operation_type"   : ""
+        }""")
 
 
-class PrimalBossakInput(VariableIOOperation):
+class PrimalBossakInput(VariableInputOperation):
     '''Reads nodal solution step data from a file.
 
     This is used by the transient adjoint solvers.
     '''
-
-    def Execute(self) -> None:
-        KratosHDF5.HDF5NodalSolutionStepBossakIO(
-            self.parameters,
-            self.file).ReadNodalResults(self.model_part)
+    def _MakeIO(self) -> typing.Any:
+        return KratosHDF5.HDF5NodalSolutionStepBossakIO(self.parameters, self.file)
 
 
 class MoveMesh(ModelPartIOOperation):

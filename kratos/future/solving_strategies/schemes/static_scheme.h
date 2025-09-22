@@ -31,7 +31,6 @@
 #include "utilities/timer.h"
 
 #ifdef KRATOS_USE_FUTURE
-#include "future/linear_solvers/amgcl_solver.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/builders/builder.h"
 #endif
@@ -172,62 +171,14 @@ public:
         return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(*this) ;
     }
 
-    void InitializeSolutionStep(
-        DofsArrayType::Pointer pDofSet,
-        DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer,
-        const bool ReformDofSets = true) override
+    void Predict(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
     {
         KRATOS_TRY
 
-        // Check if the InitializeSolutionStep has been already performed
-        if (!this->GetSchemeSolutionStepIsInitialized()) {
-            // Set up the system
-            if (!(this->GetDofSetIsInitialized()) || ReformDofSets) {
-                // Setting up the DOFs list
-                BuiltinTimer setup_dofs_time;
-                DofArrayUtilities::SlaveToMasterDofsMap slaves_to_master_dofs_map;
-                auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(pDofSet, pEffectiveDofSet, slaves_to_master_dofs_map);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
-
-                // Set up the equation ids
-                BuiltinTimer setup_system_ids_time;
-                this->SetUpSystemIds(pDofSet, pEffectiveDofSet);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Set up system time: " << setup_system_ids_time << std::endl;
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Equation system size: " << eq_system_size << std::endl;
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Effective equation system size: " << eff_eq_system_size << std::endl;
-
-                // Allocating the system constraints arrays
-                BuiltinTimer constraints_allocation_time;
-                this->AllocateLinearSystemConstraints(pDofSet, pEffectiveDofSet, slaves_to_master_dofs_map, rLinearSystemContainer);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
-
-                // Allocating the system vectors to their correct sizes
-                BuiltinTimer linear_system_allocation_time;
-                this->AllocateLinearSystemArrays(pDofSet, pEffectiveDofSet, rLinearSystemContainer);
-                KRATOS_INFO_IF("StaticScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
-            }
-
-            // Initializes solution step for all of the elements, conditions and constraints
-            EntitiesUtilities::InitializeSolutionStepAllEntities(this->GetModelPart());
-
-            // Set the flag to avoid calling this twice
-            this->SetSchemeSolutionStepIsInitialized(true); // TODO: Discuss with the KTC if these should remain or not
+        // If needed, reset the DOF sets before applying the constraints and the prediction
+        if (this->GetReformDofsAtEachStep()) {
+            this->InitializeLinearSystem(rLinearSystemContainer);
         }
-
-        KRATOS_CATCH("")
-    }
-
-    void Predict(
-        DofsArrayType::Pointer pDofSet,
-        DofsArrayType::Pointer pEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
-    {
-        KRATOS_TRY
-
-        // Internal solution loop check to avoid repetitions
-        KRATOS_ERROR_IF_NOT(this->GetSchemeIsInitialized()) << "Initialize needs to be performed. Call Initialize() once before the solution loop." << std::endl;
-        KRATOS_ERROR_IF_NOT(this->GetSchemeSolutionStepIsInitialized()) << "InitializeSolutionStep needs to be performed. Call InitializeSolutionStep() before Predict()." << std::endl;
 
         // Applying constraints if needed
         const auto& r_model_part = this->GetModelPart();
@@ -241,15 +192,17 @@ public:
             // Note that the constraints constant vector is applied only once in here as we then solve for the solution increment
             auto p_constraints_T = rLinearSystemContainer.pConstraintsT;
             auto p_constraints_Q = rLinearSystemContainer.pConstraintsQ;
-            this->BuildMasterSlaveConstraints(*pDofSet, *pEffectiveDofSet, rLinearSystemContainer);
+            this->BuildMasterSlaveConstraints(rLinearSystemContainer);
 
             // Fill the current values vector considering the master-slave constraints
             // Note that this already accounts for the Dirichlet BCs affecting the effective DOF set
-            TSystemVectorType x(pDofSet->size());
-            (this->GetBuilder()).CalculateSolutionVector(*pEffectiveDofSet, *p_constraints_T, *p_constraints_Q, x);
+            auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
+            auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
+            TSystemVectorType x(r_dof_set.size());
+            (this->GetBuilder()).CalculateSolutionVector(r_eff_dof_set, *p_constraints_T, *p_constraints_Q, x);
 
             // Update DOFs with solution values
-            block_for_each(*pDofSet, [&x](DofType& rDof){
+            block_for_each(r_dof_set, [&x](DofType& rDof){
                 rDof.GetSolutionStepValue() = x[rDof.EquationId()];
             });
 
@@ -262,25 +215,24 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Update(
-        DofsArrayType &rDofSet,
-        DofsArrayType &rEffectiveDofSet,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
+    void Update(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
     {
         KRATOS_TRY
 
         // Get linear system arrays
         auto& r_dx = *(rLinearSystemContainer.pDx);
         auto& r_eff_dx = *(rLinearSystemContainer.pEffectiveDx);
+        auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
+        auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
 
         // First update the constraints loose DOFs with the effective solution vector
-        this->UpdateConstraintsLooseDofs(r_eff_dx, rDofSet, rEffectiveDofSet);
+        this->UpdateConstraintsLooseDofs(r_eff_dx, r_dof_set, r_eff_dof_set);
 
         // Get the solution update vector from the effective one
         this->CalculateUpdateVector(rLinearSystemContainer);
 
         // Update DOFs with solution values (note that we solve for the increments)
-        block_for_each(rDofSet, [&r_dx](DofType& rDof){
+        block_for_each(r_dof_set, [&r_dx](DofType& rDof){
             if (rDof.IsFree()) {
                 rDof.GetSolutionStepValue() += r_dx[rDof.EquationId()];
             }

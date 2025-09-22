@@ -18,9 +18,6 @@
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "python/add_dofs_to_python.h"
-#include "utilities/dof_utilities/dof_array_utilities.h"
-#include "utilities/dof_utilities/block_build_dof_array_utility.h"
-#include "utilities/dof_utilities/elimination_build_dof_array_utility.h"
 
 namespace Kratos::Python {
 

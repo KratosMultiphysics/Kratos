@@ -189,9 +189,7 @@ protected:
         Matrix UVoigtMatrix;
     };
 
-    void SaveGPStress(Matrix& rStressContainer, const Vector& rStressVector, unsigned int GPoint);
-
-    void ExtrapolateGPValues(const Matrix& rStressContainer);
+    void ExtrapolateGPValues();
 
     void CalculateMaterialStiffnessMatrix(MatrixType&        rStiffnessMatrix,
                                           const ProcessInfo& CurrentProcessInfo) override;
@@ -294,12 +292,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
     }
 
     template <class TValueType>

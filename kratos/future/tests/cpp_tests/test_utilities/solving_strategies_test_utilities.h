@@ -17,8 +17,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/define.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "testing/testing.h"
 
@@ -317,10 +315,6 @@ public:
         for (auto& r_node : rModelPart.Nodes()) {
             r_node.AddDof(DISTANCE);
         }
-
-        for (auto& r_elem : rModelPart.Elements()) {
-            r_elem.Set(ACTIVE, true);
-        }
     }
 
     static void SetUpTestModelPart2D(
@@ -356,10 +350,6 @@ public:
         for (auto& r_node : rModelPart.Nodes()) {
             r_node.AddDof(DISPLACEMENT_X);
             r_node.AddDof(DISPLACEMENT_Y);
-        }
-
-        for (auto& r_elem : rModelPart.Elements()) {
-            r_elem.Set(ACTIVE, true);
         }
     }
 

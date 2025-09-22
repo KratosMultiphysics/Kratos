@@ -183,7 +183,7 @@ public:
         KRATOS_TRY
 
         // Initialize scheme (this has to be done once)
-        pGetScheme()->Initialize();
+        pGetScheme()->Initialize(mLinearSystemContainer);
 
         KRATOS_CATCH("")
     }
@@ -193,7 +193,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mpDofSet, mpEffectiveDofSet, mLinearSystemContainer, mReformDofsAtEachStep);
+        pGetScheme()->InitializeSolutionStep(mLinearSystemContainer);
 
         KRATOS_CATCH("")
     }
@@ -203,7 +203,7 @@ public:
         KRATOS_TRY
 
         // Call the time scheme predict (note that this also updates the mesh if needed)
-        pGetScheme()->Predict(mpDofSet, mpEffectiveDofSet, mLinearSystemContainer);
+        pGetScheme()->Predict(mLinearSystemContainer);
 
         KRATOS_CATCH("")
     }
@@ -262,7 +262,8 @@ public:
         //TODO: this should probably go to the Scheme check (based on previous comment)
         // If reactions are to be calculated, we check if all the dofs have reactions defined
         if (mComputeReactions) {
-            for (auto& r_dof : *mpDofSet) {
+            const auto r_dof_set = this->GetDofSet();
+            for (const auto& r_dof : r_dof_set) {
                 KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
                     << "Reaction variable not set for the following: " << std::endl
                     << "- Node: "<< r_dof.Id() << std::endl
@@ -501,7 +502,7 @@ public:
      */
     DofsArrayType& GetDofSet()
     {
-        return *mpDofSet;
+        return *mLinearSystemContainer.pDofSet;
     }
 
     /**
@@ -509,7 +510,7 @@ public:
      */
     const DofsArrayType& GetDofSet() const
     {
-        return *mpDofSet;
+        return *mLinearSystemContainer.pDofSet;
     }
 
     /**
@@ -517,7 +518,7 @@ public:
      */
     DofsArrayType& GetEffectiveDofSet()
     {
-        return *mpEffectiveDofSet;
+        return *mLinearSystemContainer.pEffectiveDofSet;
     }
 
     /**
@@ -525,7 +526,7 @@ public:
      */
     const DofsArrayType &GetEffectiveDofSet() const
     {
-        return *mpEffectiveDofSet;
+        return *mLinearSystemContainer.mEffectiveDofSet;
     }
 
     ///@}
@@ -703,10 +704,6 @@ private:
     SchemePointerType mpScheme = nullptr; /// The pointer to the scheme
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
-
-    DofsArrayType::Pointer mpDofSet = Kratos::make_shared<DofsArrayType>(); /// The set containing the DOFs of the system
-
-    DofsArrayType::Pointer mpEffectiveDofSet = Kratos::make_shared<DofsArrayType>(); /// The PVS containing the effective DOFs of the system
 
     LinearSystemContainer<TSparseMatrixType, TSystemVectorType> mLinearSystemContainer;
 

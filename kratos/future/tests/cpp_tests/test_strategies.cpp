@@ -72,8 +72,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyEliminationBuild, KratosCoreFastSuite)
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -133,8 +133,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyBlockBuild, KratosCoreFastSuite)
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -175,9 +175,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintEliminationBuild, Krat
     const double weight = 1.0;
     auto& r_master_node = r_test_model_part.GetNode(1);
     auto& r_slave_node = r_test_model_part.GetNode(3);
-    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, r_master_node, DISTANCE, r_slave_node, DISTANCE, weight, jump);
-    p_const_1->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -207,8 +206,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintEliminationBuild, Krat
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -249,9 +248,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintBlockBuild, KratosCore
     const double weight = 1.0;
     auto& r_master_node = r_test_model_part.GetNode(1);
     auto& r_slave_node = r_test_model_part.GetNode(3);
-    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, r_master_node, DISTANCE, r_slave_node, DISTANCE, weight, jump);
-    p_const_1->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -281,8 +279,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintBlockBuild, KratosCore
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -321,9 +319,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintEliminationBuil
     const double weight = 1.0;
     auto& r_master_node = r_test_model_part.GetNode(1);
     auto& r_slave_node = r_test_model_part.GetNode(4);
-    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, r_master_node, DISTANCE, r_slave_node, DISTANCE, weight, jump);
-    p_const_1->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -353,8 +350,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintEliminationBuil
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -394,9 +391,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintBlockBuild, Kra
     const double weight = 1.0;
     auto& r_master_node = r_test_model_part.GetNode(1);
     auto& r_slave_node = r_test_model_part.GetNode(4);
-    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, r_master_node, DISTANCE, r_slave_node, DISTANCE, weight, jump);
-    p_const_1->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -426,8 +422,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintBlockBuild, Kra
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -476,9 +472,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsEliminationBu
     relation_matrix(0,0) = 0.5;
     relation_matrix(0,1) = 0.5;
 
-    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, master_dofs, slave_dofs, relation_matrix, jump_vector);
-    p_const_1->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -508,8 +503,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsEliminationBu
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -558,9 +553,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsBlockBuild, K
     relation_matrix(0,0) = 0.5;
     relation_matrix(0,1) = 0.5;
 
-    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, master_dofs, slave_dofs, relation_matrix, jump_vector);
-    p_const_1->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -590,8 +584,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsBlockBuild, K
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -639,15 +633,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsEliminationBuild, Krat
 
     auto& r_slave_node_a = r_test_model_part.GetNode(1);
     auto& r_master_node_a = r_test_model_part.GetNode(5);
-    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, r_master_node_a, DISTANCE, r_slave_node_a, DISTANCE, weight, jump);
-    p_const_1->Set(ACTIVE, true);
 
     auto& r_slave_node_b = r_test_model_part.GetNode(4);
     auto& r_master_node_b = r_test_model_part.GetNode(6);
-    auto p_const_2 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 2, r_master_node_b, DISTANCE, r_slave_node_b, DISTANCE, weight, jump);
-    p_const_2->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -679,8 +671,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsEliminationBuild, Krat
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -728,15 +720,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsBlockBuild, KratosCore
 
     auto& r_slave_node_a = r_test_model_part.GetNode(1);
     auto& r_master_node_a = r_test_model_part.GetNode(5);
-    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, r_master_node_a, DISTANCE, r_slave_node_a, DISTANCE, weight, jump);
-    p_const_1->Set(ACTIVE, true);
 
     auto& r_slave_node_b = r_test_model_part.GetNode(4);
     auto& r_master_node_b = r_test_model_part.GetNode(6);
-    auto p_const_2 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 2, r_master_node_b, DISTANCE, r_slave_node_b, DISTANCE, weight, jump);
-    p_const_2->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -768,8 +758,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsBlockBuild, KratosCore
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
 
@@ -817,9 +807,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintElimination
     relation_matrix(0,1) = -1.0;
     relation_matrix(0,2) = -1.0;
     Vector constant_vector = ZeroVector(1);
-    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, master_dofs, slave_dofs, relation_matrix, constant_vector);
-    p_const_1->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -844,8 +833,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintElimination
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
     p_strategy->Clear();
@@ -885,9 +874,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintBlockBuild,
     relation_matrix(0,1) = -1.0;
     relation_matrix(0,2) = -1.0;
     Vector constant_vector = ZeroVector(1);
-    auto p_const_1 = r_test_model_part.CreateNewMasterSlaveConstraint(
+    r_test_model_part.CreateNewMasterSlaveConstraint(
         "LinearMasterSlaveConstraint", 1, master_dofs, slave_dofs, relation_matrix, constant_vector);
-    p_const_1->Set(ACTIVE, true);
 
     // Create the scheme
     Parameters scheme_settings = Parameters(R"({
@@ -912,8 +900,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintBlockBuild,
     // Solve the problem
     p_strategy->Initialize();
     p_strategy->Check();
-    p_strategy->InitializeSolutionStep();
     p_strategy->Predict();
+    p_strategy->InitializeSolutionStep();
     p_strategy->SolveSolutionStep();
     p_strategy->FinalizeSolutionStep();
     p_strategy->Clear();

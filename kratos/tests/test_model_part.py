@@ -1004,6 +1004,138 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfNodes(), 4)
         self.assertEqual(model_part.NumberOfNodes(0), 4)
 
+    def test_set_process_info_without_submodel(self):
+        # just two root model part
+        current_model = KratosMultiphysics.Model()
+        Main1= current_model.CreateModelPart("Main1")
+        Main2= current_model.CreateModelPart("Main2")
+        # setting the process info of Main1 = Main2
+        Main2.ProcessInfo[KratosMultiphysics.TIME] = 0.5
+        self._assert_not_equal_process_info(Main1, KratosMultiphysics.TIME, 0.5)
+        Main1.ProcessInfo = Main2.ProcessInfo
+        # changing TIME of Main2 ProcessInfo
+        Main2.ProcessInfo[KratosMultiphysics.TIME] = 1.025
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 1.025)
+        # changing TIME of Main1 ProcessInfo
+        Main1.ProcessInfo[KratosMultiphysics.TIME] = 1.050
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 1.050)
+
+    def test_set_process_info_chain_submodel(self):
+        # a chain of submodel part
+        current_model = KratosMultiphysics.Model()
+        Main1= current_model.CreateModelPart("Main1")
+        Main2= current_model.CreateModelPart("Main2")
+
+        # making sub model parts
+        Main1_sub1 = Main1.CreateSubModelPart("Main1_sub1")
+        Main1_sub1_sub1 = Main1_sub1.CreateSubModelPart("Main1_sub1_sub1")
+        Main1_sub1_sub1.CreateSubModelPart("Main1_sub1_sub1_sub1")
+
+        # setting the process info of Main1_sub1_sub1 = Main2
+        Main2.ProcessInfo[KratosMultiphysics.TIME] = 0.5
+        self._assert_not_equal_process_info(Main1_sub1_sub1, KratosMultiphysics.TIME, 0.5)
+        Main1_sub1_sub1.ProcessInfo = Main2.ProcessInfo
+
+        # changing TIME of Main2 ProcessInfo
+        Main2.ProcessInfo[KratosMultiphysics.TIME] = 1.025
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 1.025)
+        
+        # changing TIME of sub1_sub1 ProcessInfo
+        Main1_sub1_sub1.ProcessInfo[KratosMultiphysics.TIME] = 1.050
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 1.050)
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 1.050)
+
+        # changing TIME of Main1 ProcessInfo
+        Main1.ProcessInfo[KratosMultiphysics.TIME] = 1.075
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 1.075)
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 1.075)
+
+    def test_set_process_info_tree_submodel(self):
+        # a tree of submodel parts
+        current_model = KratosMultiphysics.Model()
+        Main1= current_model.CreateModelPart("Main1")
+        Main2= current_model.CreateModelPart("Main2")
+
+        # making sub model parts
+        Main1_sub1 = Main1.CreateSubModelPart("Main1_sub1")
+        Main1_sub1_sub1 = Main1_sub1.CreateSubModelPart("Main1_sub1_sub1")
+        Main1_sub1.CreateSubModelPart("Main1_sub1_sub2")
+        Main1_sub2 = Main1_sub1.CreateSubModelPart("Main1_sub2")
+        Main1_sub2.CreateSubModelPart("Main1_sub2_sub1")
+        Main1_sub2_sub2 = Main1_sub2.CreateSubModelPart("Main1_sub2_sub2")
+        Main1_sub2_sub2.CreateSubModelPart("Main1_sub2_sub2_sub1")
+        Main1_sub2_sub2.CreateSubModelPart("Main1_sub2_sub2_sub2")
+
+        Main2.CreateSubModelPart("Main2_sub1")
+        Main2_sub2 = Main2.CreateSubModelPart("Main2_sub2")
+        Main2_sub2.CreateSubModelPart("Main2_sub2_sub1")
+        Main2_sub2.CreateSubModelPart("Main2_sub2_sub2")
+        Main2_sub2.CreateSubModelPart("Main2_sub2_sub3")
+
+        # setting the process info of Main1_sub1_sub1 = Main2
+        Main1_sub1_sub1.ProcessInfo = Main2.ProcessInfo
+
+        # changing TIME of Main2 ProcessInfo
+        Main2.ProcessInfo[KratosMultiphysics.TIME] = 1.025
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 1.025)
+        
+        # changing TIME of sub1_sub1 ProcessInfo
+        Main1_sub1_sub1.ProcessInfo[KratosMultiphysics.TIME] = 1.050
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 1.050)
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 1.050)
+
+        # changing TIME of Main1 ProcessInfo
+        Main1.ProcessInfo[KratosMultiphysics.TIME] = 1.075
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 1.075)
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 1.075)
+
+    def test_set_process_info_three_rootmodel(self):
+        current_model = KratosMultiphysics.Model()
+        NewProcessInfo = KratosMultiphysics.ProcessInfo()
+        NewProcessInfo[KratosMultiphysics.TIME] = 4.050
+
+        Main1 = current_model.CreateModelPart("Main1")
+        Main2 = current_model.CreateModelPart("Main2")
+        Main3 = current_model.CreateModelPart("Main3")
+        Main1.ProcessInfo[KratosMultiphysics.TIME] = 1.050
+        Main2.ProcessInfo[KratosMultiphysics.TIME] = 2.050
+        Main3.ProcessInfo[KratosMultiphysics.TIME] = 3.050
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 1.050)
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 2.050)
+        self._assert_process_info(Main3, KratosMultiphysics.TIME, 3.050)
+
+        Main1.ProcessInfo = NewProcessInfo
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 4.050)
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 2.050)
+        self._assert_process_info(Main3, KratosMultiphysics.TIME, 3.050)
+
+        NewProcessInfo[KratosMultiphysics.TIME] = 5.050
+        Main2.ProcessInfo = Main3.ProcessInfo
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 5.050)
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 3.050)
+        self._assert_process_info(Main3, KratosMultiphysics.TIME, 3.050)
+
+        Main3.ProcessInfo = NewProcessInfo
+        self._assert_process_info(Main1, KratosMultiphysics.TIME, 5.050)
+        self._assert_process_info(Main2, KratosMultiphysics.TIME, 3.050)
+        self._assert_process_info(Main3, KratosMultiphysics.TIME, 5.050)
+
+    def _assert_process_info(self, model_part, property_key, expected_value):
+        root_model_part = model_part.GetRootModelPart()
+        self.assertEqual(root_model_part.ProcessInfo[property_key], expected_value)
+
+        sub_model_part: KratosMultiphysics.ModelPart
+        for sub_model_part in root_model_part.SubModelParts:
+            self.assertEqual(sub_model_part.ProcessInfo[property_key], expected_value)
+
+    def _assert_not_equal_process_info(self, model_part, property_key, expected_value):
+        root_model_part = model_part.GetRootModelPart()
+        self.assertNotEqual(root_model_part.ProcessInfo[property_key], expected_value)
+
+        sub_model_part: KratosMultiphysics.ModelPart
+        for sub_model_part in root_model_part.SubModelParts:
+            self.assertNotEqual(sub_model_part.ProcessInfo[property_key], expected_value)
+
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
