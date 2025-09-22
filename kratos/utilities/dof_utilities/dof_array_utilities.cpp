@@ -74,6 +74,22 @@ void DofArrayUtilities::SetUpDofArray(
         dofs_aux_list[OpenMPUtils::ThisThread()].insert(tls_dof_list.begin(), tls_dof_list.end());
     });
 
+    // // Add the DOFs from the model part constraints
+    // const auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+    // const std::size_t n_constraints = rModelPart.NumberOfMasterSlaveConstraints();
+    // KRATOS_INFO_IF("DofArrayUtilities", EchoLevel > 2) << "Initializing constraints loop" << std::endl;
+    // IndexPartition<std::size_t>(n_constraints).for_each([&](IndexType Index){
+    //     // Get current condition iterator
+    //     const auto it_const = r_constraints_array.begin() + Index;
+
+    //     // Gets list of slave and master DOFs involved on every constraint
+    //     DofsVectorType master_dof_list;
+    //     DofsVectorType slave_dof_list(1, nullptr);
+    //     it_const->GetDofList(slave_dof_list, master_dof_list, rModelPart.GetProcessInfo());
+    //     dofs_aux_list[OpenMPUtils::ThisThread()].insert(slave_dof_list.begin(), slave_dof_list.end());
+    //     dofs_aux_list[OpenMPUtils::ThisThread()].insert(master_dof_list.begin(), master_dof_list.end());
+    // });
+
     // Here we do a reduction in a tree so to have everything on thread 0
     std::size_t old_max = n_threads;
     std::size_t new_max = std::ceil(0.5*static_cast<double>(old_max));
