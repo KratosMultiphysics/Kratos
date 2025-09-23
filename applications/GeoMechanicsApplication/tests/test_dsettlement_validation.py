@@ -314,6 +314,30 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 want_water_pressure_plot=False,
             )
 
+            # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
+            ref_data = [
+                {
+                    "file_path": project_path
+                    / "ref_effective_vertical_stresses_after_10000_days.txt",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
+                },
+                {
+                    "file_path": project_path
+                    / "ref_total_vertical_stresses_after_10000_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
+            ]
+            make_stress_over_y_plot(
+                output_stage_5,
+                unit_conversions.days_to_seconds(10000),
+                ref_y_coordinates,
+                left_side_corner_node_ids,
+                ref_data,
+                project_path / "test_case_1_stress_plot_after_10000_days.svg",
+                want_total_stress_plot=True,
+                want_water_pressure_plot=False,
+            )
+
     def test_settlement_consolidation_coarse_mesh(self):
         """
         This test validates the settlement of a fully saturated column under uniform load.

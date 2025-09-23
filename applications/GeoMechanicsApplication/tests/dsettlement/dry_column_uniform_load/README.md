@@ -38,3 +38,7 @@ At the start of the analysis (after 0.1 days):
 After 100.1 days:
 
 ![Stress plot after 100.1 days](test_case_1_stress_plot_after_100.1_days.svg)
+
+After 10000 days of settlement:
+
+![Stress plot after 10000 days](test_case_1_stress_plot_after_10000_days.svg)
