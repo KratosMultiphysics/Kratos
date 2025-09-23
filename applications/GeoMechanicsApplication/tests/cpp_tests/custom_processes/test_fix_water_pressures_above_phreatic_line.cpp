@@ -33,7 +33,6 @@ ModelPart& CreateModelPartWithTwoNodesAtHeights(Model& rModel, double y_node_1, 
 {
     auto& r_result = rModel.CreateModelPart("foo");
     r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_result.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
     r_result.CreateNewNode(1, 0.0, y_node_1, 0.0);
     r_result.CreateNewNode(2, 0.0, y_node_2, 0.0);
 
@@ -142,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_DoesNothingWhenA
     EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesNodesAbovePhreaticLine,
+KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesWaterPressureDoFsAbovePhreaticLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -167,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_OnlyFixesNodesAb
     EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTheyGetBelowPhreaticLine_WithoutMoveMesh,
+KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesWaterPressureDoFsWhenTheyAreBelowPhreaticLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -193,8 +192,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FreesNodesWhenTh
     EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 
     // Act
-    // Move node 1 below phreatic line using total displacements (without moving the mesh, since move_mesh is false)
-    r_model_part.GetNode(1).FastGetSolutionStepValue(TOTAL_DISPLACEMENT)[1] = -1.0;
+    // Move node 1 below phreatic line
+    r_model_part.GetNode(1).Y() = -1.0;
     process.ExecuteInitializeSolutionStep();
 
     // Assert
@@ -211,7 +210,6 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_InterpolatesMult
     auto  model        = Model{};
     auto& r_model_part = model.CreateModelPart("foo");
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
     r_model_part.CreateNewNode(1, 0.4, -0.4, 0.0);
     r_model_part.CreateNewNode(2, 0.6, -0.6, 0.0);
 
