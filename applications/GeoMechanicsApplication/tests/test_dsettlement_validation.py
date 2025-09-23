@@ -267,7 +267,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 project_path / "stage1.post.msh", left_side_corner_node_ids
             )
             # Make a stress plot at the start of the analysis
-            output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
             ref_data = [
                 {
                     "file_path": project_path
@@ -287,6 +286,30 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_1_stress_plot_after_0.1_days.svg",
+                want_total_stress_plot=True,
+                want_water_pressure_plot=False,
+            )
+
+            # Make a stress plot after 100.1 days
+            ref_data = [
+                {
+                    "file_path": project_path
+                    / "ref_effective_vertical_stresses_after_100.1_days.txt",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
+                },
+                {
+                    "file_path": project_path
+                    / "ref_total_vertical_stresses_after_100.1_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
+            ]
+            make_stress_over_y_plot(
+                output_stage_5,
+                unit_conversions.days_to_seconds(100.1) + 1.0,
+                ref_y_coordinates,
+                left_side_corner_node_ids,
+                ref_data,
+                project_path / "test_case_1_stress_plot_after_100.1_days.svg",
                 want_total_stress_plot=True,
                 want_water_pressure_plot=False,
             )

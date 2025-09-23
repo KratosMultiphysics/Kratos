@@ -34,3 +34,7 @@ The following plots show the vertical effective stress distribution ($`\sigma_{\
 At the start of the analysis (after 0.1 days):
 
 ![Stress plot after 0.1 days](test_case_1_stress_plot_after_0.1_days.svg)
+
+After 100.1 days:
+
+![Stress plot after 100.1 days](test_case_1_stress_plot_after_100.1_days.svg)
