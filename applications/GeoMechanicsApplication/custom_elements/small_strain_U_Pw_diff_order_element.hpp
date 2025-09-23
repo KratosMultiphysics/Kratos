@@ -200,29 +200,6 @@ protected:
     void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
                                               const ElementVariables& rVariables) const;
 
-    void CalculateInternalForces(VectorType& rRightHandSideVector,
-                                 const Geometry<Node>::IntegrationPointsArrayType& r_integration_points,
-                                 ElementVariables&          Variables,
-                                 const std::vector<Matrix>& b_matrices,
-                                 const std::vector<double>& integration_coefficients,
-                                 const std::vector<double>& biot_coefficients,
-                                 const std::vector<double>& degrees_of_saturation,
-                                 const std::vector<double>& biot_moduli_inverse,
-                                 const std::vector<double>& relative_permeability_values,
-                                 const std::vector<double>& bishop_coefficients);
-
-protected:
-    void CalculateExternalForces(VectorType& rRightHandSideVector,
-                                 const Geometry<Node>::IntegrationPointsArrayType& r_integration_points,
-                                 ElementVariables&          Variables,
-                                 const std::vector<double>& integration_coefficients,
-                                 const std::vector<double>& integration_coefficients_on_initial_configuration,
-                                 const std::vector<double>& degrees_of_saturation,
-                                 const std::vector<double>& relative_permeability_values,
-                                 const std::vector<double>& bishop_coefficients);
-
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
-
     void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
                                        const ElementVariables& rVariables,
                                        unsigned int            GPoint);
@@ -303,6 +280,24 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+
+    void CalculateInternalForces(VectorType&                rRightHandSideVector,
+                                 ElementVariables&          Variables,
+                                 const std::vector<Matrix>& b_matrices,
+                                 const std::vector<double>& integration_coefficients,
+                                 const std::vector<double>& biot_coefficients,
+                                 const std::vector<double>& degrees_of_saturation,
+                                 const std::vector<double>& biot_moduli_inverse,
+                                 const std::vector<double>& relative_permeability_values,
+                                 const std::vector<double>& bishop_coefficients);
+
+    void CalculateExternalForces(VectorType&                rRightHandSideVector,
+                                 ElementVariables&          Variables,
+                                 const std::vector<double>& integration_coefficients,
+                                 const std::vector<double>& integration_coefficients_on_initial_configuration,
+                                 const std::vector<double>& degrees_of_saturation,
+                                 const std::vector<double>& relative_permeability_values,
+                                 const std::vector<double>& bishop_coefficients);
 
 }; // Class SmallStrainUPwDiffOrderElement
 
