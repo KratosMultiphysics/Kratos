@@ -12,13 +12,10 @@
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
-#include "custom_elements/plane_strain_stress_state.h"
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
-#include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
-#include "geometries/triangle_2d_6.h"
 #include "includes/cfd_variables.h"
 #include "test_setup_utilities/element_setup_utilities.h"
+
 #include <benchmark/benchmark.h>
 
 namespace
@@ -77,9 +74,7 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
     nodes.push_back(make_intrusive<Node>(5, 0.5, -0.5, 0.0));
     nodes.push_back(make_intrusive<Node>(6, 0.5, 0.05, 0.0));
 
-    auto result = make_intrusive<SmallStrainUPwDiffOrderElement>(
-        1, std::make_shared<Triangle2D6<Node>>(nodes), rProperties,
-        std::make_unique<PlaneStrainStressState>(), nullptr);
+    auto result = Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
     const auto solution_step_variables = Geo::ConstVariableDataRefs{
         std::cref(WATER_PRESSURE),     std::cref(DT_WATER_PRESSURE), std::cref(DISPLACEMENT),
         std::cref(VELOCITY),           std::cref(ACCELERATION),      std::cref(VOLUME_ACCELERATION),
