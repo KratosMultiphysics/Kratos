@@ -195,12 +195,12 @@ private:
         oss << value;
 
         // Convert the result to a string
-        std::string result = oss.str();
+        auto result = oss.str();
 
         // Remove trailing zeros
         if (result.find('.') != std::string::npos) {
             // Remove trailing zeros after the decimal point
-            result.erase(result.find_last_not_of('0') + 1, std::string::npos);
+            result.erase(result.find_last_not_of('0') + 1);
             // If there's a decimal point left at the end (after removing zeros), remove it
             if (result.back() == '.') {
                 result.pop_back();
