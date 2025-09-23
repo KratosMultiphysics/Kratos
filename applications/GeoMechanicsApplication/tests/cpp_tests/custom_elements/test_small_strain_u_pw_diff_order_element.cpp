@@ -205,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
     serializer.save("test_tag", p_element);
 
     // Act
-    auto p_loaded_element = make_intrusive<SmallStrainUPwDiffOrderElement>();
+    auto p_loaded_element = make_intrusive<SmallStrainUPwDiffOrderElement<2, 6>>();
     serializer.load("test_tag", p_loaded_element);
     auto actual_lhs_values = Matrix{};
     p_loaded_element->CalculateLeftHandSide(actual_lhs_values, dummy_process_info);

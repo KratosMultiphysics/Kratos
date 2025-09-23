@@ -10,12 +10,12 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
-#define KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "stress_state_policy.h"
@@ -45,11 +45,14 @@ namespace Kratos
  * @details Implements an Updated Lagrangian definition for different order U-P elements. This works for arbitrary geometries in 2D and 3D
  * @author Vahid Galavi (Geomechanics)
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UpdatedLagrangianUPwDiffOrderElement : public SmallStrainUPwDiffOrderElement
+template <unsigned int TDim, unsigned int TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UpdatedLagrangianUPwDiffOrderElement
+    : public SmallStrainUPwDiffOrderElement<TDim, TNumNodes>
 {
 public:
     ///@name Type Definitions
     ///@{
+    using BaseType       = SmallStrainUPwDiffOrderElement<TDim, TNumNodes>;
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
     using NodeType       = Node;
@@ -63,26 +66,26 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration;
-    using SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain;
-    using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
-    using SmallStrainUPwDiffOrderElement::mStateVariablesFinalized;
-    using SmallStrainUPwDiffOrderElement::mStressVector;
+    using BaseType::CalculateDerivativesOnInitialConfiguration;
+    using BaseType::CalculateGreenLagrangeStrain;
+    using BaseType::mConstitutiveLawVector;
+    using BaseType::mStateVariablesFinalized;
+    using BaseType::mStressVector;
 
-    using ElementVariables = typename SmallStrainUPwDiffOrderElement::ElementVariables;
+    using ElementVariables = typename BaseType::ElementVariables;
 
     /// Counted pointer of UpdatedLagrangianUPwDiffOrderElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianUPwDiffOrderElement);
 
     /// Default Constructor
-    UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement() {}
+    UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement<TDim, TNumNodes>() {}
 
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : SmallStrainUPwDiffOrderElement(
+        : SmallStrainUPwDiffOrderElement<TDim, TNumNodes>(
               NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
@@ -93,7 +96,7 @@ public:
                                          PropertiesType::Pointer            pProperties,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : SmallStrainUPwDiffOrderElement(
+        : SmallStrainUPwDiffOrderElement<TDim, TNumNodes>(
               NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
@@ -108,7 +111,12 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return make_intrusive<UpdatedLagrangianUPwDiffOrderElement>(
+            NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
+            this->CloneIntegrationCoefficientModifier());
+    }
 
     /**
      * @brief Creates a new element
@@ -117,7 +125,10 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override
+    {
+        return Create(NewId, this->GetGeometry().Create(rNodes), pProperties);
+    }
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
@@ -127,7 +138,14 @@ public:
      */
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo) override;
+                                      const ProcessInfo&      rCurrentProcessInfo) override
+    {
+        if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
+            rOutput = GeoMechanicsMathUtilities::CalculateDeterminants(this->CalculateDeformationGradients());
+        } else {
+            BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        }
+    }
 
     /**
      * @brief Calculate a Matrix Variable on the Element Constitutive Law
@@ -137,11 +155,40 @@ public:
      */
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo) override;
+                                      const ProcessInfo&      rCurrentProcessInfo) override
+    {
+        rOutput.resize(mConstitutiveLawVector.size());
+
+        if (rVariable == REFERENCE_DEFORMATION_GRADIENT) {
+            rOutput = this->CalculateDeformationGradients();
+        } else {
+            BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        }
+    }
+
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                       std::vector<Vector>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo) override;
-    using SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints;
+                                      const ProcessInfo&      rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        rOutput.resize(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()));
+
+        if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+            const auto deformation_gradients = this->CalculateDeformationGradients();
+
+            std::transform(deformation_gradients.begin(), deformation_gradients.end(),
+                           rOutput.begin(), [this](const Matrix& rDeformationGradient) {
+                return this->CalculateGreenLagrangeStrain(rDeformationGradient);
+            });
+        } else {
+            BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    using BaseType::CalculateOnIntegrationPoints;
 
     ///@}
     ///@name Access
@@ -201,9 +248,36 @@ protected:
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
                       bool               CalculateStiffnessMatrixFlag,
-                      bool               CalculateResidualVectorFlag) override;
+                      bool               CalculateResidualVectorFlag) override
+    {
+        KRATOS_TRY
 
-    std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const override;
+        BaseType::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
+                               CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+
+        ElementVariables variables;
+        this->InitializeElementVariables(variables, rCurrentProcessInfo);
+
+        if (CalculateStiffnessMatrixFlag && variables.ConsiderGeometricStiffness) {
+            const auto& integration_points =
+                this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+            const auto integration_coefficients =
+                this->CalculateIntegrationCoefficients(integration_points, variables.detJuContainer);
+
+            for (IndexType GPoint = 0; GPoint < integration_points.size(); ++GPoint) {
+                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, mStressVector[GPoint],
+                                                              variables.DNu_DXContainer[GPoint],
+                                                              integration_coefficients[GPoint]);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const override
+    {
+        return {};
+    }
 
     ///@}
     ///@name Protected Operations
@@ -223,7 +297,25 @@ private:
     void CalculateAndAddGeometricStiffnessMatrix(MatrixType&   rLeftHandSideMatrix,
                                                  const Vector& rStressVector,
                                                  const Matrix& rDNuDx,
-                                                 const double  IntegrationCoefficient) const;
+                                                 const double  IntegrationCoefficient) const
+    {
+        KRATOS_TRY
+
+        const GeometryType& r_geom      = this->GetGeometry();
+        const SizeType      num_U_nodes = r_geom.PointsNumber();
+        const SizeType      dimension   = r_geom.WorkingSpaceDimension();
+
+        const Matrix reduced_Kg_matrix =
+            prod(rDNuDx, Matrix(prod(MathUtils<double>::StressVectorToTensor(rStressVector), trans(rDNuDx)))) *
+            IntegrationCoefficient;
+
+        Matrix geometric_stiffness_matrix = ZeroMatrix(num_U_nodes * dimension, num_U_nodes * dimension);
+        MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, dimension);
+
+        GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, geometric_stiffness_matrix);
+
+        KRATOS_CATCH("")
+    }
 
     ///@name Static Member Variables
     ///@{
@@ -255,9 +347,15 @@ private:
 
     // A private default constructor necessary for serialization
 
-    void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+    }
 
-    void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
+    }
 }; // Class UpdatedLagrangianUPwDiffOrderElement
 
 ///@}
@@ -269,4 +367,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED defined
