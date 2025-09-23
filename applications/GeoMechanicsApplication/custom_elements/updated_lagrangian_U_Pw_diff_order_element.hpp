@@ -301,16 +301,14 @@ private:
     {
         KRATOS_TRY
 
-        const GeometryType& r_geom      = this->GetGeometry();
-        const SizeType      num_U_nodes = r_geom.PointsNumber();
-        const SizeType      dimension   = r_geom.WorkingSpaceDimension();
+        const GeometryType& r_geom = this->GetGeometry();
 
         const Matrix reduced_Kg_matrix =
             prod(rDNuDx, Matrix(prod(MathUtils<double>::StressVectorToTensor(rStressVector), trans(rDNuDx)))) *
             IntegrationCoefficient;
 
-        Matrix geometric_stiffness_matrix = ZeroMatrix(num_U_nodes * dimension, num_U_nodes * dimension);
-        MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, dimension);
+        Matrix geometric_stiffness_matrix = ZeroMatrix(TNumNodes * TDim, TNumNodes * TDim);
+        MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, TDim);
 
         GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, geometric_stiffness_matrix);
 
