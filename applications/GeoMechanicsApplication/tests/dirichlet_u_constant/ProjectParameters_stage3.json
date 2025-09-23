@@ -61,7 +61,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "dirichlet_u_constant_stage2",
+                "output_name": "dirichlet_u_constant_stage3",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
