@@ -170,19 +170,17 @@ def make_stress_over_y_plot(
         )
     )
 
-    if want_total_stress_plot:
-        total_vertical_stresses = get_nodal_vertical_total_stress_at_time(
-            time_in_s, output_data, node_ids=node_ids_over_depth
+    total_vertical_stresses = get_nodal_vertical_total_stress_at_time(
+        time_in_s, output_data, node_ids=node_ids_over_depth
+    )
+    data_series_collection.append(
+        plot_utils.DataSeries(
+            zip(total_vertical_stresses, y_coordinates, strict=True),
+            r"$\sigma_{\mathrm{tot, yy}}$ [Kratos]",
+            line_style=":",
+            marker="+",
         )
-
-        data_series_collection.append(
-            plot_utils.DataSeries(
-                zip(total_vertical_stresses, y_coordinates, strict=True),
-                r"$\sigma_{\mathrm{tot, yy}}$ [Kratos]",
-                line_style=":",
-                marker="+",
-            )
-        )
+    )
 
     plot_utils.make_stress_over_y_plot(data_series_collection, plot_file_path)
 
@@ -286,7 +284,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_1_stress_plot_after_0.1_days.svg",
-                want_total_stress_plot=True,
                 want_water_pressure_plot=False,
             )
 
@@ -310,7 +307,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_1_stress_plot_after_100.1_days.svg",
-                want_total_stress_plot=True,
                 want_water_pressure_plot=False,
             )
 
@@ -334,7 +330,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_1_stress_plot_after_10000_days.svg",
-                want_total_stress_plot=True,
                 want_water_pressure_plot=False,
             )
 
@@ -517,7 +512,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_2_stress_plot_after_0_days.svg",
-                want_total_stress_plot=True,
             )
 
             # Make a stress plot after 100 days of consolidation have passed
@@ -545,7 +539,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_2_stress_plot_after_100_days.svg",
-                want_total_stress_plot=True,
             )
 
             # Make a stress plot after applying the surface load
@@ -573,7 +566,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_2_stress_plot_after_100.1_days.svg",
-                want_total_stress_plot=True,
             )
 
             # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
@@ -601,7 +593,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_2_stress_plot_after_10000_days.svg",
-                want_total_stress_plot=True,
             )
 
     def test_settlement_phreatic_line_below_surface(self):
@@ -733,7 +724,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_3_stress_plot_after_0_days.svg",
-                want_total_stress_plot=True,
             )
 
             # Make a stress plot at the end of the third stage
@@ -761,7 +751,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_3_stress_plot_after_100_days.svg",
-                want_total_stress_plot=True,
             )
 
             # Make a stress plot at the start of the fifth stage
@@ -789,7 +778,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_3_stress_plot_after_100.1_days.svg",
-                want_total_stress_plot=True,
             )
 
             # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
@@ -817,7 +805,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_3_stress_plot_after_10000_days.svg",
-                want_total_stress_plot=True,
             )
 
     def test_settlement_fully_saturated_column_low_permeability(self):
@@ -905,7 +892,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_4_stress_plot_after_0_days.svg",
-                want_total_stress_plot=True,
             )
 
             # Make a stress plot after 100 days of consolidation have passed
@@ -933,7 +919,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_4_stress_plot_after_100_days.svg",
-                want_total_stress_plot=True,
             )
 
             # Make a stress plot after applying the surface load
@@ -961,7 +946,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_4_stress_plot_after_100.1_days.svg",
-                want_total_stress_plot=True,
             )
 
             # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
@@ -989,7 +973,6 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 left_side_corner_node_ids,
                 ref_data,
                 project_path / "test_case_4_stress_plot_after_10000_days.svg",
-                want_total_stress_plot=True,
             )
 
 
