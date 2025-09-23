@@ -1730,35 +1730,47 @@ public:
     ///@}
     ///@name Access
     ///@{
+    
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo& GetProcessInfo()
     {
-        return *mpProcessInfo;
+        return *(this->GetRootModelPart().mpProcessInfo);
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo const& GetProcessInfo() const
     {
-        return *mpProcessInfo;
+        return *(this->GetRootModelPart().mpProcessInfo);
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo::Pointer pGetProcessInfo()
     {
-        return mpProcessInfo;
+        return this->GetRootModelPart().mpProcessInfo;
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     const ProcessInfo::Pointer pGetProcessInfo() const
     {
-        return mpProcessInfo;
+        return this->GetRootModelPart().mpProcessInfo;
     }
 
+    /**
+     * @brief Set the @ref ProcessInfo associated with the current @ref ModelPart tree.
+     * @param pNewProcessInfo pointer to the new @ref ProcessInfo object.
+     */
     void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
     {
-        mpProcessInfo = pNewProcessInfo;
-    }
-
-    void SetProcessInfo(ProcessInfo& NewProcessInfo)
-    {
-        *mpProcessInfo = NewProcessInfo;
+        this->GetRootModelPart().mpProcessInfo = pNewProcessInfo;
     }
 
     SizeType NumberOfMeshes()
@@ -2263,6 +2275,16 @@ template <> struct ModelPart::Container<ModelPart::GeometryContainerType> {
     // TODO: Can be used once we move the geometries container to meshes.
     // static GeometryContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Geometries(); }
 };
+
+template <> struct ModelPart::Container<ModelPart::PropertiesContainerType> {
+    static std::string GetEntityName() { return "property"; }
+    static ModelPart::PropertiesContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Properties(); }
+};
+
+template <> struct ModelPart::Container<ModelPart::DofsArrayType> {
+    static std::string GetEntityName() { return "dof"; }
+};
+
 
 ///@}
 ///@name Input and output

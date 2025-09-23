@@ -60,7 +60,6 @@ class TestAlgorithmSteepestDescent(kratos_unittest.TestCase):
                     "gradient_scaling": "inf_norm"
                 },
                 "conv_settings"   : {
-                    "type"          : "max_iter",
                     "max_iter"      : 2
                 }
             }

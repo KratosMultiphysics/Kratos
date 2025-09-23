@@ -83,7 +83,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SteadyStatePwInterfaceElement3D6N", mSteadyStatePwInterfaceElement3D6N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwInterfaceElement3D8N", mSteadyStatePwInterfaceElement3D8N)
 
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement2D4N", mSteadyStatePwPipingElement2D4N)
     KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement2D2N", mGeoSteadyStatePwPipingElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement3D2N", mGeoSteadyStatePwPipingElement3D2N)
 
@@ -159,6 +158,10 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement2Plus2N", mULineInterfacePlaneStrainElement2Plus2N)
     KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement3Plus3N", mULineInterfacePlaneStrainElement3Plus3N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement3Plus3N", mUSurfaceInterfaceElement3Plus3N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement4Plus4N", mUSurfaceInterfaceElement4Plus4N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement6Plus6N", mUSurfaceInterfaceElement6Plus6N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement8Plus8N", mUSurfaceInterfaceElement8Plus8N)
 
     // Updated-Lagrangian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)
@@ -360,6 +363,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUMAT2DInterfaceLaw", mSmallStrainUMAT2DInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUMAT3DInterfaceLaw", mSmallStrainUMAT3DInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUMAT2DLineInterfaceLaw", mSmallStrainUMAT2DLineInterfaceLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUMAT3DSurfaceInterfaceLaw", mSmallStrainUMAT3DSurfaceInterfaceLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DInterfaceLaw", mLinearElastic2DInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw", mLinearElastic3DInterfaceLaw)
@@ -474,13 +478,10 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(JOINT_WIDTH)
 
     KRATOS_REGISTER_VARIABLE(NODAL_SMOOTHING)
-    KRATOS_REGISTER_VARIABLE(NODAL_CAUCHY_STRESS_TENSOR)
     KRATOS_REGISTER_VARIABLE(ENGINEERING_STRAIN_TENSOR)
     KRATOS_REGISTER_VARIABLE(ENGINEERING_STRAIN_VECTOR)
-    KRATOS_REGISTER_VARIABLE(NODAL_DAMAGE_VARIABLE)
     KRATOS_REGISTER_VARIABLE(NODAL_JOINT_AREA)
     KRATOS_REGISTER_VARIABLE(NODAL_JOINT_WIDTH)
-    KRATOS_REGISTER_VARIABLE(NODAL_JOINT_DAMAGE)
 
     KRATOS_REGISTER_VARIABLE(BIOT_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(PLATE_SHAPE_CORRECTION_FACTOR)
@@ -613,5 +614,9 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(INTERFACE_SHEAR_STIFFNESS)
 
     KRATOS_REGISTER_VARIABLE(GEO_SHEAR_CAPACITY)
+
+    Serializer::Register("PlaneStrain", PlaneStrain{});
+    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("SaturatedBelowPhreaticLevelLaw", SaturatedBelowPhreaticLevelLaw{});
 }
 } // namespace Kratos.
