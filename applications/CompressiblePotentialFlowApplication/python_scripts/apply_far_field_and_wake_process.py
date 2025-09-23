@@ -18,7 +18,7 @@ class ApplyFarFieldAndWakeProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "far_field_model_part_name":"",
+                "model_part_name":"",
                 "angle_of_attack_units": "radians",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
@@ -43,7 +43,7 @@ class ApplyFarFieldAndWakeProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters)
 
 
-        self.far_field_model_part = Model[settings["far_field_model_part_name"].GetString()]
+        self.far_field_model_part = Model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.far_field_model_part.GetRootModelPart()
 
         self.angle_of_attack_units = settings["angle_of_attack_units"].GetString()
