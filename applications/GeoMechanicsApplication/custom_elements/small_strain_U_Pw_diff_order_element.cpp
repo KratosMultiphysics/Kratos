@@ -62,52 +62,26 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 
     if (const auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
-    const auto& r_geom = GetGeometry();
+    const auto& r_geom     = GetGeometry();
+    const auto  element_Id = this->Id();
 
-    CheckUtilities::CheckDomainSize(r_geom.DomainSize(), this->Id());
+    CheckUtilities::CheckDomainSize(r_geom.DomainSize(), element_Id);
 
     // check pressure geometry pointer
     KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
 
-    // Verify specific properties
-    const auto& r_prop = this->GetProperties();
-
-    if (!r_prop.Has(IGNORE_UNDRAINED))
-        KRATOS_ERROR << "IGNORE_UNDRAINED does not exist in the parameter list" << this->Id() << std::endl;
-
+    const auto&           r_prop = this->GetProperties();
+    const CheckProperties check_properties(r_prop, "parameter list", element_Id,
+                                           CheckProperties::Bounds::AllExclusive);
+    check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_prop[IGNORE_UNDRAINED])
-        GeoElementUtilities::CheckPermeabilityProperties(r_prop, r_geom.WorkingSpaceDimension());
+        check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
 
-    // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW))
-        << "Constitutive law not provided for property " << r_prop.Id() << std::endl;
-
-    // verify compatibility with the constitutive law
-    ConstitutiveLaw::Features LawFeatures;
-    r_prop.GetValue(CONSTITUTIVE_LAW)->GetLawFeatures(LawFeatures);
-
-    KRATOS_ERROR_IF(std::find(LawFeatures.mStrainMeasures.cbegin(), LawFeatures.mStrainMeasures.cend(),
-                              ConstitutiveLaw::StrainMeasure_Infinitesimal) ==
-                    LawFeatures.mStrainMeasures.cend())
-        << "In element " << this->Id()
-        << " the constitutive law is not compatible with the element "
-           "type StrainMeasure_Infinitesimal."
-        << std::endl;
-
-    r_prop.GetValue(CONSTITUTIVE_LAW)->Check(r_prop, r_geom, rCurrentProcessInfo);
-
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strainSize = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    if (r_geom.WorkingSpaceDimension() > 2) {
-        KRATOS_ERROR_IF_NOT(strainSize == VOIGT_SIZE_3D)
-            << "Wrong constitutive law used. This is a 3D element! expected strain size is " << VOIGT_SIZE_3D
-            << " But received: " << strainSize << " in element id: " << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strainSize == VOIGT_SIZE_2D_PLANE_STRAIN)
-            << "Wrong constitutive law used. This is a 2D element! expected strain size is "
-            << VOIGT_SIZE_2D_PLANE_STRAIN << " But received: " << strainSize
-            << " in element id: " << this->Id() << std::endl;
-    }
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
+    r_prop[CONSTITUTIVE_LAW]->Check(r_prop, r_geom, rCurrentProcessInfo);
+    const auto expected_size = this->GetStressStatePolicy().GetVoigtSize();
+    ConstitutiveLawUtilities::CheckStrainSize(r_prop, expected_size, element_Id);
+    ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(r_prop, element_Id);
 
     return RetentionLaw::Check(mRetentionLawVector, r_prop, rCurrentProcessInfo);
 

@@ -77,6 +77,12 @@ namespace Kratos::MaterialPointGeneratorUtility
     void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
+
+    /**
+     * @brief Function to add dofs to elements for Lagrange multiplier.
+     * @details non-conforming Perturbed Lagrangian or Lagrange multiplier conditions
+     */
+    void GenerateLagrangeNodes(ModelPart& rBackgroundGridModelPart);
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating material point condition using a designated shape functions

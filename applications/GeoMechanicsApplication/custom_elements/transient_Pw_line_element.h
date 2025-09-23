@@ -151,40 +151,23 @@ public:
         KRATOS_TRY
 
         CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), "Length");
-        CheckHasSolutionStepsDataFor(WATER_PRESSURE);
-        CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
-        CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
-        CheckHasDofsFor(WATER_PRESSURE);
+        const auto r_geometry = GetGeometry();
+        CheckUtilities::CheckHasNodalSolutionStepData(
+            r_geometry,
+            {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+        CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
         CheckProperties();
-        CheckForNonZeroZCoordinateIn2D();
-        CheckRetentionLaw(rCurrentProcessInfo);
+        if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geometry);
+
+        return RetentionLaw::Check(mRetentionLawVector, GetProperties(), rCurrentProcessInfo);
 
         KRATOS_CATCH("")
-
-        return 0;
     }
 
 private:
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
     std::vector<CalculationContribution> mContributions;
     IntegrationCoefficientsCalculator    mIntegrationCoefficientsCalculator;
-
-    void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
-                << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
-        }
-    }
-
-    void CheckHasDofsFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
-                << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
-                << std::endl;
-        }
-    }
 
     void CheckProperties() const
     {
@@ -227,24 +210,6 @@ private:
         KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName)
             << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
             << ") instead of (" << rName << ") at element " << Id() << std::endl;
-    }
-
-    void CheckForNonZeroZCoordinateIn2D() const
-    {
-        if constexpr (TDim == 2) {
-            const auto& r_geometry = GetGeometry();
-            auto        pos =
-                std::ranges::find_if(r_geometry, [](const auto& node) { return node.Z() != 0.0; });
-            KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
-        }
-    }
-
-    void CheckRetentionLaw(const ProcessInfo& rCurrentProcessInfo) const
-    {
-        if (!mRetentionLawVector.empty()) {
-            mRetentionLawVector[0]->Check(this->GetProperties(), rCurrentProcessInfo);
-        }
     }
 
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
