@@ -87,7 +87,7 @@ class KratosGeoMechanicsDirichletUConstantTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(-0.1, total_displacement_3_y, 2)
             incremental_displacements_3  = test_helper.GiDOutputFileReader.nodal_values_at_time("INCREMENTAL_DISPLACEMENT", time, output_data[stage_nr], [3])[0]
             incremental_displacement_3_y = incremental_displacements_3[1]
-            # the increment has nonzero value in the first step time < 1.6 avoids an exact double comparison like time == 1.5
+            # the increment has nonzero value in the first step time < 2.6 avoids an exact double comparison like time == 2.5
             expected_incr = -0.1 if time < 2.6 else 0.0
             self.assertAlmostEqual(expected_incr, incremental_displacement_3_y, 2)
 
