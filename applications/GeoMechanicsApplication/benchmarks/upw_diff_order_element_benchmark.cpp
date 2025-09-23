@@ -50,13 +50,13 @@ std::shared_ptr<Properties> CreateProperties()
 void SetSolutionStepValuesForGeneralCheck(const Element::Pointer& rElement)
 {
     const auto zero_values = array_1d<double, 3>{0.0, 0.0, 0.0};
-    const auto gravity     = array_1d<double, 3>{0.0, -10.0, 0.0};
+    const auto gravity     = array_1d<double, 3>{0.0, -9.81, 0.0};
 
     for (int counter = 0; auto& r_node : rElement->GetGeometry()) {
         r_node.FastGetSolutionStepValue(VELOCITY)            = zero_values;
         r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity;
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE)    = counter * 1.0e5;
-        r_node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = counter * 5.0e5;
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE)      = counter * 1.0e5;
+        r_node.FastGetSolutionStepValue(DT_WATER_PRESSURE)   = counter * 5.0e5;
         ++counter;
     }
     rElement->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{-0.015, 0.0, 0.0};
@@ -95,7 +95,7 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
 namespace Kratos
 {
 
-void testBenchmark(benchmark::State& state)
+void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& state)
 {
     auto properties = CreateProperties();
     auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
@@ -106,13 +106,47 @@ void testBenchmark(benchmark::State& state)
     p_element->Initialize(dummy_process_info);
 
     for (auto _ : state) {
-        auto LHS               = Matrix{};
-        auto actual_rhs_values = Vector{};
-        p_element->CalculateLocalSystem(LHS, actual_rhs_values, dummy_process_info);
+        auto left_hand_side  = Matrix{};
+        auto right_hand_side = Vector{};
+        p_element->CalculateLocalSystem(left_hand_side, right_hand_side, dummy_process_info);
     }
 }
 
-BENCHMARK(testBenchmark);
+void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& state)
+{
+    auto properties = CreateProperties();
+    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
+
+    SetSolutionStepValuesForGeneralCheck(p_element);
+
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    for (auto _ : state) {
+        auto right_hand_side = Vector{};
+        p_element->CalculateRightHandSide(right_hand_side, dummy_process_info);
+    }
+}
+
+void benchmarkUPwDiffOrderLHSCalculation(benchmark::State& state)
+{
+    auto properties = CreateProperties();
+    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
+
+    SetSolutionStepValuesForGeneralCheck(p_element);
+
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    for (auto _ : state) {
+        auto left_hand_side = Matrix{};
+        p_element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
+    }
+}
+
+BENCHMARK(benchmarkUPwDiffOrderLocalSystemCalculation);
+BENCHMARK(benchmarkUPwDiffOrderRHSCalculation);
+BENCHMARK(benchmarkUPwDiffOrderLHSCalculation);
 
 } // namespace Kratos
 
