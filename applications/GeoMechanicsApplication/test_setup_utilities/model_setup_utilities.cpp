@@ -65,10 +65,11 @@ void AddDofsToNodes(const NodeRange& rNodeRange, const Geo::ConstVariableRefs& r
 
 } // namespace
 
-namespace Kratos::Testing::ModelSetupUtilities
+namespace Kratos::Testing
 {
 
-ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(Model& rModel,
+                                                                      const Geo::ConstVariableRefs& rNodalVariables)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
@@ -83,7 +84,8 @@ ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel, const Geo::Const
     return r_result;
 }
 
-ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle3D4NElement(Model& rModel,
+                                                                      const Geo::ConstVariableRefs& rNodalVariables)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
@@ -97,7 +99,8 @@ ModelPart& CreateModelPartWithASingle3D4NElement(Model& rModel, const Geo::Const
     return r_result;
 }
 
-ModelPart& CreateModelPartWithASingle3D8NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle3D8NElement(Model& rModel,
+                                                                      const Geo::ConstVariableRefs& rNodalVariables)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
@@ -111,7 +114,8 @@ ModelPart& CreateModelPartWithASingle3D8NElement(Model& rModel, const Geo::Const
     return r_result;
 }
 
-ModelPart& CreateModelPartWithASingle3D20NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle3D20NElement(Model& rModel,
+                                                                       const Geo::ConstVariableRefs& rNodalVariables)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
@@ -125,7 +129,8 @@ ModelPart& CreateModelPartWithASingle3D20NElement(Model& rModel, const Geo::Cons
     return r_result;
 }
 
-ModelPart& CreateModelPartWithASingle2D2NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D2NElement(Model& rModel,
+                                                                      const Geo::ConstVariableRefs& rNodalVariables)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
@@ -139,7 +144,8 @@ ModelPart& CreateModelPartWithASingle2D2NElement(Model& rModel, const Geo::Const
     return r_result;
 }
 
-ModelPart& CreateModelPartWithASingle2D10NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D10NElement(Model& rModel,
+                                                                       const Geo::ConstVariableRefs& rNodalVariables)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
@@ -154,7 +160,8 @@ ModelPart& CreateModelPartWithASingle2D10NElement(Model& rModel, const Geo::Cons
     return r_result;
 }
 
-ModelPart& CreateModelPartWithASingle2D15NElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D15NElement(Model& rModel,
+                                                                       const Geo::ConstVariableRefs& rNodalVariables)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
@@ -169,7 +176,8 @@ ModelPart& CreateModelPartWithASingle2D15NElement(Model& rModel, const Geo::Cons
     return r_result;
 }
 
-ModelPart& CreateModelPartWithASingle3D6NInterfaceElement(Model& rModel, const Geo::ConstVariableRefs& rNodalVariables)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle3D6NInterfaceElement(Model& rModel,
+                                                                               const Geo::ConstVariableRefs& rNodalVariables)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     AddNodalVariablesToModelPart(r_result, rNodalVariables);
@@ -185,7 +193,7 @@ ModelPart& CreateModelPartWithASingle3D6NInterfaceElement(Model& rModel, const G
     return r_result;
 }
 
-ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel)
 {
     // similar to a 1D-consolidation test
     auto& r_result = rModel.CreateModelPart("Main");
@@ -204,7 +212,7 @@ ModelPart& CreateModelPartWithASingle2D6NDiffOrderElement(Model& rModel)
     return r_result;
 }
 
-ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
 {
     auto&      r_result = rModel.CreateModelPart("Main");
     const auto second_order_variables =
@@ -232,7 +240,7 @@ ModelPart& CreateModelPartWithASingle2D6NUPwDiffOrderElement(Model& rModel)
     return r_result;
 }
 
-ModelPart& CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel)
+ModelPart& ModelSetupUtilities::CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel)
 {
     auto&      r_result               = rModel.CreateModelPart("Main");
     const auto second_order_variables = Geo::ConstVariableRefs{
@@ -256,7 +264,7 @@ ModelPart& CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel)
     return r_result;
 }
 
-Triangle2D3<Node> Create2D3NTriangleGeometry()
+Triangle2D3<Node> ModelSetupUtilities::Create2D3NTriangleGeometry()
 {
     const auto node_1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
     const auto node_2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
@@ -264,7 +272,7 @@ Triangle2D3<Node> Create2D3NTriangleGeometry()
     return {node_1, node_2, node_3};
 }
 
-Tetrahedra3D4<Node> Create3D4NTetrahedraGeometry()
+Tetrahedra3D4<Node> ModelSetupUtilities::Create3D4NTetrahedraGeometry()
 {
     const auto node_1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
     const auto node_2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
@@ -273,4 +281,4 @@ Tetrahedra3D4<Node> Create3D4NTetrahedraGeometry()
     return {node_1, node_2, node_3, node_4};
 }
 
-} // namespace Kratos::Testing::ModelSetupUtilities
+} // namespace Kratos::Testing
