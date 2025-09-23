@@ -158,8 +158,7 @@ public:
             {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-        const PropertiesType& r_properties = GetProperties();
-        const CheckProperties check_properties(r_properties, "material properties", element_Id,
+        const CheckProperties check_properties(GetProperties(), "material properties", element_Id,
                                                CheckProperties::Bounds::AllInclusive);
         check_properties.Check(DENSITY_WATER);
         check_properties.Check(DENSITY_SOLID);
@@ -173,7 +172,7 @@ public:
 
         if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geometry);
 
-        return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
+        return RetentionLaw::Check(mRetentionLawVector, GetProperties(), rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }

@@ -50,8 +50,8 @@ int SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCu
     if (element_Id < 1)
         KRATOS_ERROR << "Element found with Id 0 or negative, element: " << element_Id << std::endl;
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_properties = this->GetProperties();
+    const auto& r_geometry   = this->GetGeometry();
     CheckUtilities::CheckHasNodalSolutionStepData(
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});

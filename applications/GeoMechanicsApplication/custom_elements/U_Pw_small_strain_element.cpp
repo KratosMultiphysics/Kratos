@@ -57,8 +57,8 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     // Verify generic variables
     if (const auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_properties = this->GetProperties();
+    const auto& r_geometry   = this->GetGeometry();
 
     CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
@@ -878,7 +878,7 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    const PropertiesType& r_properties = this->GetProperties();
+    const auto& r_properties = this->GetProperties();
 
     auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
         GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
@@ -1348,7 +1348,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
+    const auto& r_properties = this->GetProperties();
 
     rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;

@@ -126,9 +126,8 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geom       = this->GetGeometry();
-    const unsigned int    number_of_integration_points =
+    const auto&        r_geom = this->GetGeometry();
+    const unsigned int number_of_integration_points =
         r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     if (mConstitutiveLawVector.size() != number_of_integration_points)
@@ -140,7 +139,7 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
     if (mRetentionLawVector.size() != number_of_integration_points)
         mRetentionLawVector.resize(number_of_integration_points);
     for (auto& r_retention_law : mRetentionLawVector) {
-        r_retention_law = RetentionLawFactory::Clone(r_properties);
+        r_retention_law = RetentionLawFactory::Clone(this->GetProperties());
     }
 
     KRATOS_CATCH("")
@@ -151,15 +150,14 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geom       = this->GetGeometry();
+    const auto& r_geom = this->GetGeometry();
 
     CheckUtilities::CheckDomainSize(r_geom.DomainSize(), this->Id());
     CheckUtilities::CheckHasNodalSolutionStepData(
         r_geom, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geom, {std::cref(WATER_PRESSURE)});
 
-    const CheckProperties check_properties(r_properties, "material properties", this->Id(),
+    const CheckProperties check_properties(this->GetProperties(), "material properties", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.Check(DENSITY_WATER);
     check_properties.Check(BULK_MODULUS_SOLID);
@@ -173,7 +171,7 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
     check_properties.CheckAvailability(BIOT_COEFFICIENT);
     check_properties.CheckPermeabilityProperties(TDim);
 
-    return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
+    return RetentionLaw::Check(mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }

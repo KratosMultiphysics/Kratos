@@ -133,7 +133,7 @@ public:
             GetGeometry(), {std::cref(TEMPERATURE), std::cref(DT_TEMPERATURE)});
         CheckUtilities::CheckHasDofs(GetGeometry(), {std::cref(TEMPERATURE)});
 
-        const PropertiesType& r_properties = this->GetProperties();
+        const auto&           r_properties = this->GetProperties();
         const CheckProperties check_properties(r_properties, "properties", element_Id,
                                                CheckProperties::Bounds::AllInclusive);
         check_properties.Check(DENSITY_WATER);

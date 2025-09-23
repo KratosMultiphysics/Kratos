@@ -50,8 +50,7 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
     int ierr = Element::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     KRATOS_ERROR_IF(this->Id() < 1)
         << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
@@ -60,7 +59,7 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-    const CheckProperties check_properties(r_properties, "material properties", this->Id(),
+    const CheckProperties check_properties(this->GetProperties(), "material properties", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
     check_properties.Check(TRANSVERSAL_PERMEABILITY);
@@ -207,8 +206,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
     KRATOS_TRY
 
     if (rVariable == FLUID_FLUX_VECTOR) {
-        const PropertiesType& r_properties = this->GetProperties();
-        const GeometryType&   r_geometry   = this->GetGeometry();
+        const auto&        r_properties = this->GetProperties();
+        const auto&        r_geometry   = this->GetGeometry();
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -263,8 +262,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], FluidFlux);
         }
     } else if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
-        const PropertiesType& r_properties = this->GetProperties();
-        const GeometryType&   r_geometry   = this->GetGeometry();
+        const auto&        r_properties = this->GetProperties();
+        const auto&        r_geometry   = this->GetGeometry();
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -329,8 +328,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
     KRATOS_TRY
 
     if (rVariable == PERMEABILITY_MATRIX) {
-        const GeometryType&   r_geometry   = this->GetGeometry();
-        const PropertiesType& r_properties = this->GetProperties();
+        const auto&        r_geometry   = this->GetGeometry();
+        const auto&        r_properties = this->GetProperties();
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining necessary variables
@@ -355,8 +354,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
     } else if (rVariable == LOCAL_PERMEABILITY_MATRIX) {
-        const GeometryType&   r_geometry   = this->GetGeometry();
-        const PropertiesType& r_properties = this->GetProperties();
+        const auto& r_geometry   = this->GetGeometry();
+        const auto& r_properties = this->GetProperties();
 
         // Defining the shape functions container
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);

@@ -29,8 +29,7 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     // Base class checks for positive area and Id > 0
     if (int ierr = Element::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     CheckUtilities::CheckHasNodalSolutionStepData(
         r_geometry, {std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION),
@@ -40,7 +39,7 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     if (this->GetGeometry().WorkingSpaceDimension() > 2)
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(DISPLACEMENT_Z)});
 
-    const CheckProperties check_properties(r_properties, "material properties", this->Id(),
+    const CheckProperties check_properties(this->GetProperties(), "material properties", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.Check(DENSITY_SOLID);
     check_properties.Check(DENSITY_WATER);
