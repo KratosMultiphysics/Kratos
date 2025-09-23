@@ -46,11 +46,10 @@ void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
     });
 }
 
-void NodeUtilities::AssignUpdatedVectorVariableToNodes(
-    const ModelPart::NodesContainerType& rNodes,
-    const Variable<array_1d<double, 3>>& rDestinationVariable,
-    const array_1d<double, 3>&           rNewValues,
-    IndexType                            SolutionStepIndex)
+void NodeUtilities::AssignUpdatedVectorVariableToNodes(const ModelPart::NodesContainerType& rNodes,
+                                                       const Variable<array_1d<double, 3>>& rDestinationVariable,
+                                                       const array_1d<double, 3>& rNewValues,
+                                                       IndexType                  SolutionStepIndex)
 {
     block_for_each(rNodes, [&rDestinationVariable, &rNewValues, SolutionStepIndex](Node& rNode) {
         rNode.FastGetSolutionStepValue(rDestinationVariable, SolutionStepIndex) = rNewValues;
