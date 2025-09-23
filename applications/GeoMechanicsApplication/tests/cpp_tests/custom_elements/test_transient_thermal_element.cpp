@@ -500,7 +500,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When3DPropertyHasInvalidValue, Kra
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(r_current_process_info),
-        "HERMAL_CONDUCTIVITY_SOLID_ZZ in the properties with Id 0 at element with Id 1 has an "
+        "THERMAL_CONDUCTIVITY_SOLID_ZZ in the properties with Id 0 at element with Id 1 has an "
         "invalid value: -5 is out of the range [0, -).")
 }
 
