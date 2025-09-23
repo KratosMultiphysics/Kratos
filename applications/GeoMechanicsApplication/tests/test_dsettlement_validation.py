@@ -131,6 +131,7 @@ def make_stress_over_y_plot(
     ref_data,
     plot_file_path,
     want_total_stress_plot=False,
+    want_water_pressure_plot=True,
 ):
     data_series_collection = []
 
@@ -144,17 +145,18 @@ def make_stress_over_y_plot(
         )
 
     # Extract data points from the Kratos analysis results
-    water_pressures = get_nodal_water_pressures_at_time(
-        time_in_s, output_data, node_ids=node_ids_over_depth
-    )
-    data_series_collection.append(
-        plot_utils.DataSeries(
-            zip(water_pressures, y_coordinates, strict=True),
-            r"$p_{\mathrm{w}}$ [Kratos]",
-            line_style=":",
-            marker="+",
+    if want_water_pressure_plot:
+        water_pressures = get_nodal_water_pressures_at_time(
+            time_in_s, output_data, node_ids=node_ids_over_depth
         )
-    )
+        data_series_collection.append(
+            plot_utils.DataSeries(
+                zip(water_pressures, y_coordinates, strict=True),
+                r"$p_{\mathrm{w}}$ [Kratos]",
+                line_style=":",
+                marker="+",
+            )
+        )
 
     effective_vertical_stresses = get_nodal_vertical_effective_stress_at_time(
         time_in_s, output_data, node_ids=node_ids_over_depth
@@ -258,6 +260,35 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 top_node_ids,
                 project_path / "ref_settlement_data.txt",
                 project_path / "test_case_1_settlement_plot.svg",
+            )
+
+            left_side_corner_node_ids = [3] + list(range(105, 154)) + [4]
+            ref_y_coordinates = get_ref_y_coordinates(
+                project_path / "stage1.post.msh", left_side_corner_node_ids
+            )
+            # Make a stress plot at the start of the analysis
+            output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
+            ref_data = [
+                {
+                    "file_path": project_path
+                    / "ref_effective_vertical_stresses_after_0.1_days.txt",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
+                },
+                {
+                    "file_path": project_path
+                    / "ref_total_vertical_stresses_after_0.1_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
+            ]
+            make_stress_over_y_plot(
+                output_stage_3,
+                unit_conversions.days_to_seconds(0.1) + 1.0,
+                ref_y_coordinates,
+                left_side_corner_node_ids,
+                ref_data,
+                project_path / "test_case_1_stress_plot_after_0.1_days.svg",
+                want_total_stress_plot=True,
+                want_water_pressure_plot=False,
             )
 
     def test_settlement_consolidation_coarse_mesh(self):

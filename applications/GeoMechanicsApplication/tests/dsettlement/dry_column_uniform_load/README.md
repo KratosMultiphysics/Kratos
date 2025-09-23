@@ -29,3 +29,8 @@ The following plot shows the evolution of settlement obtained with Kratos, and c
 
 ![Settlement](test_case_1_settlement_plot.svg)
 
+The following plots show the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$) and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times.
+
+At the start of the analysis (after 0.1 days):
+
+![Stress plot after 0.1 days](test_case_1_stress_plot_after_0.1_days.svg)
