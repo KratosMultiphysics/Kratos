@@ -51,6 +51,26 @@ enum DataAvailabilityStatesList
     INCONCLUSIVE = 2
 };
 
+/**
+ * @class FlagIO
+ * @brief Utility class for reading and writing flag values on entities.
+ *
+ * This class provides methods to get, set, and check the presence of flag values
+ * on entities. Flags are represented as unsigned char values, where 255 indicates
+ * an undefined flag state.
+ *
+ * @tparam TEntityType The type of entity on which flags are operated.
+ *
+ * @section TypeDefinitions Type Definitions
+ * - TLSType: Alias for unsigned char, used for thread-local storage.
+ * - ComponentType: Alias for unsigned char, used for flag components.
+ * - DataAvailability: Indicates the data availability state (INCONCLUSIVE).
+ *
+ * @section PublicOperations Public Operations
+ * - GetValue: Returns the value of the specified flag for the given entity.
+ * - SetValue: Sets or resets the specified flag for the given entity based on the value.
+ * - HasValue: Checks if the specified flag is defined for the given entity.
+ */
 class FlagIO
 {
 public:
@@ -58,10 +78,10 @@ public:
     ///@{
 
     template<class TDataType>
-    using TLSType = char;
+    using TLSType = unsigned char;
 
     template<class TDataType>
-    using ComponentType = char;
+    using ComponentType = unsigned char;
 
     constexpr static DataAvailabilityStatesList DataAvailability = DataAvailabilityStatesList::INCONCLUSIVE;
 
@@ -70,25 +90,29 @@ public:
     ///@{
 
     template<class TEntityType>
-    inline char GetValue(
+    unsigned char GetValue(
         const TEntityType& rEntity,
         const Flags& rFlag,
-        char& rTLS) const
+        unsigned char& rTLS) const
     {
-        return rEntity.Is(rFlag);
+        return (rEntity.IsDefined(rFlag) ? rEntity.Is(rFlag) : 255);
     }
 
     template<class TEntityType>
-    inline void SetValue(
+    void SetValue(
         TEntityType& rEntity,
         const Flags& rFlag,
-        const char rValue) const
+        const unsigned char rValue) const
     {
-        rEntity.Set(rFlag, static_cast<bool>(rValue));
+        if (rValue == 255) {
+            rEntity.Reset(rFlag);
+        } else {
+            rEntity.Set(rFlag, static_cast<bool>(rValue));
+        }
     }
 
     template<class TEntityType>
-    inline bool HasValue(
+    bool HasValue(
         const TEntityType& rEntity,
         const Flags& rFlag) const
     {
@@ -123,7 +147,7 @@ public:
     ///@{
 
     template<class TDataType>
-    inline const TDataType& GetValue(
+    const TDataType& GetValue(
         const Node& rNode,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
@@ -132,7 +156,7 @@ public:
     }
 
     template<class TDataType>
-    inline void SetValue(
+    void SetValue(
         Node& rNode,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
@@ -141,7 +165,7 @@ public:
     }
 
     template<class TDataType>
-    inline bool HasValue(
+    bool HasValue(
         const Node& rNode,
         const Variable<TDataType>& rVariable) const
     {
@@ -178,7 +202,7 @@ public:
     ///@{
 
     template<class TEntityType, class TDataType>
-    inline const TDataType& GetValue(
+    const TDataType& GetValue(
         const TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
@@ -187,7 +211,7 @@ public:
     }
 
     template<class TEntityType, class TDataType>
-    inline void SetValue(
+    void SetValue(
         TEntityType& rEntity,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
@@ -196,7 +220,7 @@ public:
     }
 
     template<class TEntityType, class TDataType>
-    inline bool HasValue(
+    bool HasValue(
         const TEntityType& rEntity,
         const Variable<TDataType>& rVariable) const
     {
@@ -231,7 +255,7 @@ public:
     ///@{
 
     template<class TDataType>
-    inline TDataType GetValue(
+    TDataType GetValue(
         const Node& rNode,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
@@ -244,7 +268,7 @@ public:
     }
 
     template<class TDataType>
-    inline void SetValue(
+    void SetValue(
         Node& rNode,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
@@ -253,7 +277,7 @@ public:
     }
 
     template<class TDataType>
-    inline bool HasValue(
+    bool HasValue(
         const Node& rNode,
         const Variable<TDataType>& rVariable) const
     {
@@ -296,7 +320,7 @@ public:
     ///@{
 
     template<class TDataType>
-    inline TDataType GetValue(
+    TDataType GetValue(
         const Detail::Vertex& rVertex,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
@@ -305,7 +329,7 @@ public:
     }
 
     template<class TDataType>
-    inline void SetValue(
+    void SetValue(
         Detail::Vertex& rEntity,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
@@ -343,7 +367,7 @@ public:
     ///@{
 
     template<class TDataType>
-    inline TDataType GetValue(
+    TDataType GetValue(
         const Detail::Vertex& rVertex,
         const Variable<TDataType>& rVariable,
         char& rTLS) const
@@ -352,7 +376,7 @@ public:
     }
 
     template<class TDataType>
-    inline void SetValue(
+    void SetValue(
         Detail::Vertex& rEntity,
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
@@ -657,7 +681,7 @@ void CopyFromContiguousDataArray(
     const TContainerDataIO& rContainerDataIO,
     TDataType const* pBegin,
     const std::vector<unsigned int>& rShape,
-    const Vector<bool>& rAvailability)
+    const Vector<unsigned char>& rAvailability)
 {
     KRATOS_TRY
 

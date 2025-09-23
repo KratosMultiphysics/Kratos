@@ -30,6 +30,7 @@ SnakeSbmProcess::SnakeSbmProcess(
     mLambdaInner = mThisParameters["lambda_inner"].GetDouble();
     mLambdaOuter = mThisParameters["lambda_outer"].GetDouble();
     mNumberOfInnerLoops = mThisParameters["number_of_inner_loops"].GetInt();
+    mNumberInitialPointsIfImportingNurbs = mThisParameters["number_initial_points_if_importing_nurbs"].GetInt();
 
     std::string iga_model_part_name = mThisParameters["model_part_name"].GetString();
     std::string skin_model_part_inner_initial_name = mThisParameters["skin_model_part_inner_initial_name"].GetString();
@@ -62,14 +63,14 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates()
         if (!mpSkinModelPartInnerInitial->HasProperties(0)) mpSkinModelPartInnerInitial->CreateNewProperties(0);
         if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
         // template argument IsInnerLoop set true
-        CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart);
+        CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs);
             
     }
     if (mpSkinModelPartOuterInitial->NumberOfNodes()>0 || mpSkinModelPartOuterInitial->NumberOfGeometries()>0) {
         if (!mpSkinModelPartOuterInitial->HasProperties(0)) mpSkinModelPartOuterInitial->CreateNewProperties(0);
         if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
         // template argument IsInnerLoop set false
-        CreateTheSnakeCoordinates<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart);
+        CreateTheSnakeCoordinates<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs);
     }
 }   
 
@@ -82,7 +83,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     const double Lambda,
     IndexType EchoLevel,
     ModelPart& rIgaModelPart,
-    ModelPart& rSkinModelPart) 
+    ModelPart& rSkinModelPart,
+    const int NumberInitialPointsIfImportingNurbs) 
 { 
     KRATOS_ERROR_IF(rIgaModelPart.GetValue(KNOT_VECTOR_U).size() == 0) << "::[SnakeSbmProcess]::" 
                 << "The iga model part has KNOT_VECTOR_U of size 0" << std::endl;
@@ -225,20 +227,58 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     }
     else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
     {
-        //TODO: decrease the number when the closest point projection for the NURBS is optimized in the IgaSbmModeler
-        const int n_initial_points_for_side = 50000; 
+        // number of sampling points per curve side
+        const int number_initial_points_if_importing_nurbs = NumberInitialPointsIfImportingNurbs; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
         const SizeType n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
+
+        // Reorder curves to form a single closed loop: each curve's start must match previous curve's end (within tol)
+        const double tol = 1e-7;
+        std::vector<IndexType> ordered_indices;
+        ordered_indices.reserve(n_boundary_curves);
+        std::vector<bool> used(n_boundary_curves, false);
+
+        // Precompute start/end coordinates for each curve (local t=0 and t=1)
+        std::vector<CoordinatesArrayType> starts(n_boundary_curves), ends(n_boundary_curves);
+        for (IndexType i = 0; i < n_boundary_curves; ++i) {
+            auto p_geom = rSkinModelPartInitial.pGetGeometry(i);
+            NurbsCurveGeometryPointerType p_curve_i = std::dynamic_pointer_cast<Kratos::NurbsCurveGeometry<2, Kratos::PointerVector<Kratos::Node>>>(p_geom);
+            KRATOS_ERROR_IF_NOT(p_curve_i) << "NURBS curve " << i << " not defined in the initial Model Part. Check the importNurbsSbmModeler." << std::endl;
+            CoordinatesArrayType local0 = ZeroVector(3);
+            CoordinatesArrayType local1 = ZeroVector(3); local1[0] = 1.0;
+            starts[i].resize(3,false); ends[i].resize(3,false);
+            p_curve_i->GlobalCoordinates(starts[i], local0);
+            p_curve_i->GlobalCoordinates(ends[i], local1);
+        }
+
+        // Greedy ordering: start from 0 and find next whose start matches current end
+        ordered_indices.push_back(0);
+        used[0] = true;
+        CoordinatesArrayType current_end = ends[0];
+        for (IndexType k = 1; k < n_boundary_curves; ++k) {
+            bool found = false;
+            for (IndexType j = 1; j < n_boundary_curves; ++j) { // j=0 already used
+                if (used[j]) continue;
+                if (norm_2(current_end - starts[j]) <= tol) {
+                    ordered_indices.push_back(j);
+                    used[j] = true;
+                    current_end = ends[j];
+                    found = true;
+                    break;
+                }
+            }
+            KRATOS_ERROR_IF_NOT(found)
+                << "[SnakeSbmProcess] Could not find the next NURBS curve to continue the single closed loop."
+                << " Ensure curves are connected head-to-tail and no reversal is needed." << std::endl;
+        }
+        // Check closure: last end must match first start
+        KRATOS_ERROR_IF(norm_2(current_end - starts[ordered_indices.front()]) > tol)
+            << "[SnakeSbmProcess] The ordered NURBS curves do not form a closed loop (last end != first start)." << std::endl;
+
         bool new_inner_loop = true;
-
-        //FIXME: vertices sub model part
-        std::string interface_sub_model_part_name = "interface_vertices";
-        ModelPart& r_skin_interface_sub_model_part = r_skin_sub_model_part.HasSubModelPart(interface_sub_model_part_name) ? 
-                                                    r_skin_sub_model_part.GetSubModelPart(interface_sub_model_part_name) : r_skin_sub_model_part.CreateSubModelPart(interface_sub_model_part_name);
-
-                                                         
-        for (IndexType i_boundary_curve = 0; i_boundary_curve < n_boundary_curves; i_boundary_curve++) 
+        for (IndexType i_ordered = 0; i_ordered < n_boundary_curves; i_ordered++) 
         {
+            const IndexType i_boundary_curve = ordered_indices[i_ordered];
             NurbsCurveGeometryPointerType p_curve = std::dynamic_pointer_cast<Kratos::NurbsCurveGeometry<2, Kratos::PointerVector<Kratos::Node>>>(rSkinModelPartInitial.pGetGeometry(i_boundary_curve));
             if (!p_curve) 
                 KRATOS_ERROR << "NURBS curve " << i_boundary_curve << " not defined in the initial Model Part. Check the importNurbsSbmModeler." << std::endl;
@@ -293,9 +333,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             {
                 const int last_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes();
                 Node& r_last_node = r_skin_sub_model_part.GetNode(last_node_id);
-                KRATOS_ERROR_IF(norm_2(first_point_coords - r_last_node) > 1e-7)
-                                << "ImportNurbsSbmModeler: error in the json NURBS file. The boundary curves" 
-                                << " are not correctly ordered." << std::endl;
+                KRATOS_ERROR_IF(norm_2(first_point_coords - r_last_node) > tol)
+                                << "[SnakeSbmProcess] NURBS curves reordering failed: expected continuity between curves but points differ by > tol." << std::endl;
 
 
                 // Create two nodes and two conditions for each skin condition
@@ -334,9 +373,9 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             // add the specified number of points
             Vector second_point_local_coord = ZeroVector(3);
             CoordinatesArrayType second_point_coords(3);
-            for (int i = 1; i < n_initial_points_for_side; i++)
+            for (int i = 1; i < number_initial_points_if_importing_nurbs; i++)
             {
-                second_point_local_coord[0] = (double) i/(n_initial_points_for_side-1);
+                second_point_local_coord[0] = (double) i/(number_initial_points_if_importing_nurbs-1);
                 p_curve->GlobalCoordinates(second_point_coords, second_point_local_coord);
                 //***********************************************************
                     // Collect the coordinates of the points
