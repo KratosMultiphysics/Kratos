@@ -179,7 +179,7 @@ private:
                                (mRangeBoundsType == ExclusiveLowerAndInclusiveUpper));
             std::ostringstream print_range;
             print_range << (include_lower_bound ? "[" : "(") << LowerBound << ", "
-                        << (UpperBound ? format_double_no_trailing_zeros(*UpperBound) : "-")
+                        << (UpperBound ? double_to_string(*UpperBound) : "-")
                         << (include_upper_bound ? "]" : ")");
             KRATOS_ERROR << rVariable.Name() << print_property_id() << print_element_id()
                          << " has an invalid value: " << value << " is out of the range "
@@ -187,27 +187,11 @@ private:
         }
     }
 
-    // mimics c++20 std::format(:g)
-    std::string format_double_no_trailing_zeros(double value) const
+    std::string double_to_string(double value) const
     {
         std::ostringstream oss;
-
-        oss << value;
-
-        // Convert the result to a string
-        auto result = oss.str();
-
-        // Remove trailing zeros
-        if (result.find('.') != std::string::npos) {
-            // Remove trailing zeros after the decimal point
-            result.erase(result.find_last_not_of('0') + 1);
-            // If there's a decimal point left at the end (after removing zeros), remove it
-            if (result.back() == '.') {
-                result.pop_back();
-            }
-        }
-
-        return result;
+        oss << std::defaultfloat  << value;
+        return oss.str();
     }
 
     std::string print_property_id() const
