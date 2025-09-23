@@ -949,7 +949,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
                                 integration_coefficients, biot_coefficients, degrees_of_saturation,
                                 biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
 
-        // External Forces
         CalculateExternalForces(rRightHandSideVector, r_integration_points, Variables,
                                 integration_coefficients, integration_coefficients_on_initial_configuration,
                                 degrees_of_saturation, relative_permeability_values, bishop_coefficients);
