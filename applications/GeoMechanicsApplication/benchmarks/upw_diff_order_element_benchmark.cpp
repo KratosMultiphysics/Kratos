@@ -22,7 +22,6 @@ namespace
 {
 
 using namespace Kratos;
-using namespace std::string_literals;
 
 std::shared_ptr<Properties> CreateProperties()
 {
@@ -53,11 +52,12 @@ void SetSolutionStepValuesForGeneralCheck(const Element::Pointer& rElement)
     const auto zero_values = array_1d<double, 3>{0.0, 0.0, 0.0};
     const auto gravity     = array_1d<double, 3>{0.0, -10.0, 0.0};
 
-    for (auto& r_node : rElement->GetGeometry()) {
+    for (int counter = 0; auto& r_node : rElement->GetGeometry()) {
         r_node.FastGetSolutionStepValue(VELOCITY)            = zero_values;
         r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity;
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE)      = 1.0E4;
-        r_node.FastGetSolutionStepValue(DT_WATER_PRESSURE)   = 0.0;
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE)    = counter * 1.0e5;
+        r_node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = counter * 5.0e5;
+        ++counter;
     }
     rElement->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{-0.015, 0.0, 0.0};
     rElement->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.015, 0.00, 0.0};
@@ -104,13 +104,6 @@ void testBenchmark(benchmark::State& state)
 
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
-
-    auto r_geometry = p_element->GetGeometry();
-    for (int counter = 0; auto& node : r_geometry) {
-        node.FastGetSolutionStepValue(WATER_PRESSURE)    = counter * 1.0e5;
-        node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = counter * 5.0e5;
-        ++counter;
-    }
 
     for (auto _ : state) {
         auto LHS               = Matrix{};
