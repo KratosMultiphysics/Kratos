@@ -11,8 +11,8 @@
 //
 
 #include "custom_processes/geo_apply_constant_scalar_value_process.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <algorithm>
 

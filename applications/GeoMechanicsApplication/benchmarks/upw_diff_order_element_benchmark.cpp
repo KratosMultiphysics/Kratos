@@ -18,7 +18,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "geometries/triangle_2d_6.h"
 #include "includes/cfd_variables.h"
-#include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.h"
 #include <benchmark/benchmark.h>
 
 namespace
@@ -103,7 +103,7 @@ namespace Kratos
 void testBenchmark(benchmark::State& state)
 {
     auto properties = CreateProperties();
-    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
+    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
