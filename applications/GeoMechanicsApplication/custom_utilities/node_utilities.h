@@ -38,6 +38,11 @@ public:
                                                                        const array_1d<double, 3>& rNewValues,
                                                                        IndexType SolutionStepIndex = 0);
 
+    static void AssignUpdatedVectorVariableToNodes(const ModelPart::NodesContainerType& rNodes,
+                                                   const Variable<array_1d<double, 3>>& rDestinationVariable,
+                                                   const array_1d<double, 3>& rNewValues,
+                                                   IndexType SolutionStepIndex = 0);
+
     static std::map<IndexType, IndexType> CreateGlobalToLocalNodeIndexMap(const PointerVector<Node>& rNodes);
 };
 

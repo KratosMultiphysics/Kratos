@@ -77,9 +77,9 @@ private:
     {
         if (!GetComputationalModelPart().HasNodalSolutionStepVariable(rVariable)) return;
 
-        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+        NodeUtilities::AssignUpdatedVectorVariableToNodes(
             GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 0);
-        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
+        NodeUtilities::AssignUpdatedVectorVariableToNodes(
             GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 1);
     }
 
