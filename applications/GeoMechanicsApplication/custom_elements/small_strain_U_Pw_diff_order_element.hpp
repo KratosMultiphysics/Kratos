@@ -186,7 +186,7 @@ public:
             this->CalculateIntegrationCoefficients(integration_points, det_Js_initial_configuration);
 
         const auto mass_matrix_u = GeoEquationOfMotionUtilities::CalculateMassMatrix(
-            r_geom.WorkingSpaceDimension(), r_geom.PointsNumber(), integration_points.size(),
+            TDim, TNumNodes, integration_points.size(),
             r_geom.ShapeFunctionsValues(integration_method), solid_densities, integration_coefficients);
 
         rMassMatrix = ZeroMatrix(GetNumberOfDOF(), GetNumberOfDOF());
@@ -320,7 +320,7 @@ public:
 
             // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
             const Matrix&  n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
-            const SizeType num_u_nodes = r_geom.PointsNumber();
+            const SizeType num_u_nodes = TNumNodes;
 
             // Defining necessary variables
             Vector nodal_hydraulic_head = ZeroVector(num_u_nodes);
@@ -354,16 +354,16 @@ public:
                                        nodal_hydraulic_head.begin(), 0.0);
             }
         } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
-            KRATOS_ERROR_IF(r_geom.WorkingSpaceDimension() != 2 && r_geom.WorkingSpaceDimension() != 3)
+            KRATOS_ERROR_IF(TDim != 2 && TDim != 3)
                 << rVariable.Name() << " can not be retrieved for dim "
-                << r_geom.WorkingSpaceDimension() << " in element: " << this->Id() << std::endl;
+                << TDim << " in element: " << this->Id() << std::endl;
             size_t variable_index = 0;
             if (rVariable == CONFINED_STIFFNESS) {
-                variable_index = r_geom.WorkingSpaceDimension() == 2
+                variable_index = TDim == 2
                                      ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX)
                                      : static_cast<size_t>(INDEX_3D_XX);
             } else {
-                variable_index = r_geom.WorkingSpaceDimension() == 2
+                variable_index = TDim == 2
                                      ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY)
                                      : static_cast<size_t>(INDEX_3D_XZ);
             }
@@ -807,10 +807,9 @@ protected:
         KRATOS_TRY
 
         const GeometryType& r_geom      = GetGeometry();
-        const SizeType      num_u_nodes = r_geom.PointsNumber();
+        const SizeType      num_u_nodes = TNumNodes;
         const SizeType      num_p_nodes = mpPressureGeometry->PointsNumber();
         const SizeType num_g_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
-        const SizeType n_dim        = r_geom.WorkingSpaceDimension();
 
         // Variables at all integration points
         rVariables.NuContainer.resize(num_g_points, num_u_nodes, false);
@@ -824,9 +823,9 @@ protected:
 
         rVariables.DNu_DXContainer.resize(num_g_points, false);
         for (SizeType i = 0; i < num_g_points; ++i)
-            ((rVariables.DNu_DXContainer)[i]).resize(num_u_nodes, n_dim, false);
-        rVariables.DNu_DX.resize(num_u_nodes, n_dim, false);
-        rVariables.DNu_DXInitialConfiguration.resize(num_u_nodes, n_dim, false);
+            ((rVariables.DNu_DXContainer)[i]).resize(num_u_nodes, TDim, false);
+        rVariables.DNu_DX.resize(num_u_nodes, TDim, false);
+        rVariables.DNu_DXInitialConfiguration.resize(num_u_nodes, TDim, false);
         rVariables.detJuContainer.resize(num_g_points, false);
 
         try {
@@ -846,8 +845,8 @@ protected:
 
         (rVariables.DNp_DXContainer).resize(num_g_points, false);
         for (SizeType i = 0; i < num_g_points; ++i)
-            ((rVariables.DNp_DXContainer)[i]).resize(num_p_nodes, n_dim, false);
-        (rVariables.DNp_DX).resize(num_p_nodes, n_dim, false);
+            ((rVariables.DNp_DXContainer)[i]).resize(num_p_nodes, TDim, false);
+        (rVariables.DNp_DX).resize(num_p_nodes, TDim, false);
         Vector detJpContainer = ZeroVector(num_g_points);
 
         try {
@@ -868,8 +867,8 @@ protected:
         // Variables computed at each integration point
         const SizeType VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
 
-        rVariables.B.resize(VoigtSize, num_u_nodes * n_dim, false);
-        noalias(rVariables.B) = ZeroMatrix(VoigtSize, num_u_nodes * n_dim);
+        rVariables.B.resize(VoigtSize, num_u_nodes * TDim, false);
+        noalias(rVariables.B) = ZeroMatrix(VoigtSize, num_u_nodes * TDim);
 
         rVariables.StrainVector.resize(VoigtSize, false);
         rVariables.ConstitutiveMatrix.resize(VoigtSize, VoigtSize, false);
@@ -877,8 +876,8 @@ protected:
         rVariables.StressVector.resize(VoigtSize, false);
 
         // Needed parameters for consistency with the general constitutive law
-        rVariables.F.resize(n_dim, n_dim, false);
-        noalias(rVariables.F) = identity_matrix<double>(n_dim);
+        rVariables.F.resize(TDim, TDim, false);
+        noalias(rVariables.F) = identity_matrix<double>(TDim);
 
         // Nodal variables
         this->InitializeNodalVariables(rVariables);
@@ -903,17 +902,16 @@ protected:
         KRATOS_TRY
 
         const GeometryType& r_geom      = GetGeometry();
-        const SizeType      n_dim       = r_geom.WorkingSpaceDimension();
-        const SizeType      num_u_nodes = r_geom.PointsNumber();
+        const SizeType      num_u_nodes = TNumNodes;
         const SizeType      num_p_nodes = mpPressureGeometry->PointsNumber();
 
         Vector BodyAccelerationAux = ZeroVector(3);
-        rVariables.BodyAcceleration.resize(num_u_nodes * n_dim, false);
-        rVariables.DisplacementVector.resize(num_u_nodes * n_dim, false);
-        rVariables.VelocityVector.resize(num_u_nodes * n_dim, false);
+        rVariables.BodyAcceleration.resize(num_u_nodes * TDim, false);
+        rVariables.DisplacementVector.resize(num_u_nodes * TDim, false);
+        rVariables.VelocityVector.resize(num_u_nodes * TDim, false);
 
         for (SizeType i = 0; i < num_u_nodes; ++i) {
-            SizeType Local_i    = i * n_dim;
+            SizeType Local_i    = i * TDim;
             BodyAccelerationAux = r_geom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
             rVariables.BodyAcceleration[Local_i] = BodyAccelerationAux[0];
@@ -924,7 +922,7 @@ protected:
             rVariables.DisplacementVector[Local_i + 1] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
             rVariables.VelocityVector[Local_i + 1] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y);
 
-            if (n_dim > 2) {
+            if constexpr (TDim > 2) {
                 rVariables.BodyAcceleration[Local_i + 2] = BodyAccelerationAux[2];
                 rVariables.DisplacementVector[Local_i + 2] = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
                 rVariables.VelocityVector[Local_i + 2] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Z);
@@ -1217,14 +1215,13 @@ protected:
             prod(rVariables.DNp_DX, rVariables.IntrinsicPermeability) * rVariables.IntegrationCoefficient;
 
         const GeometryType& r_geom      = GetGeometry();
-        const SizeType      dimension   = r_geom.WorkingSpaceDimension();
-        const SizeType      num_U_nodes = r_geom.PointsNumber();
+        const SizeType      num_U_nodes = TNumNodes;
 
-        Vector body_acceleration = ZeroVector(dimension);
+        Vector body_acceleration = ZeroVector(TDim);
 
         SizeType index = 0;
         for (SizeType i = 0; i < num_U_nodes; ++i) {
-            for (SizeType idim = 0; idim < dimension; ++idim) {
+            for (SizeType idim = 0; idim < TDim; ++idim) {
                 body_acceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[index];
                 index++;
             }
@@ -1268,8 +1265,7 @@ protected:
         KRATOS_TRY
 
         GeometryType&  r_geom      = GetGeometry();
-        const SizeType num_u_nodes = r_geom.PointsNumber();
-        const SizeType n_dim       = r_geom.WorkingSpaceDimension();
+        const SizeType num_u_nodes = TNumNodes;
 
         switch (num_u_nodes) {
         case 6: // 2D T6P3
@@ -1301,7 +1297,7 @@ protected:
         }
         case 10: // 3D T10P4  //2D T10P6
         {
-            if (n_dim == 3) {
+            if constexpr (TDim == 3) {
                 const Vector p = GetPressures(4);
                 ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
                 ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
@@ -1309,7 +1305,8 @@ protected:
                 ThreadSafeNodeWrite(r_geom[7], WATER_PRESSURE, 0.5 * (p[0] + p[3]));
                 ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, 0.5 * (p[1] + p[3]));
                 ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE, 0.5 * (p[2] + p[3]));
-            } else if (n_dim == 2) {
+            }
+            if constexpr (TDim == 2) {
                 constexpr double c1 = 1.0 / 9.0;
                 const Vector     p  = GetPressures(6);
                 ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, (2.0 * p[0] - p[1] + 8.0 * p[3]) * c1);
