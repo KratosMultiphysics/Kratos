@@ -38,7 +38,7 @@
             "python_module" : "apply_far_field_and_wake_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
-                "far_field_model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "define_wake": true,
                 "wake_type"  : "Operations.KratosMultiphysics.CompressiblePotentialFlowApplication.Define2DWakeOperation",
                 "wake_parameters"    : {

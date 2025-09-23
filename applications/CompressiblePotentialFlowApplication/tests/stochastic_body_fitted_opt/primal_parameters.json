@@ -30,27 +30,24 @@
     "processes": {
         "boundary_conditions_process_list": [
             {
+                "python_module": "apply_far_field_and_wake_process",
+                "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "process_name": "ApplyFarFieldAndWakeProcess",
                 "Parameters": {
+                    "model_part_name": "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                     "angle_of_attack": 0.0,
                     "free_stream_density": 1.225,
                     "inlet_potential": 1.0,
                     "mach_infinity": 0.2,
-                    "model_part_name": "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1"
-                },
-                "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
-                "process_name": "FarFieldProcess",
-                "python_module": "apply_far_field_process"
-            },
-            {
-                "Parameters": {
+                    "define_wake": true,
                     "compute_wake_at_each_step": true,
-                    "echo_level": 0,
-                    "epsilon": 1e-09,
-                    "model_part_name": "FluidModelPart.Body2D_Body"
-                },
-                "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
-                "process_name": "DefineWakeProcess",
-                "python_module": "define_wake_process_2d"
+                    "wake_type"  : "Operations.KratosMultiphysics.CompressiblePotentialFlowApplication.Define2DWakeOperation",
+                    "wake_parameters": {
+                        "model_part_name": "FluidModelPart.Body2D_Body",
+                        "wake_distance_tolerance": 1e-09,
+                        "echo_level": 0
+                    }
+                }
             }
         ],
         "initial_conditions_process_list": [],

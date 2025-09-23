@@ -57,7 +57,7 @@
             "python_module" : "apply_far_field_and_wake_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "Parameters"    : {
-                "far_field_model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.02941176471,
                 "inlet_potential": 1.0,

@@ -36,7 +36,7 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
-                "far_field_model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "free_stream_density"  : 1.225,
                 "mach_infinity": 0.6,
                 "heat_capacity_ratio": 1.4,
