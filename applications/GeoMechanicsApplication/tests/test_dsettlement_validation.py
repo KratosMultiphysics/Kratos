@@ -130,7 +130,6 @@ def make_stress_over_y_plot(
     node_ids_over_depth,
     ref_data,
     plot_file_path,
-    want_total_stress_plot=False,
     want_water_pressure_plot=True,
 ):
     data_series_collection = []
@@ -264,6 +263,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             ref_y_coordinates = get_ref_y_coordinates(
                 project_path / "stage1.post.msh", left_side_corner_node_ids
             )
+
             # Make a stress plot at the start of the analysis
             ref_data = [
                 {
