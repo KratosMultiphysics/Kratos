@@ -301,8 +301,6 @@ private:
     {
         KRATOS_TRY
 
-        const GeometryType& r_geom = this->GetGeometry();
-
         const Matrix reduced_Kg_matrix =
             prod(rDNuDx, Matrix(prod(MathUtils<double>::StressVectorToTensor(rStressVector), trans(rDNuDx)))) *
             IntegrationCoefficient;

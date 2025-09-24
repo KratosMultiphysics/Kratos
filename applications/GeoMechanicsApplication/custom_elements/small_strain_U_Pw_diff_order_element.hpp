@@ -1231,8 +1231,6 @@ protected:
             GetProperties()[DENSITY_WATER] * rVariables.RelativePermeability *
             prod(rVariables.DNp_DX, rVariables.IntrinsicPermeability) * rVariables.IntegrationCoefficient;
 
-        const GeometryType& r_geom = GetGeometry();
-
         Vector body_acceleration = ZeroVector(TDim);
 
         SizeType index = 0;
