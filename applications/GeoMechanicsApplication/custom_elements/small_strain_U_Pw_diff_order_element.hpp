@@ -1020,7 +1020,7 @@ protected:
     {
         KRATOS_TRY
 
-        BoundedMatrix<double, TDim*TNumNodes, TNumNodes> coupling_matrix;
+        Matrix coupling_matrix(TDim*TNumNodes, rVariables.Np.size());
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
@@ -1121,7 +1121,7 @@ protected:
     {
         KRATOS_TRY
 
-        BoundedMatrix<double,TDim * TNumNodes, TNumNodes > coupling_matrix;
+        Matrix coupling_matrix(TDim*TNumNodes, rVariables.Np.size());
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
