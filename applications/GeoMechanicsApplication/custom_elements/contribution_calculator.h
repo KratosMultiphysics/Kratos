@@ -18,14 +18,15 @@
 namespace Kratos
 {
 
+template <unsigned int TNumNodes>
 class ContributionCalculator
 {
 public:
     virtual ~ContributionCalculator() = default;
 
-    virtual std::optional<Matrix>                    LHSContribution()         = 0;
-    virtual Vector                                   RHSContribution()         = 0;
-    virtual std::pair<std::optional<Matrix>, Vector> LocalSystemContribution() = 0;
+    virtual std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> LHSContribution() = 0;
+    virtual BoundedVector<double, TNumNodes>                           RHSContribution() = 0;
+    virtual std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> LocalSystemContribution() = 0;
 };
 
 } // namespace Kratos
