@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPre
     constexpr auto y_node_2     = -2.0;
     auto           model        = Model{};
     auto&          r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
-    const auto     test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-2.0);
+    const auto     test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(y_node_2);
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
