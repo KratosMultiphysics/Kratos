@@ -43,8 +43,8 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_properties = this->GetProperties();
+    const auto& r_geometry   = this->GetGeometry();
 
     // Base class checks for positive area and Id > 0
     int ierr = Element::Check(rCurrentProcessInfo);
@@ -57,8 +57,8 @@ int UndrainedUPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const CheckProperties check_properties(r_properties, "material properties at element",
-                                           element_Id, CheckProperties::Bounds::AllExclusive);
+    const CheckProperties check_properties(r_properties, "material properties", element_Id,
+                                           CheckProperties::Bounds::AllExclusive);
     check_properties.Check(BULK_MODULUS_FLUID);
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
