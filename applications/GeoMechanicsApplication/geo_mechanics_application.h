@@ -95,7 +95,6 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/steady_state_Pw_element.hpp"
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
-#include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_elements/transient_Pw_line_element.h"
@@ -399,9 +398,6 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const SteadyStatePwPipingElement<2, 4> mSteadyStatePwPipingElement2D4N{
-        0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
     const GeoSteadyStatePwPipingElement<2, 2> mGeoSteadyStatePwPipingElement2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
     const GeoSteadyStatePwPipingElement<3, 2> mGeoSteadyStatePwPipingElement3D2N{
