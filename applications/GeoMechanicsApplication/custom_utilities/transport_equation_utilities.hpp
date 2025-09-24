@@ -47,8 +47,8 @@ public:
                                               double        RelativePermeability,
                                               double        IntegrationCoefficient);
 
-    template<typename TMatrixType>
-    static inline void CalculateCouplingMatrix(TMatrixType&       rCouplingMatrix,
+    template <typename TMatrixType>
+    static inline void CalculateCouplingMatrix(TMatrixType&  rCouplingMatrix,
                                                const Matrix& rB,
                                                const Vector& rVoigtVector,
                                                const Vector& rNp,
@@ -61,10 +61,10 @@ public:
 
         Vector temp_vector(rB.size2());
         noalias(temp_vector) = prod(trans(rB), rVoigtVector);
-if (rCouplingMatrix.size1() !=rB.size2()) {
-    std::cout << "rCouplingMatrix.size1(): " << rCouplingMatrix.size1() << std::endl;
-    std::cout << "rB.size2(): " << rB.size2() << std::endl;
-}
+        if (rCouplingMatrix.size1() != rB.size2()) {
+            std::cout << "rCouplingMatrix.size1(): " << rCouplingMatrix.size1() << std::endl;
+            std::cout << "rB.size2(): " << rB.size2() << std::endl;
+        }
         noalias(rCouplingMatrix) = multiplier * outer_prod(temp_vector, rNp);
     }
 

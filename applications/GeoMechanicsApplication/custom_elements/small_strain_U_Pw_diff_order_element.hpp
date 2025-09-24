@@ -53,6 +53,22 @@ public:
 
     using UPwBaseElement::UPwBaseElement;
 
+    static constexpr std::size_t TNumPNodes = []() constexpr {
+        if constexpr (TDim == 2) {
+            if constexpr (TNumNodes == 6) return 3;   // 2D T6P3
+            if constexpr (TNumNodes == 8) return 4;   // 2D Q8P4
+            if constexpr (TNumNodes == 9) return 4;   // 2D Q9P4
+            if constexpr (TNumNodes == 10) return 6;  // 2D T10P6
+            if constexpr (TNumNodes == 15) return 10; // 2D T15P10
+        } else if constexpr (TDim == 3) {
+            if constexpr (TNumNodes == 10) return 4; // 3D T10P4
+            if constexpr (TNumNodes == 20) return 8; // 3D T20P8
+            if constexpr (TNumNodes == 27) return 8; // 3D T27P8
+        }
+        static_assert("The number of pressure nodes for the given element is not defined.");
+        return 0;
+    }();
+
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
@@ -60,6 +76,10 @@ public:
         : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
         SetUpPressureGeometryPointer();
+        if (TNumPNodes != mpPressureGeometry->PointsNumber()) {
+            KRATOS_ERROR << "The number of pressure nodes is not correct. Expected: " << TNumPNodes
+                         << " - Given: " << mpPressureGeometry->PointsNumber() << std::endl;
+        }
     }
 
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
@@ -70,6 +90,10 @@ public:
         : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
         SetUpPressureGeometryPointer();
+        if (TNumPNodes != mpPressureGeometry->PointsNumber()) {
+            KRATOS_ERROR << "The number of pressure nodes is not correct. Expected: " << TNumPNodes
+                         << " - Given: " << mpPressureGeometry->PointsNumber() << std::endl;
+        }
     }
 
     ~SmallStrainUPwDiffOrderElement() override = default;
@@ -803,18 +827,17 @@ protected:
         KRATOS_TRY
 
         const GeometryType& r_geom      = GetGeometry();
-        const SizeType      num_p_nodes = mpPressureGeometry->PointsNumber();
         const SizeType num_g_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
         // Variables at all integration points
         rVariables.NuContainer.resize(num_g_points, TNumNodes, false);
         rVariables.NuContainer = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-        rVariables.NpContainer.resize(num_g_points, num_p_nodes, false);
+        rVariables.NpContainer.resize(num_g_points, TNumPNodes, false);
         rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues(this->GetIntegrationMethod());
 
         rVariables.Nu.resize(TNumNodes, false);
-        rVariables.Np.resize(num_p_nodes, false);
+        rVariables.Np.resize(TNumPNodes, false);
 
         rVariables.DNu_DXContainer.resize(num_g_points, false);
         for (SizeType i = 0; i < num_g_points; ++i)
@@ -840,8 +863,8 @@ protected:
 
         (rVariables.DNp_DXContainer).resize(num_g_points, false);
         for (SizeType i = 0; i < num_g_points; ++i)
-            ((rVariables.DNp_DXContainer)[i]).resize(num_p_nodes, TDim, false);
-        (rVariables.DNp_DX).resize(num_p_nodes, TDim, false);
+            ((rVariables.DNp_DXContainer)[i]).resize(TNumPNodes, TDim, false);
+        (rVariables.DNp_DX).resize(TNumPNodes, TDim, false);
         Vector detJpContainer = ZeroVector(num_g_points);
 
         try {
@@ -897,7 +920,6 @@ protected:
         KRATOS_TRY
 
         const GeometryType& r_geom      = GetGeometry();
-        const SizeType      num_p_nodes = mpPressureGeometry->PointsNumber();
 
         Vector BodyAccelerationAux = ZeroVector(3);
         rVariables.BodyAcceleration.resize(TNumNodes * TDim, false);
@@ -923,11 +945,11 @@ protected:
             }
         }
 
-        rVariables.PressureVector.resize(num_p_nodes, false);
-        rVariables.PressureDtVector.resize(num_p_nodes, false);
-        rVariables.DeltaPressureVector.resize(num_p_nodes, false);
+        rVariables.PressureVector.resize(TNumPNodes, false);
+        rVariables.PressureDtVector.resize(TNumPNodes, false);
+        rVariables.DeltaPressureVector.resize(TNumPNodes, false);
         const auto& r_p_geometry = *mpPressureGeometry;
-        for (SizeType i = 0; i < num_p_nodes; ++i) {
+        for (SizeType i = 0; i < TNumPNodes; ++i) {
             rVariables.PressureVector[i] = r_p_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE);
             rVariables.PressureDtVector[i] = r_p_geometry[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
             rVariables.DeltaPressureVector[i] =
@@ -1020,7 +1042,7 @@ protected:
     {
         KRATOS_TRY
 
-        Matrix coupling_matrix(TDim*TNumNodes, rVariables.Np.size());
+        BoundedMatrix<double, TDim * TNumNodes, TNumPNodes> coupling_matrix;
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
@@ -1121,7 +1143,7 @@ protected:
     {
         KRATOS_TRY
 
-        Matrix coupling_matrix(TDim*TNumNodes, rVariables.Np.size());
+        BoundedMatrix<double, TDim * TNumNodes, TNumPNodes> coupling_matrix;
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
