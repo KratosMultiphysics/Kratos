@@ -29,7 +29,7 @@ void AddAcceleration(Node& rNode)
     rNode.AddDof(ACCELERATION_Z);
 }
 
-PointerVectorSet<Node, IndexedObject> NodeContainerWithOneFixedDOF(intrusive_ptr<Node>& pNode)
+PointerVectorSet<Node, IndexedObject> NodeContainerWithOneFixedDOF(const intrusive_ptr<Node>& pNode)
 {
     AddAcceleration(*pNode);
     pNode->Fix(ACCELERATION_Y);
