@@ -254,30 +254,32 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
 
     auto p_element2 =
         CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(r_model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_element2->Check(dummy_process_info),
-        "DENSITY_WATER does not exist in the material properties at element with Id 2.")
-    p_element2->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element2->Check(dummy_process_info),
-                                      "DENSITY_WATER in the material properties at element with Id "
-                                      "2 has an invalid value: -1000 is out of the range [0; -).")
-    p_element2->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
+                                      "DENSITY_WATER does not exist in the material properties at "
+                                      "element with Id 0 at element with Id 2.")
+    p_element2->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "DYNAMIC_VISCOSITY does not exist in the material properties at element with Id 2.")
+        "DENSITY_WATER in the material properties at element with Id 0 at element with Id 2 has an "
+        "invalid value: -1000 is out of the range [0, -).")
+    p_element2->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element2->Check(dummy_process_info),
+                                      "DYNAMIC_VISCOSITY does not exist in the material properties "
+                                      "at element with Id 0 at element with Id 2.")
     p_element2->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "DYNAMIC_VISCOSITY in the material properties at element with Id 2 has an invalid value: "
-        "-0.01 is out of the range [0; -).")
+        "DYNAMIC_VISCOSITY in the material properties at element with Id 0 at element with Id 2 "
+        "has an invalid value: -0.01 is out of the range [0, -).")
     p_element2->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element2->Check(dummy_process_info),
+                                      "PIPE_HEIGHT does not exist in the material properties at "
+                                      "element with Id 0 at element with Id 2.")
+    p_element2->GetProperties().SetValue(PIPE_HEIGHT, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element2->Check(dummy_process_info),
-        "PIPE_HEIGHT does not exist in the material properties at element with Id 2.")
-    p_element2->GetProperties().SetValue(PIPE_HEIGHT, -1.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element2->Check(dummy_process_info),
-                                      "PIPE_HEIGHT in the material properties at element with Id 2 "
-                                      "has an invalid value: -1 is out of the range [0; -).")
+        "PIPE_HEIGHT in the material properties at element with Id 0 at element with Id 2 has an "
+        "invalid value: -1 is out of the range [0, -).")
     p_element2->GetProperties().SetValue(PIPE_HEIGHT, 1.0);
 
     p_element2->GetGeometry().begin()->Z() += 1;
