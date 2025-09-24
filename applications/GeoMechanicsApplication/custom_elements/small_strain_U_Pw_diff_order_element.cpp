@@ -28,7 +28,7 @@ template <>
 void SmallStrainUPwDiffOrderElement<2, 6>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
-    //    case 6: // 2D T6P3
+    // 2D T6P3
     mpPressureGeometry = make_shared<Triangle2D3<Node>>(r_geometry(0), r_geometry(1), r_geometry(2));
 }
 
@@ -36,7 +36,7 @@ template <>
 void SmallStrainUPwDiffOrderElement<2, 8>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
-    // case 8: // 2D Q8P4
+    // 2D Q8P4
     mpPressureGeometry =
         make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3));
 }
@@ -45,7 +45,7 @@ template <>
 void SmallStrainUPwDiffOrderElement<2, 9>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
-    // case 9: // 2D Q9P4
+    // 2D Q9P4
     mpPressureGeometry =
         make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3));
 }
@@ -54,8 +54,7 @@ template <>
 void SmallStrainUPwDiffOrderElement<3, 10>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
-    // case 10:
-    //     if (dimension == 3) // 3D T10P4
+    //  3D T10P4
     mpPressureGeometry =
         make_shared<Tetrahedra3D4<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3));
 }
@@ -64,7 +63,7 @@ template <>
 void SmallStrainUPwDiffOrderElement<2, 10>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
-    //       else if (dimension == 2) // 2D T10P6
+    // 2D T10P6
     mpPressureGeometry = make_shared<Triangle2D6<Node>>(
         r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5));
 }
@@ -73,7 +72,7 @@ template <>
 void SmallStrainUPwDiffOrderElement<2, 15>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
-    // case 15: // 2D T15P10
+    // 2D T15P10
     mpPressureGeometry = make_shared<Triangle2D10<Node>>(
         r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5),
         r_geometry(6), r_geometry(7), r_geometry(8), r_geometry(9));
@@ -83,7 +82,7 @@ template <>
 void SmallStrainUPwDiffOrderElement<3, 20>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
-    // case 20: // 3D H20P8
+    // 3D H20P8
     mpPressureGeometry =
         make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
                                         r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
@@ -93,7 +92,7 @@ template <>
 void SmallStrainUPwDiffOrderElement<3, 27>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
-    // case 27: // 3D H27P8
+    // 3D H27P8
     mpPressureGeometry =
         make_shared<Hexahedra3D8<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3),
                                         r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
@@ -107,7 +106,7 @@ void SmallStrainUPwDiffOrderElement<2, 6>::AssignPressureToIntermediateNodes()
 
     GeometryType& r_geom = GetGeometry();
 
-    //        case 6: // 2D T6P3
+    // 2D T6P3
     const Vector p = GetPressures(3);
     ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
     ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
@@ -122,7 +121,7 @@ void SmallStrainUPwDiffOrderElement<2, 8>::AssignPressureToIntermediateNodes()
     KRATOS_TRY
 
     GeometryType& r_geom = GetGeometry();
-    //     case 8: // 2D Q8P4
+    // 2D Q8P4
     const Vector p = GetPressures(4);
     ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
     ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
@@ -138,7 +137,7 @@ void SmallStrainUPwDiffOrderElement<2, 9>::AssignPressureToIntermediateNodes()
     KRATOS_TRY
 
     GeometryType& r_geom = GetGeometry();
-    // case 9: // 2D Q9P4
+    // 2D Q9P4
     const Vector p = GetPressures(4);
     ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
     ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
@@ -155,8 +154,7 @@ void SmallStrainUPwDiffOrderElement<3, 10>::AssignPressureToIntermediateNodes()
     KRATOS_TRY
 
     GeometryType& r_geom = GetGeometry();
-    // case 10: // 3D T10P4  //2D T10P6
-    //            if constexpr (TDim == 3) {
+    // 3D T10P4  //2D T10P6
     const Vector p = GetPressures(4);
     ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
     ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
@@ -193,7 +191,7 @@ void SmallStrainUPwDiffOrderElement<2, 15>::AssignPressureToIntermediateNodes()
     KRATOS_TRY
 
     GeometryType& r_geom = GetGeometry();
-    // case 15: // 2D T15P10
+    // 2D T15P10
     constexpr double c1 = 0.0390625;
     const Vector     p  = GetPressures(10);
     ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, (3.0 * p[0] + p[1] + 27.0 * p[3] - 5.4 * p[4]) * c1);
@@ -227,7 +225,7 @@ void SmallStrainUPwDiffOrderElement<3, 20>::AssignPressureToIntermediateNodes()
     KRATOS_TRY
 
     GeometryType& r_geom = GetGeometry();
-    // case 20: // 3D H20P8
+    // 3D H20P8
     const Vector p = GetPressures(8);
     // edges -- bottom
     ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
@@ -254,7 +252,7 @@ void SmallStrainUPwDiffOrderElement<3, 27>::AssignPressureToIntermediateNodes()
     KRATOS_TRY
 
     GeometryType& r_geom = GetGeometry();
-    // case 27: // 3D H27P8
+    // 3D H27P8
     const Vector p = GetPressures(8);
     // edges -- bottom
     ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
