@@ -24,6 +24,7 @@
 
 namespace Kratos
 {
+template <>
 void SmallStrainUPwDiffOrderElement<2, 6>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
@@ -31,6 +32,7 @@ void SmallStrainUPwDiffOrderElement<2, 6>::SetUpPressureGeometryPointer()
     mpPressureGeometry = make_shared<Triangle2D3<Node>>(r_geometry(0), r_geometry(1), r_geometry(2));
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<2, 8>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
@@ -39,6 +41,7 @@ void SmallStrainUPwDiffOrderElement<2, 8>::SetUpPressureGeometryPointer()
         make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3));
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<2, 9>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
@@ -47,6 +50,7 @@ void SmallStrainUPwDiffOrderElement<2, 9>::SetUpPressureGeometryPointer()
         make_shared<Quadrilateral2D4<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3));
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<3, 10>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
@@ -56,6 +60,7 @@ void SmallStrainUPwDiffOrderElement<3, 10>::SetUpPressureGeometryPointer()
         make_shared<Tetrahedra3D4<Node>>(r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3));
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<2, 10>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
@@ -64,6 +69,7 @@ void SmallStrainUPwDiffOrderElement<2, 10>::SetUpPressureGeometryPointer()
         r_geometry(0), r_geometry(1), r_geometry(2), r_geometry(3), r_geometry(4), r_geometry(5));
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<2, 15>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
@@ -73,6 +79,7 @@ void SmallStrainUPwDiffOrderElement<2, 15>::SetUpPressureGeometryPointer()
         r_geometry(6), r_geometry(7), r_geometry(8), r_geometry(9));
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<3, 20>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
@@ -82,6 +89,7 @@ void SmallStrainUPwDiffOrderElement<3, 20>::SetUpPressureGeometryPointer()
                                         r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<3, 27>::SetUpPressureGeometryPointer()
 {
     const auto& r_geometry = GetGeometry();
@@ -91,6 +99,7 @@ void SmallStrainUPwDiffOrderElement<3, 27>::SetUpPressureGeometryPointer()
                                         r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<2, 6>::AssignPressureToIntermediateNodes()
 {
     // Assign pressure values to the intermediate nodes for post-processing
@@ -106,6 +115,7 @@ void SmallStrainUPwDiffOrderElement<2, 6>::AssignPressureToIntermediateNodes()
     KRATOS_CATCH("")
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<2, 8>::AssignPressureToIntermediateNodes()
 {
     // Assign pressure values to the intermediate nodes for post-processing
@@ -121,6 +131,7 @@ void SmallStrainUPwDiffOrderElement<2, 8>::AssignPressureToIntermediateNodes()
     KRATOS_CATCH("")
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<2, 9>::AssignPressureToIntermediateNodes()
 {
     // Assign pressure values to the intermediate nodes for post-processing
@@ -137,6 +148,7 @@ void SmallStrainUPwDiffOrderElement<2, 9>::AssignPressureToIntermediateNodes()
     KRATOS_CATCH("")
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<3, 10>::AssignPressureToIntermediateNodes()
 {
     // Assign pressure values to the intermediate nodes for post-processing
@@ -155,6 +167,7 @@ void SmallStrainUPwDiffOrderElement<3, 10>::AssignPressureToIntermediateNodes()
     KRATOS_CATCH("")
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<2, 10>::AssignPressureToIntermediateNodes()
 {
     // Assign pressure values to the intermediate nodes for post-processing
@@ -173,6 +186,7 @@ void SmallStrainUPwDiffOrderElement<2, 10>::AssignPressureToIntermediateNodes()
     KRATOS_CATCH("")
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<2, 15>::AssignPressureToIntermediateNodes()
 {
     // Assign pressure values to the intermediate nodes for post-processing
@@ -206,6 +220,7 @@ void SmallStrainUPwDiffOrderElement<2, 15>::AssignPressureToIntermediateNodes()
     KRATOS_CATCH("")
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<3, 20>::AssignPressureToIntermediateNodes()
 {
     // Assign pressure values to the intermediate nodes for post-processing
@@ -232,6 +247,7 @@ void SmallStrainUPwDiffOrderElement<3, 20>::AssignPressureToIntermediateNodes()
     KRATOS_CATCH("")
 }
 
+template <>
 void SmallStrainUPwDiffOrderElement<3, 27>::AssignPressureToIntermediateNodes()
 {
     // Assign pressure values to the intermediate nodes for post-processing
