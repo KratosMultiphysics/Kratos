@@ -539,9 +539,8 @@ public:
             const auto permeability_update_factors =
                 GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(strain_vectors,
                                                                                   GetProperties());
-            std::transform(relative_permeability_values.cbegin(),
-                           relative_permeability_values.cend(), permeability_update_factors.cbegin(),
-                           relative_permeability_values.begin(), std::multiplies<>{});
+            std::ranges::transform(relative_permeability_values, permeability_update_factors,
+                                   relative_permeability_values.begin(), std::multiplies<>{});
 
             // Loop over integration points
             const SizeType dimension = r_geometry.WorkingSpaceDimension();
@@ -786,9 +785,8 @@ protected:
             biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
         auto relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
         const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
-        std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
-                       relative_permeability_values.cbegin(), relative_permeability_values.begin(),
-                       std::multiplies<>{});
+        std::ranges::transform(permeability_update_factors, relative_permeability_values,
+                               relative_permeability_values.begin(), std::multiplies<>{});
 
         const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
@@ -826,7 +824,7 @@ protected:
     {
         KRATOS_TRY
 
-        const GeometryType& r_geom      = GetGeometry();
+        const GeometryType& r_geom  = GetGeometry();
         const SizeType num_g_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
         // Variables at all integration points
@@ -919,7 +917,7 @@ protected:
     {
         KRATOS_TRY
 
-        const GeometryType& r_geom      = GetGeometry();
+        const GeometryType& r_geom = GetGeometry();
 
         Vector BodyAccelerationAux = ZeroVector(3);
         rVariables.BodyAcceleration.resize(TNumNodes * TDim, false);
@@ -1182,9 +1180,8 @@ protected:
 
         auto result = std::vector<double>{};
         result.reserve(mRetentionLawVector.size());
-        std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(),
-                       rFluidPressures.begin(), std::back_inserter(result),
-                       [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+        std::ranges::transform(mRetentionLawVector, rFluidPressures, std::back_inserter(result),
+                               [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
             retention_law_params.SetFluidPressure(FluidPressure);
             return pRetentionLaw->CalculateRelativePermeability(retention_law_params);
         });
@@ -1199,9 +1196,8 @@ protected:
 
         auto result = std::vector<double>{};
         result.reserve(mRetentionLawVector.size());
-        std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(),
-                       rFluidPressures.begin(), std::back_inserter(result),
-                       [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+        std::ranges::transform(mRetentionLawVector, rFluidPressures, std::back_inserter(result),
+                               [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
             retention_law_params.SetFluidPressure(FluidPressure);
             return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
         });

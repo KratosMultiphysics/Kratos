@@ -177,7 +177,7 @@ public:
         if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
             const auto deformation_gradients = this->CalculateDeformationGradients();
 
-            std::transform(deformation_gradients.begin(), deformation_gradients.end(),
+            std::ranges::transform(deformation_gradients,
                            rOutput.begin(), [this](const Matrix& rDeformationGradient) {
                 return this->CalculateGreenLagrangeStrain(rDeformationGradient);
             });
