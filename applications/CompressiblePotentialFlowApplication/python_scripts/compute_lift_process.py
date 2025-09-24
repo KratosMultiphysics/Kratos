@@ -46,7 +46,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.mean_aerodynamic_chord = settings["mean_aerodynamic_chord"].GetDouble()
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
         self.is_infinite_wing = settings["is_infinite_wing"].GetBool()
-        self.epsilon = 1e-9
+        self.epsilon = 1e-12
 
         if not self.reference_area > self.epsilon or not self.mean_aerodynamic_chord > self.epsilon:
             raise Exception('The reference area and mean aerodynamic chord should be larger than 0.')
@@ -70,7 +70,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.wake_direction = free_stream_velocity / self.free_stream_velocity_norm
 
         self.wake_normal = self.fluid_model_part.ProcessInfo[CPFApp.WAKE_NORMAL]
-        if self.wake_normal.norm2() < self.epsilon:
+        if self.wake_normal.norm_2() < self.epsilon:
             raise Exception('ComputeLiftProcess: The norm of the wake should be larger than 0. Check your wake process.')
 
         self.span_direction = KratosMultiphysics.Vector(3)
