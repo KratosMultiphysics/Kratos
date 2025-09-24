@@ -14,9 +14,9 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_processes/apply_initial_uniform_stress_field.h"
-#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
+#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 namespace Kratos::Testing
 {

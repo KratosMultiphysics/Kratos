@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) FilterCompressibilityCalculator : public ContributionCalculator
+class FilterCompressibilityCalculator : public ContributionCalculator
 {
 public:
     struct InputProvider {

@@ -11,9 +11,9 @@
 //
 
 #include "custom_processes/find_neighbour_elements_of_conditions_process.h"
-#include "test_setup_utilities/element_setup_utilities.h"
-#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
+#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 namespace
 {

@@ -20,7 +20,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) PermeabilityCalculator : public ContributionCalculator
+class PermeabilityCalculator : public ContributionCalculator
 {
 public:
     struct InputProvider {
