@@ -96,6 +96,8 @@ private:
 
     Vector mAppliedActuationValue;
 
+    std::vector<std::string> mUnfixedActuationList;
+
     ///@}
 
 }; // Class ActiveShellElementDofAssignmentProcess

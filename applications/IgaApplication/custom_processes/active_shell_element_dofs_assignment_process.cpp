@@ -32,8 +32,42 @@ ActiveShellElementDofAssignmentProcess::ActiveShellElementDofAssignmentProcess(
     mIgaModelPartName = ThisParameters["iga_model_part_name"].GetString();
     mActiveShellDofModelPartName = ThisParameters["active_shell_model_part_name"].GetString();
     mAppliedActuationList = ThisParameters["applied_actuation_list"].GetStringArray();
-    mAppliedActuationValue = ThisParameters["applied_actuation_value"].GetVector();    
+    mAppliedActuationValue = ThisParameters["applied_actuation_value"].GetVector();
+    mUnfixedActuationList = ThisParameters["unfixed_actuation_list"].GetStringArray();    
 
+
+    // Security: Check consitency of lists lengths
+    if (mAppliedActuationList.size() != mAppliedActuationValue.size() ||
+        mAppliedActuationList.size() != mUnfixedActuationList.size())
+    {
+        std::stringstream msg;
+        msg << "ERROR in ActiveShellElementDofAssignmentProcess:\n"
+            << "Die Listen 'applied_actuation_list', 'applied_actuation_value' und 'unfixed_actuation_list' müssen gleich lang sein!\n"
+            << "Beispiel:\n"
+            << "\"applied_actuation_list\": [\"alpha\", \"beta\", \"gamma\"],\n"
+            << "\"applied_actuation_value\": [0.5, 0.0, 0.0],\n"
+            << "\"unfixed_actuation_list\": [\"fix\", \"free\", \"fix\"]\n"
+            << "Aktuelle Längen: "
+            << mAppliedActuationList.size() << ", "
+            << mAppliedActuationValue.size() << ", "
+            << mUnfixedActuationList.size() << std::endl;
+        KRATOS_ERROR << msg.str();
+    }
+
+    // Security: Allowed keys
+    static const std::set<std::string> allowed_keys = {
+        "alpha", "beta", "gamma", "kappa_1", "kappa_2", "kappa_12"
+    };
+    for (const auto& key : mAppliedActuationList) {
+        KRATOS_ERROR_IF(allowed_keys.find(key) == allowed_keys.end())
+            << "Invalid actuation key: " << key << ". Allowed: alpha, beta, gamma, kappa_1, kappa_2, kappa_12\n";
+    }
+
+    // Security: Only "fix" oder "free" allowed
+    for (const auto& flag : mUnfixedActuationList) {
+        KRATOS_ERROR_IF(flag != "fix" && flag != "free")
+            << "Invalid entry in 'unfixed_actuation_list': " << flag << ". Allowed: \"fix\" or \"free\"\n";
+    }
     // KRATOS_WATCH(ThisParameters.PrettyPrintJsonString()) //CHECKLEO
     // KRATOS_WATCH(mIgaModelPartName) //CHECK LEO
     // KRATOS_WATCH(mActiveShellDofModelPartName) //CHECK LEO
@@ -86,19 +120,6 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
             auto p_active_shell_node = r_active_shell_mp.CreateNewNode(r_geometry.Id(), r_center[0], r_center[1], r_center[2]);
             
             //std::cout << "Active shell node created with ID: " << p_active_shell_node->Id() << std::endl; //CHECKLEO ausgabe der Global Node ID
-            
-            // Security: Check lengths
-            KRATOS_ERROR_IF(mAppliedActuationList.size() != mAppliedActuationValue.size())
-                << "applied_actuation_list and applied_actuation_value must have the same length.\n";
-
-            // Security: Allowed keys
-            static const std::set<std::string> allowed_keys = {
-                "alpha", "beta", "gamma", "kappa_1", "kappa_2", "kappa_12"
-            };
-            for (const auto& key : mAppliedActuationList) {
-                KRATOS_ERROR_IF(allowed_keys.find(key) == allowed_keys.end())
-                    << "Invalid actuation key: " << key << ". Allowed: alpha, beta, gamma, kappa_1, kappa_2, kappa_12\n";
-            }
 
             std::vector<std::string>::iterator itr;
             if ((itr = std::find(mAppliedActuationList.begin(), mAppliedActuationList.end(), "alpha")) != mAppliedActuationList.end()) {
@@ -163,27 +184,28 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
         KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2));
         KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12));
 
-        // Fixiere und setze die Werte für die Aktuierungs-Dofs
-        // r_node.Fix(ACTIVE_SHELL_ALPHA);
-        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = 0.5; // Beispielwert
+        // Fixiere die DOFs nur, wenn nicht "free" angegeben ist
+        for (std::size_t i = 0; i < mAppliedActuationList.size(); ++i) {
+            const std::string& dof_name = mAppliedActuationList[i];
+            const std::string& fix_flag = mUnfixedActuationList[i];
 
-        // r_node.Fix(ACTIVE_SHELL_BETA);
-        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA) = 0.0;
-
-        // r_node.Fix(ACTIVE_SHELL_GAMMA);
-        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA) = 0.0;
-
-        // r_node.Fix(ACTIVE_SHELL_KAPPA_1);
-        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1) = 0.0;
-
-        // r_node.Fix(ACTIVE_SHELL_KAPPA_2);
-        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2) = 0.0;
-
-        // r_node.Fix(ACTIVE_SHELL_KAPPA_12);
-        // r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12) = 0.0;
+            if (fix_flag != "free" && fix_flag != "FREE" && fix_flag != "Free") {
+                if (dof_name == "alpha") {
+                    r_node.Fix(ACTIVE_SHELL_ALPHA);
+                } else if (dof_name == "beta") {
+                    r_node.Fix(ACTIVE_SHELL_BETA);
+                } else if (dof_name == "gamma") {
+                    r_node.Fix(ACTIVE_SHELL_GAMMA);
+                } else if (dof_name == "kappa_1") {
+                    r_node.Fix(ACTIVE_SHELL_KAPPA_1);
+                } else if (dof_name == "kappa_2") {
+                    r_node.Fix(ACTIVE_SHELL_KAPPA_2);
+                } else if (dof_name == "kappa_12") {
+                    r_node.Fix(ACTIVE_SHELL_KAPPA_12);
+                }
+            }
+        }
     }
-
-
 
     std::cout << "Created " << r_active_shell_mp.NumberOfNodes() << " active shell nodes" << std::endl;
 
@@ -197,7 +219,8 @@ const Parameters ActiveShellElementDofAssignmentProcess::GetDefaultParameters() 
         "iga_model_part_name"         : "",
         "active_shell_model_part_name": "",
         "applied_actuation_list" : [],
-        "applied_actuation_value": []
+        "applied_actuation_value": [],
+        "unfixed_actuation_list": []
     })" );
     return default_parameters;
 }
