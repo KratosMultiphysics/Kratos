@@ -122,7 +122,7 @@ public:
         }
     }
 
-    int Check(const ProcessInfo&) const override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
@@ -133,15 +133,9 @@ public:
             GetGeometry(), {std::cref(TEMPERATURE), std::cref(DT_TEMPERATURE)});
         CheckUtilities::CheckHasDofs(GetGeometry(), {std::cref(TEMPERATURE)});
 
-        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), element_Id);
-
-        CheckUtilities::CheckHasNodalSolutionStepData(
-            GetGeometry(), {std::cref(TEMPERATURE), std::cref(DT_TEMPERATURE)});
-        CheckUtilities::CheckHasDofs(GetGeometry(), {std::cref(TEMPERATURE)});
-
-        const PropertiesType& r_properties = this->GetProperties();
-        const CheckProperties check_properties(r_properties, "properties at thermal element",
-                                               element_Id, CheckProperties::Bounds::AllInclusive);
+        const auto&           r_properties = this->GetProperties();
+        const CheckProperties check_properties(r_properties, "properties", element_Id,
+                                               CheckProperties::Bounds::AllInclusive);
         check_properties.Check(DENSITY_WATER);
         constexpr auto max_value = 1.0;
         check_properties.Check(POROSITY, max_value);
@@ -158,10 +152,13 @@ public:
             check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_YZ);
             check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XZ);
         }
-        if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(GetGeometry());
-        KRATOS_CATCH("")
 
-        return 0;
+        if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(GetGeometry());
+
+        check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SaturatedLaw");
+        return RetentionLawFactory::Clone(r_properties)->Check(r_properties, rCurrentProcessInfo);
+
+        KRATOS_CATCH("")
     }
 
     std::unique_ptr<IntegrationCoefficientModifier> CloneIntegrationCoefficientModifier() const

@@ -6,7 +6,7 @@ sidebar: mpm_application
 summary: 
 ---
 
-The [`ApplyMPMParticleDirichletConditionProcess`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/apply_mpm_particle_dirichlet_condition_process.py) imposes non-conforming Dirichlet boundary conditions by means of the Penalty method, which is implemened by boundary material points conditions.
+The [`ApplyMPMParticleDirichletConditionProcess`](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/apply_mpm_particle_dirichlet_condition_process.py) imposes non-conforming Dirichlet boundary conditions by means of the **Penalty method**, **Lagrange multipliers** and **Perturbed Lagrangian method**, which are implemened using boundary material points conditions.
 
 ## Parameters & Defaults
 
@@ -17,6 +17,7 @@ The [`ApplyMPMParticleDirichletConditionProcess`](https://github.com/KratosMulti
     "Parameters"    : {
         "model_part_name"                   : "PLEASE_SPECIFY_MODEL_PART_NAME",
         "material_points_per_condition"     : 0,
+        "imposition_type"                   : "penalty|lagrange|perturbed_lagrange",
         "is_equal_distributed"              : false,
         "penalty_factor"                    : 0,
         "variable_name"                     : "DISPLACEMENT",
@@ -34,11 +35,19 @@ String identifying the name of the target ModelPart to which the boundary condit
 ##### `material_points_per_condition`
 Defines the number of material point conditions used to replace each line or surface condition where Dirichlet boundary conditions must be imposed.
 
+##### `imposition_type`
+Defines the method to be used for imposing non-conforming Dirichlet boundary conditions. Available options are:
+* `"penalty"`
+* `"lagrange"`
+* `"perturbed_lagrange"`
+
+{% include warning.html content='`"lagrange"` can be used only when the background elements are *triangles* (in 2D) or *tetrahedra* (in 3D).' %}
+
 ##### `is_equal_distributed`
 If `true`, material point conditions are equally distributed over the original (line or surface) condition, otherwise their position is determined by Gauss quadrature nodes.
 
 ##### `penalty_factor`
-Penalty coefficient used in the penalty method to enforce Dirichlet boundary conditions.
+Penalty coefficient used in the `"penalty"` and `"perturbed_lagrange"` methods to enforce Dirichlet boundary conditions.
 
 ##### `variable_name`
 String identifying the variable whose value is to be imposed using the Penalty method.
@@ -69,4 +78,5 @@ If set to `"flip_normal"`, the normal of each condition is flipped.
 
 ## Reference
 
-Chandra, B., Singer, V., Teschemacher, T., Wuechner, R., & Larese, A. (2021). **Nonconforming Dirichlet boundary conditions in implicit material point method by means of penalty augmentation**, *Acta Geotechnica*, 16(8), 2315-2335. DOI: <a href="https://doi.org/10.1007/s11440-020-01123-3">10.1007/s11440-020-01123-3</a>.
+* Chandra, B., Singer, V., Teschemacher, T., Wuechner, R., & Larese, A. (2021). **Nonconforming Dirichlet boundary conditions in implicit material point method by means of penalty augmentation**, *Acta Geotechnica*, 16(8), 2315-2335. DOI: <a href="https://doi.org/10.1007/s11440-020-01123-3">10.1007/s11440-020-01123-3</a>.
+* Singer, V., Teschemacher, T., Larese, A., Wüchner, R., Bletzinger, K.U. (2024). **Lagrange multiplier imposition of non-conforming essential boundary conditions in implicit Material Point Method**, *Computational Mechanics*, 73, 1311–1333 DOI: <a href="https://doi.org/10.1007/s00466-023-02412-w">10.1007/s00466-023-02412-w</a>.

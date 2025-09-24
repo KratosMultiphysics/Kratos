@@ -58,12 +58,12 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     // Verify generic variables
     if (const auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_properties = this->GetProperties();
+    const auto& r_geometry   = this->GetGeometry();
 
     CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
-    const CheckProperties check_properties(r_properties, "property at element", this->Id(),
+    const CheckProperties check_properties(r_properties, "property", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_properties[IGNORE_UNDRAINED]) {
@@ -1285,7 +1285,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
+    const auto& r_properties = this->GetProperties();
 
     rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;

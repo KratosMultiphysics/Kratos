@@ -175,7 +175,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenPropertyIsMissing, KratosGeoMe
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(r_current_process_info),
-        "DENSITY_WATER does not exist in the properties at thermal element with Id 1.")
+        "DENSITY_WATER does not exist in the properties with Id 0 at element with Id 1.")
 }
 
 void GenerateTransientThermalElement2D3NWithNonZeroZ(ModelPart& rModelPart)
@@ -500,8 +500,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When3DPropertyHasInvalidValue, Kra
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(r_current_process_info),
-        "THERMAL_CONDUCTIVITY_SOLID_ZZ in the properties at thermal element with Id 1 has an "
-        "invalid value: -5 is out of the range [0; -).")
+        "THERMAL_CONDUCTIVITY_SOLID_ZZ in the properties with Id 0 at element with Id 1 has an "
+        "invalid value: -5 is out of the range [0, -).")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D4N, KratosGeoMechanicsFastSuiteWithoutKernel)

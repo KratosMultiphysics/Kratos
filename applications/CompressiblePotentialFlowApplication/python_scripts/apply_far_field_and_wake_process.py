@@ -3,24 +3,18 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
 
-def DotProduct(A,B):
-    result = 0
-    for i,j in zip(A,B):
-        result += i*j
-    return result
-
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyFarFieldProcess(Model, settings["Parameters"])
+    return ApplyFarFieldAndWakeProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class ApplyFarFieldProcess(KratosMultiphysics.Process):
+class ApplyFarFieldAndWakeProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
         if not settings.Has("angle_of_attack_units"):
-            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldProcess", "'angle of attack_units' is not provided. Using 'radians' as default angle of attack unit.")
+            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldAndWakeProcess", "'angle of attack_units' is not provided. Using 'radians' as default angle of attack unit.")
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
@@ -37,7 +31,14 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 "critical_mach": 0.99,
                 "upwind_factor_constant": 1.0,
                 "initialize_flow_field": true,
-                "perturbation_field": false
+                "perturbation_field": false,
+                "define_wake": false,
+                "check_wake_condition_tolerance" : 1e-1,
+                "check_wake_condition_echo_level" : 0,
+                "compute_wake_at_each_step"      : false,
+                "wake_type"  : "",
+                "wake_parameters": {
+                }
             }  """ )
         settings.ValidateAndAssignDefaults(default_parameters)
 
@@ -58,6 +59,11 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.upwind_factor_constant = settings["upwind_factor_constant"].GetDouble()
         self.initialize_flow_field = settings["initialize_flow_field"].GetBool()
         self.perturbation_field = settings["perturbation_field"].GetBool()
+        self.define_wake = settings["define_wake"].GetBool()
+        self.check_wake_condition_tolerance = settings["check_wake_condition_tolerance"].GetDouble()
+        self.compute_wake_at_each_step = settings["compute_wake_at_each_step"].GetBool()
+        self.check_wake_condition_echo_level = settings["check_wake_condition_echo_level"].GetInt()
+
         if(self.perturbation_field):
             self.initialize_flow_field = False
 
@@ -66,7 +72,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.free_stream_velocity = KratosMultiphysics.Vector(3)
 
         if self.angle_of_attack_units == "radians":
-            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldProcess", " Using 'radians' as angle of attack unit. This will be deprecated soon.")
+            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldAndWakeProcess", " Using 'radians' as angle of attack unit. This will be deprecated soon.")
         elif self.angle_of_attack_units == "degrees":
             self.angle_of_attack = self.angle_of_attack*math.pi/180
 
@@ -97,79 +103,44 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         if self.mach_number_squared_limit > 0.0:
             self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,math.sqrt(self.mach_number_squared_limit))
             warn_msg = 'Both mach_number_squared_limit and mach_number_limit are defined. Using mach_number_squared_limit = ' + str(self.mach_number_squared_limit)
-            KratosMultiphysics.Logger.PrintWarning('ApplyFarFieldProcess', warn_msg)
+            KratosMultiphysics.Logger.PrintWarning('ApplyFarFieldAndWakeProcess', warn_msg)
         else:
             self.fluid_model_part.ProcessInfo.SetValue(CPFApp.MACH_LIMIT,self.mach_number_limit)
 
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.CRITICAL_MACH,self.critical_mach)
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.UPWIND_FACTOR_CONSTANT,self.upwind_factor_constant)
 
-    def ExecuteInitializeSolutionStep(self):
+        # Setting wake operation
+        if self.define_wake:
+            registry_entry = settings["wake_type"].GetString()
+            operation = KratosMultiphysics.Registry[f"{registry_entry}.Prototype"]
+            self.wake_operation = operation.Create(Model, settings["wake_parameters"])
+
+    def ExecuteInitialize(self):
         far_field_process=CPFApp.ApplyFarFieldProcess(self.far_field_model_part, self.inlet_potential_0, self.initialize_flow_field, self.perturbation_field)
         far_field_process.Execute()
 
-        # self.Execute()
+        if self.define_wake:
+            self.wake_operation.Execute()
 
-    def Execute(self):
-        reference_inlet_node = self._FindFarthestUpstreamBoundaryNode()
-        self._AssignFarFieldBoundaryConditions(reference_inlet_node)
+    def ExecuteInitializeSolutionStep(self):
+        # TODO REMOVE FROM HERE, Used only for optimization
+        if self.define_wake:
+            if  self.compute_wake_at_each_step and self.fluid_model_part.ProcessInfo[KratosMultiphysics.STEP] > 1:
+                KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldAndWakeProcess", " Using define_wake_operation at each step. This will be deprecated soon.")
+                self.wake_operation.Execute()
 
-        if(self.initialize_flow_field):
-            for node in self.fluid_model_part.Nodes:
-                initial_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
-                node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential_0)
-                node.SetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL,0,initial_potential + self.inlet_potential_0)
-
-    def _FindFarthestUpstreamBoundaryNode(self):
-        # The farthest upstream boundary node is the node with smallest
-        # projection of its position vector onto the free stream velocity.
-
-        # Find the farthest upstream boundary node
-        temporal_smallest_projection = 1e30
-        for node in self.far_field_model_part.Nodes:
-            # Projecting the node position vector onto the free stream velocity
-            distance_projection = DotProduct(node, self.free_stream_velocity)
-
-            if(distance_projection < temporal_smallest_projection):
-                temporal_smallest_projection = distance_projection
-                reference_inlet_node = node
-
-        return reference_inlet_node
-
-    def _AssignFarFieldBoundaryConditions(self, reference_inlet_node):
-        # A Dirichlet condition is applied at the inlet nodes and
-        # a Neumann condition is applied at the outlet nodes
-        for cond in self.far_field_model_part.Conditions:
-            normal = cond.GetGeometry().Normal()
-
-            # Computing the projection of the free stream velocity onto the normal
-            velocity_projection = DotProduct(normal, self.free_stream_velocity)
-
-            if( velocity_projection < 0):
-                # A negative projection means inflow (i.e. inlet condition)
-                self._AssignDirichletFarFieldBoundaryCondition(reference_inlet_node, cond)
-            else:
-                # A positive projection means outflow (i.e. outlet condition)
-                self._AssignNeumannFarFieldBoundaryCondition(cond)
-
-    def _AssignDirichletFarFieldBoundaryCondition(self, reference_inlet_node, cond):
-        for node in cond.GetNodes():
-            # Computing the value of the potential at the inlet
-            if(self.perturbation_field):
-                inlet_potential = 0.0
-            else:
-                inlet_potential = DotProduct( node - reference_inlet_node, self.free_stream_velocity)
-
-            # Fixing the potential at the inlet nodes
-            node.Fix(CPFApp.VELOCITY_POTENTIAL)
-            node.SetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL,0,inlet_potential + self.inlet_potential_0)
-
-            # Applying Dirichlet condition in the adjoint problem
-            if self.far_field_model_part.HasNodalSolutionStepVariable(CPFApp.ADJOINT_VELOCITY_POTENTIAL):
-                node.Fix(CPFApp.ADJOINT_VELOCITY_POTENTIAL)
-                node.SetSolutionStepValue(CPFApp.ADJOINT_VELOCITY_POTENTIAL,0,inlet_potential)
-
-    def _AssignNeumannFarFieldBoundaryCondition(self, cond):
-        cond.SetValue(CPFApp.FREE_STREAM_VELOCITY, self.free_stream_velocity)
-
-
+    def ExecuteFinalizeSolutionStep(self):
+        if self.define_wake:
+            if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):
+                raise Exception("Fluid model part does not have a wake_elements_model_part")
+            else: self.wake_elements_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
+            
+            if self.domain_size == 2:
+                CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled2D(
+                    self.wake_elements_model_part, self.check_wake_condition_tolerance, self.check_wake_condition_echo_level)
+                CPFApp.PotentialFlowUtilities.ComputePotentialJump2D(self.wake_elements_model_part)
+            else: # self.domain_size == 3
+                CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(
+                    self.wake_elements_model_part, self.check_wake_condition_tolerance, self.check_wake_condition_echo_level)
+                CPFApp.PotentialFlowUtilities.ComputePotentialJump3D(self.wake_elements_model_part)
