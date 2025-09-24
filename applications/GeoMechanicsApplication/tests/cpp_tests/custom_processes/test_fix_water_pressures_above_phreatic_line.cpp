@@ -94,12 +94,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_ThrowsUponConstr
         FixWaterPressuresAbovePhreaticLineProcess(r_model_part, test_parameters), expected_error_message);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPressuresToZeroWhenAllNodesAbovePhreaticLine,
+KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPressuresToZeroWhenAllNodesAboveOrOnPhreaticLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto y_node_1     = 0.0;
-    constexpr auto y_node_2     = -1.0;
+    constexpr auto y_node_2     = -2.0;
     auto           model        = Model{};
     auto&          r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
     const auto     test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-2.0);

@@ -212,42 +212,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         reader = test_helper.GiDOutputFileReader()
 
         output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
-        top_middle_node_id = 104
-        actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_stage_3, [top_middle_node_id]
-        )[0][1]
-        expected_settlement_after_one_hundred_days = -3.22
-
-        # Assert the value to be within 1% of the analytical solution
-        self.assertTrue(
-            abs(
-                (
-                    expected_settlement_after_one_hundred_days
-                    - actual_settlement_after_one_hundred_days
-                )
-                / expected_settlement_after_one_hundred_days
-            )
-            < 0.01
-        )
-
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
-        actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [top_middle_node_id]
-        )[0][1]
-
-        expected_settlement_after_ten_thousand_days = -8.01
-
-        # Assert the value to be within 1% of the analytical solution
-        self.assertTrue(
-            abs(
-                (
-                    expected_settlement_after_ten_thousand_days
-                    - actual_settlement_after_ten_thousand_days
-                )
-                / actual_settlement_after_ten_thousand_days
-            )
-            < 0.01
-        )
 
         if test_helper.want_test_plots():
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
@@ -332,6 +297,43 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 project_path / "test_case_1_stress_plot_after_10000_days.svg",
                 want_water_pressure_plot=False,
             )
+
+        # Check some results
+        top_middle_node_id = 104
+        actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
+            "TOTAL_DISPLACEMENT", 8640000, output_stage_3, [top_middle_node_id]
+        )[0][1]
+        expected_settlement_after_one_hundred_days = -3.22
+
+        # Assert the value to be within 1% of the analytical solution
+        self.assertTrue(
+            abs(
+                (
+                    expected_settlement_after_one_hundred_days
+                    - actual_settlement_after_one_hundred_days
+                )
+                / expected_settlement_after_one_hundred_days
+            )
+            < 0.01
+        )
+
+        actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
+            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [top_middle_node_id]
+        )[0][1]
+
+        expected_settlement_after_ten_thousand_days = -8.01
+
+        # Assert the value to be within 1% of the analytical solution
+        self.assertTrue(
+            abs(
+                (
+                    expected_settlement_after_ten_thousand_days
+                    - actual_settlement_after_ten_thousand_days
+                )
+                / actual_settlement_after_ten_thousand_days
+            )
+            < 0.01
+        )
 
     def test_settlement_consolidation_coarse_mesh(self):
         """
@@ -460,17 +462,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         reader = test_helper.GiDOutputFileReader()
 
         output_stage_2 = reader.read_output_from(project_path / "stage2.post.res")
-        actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_stage_2, [104]
-        )[0][1]
-        self.assertAlmostEqual(actual_settlement_after_one_hundred_days, -1.71094, 4)
-
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
-
-        actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [104]
-        )[0][1]
-        self.assertAlmostEqual(actual_settlement_after_ten_thousand_days, -8.63753, 4)
 
         if test_helper.want_test_plots():
             output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
@@ -595,6 +587,17 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 project_path / "test_case_2_stress_plot_after_10000_days.svg",
             )
 
+        # Check some results
+        actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
+            "TOTAL_DISPLACEMENT", 8640000, output_stage_2, [104]
+        )[0][1]
+        self.assertAlmostEqual(actual_settlement_after_one_hundred_days, -1.71094, 4)
+
+        actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
+            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [104]
+        )[0][1]
+        self.assertAlmostEqual(actual_settlement_after_ten_thousand_days, -8.63753, 4)
+
     def test_settlement_phreatic_line_below_surface(self):
         """
         This test validates the settlement of a soil column where the phreatic line
@@ -619,71 +622,8 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         top_node_ids = [2, 3, 104]
         project_path = pathlib.Path(project_path)
 
-        # Check some settlement values
         output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
-
-        check_data = [
-            {
-                "output_data": output_stage_3,
-                "time_in_s": unit_conversions.days_to_seconds(0.1) + 1.0,
-                "expected_total_u_y": 0.0,  # analytical value
-                "delta": 0.01,
-            },
-            {
-                "output_data": output_stage_3,
-                "time_in_s": 138241,
-                "expected_total_u_y": -0.048,  # regression value
-                "delta": 0.02,
-            },
-            {
-                "output_data": output_stage_3,
-                "time_in_s": 1105921,
-                "expected_total_u_y": -0.44,  # regression value
-                "delta": 0.02,
-            },
-            {
-                "output_data": output_stage_3,
-                "time_in_s": unit_conversions.days_to_seconds(100),
-                "expected_total_u_y": -1.75,  # analytical value
-                "delta": 0.06,
-            },
-            {
-                "output_data": output_stage_5,
-                "time_in_s": 17487361,
-                "expected_total_u_y": -3.63,  # regression value
-                "delta": 0.04,
-            },
-            {
-                "output_data": output_stage_5,
-                "time_in_s": 79418881,
-                "expected_total_u_y": -5.37,  # regression value
-                "delta": 0.04,
-            },
-            {
-                "output_data": output_stage_5,
-                "time_in_s": unit_conversions.days_to_seconds(10000),
-                "expected_total_u_y": -7.90,  # analytical value
-                "delta": 0.12,
-            },
-        ]
-        for item in check_data:
-            actual_total_displacement_of_top_edge = reader.nodal_values_at_time(
-                "TOTAL_DISPLACEMENT",
-                item["time_in_s"],
-                item["output_data"],
-                top_node_ids,
-            )
-            for total_displacement_vector, node_id in zip(
-                actual_total_displacement_of_top_edge, top_node_ids, strict=True
-            ):
-                self.assertAlmostEqual(
-                    total_displacement_vector[1],
-                    item["expected_total_u_y"],
-                    places=None,
-                    delta=item["delta"],
-                    msg=f"total vertical displacement at node {node_id} at time {item['time_in_s']} [s]",
-                )
 
         if test_helper.want_test_plots():
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
@@ -807,6 +747,69 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 project_path / "test_case_3_stress_plot_after_10000_days.svg",
             )
 
+        # Check some settlement values
+        check_data = [
+            {
+                "output_data": output_stage_3,
+                "time_in_s": unit_conversions.days_to_seconds(0.1) + 1.0,
+                "expected_total_u_y": 0.0,  # analytical value
+                "delta": 0.02,
+            },
+            {
+                "output_data": output_stage_3,
+                "time_in_s": 129601,
+                "expected_total_u_y": -0.057,  # regression value
+                "delta": 0.02,
+            },
+            {
+                "output_data": output_stage_3,
+                "time_in_s": 1097281,
+                "expected_total_u_y": -0.46,  # regression value
+                "delta": 0.02,
+            },
+            {
+                "output_data": output_stage_3,
+                "time_in_s": unit_conversions.days_to_seconds(100),
+                "expected_total_u_y": -1.75,  # analytical value
+                "delta": 0.06,
+            },
+            {
+                "output_data": output_stage_5,
+                "time_in_s": 17487361,
+                "expected_total_u_y": -3.69,  # regression value
+                "delta": 0.02,
+            },
+            {
+                "output_data": output_stage_5,
+                "time_in_s": 79418881,
+                "expected_total_u_y": -5.43,  # regression value
+                "delta": 0.02,
+            },
+            {
+                "output_data": output_stage_5,
+                "time_in_s": unit_conversions.days_to_seconds(10000),
+                "expected_total_u_y": -7.90,  # analytical value
+                "delta": 0.12,
+            },
+        ]
+        for item in check_data:
+            actual_total_displacement_of_top_edge = reader.nodal_values_at_time(
+                "TOTAL_DISPLACEMENT",
+                item["time_in_s"],
+                item["output_data"],
+                top_node_ids,
+            )
+            for total_displacement_vector, node_id in zip(
+                actual_total_displacement_of_top_edge, top_node_ids, strict=True
+            ):
+                self.assertAlmostEqual(
+                    total_displacement_vector[1],
+                    item["expected_total_u_y"],
+                    places=None,
+                    delta=item["delta"],
+                    msg=f"total vertical displacement at node {node_id} at time {item['time_in_s']} [s]",
+                )
+
     def test_settlement_fully_saturated_column_low_permeability(self):
         """
         This test validates the settlement of a fully saturated column under uniform load.
@@ -835,22 +838,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         reader = test_helper.GiDOutputFileReader()
 
         output_stage_2 = reader.read_output_from(project_path / "stage2.post.res")
-        actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_stage_2, [104]
-        )[0][1]
-        self.assertAlmostEqual(
-            actual_settlement_after_one_hundred_days, -0.496382, 4
-        )  # Regression value
-
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
-        actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [104]
-        )[0][1]
-
-        # Assert the value to be within 1% of the analytical solution
-        self.assertTrue(
-            abs((-8.48 - actual_settlement_after_ten_thousand_days) / -8.48) < 0.01
-        )
 
         if test_helper.want_test_plots():
             output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
@@ -974,6 +962,22 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 ref_data,
                 project_path / "test_case_4_stress_plot_after_10000_days.svg",
             )
+
+        # Check some results
+        actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
+            "TOTAL_DISPLACEMENT", 8640000, output_stage_2, [104]
+        )[0][1]
+        self.assertAlmostEqual(
+            actual_settlement_after_one_hundred_days, -0.496382, 4
+        )  # Regression value
+
+        actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
+            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [104]
+        )[0][1]
+        # Assert the value to be within 1% of the analytical solution
+        self.assertTrue(
+            abs((-8.48 - actual_settlement_after_ten_thousand_days) / -8.48) < 0.01
+        )
 
 
 if __name__ == "__main__":
