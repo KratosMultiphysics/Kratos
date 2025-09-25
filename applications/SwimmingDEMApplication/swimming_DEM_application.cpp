@@ -32,6 +32,7 @@
 #include "custom_constitutive/vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
 #include "custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.h"
 #include "custom_constitutive/steady_viscous_torque_laws/steady_viscous_torque_law.h"
+#include "containers/global_pointers_vector.h"
 
 namespace Kratos
 {
@@ -62,6 +63,7 @@ KRATOS_CREATE_VARIABLE(double, PERMEABILITY_1_DAY)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME)
 KRATOS_CREATE_VARIABLE(bool, MANUFACTURED)
 KRATOS_CREATE_VARIABLE(bool, IS_EDGE_NODE)
+KRATOS_CREATE_VARIABLE(GlobalPointersVector<Node>, CONTIGUOUS_NODES)
 KRATOS_CREATE_VARIABLE(HydrodynamicInteractionLaw::Pointer, SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_BUOYANCY_LAW_NAME)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_DRAG_LAW_NAME)
@@ -169,6 +171,7 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_VARIABLE(SDEM_STEADY_VISCOUS_TORQUE_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(MANUFACTURED)
   KRATOS_REGISTER_VARIABLE(IS_EDGE_NODE)
+  KRATOS_REGISTER_VARIABLE(CONTIGUOUS_NODES)
 
   /* Define In Global variables.cpp */
 

@@ -1449,7 +1449,11 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, 
     neighbour_finder.Execute();
     const unsigned int n_max_iterations = 100;
     unsigned int i = 0;
+
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+        // The weights only make sense if the node is a vertex node
+        if (inode->GetValue(IS_EDGE_NODE)) continue;
+
         bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()), ord);
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int iteration = 0;
@@ -1653,6 +1657,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
     // Write the A matrix from Zhang (2005), each row being (1 xi_i eta_i ... xi_i^k eta_i^l ... eta_i^(k+1))
     // where the i-th row correspoinds to the ith neighbor (in relative coords)
     // unsigned int min_neighbours = Factorial(TDim + ord) / (Factorial(TDim) * Factorial(ord));
+    // std::cout << "Setting matrix A for node " << p_node->Id() << std::endl;
     for (unsigned int i = 0; i < n_nodal_neighs; ++i){
         A(i, 0) = 1.0;
         if constexpr (TDim == 3){
@@ -1771,67 +1776,71 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
         //    KRATOS_ERROR << "Gradient recovery not implemented yet in 2D!)" << std::endl;
         //}
     }
+    // std::cout << "Matrix A with size (" << A.size1() << ", " << A.size2() << ") succesfully computed for node " << p_node->Id() << std::endl;
+
     DenseMatrix<double>AtransA(n_poly_terms, n_poly_terms);
+    // std::cout << "Computing A^T A for node " << p_node->Id() << std::endl;
     noalias(AtransA) = prod(trans(A), A);
+    // std::cout << "Computed A^T A with size (" << AtransA.size1() << ", " << AtransA.size2() << ") for node " << p_node->Id() << std::endl;
     if (std::abs(MathUtils<double>::Det(AtransA)) < 0.01){
+        // std::cout << "Determinant of AtransA not ok for node " << p_node->Id() << std::endl;
         return false;
     }
+    // std::cout << "Determinant of AtransA ok for node " << p_node->Id() << std::endl;
         
-    unsigned int n_relevant_terms = 0;
-    if (mCalculatingTheGradient){
-        n_relevant_terms = TDim;
-    }
-    else if (mCalculatingTheLaplacian){
-        n_relevant_terms = n_poly_terms - (TDim + 1);
-    }
-    else {
-        n_relevant_terms = n_poly_terms - 1;
-    }
-    std::vector<unsigned int> relevant_terms;
-    relevant_terms.resize(n_relevant_terms);
-    double normalization =  1.0;
-    if (mCalculatingTheGradient){
-        normalization = h_inv;
-        relevant_terms[0] = 1;
-        relevant_terms[1] = 2;
-        if (TDim == 3) relevant_terms[2] = 3;
-    }
-    else if (mCalculatingTheLaplacian){
-        normalization = h_inv * h_inv;
-        relevant_terms[0] = 4;
-        relevant_terms[1] = 5;
-        relevant_terms[2] = 6;
-        relevant_terms[3] = 7;
-        relevant_terms[4] = 8;
-        relevant_terms[5] = 9;
-    }
-    else {
-        for (unsigned int i = 1; i < n_poly_terms; ++i){
-            relevant_terms[i - 1] = i;
-        }
-    }
-    p_node->SetLock();
+    // unsigned int n_relevant_terms = 0;
+    // if (mCalculatingTheGradient){
+    //     n_relevant_terms = TDim;
+    // }
+    // else if (mCalculatingTheLaplacian){
+    //     n_relevant_terms = n_poly_terms - (TDim + 1);
+    // }
+    // else {
+    //     n_relevant_terms = n_poly_terms - 1;
+    // }
 
-    //if (nodal_weights.size() > 1e6){
+    // std::vector<unsigned int> relevant_terms;
+    // relevant_terms.resize(n_relevant_terms);
+    // double normalization =  1.0;
+    // if (mCalculatingTheGradient){
+    //     normalization = h_inv;
+    //     relevant_terms[0] = 1;
+    //     relevant_terms[1] = 2;
+    //     if (TDim == 3) relevant_terms[2] = 3;
+    // }
+    // else if (mCalculatingTheLaplacian){
+    //     normalization = h_inv * h_inv;
+    //     relevant_terms[0] = 4;
+    //     relevant_terms[1] = 5;
+    //     relevant_terms[2] = 6;
+    //     relevant_terms[3] = 7;
+    //     relevant_terms[4] = 8;
+    //     relevant_terms[5] = 9;
+    // }
+    // else {
+    //     for (unsigned int i = 1; i < n_poly_terms; ++i){
+    //         relevant_terms[i - 1] = i;
+    //     }
+    // }
+
+    double normalization = h_inv;  // Review this!
+    unsigned int n_relevant_terms = TDim;
+    std::vector<unsigned int> relevant_terms(n_relevant_terms);
+    for (unsigned int i = 0; i < n_relevant_terms; ++i){
+        relevant_terms[i] = i + 1;
+    }
+
+    p_node->SetLock();
     p_node->SetValue(NODAL_WEIGHTS, ZeroVector(n_relevant_terms * n_nodal_neighs));
-        //nodal_weights = ZeroVector(n_relevant_terms * n_nodal_neighs);}
-    // }else{
-    //     nodal_weights.clear();
-    //     nodal_weights.resize(n_relevant_terms * n_nodal_neighs,true);
-    //}
     Vector& nodal_weights = p_node->GetValue(NODAL_WEIGHTS);
     p_node->UnSetLock();
-    //if (nodal_weights.size() != n_relevant_terms * n_nodal_neighs) nodal_weights.resize(n_relevant_terms * n_nodal_neighs, false);
+
     const DenseMatrix<double> AtransAinv = mMyCustomFunctions.Inverse(AtransA);
-//        for (unsigned i = 0; i < n_poly_terms; i++){
-//            for (unsigned j = 0; j < n_poly_terms; j++){
-//                if (abs(AtransAinv(i,j))>1e6){
-//                    return false;
-//                }
-//            }
-//        }
     DenseMatrix<double>AtransAinvAtrans(n_poly_terms, n_nodal_neighs);
     noalias(AtransAinvAtrans) = prod(AtransAinv, trans(A));
+
+    // std::cout << "AtransAinvAtrans computed for node " << p_node->Id() << std::endl;
+
     for (unsigned int i = 0; i < n_nodal_neighs; ++i){
         for (unsigned int d = 0; d < n_relevant_terms; ++d){
             if (mCalculatingGradientAndLaplacian){
@@ -1845,33 +1854,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
             nodal_weights(n_relevant_terms * i + d) = AtransAinvAtrans(relevant_terms[d], i) * normalization;
         }
     }
-    // std::cout << "h_inv = " << h_inv << std::endl;
-    // std::cout << "Node " << p_node->Coordinates() << " has nodal_weights " << " (h_inv = " << h_inv << ")" << std::endl;
-    // std::cout << "  d = ?: " << nodal_weights << std::endl;
-    // exit(0);
-
-    // Print matrices
-    if(p_node->Id() == -1)
-    {
-        std::cout << "(old) A = " << std::endl;
-        for (unsigned int i = 0; i < A.size1(); i++)
-        {
-            for (unsigned int j = 0; j < A.size2(); j++)
-            {
-                std::cout << "  A(" << i << ", " << j << ") = " << A(i, j) << std::endl;
-            }
-        }
-
-        std::cout << "(old) AtransAinvAtrans = " << std::endl;
-        for (unsigned int i = 0; i < AtransAinvAtrans.size1(); i++)
-        {
-            for (unsigned int j = 0; j < AtransAinvAtrans.size2(); j++)
-            {
-                std::cout << "  AtrAinvAtr(" << i << ", " << j << ") = " << AtransAinvAtrans(i, j) << std::endl;
-            }
-        }
-        std::cout << "for node " << p_node->Coordinates() << std::endl;
-    }
+    // std::cout << "Nodal weights have been set for node " << p_node->Id() << std::endl;
 
     DenseMatrix<double> C = ZeroMatrix(n_nodal_neighs, 1);
     C = prod(AtransAinvAtrans, TestNodalValues);
@@ -1967,6 +1950,70 @@ double DerivativeRecovery<TDim>::CalculateTheMinumumEdgeLength(ModelPart& r_mode
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
+void DerivativeRecovery<TDim>::ComputeGradientForVertexNode(Node::Pointer& inode, Vector& gradient, Variable<double>& scalar_container)
+{
+    GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+    unsigned int n_neigh = neigh_nodes.size();
+    if (!n_neigh){ // we keep the defualt value
+        return;
+    }
+
+    const Vector& nodal_weights = inode->GetValue(NODAL_WEIGHTS);
+    for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
+        const double& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(scalar_container);
+        for (unsigned int d = 0; d < TDim; ++d){
+            gradient[d] += nodal_weights[TDim * i_neigh + d] * neigh_nodal_value;
+        }
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::ComputeGradientForEdgeNode(Node::Pointer& inode, Vector& gradient, Variable<double>& scalar_container)
+{
+    // GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(CONTIGUOUS_NODES);
+    // unsigned int n_neigh = neigh_nodes.size();
+    // if (!n_neigh){ // we keep the defualt value
+    //     return;
+    // }
+    // Vector dr = neigh_nodes[1].Coordinates() - neigh_nodes[0].Coordinates();
+
+
+    // // Compute the coefficients matrix and the P vector
+    // DenseMatrix<double> P(TDim, n_poly_terms);
+    // DenseMatrix<double> coefficientsMatrix(n_poly_terms, n_neigh);
+    // ComputeDerivativeMonomialsVector(z_i, *(inode.base()), ord, P);
+
+    // bool is_matrix_succesfully_computed = true;
+    // ComputeCoefficientsMatrix(*(inode.base()), coefficientsMatrix, ord, is_matrix_succesfully_computed);
+    // if(!is_matrix_succesfully_computed)
+    // {
+    //     KRATOS_ERROR << "Unable to compute the recovery for node with ID = " << std::endl;
+    // }
+
+    // array_1d<double, 3> z_i = inode->Coordinates();
+    // bool is_matrix_succesfully_computed = true;
+    // // std::cout << "The node " << inode->Coordinates() << " is not edge node! It has " << n_neigh << " neighbours!" << std::endl;
+
+    // // Evaluate the gradient centered at z_i at z = z_i
+    // for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh)
+    // {
+    //     const double& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(scalar_container);
+    //     for (unsigned int d = 0; d < TDim; ++d)
+    //     {
+    //         double weight = 0.0;
+    //         for (unsigned int n = 0; n < n_poly_terms; n++)
+    //         {
+    //             weight += P(d, n) * coefficientsMatrix(n, i_neigh);
+    //             // std::cout << "    - P(" << d << ", " << n << ") = " << P(d, n) << ", C(" << n << ", " << i_neigh << ") = " << coefficientsMatrix(i_neigh, n) << std::endl;
+    //         }
+    //         gradient[d] += weight * neigh_nodal_value;
+    //     }
+    // }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template <std::size_t TDim>
 template <class TScalarVariable>
 void DerivativeRecovery<TDim>::RecoverSuperconvergentGradientAlt(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, unsigned int& ord)
 {
@@ -1982,49 +2029,49 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradientAlt(ModelPart& r_mo
     KRATOS_ERROR_IF(mSomeCloudsDontWork) << "Unable to construct neighbour cloudes for super-convergent gradient recovery" << std::endl;
 
     // Number of terms of the polynomial
-    unsigned int n_poly_terms = Factorial(TDim + ord) / (Factorial(ord) * Factorial(TDim)); // 2 is the polynomial order
+    // unsigned int n_poly_terms = Factorial(TDim + ord) / (Factorial(ord) * Factorial(TDim)); // 2 is the polynomial order
 
     // Compute the coefficients for each node (Zhang, 2005)
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode)
     {
-        GlobalPointersVector<Node> &neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
-        unsigned int n_neigh = neigh_nodes.size();
 
-        // Evaluate the polynomial
         Vector gradient = ZeroVector(3);
-        Vector global_pos_node = inode->Coordinates();
-
-        DenseMatrix<double> P(TDim, n_poly_terms);
-        DenseMatrix<double> coefficientsMatrix(n_poly_terms, n_neigh);
         if (inode->GetValue(IS_EDGE_NODE))
         {
-            // ...
+            // GlobalPointersVector<Node> &edge_nodes = inode->GetValue(EDGE_NODES);
         }
         else
         {
-            // Compute the coefficients matrix and the P vector
-            array_1d<double, 3> z_i = inode->Coordinates();
-            ComputeDerivativeMonomialsVector(z_i, *(inode.base()), ord, P);
-            bool is_matrix_succesfully_computed = true;
-            ComputeCoefficientsMatrix(*(inode.base()), coefficientsMatrix, ord, is_matrix_succesfully_computed);
-            // std::cout << "The node " << inode->Coordinates() << " is not edge node! It has " << n_neigh << " neighbours!" << std::endl;
+            // GlobalPointersVector<Node> &neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+            // unsigned int n_neigh = neigh_nodes.size();
 
-            // Evaluate the gradient centered at z_i at z = z_i
-            for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh)
-            {
-                const double& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(scalar_container);
-                for (unsigned int d = 0; d < TDim; ++d)
-                {
-                    double weight = 0.0;
-                    for (unsigned int n = 0; n < n_poly_terms; n++)
-                    {
-                        weight += P(d, n) * coefficientsMatrix(n, i_neigh);
-                        // std::cout << "    - P(" << d << ", " << n << ") = " << P(d, n) << ", C(" << n << ", " << i_neigh << ") = " << coefficientsMatrix(i_neigh, n) << std::endl;
-                    }
-                    gradient[d] += weight * neigh_nodal_value;
-                    // std::cout << "  Neighbour with ID = " << neigh_nodes[i_neigh].Id() << " has w(d = " << d << ") = " << weight << std::endl;
-                }
-            }
+            // Compute the coefficients matrix and the P vector
+            // DenseMatrix<double> P(TDim, n_poly_terms);
+            // DenseMatrix<double> coefficientsMatrix(n_poly_terms, n_neigh);
+
+            // array_1d<double, 3> z_i = inode->Coordinates();
+            // ComputeDerivativeMonomialsVector(z_i, *(inode.base()), ord, P);
+            // ComputeDerivativeMonomialsVector(*(inode.base()), ord, P);
+            // bool is_matrix_succesfully_computed = true;
+            // ComputeCoefficientsMatrix(*(inode.base()), coefficientsMatrix, ord, is_matrix_succesfully_computed);
+            // // std::cout << "The node " << inode->Coordinates() << " is not edge node! It has " << n_neigh << " neighbours!" << std::endl;
+
+            // // Evaluate the gradient centered at z_i at z = z_i
+            // for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh)
+            // {
+            //     const double& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(scalar_container);
+            //     for (unsigned int d = 0; d < TDim; ++d)
+            //     {
+            //         double weight = 0.0;
+            //         for (unsigned int n = 0; n < n_poly_terms; n++)
+            //         {
+            //             weight += P(d, n) * coefficientsMatrix(n, i_neigh);
+            //             // std::cout << "    - P(" << d << ", " << n << ") = " << P(d, n) << ", C(" << n << ", " << i_neigh << ") = " << coefficientsMatrix(i_neigh, n) << std::endl;
+            //         }
+            //         gradient[d] += weight * neigh_nodal_value;
+            //     }
+            // }
+            ComputeGradientForVertexNode(*(inode.base()), gradient, scalar_container);
         }
 
         // Copy gradient values to the nodal gradient container variable
@@ -2220,15 +2267,13 @@ void DerivativeRecovery<TDim>::ComputeCoefficientsMatrix(Node::Pointer& p_node, 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(array_1d<double, 3>& pos, Node::Pointer& p_node, unsigned int& ord, DenseMatrix<double>& result)
+void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(Node::Pointer& p_node, unsigned int& ord, DenseMatrix<double>& result)
 {
-    // Be aware that the derivatives here must be consistent with the definition provided
-    // in the computation of the coefficients matrix
+    // If the gradient is computed at the node itself, then
+    // the computation can be simplified
 
     KRATOS_ERROR_IF(ord > 3) << "Order 3 method has not been implemented for the ZG recovery!" << std::endl;
 
-    unsigned int n_poly_terms = Factorial(TDim + ord) / (Factorial(TDim) * Factorial(ord));
-    // result.resize(TDim, n_poly_terms);
     for (unsigned int i = 0; i < result.size1(); i++)
     {
         for (unsigned int j = 0; j < result.size2(); j++)
@@ -2237,37 +2282,47 @@ void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(array_1d<double,
         }
     }
 
+    // Constant terms
+    // result(0, 0) = 0.0;  // d( 1 ) / dx
+    // result(1, 0) = 0.0;  // d( 1 ) / dy
+    // result(2, 0) = 0.0;  // d( 1 ) / dz
+
+    // Terms of order 1
+    // dP / dx
+    result(0, 1) = 1.0; // d( x ) / dx
+    // result(0, 2) = 0.0;  // d( y ) / dx
+    // result(0, 3) = 0.0;  // d( z ) / dx
+
+    // dP / dy
+    // result(1, 1) = 0.0;  // d( x ) / dy
+    result(1, 2) = 1.0; // d( y ) / dy
+    // result(1, 3) = 0.0;  // d( z ) / dy
+
+    // dP / dz
+    // result(2, 1) = 0.0;  // d( x ) / dz
+    // result(2, 2) = 0.0;  // d( y ) / dz
+    result(2, 3) = 1.0; // d( z ) / dz
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(array_1d<double, 3>& pos, Node::Pointer& p_node, unsigned int& ord, DenseMatrix<double>& result)
+{
+    // Be aware that the derivatives here must be consistent with the definition provided
+    // in the computation of the coefficients matrix
+
+    KRATOS_ERROR_IF(ord > 3) << "Order 3 method has not been implemented for the ZG recovery!" << std::endl;
+
+    // Constant terms and linear terms are constant (they do not depend on the relative coordinates)
+    ComputeDerivativeMonomialsVector(p_node, ord, result);
+
     // const double h_inv = 1.0 / CalculateTheMaximumDistanceToNeighbours(p_node); // we use it as a scaling parameter to improve stability
     const double h_inv = 1.0;
     const array_1d <double, 3> origin = p_node->Coordinates();
     const array_1d<double, 3> rel_coordinates = h_inv * (pos - origin);
 
-    // Constant term
-    result(0, 0) = 0.0;  // d( 1 ) / dx
-    result(1, 0) = 0.0;  // d( 1 ) / dy
-    result(2, 0) = 0.0;  // d( 1 ) / dz
-
-    // Terms of order 1
-    if(ord > 0)
-    {
-        // dP / dx
-        result(0, 1) = 1.0;  // d( x ) / dx
-        result(0, 2) = 0.0;  // d( y ) / dx
-        result(0, 3) = 0.0;  // d( z ) / dx
-
-        // dP / dy
-        result(1, 1) = 0.0;  // d( x ) / dy
-        result(1, 2) = 1.0;  // d( y ) / dy
-        result(1, 3) = 0.0;  // d( z ) / dy
-
-        // dP / dz
-        result(2, 1) = 0.0;  // d( x ) / dz
-        result(2, 2) = 0.0;  // d( y ) / dz
-        result(2, 3) = 1.0;  // d( z ) / dz
-    }
-
     // Terms of order 2
-    if(ord > 10)
+    if(ord > 1)
     {
         // dP / dx
         result(0, 4) = rel_coordinates[1];      // d ( x*y ) / dx 
@@ -2295,7 +2350,7 @@ void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(array_1d<double,
     }
 
     // Terms of order 3
-    if(ord == 50)
+    if(ord > 2)
     {
         // dP / dx
         result(0, 10) = rel_coordinates[1] * rel_coordinates[2];       // d ( x*y*z ) / dx
