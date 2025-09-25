@@ -278,16 +278,24 @@ public:
 
         rOutput.resize(number_of_integration_points);
 
+        auto for_each_integration_point = [&](std::size_t number_of_points, auto&& body) {
+            for (std::size_t g_point = 0; g_point < number_of_points; ++g_point) {
+                body(g_point);
+            }
+        };
+
         auto fill_from_stress_vector = [&](auto func) {
-            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point)
+            for_each_integration_point(number_of_integration_points, [&](std::size_t g_point) {
                 rOutput[g_point] = func(mStressVector[g_point]);
+            });
         };
 
         auto fill_from_vector = [&](const Variable<Vector>& rTensorVariable, auto func) {
             std::vector<Vector> tensor_vector;
             CalculateOnIntegrationPoints(rTensorVariable, tensor_vector, rCurrentProcessInfo);
-            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point)
+            for_each_integration_point(number_of_integration_points, [&](std::size_t g_point) {
                 rOutput[g_point] = func(tensor_vector[g_point]);
+            });
         };
 
         if (rVariable == VON_MISES_STRESS)
@@ -316,18 +324,18 @@ public:
             ElementVariables Variables;
             this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-            RetentionLaw::Parameters RetentionParameters(r_properties);
+            RetentionLaw::Parameters retention_parameters(r_properties);
 
-            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+            for_each_integration_point(number_of_integration_points, [&](std::size_t g_point) {
                 // Compute Np, GradNpT, B and StrainVector
                 this->CalculateKinematics(Variables, g_point);
 
-                RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
+                retention_parameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
                     Variables.Np, Variables.PressureVector));
 
                 rOutput[g_point] = mRetentionLawVector[g_point]->CalculateValue(
-                    RetentionParameters, rVariable, rOutput[g_point]);
-            }
+                    retention_parameters, rVariable, rOutput[g_point]);
+            });
             return;
         }
         if (rVariable == HYDRAULIC_HEAD) {
@@ -352,11 +360,11 @@ public:
             }
 
             const auto& r_n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
-            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+            for_each_integration_point(number_of_integration_points, [&](std::size_t g_point) {
                 const auto& r_shape_function = row(r_n_container, g_point);
                 rOutput[g_point] = std::inner_product(r_shape_function.begin(), r_shape_function.end(),
                                                       nodal_hydraulic_head.begin(), 0.0);
-            }
+            });
             return;
         }
 
@@ -384,12 +392,12 @@ public:
                 deformation_gradients, b_matrices, Variables.DisplacementVector,
                 Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
 
-            ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, r_properties, rCurrentProcessInfo);
-            ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-            ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+            ConstitutiveLaw::Parameters constitutive_parameters(r_geom, r_properties, rCurrentProcessInfo);
+            constitutive_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+            constitutive_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
             std::vector<Matrix> constitutive_matrices;
-            this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+            this->CalculateAnyOfMaterialResponse(deformation_gradients, constitutive_parameters,
                                                  Variables.NuContainer, Variables.DNu_DXContainer,
                                                  strain_vectors, mStressVector, constitutive_matrices);
 
@@ -409,11 +417,9 @@ public:
             return;
         }
 
-        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
-             ++integration_point) {
-            rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
-                rVariable, rOutput[integration_point]);
-        }
+        for_each_integration_point(number_of_integration_points, [&](std::size_t g_point) {
+            rOutput[g_point] = mConstitutiveLawVector[g_point]->GetValue(rVariable, rOutput[g_point]);
+        });
 
         KRATOS_CATCH("")
     }
