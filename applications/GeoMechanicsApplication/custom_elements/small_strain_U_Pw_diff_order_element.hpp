@@ -128,8 +128,7 @@ public:
         const CheckProperties check_properties(r_prop, "parameter list", element_Id,
                                                CheckProperties::Bounds::AllExclusive);
         check_properties.CheckAvailability(IGNORE_UNDRAINED);
-        if (!r_prop[IGNORE_UNDRAINED])
-            check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
+        if (!r_prop[IGNORE_UNDRAINED]) check_properties.CheckPermeabilityProperties(TDim);
 
         check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
         r_prop[CONSTITUTIVE_LAW]->Check(r_prop, r_geom, rCurrentProcessInfo);
@@ -543,16 +542,15 @@ public:
                                    relative_permeability_values.begin(), std::multiplies<>{});
 
             // Loop over integration points
-            const SizeType dimension = r_geometry.WorkingSpaceDimension();
             for (unsigned int g_point = 0; g_point < mConstitutiveLawVector.size(); ++g_point) {
                 // compute element kinematics (Np, gradNpT, |J|, B, strains)
                 this->CalculateKinematics(Variables, g_point);
                 Variables.B = b_matrices[g_point];
 
-                Vector   body_acceleration = ZeroVector(dimension);
+                Vector   body_acceleration = ZeroVector(TDim);
                 SizeType Index             = 0;
-                for (SizeType i = 0; i < r_geometry.PointsNumber(); ++i) {
-                    for (unsigned int idim = 0; idim < dimension; ++idim) {
+                for (SizeType i = 0; i < TNumNodes; ++i) {
+                    for (unsigned int idim = 0; idim < TDim; ++idim) {
                         body_acceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index];
                         ++Index;
                     }
@@ -560,7 +558,7 @@ public:
 
                 const auto relative_permeability = relative_permeability_values[g_point];
 
-                Vector grad_pressure_term(dimension);
+                Vector grad_pressure_term(TDim);
                 noalias(grad_pressure_term) = prod(trans(Variables.DNp_DX), Variables.PressureVector);
                 noalias(grad_pressure_term) +=
                     PORE_PRESSURE_SIGN_FACTOR * GetProperties()[DENSITY_WATER] * body_acceleration;
@@ -570,7 +568,7 @@ public:
                 const auto fluid_flux = PORE_PRESSURE_SIGN_FACTOR *
                                         Variables.DynamicViscosityInverse * relative_permeability *
                                         prod(Variables.IntrinsicPermeability, grad_pressure_term);
-                std::copy_n(fluid_flux.begin(), dimension, rOutput[g_point].begin());
+                std::copy_n(fluid_flux.begin(), TDim, rOutput[g_point].begin());
             }
         }
 
@@ -948,8 +946,7 @@ protected:
 
         rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
         // Setting the intrinsic permeability matrix
-        rVariables.IntrinsicPermeability = GeoElementUtilities::FillPermeabilityMatrix(
-            r_properties, GetGeometry().WorkingSpaceDimension());
+        rVariables.IntrinsicPermeability = GeoElementUtilities::FillPermeabilityMatrix(r_properties, TDim);
 
         KRATOS_CATCH("")
     }
@@ -1083,25 +1080,21 @@ protected:
     {
         KRATOS_TRY
 
-        const GeometryType& rGeom     = GetGeometry();
-        const SizeType      Dim       = rGeom.WorkingSpaceDimension();
-        const SizeType      NumUNodes = rGeom.PointsNumber();
-
         const auto soil_density = GeoTransportEquationUtilities::CalculateSoilDensity(
             rVariables.DegreeOfSaturation, this->GetProperties());
 
-        Vector   body_acceleration = ZeroVector(Dim);
+        Vector   body_acceleration = ZeroVector(TDim);
         SizeType Index             = 0;
-        for (SizeType i = 0; i < NumUNodes; ++i) {
-            for (SizeType idim = 0; idim < Dim; ++idim) {
+        for (SizeType i = 0; i < TNumNodes; ++i) {
+            for (SizeType idim = 0; idim < TDim; ++idim) {
                 body_acceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index];
                 ++Index;
             }
         }
 
-        for (SizeType i = 0; i < NumUNodes; ++i) {
-            Index = i * Dim;
-            for (SizeType idim = 0; idim < Dim; ++idim) {
+        for (SizeType i = 0; i < TNumNodes; ++i) {
+            Index = i * TDim;
+            for (SizeType idim = 0; idim < TDim; ++idim) {
                 rRightHandSideVector[Index + idim] +=
                     rVariables.Nu[i] * soil_density * body_acceleration[idim] *
                     rVariables.IntegrationCoefficientInitialConfiguration;
@@ -1305,8 +1298,7 @@ protected:
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices)
     {
-        const SizeType voigt_size =
-            GetGeometry().WorkingSpaceDimension() == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN;
+        const SizeType voigt_size = TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN;
 
         if (rStrainVectors.size() != rDeformationGradients.size()) {
             rStrainVectors.resize(rDeformationGradients.size());
@@ -1341,7 +1333,7 @@ protected:
 
     [[nodiscard]] Vector GetPressureSolutionVector() const
     {
-        Vector result(mpPressureGeometry->PointsNumber());
+        Vector result(TNumPNodes);
         std::transform(mpPressureGeometry->begin(), mpPressureGeometry->end(), result.begin(),
                        [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
         return result;
@@ -1387,19 +1379,14 @@ protected:
                                                                                  GetProperties());
     }
 
-    [[nodiscard]] SizeType GetNumberOfDOF() const override
-    {
-        return GetGeometry().PointsNumber() * GetGeometry().WorkingSpaceDimension() +
-               mpPressureGeometry->PointsNumber();
-    }
+    [[nodiscard]] SizeType GetNumberOfDOF() const override { return TNumNodes * TDim + TNumPNodes; }
 
 private:
     GeometryType::Pointer mpPressureGeometry;
 
     [[nodiscard]] DofsVectorType GetDofs() const override
     {
-        return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), *mpPressureGeometry,
-                                                          GetGeometry().WorkingSpaceDimension());
+        return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), *mpPressureGeometry, TDim);
     }
 
     /**
