@@ -332,40 +332,34 @@ public:
         }
         if (rVariable == HYDRAULIC_HEAD) {
             constexpr auto numerical_limit = std::numeric_limits<double>::epsilon();
-            const Matrix&  n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-            Vector nodal_hydraulic_head = ZeroVector(TNumNodes);
+            Vector nodal_hydraulic_head(TNumNodes, 0.0);
             for (unsigned int node = 0; node < TNumNodes; ++node) {
-                Vector NodeVolumeAcceleration(3);
-                noalias(NodeVolumeAcceleration) =
+                const auto& r_volume_acceleration =
                     r_geom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
-                const double g = norm_2(NodeVolumeAcceleration);
-                if (g > numerical_limit) {
-                    const auto fluid_weight = g * r_properties[DENSITY_WATER];
-
-                    Vector node_coordinates(3);
-                    noalias(node_coordinates) = r_geom[node].Coordinates();
-                    Vector node_volume_acceleration_unit_vector(3);
-                    noalias(node_volume_acceleration_unit_vector) = NodeVolumeAcceleration / g;
-
-                    const auto water_pressure = r_geom[node].FastGetSolutionStepValue(WATER_PRESSURE);
-                    nodal_hydraulic_head[node] =
-                        -inner_prod(node_coordinates, node_volume_acceleration_unit_vector) -
-                        PORE_PRESSURE_SIGN_FACTOR * water_pressure / fluid_weight;
-                } else {
-                    nodal_hydraulic_head[node] = 0.0;
+                const double g = norm_2(r_volume_acceleration);
+                if (g <= numerical_limit) {
+                    continue;
                 }
+
+                array_1d<double, 3> node_coordinates = ZeroVector(3);
+                noalias(node_coordinates)            = r_geom[node].Coordinates();
+                const array_1d<double, 3> volume_acceleration_unit_vector = r_volume_acceleration / g;
+                const auto water_pressure = r_geom[node].FastGetSolutionStepValue(WATER_PRESSURE);
+                const auto fluid_weight   = g * r_properties[DENSITY_WATER];
+                nodal_hydraulic_head[node] = -inner_prod(node_coordinates, volume_acceleration_unit_vector) -
+                                             PORE_PRESSURE_SIGN_FACTOR * water_pressure / fluid_weight;
             }
 
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                const auto& shape_function_values = row(n_container, integration_point);
-                rOutput[integration_point] =
-                    std::inner_product(shape_function_values.begin(), shape_function_values.end(),
-                                       nodal_hydraulic_head.begin(), 0.0);
+            const auto& r_n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+                const auto& r_shape_function = row(r_n_container, g_point);
+                rOutput[g_point] = std::inner_product(r_shape_function.begin(), r_shape_function.end(),
+                                                      nodal_hydraulic_head.begin(), 0.0);
             }
             return;
         }
+
         if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
             KRATOS_ERROR_IF(TDim != 2 && TDim != 3) << rVariable.Name() << " can not be retrieved for dim "
                                                     << TDim << " in element: " << this->Id() << std::endl;
@@ -373,18 +367,13 @@ public:
             const bool is_confined = (rVariable == CONFINED_STIFFNESS);
 
             constexpr std::array<std::size_t, 2> confined_indices = {
-                static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX),
-                static_cast<std::size_t>(INDEX_3D_XX)
-            };
+                static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX), static_cast<std::size_t>(INDEX_3D_XX)};
 
             constexpr std::array<std::size_t, 2> shear_indices = {
-                static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY),
-                static_cast<std::size_t>(INDEX_3D_XZ)
-            };
+                static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY), static_cast<std::size_t>(INDEX_3D_XZ)};
 
-            const std::size_t variable_index = is_confined
-                ? confined_indices[TDim - 2]
-                : shear_indices[TDim - 2];
+            const std::size_t variable_index =
+                is_confined ? confined_indices[TDim - 2] : shear_indices[TDim - 2];
 
             ElementVariables Variables;
             this->InitializeElementVariables(Variables, rCurrentProcessInfo);

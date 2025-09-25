@@ -225,11 +225,10 @@ private:
     }
 
     template <typename MatrixType1, typename MatrixType2>
-    static inline void AddMatrixAtPosition(
-        const MatrixType1& rSourceMatrix,
-        MatrixType2&       rDestinationMatrix,
-        const std::size_t  RowOffset,
-        const std::size_t  ColumnOffset)
+    static inline void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
+                                           MatrixType2&       rDestinationMatrix,
+                                           const std::size_t  RowOffset,
+                                           const std::size_t  ColumnOffset)
     {
         const std::size_t size1 = rSourceMatrix.size1();
         const std::size_t size2 = rSourceMatrix.size2();
