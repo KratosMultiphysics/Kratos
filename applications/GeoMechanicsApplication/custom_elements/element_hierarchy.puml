@@ -7,7 +7,6 @@ class Element
 class UPwBaseElement
 
 class UPwSmallStrainElement
-class DrainedUPwSmallStrainElement
 class TransientPwElement
 class SteadyStatePwElement
 class UndrainedUPwSmallStrainElement
@@ -23,7 +22,6 @@ class UPwSmallStrainLinkInterfaceElement
 Element <|-- UPwBaseElement
 UPwBaseElement <|-- UPwSmallStrainElement
 
-UPwSmallStrainElement <|-- DrainedUPwSmallStrainElement
 UPwSmallStrainElement <|-- TransientPwElement
 TransientPwElement <|-- SteadyStatePwElement
 UPwSmallStrainElement <|-- UndrainedUPwSmallStrainElement
