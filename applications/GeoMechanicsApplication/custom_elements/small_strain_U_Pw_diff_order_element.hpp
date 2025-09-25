@@ -40,6 +40,10 @@
 
 namespace Kratos
 {
+
+template <typename...>
+constexpr bool dependent_false = false;
+
 template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : public UPwBaseElement
 {
@@ -65,7 +69,7 @@ public:
             if constexpr (TNumNodes == 20) return 8; // 3D T20P8
             if constexpr (TNumNodes == 27) return 8; // 3D T27P8
         } else {
-            static_assert([] { return false; }(),
+            static_assert(dependent_false<std::integral_constant<std::size_t, TDim>>,
                           "The number of pressure nodes for the given element is not defined.");
         }
         return 0;
@@ -279,14 +283,14 @@ public:
         rOutput.resize(number_of_integration_points);
 
         auto for_each_integration_point = [](std::size_t number_of_points, auto&& body) {
-            for (std::size_t g_point = 0; g_point < number_of_points; ++g_point) {
+            for (unsigned int g_point = 0; g_point < number_of_points; ++g_point) {
                 body(g_point);
             }
         };
 
         auto fill_from_stress_vector = [this, &rOutput, number_of_integration_points,
                                         &for_each_integration_point](auto func) {
-            for_each_integration_point(number_of_integration_points, [this, &rOutput, &func](std::size_t g_point) {
+            for_each_integration_point(number_of_integration_points, [this, &rOutput, &func](unsigned int g_point) {
                 rOutput[g_point] = func(mStressVector[g_point]);
             });
         };
@@ -296,7 +300,7 @@ public:
             std::vector<Vector> tensor_vector;
             CalculateOnIntegrationPoints(rTensorVariable, tensor_vector, rCurrentProcessInfo);
             for_each_integration_point(number_of_integration_points,
-                                       [&rOutput, &tensor_vector, &func](std::size_t g_point) {
+                                       [&rOutput, &tensor_vector, &func](unsigned int g_point) {
                 rOutput[g_point] = func(tensor_vector[g_point]);
             });
         };
@@ -331,7 +335,7 @@ public:
 
             for_each_integration_point(
                 number_of_integration_points,
-                [this, &Variables, &rVariable, &retention_parameters, &rOutput](std::size_t g_point) {
+                [this, &Variables, &rVariable, &retention_parameters, &rOutput](unsigned int g_point) {
                 // Compute Np, GradNpT, B and StrainVector
                 this->CalculateKinematics(Variables, g_point);
 
@@ -366,7 +370,7 @@ public:
 
             const auto& r_n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
             for_each_integration_point(number_of_integration_points,
-                                       [&r_n_container, &rOutput, &nodal_hydraulic_head](std::size_t g_point) {
+                                       [&r_n_container, &rOutput, &nodal_hydraulic_head](unsigned int g_point) {
                 const auto& r_shape_function = row(r_n_container, g_point);
                 rOutput[g_point] = std::inner_product(r_shape_function.begin(), r_shape_function.end(),
                                                       nodal_hydraulic_head.begin(), 0.0);
@@ -423,7 +427,7 @@ public:
             return;
         }
 
-        for_each_integration_point(number_of_integration_points, [this, &rOutput, &rVariable](std::size_t g_point) {
+        for_each_integration_point(number_of_integration_points, [this, &rOutput, &rVariable](unsigned int g_point) {
             rOutput[g_point] = mConstitutiveLawVector[g_point]->GetValue(rVariable, rOutput[g_point]);
         });
 
