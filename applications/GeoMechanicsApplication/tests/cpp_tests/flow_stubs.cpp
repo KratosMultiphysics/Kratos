@@ -14,12 +14,14 @@
 
 namespace flow_stubs
 {
-void emptyProgress([[maybe_unused]]double progress) {
-    //deliberately empty as the name says
+void emptyProgress([[maybe_unused]] double progress)
+{
+    // deliberately empty as the name says
 }
 
-void emptyLog([[maybe_unused]]const char* log) {
-    //deliberately empty as the name says
+void emptyLog([[maybe_unused]] const char* log)
+{
+    // deliberately empty as the name says
 }
 
 bool emptyCancel() { return false; }
