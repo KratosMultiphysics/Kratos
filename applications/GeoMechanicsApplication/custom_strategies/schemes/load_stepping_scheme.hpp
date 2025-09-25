@@ -25,13 +25,11 @@ public:
                                   Element::EquationIdVectorType& EquationId,
                                   const ProcessInfo&             CurrentProcessInfo) override
     {
-        const auto fraction_of_unbalance = (CurrentProcessInfo[TIME] - CurrentProcessInfo[START_TIME]) /
-                                     (CurrentProcessInfo[END_TIME] - CurrentProcessInfo[START_TIME]);
         rCurrentElement.Calculate(INTERNAL_FORCES_VECTOR, RHS_Contribution, CurrentProcessInfo);
         RHS_Contribution -= mInternalForcesAtStartByElementId.at(rCurrentElement.GetId());
-        RHS_Contribution +=
-            fraction_of_unbalance * (mInternalForcesAtStartByElementId.at(rCurrentElement.GetId()) +
-                                     mExternalForcesAtStartByElementId.at(rCurrentElement.GetId()));
+        RHS_Contribution += CalculateFractionOfUnbalance(CurrentProcessInfo) *
+                            (mInternalForcesAtStartByElementId.at(rCurrentElement.GetId()) +
+                             mExternalForcesAtStartByElementId.at(rCurrentElement.GetId()));
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
     }
 
@@ -69,9 +67,7 @@ public:
         GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution(
             rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-        const auto fraction_of_unbalance = (CurrentProcessInfo[TIME] - CurrentProcessInfo[START_TIME]) /
-                                     (CurrentProcessInfo[END_TIME] - CurrentProcessInfo[START_TIME]);
-        RHS_Contribution *= fraction_of_unbalance;
+        RHS_Contribution *= CalculateFractionOfUnbalance(CurrentProcessInfo);
     }
 
     void InitializeSolutionStep(
@@ -102,5 +98,11 @@ private:
     std::map<std::size_t, Vector> mInternalForcesAtStartByElementId;
     std::map<std::size_t, Vector> mExternalForcesAtStartByElementId;
     bool                          mIsInitialized = false;
+
+    double CalculateFractionOfUnbalance(const ProcessInfo& rProcessInfo)
+    {
+        return (rProcessInfo[TIME] - rProcessInfo[START_TIME]) /
+               (rProcessInfo[END_TIME] - rProcessInfo[START_TIME]);
+    }
 };
 } // namespace Kratos
