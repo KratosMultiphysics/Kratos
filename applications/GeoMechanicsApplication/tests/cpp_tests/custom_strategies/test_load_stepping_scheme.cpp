@@ -10,12 +10,12 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "boost/numeric/ublas/assignment.hpp"
 #include "custom_strategies/schemes/load_stepping_scheme.hpp"
 #include "includes/condition.h"
 #include "includes/element.h"
 #include "spaces/ublas_space.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include <algorithm>
 
 namespace
 {
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSAtStartOfStageIsEqualToCurrentInt
     Vector           b;
 
     const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
-    Vector external_forces_at_start_of_stage = internal_forces_at_start_of_stage * 2;
+    Vector     external_forces_at_start_of_stage = internal_forces_at_start_of_stage * 2;
     element->SetInternalForces(internal_forces_at_start_of_stage);
     element->SetExternalForces(external_forces_at_start_of_stage);
     scheme.InitializeSolutionStep(model_part, A, Dx, b);
