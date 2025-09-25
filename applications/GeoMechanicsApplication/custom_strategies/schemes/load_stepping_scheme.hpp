@@ -32,6 +32,18 @@ public:
         RHS_Contribution +=
             fraction_of_unbalance * (mInternalForcesAtStartByElementId.at(rCurrentElement.GetId()) +
                                      mExternalForcesAtStartByElementId.at(rCurrentElement.GetId()));
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+    }
+
+    void CalculateSystemContributions(
+        Element& rCurrentElement,
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemMatrixType& LHS_Contribution,
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo&             CurrentProcessInfo) override
+    {
+        CalculateRHSContribution(rCurrentElement, RHS_Contribution, EquationId, CurrentProcessInfo);
+        this->CalculateLHSContribution(rCurrentElement, LHS_Contribution, EquationId, CurrentProcessInfo);
     }
 
     void InitializeSolutionStep(
