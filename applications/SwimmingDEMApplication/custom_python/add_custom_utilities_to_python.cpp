@@ -429,6 +429,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def(py::init<ModelPart&, Parameters&>())
         .def("AddTimeDerivativeComponent", &DerivativeRecovery <3>::AddTimeDerivativeComponent)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< Variable<double> >)
+        .def("RecoverSuperconvergentGradientAlt", &DerivativeRecovery <3>::RecoverSuperconvergentGradientAlt< Variable<double> >)
         .def("RecoverSuperconvergentLaplacian", &DerivativeRecovery <3>::RecoverSuperconvergentLaplacian)
         .def("RecoverSuperconvergentVelocityLaplacianFromGradient", &DerivativeRecovery <3>::RecoverSuperconvergentVelocityLaplacianFromGradient)
         .def("RecoverSuperconvergentMatDeriv", &DerivativeRecovery <3>::RecoverSuperconvergentMatDeriv)

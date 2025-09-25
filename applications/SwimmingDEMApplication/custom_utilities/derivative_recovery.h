@@ -321,7 +321,7 @@ unsigned int GetNumberOfUniqueNeighbours(const int my_id, const GlobalPointersVe
 double CalculateTheMaximumDistanceToNeighbours(Node::Pointer& p_node);
 double CalculateTheMaximumEdgeLength(ModelPart& r_model_part);
 double CalculateTheMinumumEdgeLength(ModelPart& r_model_part);
-void ComputeCoefficientsMatrix(Node::Pointer& p_node, const DenseMatrix<double>& CoeffsMatrix, const unsigned int& ord, bool& is_matrix_successfully_computed);
+void ComputeCoefficientsMatrix(Node::Pointer& p_node, DenseMatrix<double>& CoeffsMatrix, const unsigned int& ord, bool& is_matrix_successfully_computed);
 void ClassifyEdgeNodes(ModelPart& r_model_part);
 void ComputeDerivativeMonomialsVector(array_1d<double, 3>& pos, Node::Pointer& p_node, unsigned int& ord, DenseMatrix<double>& result);
 //**************************************************************************************************************************************************
