@@ -44,6 +44,15 @@ private:
     Vector mInternalForces;
     Vector mExternalForces;
 };
+
+Vector CreateVector(const std::initializer_list<double>& rInitializerList)
+{
+    // TEMPORARY, USE VERSION IN UBLAS UTILS WHEN THAT'S MERGED
+    Vector result = ZeroVector(rInitializerList.size());
+    std::ranges::copy(rInitializerList, result.begin());
+    return result;
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -72,8 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSAtStartOfStageIsEqualToCurrentInt
     Vector           Dx;
     Vector           b;
 
-    Vector internal_forces_at_start_of_stage(4);
-    internal_forces_at_start_of_stage <<= 1.0, 2.0, 3.0, 4.0; // Change later to new creation function
+    const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
     Vector external_forces_at_start_of_stage = internal_forces_at_start_of_stage * 2;
     element->SetInternalForces(internal_forces_at_start_of_stage);
     element->SetExternalForces(external_forces_at_start_of_stage);
@@ -108,8 +116,7 @@ KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSAtEndOfStageIsEqualToCurrentInter
     Vector           Dx;
     Vector           b;
 
-    Vector internal_forces_at_start_of_stage(4);
-    internal_forces_at_start_of_stage <<= 1.0, 2.0, 3.0, 4.0; // Change later to new creation function
+    const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
 
     Vector external_forces_at_start_of_stage = internal_forces_at_start_of_stage * 2;
     element->SetInternalForces(internal_forces_at_start_of_stage);
@@ -145,18 +152,14 @@ KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSAtHalfWayIsWeightedSum, KratosGeo
     Vector           Dx;
     Vector           b;
 
-    Vector internal_forces_at_start_of_stage(4);
-    internal_forces_at_start_of_stage <<= -1.0, -2.0, -3.0, -4.0; // Change later to new creation function
-
-    Vector external_forces_at_start_of_stage(4);
-    external_forces_at_start_of_stage <<= 5.0, 6.0, 7.0, 8.0;
+    const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
+    const auto external_forces_at_start_of_stage = CreateVector({5.0, 6.0, 7.0, 8.0});
     element->SetInternalForces(internal_forces_at_start_of_stage);
     element->SetExternalForces(external_forces_at_start_of_stage);
     scheme.InitializeSolutionStep(model_part, A, Dx, b);
     Vector actual_right_hand_side;
 
-    Vector current_internal_forces(4);
-    current_internal_forces <<= -2.0, -3.0, -4.0, -5.0;
+    const auto current_internal_forces = CreateVector({-2.0, -3.0, -4.0, -5.0});
     element->SetInternalForces(current_internal_forces);
     scheme.CalculateRHSContribution(*element, actual_right_hand_side, EquationId, CurrentProcessInfo);
 
@@ -186,18 +189,15 @@ KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSViaLocalSystemAtHalfWayIsWeighted
     Vector           Dx;
     Vector           b;
 
-    Vector internal_forces_at_start_of_stage(4);
-    internal_forces_at_start_of_stage <<= -1.0, -2.0, -3.0, -4.0; // Change later to new creation function
+    const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
 
-    Vector external_forces_at_start_of_stage(4);
-    external_forces_at_start_of_stage <<= 5.0, 6.0, 7.0, 8.0;
+    const auto external_forces_at_start_of_stage = CreateVector({5.0, 6.0, 7.0, 8.0});
     element->SetInternalForces(internal_forces_at_start_of_stage);
     element->SetExternalForces(external_forces_at_start_of_stage);
     scheme.InitializeSolutionStep(model_part, A, Dx, b);
     Vector actual_right_hand_side;
 
-    Vector current_internal_forces(4);
-    current_internal_forces <<= -2.0, -3.0, -4.0, -5.0;
+    const auto current_internal_forces = CreateVector({-2.0, -3.0, -4.0, -5.0});
     element->SetInternalForces(current_internal_forces);
     Matrix LHS;
     scheme.CalculateSystemContributions(*element, LHS, actual_right_hand_side, EquationId, CurrentProcessInfo);
