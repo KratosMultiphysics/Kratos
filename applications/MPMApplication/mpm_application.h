@@ -49,7 +49,6 @@
 #include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "custom_elements/mpm_updated_lagrangian_UP.hpp"
 #include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
-#include "custom_elements/mpm_updated_lagrangian_UP_VMS.hpp"
 #include "custom_elements/mpm_updated_lagrangian_VP_VMS.hpp" 
 
 //---constitutive laws
@@ -239,7 +238,6 @@ private:
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian;
     const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
     const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
-    const MPMUpdatedLagrangianUPVMS mMPMUpdatedLagrangianUPVMS;
     const MPMUpdatedLagrangianVPVMS mMPMUpdatedLagrangianVPVMS;
 
     // Deprecated Elements

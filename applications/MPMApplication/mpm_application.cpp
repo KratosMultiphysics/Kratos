@@ -116,7 +116,6 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangian", mMPMUpdatedLagrangian)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUP", mMPMUpdatedLagrangianUP)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianPQ", mMPMUpdatedLagrangianPQ)
-        KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUPVMS", mMPMUpdatedLagrangianUPVMS)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianVPVMS", mMPMUpdatedLagrangianVPVMS)
 
         // Deprecated elements
