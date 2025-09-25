@@ -369,14 +369,22 @@ public:
         if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
             KRATOS_ERROR_IF(TDim != 2 && TDim != 3) << rVariable.Name() << " can not be retrieved for dim "
                                                     << TDim << " in element: " << this->Id() << std::endl;
-            size_t variable_index = 0;
-            if (rVariable == CONFINED_STIFFNESS) {
-                variable_index = TDim == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX)
-                                           : static_cast<size_t>(INDEX_3D_XX);
-            } else {
-                variable_index = TDim == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY)
-                                           : static_cast<size_t>(INDEX_3D_XZ);
-            }
+
+            const bool is_confined = (rVariable == CONFINED_STIFFNESS);
+
+            constexpr std::array<std::size_t, 2> confined_indices = {
+                static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX),
+                static_cast<std::size_t>(INDEX_3D_XX)
+            };
+
+            constexpr std::array<std::size_t, 2> shear_indices = {
+                static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY),
+                static_cast<std::size_t>(INDEX_3D_XZ)
+            };
+
+            const std::size_t variable_index = is_confined
+                ? confined_indices[TDim - 2]
+                : shear_indices[TDim - 2];
 
             ElementVariables Variables;
             this->InitializeElementVariables(Variables, rCurrentProcessInfo);
