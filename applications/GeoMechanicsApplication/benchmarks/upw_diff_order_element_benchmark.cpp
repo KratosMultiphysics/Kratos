@@ -95,50 +95,50 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
 namespace Kratos
 {
 
-void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& state)
+void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
 {
-    auto properties = CreateProperties();
-    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
+    auto p_properties = CreateProperties();
+    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
 
-    for (auto _ : state) {
+    for (auto _ : rState) {
         auto left_hand_side  = Matrix{};
         auto right_hand_side = Vector{};
         p_element->CalculateLocalSystem(left_hand_side, right_hand_side, dummy_process_info);
     }
 }
 
-void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& state)
+void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& rState)
 {
-    auto properties = CreateProperties();
-    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
+    auto p_properties = CreateProperties();
+    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
 
-    for (auto _ : state) {
+    for (auto _ : rState) {
         auto right_hand_side = Vector{};
         p_element->CalculateRightHandSide(right_hand_side, dummy_process_info);
     }
 }
 
-void benchmarkUPwDiffOrderLHSCalculation(benchmark::State& state)
+void benchmarkUPwDiffOrderLHSCalculation(benchmark::State& rState)
 {
-    auto properties = CreateProperties();
-    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
+    auto p_properties = CreateProperties();
+    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
 
-    for (auto _ : state) {
+    for (auto _ : rState) {
         auto left_hand_side = Matrix{};
         p_element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
     }

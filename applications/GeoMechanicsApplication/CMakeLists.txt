@@ -133,7 +133,7 @@ if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
         get_filename_component(filename ${file} NAME_WE)
         add_executable(${filename} ${file})
         target_link_libraries(${filename} PUBLIC KratosGeoMechanicsCore KratosGeoMechanicsTestSetupUtilities benchmark::benchmark)
-        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_BENCHMARK=IMPORT,API")
+        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_GEO_BENCHMARK=IMPORT,API")
         set_target_properties(${filename} PROPERTIES CXX_STANDARD 20)
 
         install(TARGETS ${filename} DESTINATION benchmark)
