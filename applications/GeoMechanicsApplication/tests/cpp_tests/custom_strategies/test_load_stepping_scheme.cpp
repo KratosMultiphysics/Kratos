@@ -61,125 +61,22 @@ namespace Kratos::Testing
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType  = UblasSpace<double, Matrix, Vector>;
 
-KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSAtStartOfStageIsEqualToCurrentInternalForcesAtStartMinusInternalForcesAtStart,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+class LoadSteppingSchemeElementRightHandSideScaling
+    : public ::testing::TestWithParam<std::tuple<double, Vector>>
+{
+};
+
+TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedBasedOnTime)
 {
     LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
     auto element = Kratos::make_intrusive<MockElementForLoadSteppingScheme>();
     element->SetId(1);
 
     ProcessInfo CurrentProcessInfo;
-    CurrentProcessInfo[TIME]       = 0.0;
-    CurrentProcessInfo[START_TIME] = 0.0;
-    CurrentProcessInfo[END_TIME]   = 1.0;
-    std::vector<std::size_t> EquationId;
-
-    Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddElement(element);
-    CompressedMatrix A;
-    Vector           Dx;
-    Vector           b;
-
-    const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
-    Vector     external_forces_at_start_of_stage = internal_forces_at_start_of_stage * 2;
-    element->SetInternalForces(internal_forces_at_start_of_stage);
-    element->SetExternalForces(external_forces_at_start_of_stage);
-    scheme.InitializeSolutionStep(model_part, A, Dx, b);
-    Vector actual_right_hand_side;
-
-    Vector difference{ScalarVector(4, 0.1)};
-    Vector current_internal_forces = internal_forces_at_start_of_stage + difference;
-    element->SetInternalForces(current_internal_forces);
-    scheme.CalculateRHSContribution(*element, actual_right_hand_side, EquationId, CurrentProcessInfo);
-
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, difference, 1e-6);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSAtEndOfStageIsEqualToCurrentInternalForcesPlusExternalForcesAtStart,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
-    auto element = Kratos::make_intrusive<MockElementForLoadSteppingScheme>();
-    element->SetId(1);
-
-    ProcessInfo CurrentProcessInfo;
-    CurrentProcessInfo[TIME]       = 1.0;
-    CurrentProcessInfo[START_TIME] = 0.0;
-    CurrentProcessInfo[END_TIME]   = 1.0;
-    std::vector<std::size_t> EquationId;
-
-    Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddElement(element);
-    CompressedMatrix A;
-    Vector           Dx;
-    Vector           b;
-
-    const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
-
-    Vector external_forces_at_start_of_stage = internal_forces_at_start_of_stage * 2;
-    element->SetInternalForces(internal_forces_at_start_of_stage);
-    element->SetExternalForces(external_forces_at_start_of_stage);
-    scheme.InitializeSolutionStep(model_part, A, Dx, b);
-    Vector actual_right_hand_side;
-
-    Vector difference{ScalarVector(4, 0.1)};
-    Vector current_internal_forces = internal_forces_at_start_of_stage + difference;
-    element->SetInternalForces(current_internal_forces);
-    scheme.CalculateRHSContribution(*element, actual_right_hand_side, EquationId, CurrentProcessInfo);
-
-    auto expected = current_internal_forces + external_forces_at_start_of_stage;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected, 1e-6);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSAtHalfWayIsWeightedSum, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
-    auto element = Kratos::make_intrusive<MockElementForLoadSteppingScheme>();
-    element->SetId(1);
-
-    ProcessInfo CurrentProcessInfo;
-    CurrentProcessInfo[TIME]       = 0.5;
-    CurrentProcessInfo[START_TIME] = 0.0;
-    CurrentProcessInfo[END_TIME]   = 1.0;
-    std::vector<std::size_t> EquationId;
-
-    Model model;
-    auto& model_part = model.CreateModelPart("Main");
-    model_part.AddElement(element);
-    CompressedMatrix A;
-    Vector           Dx;
-    Vector           b;
-
-    const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
-    const auto external_forces_at_start_of_stage = CreateVector({5.0, 6.0, 7.0, 8.0});
-    element->SetInternalForces(internal_forces_at_start_of_stage);
-    element->SetExternalForces(external_forces_at_start_of_stage);
-    scheme.InitializeSolutionStep(model_part, A, Dx, b);
-    Vector actual_right_hand_side;
-
-    const auto current_internal_forces = CreateVector({-2.0, -3.0, -4.0, -5.0});
-    element->SetInternalForces(current_internal_forces);
-    scheme.CalculateRHSContribution(*element, actual_right_hand_side, EquationId, CurrentProcessInfo);
-
-    auto expected = Vector{ScalarVector(4, 1.0)};
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected, 1e-6);
-
-    std::vector<std::size_t> expected_equation_ids = {1};
-    KRATOS_EXPECT_VECTOR_EQ(EquationId, expected_equation_ids);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSViaLocalSystemAtHalfWayIsWeightedSum, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
-    auto element = Kratos::make_intrusive<MockElementForLoadSteppingScheme>();
-    element->SetId(1);
-
-    ProcessInfo CurrentProcessInfo;
-    CurrentProcessInfo[TIME]       = 0.5;
-    CurrentProcessInfo[START_TIME] = 0.0;
-    CurrentProcessInfo[END_TIME]   = 1.0;
+    const auto& [current_time, expected_right_hand_side] = GetParam();
+    CurrentProcessInfo[TIME]                             = current_time;
+    CurrentProcessInfo[START_TIME]                       = 0.0;
+    CurrentProcessInfo[END_TIME]                         = 1.0;
     std::vector<std::size_t> EquationId;
 
     Model model;
@@ -195,19 +92,26 @@ KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSViaLocalSystemAtHalfWayIsWeighted
     element->SetInternalForces(internal_forces_at_start_of_stage);
     element->SetExternalForces(external_forces_at_start_of_stage);
     scheme.InitializeSolutionStep(model_part, A, Dx, b);
-    Vector actual_right_hand_side;
 
     const auto current_internal_forces = CreateVector({-2.0, -3.0, -4.0, -5.0});
     element->SetInternalForces(current_internal_forces);
-    Matrix LHS;
-    scheme.CalculateSystemContributions(*element, LHS, actual_right_hand_side, EquationId, CurrentProcessInfo);
 
-    auto expected = Vector{ScalarVector(4, 1.0)};
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected, 1e-6);
+    Vector actual_right_hand_side;
+    scheme.CalculateRHSContribution(*element, actual_right_hand_side, EquationId, CurrentProcessInfo);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, 1e-6);
 
-    std::vector<std::size_t> expected_equation_ids = {1};
-    KRATOS_EXPECT_VECTOR_EQ(EquationId, expected_equation_ids);
+    Vector actual_right_hand_side_via_system_contribution;
+    Matrix dummy_matrix;
+    scheme.CalculateSystemContributions(*element, dummy_matrix, actual_right_hand_side_via_system_contribution, EquationId, CurrentProcessInfo);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, 1e-6);
 }
+
+INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
+                         LoadSteppingSchemeElementRightHandSideScaling,
+                         ::testing::Values(std::make_tuple(0.0, ScalarVector(4, -1.0)),
+                                           std::make_tuple(0.5, ScalarVector(4, 1.0)),
+                                           std::make_tuple(0.8, ScalarVector(4, 2.2)),
+                                           std::make_tuple(1.0, ScalarVector(4, 3.0))));
 
 class MockConditionForLoadStepping : public Condition
 {
