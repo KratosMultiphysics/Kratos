@@ -45,6 +45,25 @@ private:
     Vector mExternalForces;
 };
 
+class MockConditionForLoadStepping : public Condition
+{
+public:
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
+    {
+        rRightHandSideVector = Vector{ScalarVector(4, 10.0)};
+    }
+
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        rResult = {1};
+    }
+};
+
+class LoadSteppingSchemeConditionRightHandSideScaling
+    : public ::testing::TestWithParam<std::tuple<double, Vector>>
+{
+};
+
 Vector CreateVector(const std::initializer_list<double>& rInitializerList)
 {
     // TEMPORARY, USE VERSION IN UBLAS UTILS WHEN THAT'S MERGED
@@ -112,25 +131,6 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::make_tuple(0.5, ScalarVector(4, 1.0)),
                                            std::make_tuple(0.8, ScalarVector(4, 2.2)),
                                            std::make_tuple(1.0, ScalarVector(4, 3.0))));
-
-class MockConditionForLoadStepping : public Condition
-{
-public:
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        rRightHandSideVector = Vector{ScalarVector(4, 10.0)};
-    }
-
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
-    {
-        rResult = {1};
-    }
-};
-
-class LoadSteppingSchemeConditionRightHandSideScaling
-    : public ::testing::TestWithParam<std::tuple<double, Vector>>
-{
-};
 
 TEST_P(LoadSteppingSchemeConditionRightHandSideScaling, RightHandSideIsScaledBasedOnTime)
 {
