@@ -161,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(AttemptingToMakeALobattoSchemeWithAnUnsupportedNumberO
 
     for (auto number : some_unsupported_numbers_of_points) {
         const auto expected_error_message =
-            "Can't construct Lobatto integration scheme: no support for " + std::to_string(number) + " point(s)";
+            std::format("Can't construct Lobatto integration scheme: no support for {} point(s)",number);
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{number}, expected_error_message)
     }
 }
@@ -198,8 +198,8 @@ KRATOS_TEST_CASE_IN_SUITE(AttemptingToMakeALumpedSchemeWithAnUnsupportedNumberOf
     const auto some_unsupported_numbers_of_points = std::vector<std::size_t>{0, 1, 2, 5, 7, 9};
 
     for (auto number : some_unsupported_numbers_of_points) {
-        const auto expected_error_message =
-            "Can't construct Lumped integration scheme: no support for " + std::to_string(number) + " point(s)";
+        const auto expected_error_message = std::format(
+            "Can't construct Lumped integration scheme: no support for {} point(s)", number);
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(LumpedIntegrationScheme{number}, expected_error_message)
     }
 }
