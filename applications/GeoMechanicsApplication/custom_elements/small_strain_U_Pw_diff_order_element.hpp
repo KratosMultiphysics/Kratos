@@ -64,8 +64,10 @@ public:
             if constexpr (TNumNodes == 10) return 4; // 3D T10P4
             if constexpr (TNumNodes == 20) return 8; // 3D T20P8
             if constexpr (TNumNodes == 27) return 8; // 3D T27P8
+        } else {
+            static_assert(false,
+                          "The number of pressure nodes for the given element is not defined.");
         }
-        static_assert("The number of pressure nodes for the given element is not defined.");
         return 0;
     }();
 
@@ -161,22 +163,22 @@ public:
 
         const auto number_of_integration_points =
             GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-        for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
-            Variables.B            = b_matrices[GPoint];
-            Variables.F            = deformation_gradients[GPoint];
-            Variables.StrainVector = strain_vectors[GPoint];
+        for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+            this->CalculateKinematics(Variables, g_point);
+            Variables.B            = b_matrices[g_point];
+            Variables.F            = deformation_gradients[g_point];
+            Variables.StrainVector = strain_vectors[g_point];
 
             ConstitutiveLawUtilities::SetConstitutiveParameters(
                 ConstitutiveParameters, Variables.StrainVector, Variables.ConstitutiveMatrix,
-                Variables.Nu, Variables.DNu_DX, Variables.F, determinants_of_deformation_gradients[GPoint]);
+                Variables.Nu, Variables.DNu_DX, Variables.F, determinants_of_deformation_gradients[g_point]);
 
             // Compute constitutive tensor and/or stresses
-            noalias(Variables.StressVector) = mStressVector[GPoint];
+            noalias(Variables.StressVector) = mStressVector[g_point];
             ConstitutiveParameters.SetStressVector(Variables.StressVector);
-            mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
-            mStateVariablesFinalized[GPoint] = mConstitutiveLawVector[GPoint]->GetValue(
-                STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
+            mConstitutiveLawVector[g_point]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
+            mStateVariablesFinalized[g_point] = mConstitutiveLawVector[g_point]->GetValue(
+                STATE_VARIABLES, mStateVariablesFinalized[g_point]);
         }
 
         // Assign pressure values to the intermediate nodes for post-processing
@@ -236,8 +238,8 @@ public:
                 << "Insufficient number of values for "
                    "SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints"
                 << std::endl;
-            for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-                mConstitutiveLawVector[GPoint]->SetValue(rVariable, rValues[GPoint], rCurrentProcessInfo);
+            for (unsigned int g_point = 0; g_point < mConstitutiveLawVector.size(); ++g_point) {
+                mConstitutiveLawVector[g_point]->SetValue(rVariable, rValues[g_point], rCurrentProcessInfo);
             }
         }
 
@@ -316,15 +318,15 @@ public:
 
             RetentionLaw::Parameters RetentionParameters(r_properties);
 
-            for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
                 // Compute Np, GradNpT, B and StrainVector
-                this->CalculateKinematics(Variables, GPoint);
+                this->CalculateKinematics(Variables, g_point);
 
                 RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
                     Variables.Np, Variables.PressureVector));
 
-                rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateValue(
-                    RetentionParameters, rVariable, rOutput[GPoint]);
+                rOutput[g_point] = mRetentionLawVector[g_point]->CalculateValue(
+                    RetentionParameters, rVariable, rOutput[g_point]);
             }
             return;
         }
@@ -431,11 +433,11 @@ public:
         rOutput.resize(number_of_integration_points);
 
         if (rVariable == CAUCHY_STRESS_VECTOR) {
-            for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-                if (rOutput[GPoint].size() != mStressVector[GPoint].size())
-                    rOutput[GPoint].resize(mStressVector[GPoint].size(), false);
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+                if (rOutput[g_point].size() != mStressVector[g_point].size())
+                    rOutput[g_point].resize(mStressVector[g_point].size(), false);
 
-                rOutput[GPoint] = mStressVector[GPoint];
+                rOutput[g_point] = mStressVector[g_point];
             }
         } else if (rVariable == TOTAL_STRESS_VECTOR) {
             ElementVariables Variables;
@@ -460,23 +462,23 @@ public:
                 Variables.NpContainer, Variables.PressureVector);
             const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
-            for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-                rOutput[GPoint] =
-                    mStressVector[GPoint] + PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[GPoint] *
-                                                bishop_coefficients[GPoint] * fluid_pressures[GPoint] *
-                                                GetStressStatePolicy().GetVoigtVector();
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+                rOutput[g_point] = mStressVector[g_point] +
+                                   PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[g_point] *
+                                       bishop_coefficients[g_point] * fluid_pressures[g_point] *
+                                       GetStressStatePolicy().GetVoigtVector();
             }
         } else if (rVariable == ENGINEERING_STRAIN_VECTOR) {
             ElementVariables Variables;
             this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-            for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-                noalias(Variables.Nu) = row(Variables.NuContainer, GPoint);
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+                noalias(Variables.Nu) = row(Variables.NuContainer, g_point);
 
                 Matrix J0;
                 Matrix InvJ0;
                 this->CalculateDerivativesOnInitialConfiguration(
-                    Variables.detJInitialConfiguration, J0, InvJ0, Variables.DNu_DXInitialConfiguration, GPoint);
+                    Variables.detJInitialConfiguration, J0, InvJ0, Variables.DNu_DXInitialConfiguration, g_point);
 
                 // Calculating operator B
                 Variables.B = this->CalculateBMatrix(Variables.DNu_DXInitialConfiguration, Variables.Nu);
@@ -485,10 +487,10 @@ public:
                 Variables.StrainVector = StressStrainUtilities::CalculateCauchyStrain(
                     Variables.B, Variables.DisplacementVector);
 
-                if (rOutput[GPoint].size() != Variables.StrainVector.size())
-                    rOutput[GPoint].resize(Variables.StrainVector.size(), false);
+                if (rOutput[g_point].size() != Variables.StrainVector.size())
+                    rOutput[g_point].resize(Variables.StrainVector.size(), false);
 
-                rOutput[GPoint] = Variables.StrainVector;
+                rOutput[g_point] = Variables.StrainVector;
             }
         } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
             ElementVariables Variables;
@@ -500,7 +502,7 @@ public:
                 deformation_gradients, b_matrices, Variables.DisplacementVector,
                 Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
         } else {
-            for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
+            for (unsigned int i = 0; i < number_of_integration_points; ++i)
                 rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
         }
 
@@ -513,8 +515,8 @@ public:
     {
         KRATOS_TRY
 
-        const auto& r_geometry = GetGeometry();
-        const auto number_of_integration_points = r_geometry.IntegrationPointsNumber(GetIntegrationMethod());
+        const auto number_of_integration_points =
+            GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         rOutput.resize(number_of_integration_points);
 
         if (rVariable == FLUID_FLUX_VECTOR) {
@@ -536,7 +538,7 @@ public:
                                    relative_permeability_values.begin(), std::multiplies<>{});
 
             // Loop over integration points
-            for (unsigned int g_point = 0; g_point < mConstitutiveLawVector.size(); ++g_point) {
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
                 // compute element kinematics (Np, gradNpT, |J|, B, strains)
                 this->CalculateKinematics(Variables, g_point);
                 Variables.B = b_matrices[g_point];
@@ -568,38 +570,40 @@ public:
     {
         KRATOS_TRY
 
-        rOutput.resize(GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()));
+        const auto number_of_integration_points =
+            GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+        rOutput.resize(number_of_integration_points);
 
         if (rVariable == CAUCHY_STRESS_TENSOR) {
             std::vector<Vector> StressVector;
             this->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 
-            for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-                rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector[GPoint]);
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+                rOutput[g_point] = MathUtils<double>::StressVectorToTensor(StressVector[g_point]);
             }
         } else if (rVariable == TOTAL_STRESS_TENSOR) {
             std::vector<Vector> StressVector;
             this->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 
-            for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-                rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector[GPoint]);
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+                rOutput[g_point] = MathUtils<double>::StressVectorToTensor(StressVector[g_point]);
             }
         } else if (rVariable == ENGINEERING_STRAIN_TENSOR) {
             std::vector<Vector> StrainVector;
             CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
 
-            for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-                rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(StrainVector[GPoint]);
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+                rOutput[g_point] = MathUtils<double>::StrainVectorToTensor(StrainVector[g_point]);
             }
         } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
             std::vector<Vector> StrainVector;
             CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
 
-            for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-                rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(StrainVector[GPoint]);
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+                rOutput[g_point] = MathUtils<double>::StrainVectorToTensor(StrainVector[g_point]);
             }
         } else {
-            for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
+            for (unsigned int i = 0; i < number_of_integration_points; ++i) {
                 rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
             }
         }
@@ -726,8 +730,8 @@ protected:
     {
         KRATOS_TRY
 
-        const PropertiesType&                           r_prop = this->GetProperties();
-        const GeometryType&                             r_geom = GetGeometry();
+        const auto&                                     r_prop = this->GetProperties();
+        const auto&                                     r_geom = GetGeometry();
         const GeometryType::IntegrationPointsArrayType& r_integration_points =
             r_geom.IntegrationPoints(this->GetIntegrationMethod());
 
@@ -775,23 +779,23 @@ protected:
 
         const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
-        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
-            Variables.B                  = b_matrices[GPoint];
-            Variables.F                  = deformation_gradients[GPoint];
-            Variables.StrainVector       = strain_vectors[GPoint];
-            Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
+        for (unsigned int g_point = 0; g_point < r_integration_points.size(); ++g_point) {
+            this->CalculateKinematics(Variables, g_point);
+            Variables.B                  = b_matrices[g_point];
+            Variables.F                  = deformation_gradients[g_point];
+            Variables.StrainVector       = strain_vectors[g_point];
+            Variables.ConstitutiveMatrix = constitutive_matrices[g_point];
 
-            Variables.RelativePermeability = relative_permeability_values[GPoint];
-            Variables.BishopCoefficient    = bishop_coefficients[GPoint];
+            Variables.RelativePermeability = relative_permeability_values[g_point];
+            Variables.BishopCoefficient    = bishop_coefficients[g_point];
 
-            Variables.BiotCoefficient        = biot_coefficients[GPoint];
-            Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
-            Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
-            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+            Variables.BiotCoefficient        = biot_coefficients[g_point];
+            Variables.BiotModulusInverse     = biot_moduli_inverse[g_point];
+            Variables.DegreeOfSaturation     = degrees_of_saturation[g_point];
+            Variables.IntegrationCoefficient = integration_coefficients[g_point];
 
             Variables.IntegrationCoefficientInitialConfiguration =
-                integration_coefficients_on_initial_configuration[GPoint];
+                integration_coefficients_on_initial_configuration[g_point];
 
             // Contributions to the left hand side
             if (CalculateStiffnessMatrixFlag)
@@ -799,7 +803,7 @@ protected:
 
             // Contributions to the right hand side
             if (CalculateResidualVectorFlag)
-                this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+                this->CalculateAndAddRHS(rRightHandSideVector, Variables, g_point);
         }
 
         KRATOS_CATCH("")
@@ -1201,8 +1205,8 @@ protected:
     {
         std::vector<Matrix> result;
         result.reserve(rDN_DXContainer.size());
-        for (unsigned int GPoint = 0; GPoint < rDN_DXContainer.size(); ++GPoint) {
-            result.push_back(this->CalculateBMatrix(rDN_DXContainer[GPoint], row(rNContainer, GPoint)));
+        for (unsigned int g_point = 0; g_point < rDN_DXContainer.size(); ++g_point) {
+            result.push_back(this->CalculateBMatrix(rDN_DXContainer[g_point], row(rNContainer, g_point)));
         }
 
         return result;
@@ -1298,17 +1302,17 @@ protected:
         const auto determinants_of_deformation_gradients =
             GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
 
-        for (unsigned int GPoint = 0; GPoint < rDeformationGradients.size(); ++GPoint) {
+        for (unsigned int g_point = 0; g_point < rDeformationGradients.size(); ++g_point) {
             // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a
             // pointer to an implicitly converted object
-            const auto shape_function_values = Vector{row(rNuContainer, GPoint)};
+            const auto shape_function_values = Vector{row(rNuContainer, g_point)};
             ConstitutiveLawUtilities::SetConstitutiveParameters(
-                rConstitutiveParameters, rStrainVectors[GPoint], rConstitutiveMatrices[GPoint],
-                shape_function_values, rDNu_DXContainer[GPoint], rDeformationGradients[GPoint],
-                determinants_of_deformation_gradients[GPoint]);
-            rConstitutiveParameters.SetStressVector(rStressVectors[GPoint]);
+                rConstitutiveParameters, rStrainVectors[g_point], rConstitutiveMatrices[g_point],
+                shape_function_values, rDNu_DXContainer[g_point], rDeformationGradients[g_point],
+                determinants_of_deformation_gradients[g_point]);
+            rConstitutiveParameters.SetStressVector(rStressVectors[g_point]);
 
-            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
+            mConstitutiveLawVector[g_point]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
         }
     }
 
