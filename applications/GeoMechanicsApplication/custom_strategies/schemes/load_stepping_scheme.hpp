@@ -20,8 +20,23 @@ template <class TSparseSpace, class TDenseSpace>
 class LoadSteppingScheme : public GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>
 {
 public:
-    void CalculateRHSContribution(Element& rCurrentElement,
-                                  GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType& RHS_Contribution,
+    using TSystemVectorType = GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType;
+    using TSystemMatrixType = GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemMatrixType;
+    using TLocalSystemMatrixType = GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemMatrixType;
+    using TLocalSystemVectorType = GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType;
+
+    void CalculateSystemContributions(Element&                       rCurrentElement,
+                                      TLocalSystemMatrixType&        LHS_Contribution,
+                                      TLocalSystemVectorType&        RHS_Contribution,
+                                      Element::EquationIdVectorType& EquationId,
+                                      const ProcessInfo&             CurrentProcessInfo) override
+    {
+        CalculateRHSContribution(rCurrentElement, RHS_Contribution, EquationId, CurrentProcessInfo);
+        this->CalculateLHSContribution(rCurrentElement, LHS_Contribution, EquationId, CurrentProcessInfo);
+    }
+
+    void CalculateRHSContribution(Element&                       rCurrentElement,
+                                  TLocalSystemVectorType&        RHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
                                   const ProcessInfo&             CurrentProcessInfo) override
     {
@@ -33,34 +48,18 @@ public:
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
     }
 
-    using GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution;
-
-    void CalculateSystemContributions(
-        Element& rCurrentElement,
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemMatrixType& LHS_Contribution,
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo&             CurrentProcessInfo) override
-    {
-        CalculateRHSContribution(rCurrentElement, RHS_Contribution, EquationId, CurrentProcessInfo);
-        this->CalculateLHSContribution(rCurrentElement, LHS_Contribution, EquationId, CurrentProcessInfo);
-    }
-
-    void CalculateSystemContributions(
-        Condition& rCurrentCondition,
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemMatrixType& LHS_Contribution,
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo&             CurrentProcessInfo) override
+    void CalculateSystemContributions(Condition&                     rCurrentCondition,
+                                      TLocalSystemMatrixType&        LHS_Contribution,
+                                      TLocalSystemVectorType&        RHS_Contribution,
+                                      Element::EquationIdVectorType& EquationId,
+                                      const ProcessInfo&             CurrentProcessInfo) override
     {
         CalculateRHSContribution(rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo);
         this->CalculateLHSContribution(rCurrentCondition, LHS_Contribution, EquationId, CurrentProcessInfo);
     }
 
-    using GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateSystemContributions;
-
-    void CalculateRHSContribution(Condition& rCurrentCondition,
-                                  GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType& RHS_Contribution,
+    void CalculateRHSContribution(Condition&                     rCurrentCondition,
+                                  TLocalSystemVectorType&        RHS_Contribution,
                                   Element::EquationIdVectorType& EquationId,
                                   const ProcessInfo&             CurrentProcessInfo) override
     {
@@ -70,11 +69,7 @@ public:
         RHS_Contribution *= CalculateFractionOfUnbalance(CurrentProcessInfo);
     }
 
-    void InitializeSolutionStep(
-        ModelPart&                                                                       rModelPart,
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemMatrixType& rA,
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType& rDx,
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType& rB) override
+    void InitializeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rB) override
     {
         GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, rA, rDx, rB);
 
@@ -95,9 +90,9 @@ public:
     }
 
 private:
-    std::map<std::size_t, Vector> mInternalForcesAtStartByElementId;
-    std::map<std::size_t, Vector> mExternalForcesAtStartByElementId;
-    bool                          mIsInitialized = false;
+    std::map<std::size_t, TLocalSystemVectorType> mInternalForcesAtStartByElementId;
+    std::map<std::size_t, TLocalSystemVectorType> mExternalForcesAtStartByElementId;
+    bool                                          mIsInitialized = false;
 
     double CalculateFractionOfUnbalance(const ProcessInfo& rProcessInfo)
     {
