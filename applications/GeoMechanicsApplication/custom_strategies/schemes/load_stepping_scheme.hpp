@@ -48,6 +48,17 @@ public:
         this->CalculateLHSContribution(rCurrentElement, LHS_Contribution, EquationId, CurrentProcessInfo);
     }
 
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemMatrixType& LHS_Contribution,
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo&             CurrentProcessInfo) override
+    {
+        CalculateRHSContribution(rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo);
+        this->CalculateLHSContribution(rCurrentCondition, LHS_Contribution, EquationId, CurrentProcessInfo);
+    }
+
     using GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateSystemContributions;
 
     void CalculateRHSContribution(Condition& rCurrentCondition,
