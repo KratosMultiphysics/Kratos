@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-class FluidBodyFlowCalculator : public ContributionCalculator
+class KRATOS_API(GEO_MECHANICS_APPLICATION) FluidBodyFlowCalculator : public ContributionCalculator
 {
 public:
     struct InputProvider {
