@@ -25,7 +25,7 @@ public:
                                   Element::EquationIdVectorType& EquationId,
                                   const ProcessInfo&             CurrentProcessInfo) override
     {
-        auto fraction_of_unbalance = (CurrentProcessInfo[TIME] - CurrentProcessInfo[START_TIME]) /
+        const auto fraction_of_unbalance = (CurrentProcessInfo[TIME] - CurrentProcessInfo[START_TIME]) /
                                      (CurrentProcessInfo[END_TIME] - CurrentProcessInfo[START_TIME]);
         rCurrentElement.Calculate(INTERNAL_FORCES_VECTOR, RHS_Contribution, CurrentProcessInfo);
         RHS_Contribution -= mInternalForcesAtStartByElementId.at(rCurrentElement.GetId());
@@ -34,6 +34,8 @@ public:
                                      mExternalForcesAtStartByElementId.at(rCurrentElement.GetId()));
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
     }
+
+    using GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution;
 
     void CalculateSystemContributions(
         Element& rCurrentElement,
@@ -44,6 +46,21 @@ public:
     {
         CalculateRHSContribution(rCurrentElement, RHS_Contribution, EquationId, CurrentProcessInfo);
         this->CalculateLHSContribution(rCurrentElement, LHS_Contribution, EquationId, CurrentProcessInfo);
+    }
+
+    using GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateSystemContributions;
+
+    void CalculateRHSContribution(Condition& rCurrentCondition,
+                                  GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType& RHS_Contribution,
+                                  Element::EquationIdVectorType& EquationId,
+                                  const ProcessInfo&             CurrentProcessInfo) override
+    {
+        GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution(
+            rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+        const auto fraction_of_unbalance = (CurrentProcessInfo[TIME] - CurrentProcessInfo[START_TIME]) /
+                                     (CurrentProcessInfo[END_TIME] - CurrentProcessInfo[START_TIME]);
+        RHS_Contribution *= fraction_of_unbalance;
     }
 
     void InitializeSolutionStep(

@@ -11,8 +11,9 @@
 //
 
 #include "boost/numeric/ublas/assignment.hpp"
-#include "custom_elements/membrane_elements/membrane_element.hpp"
 #include "custom_strategies/schemes/load_stepping_scheme.hpp"
+#include "includes/condition.h"
+#include "includes/element.h"
 #include "spaces/ublas_space.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -197,6 +198,53 @@ KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeRHSViaLocalSystemAtHalfWayIsWeighted
 
     auto expected = Vector{ScalarVector(4, 1.0)};
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected, 1e-6);
+
+    std::vector<std::size_t> expected_equation_ids = {1};
+    KRATOS_EXPECT_VECTOR_EQ(EquationId, expected_equation_ids);
+}
+
+class MockConditionForLoadStepping : public Condition
+{
+public:
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
+    {
+        rRightHandSideVector = Vector{ScalarVector(4, 10.0)};
+    }
+
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        rResult = {1};
+    };
+};
+
+KRATOS_TEST_CASE_IN_SUITE(LoadSteppingSchemeConditionRHSIsScaledWithTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
+    MockConditionForLoadStepping                                           condition;
+
+    ProcessInfo CurrentProcessInfo;
+    CurrentProcessInfo[START_TIME] = 0.0;
+    CurrentProcessInfo[END_TIME]   = 1.0;
+    std::vector<std::size_t> EquationId;
+
+    Vector actual_right_hand_side;
+    scheme.CalculateRHSContribution(condition, actual_right_hand_side, EquationId, CurrentProcessInfo);
+
+
+    // This probably should be a parametrized test later
+    CurrentProcessInfo[TIME]       = 0.0;
+    auto expected = Vector{ZeroVector(4)};
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected, 1e-6);
+
+    CurrentProcessInfo[TIME]       = 0.6;
+    scheme.CalculateRHSContribution(condition, actual_right_hand_side, EquationId, CurrentProcessInfo);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, Vector{ScalarVector(4, 6.0)}, 1e-6);
+
+
+    CurrentProcessInfo[TIME]       = 1.0;
+    scheme.CalculateRHSContribution(condition, actual_right_hand_side, EquationId, CurrentProcessInfo);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, Vector{ScalarVector(4, 10.0)}, 1e-6);
+
 
     std::vector<std::size_t> expected_equation_ids = {1};
     KRATOS_EXPECT_VECTOR_EQ(EquationId, expected_equation_ids);
