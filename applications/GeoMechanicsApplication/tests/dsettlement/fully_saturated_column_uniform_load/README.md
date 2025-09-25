@@ -34,29 +34,27 @@ For the low-permeability case, the following assertions are made in this test:
 
 ## Results
 
-### High permeability
+The plots in this section show comparisons of results obtained with Kratos and D-Settlement 23.2.1.  The plots show settlement over time as well as the water pressure distribution ($`p_{\mathrm{w}}`$), the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$), and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times. 
 
-The following plots show comparisons of results obtained with Kratos and D-Settlement 23.2.1.
+### High permeability
 
 Settlement over time, where nodes 2, 3, and 104 are located at the top edge of the soil column:
 
 ![Settlement](high_permeability/test_case_2_settlement_plot.svg)
 
-The following plots show the water pressure distribution ($`p_{\mathrm{w}}`$), the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$), and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times.
-
-At the start of the analysis (after 0 days):
+Stresses at the start of the analysis (after 0 days):
 
 ![Stress plot after 0 days](high_permeability/test_case_2_stress_plot_after_0_days.svg)
 
-After 100 days of settlement under self weight:
+Stresses after 100 days of settlement under self weight:
 
 ![Stress plot after 100 days](high_permeability/test_case_2_stress_plot_after_100_days.svg)
 
-At 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ at 100 days:
+Stresses at 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ at 100 days:
 
 ![Stress plot after 100.1 days](high_permeability/test_case_2_stress_plot_after_100.1_days.svg)
 
-After 10000 days of settlement:
+Stresses after 10,000 days of settlement:
 
 ![Stress plot after 10000 days](high_permeability/test_case_2_stress_plot_after_10000_days.svg)
 
@@ -66,20 +64,18 @@ Settlement over time, where nodes 2, 3, and 104 are located at the top edge of t
 
 ![Settlement](low_permeability/test_case_4_settlement_plot.svg)
 
-The following plots show the water pressure distribution ($`p_{\mathrm{w}}`$), the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$), and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times.
-
-At the start of the analysis (after 0 days):
+Stresses at the start of the analysis (after 0 days):
 
 ![Stress plot after 0 days](low_permeability/test_case_4_stress_plot_after_0_days.svg)
 
-After 100 days of settlement under self weight:
+Stresses after 100 days of settlement under self weight:
 
 ![Stress plot after 100 days](low_permeability/test_case_4_stress_plot_after_100_days.svg)
 
-At 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ at 100 days:
+Stresses at 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ at 100 days:
 
 ![Stress plot after 100.1 days](low_permeability/test_case_4_stress_plot_after_100.1_days.svg)
 
-After 10000 days of settlement:
+Stresses after 10,000 days of settlement:
 
 ![Stress plot after 10000 days](low_permeability/test_case_4_stress_plot_after_10000_days.svg)

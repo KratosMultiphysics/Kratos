@@ -46,7 +46,7 @@ At 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ a
 
 ![Stress plot after 100.1 days](test_case_3_stress_plot_after_100.1_days.svg)
 
-After 10000 days of settlement:
+After 10,000 days of settlement:
 
 ![Stress plot after 10000 days](test_case_3_stress_plot_after_10000_days.svg)
 
