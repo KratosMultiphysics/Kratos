@@ -547,15 +547,8 @@ public:
                 this->CalculateKinematics(Variables, g_point);
                 Variables.B = b_matrices[g_point];
 
-                Vector   body_acceleration = ZeroVector(TDim);
-                SizeType Index             = 0;
-                for (SizeType i = 0; i < TNumNodes; ++i) {
-                    for (unsigned int idim = 0; idim < TDim; ++idim) {
-                        body_acceleration[idim] += Variables.Nu[i] * Variables.BodyAcceleration[Index];
-                        ++Index;
-                    }
-                }
-
+                const auto body_acceleration =
+                    CalculateBodyAcceleration(Variables.Nu, Variables.BodyAcceleration);
                 const auto relative_permeability = relative_permeability_values[g_point];
 
                 Vector grad_pressure_term(TDim);
@@ -1083,15 +1076,9 @@ protected:
         const auto soil_density = GeoTransportEquationUtilities::CalculateSoilDensity(
             rVariables.DegreeOfSaturation, this->GetProperties());
 
-        Vector   body_acceleration = ZeroVector(TDim);
-        SizeType Index             = 0;
-        for (SizeType i = 0; i < TNumNodes; ++i) {
-            for (SizeType idim = 0; idim < TDim; ++idim) {
-                body_acceleration[idim] += rVariables.Nu[i] * rVariables.BodyAcceleration[Index];
-                ++Index;
-            }
-        }
+        const auto body_acceleration = CalculateBodyAcceleration(rVariables.Nu, rVariables.BodyAcceleration);
 
+        SizeType Index;
         for (SizeType i = 0; i < TNumNodes; ++i) {
             Index = i * TDim;
             for (SizeType idim = 0; idim < TDim; ++idim) {
@@ -1422,6 +1409,21 @@ private:
         rNode.UnSetLock();
     }
 
+    Vector CalculateBodyAcceleration(Vector& rNu, Vector rBodyAcceleration) const
+    {
+        Vector body_acceleration = ZeroVector(TDim);
+        for (SizeType i = 0; i < TNumNodes; ++i) {
+            if constexpr (TDim == 2) {
+                body_acceleration[0] += rNu[i] * rBodyAcceleration[i * 2 + 0];
+                body_acceleration[1] += rNu[i] * rBodyAcceleration[i * 2 + 1];
+            } else if constexpr (TDim == 3) {
+                body_acceleration[0] += rNu[i] * rBodyAcceleration[i * 3 + 0];
+                body_acceleration[1] += rNu[i] * rBodyAcceleration[i * 3 + 1];
+                body_acceleration[2] += rNu[i] * rBodyAcceleration[i * 3 + 2];
+            }
+        }
+        return body_acceleration;
+    }
 }; // Class SmallStrainUPwDiffOrderElement
 
 } // namespace Kratos
