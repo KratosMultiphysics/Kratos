@@ -276,56 +276,45 @@ public:
 
         rOutput.resize(number_of_integration_points);
 
-        if (rVariable == VON_MISES_STRESS) {
-            for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-                rOutput[GPoint] = StressStrainUtilities::CalculateVonMisesStress(mStressVector[GPoint]);
-            }
-        } else if (rVariable == MEAN_EFFECTIVE_STRESS) {
-            for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-                rOutput[GPoint] = StressStrainUtilities::CalculateMeanStress(mStressVector[GPoint]);
-            }
-        } else if (rVariable == MEAN_STRESS) {
-            std::vector<Vector> StressVector;
-            CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
+        auto fill_from_stress_vector = [&](auto func) {
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point)
+                rOutput[g_point] = func(mStressVector[g_point]);
+        };
 
-            for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-                rOutput[GPoint] = StressStrainUtilities::CalculateMeanStress(StressVector[GPoint]);
-            }
-        } else if (rVariable == ENGINEERING_VON_MISES_STRAIN) {
-            std::vector<Vector> StrainVector;
-            CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
+        auto fill_from_vector = [&](const Variable<Vector>& rTensorVariable, auto func) {
+            std::vector<Vector> tensor_vector;
+            CalculateOnIntegrationPoints(rTensorVariable, tensor_vector, rCurrentProcessInfo);
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point)
+                rOutput[g_point] = func(tensor_vector[g_point]);
+        };
 
-            for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-                rOutput[GPoint] = StressStrainUtilities::CalculateVonMisesStrain(StrainVector[GPoint]);
-            }
-        } else if (rVariable == ENGINEERING_VOLUMETRIC_STRAIN) {
-            std::vector<Vector> StrainVector;
-            CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
+        if (rVariable == VON_MISES_STRESS)
+            return fill_from_stress_vector(StressStrainUtilities::CalculateVonMisesStress);
 
-            for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-                rOutput[GPoint] = StressStrainUtilities::CalculateTrace(StrainVector[GPoint]);
-            }
-        } else if (rVariable == GREEN_LAGRANGE_VON_MISES_STRAIN) {
-            std::vector<Vector> StrainVector;
-            CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
+        if (rVariable == MEAN_EFFECTIVE_STRESS)
+            return fill_from_stress_vector(StressStrainUtilities::CalculateMeanStress);
 
-            for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-                rOutput[GPoint] = StressStrainUtilities::CalculateVonMisesStrain(StrainVector[GPoint]);
-            }
-        } else if (rVariable == GREEN_LAGRANGE_VOLUMETRIC_STRAIN) {
-            std::vector<Vector> StrainVector;
-            CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo);
+        if (rVariable == MEAN_STRESS)
+            return fill_from_vector(TOTAL_STRESS_VECTOR, StressStrainUtilities::CalculateMeanStress);
 
-            for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-                rOutput[GPoint] = StressStrainUtilities::CalculateTrace(StrainVector[GPoint]);
-            }
-        } else if (rVariable == DEGREE_OF_SATURATION || rVariable == EFFECTIVE_SATURATION ||
-                   rVariable == BISHOP_COEFFICIENT || rVariable == DERIVATIVE_OF_SATURATION ||
-                   rVariable == RELATIVE_PERMEABILITY) {
+        if (rVariable == ENGINEERING_VON_MISES_STRAIN)
+            return fill_from_vector(ENGINEERING_STRAIN_VECTOR, StressStrainUtilities::CalculateVonMisesStrain);
+
+        if (rVariable == ENGINEERING_VOLUMETRIC_STRAIN)
+            return fill_from_vector(ENGINEERING_STRAIN_VECTOR, StressStrainUtilities::CalculateTrace);
+
+        if (rVariable == GREEN_LAGRANGE_VON_MISES_STRAIN)
+            return fill_from_vector(GREEN_LAGRANGE_STRAIN_VECTOR, StressStrainUtilities::CalculateVonMisesStrain);
+
+        if (rVariable == GREEN_LAGRANGE_VOLUMETRIC_STRAIN)
+            return fill_from_vector(GREEN_LAGRANGE_STRAIN_VECTOR, StressStrainUtilities::CalculateTrace);
+
+        if (rVariable == DEGREE_OF_SATURATION || rVariable == EFFECTIVE_SATURATION || rVariable == BISHOP_COEFFICIENT ||
+            rVariable == DERIVATIVE_OF_SATURATION || rVariable == RELATIVE_PERMEABILITY) {
             ElementVariables Variables;
             this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-            RetentionLaw::Parameters RetentionParameters(GetProperties());
+            RetentionLaw::Parameters RetentionParameters(r_properties);
 
             for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
                 // Compute Np, GradNpT, B and StrainVector
@@ -337,14 +326,12 @@ public:
                 rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateValue(
                     RetentionParameters, rVariable, rOutput[GPoint]);
             }
-        } else if (rVariable == HYDRAULIC_HEAD) {
-            constexpr auto        numerical_limit = std::numeric_limits<double>::epsilon();
-            const PropertiesType& r_prop          = this->GetProperties();
+            return;
+        }
+        if (rVariable == HYDRAULIC_HEAD) {
+            constexpr auto numerical_limit = std::numeric_limits<double>::epsilon();
+            const Matrix&  n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-            // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
-            const Matrix& n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
-
-            // Defining necessary variables
             Vector nodal_hydraulic_head = ZeroVector(TNumNodes);
             for (unsigned int node = 0; node < TNumNodes; ++node) {
                 Vector NodeVolumeAcceleration(3);
@@ -352,7 +339,7 @@ public:
                     r_geom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
                 const double g = norm_2(NodeVolumeAcceleration);
                 if (g > numerical_limit) {
-                    const auto fluid_weight = g * r_prop[DENSITY_WATER];
+                    const auto fluid_weight = g * r_properties[DENSITY_WATER];
 
                     Vector node_coordinates(3);
                     noalias(node_coordinates) = r_geom[node].Coordinates();
@@ -375,7 +362,9 @@ public:
                     std::inner_product(shape_function_values.begin(), shape_function_values.end(),
                                        nodal_hydraulic_head.begin(), 0.0);
             }
-        } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
+            return;
+        }
+        if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
             KRATOS_ERROR_IF(TDim != 2 && TDim != 3) << rVariable.Name() << " can not be retrieved for dim "
                                                     << TDim << " in element: " << this->Id() << std::endl;
             size_t variable_index = 0;
@@ -405,21 +394,26 @@ public:
                                                  Variables.NuContainer, Variables.DNu_DXContainer,
                                                  strain_vectors, mStressVector, constitutive_matrices);
 
-            std::transform(constitutive_matrices.begin(), constitutive_matrices.end(),
-                           rOutput.begin(), [variable_index](const Matrix& constitutive_matrix) {
+            std::ranges::transform(constitutive_matrices, rOutput.begin(),
+                                   [variable_index](const Matrix& constitutive_matrix) {
                 return constitutive_matrix(variable_index, variable_index);
             });
-        } else if (r_properties.Has(rVariable)) {
+            return;
+        }
+        if (r_properties.Has(rVariable)) {
             // Map initial material property to gauss points, as required for the output
             std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
-        } else if (rVariable == GEO_SHEAR_CAPACITY) {
-            OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), GetProperties());
-        } else {
-            for (unsigned int integration_point = 0;
-                 integration_point < number_of_integration_points; ++integration_point) {
-                rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
-                    rVariable, rOutput[integration_point]);
-            }
+            return;
+        }
+        if (rVariable == GEO_SHEAR_CAPACITY) {
+            OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), r_properties);
+            return;
+        }
+
+        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
+             ++integration_point) {
+            rOutput[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
+                rVariable, rOutput[integration_point]);
         }
 
         KRATOS_CATCH("")
