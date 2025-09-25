@@ -132,7 +132,7 @@ void GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(Matrix&       
     Matrix CB(strain_size, dofs_per_node);
     noalias(CB) = prod(rConstitutiveMatrix, rB);
 
-    Matrix transposed_B(rB.size2(), rB.size1());
+    Matrix transposed_B(dofs_per_node, rB.size1());
     noalias(transposed_B) = trans(rB);
 
     noalias(rStiffness) = prod(transposed_B, CB);
