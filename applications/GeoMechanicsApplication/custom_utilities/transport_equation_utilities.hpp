@@ -61,9 +61,9 @@ public:
 
         Vector temp_vector(rB.size2());
         noalias(temp_vector) = prod(trans(rB), rVoigtVector);
-        KRATOS_ERROR_IF(rCouplingMatrix.size1() != rB.size2()) <<
-            " Inconsistent sizes: rCouplingMatrix.size1(): " << rCouplingMatrix.size1() <<
-            " rB.size2(): " << rB.size2() << std::endl;
+        KRATOS_ERROR_IF(rCouplingMatrix.size1() != rB.size2())
+            << " Inconsistent sizes: rCouplingMatrix.size1(): " << rCouplingMatrix.size1()
+            << " rB.size2(): " << rB.size2() << std::endl;
         noalias(rCouplingMatrix) = multiplier * outer_prod(temp_vector, rNp);
     }
 

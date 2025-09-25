@@ -843,42 +843,16 @@ protected:
         rVariables.DNu_DX.resize(TNumNodes, TDim, false);
         rVariables.DNu_DXInitialConfiguration.resize(TNumNodes, TDim, false);
         rVariables.detJuContainer.resize(num_g_points, false);
-
-        try {
-            r_geom.ShapeFunctionsIntegrationPointsGradients(
-                rVariables.DNu_DXContainer, rVariables.detJuContainer, this->GetIntegrationMethod());
-        } catch (Kratos::Exception& e) {
-            KRATOS_INFO("Original error message") << e.what() << std::endl;
-#ifdef KRATOS_COMPILED_IN_WINDOWS
-            KRATOS_INFO("Error in calculation of dNu/dx. Most probably the element is "
-                        "distorted. Element ID: ")
-                << this->Id() << std::endl;
-#endif
-            KRATOS_ERROR << "In calculation of dNu/dx. Most probably the element "
-                            "is distorted. Element ID: "
-                         << this->Id() << std::endl;
-        }
+        r_geom.ShapeFunctionsIntegrationPointsGradients(
+            rVariables.DNu_DXContainer, rVariables.detJuContainer, this->GetIntegrationMethod());
 
         (rVariables.DNp_DXContainer).resize(num_g_points, false);
         for (SizeType i = 0; i < num_g_points; ++i)
             ((rVariables.DNp_DXContainer)[i]).resize(TNumPNodes, TDim, false);
         (rVariables.DNp_DX).resize(TNumPNodes, TDim, false);
         Vector detJpContainer = ZeroVector(num_g_points);
-
-        try {
-            mpPressureGeometry->ShapeFunctionsIntegrationPointsGradients(
-                rVariables.DNp_DXContainer, detJpContainer, this->GetIntegrationMethod());
-        } catch (Kratos::Exception& e) {
-            KRATOS_INFO("Original error message") << e.what() << std::endl;
-#ifdef KRATOS_COMPILED_IN_WINDOWS
-            KRATOS_INFO("Error in calculation of dNp/dx. Most probably the element is "
-                        "distorted. Element ID: ")
-                << this->Id() << std::endl;
-#endif
-            KRATOS_ERROR << "In calculation of dNp/dx. Most probably the element "
-                            "is distorted. Element ID: "
-                         << this->Id() << std::endl;
-        }
+        mpPressureGeometry->ShapeFunctionsIntegrationPointsGradients(
+            rVariables.DNp_DXContainer, detJpContainer, this->GetIntegrationMethod());
 
         // Variables computed at each integration point
         const SizeType VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
