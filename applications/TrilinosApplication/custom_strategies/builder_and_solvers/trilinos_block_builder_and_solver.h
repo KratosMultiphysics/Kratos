@@ -650,6 +650,11 @@ public:
         }
 
         temp_dofs_array.Unique();
+
+        if (mSynchronizeDofSet) {
+            rModelPart.GetCommunicator().SynchronizeDofSet(temp_dofs_array);
+        }
+
         BaseType::mDofSet = temp_dofs_array;
 
         // Throws an exception if there are no Degrees of freedom involved in
@@ -1078,7 +1083,8 @@ public:
             "guess_row_size"                       : 45,
             "block_builder"                        : true,
             "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal",
-            "silent_warnings"                      : false
+            "silent_warnings"                      : false,
+            "synchronize_dof_set"                  : false
         })");
 
         // Getting base class default parameters
@@ -1182,6 +1188,7 @@ protected:
     /* Base variables */
     EpetraCommunicatorType& mrComm;                 /// The MPI communicator
     int mGuessRowSize;                              /// The guess row size
+    bool mSynchronizeDofSet = false;                /// Synchronize dof sets between partitions
     IndexType mLocalSystemSize;                     /// The local system size
     int mFirstMyId;                                 /// Auxiliary Id (the first row of the local system)
     int mLastMyId;                                  /// Auxiliary Id (the last row of the local system) // TODO: This can be removed as can be deduced from mLocalSystemSize
@@ -1621,8 +1628,9 @@ protected:
     {
         BaseType::AssignSettings(ThisParameters);
 
-        // Get guess row size
+        // Get guess row size and synchronize dof set flag
         mGuessRowSize = ThisParameters["guess_row_size"].GetInt();
+        mSynchronizeDofSet = ThisParameters["synchronize_dof_set"].GetBool();
 
         // Setting flags
         const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
