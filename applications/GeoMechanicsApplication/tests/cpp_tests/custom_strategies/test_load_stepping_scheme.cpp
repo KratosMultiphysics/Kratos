@@ -87,16 +87,20 @@ class LoadSteppingSchemeElementRightHandSideScaling
 
 TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedBasedOnTime)
 {
+    // Arrange
     LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
-    auto element = Kratos::make_intrusive<MockElementForLoadSteppingScheme>();
-    element->SetId(1);
+    auto       element = Kratos::make_intrusive<MockElementForLoadSteppingScheme>();
+    const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
+    const auto external_forces_at_start_of_stage = CreateVector({5.0, 6.0, 7.0, 8.0});
+    element->SetInternalForces(internal_forces_at_start_of_stage);
+    element->SetExternalForces(external_forces_at_start_of_stage);
 
     ProcessInfo CurrentProcessInfo;
     const auto& [current_time, expected_right_hand_side] = GetParam();
     CurrentProcessInfo[TIME]                             = current_time;
     CurrentProcessInfo[START_TIME]                       = 0.0;
     CurrentProcessInfo[END_TIME]                         = 1.0;
-    std::vector<std::size_t> EquationId;
+    std::vector<std::size_t> equation_ids;
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
@@ -104,24 +108,20 @@ TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedB
     CompressedMatrix A;
     Vector           Dx;
     Vector           b;
-
-    const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
-
-    const auto external_forces_at_start_of_stage = CreateVector({5.0, 6.0, 7.0, 8.0});
-    element->SetInternalForces(internal_forces_at_start_of_stage);
-    element->SetExternalForces(external_forces_at_start_of_stage);
     scheme.InitializeSolutionStep(model_part, A, Dx, b);
 
     const auto current_internal_forces = CreateVector({-2.0, -3.0, -4.0, -5.0});
     element->SetInternalForces(current_internal_forces);
 
+    // Act & Assert
     Vector actual_right_hand_side;
-    scheme.CalculateRHSContribution(*element, actual_right_hand_side, EquationId, CurrentProcessInfo);
+    scheme.CalculateRHSContribution(*element, actual_right_hand_side, equation_ids, CurrentProcessInfo);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, 1e-6);
 
     Vector actual_right_hand_side_via_system_contribution;
     Matrix dummy_matrix;
-    scheme.CalculateSystemContributions(*element, dummy_matrix, actual_right_hand_side_via_system_contribution, EquationId, CurrentProcessInfo);
+    scheme.CalculateSystemContributions(*element, dummy_matrix, actual_right_hand_side_via_system_contribution,
+                                        equation_ids, CurrentProcessInfo);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, 1e-6);
 }
 
