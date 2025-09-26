@@ -34,7 +34,7 @@ For the low-permeability case, the following assertions are made in this test:
 
 ## Results
 
-The plots in this section show comparisons of results obtained with Kratos and D-Settlement 23.2.1.  The plots show settlement over time as well as the water pressure distribution ($`p_{\mathrm{w}}`$), the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$), and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times. 
+The plots in this section compare results obtained with Kratos and D-Settlement 23.2.1.  The plots show settlement over time as well as the water pressure distribution ($`p_{\mathrm{w}}`$), the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$), and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times. 
 
 ### High permeability
 
