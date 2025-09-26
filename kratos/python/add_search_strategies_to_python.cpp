@@ -127,7 +127,6 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("SetGlobalIndex", &ContainerType::SetGlobalIndex)
     .def("GetLocalIndex", &ContainerType::GetLocalIndex)
     .def("SetLocalIndex", &ContainerType::SetLocalIndex)
-    .def("GetDistances", &ContainerType::GetDistances)
     .def("GetResultRank", &ContainerType::GetResultRank)
     .def("GetResultIsActive", &ContainerType::GetResultIsActive)
     .def("GetResultIsInside", &ContainerType::GetResultIsInside)

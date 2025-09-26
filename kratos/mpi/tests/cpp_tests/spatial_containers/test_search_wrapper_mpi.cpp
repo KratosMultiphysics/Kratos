@@ -214,7 +214,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius()
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
         // Distances are just local
-        const auto distances = results[0].GetDistances();
+        const auto distances = results.GetDistances()[0];
         KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
         // Compute indices
@@ -271,7 +271,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearest()
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
         // Distances are just local
-        const auto distances = results[0].GetDistances();
+        const auto distances = results.GetDistances()[0];
         KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
         // Compute indices
@@ -524,7 +524,7 @@ void TestTreeSearchNearestInRadius()
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
         // Distances
-        auto distances = results[0].GetDistances();
+        auto distances = results.GetDistances()[0];
         KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
 
         // Compute indices
@@ -583,7 +583,7 @@ void TestTreeSearchNearest()
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
         // Distances
-        auto distances = results[0].GetDistances();
+        auto distances = results.GetDistances()[0];
         KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
 
         // Compute indices
