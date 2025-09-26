@@ -103,6 +103,9 @@ public:
 
     using Element::CalculateOnIntegrationPoints;
 
+    void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    using Element::Calculate;
+
     // Turn back information as a string.
     std::string Info() const override
     {
@@ -128,7 +131,6 @@ protected:
         Vector Nu;     // Contains the displacement shape functions at every node
         Vector Np;     // Contains the pressure shape functions at every node
         Matrix DNu_DX; // Contains the global derivatives of the displacement shape functions
-        Matrix DNu_DXInitialConfiguration; // Contains the global derivatives of the displacement shape functions
 
         Matrix DNp_DX; // Contains the global derivatives of the pressure shape functions
         Matrix B;
@@ -142,8 +144,7 @@ protected:
         Matrix F;
 
         // needed for updated Lagrangian:
-        double detJ;                     // displacement
-        double detJInitialConfiguration; // displacement
+        double detJ;
 
         // Nodal variables
         Vector BodyAcceleration;
@@ -198,8 +199,6 @@ protected:
 
     void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
                                               const ElementVariables& rVariables) const;
-
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
                                        const ElementVariables& rVariables,
@@ -281,6 +280,22 @@ private:
         rNode.FastGetSolutionStepValue(Var) = Value;
         rNode.UnSetLock();
     }
+
+    Vector CalculateInternalForces(ElementVariables&          Variables,
+                                 const std::vector<Matrix>& b_matrices,
+                                 const std::vector<double>& integration_coefficients,
+                                 const std::vector<double>& biot_coefficients,
+                                 const std::vector<double>& degrees_of_saturation,
+                                 const std::vector<double>& biot_moduli_inverse,
+                                 const std::vector<double>& relative_permeability_values,
+                                 const std::vector<double>& bishop_coefficients);
+
+    Vector CalculateExternalForces(ElementVariables&          Variables,
+                                 const std::vector<double>& integration_coefficients,
+                                 const std::vector<double>& integration_coefficients_on_initial_configuration,
+                                 const std::vector<double>& degrees_of_saturation,
+                                 const std::vector<double>& relative_permeability_values,
+                                 const std::vector<double>& bishop_coefficients);
 
 }; // Class SmallStrainUPwDiffOrderElement
 
