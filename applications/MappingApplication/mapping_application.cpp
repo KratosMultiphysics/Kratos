@@ -36,6 +36,7 @@
 #include "custom_mappers/nearest_element_mapper.h"
 #include "custom_mappers/barycentric_mapper.h"
 #include "custom_mappers/projection_3D_2D_mapper.h"
+#include "custom_mappers/beam_mapper.h"
 #include "custom_mappers/coupling_geometry_mapper.h"
 #include "custom_mappers/nearest_neighbor_mapper_iga.h"
 
@@ -91,6 +92,7 @@ void KratosMappingApplication::Register()
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(NearestElementMapper,  "nearest_element");
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(BarycentricMapper,     "barycentric");
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(Projection3D2DMapper,  "projection_3D_2D");
+    KRATOS_REGISTER_MAPPER_WITH_BACKEND(BeamMapper,  "beam_mapper");
 
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(NearestNeighborMapperIGA, "nearest_neighbor_iga");
 
