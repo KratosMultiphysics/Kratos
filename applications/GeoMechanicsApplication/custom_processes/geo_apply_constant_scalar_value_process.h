@@ -41,6 +41,7 @@ public:
     ~GeoApplyConstantScalarValueProcess() override = default;
 
     void ExecuteInitialize() override;
+    void ExecuteInitializeSolutionStep() override;
     void ExecuteFinalize() override;
 
     [[nodiscard]] std::string Info() const override { return "GeoApplyConstantScalarValueProcess"; }
@@ -50,10 +51,11 @@ protected:
     std::string mVariableName;
 
 private:
-    double mDoubleValue = 0.0;
-    int    mIntValue    = 0;
-    bool   mBoolValue   = false;
-    bool   mIsFixed     = false;
+    double mDoubleValue   = 0.0;
+    int    mIntValue      = 0;
+    bool   mBoolValue     = false;
+    bool   mIsFixed       = false;
+    bool   mIsInitialized = false;
 };
 
 } // namespace Kratos.
