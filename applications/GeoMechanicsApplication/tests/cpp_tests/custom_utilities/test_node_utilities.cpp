@@ -30,7 +30,7 @@ void AddAcceleration(Node& rNode)
     rNode.AddDof(ACCELERATION_Z);
 }
 
-PointerVectorSet<Node, IndexedObject> NodeContainerWithOneFixedDOF(const intrusive_ptr<Node>& pNode)
+PointerVectorSet<Node, IndexedObject> NodeContainerWithFixedAccelerationY(const intrusive_ptr<Node>& pNode)
 {
     AddAcceleration(*pNode);
     pNode->Fix(ACCELERATION_Y);
@@ -94,17 +94,17 @@ KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNonFixedComponents_Update
     KRATOS_EXPECT_VECTOR_NEAR(expected_vector, node.FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNodes_UpdatesEverythingRegardlessOfFixes,
+KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNodes_UpdatesEverythingRegardlessOfFixities,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto p_node          = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto nodes_container = NodeContainerWithOneFixedDOF(p_node);
+    auto nodes_container = NodeContainerWithFixedAccelerationY(p_node);
 
     // Act
-    const array_1d<double, 3> new_values{1.0, 2.0, 4.0};
-    NodeUtilities::AssignUpdatedVectorVariableToNodes(nodes_container, ACCELERATION, new_values, 0);
-    NodeUtilities::AssignUpdatedVectorVariableToNodes(nodes_container, ACCELERATION, new_values, 1);
+    const array_1d<double, 3> new_acceleration_vector{1.0, 2.0, 4.0};
+    NodeUtilities::AssignUpdatedVectorVariableToNodes(nodes_container, ACCELERATION, new_acceleration_vector, 0);
+    NodeUtilities::AssignUpdatedVectorVariableToNodes(nodes_container, ACCELERATION, new_acceleration_vector, 1);
 
     // Assert
     const array_1d<double, 3> expected_acceleration_vector{1.0, 2.0, 4.0};
