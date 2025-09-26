@@ -437,8 +437,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 RetentionParameters, rVariable, rOutput[GPoint]);
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
-        constexpr auto        numerical_limit = std::numeric_limits<double>::epsilon();
-        const PropertiesType& r_prop          = this->GetProperties();
+        constexpr auto numerical_limit = std::numeric_limits<double>::epsilon();
+        const auto&    r_prop          = this->GetProperties();
 
         // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
         const Matrix&  n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
@@ -1033,7 +1033,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
+    const auto& r_properties = this->GetProperties();
 
     rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
