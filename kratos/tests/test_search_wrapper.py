@@ -281,7 +281,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
             if node_results.NumberOfLocalResults() == 1:
                 self.assertTrue(node_results[0].IsObjectFound())
             # Global result
-            ids = node_results.GetDistances()
+            ids = results.GetDistances()[0]
             self.assertEqual(len(ids), 1)
             # Distance is different depending on the search type used (GeometricalObjectBins or not)
             if search_type == "GeometricalObjectBins":
