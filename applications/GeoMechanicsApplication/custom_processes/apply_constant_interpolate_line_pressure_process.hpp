@@ -87,7 +87,7 @@ public:
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY
-        if (mValueIsSet) return;
+        if (mIsInitialized) return;
         const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
@@ -106,7 +106,7 @@ public:
                 else if (mIsFixedProvided) rNode.Free(var);
             }
         });
-        mValueIsSet = true;
+        mIsInitialized = true;
         KRATOS_CATCH("")
     }
 
@@ -120,7 +120,7 @@ private:
     bool               mIsFixed;
     bool               mIsFixedProvided;
     bool               mIsSeepage;
-    bool               mValueIsSet = false;
+    bool               mIsInitialized = false;
     unsigned int       mGravityDirection;
     unsigned int       mOutOfPlaneDirection;
     unsigned int       mHorizontalDirection;

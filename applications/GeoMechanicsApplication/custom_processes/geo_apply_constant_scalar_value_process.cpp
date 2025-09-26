@@ -64,7 +64,7 @@ void GeoApplyConstantScalarValueProcess::ExecuteInitialize()
 
 void GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep()
 {
-    if (mValueIsSet)
+    if (mIsInitialized)
         return; // Constant value process, execute once here to ensure correct total and incremental D.O.F. values
 
     if (KratosComponents<Variable<double>>::Has(mVariableName)) {
@@ -80,7 +80,7 @@ void GeoApplyConstantScalarValueProcess::ExecuteInitializeSolutionStep()
         KRATOS_ERROR << "Not able to fix the variable. Attempting to fix variable: " << mVariableName
                      << std::endl;
     }
-    mValueIsSet = true;
+    mIsInitialized = true;
 }
 
 void GeoApplyConstantScalarValueProcess::ExecuteFinalize()
