@@ -499,12 +499,6 @@ public:
     std::vector<Vector> GetResultShapeFunctions(const array_1d<double, 3>& rPoint);
 
     /**
-     * @brief Considers the global pointer communicator to get the indices of the resulting object
-     * @return A vector containing all the indices
-     */
-    std::vector<IndexType> GetResultIndices();
-
-    /**
      * @brief Considers the global pointer communicator to get the partition indices of the nodes of the resulting object
      * @return A vector containing all the indices
      */
@@ -689,6 +683,12 @@ private:
         // Apply the user-provided function
         return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
     }
+
+    /**
+     * @brief Considers the global pointer communicator to get the indices of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<IndexType> GetResultIndices();
 
     ///@}
     ///@name Serialization

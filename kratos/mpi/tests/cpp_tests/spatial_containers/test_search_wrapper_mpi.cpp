@@ -218,7 +218,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius()
         KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
         // Compute indices
-        auto indices = results[0].GetResultIndices();
+        auto indices = results.GetResultIndices()[0];
         const std::size_t id = indices[0];
         KRATOS_EXPECT_EQ(id, 3);
     } else {
@@ -275,7 +275,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearest()
         KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
         // Compute indices
-        auto indices = results[0].GetResultIndices();
+        auto indices = results.GetResultIndices()[0];
         const std::size_t id = indices[0];
         KRATOS_EXPECT_EQ(id, 3);
     } else {
@@ -528,7 +528,7 @@ void TestTreeSearchNearestInRadius()
         KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
 
         // Compute indices
-        auto indices = results[0].GetResultIndices();
+        auto indices = results.GetResultIndices()[0];
         const std::size_t id = indices[0];
         KRATOS_EXPECT_EQ(id, 4);
     } else {
@@ -587,7 +587,7 @@ void TestTreeSearchNearest()
         KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
 
         // Compute indices
-        auto indices = results[0].GetResultIndices();
+        auto indices = results.GetResultIndices()[0];
         const std::size_t id = indices[0];
         KRATOS_EXPECT_EQ(id, 4);
     } else {

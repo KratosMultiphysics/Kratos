@@ -179,30 +179,6 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIsActive, KratosC
     KRATOS_EXPECT_FALSE(is_active[0]);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIndices, KratosCoreFastSuite)
-{
-    // Create a test object
-    DataCommunicator data_communicator;
-    SpatialSearchResultContainer<GeometricalObject> container(data_communicator);
-
-    // Create a test result
-    GeometricalObject object = GeometricalObject(1);
-    SpatialSearchResult<GeometricalObject> result(&object);
-
-    // Add the result to the container
-    container.AddResult(result);
-
-    // Synchronize the container between partitions
-    container.SynchronizeAll();
-
-    // Compute indices
-    auto indices = container.GetResultIndices();
-
-    // Check indices
-    KRATOS_EXPECT_EQ(indices.size(), 1);
-    KRATOS_EXPECT_EQ(indices[0], object.Id());
-}
-
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerRemoveResultsFromIndexesList, KratosCoreFastSuite)
 {
     // Create a test object
@@ -236,13 +212,6 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerRemoveResultsFromIndexesLi
     // Check that the result was removed correctly
     KRATOS_EXPECT_EQ(container.NumberOfLocalResults(), 1);
     KRATOS_EXPECT_EQ(container.NumberOfGlobalResults(), 1);
-
-    // Compute indices
-    auto indices = container.GetResultIndices();
-
-    // Check indices
-    KRATOS_EXPECT_EQ(indices.size(), 1);
-    KRATOS_EXPECT_EQ(indices[0], object_1.Id());
 }
 
 }  // namespace Kratos::Testing

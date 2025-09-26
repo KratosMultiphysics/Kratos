@@ -364,31 +364,6 @@ std::vector<Vector> SpatialSearchResultContainer<TObjectType, TSpatialSearchComm
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<IndexType> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIndices()
-{
-    // Define the indices vector
-    const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<IndexType> indices(number_of_gp);
-
-    // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::size_t {
-        auto p_object = rGP->Get();
-        return p_object->Id();
-    });
-
-    // Get the indices
-    for(std::size_t i=0; i<number_of_gp; ++i) {
-        auto& r_gp = mGlobalResults(i);
-        indices[i] = proxy.Get(r_gp);
-    }
-
-    return indices;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultPartitionIndices()
 {
     // Define the coordinates vector
@@ -548,6 +523,31 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Pri
     rOStream << "SpatialSearchResultContainer data summary: " << "\n";
     rOStream << "\tNumber of local results: " << mLocalResults.size() << "\n";
     rOStream << "\tNumber of global results: " << mGlobalResults.size() << "\n";
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<IndexType> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIndices()
+{
+    // Define the indices vector
+    const std::size_t number_of_gp = mGlobalResults.size();
+    std::vector<IndexType> indices(number_of_gp);
+
+    // Call Apply to get the proxy
+    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::size_t {
+        auto p_object = rGP->Get();
+        return p_object->Id();
+    });
+
+    // Get the indices
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = mGlobalResults(i);
+        indices[i] = proxy.Get(r_gp);
+    }
+
+    return indices;
 }
 
 /***********************************************************************************/

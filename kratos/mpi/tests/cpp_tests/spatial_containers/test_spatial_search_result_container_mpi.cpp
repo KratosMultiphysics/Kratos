@@ -323,34 +323,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIs
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIndices, KratosMPICoreFastSuite)
-{
-    // The data communicator
-    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-
-    // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
-
-    // Create a test result
-    GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
-    SpatialSearchResult<GeometricalObject> result(&object);
-
-    // Add the result to the container
-    container.AddResult(result);
-
-    // Synchronize the container between partitions
-    container.SynchronizeAll();
-
-    // Compute indices
-    auto indices = container.GetResultIndices();
-
-    // Check indices
-    KRATOS_EXPECT_EQ(static_cast<int>(indices.size()), r_data_comm.Size());
-    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
-        KRATOS_EXPECT_EQ(static_cast<int>(indices[i_rank]), i_rank + 1);
-    }
-}
-
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerRemoveResultsFromIndexesList, KratosMPICoreFastSuite)
 {
     // The data communicator
@@ -393,15 +365,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerRemoveResul
     // Check that the result was removed correctly
     KRATOS_EXPECT_EQ(container.NumberOfLocalResults(), 1);
     KRATOS_EXPECT_EQ(container.NumberOfGlobalResults(), static_cast<std::size_t>(world_size));
-
-    // Compute indices
-    auto indices = container.GetResultIndices();
-
-    // Check indices
-    KRATOS_EXPECT_EQ(indices.size(), static_cast<std::size_t>(world_size));
-    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-        KRATOS_EXPECT_EQ(indices[i_rank], static_cast<std::size_t>(3 * i_rank + 1));
-    }
 }
 
 }  // namespace Kratos::Testing
