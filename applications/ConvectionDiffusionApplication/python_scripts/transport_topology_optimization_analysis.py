@@ -595,7 +595,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         ##settings string in json format
         default_physics_parameters_settings = KratosMultiphysics.Parameters("""
         {
-            "conductivity": {
+            "conductivity": [{
                 "interpolation_method": "polynomial",
                 "value_void"        : 1e-4,
                 "value_full"        : 1e-4,
@@ -605,8 +605,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
                     "iterations"   : [2,50]
                 },
                 "domain": "all"
-            },
-            "decay": {
+            }],
+            "decay": [{
                 "interpolation_method": "polynomial",
                 "value_void"        : 0.0,
                 "value_full"        : 0.0,
@@ -616,8 +616,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
                     "iterations"   : [2,50]
                 },
                 "domain": "all"
-            },
-            "convection_coefficient": {
+            }],
+            "convection_coefficient": [{
                 "interpolation_method": "polynomial",
                 "value_void"        : 1.0,
                 "value_full"        : 1.0,
@@ -627,8 +627,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
                     "iterations"   : [2,50]
                 },
                 "domain": "all"
-            },
-            "transport_source": {
+            }],
+            "transport_source": [{
                 "interpolation_method": "polynomial",
                 "value_void"        : 0.0,
                 "value_full"        : 0.0,
@@ -638,7 +638,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
                     "iterations"   : [2,50]
                 },
                 "domain": "all"
-            }
+            }]
         }""")
         default_physics_parameters_settings.AddMissingParameters(super().GetDefaultPhysicsParametersSettings())
         return default_physics_parameters_settings

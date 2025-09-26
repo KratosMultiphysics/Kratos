@@ -657,21 +657,22 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ComputePhysicsParameter(self, physics_parameters, design_parameter):
         parameter = np.zeros(self.n_nodes)
         parameter_derivative_wrt_design_base = np.zeros(self.n_nodes)
-        domain = physics_parameters["domain"].GetString()
-        mp = self._GetSubModelPart(self._GetMainModelPart(), domain)
-        if (mp is not None):
+        for subdomain_physics_parameters in physics_parameters:
+            domain = subdomain_physics_parameters["domain"].GetString()
+            mp = self._GetSubModelPart(self._GetMainModelPart(), domain)
+            if (mp is not None):
                 nodes_ids = self._ExtractListOfNodesFromNodesDictionary(mp)
-        else:
-            nodes_ids = np.arange(self.n_nodes)
-        interpolation_method = (physics_parameters["interpolation_method"].GetString()).lower()
-        if (interpolation_method == "hyperbolic"):
-            computed_parameter, computed_parameter_derivative_wrt_design_base = self._ComputeHyperbolicPhysicsParameter(physics_parameters, design_parameter)
-        elif (interpolation_method == "polynomial"):
-            computed_parameter, computed_parameter_derivative_wrt_design_base = self._ComputePolynomialPhysicsParameter(physics_parameters, design_parameter)
-        else:
-            raise RuntimeError("WRONG PHYSICS PARAMETER INTERPOLATION METHOD", "Running '_ComputePhysicsParameter' with the wrong interpolation method.")
-        parameter[nodes_ids] = computed_parameter[nodes_ids]
-        parameter_derivative_wrt_design_base[nodes_ids] = computed_parameter_derivative_wrt_design_base[nodes_ids]
+            else:
+                nodes_ids = np.arange(self.n_nodes)
+            interpolation_method = (subdomain_physics_parameters["interpolation_method"].GetString()).lower()
+            if (interpolation_method == "hyperbolic"):
+                computed_parameter, computed_parameter_derivative_wrt_design_base = self._ComputeHyperbolicPhysicsParameter(subdomain_physics_parameters, design_parameter)
+            elif (interpolation_method == "polynomial"):
+                computed_parameter, computed_parameter_derivative_wrt_design_base = self._ComputePolynomialPhysicsParameter(subdomain_physics_parameters, design_parameter)
+            else:
+                raise RuntimeError("WRONG PHYSICS PARAMETER INTERPOLATION METHOD", "Running '_ComputePhysicsParameter' with the wrong interpolation method.")
+            parameter[nodes_ids] = computed_parameter[nodes_ids]
+            parameter_derivative_wrt_design_base[nodes_ids] = computed_parameter_derivative_wrt_design_base[nodes_ids]
         return parameter, parameter_derivative_wrt_design_base
         
     def _ComputeHyperbolicPhysicsParameter(self, physics_parameters, design_parameter):
@@ -724,37 +725,34 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return slope_initial, slope_final, start_it, end_it
     
     def _EvaluatePhysicsParameterCurrentValue(self, physics_parameters):
-        # Adjust void value
-        if (physics_parameters["change_value_void"]["change_value"].GetBool()):
-            start_it      = physics_parameters["change_value_void"]["iterations"][0].GetInt()
-            end_it      = physics_parameters["change_value_void"]["iterations"][1].GetInt()
-            initial_value = physics_parameters["change_value_void"]["initial_value"].GetDouble()
-            final_value = physics_parameters["change_value_void"]["final_value"].GetDouble()
-            if (self.opt_it < self.min_it):
-                current_value = initial_value
-            elif (self.opt_it < end_it):
-                current_value = initial_value + (final_value-initial_value)*(self.opt_it-start_it)/(end_it-start_it)
-            else:
-                current_value = final_value
-            physics_parameters["value_void"].SetDouble(current_value)
+        for subdomain_physics_parameters in physics_parameters:
+            # Adjust void value
+            if (subdomain_physics_parameters["change_value_void"]["change_value"].GetBool()):
+                start_it      = subdomain_physics_parameters["change_value_void"]["iterations"][0].GetInt()
+                end_it      = subdomain_physics_parameters["change_value_void"]["iterations"][1].GetInt()
+                initial_value = subdomain_physics_parameters["change_value_void"]["initial_value"].GetDouble()
+                final_value = subdomain_physics_parameters["change_value_void"]["final_value"].GetDouble()
+                if (self.opt_it < self.min_it):
+                    current_value = initial_value
+                elif (self.opt_it < end_it):
+                    current_value = initial_value + (final_value-initial_value)*(self.opt_it-start_it)/(end_it-start_it)
+                else:
+                    current_value = final_value
+                subdomain_physics_parameters["value_void"].SetDouble(current_value)
+            # Adjust full value
+            if (subdomain_physics_parameters["change_value_full"]["change_value"].GetBool()):
+                start_it      = subdomain_physics_parameters["change_value_full"]["iterations"][0].GetInt()
+                end_it      = subdomain_physics_parameters["change_value_full"]["iterations"][1].GetInt()
+                initial_value = subdomain_physics_parameters["change_value_full"]["initial_value"].GetDouble()
+                final_value = subdomain_physics_parameters["change_value_full"]["final_value"].GetDouble()
+                if (self.opt_it < start_it):
+                    current_value = initial_value
+                elif (self.opt_it < end_it):
+                    current_value = initial_value + (final_value-initial_value)*(self.opt_it-start_it)/(end_it-start_it)
+                else:
+                    current_value = final_value
+                subdomain_physics_parameters["value_full"].SetDouble(current_value)
 
-        # Adjust full value
-        if (physics_parameters["change_value_full"]["change_value"].GetBool()):
-            start_it      = physics_parameters["change_value_full"]["iterations"][0].GetInt()
-            end_it      = physics_parameters["change_value_full"]["iterations"][1].GetInt()
-            initial_value = physics_parameters["change_value_full"]["initial_value"].GetDouble()
-            final_value = physics_parameters["change_value_full"]["final_value"].GetDouble()
-            if (self.opt_it < start_it):
-                current_value = initial_value
-            elif (self.opt_it < end_it):
-                current_value = initial_value + (final_value-initial_value)*(self.opt_it-start_it)/(end_it-start_it)
-            else:
-                current_value = final_value
-            physics_parameters["value_full"].SetDouble(current_value)
-
-
-
-    
     def _UpdateResistanceDesignDerivative(self):
         mask = self._GetOptimizationDomainNodesMask()
         resistance_derivative_wrt_design_projected = self.resistance_derivative_wrt_design_base * self.design_parameter_projected_derivatives
@@ -1216,7 +1214,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _PrintWSSConstraint(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| WSS VALUE: " + str(self.wss_value), min_echo=0)
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Resistance: " + str(self.resistance_parameters["value_full"].GetDouble()), min_echo=0)
+        # self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Resistance: " + str(self.resistance_parameters["value_full"].GetDouble()), min_echo=0)
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Constraint: " + str(self.wss_constraint), min_echo=0)
 
     def PrintAnalysisStageProgressInformation(self):
@@ -1580,7 +1578,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         ##settings string in json format
         default_physics_parameters_settings = KratosMultiphysics.Parameters("""
         {
-            "resistance": {
+            "resistance": [{
                 "interpolation_method": "hyperbolic",
                 "value_void"        : 0.0,
                 "value_full"        : 1e4,
@@ -1602,7 +1600,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                     "final_value"  : 1e4
                 },
                 "domain": ""
-            }
+            }]
         }""")
         default_physics_parameters_settings.AddMissingParameters(self.GetBasePhysicsParametersSettings())
         return default_physics_parameters_settings
