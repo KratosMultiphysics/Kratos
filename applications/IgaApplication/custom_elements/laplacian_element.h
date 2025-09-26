@@ -43,14 +43,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(IGA_APPLICATION) LaplacianIGAElement : public Element
+class KRATOS_API(IGA_APPLICATION) LaplacianElement : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of LaplacianIGAElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplacianIGAElement);
+    /// Counted pointer of LaplacianElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplacianElement);
 
     using BaseType = Element;
 
@@ -59,19 +59,19 @@ public:
     ///@{
 
     /// Default constructor.
-    LaplacianIGAElement(
+    LaplacianElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    LaplacianIGAElement(
+    LaplacianElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
-    LaplacianIGAElement() : Element() { }
+    LaplacianElement() : Element() { }
 
     /// Destructor.
-    virtual ~LaplacianIGAElement();
+    virtual ~LaplacianElement();
 
     ///@}
     ///@name Operators
@@ -91,6 +91,8 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override;
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -157,7 +159,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "LaplacianIgaElement #" << Id();
+        buffer << "LaplacianElement #" << Id();
         return buffer.str();
     }
 
@@ -208,7 +210,7 @@ private:
     ///@{
 
     ///@}
-}; // Class LaplacianIGAElement
+}; // Class LaplacianElement
 
 ///@}
 

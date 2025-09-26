@@ -19,13 +19,13 @@
 #include "includes/convection_diffusion_settings.h"
 
 // Application includes
-#include "custom_elements/laplacian_IGA_element.h"
+#include "custom_elements/laplacian_element.h"
 
 
 namespace Kratos
 {
 
-LaplacianIGAElement::LaplacianIGAElement(
+LaplacianElement::LaplacianElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(
@@ -34,7 +34,7 @@ LaplacianIGAElement::LaplacianIGAElement(
 {
 }
 
-LaplacianIGAElement::LaplacianIGAElement(
+LaplacianElement::LaplacianElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -45,61 +45,54 @@ LaplacianIGAElement::LaplacianIGAElement(
 {
 }
 
-Element::Pointer LaplacianIGAElement::Create(
+Element::Pointer LaplacianElement::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<LaplacianIGAElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<LaplacianElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-Element::Pointer LaplacianIGAElement::Create(
+Element::Pointer LaplacianElement::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<LaplacianIGAElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<LaplacianElement>(NewId, pGeom, pProperties);
 }
 
 // Deconstructor
 
-LaplacianIGAElement::~LaplacianIGAElement()
+LaplacianElement::~LaplacianElement()
 {
 }
 
 
+void LaplacianElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+
+    SetValue(INTEGRATION_WEIGHT, r_integration_points[0].Weight());
+}
+
 // From classical Laplacian
-void LaplacianIGAElement::CalculateLocalSystem(
+void LaplacianElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    const auto& r_geometry = GetGeometry();
-    const unsigned int number_of_points = r_geometry.size();
-    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
-    auto& r_settings = *p_settings;
-
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
-    Vector temp(number_of_points);
-    // RHS = ExtForces - K*temp;
-    for (IndexType i = 0; i < number_of_points; i++) {
-        temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
-    }
     
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
-
-    // RHS -= K*temp
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
 
     KRATOS_CATCH("")
 }
 
 
 // From classical Laplacian
-void LaplacianIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {   
     KRATOS_TRY
 
@@ -144,7 +137,7 @@ void LaplacianIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
 
 // From classical Laplacian
-void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -152,6 +145,9 @@ void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVecto
     auto& r_settings = *p_settings;
 
     const Variable<double>& r_volume_source_var = r_settings.GetVolumeSourceVariable(); // HeatFlux
+    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable(); // Conductivity
+    const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
 
     // reading integration points and local gradients
     const auto& r_geometry = GetGeometry();
@@ -169,9 +165,13 @@ void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVecto
 
     // Initialize DN_DX
     Matrix DN_DX(number_of_points,dim);
-    Vector temp(number_of_points);
 
     const double heat_flux = this->GetValue(r_volume_source_var);
+
+    Vector temperature_old_iteration(number_of_points);
+    for (IndexType i = 0; i < number_of_points; i++) {
+        temperature_old_iteration[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
+    }
 
     for(IndexType i_point = 0; i_point < r_integration_points.size(); ++i_point)
     {
@@ -180,13 +180,14 @@ void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVecto
         auto N = row(N_gausspoint,i_point);
         const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
 
+        noalias(rRightHandSideVector) -= int_to_reference_weight * conductivity * prod(prod(DN_DX, trans(DN_DX)),temperature_old_iteration);
         noalias(rRightHandSideVector) += int_to_reference_weight * heat_flux * N;
     }
 
     KRATOS_CATCH("")
 }
 
-void LaplacianIGAElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
 
@@ -204,7 +205,7 @@ void LaplacianIGAElement::EquationIdVector(EquationIdVectorType& rResult, const 
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianIGAElement::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
+void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
@@ -220,7 +221,7 @@ void LaplacianIGAElement::GetDofList(DofsVectorType& ElementalDofList,const Proc
 }
 
 
-int LaplacianIGAElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
@@ -250,7 +251,7 @@ int LaplacianIGAElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 }
 
 
-Element::IntegrationMethod LaplacianIGAElement::GetIntegrationMethod() const
+Element::IntegrationMethod LaplacianElement::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }

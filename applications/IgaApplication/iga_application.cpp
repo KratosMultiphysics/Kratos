@@ -28,7 +28,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
-    , mLaplacianIGAElement(0, Element::GeometryType::Pointer(
+    , mLaplacianElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mSolidElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
@@ -88,7 +88,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
-    KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
+    KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
 

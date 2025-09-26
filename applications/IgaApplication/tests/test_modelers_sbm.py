@@ -60,7 +60,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
                             "geometry_type": "GeometrySurface",
                             "iga_model_part": "ComputationalDomain",
                             "type": "element",
-                            "name": "LaplacianIGAElement",
+                            "name": "LaplacianElement",
                             "shape_function_derivatives_order": 3,
                             "variables": [
                             {
@@ -105,8 +105,8 @@ class TestModelersSbm(KratosUnittest.TestCase):
         self.assertEqual(support_model_part.GetConditions()[21].Info(), "\"SbmLaplacianConditionDirichlet\" #21")
         self.assertEqual(support_model_part.GetConditions()[80].Info(), "\"SbmLaplacianConditionDirichlet\" #80")
 
-        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianIgaElement #13")
-        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianIgaElement #40")
+        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianElement #13")
+        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianElement #40")
 
     
     def test_iga_modeler_inner_outer_sbm(self):
@@ -167,7 +167,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
                             "geometry_type": "GeometrySurface",
                             "iga_model_part": "ComputationalDomain",
                             "type": "element",
-                            "name": "LaplacianIGAElement",
+                            "name": "LaplacianElement",
                             "shape_function_derivatives_order": 3,
                             "variables": [
                             {
@@ -222,8 +222,8 @@ class TestModelersSbm(KratosUnittest.TestCase):
         self.assertEqual(support_model_part_inner.GetConditions()[411].Info(), "\"SbmLaplacianConditionDirichlet\" #411")
         self.assertEqual(support_model_part_outer.GetConditions()[73].Info(), "\"SbmLaplacianConditionNeumann\" #73")
         self.assertEqual(support_model_part_outer.GetConditions()[301].Info(), "\"SbmLaplacianConditionNeumann\" #301")
-        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianIgaElement #13")
-        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianIgaElement #40")
+        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianElement #13")
+        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianElement #40")
 
     
     # test the call to the nurbs_geometry_modeler_sbm to create a rectangle + the breps
@@ -765,7 +765,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
                             "geometry_type": "GeometrySurface",
                             "iga_model_part": "ComputationalDomain",
                             "type": "element",
-                            "name": "LaplacianIGAElement",
+                            "name": "LaplacianElement",
                             "shape_function_derivatives_order": 3
                         },
                         {
@@ -856,7 +856,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
                             "geometry_type": "GeometrySurface",
                             "iga_model_part": "ComputationalDomain",
                             "type": "element",
-                            "name": "LaplacianIGAElement",
+                            "name": "LaplacianElement",
                             "shape_function_derivatives_order": 3
                         },
                         {

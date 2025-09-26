@@ -23,7 +23,7 @@
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
-#include "custom_elements/laplacian_IGA_element.h"
+#include "custom_elements/laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
 
@@ -135,7 +135,7 @@ private:
     const Shell3pElement mShell3pElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
-    const LaplacianIGAElement mLaplacianIGAElement;
+    const LaplacianElement mLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
 

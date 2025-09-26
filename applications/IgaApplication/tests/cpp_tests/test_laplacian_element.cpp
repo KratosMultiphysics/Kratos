@@ -14,7 +14,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "test_creation_utility.h"
-#include "custom_elements/laplacian_IGA_element.h"
+#include "custom_elements/laplacian_element.h"
 #include "includes/convection_diffusion_settings.h"
 
 namespace Kratos::Testing
@@ -23,7 +23,7 @@ namespace
 {
     typedef std::size_t SizeType;
 
-    typename Element::Pointer GetLaplacianIGAElement(
+    typename Element::Pointer GetLaplacianElement(
         ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
     {
         // Set the element properties
@@ -34,12 +34,12 @@ namespace
             rModelPart, PolynomialDegree, IntegrationPoint);
         p_quadrature_point->SetValue(HEAT_FLUX, 1.0);
 
-        return Kratos::make_intrusive<LaplacianIGAElement>(1, p_quadrature_point, p_elem_prop);
+        return Kratos::make_intrusive<LaplacianElement>(1, p_quadrature_point, p_elem_prop);
     }
 }
 
-// Tests the stiffness matrix of the LaplacianIGAElement with a polynomial degree of p=3.
-KRATOS_TEST_CASE_IN_SUITE(LaplacianIgaElementP3, KratosIgaFastSuite)
+// Tests the stiffness matrix of the LaplacianElement with a polynomial degree of p=3.
+KRATOS_TEST_CASE_IN_SUITE(LaplacianElementP3, KratosIgaFastSuite)
 {
     Model model;
     auto &r_model_part = model.CreateModelPart("ModelPart");
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(LaplacianIgaElementP3, KratosIgaFastSuite)
     const auto& r_process_info = r_model_part.GetProcessInfo();
 
     IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
-    auto p_laplacian_element = GetLaplacianIGAElement(r_model_part, 3, integration_point);
+    auto p_laplacian_element = GetLaplacianElement(r_model_part, 3, integration_point);
 
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.AddDof(TEMPERATURE);
