@@ -258,15 +258,15 @@ protected:
         this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
         if (CalculateStiffnessMatrixFlag && variables.ConsiderGeometricStiffness) {
-            const auto& integration_points =
+            const auto& r_integration_points =
                 this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
             const auto integration_coefficients =
-                this->CalculateIntegrationCoefficients(integration_points, variables.detJuContainer);
+                this->CalculateIntegrationCoefficients(r_integration_points, variables.detJuContainer);
 
-            for (IndexType GPoint = 0; GPoint < integration_points.size(); ++GPoint) {
-                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, mStressVector[GPoint],
-                                                              variables.DNu_DXContainer[GPoint],
-                                                              integration_coefficients[GPoint]);
+            for (IndexType g_point = 0; g_point < r_integration_points.size(); ++g_point) {
+                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, mStressVector[g_point],
+                                                              variables.DNu_DXContainer[g_point],
+                                                              integration_coefficients[g_point]);
             }
         }
 
