@@ -114,24 +114,4 @@ KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNodes_UpdatesEverythingRe
                               p_node->FastGetSolutionStepValue(ACCELERATION, 1), Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNonFixedComponentsOfNodes_UpdatesOnlyNonFixedValues,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto p_node          = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto nodes_container = NodeContainerWithOneFixedDOF(p_node);
-
-    // Act
-    const array_1d<double, 3> new_values{1.0, 2.0, 4.0};
-    NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-        nodes_container, ACCELERATION, new_values, 0);
-    NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-        nodes_container, ACCELERATION, new_values, 1);
-
-    // Assert
-    const array_1d<double, 3> expected_vector{1.0, 0.0, 4.0};
-    KRATOS_EXPECT_VECTOR_NEAR(expected_vector, p_node->FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
-    KRATOS_EXPECT_VECTOR_NEAR(expected_vector, p_node->FastGetSolutionStepValue(ACCELERATION, 1), 1e-12)
-}
-
 } // namespace Kratos::Testing
