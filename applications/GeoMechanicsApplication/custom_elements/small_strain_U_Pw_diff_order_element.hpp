@@ -144,7 +144,7 @@ protected:
         Matrix F;
 
         // needed for updated Lagrangian:
-        double detJ; // displacement
+        double detJ;
 
         // Nodal variables
         Vector BodyAcceleration;

@@ -776,29 +776,28 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
         const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
             biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
         rOutput = CalculateInternalForces(Variables, b_matrices, integration_coefficients,
-                                biot_coefficients, degrees_of_saturation, biot_moduli_inverse,
-                                relative_permeability_values, bishop_coefficients);
+                                          biot_coefficients, degrees_of_saturation, biot_moduli_inverse,
+                                          relative_permeability_values, bishop_coefficients);
     } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
         const auto integration_coefficients_on_initial_configuration =
             this->CalculateIntegrationCoefficients(r_integration_points, det_Js_initial_configuration);
-        rOutput = CalculateExternalForces(Variables, integration_coefficients,
-                                integration_coefficients_on_initial_configuration, degrees_of_saturation,
-                                relative_permeability_values, bishop_coefficients);
+        rOutput = CalculateExternalForces(
+            Variables, integration_coefficients, integration_coefficients_on_initial_configuration,
+            degrees_of_saturation, relative_permeability_values, bishop_coefficients);
     }
 }
 
 Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables& Variables,
-                                                             const std::vector<Matrix>& b_matrices,
-                                                             const std::vector<double>& integration_coefficients,
-                                                             const std::vector<double>& biot_coefficients,
-                                                             const std::vector<double>& degrees_of_saturation,
-                                                             const std::vector<double>& biot_moduli_inverse,
-                                                             const std::vector<double>& relative_permeability_values,
-                                                             const std::vector<double>& bishop_coefficients)
+                                                               const std::vector<Matrix>& b_matrices,
+                                                               const std::vector<double>& integration_coefficients,
+                                                               const std::vector<double>& biot_coefficients,
+                                                               const std::vector<double>& degrees_of_saturation,
+                                                               const std::vector<double>& biot_moduli_inverse,
+                                                               const std::vector<double>& relative_permeability_values,
+                                                               const std::vector<double>& bishop_coefficients)
 {
     Vector result = ZeroVector(this->GetNumberOfDOF());
     for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
         Variables.B                      = b_matrices[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
@@ -806,25 +805,25 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables&
     }
 
     for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
         Variables.B                      = b_matrices[GPoint];
         Variables.BishopCoefficient      = bishop_coefficients[GPoint];
         Variables.BiotCoefficient        = biot_coefficients[GPoint];
         Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+        noalias(Variables.Np)            = row(Variables.NpContainer, GPoint);
 
         this->CalculateAndAddCouplingTerms(result, Variables);
     }
     if (!Variables.IgnoreUndrained) {
         for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
+            noalias(Variables.Np)            = row(Variables.NpContainer, GPoint);
             Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
             Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
             this->CalculateAndAddCompressibilityFlow(result, Variables);
         }
         for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
+            noalias(Variables.DNp_DX)        = Variables.DNp_DXContainer[GPoint];
             Variables.RelativePermeability   = relative_permeability_values[GPoint];
             Variables.IntegrationCoefficient = integration_coefficients[GPoint];
 
@@ -845,7 +844,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateExternalForces(
 {
     Vector result = ZeroVector(this->GetNumberOfDOF());
     for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
+        noalias(Variables.Nu)        = row(Variables.NuContainer, GPoint);
         Variables.DegreeOfSaturation = degrees_of_saturation[GPoint];
         Variables.IntegrationCoefficientInitialConfiguration =
             integration_coefficients_on_initial_configuration[GPoint];
@@ -853,7 +852,8 @@ Vector SmallStrainUPwDiffOrderElement::CalculateExternalForces(
     }
     if (!Variables.IgnoreUndrained) {
         for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
+            noalias(Variables.Nu)            = row(Variables.NuContainer, GPoint);
+            noalias(Variables.DNp_DX)        = Variables.DNp_DXContainer[GPoint];
             Variables.RelativePermeability   = relative_permeability_values[GPoint];
             Variables.BishopCoefficient      = bishop_coefficients[GPoint];
             Variables.IntegrationCoefficient = integration_coefficients[GPoint];
