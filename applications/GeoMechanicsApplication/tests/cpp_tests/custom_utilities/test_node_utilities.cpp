@@ -13,6 +13,7 @@
 #include "includes/node.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 using namespace Kratos;
 
@@ -106,9 +107,11 @@ KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNodes_UpdatesEverythingRe
     NodeUtilities::AssignUpdatedVectorVariableToNodes(nodes_container, ACCELERATION, new_values, 1);
 
     // Assert
-    const array_1d<double, 3> expected_vector{1.0, 2.0, 4.0};
-    KRATOS_EXPECT_VECTOR_NEAR(expected_vector, p_node->FastGetSolutionStepValue(ACCELERATION, 0), 1e-12)
-    KRATOS_EXPECT_VECTOR_NEAR(expected_vector, p_node->FastGetSolutionStepValue(ACCELERATION, 1), 1e-12)
+    const array_1d<double, 3> expected_acceleration_vector{1.0, 2.0, 4.0};
+    KRATOS_EXPECT_VECTOR_NEAR(expected_acceleration_vector,
+                              p_node->FastGetSolutionStepValue(ACCELERATION, 0), Defaults::absolute_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(expected_acceleration_vector,
+                              p_node->FastGetSolutionStepValue(ACCELERATION, 1), Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AssignUpdatedVectorVariableToNonFixedComponentsOfNodes_UpdatesOnlyNonFixedValues,
