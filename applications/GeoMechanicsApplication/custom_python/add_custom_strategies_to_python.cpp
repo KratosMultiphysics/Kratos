@@ -21,9 +21,11 @@
 // strategies
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/residualbased_newton_raphson_strategy_linear_elastic_dynamic.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // builders and solvers
+#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_linear_elastic_dynamic.h"
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
 
 // schemes
@@ -31,6 +33,7 @@
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
+#include "custom_strategies/schemes/incremental_newmark_linear_elastic_U_scheme.hpp"
 #include "custom_strategies/schemes/geomechanics_static_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
@@ -60,6 +63,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
     using NewmarkQuasistaticDampedUPwSchemeType =
         NewmarkQuasistaticDampedUPwScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkDynamicUPwSchemeType = NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>;
+    using IncrementalNewmarkLinearElasticUSchemeType =
+        IncrementalNewmarkLinearElasticUScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkQuasistaticPwSchemeType = NewmarkQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>;
     using NewmarkQuasistaticTSchemeType = GeneralizedNewmarkTScheme<SparseSpaceType, LocalSpaceType>;
 
@@ -75,6 +80,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     using GeoMechanicsNewtonRaphsonErosionProcessStrategyType =
         GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using GeoMechanicNewtonRaphsonStrategyLinearElasticDynamicType =
+        GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
     py::class_<NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkQuasistaticUPwScheme", py::module_local())
@@ -87,6 +94,10 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
     py::class_<NewmarkDynamicUPwSchemeType, typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkDynamicUPwScheme", py::module_local())
         .def(py::init<double, double, double>());
+
+    py::class_<IncrementalNewmarkLinearElasticUSchemeType, typename IncrementalNewmarkLinearElasticUSchemeType::Pointer, BaseSchemeType>(
+        m, "IncrementalNewmarkLinearElasticUScheme", py::module_local())
+        .def(py::init<double, double>());
 
     py::class_<NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType>(
         m, "NewmarkQuasistaticPwScheme")
@@ -123,6 +134,12 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
                       BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool>());
 
+    py::class_<GeoMechanicNewtonRaphsonStrategyLinearElasticDynamicType,
+               typename GeoMechanicNewtonRaphsonStrategyLinearElasticDynamicType::Pointer, BaseSolvingStrategyType>(
+        m, "GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic")
+        .def(py::init<ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
+                      BuilderAndSolverType::Pointer, int, bool, bool>());
+
     using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType =
         ResidualBasedBlockBuilderAndSolverWithMassAndDamping<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     py::class_<ResidualBasedBlockBuilderAndSolverWithMassAndDampingType,
@@ -130,6 +147,13 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         m, "ResidualBasedBlockBuilderAndSolverWithMassAndDamping")
         .def(py::init<LinearSolverType::Pointer>())
         .def(py::init<LinearSolverType::Pointer, Parameters>());
+
+    using ResidualBasedBlockBuilderAndSolverLinearElasticDynamicType =
+        ResidualBasedBlockBuilderAndSolverLinearElasticDynamic<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    py::class_<ResidualBasedBlockBuilderAndSolverLinearElasticDynamicType,
+               ResidualBasedBlockBuilderAndSolverLinearElasticDynamicType::Pointer, BuilderAndSolverType>(
+        m, "ResidualBasedBlockBuilderAndSolverLinearElasticDynamic")
+        .def(py::init<LinearSolverType::Pointer, double, double, bool>());
 }
 
 } // Namespace Kratos::Python
