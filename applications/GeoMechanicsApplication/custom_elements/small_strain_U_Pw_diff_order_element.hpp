@@ -281,8 +281,7 @@ private:
         rNode.UnSetLock();
     }
 
-    void CalculateInternalForces(VectorType&                rRightHandSideVector,
-                                 ElementVariables&          Variables,
+    Vector CalculateInternalForces(ElementVariables&          Variables,
                                  const std::vector<Matrix>& b_matrices,
                                  const std::vector<double>& integration_coefficients,
                                  const std::vector<double>& biot_coefficients,
@@ -291,8 +290,7 @@ private:
                                  const std::vector<double>& relative_permeability_values,
                                  const std::vector<double>& bishop_coefficients);
 
-    void CalculateExternalForces(VectorType&                rRightHandSideVector,
-                                 ElementVariables&          Variables,
+    Vector CalculateExternalForces(ElementVariables&          Variables,
                                  const std::vector<double>& integration_coefficients,
                                  const std::vector<double>& integration_coefficients_on_initial_configuration,
                                  const std::vector<double>& degrees_of_saturation,
