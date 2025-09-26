@@ -942,13 +942,16 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     }
 
     if (CalculateResidualVectorFlag) {
-        CalculateInternalForces(rRightHandSideVector, Variables, b_matrices, integration_coefficients,
+        Vector internal_forces = ZeroVector(rRightHandSideVector.size());
+        CalculateInternalForces(internal_forces, Variables, b_matrices, integration_coefficients,
                                 biot_coefficients, degrees_of_saturation, biot_moduli_inverse,
                                 relative_permeability_values, bishop_coefficients);
 
-        CalculateExternalForces(rRightHandSideVector, Variables, integration_coefficients,
+        Vector external_forces = ZeroVector(rRightHandSideVector.size());
+        CalculateExternalForces(external_forces, Variables, integration_coefficients,
                                 integration_coefficients_on_initial_configuration, degrees_of_saturation,
                                 relative_permeability_values, bishop_coefficients);
+        rRightHandSideVector = external_forces - internal_forces;
     }
     KRATOS_CATCH("")
 }
@@ -1305,7 +1308,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce(VectorType& r
     KRATOS_TRY
 
     Vector stiffness_force =
-        -1.0 * prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
+        prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, stiffness_force);
 
     KRATOS_CATCH("")
@@ -1349,7 +1352,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
     KRATOS_TRY
 
     const Matrix u_coupling_matrix =
-        (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        GeoTransportEquationUtilities::CalculateCouplingMatrix(
                      rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
                      rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
     const Vector coupling_force = prod(u_coupling_matrix, rVariables.PressureVector);
@@ -1357,7 +1360,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
 
     if (!rVariables.IgnoreUndrained) {
         const Matrix p_coupling_matrix =
-            (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
+            GeoTransportEquationUtilities::CalculateCouplingMatrix(
                          rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
                          rVariables.BiotCoefficient, rVariables.DegreeOfSaturation,
                          rVariables.IntegrationCoefficient);
@@ -1376,7 +1379,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorTy
 
     Matrix compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
         rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
-    Vector compressibility_flow = -prod(compressibility_matrix, rVariables.PressureDtVector);
+    Vector compressibility_flow = prod(compressibility_matrix, rVariables.PressureDtVector);
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, compressibility_flow);
 
     KRATOS_CATCH("")
@@ -1425,7 +1428,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType&
         -PORE_PRESSURE_SIGN_FACTOR * rVariables.DynamicViscosityInverse * rVariables.RelativePermeability *
         prod(rVariables.DNp_DX, Matrix(prod(rVariables.IntrinsicPermeability, trans(rVariables.DNp_DX)))) *
         rVariables.IntegrationCoefficient;
-    const Vector permeability_flow = -prod(permeability_matrix, rVariables.PressureVector);
+    const Vector permeability_flow = prod(permeability_matrix, rVariables.PressureVector);
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, permeability_flow);
 
     KRATOS_CATCH("")

@@ -276,7 +276,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SumOfInternalAndExterna
     auto external_forces = Vector{};
     p_element->Calculate(EXTERNAL_FORCES_VECTOR, external_forces, dummy_process_info);
 
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_rhs_values, (internal_forces + external_forces), 1e-5);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_rhs_values, (external_forces - internal_forces), 1e-5);
 }
 
 } // namespace Kratos::Testing
