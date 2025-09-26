@@ -62,9 +62,6 @@ public:
     /// The result type definition
     using ResultType = SpatialSearchResult<ObjectType>;
 
-    /// If considering the global data communicator
-    static constexpr bool ConsiderGlobalDataCommunicator = TSpatialSearchCommunication == SpatialSearchCommunication::SYNCHRONOUS;
-
     /// Search containers
     using ResultContainerType = SpatialSearchResultContainer<ObjectType, TSpatialSearchCommunication>;
     using ResultContainerVectorType = SpatialSearchResultContainerVector<ObjectType, TSpatialSearchCommunication>;
@@ -216,11 +213,8 @@ public:
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            if constexpr (ConsiderGlobalDataCommunicator) {
-                rTLS.global_position = search_info.GlobalPosition[i_point];
-            } else {
-                rTLS.global_position = i_point;
-            }
+            rTLS.global_position = search_info.GlobalPosition[i_point];
+
             auto& r_point_result = rResults[rTLS.global_position];
 
             // Search
@@ -301,11 +295,8 @@ public:
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            if constexpr (ConsiderGlobalDataCommunicator) {
-                rTLS.global_position = search_info.GlobalPosition[i_point];
-            } else {
-                rTLS.global_position = i_point;
-            }
+            rTLS.global_position = search_info.GlobalPosition[i_point];
+
             auto& r_point_result = rResults[rTLS.global_position];
 
             // Result of search
@@ -390,11 +381,8 @@ public:
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            if constexpr (ConsiderGlobalDataCommunicator) {
-                rTLS.global_position = search_info.GlobalPosition[i_point];
-            } else {
-                rTLS.global_position = i_point;
-            }
+            rTLS.global_position = search_info.GlobalPosition[i_point];
+
             auto& r_point_result = rResults[rTLS.global_position];
 
             // Result of search
@@ -475,11 +463,8 @@ public:
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
-            if constexpr (ConsiderGlobalDataCommunicator) {
-                rTLS.global_position = search_info.GlobalPosition[i_point];
-            } else {
-                rTLS.global_position = i_point;
-            }
+            rTLS.global_position = search_info.GlobalPosition[i_point];
+
             auto& r_point_result = rResults[rTLS.global_position];
 
             // Result of search
@@ -690,15 +675,19 @@ private:
             // Getting current rank
             const int rank = mrDataCommunicator.Rank();
 
+            // The values
+            const auto all_values = rLambda(rResults);
+
             // Retrieve the solution
             auto& r_results_vector = rResults.GetContainer();
-            for (auto& p_partial_result : r_results_vector) {
+            for (std::size_t i = 0; i < r_results_vector.size(); ++i) {
+                auto& p_partial_result = r_results_vector[i];
                 auto& r_partial_result = *p_partial_result;
                 // Then must have at least one solution, but just filter if at least 2
                 const std::size_t number_of_global_results = r_partial_result.NumberOfGlobalResults();
                 if (number_of_global_results > 1) {
                     // The values
-                    const auto values = rLambda(r_partial_result);
+                    const auto values = all_values[i];
 
                     // The indexes
                     std::vector<int> ranks = r_partial_result.GetResultRank();

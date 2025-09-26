@@ -463,12 +463,6 @@ public:
     void Barrier();
 
     /**
-     * @brief Retrieves the global distances
-     * @return A vector containing all the distances
-     */
-    std::vector<double> GetDistances();
-
-    /**
      * @brief Retrieves the rank of the entity
      * @return A vector containing all the ranks of the entity
      */

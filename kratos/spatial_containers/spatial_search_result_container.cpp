@@ -208,30 +208,6 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Syn
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<double> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetDistances()
-{
-    // Define the coordinates vector
-    const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<double> distances(number_of_gp);
-
-    // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> double {
-        return rGP->GetDistance();
-    });
-
-    // Get the distances
-    for(std::size_t i=0; i<number_of_gp; ++i) {
-        auto& r_gp = mGlobalResults(i);
-        distances[i] = proxy.Get(r_gp);
-    }
-
-    return distances;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultRank()
 {
     // Define the coordinates vector
