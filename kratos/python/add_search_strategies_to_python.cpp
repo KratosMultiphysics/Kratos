@@ -106,7 +106,7 @@ void BindSpatialSearchResult(pybind11::module& m, const std::string& rClassName)
  * @tparam TSpatialSearchCommunication The type of spatial search communication considered.
  * @param rClassName The name of the class.
  */
-template<class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>
+template<class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS>
 void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rClassName) {
     using ContainerType = SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>;
     auto cls = pybind11::class_<ContainerType, typename ContainerType::Pointer>(m, rClassName.c_str())
@@ -152,7 +152,7 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     }, pybind11::keep_alive<0, 1>()); /* Keep object alive while iterator is used */
 
     // Add the specific methods for the GeometricalObject
-    if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {  
+    if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
         cls.def("AddResult", [](ContainerType& self, SpatialSearchResult<TObjectType>& rObject) {
             self.AddResult(rObject);
         });
@@ -166,7 +166,7 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
  * @param m The Python module to bind the class to.
  * @param rClassName The name of the class in Python.
  */
-template<class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>
+template<class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS>
 void BindSpatialSearchResultContainerVector(pybind11::module& m, const std::string& rClassName) {
     using ContainerVectorType = SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>;
     pybind11::class_<ContainerVectorType, typename ContainerVectorType::Pointer>(m, rClassName.c_str())
@@ -685,30 +685,16 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     BindSpatialSearchResult<Condition>(m, "SpatialSearchResultCondition");
 
     // Containers
-    // SYNCHRONOUS_HOMOGENEOUS
-    BindSpatialSearchResultContainer<Node, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SpatialSearchResultContainerNode");
-    BindSpatialSearchResultContainer<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SpatialSearchResultContainerGeometricalObject");
-    BindSpatialSearchResultContainer<Element, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SpatialSearchResultContainerElement");
-    BindSpatialSearchResultContainer<Condition, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SpatialSearchResultContainerCondition");
-
-    // SYNCHRONOUS_HETEROGENEOUS
-    BindSpatialSearchResultContainer<Node, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SpatialSearchResultContainerNodeHeterogeneous");
-    BindSpatialSearchResultContainer<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SpatialSearchResultContainerGeometricalObjectHeterogeneous");
-    BindSpatialSearchResultContainer<Element, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SpatialSearchResultContainerElementHeterogeneous");
-    BindSpatialSearchResultContainer<Condition, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SpatialSearchResultContainerConditionHeterogeneous");
+    BindSpatialSearchResultContainer<Node, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerNode");
+    BindSpatialSearchResultContainer<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerGeometricalObject");
+    BindSpatialSearchResultContainer<Element, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerElement");
+    BindSpatialSearchResultContainer<Condition, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerCondition");
 
     // Containers vector
-    // SYNCHRONOUS_HOMOGENEOUS
-    BindSpatialSearchResultContainerVector<Node, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SpatialSearchResultContainerVectorNode");
-    BindSpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SpatialSearchResultContainerVectorGeometricalObject");
-    BindSpatialSearchResultContainerVector<Element, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SpatialSearchResultContainerVectorElement");
-    BindSpatialSearchResultContainerVector<Condition, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SpatialSearchResultContainerVectorCondition");
-
-    // SYNCHRONOUS_HETEROGENEOUS
-    BindSpatialSearchResultContainerVector<Node, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SpatialSearchResultContainerVectorNodeHeterogeneous");
-    BindSpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SpatialSearchResultContainerVectorGeometricalObjectHeterogeneous");
-    BindSpatialSearchResultContainerVector<Element, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SpatialSearchResultContainerVectorElementHeterogeneous");
-    BindSpatialSearchResultContainerVector<Condition, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SpatialSearchResultContainerVectorConditionHeterogeneous");
+    BindSpatialSearchResultContainerVector<Node, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerVectorNode");
+    BindSpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerVectorGeometricalObject");
+    BindSpatialSearchResultContainerVector<Element, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerVectorElement");
+    BindSpatialSearchResultContainerVector<Condition, SpatialSearchCommunication::SYNCHRONOUS>(m, "SpatialSearchResultContainerVectorCondition");
 
     // GeometricalObjectsBins
     using ResultTypeGeometricalObject = SpatialSearchResult<GeometricalObject>;
@@ -802,50 +788,27 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
     /* Define the search wrappers */
     // GeometricalObjectsBins
-    // SYNCHRONOUS_HOMOGENEOUS
-    DefineSearchWrapper<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperGeometricalObjectBins");
-    // SYNCHRONOUS_HETEROGENEOUS
-    DefineSearchWrapper<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperGeometricalObjectBinsHeterogeneous");
+    DefineSearchWrapper<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperGeometricalObjectBins");
 
     // KDTree
-    // SYNCHRONOUS_HOMOGENEOUS
-    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperKDTreeNode");
-    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperKDTreeElement");
-    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperKDTreeCondition");
-    // SYNCHRONOUS_HETEROGENEOUS
-    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperKDTreeNodeHeterogeneous");
-    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperKDTreeElementHeterogeneous");
-    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperKDTreeConditionHeterogeneous");
+    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperKDTreeNode");
+    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperKDTreeElement");
+    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperKDTreeCondition");
 
     // OCTree
-    // SYNCHRONOUS_HOMOGENEOUS
-    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperOCTreeNode");
-    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperOCTreeElement");
-    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperOCTreeCondition");
-    // SYNCHRONOUS_HETEROGENEOUS
-    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperOCTreeNodeHeterogeneous");
-    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperOCTreeElementHeterogeneous");
-    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperOCTreeConditionHeterogeneous");
+    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperOCTreeNode");
+    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperOCTreeElement");
+    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperOCTreeCondition");
 
     // StaticBinsTree
-    // SYNCHRONOUS_HOMOGENEOUS
-    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperStaticBinsTreeNode");
-    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperStaticBinsTreeElement");
-    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperStaticBinsTreeCondition");
-    // SYNCHRONOUS_HETEROGENEOUS
-    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperStaticBinsTreeNodeHeterogeneous");
-    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperStaticBinsTreeElementHeterogeneous");
-    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperStaticBinsTreeConditionHeterogeneous");
+    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperStaticBinsTreeNode");
+    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperStaticBinsTreeElement");
+    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperStaticBinsTreeCondition");
 
     // DynamicBins
-    // SYNCHRONOUS_HOMOGENEOUS
-    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperDynamicBinsNode");
-    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperDynamicBinsElement");
-    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>(m, "SearchWrapperDynamicBinsCondition");
-    // SYNCHRONOUS_HETEROGENEOUS
-    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperDynamicBinsNodeHeterogeneous");
-    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperDynamicBinsElementHeterogeneous");
-    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>(m, "SearchWrapperDynamicBinsConditionHeterogeneous");
+    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperDynamicBinsNode");
+    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperDynamicBinsElement");
+    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperDynamicBinsCondition");
 }
 
 }  // namespace Kratos::Python.

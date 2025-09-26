@@ -36,13 +36,12 @@ namespace Kratos
 /**
  * @enum SpatialSearchCommunication
  * @brief Enum class for defining types of spatial search communication.
- * This enum class is used to specify the type of communication used to communicate search results between partitions.
+ * @details This enum class is used to specify the type of communication used to communicate search results between partitions.
  */
 enum class SpatialSearchCommunication
 {
-    SYNCHRONOUS_HOMOGENEOUS,   ///< Synchronous where all partitions know everything.
-    SYNCHRONOUS_HETEROGENEOUS, ///< Synchronous where sub-data communicators are considered.
-    ASYNCHRONOUS               ///< Asynchronous communication. Not implemented yet.
+    SYNCHRONOUS,   ///< Synchronous where all partitions know everything.
+    ASYNCHRONOUS   ///< Asynchronous communication. Not implemented yet.
 };
 
 ///@}
@@ -60,7 +59,7 @@ class DataCommunicator;  // forward declaration
  * @ingroup KratosCore
  * @author Vicente Mataix Ferrandiz
  */
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS>
 class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainer
 {
 public:

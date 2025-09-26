@@ -114,12 +114,6 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Gen
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Barrier()
 {
-    // Only in MPI code and in SYNCHRONOUS_HETEROGENEOUS
-    if constexpr (TSpatialSearchCommunication == SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS) {
-        if(mrDataCommunicator.IsDistributed()) {
-            mrDataCommunicator.Barrier();
-        }
-    }
 }
 
 /***********************************************************************************/
@@ -584,16 +578,10 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::loa
 /***********************************************************************************/
 
 /// Template instantiation
-// SYNCHRONOUS_HOMOGENEOUS
-template class SpatialSearchResultContainer<Node, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
-template class SpatialSearchResultContainer<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
-template class SpatialSearchResultContainer<Element, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
-template class SpatialSearchResultContainer<Condition, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SpatialSearchResultContainer<Node, SpatialSearchCommunication::SYNCHRONOUS>;
+template class SpatialSearchResultContainer<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS>;
+template class SpatialSearchResultContainer<Element, SpatialSearchCommunication::SYNCHRONOUS>;
+template class SpatialSearchResultContainer<Condition, SpatialSearchCommunication::SYNCHRONOUS>;
 
-// SYNCHRONOUS_HETEROGENEOUS
-template class SpatialSearchResultContainer<Node, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
-template class SpatialSearchResultContainer<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
-template class SpatialSearchResultContainer<Element, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
-template class SpatialSearchResultContainer<Condition, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
 
 }  // namespace Kratos

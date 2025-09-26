@@ -46,7 +46,7 @@ namespace Kratos
  * @tparam TSearchObject The seach object considered
  * @tparam TSpatialSearchCommunication The communication type to be used
  */
-template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS>
 class KRATOS_API(KRATOS_CORE) SearchWrapper
 {
 public:
@@ -63,7 +63,7 @@ public:
     using ResultType = SpatialSearchResult<ObjectType>;
 
     /// If considering the global data communicator
-    static constexpr bool ConsiderGlobalDataCommunicator = TSpatialSearchCommunication == SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS;
+    static constexpr bool ConsiderGlobalDataCommunicator = TSpatialSearchCommunication == SpatialSearchCommunication::SYNCHRONOUS;
 
     /// Search containers
     using ResultContainerType = SpatialSearchResultContainer<ObjectType, TSpatialSearchCommunication>;
