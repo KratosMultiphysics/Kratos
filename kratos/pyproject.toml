@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "KratosMultiphysics"
+version = "10.3.0"
+description = "Kratos Multiphysics Python Framework"
+requires-python = ">=3.8"
+
+authors = [
+    { name = "Kratos Multiphysics Developers", email = "kratos@cimne.upc.edu" },
+]
+
+dependencies = [
+    "numpy>=1.20"
+]
+
+[project.urls]
+Homepage = "https://github.com/KratosMultiphysics/"
+
+[tool.setuptools]
+include-package-data = true
+packages = ["KratosMultiphysics"]
+
+[tool.setuptools.package-data]
+"KratosMultiphysics" = ["**/*"]
