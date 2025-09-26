@@ -18,40 +18,40 @@ class TestEnsightOutputProcess(KratosUnittest.TestCase):
     for various element types and dimensions in ASCII format. The tests cover 2D, 3D, quadratic 3D,
     quadratic prism 3D, and quadratic hexahedra 3D cases. Binary output tests are present but commented out,
     indicating that binary support is implemented but not yet tested.
-    Each test method calls `ExecuteBasicVTKoutputProcessCheck` with the appropriate format and geometry type.
+    Each test method calls `ExecuteBasicEnsightOutputProcessCheck` with the appropriate format and geometry type.
     The `tearDown` method ensures that the output directory ("test_ensight_output") is deleted after each test run
     to maintain a clean test environment.
     """
     def test_ascii_ensight_output_2D(self):
-        ExecuteBasicVTKoutputProcessCheck("ascii", "2D")
+        ExecuteBasicEnsightOutputProcessCheck("ascii", "2D")
 
     def test_ascii_ensight_output_3D(self):
-        ExecuteBasicVTKoutputProcessCheck("ascii", "3D")
+        ExecuteBasicEnsightOutputProcessCheck("ascii", "3D")
 
     def test_ascii_ensight_output_quad_3D(self):
-        ExecuteBasicVTKoutputProcessCheck("ascii", "Quad3D")
+        ExecuteBasicEnsightOutputProcessCheck("ascii", "Quad3D")
 
     def test_ascii_ensight_output_quad_prism_3D(self):
-        ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticPrism3D")
+        ExecuteBasicEnsightOutputProcessCheck("ascii", "QuadraticPrism3D")
 
     def test_ascii_ensight_output_quad_hexahedra_3D(self):
-        ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticHexahedra3D")
+        ExecuteBasicEnsightOutputProcessCheck("ascii", "QuadraticHexahedra3D")
 
     # TODO: Binary is implemented, but requires testing
     # def test_binary_ensight_output_2D(self):
-    #     ExecuteBasicVTKoutputProcessCheck("binary", "2D")
+    #     ExecuteBasicEnsightOutputProcessCheck("binary", "2D")
 
     # def test_binary_ensight_output_3D(self):
-    #     ExecuteBasicVTKoutputProcessCheck("binary", "3D")
+    #     ExecuteBasicEnsightOutputProcessCheck("binary", "3D")
 
     # def test_binary_ensight_output_quad_3D(self):
-    #     ExecuteBasicVTKoutputProcessCheck("binary", "Quad3D")
+    #     ExecuteBasicEnsightOutputProcessCheck("binary", "Quad3D")
 
     # def test_binary_ensight_output_quad_prism_3D(self):
-    #     ExecuteBasicVTKoutputProcessCheck("binary", "QuadraticPrism3D")
+    #     ExecuteBasicEnsightOutputProcessCheck("binary", "QuadraticPrism3D")
 
     # def test_binary_ensight_output_quad_hexahedra_3D(self):
-    #     ExecuteBasicVTKoutputProcessCheck("binary", "QuadraticHexahedra3D")
+    #     ExecuteBasicEnsightOutputProcessCheck("binary", "QuadraticHexahedra3D")
 
     def tearDown(self):
         kratos_utils.DeleteDirectoryIfExisting("test_ensight_output")
@@ -141,7 +141,7 @@ def Check(output_file,reference_file, file_format, extension):
 
     CompareTwoFilesCheckProcess(params).Execute()
 
-def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
+def ExecuteBasicEnsightOutputProcessCheck(file_format = "ascii", setup = "2D"):
     """
     Executes a basic check of the Ensight output process for various model setups and file formats.
     This function sets up a Kratos model part according to the specified geometry (2D, 3D, or various quadratic elements),
