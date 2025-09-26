@@ -463,12 +463,6 @@ public:
     void Barrier();
 
     /**
-     * @brief Retrieves the rank of the entity
-     * @return A vector containing all the ranks of the entity
-     */
-    std::vector<int> GetResultRank();
-
-    /**
      * @brief Retrieves if is active the entity
      * @return A vector containing all the booleans showing is active the entity
      */
@@ -677,6 +671,12 @@ private:
         // Apply the user-provided function
         return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
     }
+
+    /**
+     * @brief Retrieves the rank of the entity
+     * @return A vector containing all the ranks of the entity
+     */
+    std::vector<int> GetResultRank();
 
     /**
      * @brief Considers the global pointer communicator to get the indices of the resulting object

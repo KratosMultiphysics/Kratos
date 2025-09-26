@@ -208,30 +208,6 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Syn
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultRank()
-{
-    // Define the coordinates vector
-    const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<int> ranks(number_of_gp, 0);
-
-    // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> int {
-        return rGP->Get().GetRank();
-    });
-
-    // Get the rank
-    for(std::size_t i=0; i<number_of_gp; ++i) {
-        auto& r_gp = mGlobalResults(i);
-        ranks[i] = mrDataCommunicator.MaxAll(proxy.Get(r_gp));
-    }
-
-    return ranks;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<bool> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIsActive()
 {
     // Define the coordinates vector
@@ -499,6 +475,30 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Pri
     rOStream << "SpatialSearchResultContainer data summary: " << "\n";
     rOStream << "\tNumber of local results: " << mLocalResults.size() << "\n";
     rOStream << "\tNumber of global results: " << mGlobalResults.size() << "\n";
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultRank()
+{
+    // Define the coordinates vector
+    const std::size_t number_of_gp = mGlobalResults.size();
+    std::vector<int> ranks(number_of_gp, 0);
+
+    // Call Apply to get the proxy
+    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> int {
+        return rGP->Get().GetRank();
+    });
+
+    // Get the rank
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = mGlobalResults(i);
+        ranks[i] = mrDataCommunicator.MaxAll(proxy.Get(r_gp));
+    }
+
+    return ranks;
 }
 
 /***********************************************************************************/

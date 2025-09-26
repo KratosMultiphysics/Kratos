@@ -678,6 +678,9 @@ private:
             // The values
             const auto all_values = rLambda(rResults);
 
+            // The ranks
+            const std::vector<std::vector<int>> all_ranks = rResults.GetResultRank();
+
             // Retrieve the solution
             auto& r_results_vector = rResults.GetContainer();
             for (std::size_t i = 0; i < r_results_vector.size(); ++i) {
@@ -690,7 +693,7 @@ private:
                     const auto values = all_values[i];
 
                     // The indexes
-                    std::vector<int> ranks = r_partial_result.GetResultRank();
+                    std::vector<int> ranks = all_ranks[i];
 
                     // Find the index of the minimum value
                     auto it_min_distance = std::min_element(values.begin(), values.end());
