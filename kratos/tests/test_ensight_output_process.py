@@ -163,8 +163,6 @@ def ExecuteBasicEnsightOutputProcessCheck(file_format = "ascii", setup = "2D"):
         SetupModelPartQuadraticPrism3D(model_part)
     elif setup == "QuadraticHexahedra3D":
         SetupModelPartQuadraticHexahedra3D(model_part)
-    elif setup == "QuadraticHexahedra3D27N":
-        SetupModelPartHexahedra3D27N(model_part)
     else:
         raise Exception("Unknown setup: " + setup)
 
