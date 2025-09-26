@@ -88,7 +88,7 @@ public:
         } 
         // KRATOS_WATCH(skip_elements) 
 
-        for (int k = skip_elements; k < nelements; k++) { // maybe k from 1 for inner loop??
+        for (int k = skip_elements; k < nelements; k++) {
             auto it_elem = el_begin + k;
 
             if (it_elem->IsActive()) {

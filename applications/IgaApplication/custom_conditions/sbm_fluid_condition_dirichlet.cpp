@@ -521,9 +521,11 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
     const Vector integration_weight_list_on_true_boundary = this->GetValue(INTEGRATION_WEIGHTS);
     const Matrix normals_on_true = this->GetValue(INTEGRATION_NORMALS);
     
-    // Create a matrix: each row is a result vector (p_true, weight, gp_x, gp_y, fx, fy)
+    // Create a matrix with the same schema used in other IGA fluid conditions
+    // [0] w, [1] fx_tot, [2] fy_tot, [3] fx_visc, [4] fy_visc, [5] fx_pres, [6] fy_pres,
+    // [7] nx, [8] ny, [9] x_gp, [10] y_gp
     const std::size_t num_results = integration_weight_list_on_true_boundary.size();
-    Matrix integration_results(num_results, 6);
+    Matrix integration_results(num_results, 11, 0.0);
 
     double pressure_max_min = 0.0;
 
@@ -624,15 +626,29 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
         normal_stress_true_old[0] = (r_stress_vector_on_true[0] * true_normal[0] + r_stress_vector_on_true[2] * true_normal[1]);
         normal_stress_true_old[1] = (r_stress_vector_on_true[2] * true_normal[0] + r_stress_vector_on_true[1] * true_normal[1]);
         
-        // === 5. Compute force contribution ===
-        Vector force = (normal_stress_true_old - p_true * true_normal);
+        // === 5. Compute traction contributions ===
+        array_1d<double,2> t_visc = ZeroVector(2);
+        t_visc[0] = normal_stress_true_old[0];
+        t_visc[1] = normal_stress_true_old[1];
 
-        // // === 6. Output ===
+        array_1d<double,2> t_pres = ZeroVector(2);
+        t_pres[0] = -p_true * true_normal[0];
+        t_pres[1] = -p_true * true_normal[1];
 
-        // Fill matrix row
-        integration_results(i_gauss, 0) = weight;
-        integration_results(i_gauss, 1) = force[0];
-        integration_results(i_gauss, 2) = force[1];
+        array_1d<double,2> t_tot = t_visc + t_pres;
+
+        // === 6. Output in standard 11-column layout ===
+        integration_results(i_gauss, 0)  = weight;
+        integration_results(i_gauss, 1)  = t_tot[0];
+        integration_results(i_gauss, 2)  = t_tot[1];
+        integration_results(i_gauss, 3)  = t_visc[0];
+        integration_results(i_gauss, 4)  = t_visc[1];
+        integration_results(i_gauss, 5)  = t_pres[0];
+        integration_results(i_gauss, 6)  = t_pres[1];
+        integration_results(i_gauss, 7)  = true_normal[0];
+        integration_results(i_gauss, 8)  = true_normal[1];
+        integration_results(i_gauss, 9)  = gp[0];
+        integration_results(i_gauss, 10) = gp[1];
 
         if (gp[0]>0.2499968 || gp[0]<0.15001)
         {
