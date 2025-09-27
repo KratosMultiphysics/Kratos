@@ -489,7 +489,7 @@ public:
                     variables.detJInitialConfiguration, J0, InvJ0, variables.DNu_DXInitialConfiguration, g_point);
 
                 // Calculating operator B
-                variables.B = this->CalculateBMatrix(variables.DNu_DXInitialConfiguration, variables.Nu);
+                variables.B = CalculateBMatrix(variables.DNu_DXInitialConfiguration, variables.Nu);
 
                 // Compute infinitesimal strain
                 variables.StrainVector = StressStrainUtilities::CalculateCauchyStrain(
@@ -634,7 +634,6 @@ public:
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
-
     using UPwBaseElement::mConstitutiveLawVector;
     using UPwBaseElement::mRetentionLawVector;
     using UPwBaseElement::mStateVariablesFinalized;
@@ -1209,18 +1208,13 @@ protected:
         KRATOS_CATCH("")
     }
 
-    Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
-    {
-        return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
-    }
-
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
                                            const Matrix& rNContainer) const
     {
         std::vector<Matrix> result;
         result.reserve(rDN_DXContainer.size());
         for (unsigned int g_point = 0; g_point < rDN_DXContainer.size(); ++g_point) {
-            result.push_back(this->CalculateBMatrix(rDN_DXContainer[g_point], row(rNContainer, g_point)));
+            result.push_back(CalculateBMatrix(rDN_DXContainer[g_point], row(rNContainer, g_point)));
         }
 
         return result;

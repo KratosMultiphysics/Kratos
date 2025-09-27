@@ -206,7 +206,6 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex);
 
-    Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
                                            const Matrix& rNContainer) const;
 

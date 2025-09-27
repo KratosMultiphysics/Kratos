@@ -192,6 +192,8 @@ protected:
 
     std::unique_ptr<IntegrationCoefficientModifier> CloneIntegrationCoefficientModifier() const;
 
+    Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
+
 private:
     [[nodiscard]] virtual DofsVectorType GetDofs() const;
 

@@ -960,12 +960,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
-{
-    return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrices(
     const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
 {
@@ -1167,8 +1161,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCompressibilityFlow(
 {
     KRATOS_TRY
 
-    GeoElementUtilities::AssemblePBlockVector(
-        rRightHandSideVector, this->CalculateCompressibilityFlow(rVariables));
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector,
+                                              this->CalculateCompressibilityFlow(rVariables));
 
     KRATOS_CATCH("")
 }
@@ -1228,8 +1222,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddPermeabilityFlow(Vec
 {
     KRATOS_TRY
 
-    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector,
-                                              this->CalculatePermeabilityFlow(rVariables));
+    GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, this->CalculatePermeabilityFlow(rVariables));
 
     KRATOS_CATCH("")
 }

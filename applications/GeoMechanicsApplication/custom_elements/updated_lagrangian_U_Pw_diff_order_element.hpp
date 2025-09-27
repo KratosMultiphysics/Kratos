@@ -219,7 +219,6 @@ public:
     ///@}
 
 protected:
-
     using BaseType::mConstitutiveLawVector;
     using BaseType::mStateVariablesFinalized;
     using BaseType::mStressVector;
@@ -265,9 +264,9 @@ protected:
                 this->CalculateIntegrationCoefficients(r_integration_points, variables.detJuContainer);
 
             for (IndexType g_point = 0; g_point < r_integration_points.size(); ++g_point) {
-                this->CalculateAndAddGeometricStiffnessMatrix(rLeftHandSideMatrix, mStressVector[g_point],
-                                                              variables.DNu_DXContainer[g_point],
-                                                              integration_coefficients[g_point]);
+                this->CalculateAndAddGeometricStiffnessMatrix(
+                    rLeftHandSideMatrix, mStressVector[g_point], variables.DNu_DXContainer[g_point],
+                    integration_coefficients[g_point]);
             }
         }
 

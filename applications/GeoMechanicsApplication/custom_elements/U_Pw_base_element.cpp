@@ -438,4 +438,9 @@ std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneIntegration
     return mIntegrationCoefficientsCalculator.CloneModifier();
 }
 
+Matrix UPwBaseElement::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
+{
+    return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
+}
+
 } // Namespace Kratos

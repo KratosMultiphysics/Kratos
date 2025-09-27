@@ -25,14 +25,14 @@
 namespace Kratos
 {
 
-
-Vector GetPressures(const Geometry<Node>& rGeometry, size_t n_nodes)
+inline Vector GetPressures(const Geometry<Node>& rGeometry, size_t n_nodes)
 {
-    Vector      pressure(n_nodes);
+    Vector pressure(n_nodes);
     std::transform(rGeometry.begin(), rGeometry.begin() + n_nodes, pressure.begin(),
                    [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
     return pressure;
 }
+
 template <>
 void SmallStrainUPwDiffOrderElement<2, 6>::SetUpPressureGeometryPointer()
 {
