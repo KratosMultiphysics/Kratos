@@ -960,26 +960,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
-{
-    return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrices(
-    const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
-{
-    std::vector<Matrix> result;
-    result.reserve(rDN_DXContainer.size());
-    for (unsigned int integration_point = 0; integration_point < rDN_DXContainer.size(); ++integration_point) {
-        result.push_back(this->CalculateBMatrix(rDN_DXContainer[integration_point],
-                                                row(rNContainer, integration_point)));
-    }
-
-    return result;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                 ElementVariables& rVariables)
 {
@@ -1008,8 +988,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(Matr
 {
     KRATOS_TRY
 
-    const auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
-        rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
+    Matrix stiffness_matrix(TDim * TNumNodes, TDim * TNumNodes);
+
+    GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
+        stiffness_matrix, rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
     GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 
     KRATOS_CATCH("")
@@ -1021,18 +1003,19 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
 {
     KRATOS_TRY
 
-    const Matrix coupling_matrix_up = GeoTransportEquationUtilities::CalculateCouplingMatrix(
-        rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+    BoundedMatrix<double, TNumNodes * TDim, TNumNodes> coupling_matrix;
+    GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
-    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix_up);
+    GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
     if (!rVariables.IgnoreUndrained) {
-        const Matrix coupling_matrix_pu = GeoTransportEquationUtilities::CalculateCouplingMatrix(
-            rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+        GeoTransportEquationUtilities::CalculateCouplingMatrix(
+            coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
         GeoElementUtilities::AssemblePUBlockMatrix(
             rLeftHandSideMatrix,
-            PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * trans(coupling_matrix_pu));
+            PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient * trans(coupling_matrix));
     }
 
     KRATOS_CATCH("")
@@ -1126,23 +1109,21 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
 {
     KRATOS_TRY
 
-    const BoundedMatrix<double, TNumNodes * TDim, TNumNodes> coupling_matrix =
-        (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                     rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
-                     rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
+    BoundedMatrix<double, TNumNodes * TDim, TNumNodes> coupling_matrix;
+    GeoTransportEquationUtilities::CalculateCouplingMatrix(
+        coupling_matrix, rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+        rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     const array_1d<double, TNumNodes * TDim> coupling_force = prod(coupling_matrix, rVariables.PressureVector);
-    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_force);
+    GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, (-1.0) * coupling_force);
 
     if (!rVariables.IgnoreUndrained) {
-        const Matrix p_coupling_matrix =
-            (-1.0) * GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                         rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
-                         rVariables.BiotCoefficient, rVariables.DegreeOfSaturation,
-                         rVariables.IntegrationCoefficient);
+        GeoTransportEquationUtilities::CalculateCouplingMatrix(
+            coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+            rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
         const array_1d<double, TNumNodes> coupling_flow =
-            PORE_PRESSURE_SIGN_FACTOR * prod(trans(p_coupling_matrix), rVariables.VelocityVector);
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, coupling_flow);
+            PORE_PRESSURE_SIGN_FACTOR * prod(trans(coupling_matrix), rVariables.VelocityVector);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, (-1.0) * coupling_flow);
     }
 
     KRATOS_CATCH("")
@@ -1261,20 +1242,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
     return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradients() const
-{
-    const auto number_of_integration_points =
-        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-    std::vector<Matrix> result;
-    result.reserve(number_of_integration_points);
-    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
-        result.push_back(CalculateDeformationGradient(integration_point));
-    }
-
-    return result;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1409,51 +1376,6 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::GetPressureSolutionVector()
         return node.FastGetSolutionStepValue(WATER_PRESSURE);
     });
     return result;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
-    const std::vector<Matrix>&                       rDeformationGradients,
-    ConstitutiveLaw::Parameters&                     rConstitutiveParameters,
-    const Matrix&                                    rNuContainer,
-    const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
-    std::vector<Vector>&                             rStrainVectors,
-    std::vector<Vector>&                             rStressVectors,
-    std::vector<Matrix>&                             rConstitutiveMatrices)
-{
-    if (rStrainVectors.size() != rDeformationGradients.size()) {
-        rStrainVectors.resize(rDeformationGradients.size());
-        std::fill(rStrainVectors.begin(), rStrainVectors.end(),
-                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
-    }
-    if (rStressVectors.size() != rDeformationGradients.size()) {
-        rStressVectors.resize(rDeformationGradients.size());
-        std::fill(rStressVectors.begin(), rStressVectors.end(),
-                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
-    }
-    if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
-        rConstitutiveMatrices.resize(rDeformationGradients.size());
-        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
-                  ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(),
-                             this->GetStressStatePolicy().GetVoigtSize()));
-    }
-
-    const auto determinants_of_deformation_gradients =
-        GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
-
-    for (unsigned int integration_point = 0; integration_point < rDeformationGradients.size(); ++integration_point) {
-        // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a pointer
-        // to an implicitly converted object
-        const auto shape_function_values = Vector{row(rNuContainer, integration_point)};
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            rConstitutiveParameters, rStrainVectors[integration_point],
-            rConstitutiveMatrices[integration_point], shape_function_values,
-            rDNu_DXContainer[integration_point], rDeformationGradients[integration_point],
-            determinants_of_deformation_gradients[integration_point]);
-        rConstitutiveParameters.SetStressVector(rStressVectors[integration_point]);
-
-        mConstitutiveLawVector[integration_point]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
-    }
 }
 
 template class UPwSmallStrainElement<2, 3>;

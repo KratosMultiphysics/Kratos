@@ -14,8 +14,10 @@
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/check_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/math_utilities.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 
@@ -436,6 +438,76 @@ StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStre
 std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneIntegrationCoefficientModifier() const
 {
     return mIntegrationCoefficientsCalculator.CloneModifier();
+}
+
+void UPwBaseElement::CalculateAnyOfMaterialResponse(const std::vector<Matrix>& rDeformationGradients,
+                                                    ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                                    const Matrix& rNuContainer,
+                                                    const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
+                                                    std::vector<Vector>& rStrainVectors,
+                                                    std::vector<Vector>& rStressVectors,
+                                                    std::vector<Matrix>& rConstitutiveMatrices)
+{
+    const SizeType voigt_size = this->GetStressStatePolicy().GetVoigtSize();
+
+    if (rStrainVectors.size() != rDeformationGradients.size()) {
+        rStrainVectors.resize(rDeformationGradients.size());
+        std::fill(rStrainVectors.begin(), rStrainVectors.end(), ZeroVector(voigt_size));
+    }
+    if (rStressVectors.size() != rDeformationGradients.size()) {
+        rStressVectors.resize(rDeformationGradients.size());
+        std::fill(rStressVectors.begin(), rStressVectors.end(), ZeroVector(voigt_size));
+    }
+    if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
+        rConstitutiveMatrices.resize(rDeformationGradients.size());
+        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(), ZeroMatrix(voigt_size, voigt_size));
+    }
+
+    const auto determinants_of_deformation_gradients =
+        GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
+
+    for (unsigned int g_point = 0; g_point < rDeformationGradients.size(); ++g_point) {
+        // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a
+        // pointer to an implicitly converted object
+        const auto shape_function_values = Vector{row(rNuContainer, g_point)};
+        ConstitutiveLawUtilities::SetConstitutiveParameters(
+            rConstitutiveParameters, rStrainVectors[g_point], rConstitutiveMatrices[g_point],
+            shape_function_values, rDNu_DXContainer[g_point], rDeformationGradients[g_point],
+            determinants_of_deformation_gradients[g_point]);
+        rConstitutiveParameters.SetStressVector(rStressVectors[g_point]);
+
+        mConstitutiveLawVector[g_point]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
+    }
+}
+
+std::vector<Matrix> UPwBaseElement::CalculateDeformationGradients() const
+{
+    const auto number_of_integration_points =
+        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+    std::vector<Matrix> result;
+    result.reserve(number_of_integration_points);
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
+        result.push_back(this->CalculateDeformationGradient(integration_point));
+    }
+
+    return result;
+}
+
+std::vector<Matrix> UPwBaseElement::CalculateBMatrices(const Geometry<Node>::ShapeFunctionsGradientsType& rDN_DXContainer,
+                                                       const Matrix& rNContainer) const
+{
+    std::vector<Matrix> result;
+    result.reserve(rDN_DXContainer.size());
+    for (unsigned int g_point = 0; g_point < rDN_DXContainer.size(); ++g_point) {
+        result.push_back(CalculateBMatrix(rDN_DXContainer[g_point], row(rNContainer, g_point)));
+    }
+
+    return result;
+}
+
+Matrix UPwBaseElement::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
+{
+    return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
 }
 
 } // Namespace Kratos

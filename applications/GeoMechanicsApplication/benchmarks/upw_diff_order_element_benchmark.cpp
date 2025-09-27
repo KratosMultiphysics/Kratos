@@ -98,7 +98,7 @@ namespace Kratos
 void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
 {
     const auto p_properties = CreateProperties();
-    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
+    auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
@@ -115,7 +115,7 @@ void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
 void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& rState)
 {
     const auto p_properties = CreateProperties();
-    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
+    auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
@@ -131,7 +131,7 @@ void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& rState)
 void benchmarkUPwDiffOrderLHSCalculation(benchmark::State& rState)
 {
     const auto p_properties = CreateProperties();
-    auto p_element  = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
+    auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 

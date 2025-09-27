@@ -225,14 +225,19 @@ private:
     }
 
     template <typename MatrixType1, typename MatrixType2>
-    static void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
-                                    MatrixType2&       rDestinationMatrix,
-                                    std::size_t        RowOffset,
-                                    std::size_t        ColumnOffset)
+    static inline void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
+                                           MatrixType2&       rDestinationMatrix,
+                                           const std::size_t  RowOffset,
+                                           const std::size_t  ColumnOffset)
     {
-        for (auto i = std::size_t{0}; i < rSourceMatrix.size1(); ++i) {
-            for (auto j = std::size_t{0}; j < rSourceMatrix.size2(); ++j) {
-                rDestinationMatrix(i + RowOffset, j + ColumnOffset) += rSourceMatrix(i, j);
+        const std::size_t size1 = rSourceMatrix.size1();
+        const std::size_t size2 = rSourceMatrix.size2();
+
+        for (std::size_t i = 0; i < size1; ++i) {
+            const std::size_t di = i + RowOffset;
+
+            for (std::size_t j = 0; j < size2; ++j) {
+                rDestinationMatrix(di, j + ColumnOffset) += rSourceMatrix(i, j);
             }
         }
     }

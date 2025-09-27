@@ -206,10 +206,6 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex);
 
-    Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
-    std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
-                                           const Matrix& rNContainer) const;
-
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
@@ -245,8 +241,7 @@ protected:
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 
-    Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
-    std::vector<Matrix> CalculateDeformationGradients() const;
+    Matrix CalculateDeformationGradient(unsigned int GPoint) const override;
 
     void InitializeNodalDisplacementVariables(ElementVariables& rVariables);
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);
@@ -259,20 +254,6 @@ protected:
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] virtual std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const;
-
-    ///
-    /// \brief This function calculates the constitutive matrices, stresses and strains depending on the
-    ///        constitutive parameters. Note that depending on the settings in the rConstitutiveParameters
-    ///        the function could calculate the stress, the constitutive matrix, the strains, or a combination.
-    ///        In our elements we generally always calculate the constitutive matrix and sometimes the stress.
-    ///
-    void CalculateAnyOfMaterialResponse(const std::vector<Matrix>&   rDeformationGradients,
-                                        ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                        const Matrix&                rNuContainer,
-                                        const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
-                                        std::vector<Vector>& rStrainVectors,
-                                        std::vector<Vector>& rStressVectors,
-                                        std::vector<Matrix>& rConstitutiveMatrices);
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix);
 
