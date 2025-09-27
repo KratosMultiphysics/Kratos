@@ -50,11 +50,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : pub
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderElement);
 
-    using UPwBaseElement::mConstitutiveLawVector;
-    using UPwBaseElement::mRetentionLawVector;
-    using UPwBaseElement::mStateVariablesFinalized;
-    using UPwBaseElement::mStressVector;
-
     using UPwBaseElement::UPwBaseElement;
 
     static constexpr std::size_t TNumPNodes = []() constexpr {
@@ -639,6 +634,12 @@ public:
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
 protected:
+
+    using UPwBaseElement::mConstitutiveLawVector;
+    using UPwBaseElement::mRetentionLawVector;
+    using UPwBaseElement::mStateVariablesFinalized;
+    using UPwBaseElement::mStressVector;
+
     struct ElementVariables {
         // variables at all integration points
         Matrix                                    NuContainer;

@@ -68,11 +68,6 @@ public:
     using SizeType = std::size_t;
     using BaseType::CalculateDerivativesOnInitialConfiguration;
     using BaseType::CalculateGreenLagrangeStrain;
-    using BaseType::mConstitutiveLawVector;
-    using BaseType::mStateVariablesFinalized;
-    using BaseType::mStressVector;
-
-    using ElementVariables = typename BaseType::ElementVariables;
 
     /// Counted pointer of UpdatedLagrangianUPwDiffOrderElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianUPwDiffOrderElement);
@@ -224,6 +219,12 @@ public:
     ///@}
 
 protected:
+
+    using BaseType::mConstitutiveLawVector;
+    using BaseType::mStateVariablesFinalized;
+    using BaseType::mStressVector;
+    using ElementVariables = typename BaseType::ElementVariables;
+
     ///@name Protected static Member Variables
     ///@{
 
