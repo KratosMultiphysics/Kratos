@@ -46,7 +46,7 @@ PointerVector<Node> CreateNewNodes(ModelPart& rModelPart, const std::vector<Poin
     return nodes;
 }
 
-template <typename InputIt>
+template <std::input_iterator InputIt>
 void AddDofsToNodes(InputIt NodeRangeBegin, InputIt NodeRangeEnd, const Geo::ConstVariableRefs& rNodalVariables)
 {
     for (const auto& r_variable : rNodalVariables) {
