@@ -192,6 +192,16 @@ protected:
 
     std::unique_ptr<IntegrationCoefficientModifier> CloneIntegrationCoefficientModifier() const;
 
+    std::vector<Matrix> CalculateDeformationGradients() const;
+
+    virtual Matrix CalculateDeformationGradient(unsigned int GPoint) const
+    {
+        KRATOS_ERROR << "Calling the default CalculateDeformationGradient method for a particular "
+                        "element ... illegal operation!!"
+                     << this->Id() << std::endl;
+        return Matrix();
+    }
+
     std::vector<Matrix> CalculateBMatrices(const Geometry<Node>::ShapeFunctionsGradientsType& rDN_DXContainer,
                                            const Matrix& rNContainer) const;
 

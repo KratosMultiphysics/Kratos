@@ -1245,20 +1245,6 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::CalculateGreenLagrangeStrain(cons
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradients() const
-{
-    const auto number_of_integration_points =
-        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-    std::vector<Matrix> result;
-    result.reserve(number_of_integration_points);
-    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
-        result.push_back(CalculateDeformationGradient(integration_point));
-    }
-
-    return result;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 Matrix UPwSmallStrainElement<TDim, TNumNodes>::CalculateDeformationGradient(unsigned int GPoint) const
 {
     KRATOS_TRY

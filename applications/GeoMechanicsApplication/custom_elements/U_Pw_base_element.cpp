@@ -438,6 +438,19 @@ std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneIntegration
     return mIntegrationCoefficientsCalculator.CloneModifier();
 }
 
+std::vector<Matrix> UPwBaseElement::CalculateDeformationGradients() const
+{
+    const auto number_of_integration_points =
+        this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+    std::vector<Matrix> result;
+    result.reserve(number_of_integration_points);
+    for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
+        result.push_back(this->CalculateDeformationGradient(integration_point));
+    }
+
+    return result;
+}
+
 std::vector<Matrix> UPwBaseElement::CalculateBMatrices(const Geometry<Node>::ShapeFunctionsGradientsType& rDN_DXContainer,
                                                        const Matrix& rNContainer) const
 {

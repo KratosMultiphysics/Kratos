@@ -1215,7 +1215,7 @@ protected:
         return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
     }
 
-    Matrix CalculateDeformationGradient(unsigned int GPoint) const
+    Matrix CalculateDeformationGradient(unsigned int GPoint) const override
     {
         KRATOS_TRY
 
@@ -1240,20 +1240,6 @@ protected:
         return prod(J, InvJ0);
 
         KRATOS_CATCH("")
-    }
-
-    std::vector<Matrix> CalculateDeformationGradients() const
-    {
-        const auto number_of_integration_points =
-            this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-        std::vector<Matrix> result;
-        result.reserve(number_of_integration_points);
-        for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
-             ++integration_point) {
-            result.push_back(CalculateDeformationGradient(integration_point));
-        }
-
-        return result;
     }
 
     ///

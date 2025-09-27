@@ -241,8 +241,7 @@ protected:
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 
-    Matrix              CalculateDeformationGradient(unsigned int GPoint) const;
-    std::vector<Matrix> CalculateDeformationGradients() const;
+    Matrix CalculateDeformationGradient(unsigned int GPoint) const override;
 
     void InitializeNodalDisplacementVariables(ElementVariables& rVariables);
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);
