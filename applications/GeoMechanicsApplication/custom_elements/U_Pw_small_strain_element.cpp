@@ -1378,51 +1378,6 @@ Vector UPwSmallStrainElement<TDim, TNumNodes>::GetPressureSolutionVector()
     return result;
 }
 
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
-    const std::vector<Matrix>&                       rDeformationGradients,
-    ConstitutiveLaw::Parameters&                     rConstitutiveParameters,
-    const Matrix&                                    rNuContainer,
-    const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
-    std::vector<Vector>&                             rStrainVectors,
-    std::vector<Vector>&                             rStressVectors,
-    std::vector<Matrix>&                             rConstitutiveMatrices)
-{
-    if (rStrainVectors.size() != rDeformationGradients.size()) {
-        rStrainVectors.resize(rDeformationGradients.size());
-        std::fill(rStrainVectors.begin(), rStrainVectors.end(),
-                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
-    }
-    if (rStressVectors.size() != rDeformationGradients.size()) {
-        rStressVectors.resize(rDeformationGradients.size());
-        std::fill(rStressVectors.begin(), rStressVectors.end(),
-                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
-    }
-    if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
-        rConstitutiveMatrices.resize(rDeformationGradients.size());
-        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
-                  ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(),
-                             this->GetStressStatePolicy().GetVoigtSize()));
-    }
-
-    const auto determinants_of_deformation_gradients =
-        GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
-
-    for (unsigned int integration_point = 0; integration_point < rDeformationGradients.size(); ++integration_point) {
-        // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a pointer
-        // to an implicitly converted object
-        const auto shape_function_values = Vector{row(rNuContainer, integration_point)};
-        ConstitutiveLawUtilities::SetConstitutiveParameters(
-            rConstitutiveParameters, rStrainVectors[integration_point],
-            rConstitutiveMatrices[integration_point], shape_function_values,
-            rDNu_DXContainer[integration_point], rDeformationGradients[integration_point],
-            determinants_of_deformation_gradients[integration_point]);
-        rConstitutiveParameters.SetStressVector(rStressVectors[integration_point]);
-
-        mConstitutiveLawVector[integration_point]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
-    }
-}
-
 template class UPwSmallStrainElement<2, 3>;
 template class UPwSmallStrainElement<2, 4>;
 template class UPwSmallStrainElement<3, 4>;

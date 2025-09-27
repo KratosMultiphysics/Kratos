@@ -14,8 +14,10 @@
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_utilities/check_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/math_utilities.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 
@@ -436,6 +438,47 @@ StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStre
 std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneIntegrationCoefficientModifier() const
 {
     return mIntegrationCoefficientsCalculator.CloneModifier();
+}
+
+void UPwBaseElement::CalculateAnyOfMaterialResponse(const std::vector<Matrix>& rDeformationGradients,
+                                                    ConstitutiveLaw::Parameters& rConstitutiveParameters,
+                                                    const Matrix& rNuContainer,
+                                                    const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
+                                                    std::vector<Vector>& rStrainVectors,
+                                                    std::vector<Vector>& rStressVectors,
+                                                    std::vector<Matrix>& rConstitutiveMatrices)
+{
+    const SizeType voigt_size =
+        this->GetStressStatePolicy().GetVoigtSize(); // TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN;
+
+    if (rStrainVectors.size() != rDeformationGradients.size()) {
+        rStrainVectors.resize(rDeformationGradients.size());
+        std::fill(rStrainVectors.begin(), rStrainVectors.end(), ZeroVector(voigt_size));
+    }
+    if (rStressVectors.size() != rDeformationGradients.size()) {
+        rStressVectors.resize(rDeformationGradients.size());
+        std::fill(rStressVectors.begin(), rStressVectors.end(), ZeroVector(voigt_size));
+    }
+    if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
+        rConstitutiveMatrices.resize(rDeformationGradients.size());
+        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(), ZeroMatrix(voigt_size, voigt_size));
+    }
+
+    const auto determinants_of_deformation_gradients =
+        GeoMechanicsMathUtilities::CalculateDeterminants(rDeformationGradients);
+
+    for (unsigned int g_point = 0; g_point < rDeformationGradients.size(); ++g_point) {
+        // Explicitly convert from `row`'s return type to `Vector` to avoid ending up with a
+        // pointer to an implicitly converted object
+        const auto shape_function_values = Vector{row(rNuContainer, g_point)};
+        ConstitutiveLawUtilities::SetConstitutiveParameters(
+            rConstitutiveParameters, rStrainVectors[g_point], rConstitutiveMatrices[g_point],
+            shape_function_values, rDNu_DXContainer[g_point], rDeformationGradients[g_point],
+            determinants_of_deformation_gradients[g_point]);
+        rConstitutiveParameters.SetStressVector(rStressVectors[g_point]);
+
+        mConstitutiveLawVector[g_point]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
+    }
 }
 
 std::vector<Matrix> UPwBaseElement::CalculateDeformationGradients() const
