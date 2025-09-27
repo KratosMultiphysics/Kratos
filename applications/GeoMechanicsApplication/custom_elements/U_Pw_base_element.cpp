@@ -448,8 +448,7 @@ void UPwBaseElement::CalculateAnyOfMaterialResponse(const std::vector<Matrix>& r
                                                     std::vector<Vector>& rStressVectors,
                                                     std::vector<Matrix>& rConstitutiveMatrices)
 {
-    const SizeType voigt_size =
-        this->GetStressStatePolicy().GetVoigtSize(); // TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN;
+    const SizeType voigt_size = this->GetStressStatePolicy().GetVoigtSize();
 
     if (rStrainVectors.size() != rDeformationGradients.size()) {
         rStrainVectors.resize(rDeformationGradients.size());
