@@ -438,6 +438,18 @@ std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneIntegration
     return mIntegrationCoefficientsCalculator.CloneModifier();
 }
 
+std::vector<Matrix> UPwBaseElement::CalculateBMatrices(const Geometry<Node>::ShapeFunctionsGradientsType& rDN_DXContainer,
+                                                       const Matrix& rNContainer) const
+{
+    std::vector<Matrix> result;
+    result.reserve(rDN_DXContainer.size());
+    for (unsigned int g_point = 0; g_point < rDN_DXContainer.size(); ++g_point) {
+        result.push_back(CalculateBMatrix(rDN_DXContainer[g_point], row(rNContainer, g_point)));
+    }
+
+    return result;
+}
+
 Matrix UPwBaseElement::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
 {
     return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());

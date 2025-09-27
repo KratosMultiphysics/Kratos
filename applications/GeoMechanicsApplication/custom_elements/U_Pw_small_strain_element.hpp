@@ -206,9 +206,6 @@ protected:
 
     virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex);
 
-    std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
-                                           const Matrix& rNContainer) const;
-
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);

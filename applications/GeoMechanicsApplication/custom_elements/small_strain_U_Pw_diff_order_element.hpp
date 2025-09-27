@@ -1208,18 +1208,6 @@ protected:
         KRATOS_CATCH("")
     }
 
-    std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
-                                           const Matrix& rNContainer) const
-    {
-        std::vector<Matrix> result;
-        result.reserve(rDN_DXContainer.size());
-        for (unsigned int g_point = 0; g_point < rDN_DXContainer.size(); ++g_point) {
-            result.push_back(CalculateBMatrix(rDN_DXContainer[g_point], row(rNContainer, g_point)));
-        }
-
-        return result;
-    }
-
     void AssignPressureToIntermediateNodes();
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const

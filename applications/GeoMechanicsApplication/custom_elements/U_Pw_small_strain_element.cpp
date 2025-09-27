@@ -960,20 +960,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeElementVariables(ElementV
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<Matrix> UPwSmallStrainElement<TDim, TNumNodes>::CalculateBMatrices(
-    const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer, const Matrix& rNContainer) const
-{
-    std::vector<Matrix> result;
-    result.reserve(rDN_DXContainer.size());
-    for (unsigned int integration_point = 0; integration_point < rDN_DXContainer.size(); ++integration_point) {
-        result.push_back(this->CalculateBMatrix(rDN_DXContainer[integration_point],
-                                                row(rNContainer, integration_point)));
-    }
-
-    return result;
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
                                                                 ElementVariables& rVariables)
 {
