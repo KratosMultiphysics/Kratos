@@ -24,6 +24,15 @@
 
 namespace Kratos
 {
+
+
+Vector GetPressures(const Geometry<Node>& rGeometry, size_t n_nodes)
+{
+    Vector      pressure(n_nodes);
+    std::transform(rGeometry.begin(), rGeometry.begin() + n_nodes, pressure.begin(),
+                   [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
+    return pressure;
+}
 template <>
 void SmallStrainUPwDiffOrderElement<2, 6>::SetUpPressureGeometryPointer()
 {
@@ -107,7 +116,7 @@ void SmallStrainUPwDiffOrderElement<2, 6>::AssignPressureToIntermediateNodes()
     GeometryType& r_geom = GetGeometry();
 
     // 2D T6P3
-    const Vector p = GetPressures(3);
+    const Vector p = GetPressures(GetGeometry(), 3);
     ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
     ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
     ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[2] + p[0]));
@@ -122,7 +131,7 @@ void SmallStrainUPwDiffOrderElement<2, 8>::AssignPressureToIntermediateNodes()
 
     GeometryType& r_geom = GetGeometry();
     // 2D Q8P4
-    const Vector p = GetPressures(4);
+    const Vector p = GetPressures(GetGeometry(), 4);
     ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
     ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
     ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, 0.5 * (p[2] + p[3]));
@@ -138,7 +147,7 @@ void SmallStrainUPwDiffOrderElement<2, 9>::AssignPressureToIntermediateNodes()
 
     GeometryType& r_geom = GetGeometry();
     // 2D Q9P4
-    const Vector p = GetPressures(4);
+    const Vector p = GetPressures(GetGeometry(), 4);
     ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
     ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
     ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, 0.5 * (p[2] + p[3]));
@@ -155,7 +164,7 @@ void SmallStrainUPwDiffOrderElement<3, 10>::AssignPressureToIntermediateNodes()
 
     GeometryType& r_geom = GetGeometry();
     // 3D T10P4  //2D T10P6
-    const Vector p = GetPressures(4);
+    const Vector p = GetPressures(GetGeometry(), 4);
     ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
     ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
     ThreadSafeNodeWrite(r_geom[6], WATER_PRESSURE, 0.5 * (p[2] + p[0]));
@@ -173,7 +182,7 @@ void SmallStrainUPwDiffOrderElement<2, 10>::AssignPressureToIntermediateNodes()
 
     GeometryType&    r_geom = GetGeometry();
     constexpr double c1     = 1.0 / 9.0;
-    const Vector     p      = GetPressures(6);
+    const Vector     p      = GetPressures(GetGeometry(), 6);
     ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, (2.0 * p[0] - p[1] + 8.0 * p[3]) * c1);
     ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, (2.0 * p[1] - p[0] + 8.0 * p[3]) * c1);
     ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, (2.0 * p[1] - p[2] + 8.0 * p[4]) * c1);
@@ -193,7 +202,7 @@ void SmallStrainUPwDiffOrderElement<2, 15>::AssignPressureToIntermediateNodes()
     GeometryType& r_geom = GetGeometry();
     // 2D T15P10
     constexpr double c1 = 0.0390625;
-    const Vector     p  = GetPressures(10);
+    const Vector     p  = GetPressures(GetGeometry(), 10);
     ThreadSafeNodeWrite(r_geom[3], WATER_PRESSURE, (3.0 * p[0] + p[1] + 27.0 * p[3] - 5.4 * p[4]) * c1);
     ThreadSafeNodeWrite(r_geom[4], WATER_PRESSURE, (14.4 * (p[3] + p[4]) - 1.6 * (p[0] + p[1])) * c1);
     ThreadSafeNodeWrite(r_geom[5], WATER_PRESSURE, (3.0 * p[1] + p[0] + 27.0 * p[4] - 5.4 * p[3]) * c1);
@@ -226,7 +235,7 @@ void SmallStrainUPwDiffOrderElement<3, 20>::AssignPressureToIntermediateNodes()
 
     GeometryType& r_geom = GetGeometry();
     // 3D H20P8
-    const Vector p = GetPressures(8);
+    const Vector p = GetPressures(GetGeometry(), 8);
     // edges -- bottom
     ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
     ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
@@ -253,7 +262,7 @@ void SmallStrainUPwDiffOrderElement<3, 27>::AssignPressureToIntermediateNodes()
 
     GeometryType& r_geom = GetGeometry();
     // 3D H27P8
-    const Vector p = GetPressures(8);
+    const Vector p = GetPressures(GetGeometry(), 8);
     // edges -- bottom
     ThreadSafeNodeWrite(r_geom[8], WATER_PRESSURE, 0.5 * (p[0] + p[1]));
     ThreadSafeNodeWrite(r_geom[9], WATER_PRESSURE, 0.5 * (p[1] + p[2]));
