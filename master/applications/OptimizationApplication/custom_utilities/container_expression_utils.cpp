@@ -823,76 +823,45 @@ void ContainerExpressionUtils::HamilotinanUpdate(
 }
 
 
-// Uses the input container values x as the power of e. e^x is expressed as Taylor series. 
+// Finds approxiamted values of Dirac Delta using function D(y) = 2 * k / (2 + e^2ky + e^-2ky).
+// e^2ky = e^x is expressed as Taylor series. 
 // e^x = sum(i=0 to precision) [x^i/i!] = 1 + x^1/1! + x^2/2! + x^3/3! ...
-// Returns the container with e raised to the power of x.
+// Returns the container with Dirac Delta values.
 //
 // rOutput - empty element or condition container for results
-// rInput - element or condition container with the power values x
+// rInput - element or condition container with the control field y
 // Precision - number of summands, affects the accuracy
-// coef - determines the mode:
-//          1 - regular: e^x
-//          2 - modified for Dirac Delta: (e^x + e^-x) / 2
+// k - the steepness of the function
 template<class TContainerType>
-void ContainerExpressionUtils::EPow(
+void ContainerExpressionUtils::DiracDelta(
     ContainerExpression<TContainerType>& rOutput,
     ContainerExpression<TContainerType>& rInputExpression,
     const IndexType Precision,
-    const int coef /* = 1 */)
+    const double k)
 {
     KRATOS_TRY
 
     auto& entity_container = rInputExpression.GetContainer();
     // writing input to elements
-    VariableExpressionIO::Write(rInputExpression, &TEMPORARY_SCALAR_VARIABLE_1);
+    VariableExpressionIO::Write(rInputExpression * 2 * k, &TEMPORARY_SCALAR_VARIABLE_1);
+    
+    block_for_each(entity_container, [&Precision, &k](auto& rEntity) {
+        // initializing loop i = 0 as 1 (0! = 1)
+        rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_2, 1);
+        double value = 1;
 
-    // initializing loop i = 0 and i = 1 as 1 + x (0! = 1)
-    block_for_each(entity_container, [&coef](auto& rEntity) {
-        if (coef == 1 ){
-            if (rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1) < 0){
-                rEntity.SetValue(TEMPORARY_BOOL_VARIABLE_1, true);
-                rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_1, - rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1));
-            }
-            else{
-                rEntity.SetValue(TEMPORARY_BOOL_VARIABLE_1, false);
-            }
-        }
-        
-        rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_2, 1 + pow(rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1), coef)/coef);
-    });
-
-    block_for_each(entity_container, [&Precision, &coef](auto& rEntity) {
-        double element_value = rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1);
-        // use VARIABLE1 as the previous step saver, here for i = 1
-        rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_1, pow(rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1), coef)/coef);
-        int coef_2 = 1;
-        // i = 0 and i = 1 are alreday in VARIABLE_2
-        for (IndexType i = 2; i < Precision; i++)
+        // i = 0 alreday in VARIABLE_2
+        for (IndexType i = 2; i < Precision; i+=2)
         {
             // value = x^i/i!
-            if (coef != 1){
-                coef_2 = (i * coef - 1);
-            }
-            double value = rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1) * pow(element_value, coef) / (coef_2 * i * coef);
+            value *= pow(rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1), 2) / ((i - 1) * i);
             AtomicAdd(rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_2), value);
-            // if (rEntity.Id() == 32)
-            // {
-            //     KRATOS_INFO("FIRST TWO") << "Element: " << rEntity.Id() << ", i = " << i << ", previous: " << rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1) 
-            //                             << ", current: " << value << ", sum: " << rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_2) << std::endl;
-            // }
-            
-            rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_1, value);
         }
+
+        // compute dirac delta values
+        double dirac = pow(rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_2) + 1, -1) * k;
+        rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_2, dirac);
     });
-    if (coef == 1 )
-    {
-        block_for_each(entity_container, [](auto& rEntity) {  
-            if (rEntity.GetValue(TEMPORARY_BOOL_VARIABLE_1)){
-                // inverse e^x, we ignored "-" in the beginning
-                rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_2, pow(rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_2), -1));
-            }
-        });   
-    } 
     
     rOutput.GetModelPart().GetCommunicator().AssembleNonHistoricalData(TEMPORARY_SCALAR_VARIABLE_2);
     // now read in the nodal data
@@ -901,28 +870,27 @@ void ContainerExpressionUtils::EPow(
 }
 
 
-// Finds the Heaviside of input container values H(x).
-// Uses Heaviside approximation: H(x) = 1 / (1 + e^x) where x = -2k*phi. 
-// Uses the input container values x as the power of e. e^x is expressed as Taylor series. 
-// e^x = sum(i=0 to precision) [x^i/i!] = 1 + x^1/1! + x^2/2! + x^3/3! ...
+// Finds the Heaviside of input container values H(y).
+// Uses Heaviside approximation: H(y) = 1 / (1 + e^x) where x = -2k*y. 
+// e^x is expressed as Taylor series. e^x = sum(i=0 to precision) [x^i/i!] = 1 + x^1/1! + x^2/2! + x^3/3! ...
 // Returns the container with Heaviside values [0, 1]
 //
 // rOutput - empty element or condition container for results
-// rInput - element or condition container with the power values x
+// rInput - element or condition container with Heaviside argument y
 // Precision - number of summands, affects the accuracy of the exponent
+// k - the steepness of the Heaviside function
 template<class TContainerType>
 void ContainerExpressionUtils::Heaviside(
     ContainerExpression<TContainerType>& rOutput,
     ContainerExpression<TContainerType>& rInputExpression,
-    const IndexType Precision)
+    const IndexType Precision,
+    const double k)
 {
     KRATOS_TRY
 
     auto& entity_container = rInputExpression.GetContainer();
     // writing input to elements
-    VariableExpressionIO::Write(rInputExpression, &TEMPORARY_SCALAR_VARIABLE_1);
-
-
+    VariableExpressionIO::Write(rInputExpression * 2 * k, &TEMPORARY_SCALAR_VARIABLE_1);
 
     block_for_each(entity_container, [&Precision](auto& rEntity) {
         if (rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1) < 0){
@@ -933,30 +901,25 @@ void ContainerExpressionUtils::Heaviside(
             rEntity.SetValue(TEMPORARY_BOOL_VARIABLE_1, false);
         }
         
-        rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_2, 1 + rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1));
-        double element_value = rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1);
+        rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_2, 1);
+        double value = 1;
         // i = 0 and i = 1 are alreday in VARIABLE_2
-        for (IndexType i = 2; i < Precision; i++)
+        for (IndexType i = 1; i < Precision; i++)
         {
             // value = x^i/i!
-            double value = rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1) * element_value / i;
+            value *= rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_1) / i;
             AtomicAdd(rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_2), value);     
-            // use VARIABLE1 as the previous step saver
-            rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_1, value);
         }
-    });
 
-    block_for_each(entity_container, [](auto& rEntity) {  
         // inverse e^x to get e^-x 
         double exponent = pow(rEntity.GetValue(TEMPORARY_SCALAR_VARIABLE_2), -1);
         if (rEntity.GetValue(TEMPORARY_BOOL_VARIABLE_1)){
-            rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_2, 1 / (1 + exponent));
-        }
-        else{
             rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_2, exponent / (1 + exponent));
         }
-    });   
- 
+        else{
+            rEntity.SetValue(TEMPORARY_SCALAR_VARIABLE_2, 1 / (1 + exponent));
+        }
+    });
     
     rOutput.GetModelPart().GetCommunicator().AssembleNonHistoricalData(TEMPORARY_SCALAR_VARIABLE_2);
     // now read in the nodal data
@@ -970,10 +933,10 @@ void ContainerExpressionUtils::Heaviside(
 // template instantiations
 template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::GetGradientExpression(ContainerExpression<ModelPart::ElementsContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&, const IndexType);
 template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::GetGradientExpression(ContainerExpression<ModelPart::ConditionsContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&, const IndexType);
-template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::EPow(ContainerExpression<ModelPart::ElementsContainerType>&, ContainerExpression<ModelPart::ElementsContainerType>&,const IndexType, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::EPow(ContainerExpression<ModelPart::ConditionsContainerType>&, ContainerExpression<ModelPart::ConditionsContainerType>&, const IndexType, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::Heaviside(ContainerExpression<ModelPart::ElementsContainerType>&, ContainerExpression<ModelPart::ElementsContainerType>&,const IndexType);
-template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::Heaviside(ContainerExpression<ModelPart::ConditionsContainerType>&, ContainerExpression<ModelPart::ConditionsContainerType>&, const IndexType);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::DiracDelta(ContainerExpression<ModelPart::ElementsContainerType>&, ContainerExpression<ModelPart::ElementsContainerType>&,const IndexType, const double k);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::DiracDelta(ContainerExpression<ModelPart::ConditionsContainerType>&, ContainerExpression<ModelPart::ConditionsContainerType>&, const IndexType, const double k);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::Heaviside(ContainerExpression<ModelPart::ElementsContainerType>&, ContainerExpression<ModelPart::ElementsContainerType>&,const IndexType, const double k);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::Heaviside(ContainerExpression<ModelPart::ConditionsContainerType>&, ContainerExpression<ModelPart::ConditionsContainerType>&, const IndexType, const double k);
 
 #define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                           \
     template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \

@@ -154,7 +154,7 @@ class SimpControl(Control):
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return self.controlled_physical_variables
 
-    def GetEmptyField(self) -> ContainerExpressionTypes:
+    def GetEmptyField(self, variable = None) -> ContainerExpressionTypes:
         field = Kratos.Expression.ElementExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
         return field

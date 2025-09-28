@@ -257,18 +257,19 @@ public:
 
 
     template<class TContainerType>
-    static void EPow(
+    static void DiracDelta(
         ContainerExpression<TContainerType>& rOutput,
         ContainerExpression<TContainerType>& rInputExpression,
         const IndexType Precision,
-        const int coef = 1);
+        const double k);
 
     
     template<class TContainerType>
     static void Heaviside(
         ContainerExpression<TContainerType>& rOutput,
         ContainerExpression<TContainerType>& rInputExpression,
-        const IndexType Precision);
+        const IndexType Precision,
+        const double k);
 
     ///@}
     ///@name Static operations derived from Kratos::ExpressionUtils

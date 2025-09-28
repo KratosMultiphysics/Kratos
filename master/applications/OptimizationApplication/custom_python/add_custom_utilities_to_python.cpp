@@ -311,10 +311,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ProjectElementalToNodalViaShapeFunctions", &ContainerExpressionUtils::ProjectElementalToNodalViaShapeFunctions, py::arg("output_nodal_container_expression"), py::arg("input_elemental_container_expression"))
         .def("ProjectNodalToElementalViaShapeFunctions", &ContainerExpressionUtils::ProjectNodalToElementalViaShapeFunctions, py::arg("output_elemental_container_expression"), py::arg("input_nodal_container_expression"))
         .def("HamilotinanUpdate", &ContainerExpressionUtils::HamilotinanUpdate, py::arg("input_nodal_container_expression_phi"), py::arg("output_nodal_container_expression_phi"), py::arg("input_elemental_container_expression_velocity"), py::arg("input_elemental_container_expression_gradient"))
-        .def("EPow", &ContainerExpressionUtils::EPow<ModelPart::ElementsContainerType>, py::arg("output_container_expression"), py::arg("input_power_container_expression"), py::arg("precision"), py::arg("coeficient"))
-        .def("EPow", &ContainerExpressionUtils::EPow<ModelPart::ConditionsContainerType>, py::arg("output_container_expression"), py::arg("input_power_container_expression"), py::arg("precision"), py::arg("coeficient"))
-        .def("Heaviside", &ContainerExpressionUtils::Heaviside<ModelPart::ElementsContainerType>, py::arg("output_Heaviside"), py::arg("input_function"), py::arg("precision"))
-        .def("Heaviside", &ContainerExpressionUtils::Heaviside<ModelPart::ConditionsContainerType>, py::arg("output_Heaviside"), py::arg("input_function"), py::arg("precision"))
+        .def("DiracDelta", &ContainerExpressionUtils::DiracDelta<ModelPart::ElementsContainerType>, py::arg("output_container_expression"), py::arg("input_power_container_expression"), py::arg("precision"), py::arg("function_parameter_k"))
+        .def("DiracDelta", &ContainerExpressionUtils::DiracDelta<ModelPart::ConditionsContainerType>, py::arg("output_container_expression"), py::arg("input_power_container_expression"), py::arg("precision"), py::arg("function_parameter_k"))
+        .def("Heaviside", &ContainerExpressionUtils::Heaviside<ModelPart::ElementsContainerType>, py::arg("output_Heaviside"), py::arg("input_function"), py::arg("precision"), py::arg("function_parameter_k"))
+        .def("Heaviside", &ContainerExpressionUtils::Heaviside<ModelPart::ConditionsContainerType>, py::arg("output_Heaviside"), py::arg("input_function"), py::arg("precision"), py::arg("function_parameter_k"))
         ;
 
     auto collective_expression_io = m.def_submodule("CollectiveExpressionIO");
