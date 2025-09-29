@@ -944,6 +944,12 @@ VtuOutput::VtuOutput(
       mPrecision(Precision)
 {
     AddUnstructuredGridData(mUnstructuredGridDataList, rModelPart, mEchoLevel, OutputSubModelParts);
+
+    // sort the order of output to be consistent between different compilers
+    std::sort(mUnstructuredGridDataList.begin(), mUnstructuredGridDataList.end(),
+              [](const auto& rV1, const auto& rV2) {
+                  return rV1.mpModelPart->FullName() < rV2.mpModelPart->FullName();
+              });
 }
 
 const ModelPart& VtuOutput::GetModelPart() const

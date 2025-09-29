@@ -126,12 +126,12 @@ public:
 
     struct UnstructuredGridData
     {
-        const bool                                    UsePointsForDataFieldOutput;  // If true, then the mpPoints represents a container in the model part, otherwise, mpPoints refers to a container which is on the fly generated.
-        ModelPart * const                             mpModelPart;                  // Model part associated with the unstructured grid data.
-        const ModelPart::NodesContainerType::Pointer  mpPoints;                     // Points to be used in the unstructured grid.
-        const std::optional<CellContainerPointerType> mpCells;                      // Cells to be used in the unstructured grid.
-        std::map<std::string, FieldPointerType>       mPointFields;                 // Point data fields such as expressions or tensor adaptors.
-        std::map<std::string, FieldPointerType>       mCellFields;                  // Cell data fields such as expressions or tensor adaptors.
+        bool                                    UsePointsForDataFieldOutput;  // If true, then the mpPoints represents a container in the model part, otherwise, mpPoints refers to a container which is on the fly generated.
+        ModelPart *                             mpModelPart;                  // Model part associated with the unstructured grid data.
+        ModelPart::NodesContainerType::Pointer  mpPoints;                     // Points to be used in the unstructured grid.
+        std::optional<CellContainerPointerType> mpCells;                      // Cells to be used in the unstructured grid.
+        std::map<std::string, FieldPointerType> mPointFields;                 // Point data fields such as expressions or tensor adaptors.
+        std::map<std::string, FieldPointerType> mCellFields;                  // Cell data fields such as expressions or tensor adaptors.
     };
 
     ///@}
