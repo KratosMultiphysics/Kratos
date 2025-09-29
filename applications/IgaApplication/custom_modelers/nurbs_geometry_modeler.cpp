@@ -224,9 +224,11 @@ namespace Kratos
                 WeightsRefined);
         }
 
+        // Determine next node id from the root model part to avoid collisions
         IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
+        if (r_root_model_part.NumberOfNodes() > 0) {
+            node_id = (r_root_model_part.NodesEnd() - 1)->Id() + 1;
         }
 
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
@@ -394,10 +396,11 @@ namespace Kratos
                 p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), KnotsWRefined);
         }
 
-        // Add nodes to model part
+        // Add nodes to model part. Use root model part numbering to avoid collisions across sub-modelparts.
         IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
+        if (r_root_model_part.NumberOfNodes() > 0) {
+            node_id = (r_root_model_part.NodesEnd() - 1)->Id() + 1;
         }
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
             if (PointsRefined(i)->Id() == 0) {

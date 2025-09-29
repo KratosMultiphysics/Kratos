@@ -484,6 +484,11 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             KRATOS_INFO_IF("::[SnakeSbmProcess]::", is_inner) << "Inner :: Ending MarkKnotSpansAvailable" << std::endl;
             KRATOS_INFO_IF("::[SnakeSbmProcess]::", !is_inner) << "Outer :: Ending MarkKnotSpansAvailable" << std::endl;
         }
+
+        //FIXME:
+        auto& plane = knot_spans_available[i]; 
+        KeepLargestZeroIsland<TIsInnerLoop>(plane);
+        
         
         if (is_inner) {
             CreateSurrogateBuondaryFromSnakeInner(id_inner_loop, r_skin_sub_model_part, points_bin, n_knot_spans_uv, 
