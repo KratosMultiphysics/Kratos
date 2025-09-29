@@ -286,45 +286,6 @@ std::vector<Vector> SpatialSearchResultContainer<TObjectType, TSpatialSearchComm
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<std::vector<int>> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultPartitionIndices()
-{
-    // Define the coordinates vector
-    const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<std::vector<int>> indices(number_of_gp);
-
-    // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::vector<int> {
-        auto p_object = rGP->Get();
-        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
-            auto& r_geometry = p_object->GetGeometry();
-            std::vector<int> gp_indices(r_geometry.size());
-            for (unsigned int i = 0; i < r_geometry.size(); ++i) {
-                gp_indices[i] = r_geometry[i].FastGetSolutionStepValue(PARTITION_INDEX);
-            }
-            return gp_indices;
-        } else if constexpr (std::is_same<TObjectType, Node>::value) {
-            std::vector<int> gp_indices(1, p_object->FastGetSolutionStepValue(PARTITION_INDEX));
-            return gp_indices;
-        } else {
-            KRATOS_ERROR << "Not implemented yet" << std::endl;
-            std::vector<int> gp_indices;
-            return gp_indices;
-        }
-    });
-
-    // Get the indices
-    for(std::size_t i=0; i<number_of_gp; ++i) {
-        auto& r_gp = mGlobalResults(i);
-        indices[i] = proxy.Get(r_gp);
-    }
-
-    return indices;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::RemoveResultsFromRanksList(const std::vector<int>& rRanks)
 {
     // Get current rank

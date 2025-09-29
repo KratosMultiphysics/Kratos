@@ -481,12 +481,6 @@ public:
     std::vector<Vector> GetResultShapeFunctions(const array_1d<double, 3>& rPoint);
 
     /**
-     * @brief Considers the global pointer communicator to get the partition indices of the nodes of the resulting object
-     * @return A vector containing all the indices
-     */
-    std::vector<std::vector<int>> GetResultPartitionIndices();
-
-    /**
      * @brief Removes elements from the given ranks.
      * @details This function takes a list of ranks and removes the elements at those ranks from the list.
      * @param rRanks A constant reference to a std::vector<int> containing the ranks where no local solution is expected.
