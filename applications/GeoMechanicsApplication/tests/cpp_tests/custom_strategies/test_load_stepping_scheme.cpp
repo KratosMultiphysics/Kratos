@@ -127,10 +127,10 @@ TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedB
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                          LoadSteppingSchemeElementRightHandSideScaling,
-                         ::testing::Values(std::make_tuple(0.0, ScalarVector(4, -1.0)),
-                                           std::make_tuple(0.5, ScalarVector(4, 1.0)),
-                                           std::make_tuple(0.8, ScalarVector(4, 2.2)),
-                                           std::make_tuple(1.0, ScalarVector(4, 3.0))));
+                         ::testing::Values(std::make_tuple(0.0, Vector(4, -1.0)),
+                                           std::make_tuple(0.5, Vector(4, 1.0)),
+                                           std::make_tuple(0.8, Vector(4, 2.2)),
+                                           std::make_tuple(1.0, Vector(4, 3.0))));
 
 TEST_P(LoadSteppingSchemeConditionRightHandSideScaling, RightHandSideIsScaledBasedOnTime)
 {
@@ -161,8 +161,8 @@ TEST_P(LoadSteppingSchemeConditionRightHandSideScaling, RightHandSideIsScaledBas
 
 INSTANTIATE_TEST_CASE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                         LoadSteppingSchemeConditionRightHandSideScaling,
-                        ::testing::Values(std::make_tuple(0.0, ZeroVector(4)),
-                                          std::make_tuple(0.6, ScalarVector(4, 6.0)),
-                                          std::make_tuple(1.0, ScalarVector(4, 10.0))));
+                        ::testing::Values(std::make_tuple(0.0, Vector(4, 0.0)),
+                                          std::make_tuple(0.6, Vector(4, 6.0)),
+                                          std::make_tuple(1.0, Vector(4, 10.0))));
 
 } // namespace Kratos::Testing
