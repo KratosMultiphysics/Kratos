@@ -281,15 +281,14 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_RHSEqualsUnbalanceVecto
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateThrowsDebugErrorForUnknownVectorVariable,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-#ifndef KRATOS_DEBUG
-    GTEST_SKIP() << "This test requires a debug build";
-#endif
-
     auto p_properties = CreateProperties();
     p_properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
     auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
-
+    Vector output;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Calculate(CAUCHY_STRAIN_VECTOR, output, ProcessInfo{}),
+        "Variable CAUCHY_STRAIN_VECTOR is unknown for element with Id 1.");
 }
 
 } // namespace Kratos::Testing

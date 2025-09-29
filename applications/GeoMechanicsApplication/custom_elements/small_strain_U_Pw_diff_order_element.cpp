@@ -726,6 +726,9 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
                                                Vector&                 rOutput,
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
+    KRATOS_ERROR_IF_NOT(rVariable == INTERNAL_FORCES_VECTOR || rVariable == EXTERNAL_FORCES_VECTOR)
+        << "Variable " << rVariable.Name() << " is unknown for element with Id " << this->GetId() << ".";
+
     rOutput = Vector(this->GetNumberOfDOF(), 0.0);
 
     const PropertiesType&                           r_prop = this->GetProperties();
@@ -785,14 +788,15 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
     }
 }
 
-Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables& Variables,
-                                                               const std::vector<Matrix>& b_matrices,
-                                                               const std::vector<double>& integration_coefficients,
-                                                               const std::vector<double>& biot_coefficients,
-                                                               const std::vector<double>& degrees_of_saturation,
-                                                               const std::vector<double>& biot_moduli_inverse,
-                                                               const std::vector<double>& relative_permeability_values,
-                                                               const std::vector<double>& bishop_coefficients) const
+Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(
+    ElementVariables&          Variables,
+    const std::vector<Matrix>& b_matrices,
+    const std::vector<double>& integration_coefficients,
+    const std::vector<double>& biot_coefficients,
+    const std::vector<double>& degrees_of_saturation,
+    const std::vector<double>& biot_moduli_inverse,
+    const std::vector<double>& relative_permeability_values,
+    const std::vector<double>& bishop_coefficients) const
 {
     Vector result(this->GetNumberOfDOF(), 0.0);
     for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
@@ -1197,7 +1201,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 }
 
 void SmallStrainUPwDiffOrderElement::ExtractShapeFunctionDataAtIntegrationPoint(ElementVariables& rVariables,
-                                                                      unsigned int      GPoint)
+                                                                                unsigned int GPoint)
 {
     KRATOS_TRY
 
