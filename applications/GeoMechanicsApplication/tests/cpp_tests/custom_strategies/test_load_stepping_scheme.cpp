@@ -16,6 +16,7 @@
 #include "spaces/ublas_space.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
+
 #include <algorithm>
 
 namespace
@@ -127,7 +128,6 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::make_tuple(0.5, Vector(4, 1.0)),
                                            std::make_tuple(0.8, Vector(4, 2.2)),
                                            std::make_tuple(1.0, Vector(4, 3.0))));
-
 
 class LoadSteppingSchemeConditionRightHandSideScaling
     : public ::testing::TestWithParam<std::tuple<double, Vector>>
