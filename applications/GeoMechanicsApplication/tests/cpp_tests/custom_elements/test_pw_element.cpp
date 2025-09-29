@@ -111,16 +111,6 @@ PointerVector<Node> CreateInclinedLine(ModelPart& rModelPart)
     return result;
 }
 
-ModelPart& CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(Model& rModel)
-{
-    auto& r_result = rModel.CreateModelPart("Main");
-    r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_result.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-    r_result.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-
-    return r_result;
-}
-
 void DeleteThreeNodes(ModelPart& rModelPart)
 {
     rModelPart.RemoveNodeFromAllLevels(1);
@@ -470,7 +460,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_DoFList, KratosGeoMechanicsFast
 {
     // Arrange
     Model      model;
-    auto&      r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto&      r_model_part = CreateModelPartWithSolutionStepVariables(model);
     const auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
 
@@ -489,7 +479,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_EquationIdVector, KratosGeoMech
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     auto  p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
 
@@ -728,11 +718,37 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput2, Krat
     KRATOS_EXPECT_EQ(p_3D_element->Check(dummy_process_info), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_Initialize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
+    r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+    auto p_element =
+        CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
+    SetBasicPropertiesAndVariables(p_element);
+    p_element->GetProperties().SetValue(DENSITY_SOLID, 2.65);
+    p_element->GetProperties().SetValue(POROSITY, 0.5);
+    p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 0.5);
+    p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 0.5);
+    p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 0.5);
+
+    const auto dummy_process_info = ProcessInfo{};
+
+    // Act
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "A retention law has to be provided.")
+
+    p_element->Initialize(dummy_process_info);
+
+    KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_InitializeSolution, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -752,7 +768,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_FinalizeSolutionStep, KratosGeo
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -774,7 +790,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -863,7 +879,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_1D
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -901,7 +917,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ma
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -940,7 +956,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystem, Krato
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
@@ -977,7 +993,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     PointerVector<Node> nodes;
     // Node 6, 5, 8  from test_transient_groundwater_flow.py: case A1_2D3N
@@ -1170,7 +1186,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement3D4N_CalculateLocalSystem, Krato
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<3, 4>(r_model_part, std::make_shared<Properties>());
@@ -1258,7 +1274,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystemWithPre
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     using enum CalculationContribution;
     const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
@@ -1299,7 +1315,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
 {
     // Arrange
     Model model;
-    auto& r_model_part = CreateModelPartWithWaterPressureVariableAndVolumeAcceleration(model);
+    auto& r_model_part = CreateModelPartWithSolutionStepVariables(model);
     r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto p_element =
         CreateTransientPwLineElementWithPWDofs<2, 3>(r_model_part, std::make_shared<Properties>());
