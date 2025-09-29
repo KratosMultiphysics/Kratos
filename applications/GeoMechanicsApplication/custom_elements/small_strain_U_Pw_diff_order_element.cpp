@@ -20,6 +20,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "includes/cfd_variables.h"
+#include "includes/serializer.h"
 #include "utilities/math_utils.h"
 
 // Application includes
@@ -61,59 +62,28 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
 
     if (const auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
-    const auto& r_geom = GetGeometry();
+    const auto& r_geom     = GetGeometry();
+    const auto  element_Id = this->Id();
 
-    CheckUtilities::CheckDomainSize(r_geom.DomainSize(), this->Id());
+    CheckUtilities::CheckDomainSize(r_geom.DomainSize(), element_Id);
 
     // check pressure geometry pointer
     KRATOS_DEBUG_ERROR_IF_NOT(mpPressureGeometry) << "Pressure Geometry is not defined\n";
 
-    // Verify specific properties
-    const auto& r_prop = this->GetProperties();
-
-    if (!r_prop.Has(IGNORE_UNDRAINED))
-        KRATOS_ERROR << "IGNORE_UNDRAINED does not exist in the parameter list" << this->Id() << std::endl;
-
+    const auto&           r_prop = this->GetProperties();
+    const CheckProperties check_properties(r_prop, "parameter list", element_Id,
+                                           CheckProperties::Bounds::AllExclusive);
+    check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_prop[IGNORE_UNDRAINED])
-        GeoElementUtilities::CheckPermeabilityProperties(r_prop, r_geom.WorkingSpaceDimension());
+        check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
 
-    // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW))
-        << "Constitutive law not provided for property " << r_prop.Id() << std::endl;
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
+    r_prop[CONSTITUTIVE_LAW]->Check(r_prop, r_geom, rCurrentProcessInfo);
+    const auto expected_size = this->GetStressStatePolicy().GetVoigtSize();
+    ConstitutiveLawUtilities::CheckStrainSize(r_prop, expected_size, element_Id);
+    ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(r_prop, element_Id);
 
-    // verify compatibility with the constitutive law
-    ConstitutiveLaw::Features LawFeatures;
-    r_prop.GetValue(CONSTITUTIVE_LAW)->GetLawFeatures(LawFeatures);
-
-    KRATOS_ERROR_IF(std::find(LawFeatures.mStrainMeasures.cbegin(), LawFeatures.mStrainMeasures.cend(),
-                              ConstitutiveLaw::StrainMeasure_Infinitesimal) ==
-                    LawFeatures.mStrainMeasures.cend())
-        << "In element " << this->Id()
-        << " the constitutive law is not compatible with the element "
-           "type StrainMeasure_Infinitesimal."
-        << std::endl;
-
-    r_prop.GetValue(CONSTITUTIVE_LAW)->Check(r_prop, r_geom, rCurrentProcessInfo);
-
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strainSize = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    if (r_geom.WorkingSpaceDimension() > 2) {
-        KRATOS_ERROR_IF_NOT(strainSize == VOIGT_SIZE_3D)
-            << "Wrong constitutive law used. This is a 3D element! expected strain size is " << VOIGT_SIZE_3D
-            << " But received: " << strainSize << " in element id: " << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strainSize == VOIGT_SIZE_2D_PLANE_STRAIN)
-            << "Wrong constitutive law used. This is a 2D element! expected strain size is "
-            << VOIGT_SIZE_2D_PLANE_STRAIN << " But received: " << strainSize
-            << " in element id: " << this->Id() << std::endl;
-    }
-
-    // Check retention law
-    if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(r_prop, rCurrentProcessInfo);
-    }
-
-    return 0;
+    return RetentionLaw::Check(mRetentionLawVector, r_prop, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
@@ -357,10 +327,11 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable
     KRATOS_TRY
 
     if (rVariable == CAUCHY_STRESS_VECTOR) {
-        KRATOS_ERROR_IF(rValues.size() != mStressVector.size())
+        KRATOS_ERROR_IF(rValues.size() != GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod))
             << "Unexpected number of values for "
                "SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints"
             << std::endl;
+        mStressVector.resize(rValues.size());
         std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
     } else {
         KRATOS_ERROR_IF(rValues.size() < mConstitutiveLawVector.size())
@@ -398,7 +369,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 {
     KRATOS_TRY
 
-    const GeometryType& r_geom = GetGeometry();
+    const auto& r_geom       = GetGeometry();
+    const auto& r_properties = this->GetProperties();
     const auto number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     rOutput.resize(number_of_integration_points);
@@ -465,8 +437,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 RetentionParameters, rVariable, rOutput[GPoint]);
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
-        constexpr auto        numerical_limit = std::numeric_limits<double>::epsilon();
-        const PropertiesType& r_prop          = this->GetProperties();
+        constexpr auto numerical_limit = std::numeric_limits<double>::epsilon();
+        const auto&    r_prop          = this->GetProperties();
 
         // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
         const Matrix&  n_container = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
@@ -502,6 +474,44 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                 std::inner_product(shape_function_values.begin(), shape_function_values.end(),
                                    nodal_hydraulic_head.begin(), 0.0);
         }
+    } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
+        KRATOS_ERROR_IF(r_geom.WorkingSpaceDimension() != 2 && r_geom.WorkingSpaceDimension() != 3)
+            << rVariable.Name() << " can not be retrieved for dim "
+            << r_geom.WorkingSpaceDimension() << " in element: " << this->Id() << std::endl;
+        size_t variable_index = 0;
+        if (rVariable == CONFINED_STIFFNESS) {
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX)
+                                                                 : static_cast<size_t>(INDEX_3D_XX);
+        } else {
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY)
+                                                                 : static_cast<size_t>(INDEX_3D_XZ);
+        }
+
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+        const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
+        const auto deformation_gradients = CalculateDeformationGradients();
+        auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+            deformation_gradients, b_matrices, Variables.DisplacementVector,
+            Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
+
+        ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, r_properties, rCurrentProcessInfo);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+        std::vector<Matrix> constitutive_matrices;
+        this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                             Variables.NuContainer, Variables.DNu_DXContainer,
+                                             strain_vectors, mStressVector, constitutive_matrices);
+
+        std::transform(constitutive_matrices.begin(), constitutive_matrices.end(), rOutput.begin(),
+                       [variable_index](const Matrix& constitutive_matrix) {
+            return constitutive_matrix(variable_index, variable_index);
+        });
+    } else if (r_properties.Has(rVariable)) {
+        // Map initial material property to gauss points, as required for the output
+        std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
     } else if (rVariable == GEO_SHEAR_CAPACITY) {
         OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), GetProperties());
     } else {
@@ -585,11 +595,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
     KRATOS_TRY
 
     const GeometryType& r_geom = GetGeometry();
-
-    rOutput.resize(r_geom.IntegrationPointsNumber(this->GetIntegrationMethod()));
+    const auto number_of_integration_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+    rOutput.resize(number_of_integration_points);
 
     if (rVariable == CAUCHY_STRESS_VECTOR) {
-        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+        for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
             if (rOutput[GPoint].size() != mStressVector[GPoint].size())
                 rOutput[GPoint].resize(mStressVector[GPoint].size(), false);
 
@@ -1023,7 +1033,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
+    const auto& r_properties = this->GetProperties();
 
     rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
@@ -1434,6 +1444,18 @@ void SmallStrainUPwDiffOrderElement::SetUpPressureGeometryPointer()
         KRATOS_ERROR << "Unexpected geometry type for different order interpolation element "
                      << this->Id() << std::endl;
     }
+}
+
+void SmallStrainUPwDiffOrderElement::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
+    rSerializer.save("PressureGeometry", mpPressureGeometry);
+}
+
+void SmallStrainUPwDiffOrderElement::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
+    rSerializer.load("PressureGeometry", mpPressureGeometry);
 }
 
 Vector SmallStrainUPwDiffOrderElement::GetPressureSolutionVector() const

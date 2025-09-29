@@ -25,7 +25,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "integration_coefficient_modifier_for_pw_line_element.h"
+#include "integration_coefficient_modifier_for_line_element.h"
 #include "permeability_calculator.h"
 #include <numeric>
 #include <optional>
@@ -135,12 +135,14 @@ public:
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
         switch (this->GetGeometry().GetGeometryOrderType()) {
-        case GeometryData::Kratos_Cubic_Order:
-            return GeometryData::IntegrationMethod::GI_GAUSS_3;
-        case GeometryData::Kratos_Quartic_Order:
-            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+            using enum GeometryData::KratosGeometryOrderType;
+            using enum GeometryData::IntegrationMethod;
+        case Kratos_Cubic_Order:
+            return GI_GAUSS_3;
+        case Kratos_Quartic_Order:
+            return GI_GAUSS_5;
         default:
-            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+            return GI_GAUSS_2;
         }
     }
 
@@ -148,18 +150,31 @@ public:
     {
         KRATOS_TRY
 
-        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id(), "Length");
-        CheckHasSolutionStepsDataFor(WATER_PRESSURE);
-        CheckHasSolutionStepsDataFor(DT_WATER_PRESSURE);
-        CheckHasSolutionStepsDataFor(VOLUME_ACCELERATION);
-        CheckHasDofsFor(WATER_PRESSURE);
-        CheckProperties();
-        CheckForNonZeroZCoordinateIn2D();
-        CheckRetentionLaw(rCurrentProcessInfo);
+        const auto element_Id = Id();
+        CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), element_Id, "Length");
+        const auto r_geometry = GetGeometry();
+        CheckUtilities::CheckHasNodalSolutionStepData(
+            r_geometry,
+            {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+        CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
+
+        const CheckProperties check_properties(GetProperties(), "material properties", element_Id,
+                                               CheckProperties::Bounds::AllInclusive);
+        check_properties.Check(DENSITY_WATER);
+        check_properties.Check(DENSITY_SOLID);
+        constexpr auto max_value = 1.0;
+        check_properties.Check(POROSITY, max_value);
+        check_properties.Check(BULK_MODULUS_SOLID);
+        check_properties.Check(BULK_MODULUS_FLUID);
+        check_properties.Check(DYNAMIC_VISCOSITY);
+        check_properties.Check(BIOT_COEFFICIENT);
+        check_properties.Check(PERMEABILITY_XX);
+
+        if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geometry);
+
+        return RetentionLaw::Check(mRetentionLawVector, GetProperties(), rCurrentProcessInfo);
 
         KRATOS_CATCH("")
-
-        return 0;
     }
 
 private:
@@ -167,89 +182,11 @@ private:
     std::vector<CalculationContribution> mContributions;
     IntegrationCoefficientsCalculator    mIntegrationCoefficientsCalculator;
 
-    void CheckHasSolutionStepsDataFor(const VariableData& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
-                << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
-        }
-    }
-
-    void CheckHasDofsFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
-                << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
-                << std::endl;
-        }
-    }
-
-    void CheckProperties() const
-    {
-        CheckProperty(DENSITY_WATER);
-        CheckProperty(DENSITY_SOLID);
-        constexpr auto max_value = 1.0;
-        CheckProperty(POROSITY, max_value);
-        CheckProperty(BULK_MODULUS_SOLID);
-        CheckProperty(BULK_MODULUS_FLUID);
-        CheckProperty(DYNAMIC_VISCOSITY);
-        CheckProperty(BIOT_COEFFICIENT);
-        CheckProperty(PERMEABILITY_XX);
-    }
-
-    void CheckProperty(const Kratos::Variable<double>& rVariable, std::optional<double> MaxValue = std::nullopt) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name()
-            << " does not exist in the material properties (Id = " << GetProperties().Id()
-            << ") at element " << Id() << std::endl;
-        constexpr auto min_value = 0.0;
-        if (MaxValue.has_value()) {
-            KRATOS_ERROR_IF(GetProperties()[rVariable] < min_value ||
-                            GetProperties()[rVariable] > MaxValue.value())
-                << rVariable.Name() << " of material Id = " << GetProperties().Id() << " at element "
-                << Id() << " has an invalid value " << GetProperties()[rVariable] << " which is outside of the range [ "
-                << min_value << ", " << MaxValue.value() << "]" << std::endl;
-        } else {
-            KRATOS_ERROR_IF(GetProperties()[rVariable] < min_value)
-                << rVariable.Name() << " of material Id = " << GetProperties().Id()
-                << " at element " << Id() << " has an invalid value " << GetProperties()[rVariable]
-                << " which is below the minimum allowed value of " << min_value << std::endl;
-        }
-    }
-
-    void CheckProperty(const Kratos::Variable<std::string>& rVariable, const std::string& rName) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the pressure element's properties" << std::endl;
-        KRATOS_ERROR_IF_NOT(GetProperties()[rVariable] == rName)
-            << rVariable.Name() << " has a value of (" << GetProperties()[rVariable]
-            << ") instead of (" << rName << ") at element " << Id() << std::endl;
-    }
-
-    void CheckForNonZeroZCoordinateIn2D() const
-    {
-        if constexpr (TDim == 2) {
-            const auto& r_geometry = GetGeometry();
-            auto        pos        = std::find_if(r_geometry.begin(), r_geometry.end(),
-                                                  [](const auto& node) { return node.Z() != 0.0; });
-            KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-                << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
-        }
-    }
-
-    void CheckRetentionLaw(const ProcessInfo& rCurrentProcessInfo) const
-    {
-        if (!mRetentionLawVector.empty()) {
-            mRetentionLawVector[0]->Check(this->GetProperties(), rCurrentProcessInfo);
-        }
-    }
-
     array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
     {
         auto        result     = array_1d<double, TNumNodes>{};
         const auto& r_geometry = GetGeometry();
-        std::transform(r_geometry.begin(), r_geometry.end(), result.begin(), [&rNodalVariable](const auto& node) {
+        std::ranges::transform(r_geometry, result.begin(), [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
         return result;
@@ -294,15 +231,16 @@ private:
                                                              const ProcessInfo& rCurrentProcessInfo)
     {
         switch (rContribution) {
-        case CalculationContribution::Permeability:
+            using enum CalculationContribution;
+        case Permeability:
             return std::make_unique<PermeabilityCalculator>(CreatePermeabilityInputProvider());
-        case CalculationContribution::Compressibility:
+        case Compressibility:
             if (GetProperties()[RETENTION_LAW] == "PressureFilterLaw") {
                 return std::make_unique<FilterCompressibilityCalculator>(
                     CreateFilterCompressibilityInputProvider(rCurrentProcessInfo));
             }
             return std::make_unique<CompressibilityCalculator>(CreateCompressibilityInputProvider(rCurrentProcessInfo));
-        case CalculationContribution::FluidBodyFlow:
+        case FluidBodyFlow:
             return std::make_unique<FluidBodyFlowCalculator>(CreateFluidBodyFlowInputProvider());
         default:
             KRATOS_ERROR << "Unknown contribution" << std::endl;

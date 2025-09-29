@@ -206,6 +206,14 @@ protected:
     virtual void WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
+     * @brief Calculate the total number of cells
+     * @tparam TContainerType type of container.
+     * @param rContainer the container which is beging output
+     */
+    template<typename TContainerType>
+    std::size_t DetermineVtkContainerSize(const TContainerType& rContainer) const;
+
+    /**
      * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
      *          It is necessary to be known prior to output
      * @tparam TContainerType type of container.
@@ -513,7 +521,6 @@ private:
         const TContainerType& rContainer,
         const std::string& DataName,
         std::ofstream& rFileStream) const;
-
 
     /**
      * @brief Print the given rModelPart as VTK file together with the requested results (Only for model parts without nodes)

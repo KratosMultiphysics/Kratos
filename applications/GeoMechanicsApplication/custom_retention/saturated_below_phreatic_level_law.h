@@ -12,12 +12,11 @@
 
 #pragma once
 
-// Project includes
 #include "custom_retention/retention_law.h"
-#include "includes/serializer.h"
 
 namespace Kratos
 {
+
 /**
  * @class SaturatedBelowPhreaticLevelLaw
  * @ingroup GeoMechanicsApplication
@@ -54,18 +53,7 @@ public:
      */
     int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
 
-private:
-    friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RetentionLaw)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RetentionLaw)
-    }
-
+    [[nodiscard]] std::string Info() const override;
 }; // Class SaturatedBelowPhreaticLevelLaw
+
 } // namespace Kratos.

@@ -12,8 +12,7 @@
 //                   Pooyan Dadvand
 //
 
-#if !defined(KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED)
-#define  KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -597,6 +596,4 @@ protected:
     ModelPart::ConditionsContainerType mMeshConditions;
 };//class GidGaussPointsContainer
 }// namespace Kratos.
-
-#endif // KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED defined
 

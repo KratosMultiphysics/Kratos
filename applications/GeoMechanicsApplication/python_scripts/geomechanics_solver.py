@@ -19,6 +19,7 @@ class GeoMechanicalSolver(PythonSolver):
 
     Derived classes can override the functions
     """
+    geo_info_label = "::[GeoMechanicalSolver]:: "
     def __init__(self, model, custom_settings):
 
         super().__init__(model, custom_settings)
@@ -44,7 +45,7 @@ class GeoMechanicalSolver(PythonSolver):
 
         self.min_buffer_size = 2
 
-        KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo(self.geo_info_label, "Construction finished")
 
         # Set if the analysis is restarted
         self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = self.settings["model_import_settings"]["input_type"].GetString() == "rest"
@@ -126,9 +127,7 @@ class GeoMechanicalSolver(PythonSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [""],
-            "loads_sub_model_part_list": [],
-            "loads_variable_list": []
+            "body_domain_sub_model_part_list": [""]
         }""")
 
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
@@ -181,7 +180,7 @@ class GeoMechanicalSolver(PythonSolver):
                 variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
                 self.main_model_part.AddNodalSolutionStepVariable(variable)
 
-        KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo(self.geo_info_label, "Variables ADDED")
 
     def AddDofs(self):
         # handled in the specific solvers U_Pw, Pw, T
@@ -210,9 +209,6 @@ class GeoMechanicalSolver(PythonSolver):
         sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["body_domain_sub_model_part_list"].values()]
         self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
 
-        sub_model_part_names = [f"sub_{name.GetString()}" for name in self.settings["loads_sub_model_part_list"].values()]
-        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(sub_model_part_names))
-
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Executes the check and prepare model process (Create computing_model_part and set constitutive law)
             self._ExecuteCheckAndPrepare()
@@ -239,8 +235,7 @@ class GeoMechanicalSolver(PythonSolver):
         self.builder_and_solver = self._CreateBuilderAndSolver()
 
         # Solution scheme creation
-        self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
-                                            self.settings["solution_type"].GetString())
+        self.scheme = self._BaseConstructScheme()
 
         # Get the convergence criterion
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
@@ -341,6 +336,8 @@ class GeoMechanicalSolver(PythonSolver):
             if self.settings["rotation_dofs"].GetBool():
                 # Add specific variables for the problem (rotation dofs).
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+                self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.TOTAL_ROTATION)
+                self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.INCREMENTAL_ROTATION)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
                 self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
                 self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
@@ -377,11 +374,8 @@ class GeoMechanicalSolver(PythonSolver):
 
     def _add_smoothing_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_CAUCHY_STRESS_TENSOR)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_DAMAGE_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_WIDTH)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_DAMAGE)
 
     def _add_dynamic_dofs(self):
         # For being consistent for Serial and Trilinos
@@ -410,8 +404,6 @@ class GeoMechanicalSolver(PythonSolver):
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
         params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
         params.AddValue("body_domain_sub_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
-        params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
-        params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
         # CheckAndPrepareModelProcess creates the porous_computational_model_part
         from KratosMultiphysics.GeoMechanicsApplication import check_and_prepare_model_process_geo
         check_and_prepare_model_process_geo.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
@@ -423,7 +415,7 @@ class GeoMechanicalSolver(PythonSolver):
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
-            KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Constitutive law was successfully imported.")
+            KratosMultiphysics.Logger.PrintInfo(self.geo_info_label, "Constitutive law was successfully imported.")
         else:
             raise RuntimeError("::[GeoMechanicalSolver]:: Constitutive law was not imported.")
 
@@ -459,6 +451,14 @@ class GeoMechanicalSolver(PythonSolver):
 
         return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
+    def _BaseConstructScheme(self):
+        if (self.settings["solution_type"].GetString().lower() == "static"):
+            return GeoMechanicsApplication.GeoStaticScheme()
+        else:
+            return self._ConstructScheme(self.settings["scheme_type"].GetString(),
+                                         self.settings["solution_type"].GetString())
+
+
     def _create_solving_strategy(self, builder_and_solver, strategy_type):
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.IS_CONVERGED, True)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, 1)
@@ -470,8 +470,6 @@ class GeoMechanicalSolver(PythonSolver):
 
         if strategy_type.lower() == "newton_raphson":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonStrategy(self.computing_model_part,
                                                                                          self.scheme,
                                                                                          self.convergence_criterion,
@@ -483,8 +481,6 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_with_piping":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
             self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonErosionProcessStrategy(self.computing_model_part,
                                                                                                        self.scheme,

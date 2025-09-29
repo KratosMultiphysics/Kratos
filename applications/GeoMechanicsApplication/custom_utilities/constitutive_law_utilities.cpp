@@ -86,4 +86,40 @@ double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rPr
     return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
 }
 
+Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
+                                                                 double      ShearStiffness,
+                                                                 std::size_t TractionSize,
+                                                                 std::size_t NumberOfNormalComponents)
+{
+    auto result = Matrix{ZeroMatrix{TractionSize, TractionSize}};
+    for (auto i = std::size_t{0}; i < NumberOfNormalComponents; ++i)
+        result(i, i) = NormalStiffness;
+    for (auto i = NumberOfNormalComponents; i < TractionSize; ++i)
+        result(i, i) = ShearStiffness;
+    return result;
+}
+
+void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId)
+{
+    const std::size_t strain_size = rProperties[CONSTITUTIVE_LAW]->GetStrainSize();
+    KRATOS_ERROR_IF_NOT(strain_size == ExpectedSize)
+        << "Wrong constitutive law is used: strain size is " << strain_size << " when it is expected to be "
+        << ExpectedSize << " at element Id = " << ElementId << "." << std::endl;
+}
+
+void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId)
+{
+    ConstitutiveLaw::Features LawFeatures;
+    rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
+    const auto correct_strain_measure = std::any_of(
+        LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
+        return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
+    });
+
+    KRATOS_ERROR_IF_NOT(correct_strain_measure)
+        << "Constitutive law is not compatible with the strain type "
+           "StrainMeasure_Infinitesimal at element "
+        << ElementId << "." << std::endl;
+}
+
 } // namespace Kratos

@@ -178,7 +178,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerSlave->GetModelPart(),
         mpInterfaceVectorContainerSlave->GetModelPart(),
         mMapperLocalSystemsSlave,
-        0); // The echo-level is no longer neeed here, refactor in separate PR
+        0); // The echo-level is no longer needed here, refactor in separate PR
 
     MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
         mpMappingMatrixProjector,
@@ -187,7 +187,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mpInterfaceVectorContainerMaster->GetModelPart(),
         mpInterfaceVectorContainerSlave->GetModelPart(),
         mMapperLocalSystemsProjector,
-        0); // The echo-level is no longer neeed here, refactor in separate PR
+        0); // The echo-level is no longer needed here, refactor in separate PR
 
     // Perform consistency scaling if requested
     if (mMapperSettings["consistency_scaling"].GetBool()) {
