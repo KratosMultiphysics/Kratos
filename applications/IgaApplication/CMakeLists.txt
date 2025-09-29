@@ -2,6 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosIgaApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+
 ################### PYBIND11
 include(pybind11Tools)
 
@@ -31,7 +33,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosIgaCore SHARED ${KRATOS_IGA_APPLICATION_CORE})
-target_link_libraries(KratosIgaCore PUBLIC KratosCore)
+target_link_libraries(KratosIgaCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosIgaCore PROPERTIES COMPILE_DEFINITIONS "IGA_APPLICATION=EXPORT,API")
 
 # Define library Kratos which defines the basic python interface
