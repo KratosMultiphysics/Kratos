@@ -90,10 +90,8 @@ TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedB
     // Arrange
     LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
     auto       element = Kratos::make_intrusive<MockElementForLoadSteppingScheme>();
-    const auto internal_forces_at_start_of_stage = CreateVector({-1.0, -2.0, -3.0, -4.0});
-    const auto external_forces_at_start_of_stage = CreateVector({5.0, 6.0, 7.0, 8.0});
-    element->SetInternalForces(internal_forces_at_start_of_stage);
-    element->SetExternalForces(external_forces_at_start_of_stage);
+    element->SetInternalForces(CreateVector({-1.0, -2.0, -3.0, -4.0}));
+    element->SetExternalForces(CreateVector({5.0, 6.0, 7.0, 8.0}));
 
     ProcessInfo CurrentProcessInfo;
     const auto& [current_time, expected_right_hand_side] = GetParam();
@@ -110,8 +108,7 @@ TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedB
     Vector           b;
     scheme.InitializeSolutionStep(model_part, A, Dx, b);
 
-    const auto current_internal_forces = CreateVector({-2.0, -3.0, -4.0, -5.0});
-    element->SetInternalForces(current_internal_forces);
+    element->SetInternalForces(CreateVector({-2.0, -3.0, -4.0, -5.0}));
 
     // Act & Assert
     Vector actual_right_hand_side;
