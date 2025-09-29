@@ -53,7 +53,7 @@ namespace Kratos
  * This class is intended to be used when Intel MKL is the underlying threading model.
  * @see ThreadManager
  */
-class KRATOS_API(KRATOS_CORE) MKLThreadManager
+class MKLThreadManager
     : public ThreadManager
 {
 public:
