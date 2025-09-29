@@ -363,7 +363,7 @@ class TestVtuOutput(kratos_unittest.TestCase):
     def GetUnstructuredGridList(model_part: Kratos.ModelPart, data_communicator: Kratos.DataCommunicator, recursively: bool) -> 'list[tuple[Kratos.ModelPart, bool, typing.Optional[typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray]]]]':
         unstructured_grid_list: 'list[tuple[Kratos.ModelPart, bool, typing.Optional[typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray]]]]' = []
         TestVtuOutput.__GetUnstructuredGridList(unstructured_grid_list, model_part, data_communicator, recursively)
-        return unstructured_grid_list
+        return sorted(unstructured_grid_list, key = lambda x: x[0].FullName())
 
     @staticmethod
     def GetUnstructuredGridName(unstructured_grid: 'tuple[Kratos.ModelPart, bool, typing.Optional[typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray]]]', prefix: str, step: int, data_communicator: Kratos.DataCommunicator, entity_suffix = "s") -> str:
