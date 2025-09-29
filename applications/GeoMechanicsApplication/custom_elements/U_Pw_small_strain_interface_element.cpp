@@ -204,19 +204,13 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
     ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, r_properties, rCurrentProcessInfo);
     SetConstitutiveParameters(ConstitutiveParameters, ConstitutiveMatrix, StrainVector, Np, GradNpT, detF, F);
 
-    // Auxiliary output variables
-    unsigned int        NumGPoints = mConstitutiveLawVector.size();
-    std::vector<double> JointWidthContainer(NumGPoints);
-
     // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+    for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
         InterfaceElementUtilities::CalculateNuMatrix(Nu, NContainer, GPoint);
 
         noalias(RelDispVector) = prod(Nu, DisplacementVector);
 
         noalias(StrainVector) = prod(RotationMatrix, RelDispVector);
-
-        JointWidthContainer[GPoint] = mInitialGap[GPoint] + StrainVector[TDim - 1];
 
         this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters,
                                           StrainVector[TDim - 1], MinimumJointWidth, GPoint);
@@ -234,7 +228,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
     }
 
-    if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues(JointWidthContainer);
+    if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues();
 
     KRATOS_CATCH("")
 }
@@ -262,22 +256,15 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::ModifyInactiveElementStres
 }
 
 template <>
-void UPwSmallStrainInterfaceElement<2, 4>::ExtrapolateGPValues(const std::vector<double>& JointWidthContainer)
+void UPwSmallStrainInterfaceElement<2, 4>::ExtrapolateGPValues()
 {
     KRATOS_TRY
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area  = rGeom.Area();
 
-    array_1d<double, 4> NodalJointWidth;
-    NodalJointWidth[0] = JointWidthContainer[0] * Area;
-    NodalJointWidth[1] = JointWidthContainer[1] * Area;
-    NodalJointWidth[2] = JointWidthContainer[1] * Area;
-    NodalJointWidth[3] = JointWidthContainer[0] * Area;
-
     for (unsigned int i = 0; i < 4; ++i) { // NumNodes
         rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -286,25 +273,16 @@ void UPwSmallStrainInterfaceElement<2, 4>::ExtrapolateGPValues(const std::vector
 }
 
 template <>
-void UPwSmallStrainInterfaceElement<3, 6>::ExtrapolateGPValues(const std::vector<double>& JointWidthContainer)
+void UPwSmallStrainInterfaceElement<3, 6>::ExtrapolateGPValues()
 {
     KRATOS_TRY
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area  = rGeom.Area();
-
-    array_1d<double, 6> NodalJointWidth;
-    NodalJointWidth[0] = JointWidthContainer[0] * Area;
-    NodalJointWidth[1] = JointWidthContainer[1] * Area;
-    NodalJointWidth[2] = JointWidthContainer[2] * Area;
-    NodalJointWidth[3] = JointWidthContainer[0] * Area;
-    NodalJointWidth[4] = JointWidthContainer[1] * Area;
-    NodalJointWidth[5] = JointWidthContainer[2] * Area;
 
     for (unsigned int i = 0; i < 6; ++i) // NumNodes
     {
         rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -313,27 +291,16 @@ void UPwSmallStrainInterfaceElement<3, 6>::ExtrapolateGPValues(const std::vector
 }
 
 template <>
-void UPwSmallStrainInterfaceElement<3, 8>::ExtrapolateGPValues(const std::vector<double>& JointWidthContainer)
+void UPwSmallStrainInterfaceElement<3, 8>::ExtrapolateGPValues()
 {
     KRATOS_TRY
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area  = rGeom.Area();
 
-    array_1d<double, 8> NodalJointWidth;
-    NodalJointWidth[0] = JointWidthContainer[0] * Area;
-    NodalJointWidth[1] = JointWidthContainer[1] * Area;
-    NodalJointWidth[2] = JointWidthContainer[2] * Area;
-    NodalJointWidth[3] = JointWidthContainer[3] * Area;
-    NodalJointWidth[4] = JointWidthContainer[0] * Area;
-    NodalJointWidth[5] = JointWidthContainer[1] * Area;
-    NodalJointWidth[6] = JointWidthContainer[2] * Area;
-    NodalJointWidth[7] = JointWidthContainer[3] * Area;
-
     for (unsigned int i = 0; i < 8; ++i) // NumNodes
     {
         rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
