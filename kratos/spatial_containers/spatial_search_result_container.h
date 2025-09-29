@@ -463,12 +463,6 @@ public:
     void Barrier();
 
     /**
-     * @brief Retrieves if is active the entity
-     * @return A vector containing all the booleans showing is active the entity
-     */
-    std::vector<bool> GetResultIsActive();
-
-    /**
      * @brief Retrieves if inside the geometry
      * @param rPoint The point coordinates
      * @param Tolerance The tolerance considered
