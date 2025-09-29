@@ -47,6 +47,9 @@ int ParallelUtilities::GetNumThreads()
         num_threads.push_back(r_manager->GetNumThreads());
     }
 
+    // Find the minimum number of threads available
+    const int min_num_threads = *std::min_element(num_threads.begin(), num_threads.end());
+
     // Throw a warning if the number of threads is not the same in all ThreadManagers
     if (!std::all_of(num_threads.begin(), num_threads.end(), [&num_threads](const int value){ return value == num_threads[0]; })) {
         std::stringstream err_msg;
@@ -54,11 +57,17 @@ int ParallelUtilities::GetNumThreads()
         for (std::size_t i=0; i<num_threads.size(); ++i) {
             err_msg << "ThreadManager " << msThreadManagers[i]->Info() << ": " << num_threads[i] << " threads.\n";
         }
+        err_msg << "The minimum number of threads available (" << min_num_threads << ") will be used.\n";
         KRATOS_WARNING("ParallelUtilities") << err_msg.str();
+
+        // Set min_num_threads number of threads in the ThreadManagers
+        for (const auto& r_manager : msThreadManagers) {
+            r_manager->SetNumThreads(min_num_threads);
+        }
     }
 
     // Return the minimum number of threads available
-    return *std::min_element(num_threads.begin(), num_threads.end());
+    return min_num_threads;
 }
 
 void ParallelUtilities::SetNumThreads(const int NumThreads)
