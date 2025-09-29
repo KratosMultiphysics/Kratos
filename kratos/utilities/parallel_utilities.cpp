@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
@@ -15,6 +15,7 @@
 // System includes
 #include <algorithm>
 #include <cstdlib> // for std::getenv
+#include <sstream> // for std::stringstream
 
 // External includes
 
@@ -23,27 +24,41 @@
 #include "input_output/logger.h"
 #include "includes/lock_object.h"
 
-
 namespace Kratos {
 
 namespace {
     std::once_flag flag_once;
 }
 
+#ifdef KRATOS_SMP_OPENMP
+std::vector<ThreadManager::Pointer> ParallelUtilities::msThreadManagers = { Kratos::make_shared<OMPThreadManager>() };
+#elif defined(KRATOS_SMP_CXX11)
+std::vector<ThreadManager::Pointer> ParallelUtilities::msThreadManagers = { Kratos::make_shared<CXX11ThreadManager>() };
+#else // KRATOS_SMP_NONE
+std::vector<ThreadManager::Pointer> ParallelUtilities::msThreadManagers = { Kratos::make_shared<ThreadManager>() };
+#endif
 
 int ParallelUtilities::GetNumThreads()
 {
-#ifdef KRATOS_SMP_OPENMP
-    int nthreads = omp_get_max_threads();
-    KRATOS_DEBUG_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
-    return nthreads;
-#elif defined(KRATOS_SMP_CXX11)
-    int nthreads = GetNumberOfThreads();
-    KRATOS_DEBUG_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
-    return nthreads;
-#else
-    return 1;
-#endif
+    // Get the number of threads available in each ThreadManager
+    std::vector<int> num_threads;
+    num_threads.reserve(msThreadManagers.size());
+    for (const auto& r_manager : msThreadManagers) {
+        num_threads.push_back(r_manager->GetNumThreads());
+    }
+
+    // Throw a warning if the number of threads is not the same in all ThreadManagers
+    if (!std::all_of(num_threads.begin(), num_threads.end(), [&num_threads](const int value){ return value == num_threads[0]; })) {
+        std::stringstream err_msg;
+        err_msg << "The number of threads is not the same in all ThreadManagers:\n";
+        for (std::size_t i=0; i<num_threads.size(); ++i) {
+            err_msg << "ThreadManager " << msThreadManagers[i]->Info() << ": " << num_threads[i] << " threads.\n";
+        }
+        KRATOS_WARNING("ParallelUtilities") << err_msg.str();
+    }
+
+    // Return the minimum number of threads available
+    return *std::min_element(num_threads.begin(), num_threads.end());
 }
 
 void ParallelUtilities::SetNumThreads(const int NumThreads)
@@ -59,42 +74,46 @@ void ParallelUtilities::SetNumThreads(const int NumThreads)
     KRATOS_WARNING_IF("ParallelUtilities", NumThreads > num_procs) << "The number of requested threads (" << NumThreads << ") exceeds the number of available threads (" << num_procs << ")!" << std::endl;
     GetNumberOfThreads() = NumThreads;
 
-#ifdef KRATOS_SMP_OPENMP
-    // external libraries included in Kratos still use OpenMP (such as AMGCL)
-    // this makes sure that they use the same number of threads as Kratos itself.
-    omp_set_num_threads(NumThreads);
-#endif
+    // Set the number of threads in the ThreadManagers
+    for (const auto& r_manager : msThreadManagers) {
+        r_manager->SetNumThreads(NumThreads);
+    }
 }
 
 int ParallelUtilities::GetNumProcs()
 {
-#ifdef KRATOS_SMP_OPENMP
-    return omp_get_num_procs();
+    // Get the number of processors available in each ThreadManager
+    std::vector<int> num_procs;
+    num_procs.reserve(msThreadManagers.size());
+    for (const auto& r_manager : msThreadManagers) {
+        num_procs.push_back(r_manager->GetNumProcs());
+    }
 
-#elif defined(KRATOS_SMP_CXX11)
-    // NOTE: std::thread::hardware_concurrency() can return 0 in some systems!
-    int num_procs = std::thread::hardware_concurrency();
+    // Throw a warning if the number of processors is not the same in all ThreadManagers
+    if (!std::all_of(num_procs.begin(), num_procs.end(), [&num_procs](const int value){ return value == num_procs[0]; })) {
+        std::stringstream err_msg;
+        err_msg << "The number of processors is not the same in all ThreadManagers:\n";
+        for (std::size_t i=0; i<num_procs.size(); ++i) {
+            err_msg << "ThreadManager " << msThreadManagers[i]->Info() << ": " << num_procs[i] << " processors.\n";
+        }
+        KRATOS_WARNING("ParallelUtilities") << err_msg.str();
+    }
 
-    KRATOS_WARNING_IF("ParallelUtilities", num_procs == 0) << "The number of processors cannot be determined correctly on this machine. Please check your setup carefully!" << std::endl;
-
-    return std::max(1, num_procs);
-
-#else
-    return 1;
-#endif
+    // Return the minimum number of processors available
+    return *std::min_element(num_procs.begin(), num_procs.end());
 }
 
 int ParallelUtilities::InitializeNumberOfThreads()
 {
 #ifdef KRATOS_SMP_NONE
     return 1;
-
 #else
     const char* env_kratos = std::getenv("KRATOS_NUM_THREADS");
     const char* env_omp    = std::getenv("OMP_NUM_THREADS");
 
     int num_threads;
 
+    // Determine the number of threads to use
     if (env_kratos) {
         // "KRATOS_NUM_THREADS" is in the environment
         // giving highest priority to this variable
@@ -110,13 +129,13 @@ int ParallelUtilities::InitializeNumberOfThreads()
         num_threads = std::thread::hardware_concurrency();
     }
 
+    // Ensure at least one thread is available
     num_threads = std::max(1, num_threads);
 
-#ifdef KRATOS_SMP_OPENMP
-    // external libraries included in Kratos still use OpenMP (such as AMGCL)
-    // this makes sure that they use the same number of threads as Kratos itself.
-    omp_set_num_threads(num_threads);
-#endif
+    // Initialize the number of threads in the ThreadManagers
+    for (const auto& r_manager : msThreadManagers) {
+        r_manager->SetNumThreads(num_threads);
+    }
 
     return num_threads;
 #endif
