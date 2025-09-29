@@ -1064,7 +1064,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 
     // The following tests are from TransientPwLineElement_CalculateOnIntegrationPoints_Vector but
-    // they use an element from an integration test Act
+    // they use a single element from integration test test_transient_groundwater_flow.py
+
+    // Act
     std::vector<double> results{};
     element.CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, results, process_info);
     auto const number_of_integration_points =

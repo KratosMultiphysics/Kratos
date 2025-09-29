@@ -88,8 +88,6 @@ private:
         const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
         const auto&  fluid_pressures           = mInputProvider.GetFluidPressures();
 
-        // Precompute scaling factors outside the loop if possible
-
         for (std::size_t integration_point_index = 0;
              integration_point_index < integration_coefficients.size(); ++integration_point_index) {
             retention_parameters.SetFluidPressure(fluid_pressures[integration_point_index]);
