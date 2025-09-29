@@ -315,6 +315,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
+
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const OMPThreadManager& rThis)
 {

@@ -57,7 +57,7 @@ void ThreadManager::SetNumThreads(const int NumThreads)
 int OMPThreadManager::GetNumThreads() const
 {
 #ifdef KRATOS_SMP_OPENMP
-    int nthreads = omp_get_max_threads();
+    const int nthreads = omp_get_max_threads();
     KRATOS_DEBUG_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
     return nthreads;
 #else
@@ -72,7 +72,9 @@ int OMPThreadManager::GetNumThreads() const
 int OMPThreadManager::GetNumProcs() const
 {
 #ifdef KRATOS_SMP_OPENMP
-    return omp_get_num_procs();
+    const int num_procs = omp_get_num_procs();
+    KRATOS_DEBUG_ERROR_IF(num_procs <= 0) << "GetNumProcs would devolve num_procs = " << num_procs << " which is not possible" << std::endl;
+    return num_procs;
 #else
     KRATOS_ERROR << "Calling OMPThreadManager::GetNumProcs when OpenMP is not enabled!" << std::endl;
     return 1;
@@ -99,7 +101,7 @@ void OMPThreadManager::SetNumThreads(const int NumThreads)
 int CXX11ThreadManager::GetNumThreads() const
 {
 #if defined(KRATOS_SMP_CXX11)
-    int nthreads = std::thread::hardware_concurrency();
+    const int nthreads = std::thread::hardware_concurrency();
     KRATOS_DEBUG_ERROR_IF(nthreads <= 0) << "GetNumThreads would devolve nthreads = " << nthreads << " which is not possible" << std::endl;
     return nthreads;
 #else
@@ -115,7 +117,7 @@ int CXX11ThreadManager::GetNumProcs() const
 {
 #if defined(KRATOS_SMP_CXX11)
     // NOTE: std::thread::hardware_concurrency() can return 0 in some systems!
-    int num_procs = std::thread::hardware_concurrency();
+    const int num_procs = std::thread::hardware_concurrency();
 
     KRATOS_WARNING_IF("CXX11ThreadManager", num_procs == 0) << "The number of processors cannot be determined correctly on this machine. Please check your setup carefully!" << std::endl;
 
