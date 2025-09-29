@@ -20,6 +20,7 @@
 #include "custom_response_functions/response_utilities/finite_difference_utility.h"
 #include "includes/checks.h"
 
+#include "custom_elements/active_adjoint_finite_difference_base_element.h"
 #include "custom_elements/active_shell_3p_element.h"
 
 #include "structural_mechanics_application_variables.h"
