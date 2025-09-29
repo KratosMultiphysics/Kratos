@@ -371,6 +371,8 @@ private:
 
     const bool mIsInitialConfiguration;
 
+    bool mIsPVDFileHeaderWritten;
+
     const IndexType mEchoLevel;
 
     const WriterFormat mOutputFormat;
@@ -385,8 +387,6 @@ private:
 
     std::vector<UnstructuredGridData> mUnstructuredGridDataList;
 
-    std::vector<double> mTimeStepList;
-
     ///@}
     ///@name Private operations
     ///@{
@@ -397,21 +397,24 @@ private:
         TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
         TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
         UnstructuredGridData& rUnstructuredGridData,
-        const std::string& rOutputPrefix) const;
+        const std::string& rOutputPrefix,
+        const IndexType Step) const;
 
     template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
     std::pair<std::string, std::string> WriteUnstructuredGridData(
         TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
         TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
         UnstructuredGridData& rUnstructuredGridData,
-        const std::string& rOutputPrefix) const;
+        const std::string& rOutputPrefix,
+        const IndexType Step) const;
 
     template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
     std::pair<std::string, std::string> WriteIntegrationPointData(
         TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
         TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
         UnstructuredGridData& rUnstructuredGridData,
-        const std::string& rOutputPrefix) const;
+        const std::string& rOutputPrefix,
+        const IndexType Step) const;
 
     ///@}
 };

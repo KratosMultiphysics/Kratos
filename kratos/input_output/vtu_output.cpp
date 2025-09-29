@@ -939,6 +939,7 @@ VtuOutput::VtuOutput(
     const IndexType EchoLevel)
     : mrModelPart(rModelPart),
       mIsInitialConfiguration(IsInitialConfiguration),
+      mIsPVDFileHeaderWritten(false),
       mEchoLevel(EchoLevel),
       mOutputFormat(OutputFormat),
       mPrecision(Precision)
@@ -964,7 +965,7 @@ void VtuOutput::AddFlag(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
+    KRATOS_ERROR_IF(mIsPVDFileHeaderWritten)
         << "Flags can be added only before the first call to the PrintOutput [ flag name = "
         << rFlagName << " ].\n";
 
@@ -992,7 +993,7 @@ void VtuOutput::AddVariable(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
+    KRATOS_ERROR_IF(mIsPVDFileHeaderWritten)
         << "Variables can be added only before the first call to the PrintOutput [ variable name = "
         << GetName(pVariable) << " ].\n";
 
@@ -1023,7 +1024,7 @@ void VtuOutput::AddIntegrationPointVariable(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
+    KRATOS_ERROR_IF(mIsPVDFileHeaderWritten)
         << "Integration point variables can be added only before the first call to the PrintOutput [ integration point variable name = "
         << GetName(pVariable) << " ].\n";
 
@@ -1047,7 +1048,7 @@ void VtuOutput::AddContainerExpression(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
+    KRATOS_ERROR_IF(mIsPVDFileHeaderWritten)
         << "Expressions can be added only before the first call to the PrintOutput [ expression name = "
         << rExpressionName << " ].\n";
 
@@ -1099,7 +1100,7 @@ void VtuOutput::AddTensorAdaptor(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(mTimeStepList.empty())
+    KRATOS_ERROR_IF(mIsPVDFileHeaderWritten)
         << "TensorAdaptors can be added only before the first call to the PrintOutput [ tensor adaptor name = "
         << rTensorAdaptorName << " ].\n";
 
@@ -1285,7 +1286,7 @@ void VtuOutput::EmplaceContainerExpression(
     const std::string& rExpressionName,
     SupportedContainerExpressionPointerType pContainerExpression)
 {
-    if (mTimeStepList.empty()) {
+    if (!mIsPVDFileHeaderWritten) {
         AddContainerExpression(rExpressionName, pContainerExpression);
     } else {
         UpdateContainerExpression(rExpressionName, pContainerExpression);
@@ -1296,7 +1297,7 @@ void VtuOutput::EmplaceTensorAdaptor(
     const std::string& rTensorAdaptorName,
     SupportedTensorAdaptorPointerType pTensorAdaptor)
 {
-    if (mTimeStepList.empty()) {
+    if (!mIsPVDFileHeaderWritten) {
         AddTensorAdaptor(rTensorAdaptorName, pTensorAdaptor);
     } else {
         UpdateTensorAdaptor(rTensorAdaptorName, pTensorAdaptor);
@@ -1308,7 +1309,8 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
     TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
     UnstructuredGridData& rUnstructuredGridData,
-    const std::string& rOutputFileNamePrefix) const
+    const std::string& rOutputFileNamePrefix,
+    const IndexType Step) const
 {
     const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
     auto p_nodes = rUnstructuredGridData.mpPoints;
@@ -1397,7 +1399,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     const std::string pvd_data_set_name = rUnstructuredGridData.mpModelPart->FullName() + suffix;
 
     // append with the step value and rank and extension
-    output_vtu_file_name << suffix << "_" << mTimeStepList.size() - 1
+    output_vtu_file_name << suffix << "_" << Step
                          << (r_data_communicator.IsDistributed()
                                  ? "_" + std::to_string(r_data_communicator.Rank())
                                  : "")
@@ -1426,7 +1428,8 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
     TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
     TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
     UnstructuredGridData& rUnstructuredGridData,
-    const std::string& rOutputFileNamePrefix) const
+    const std::string& rOutputFileNamePrefix,
+    const IndexType Step) const
 {
     if (!rUnstructuredGridData.mpCells.has_value()) {
         // nothing to do here.
@@ -1576,7 +1579,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
         output_vtu_file_name
             << rOutputFileNamePrefix << "/" << rUnstructuredGridData.mpModelPart->FullName() << "_"
             << GetEntityName(rUnstructuredGridData.mpCells)
-            << "_gauss_" << mTimeStepList.size() - 1
+            << "_gauss_" << Step
             << (r_data_communicator.IsDistributed()
                     ? "_" + std::to_string(r_data_communicator.Rank())
                     : "")
@@ -1609,17 +1612,18 @@ void VtuOutput::WriteData(
     TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
     TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
     UnstructuredGridData& rUnstructuredGridData,
-    const std::string& rOutputPrefix) const
+    const std::string& rOutputPrefix,
+    const IndexType Step) const
 {
     KRATOS_TRY
 
     rPVDFileNameInfo.push_back(WriteUnstructuredGridData(
         rElementDataWrapperCreateFunctor, rElementDataWrapperAppendFunctor,
-        rUnstructuredGridData, rOutputPrefix));
+        rUnstructuredGridData, rOutputPrefix, Step));
 
     rPVDFileNameInfo.push_back(WriteIntegrationPointData(
         rElementDataWrapperCreateFunctor, rElementDataWrapperAppendFunctor,
-        rUnstructuredGridData, rOutputPrefix));
+        rUnstructuredGridData, rOutputPrefix, Step));
 
     KRATOS_CATCH("");
 }
@@ -1635,36 +1639,9 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
     // here we do not check whether the r_process_info has the time variable specified
     // because, in a const DataValueContainer, if the variable is not there, it returns the
     // zero value of the variable.
-    const double process_time = r_process_info[TIME];
+    const double time = r_process_info[TIME];
 
-    std::stringstream s_process_time;
-    s_process_time << std::scientific << std::setprecision(mPrecision) << process_time;
-    const auto& str_process_time = s_process_time.str();
-
-    // here we check if the new time is not similar to any of the given
-    // previous time values except for the last time.
-    // Because, we allow over writing the last time step value if required.
-    if (mTimeStepList.empty()) {
-        mTimeStepList.push_back(process_time);
-    } else {
-        for (IndexType i = 0; i < mTimeStepList.size() - 1; ++i) {
-            const auto check_time = mTimeStepList[i];
-            std::stringstream s_check_process_time;
-            s_check_process_time << std::scientific << std::setprecision(mPrecision) << check_time;
-            KRATOS_ERROR_IF(s_check_process_time.str() == str_process_time)
-                << "The TIME values in process info of " << mrModelPart.FullName()
-                << " should be unique for the given precision = " << mPrecision
-                << " [ formatted current time = " << str_process_time
-                << ", current_time = " << process_time
-                << ", checking time = " << check_time << " ].\n";
-        }
-
-        std::stringstream s_check_process_time;
-        s_check_process_time << std::scientific << std::setprecision(mPrecision) << mTimeStepList.back();
-        if (s_check_process_time.str() != str_process_time) {
-            mTimeStepList.push_back(process_time);
-        }
-    }
+    const IndexType step = r_process_info[STEP];
 
     std::filesystem::create_directories(rOutputFileNamePrefix);
 
@@ -1679,7 +1656,8 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
                     [this](){ return Kratos::make_shared<XmlInPlaceDataElementWrapper>(XmlInPlaceDataElementWrapper::ASCII, this->mPrecision); },
                     [](auto& rVtkFileElement, auto pXmlDataElementWrapper) {},
                     r_unstructured_grid_data,
-                    rOutputFileNamePrefix);
+                    rOutputFileNamePrefix,
+                    step);
                 break;
             }
             case BINARY:
@@ -1689,7 +1667,8 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
                     [this](){ return Kratos::make_shared<XmlInPlaceDataElementWrapper>(XmlInPlaceDataElementWrapper::BINARY, this->mPrecision); },
                     [](auto& rVtkFileElement, auto pXmlDataElementWrapper) { rVtkFileElement.AddAttribute("header_type", "UInt64"); },
                     r_unstructured_grid_data,
-                    rOutputFileNamePrefix);
+                    rOutputFileNamePrefix,
+                    step);
                 break;
             }
             case RAW:
@@ -1699,7 +1678,8 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
                     [](){ return Kratos::make_shared<XmlAppendedDataElementWrapper>(XmlAppendedDataElementWrapper::RAW); },
                     [](auto& rVtkFileElement, auto pXmlDataElementWrapper) { rVtkFileElement.AddElement(pXmlDataElementWrapper); rVtkFileElement.AddAttribute("header_type", "UInt64"); },
                     r_unstructured_grid_data,
-                    rOutputFileNamePrefix);
+                    rOutputFileNamePrefix,
+                    step);
                 break;
             }
             case COMPRESSED_RAW:
@@ -1709,7 +1689,8 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
                     [](){ return Kratos::make_shared<XmlAppendedDataElementWrapper>(XmlAppendedDataElementWrapper::RAW_COMPRESSED); },
                     [](auto& rVtkFileElement, auto pXmlDataElementWrapper) { rVtkFileElement.AddElement(pXmlDataElementWrapper); rVtkFileElement.AddAttribute("header_type", "UInt64"); rVtkFileElement.AddAttribute("compressor", "vtkZLibDataCompressor"); },
                     r_unstructured_grid_data,
-                    rOutputFileNamePrefix);
+                    rOutputFileNamePrefix,
+                    step);
                 break;
             }
         }
@@ -1730,56 +1711,79 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
         // Single pvd file links all the vtu files from sum-model parts
         // partitioned model_parts and time step vtu files together.
 
-        // creates the pvd file element
-        XmlElementsArray pvd_file_element("VTKFile");
-        pvd_file_element.AddAttribute("type", "Collection");
-        pvd_file_element.AddAttribute("version", "1.0");
-        pvd_file_element.AddAttribute("byte_order", GetEndianness());
+        if (!mIsPVDFileHeaderWritten) {
+            mIsPVDFileHeaderWritten = true;
 
-        // creates the collection element
-        auto collection_element = Kratos::make_shared<XmlElementsArray>("Collection");
-        pvd_file_element.AddElement(collection_element);
+            // creates the pvd file element
+            XmlElementsArray pvd_file_element("VTKFile");
+            pvd_file_element.AddAttribute("type", "Collection");
+            pvd_file_element.AddAttribute("version", "1.0");
+            pvd_file_element.AddAttribute("byte_order", GetEndianness());
 
-        // now iterate through all the time steps and correctly write
-        // the file names for each time step.
-        for (IndexType step = 0; step < mTimeStepList.size(); ++step) {
+            // creates the collection element
+            auto collection_element = Kratos::make_shared<XmlElementsArray>("Collection");
+            pvd_file_element.AddElement(collection_element);
+
+            // now iterate through all the time steps and correctly write
+            // the file names for each time step.
             IndexType local_index = 0;
             for (IndexType i = 0; i < pvd_file_name_info.size(); ++i) {
-               if (pvd_file_name_info[i].second != "") {
+                if (pvd_file_name_info[i].second != "") {
                     auto current_element = Kratos::make_shared<XmlElementsArray>("DataSet");
 
                     // write the time with the specified precision.
                     std::stringstream str_time;
-                    str_time << std::scientific << std::setprecision(mPrecision) << mTimeStepList[step];
-
-                    // linking file name. This file name is the vtu file name of
-                    // the current step. We need to adjust the filename accordingly
-                    // to get the file name corresponding to current_step. When we
-                    // were writing the file names, the step was appended. So here we
-                    // remove the appended step.
-                    const auto vtu_file_name = pvd_file_name_info[i].second;
-                    auto current_vtu_file_name = vtu_file_name.substr(0, vtu_file_name.rfind("_"));
-                    current_vtu_file_name += "_" + std::to_string(step);
-                    // now we need to add back the correct extension
-                    current_vtu_file_name += vtu_file_name.substr(vtu_file_name.rfind("."));
+                    str_time << std::scientific << std::setprecision(mPrecision) << time;
 
                     current_element->AddAttribute("timestep", str_time.str());
                     current_element->AddAttribute("name", pvd_file_name_info[i].first);
                     current_element->AddAttribute("part", std::to_string(local_index++));
                     current_element->AddAttribute(
                         "file", std::filesystem::relative(
-                                    std::filesystem::absolute(current_vtu_file_name),
+                                    std::filesystem::absolute(pvd_file_name_info[i].second),
                                     std::filesystem::absolute(rOutputFileNamePrefix).parent_path())
                                     .generic_string());
                     collection_element->AddElement(current_element);
                 }
             }
+
+            std::ofstream output_file;
+            output_file.open(rOutputFileNamePrefix + ".pvd", std::ios::out | std::ios::trunc);
+            pvd_file_element.Write(output_file);
+            output_file.close();
+        } else {
+            std::ofstream output_file;
+            output_file.open(rOutputFileNamePrefix + ".pvd", std::ios::in | std::ios::out);
+            output_file.seekp(-28, std::ios::end);
+
+            // now iterate through all the time steps and correctly write
+            // the file names for each time step.
+            IndexType local_index = 0;
+            for (IndexType i = 0; i < pvd_file_name_info.size(); ++i) {
+                if (pvd_file_name_info[i].second != "") {
+                    auto current_element = Kratos::make_shared<XmlElementsArray>("DataSet");
+
+                    // write the time with the specified precision.
+                    std::stringstream str_time;
+                    str_time << std::scientific << std::setprecision(mPrecision) << time;
+
+                    current_element->AddAttribute("timestep", str_time.str());
+                    current_element->AddAttribute("name", pvd_file_name_info[i].first);
+                    current_element->AddAttribute("part", std::to_string(local_index++));
+                    current_element->AddAttribute(
+                        "file", std::filesystem::relative(
+                                    std::filesystem::absolute(pvd_file_name_info[i].second),
+                                    std::filesystem::absolute(rOutputFileNamePrefix).parent_path())
+                                    .generic_string());
+
+                    current_element->Write(output_file, 2);
+                }
+            }
+
+            output_file << "   </Collection>\n</VTKFile>";
+            output_file.close();
         }
 
-        std::ofstream output_file;
-        output_file.open(rOutputFileNamePrefix + ".pvd", std::ios::out | std::ios::trunc);
-        pvd_file_element.Write(output_file);
-        output_file.close();
    }
 
     KRATOS_CATCH("");

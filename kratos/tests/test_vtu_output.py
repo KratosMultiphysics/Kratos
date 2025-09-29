@@ -28,7 +28,7 @@ class TestVtuOutputBase:
     def setUpClass(cls, output_prefix: str, setup_method, output_sub_model_parts: bool) -> None:
         cls.model =  Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("test")
-        cls.model_part.ProcessInfo[Kratos.STEP] = 1
+        cls.model_part.ProcessInfo[Kratos.STEP] = 0
         cls.model_part.ProcessInfo[Kratos.TIME] = 1.0
         cls.output_prefix = output_prefix
         cls.output_sub_model_parts = output_sub_model_parts
@@ -95,7 +95,7 @@ class TestVtuOutputBase:
             CompareTwoFilesCheckProcess(params).Execute()
 
         for file_path in Path(reference_prefix).iterdir():
-            self.assertTrue((Path(output_prefix) / file_path.name).is_file())
+            self.assertTrue((Path(output_prefix) / file_path.name).is_file(), msg=f"\"{(Path(output_prefix) / file_path.name)}\" is not a file.")
             check_file(f"{output_prefix}/{file_path.name}", str(file_path))
         check_file(f"{output_prefix}.pvd", f"{reference_prefix}.pvd")
 
@@ -114,7 +114,6 @@ class TestVtuOutput(kratos_unittest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DETERMINANTS_OF_JACOBIAN_PARENT)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.CONSTITUTIVE_MATRIX)
 
-        cls.model_part.ProcessInfo[Kratos.STEP] = 1
         cls.model_part.ProcessInfo[Kratos.TIME] = 1
 
         # creating a circular pie with origin (0, 0)
@@ -176,6 +175,9 @@ class TestVtuOutput(kratos_unittest.TestCase):
         add_variables(cls.model_part.Nodes, lambda x, y, z: x.SetValue(y, z))
         add_variables(cls.model_part.Conditions, lambda x, y, z: x.SetValue(y, z))
         add_variables(cls.model_part.Elements, lambda x, y, z: x.SetValue(y, z))
+
+    def setUp(self):
+        self.model_part.ProcessInfo[Kratos.STEP] = 0
 
     def test_PointVariableAddition(self):
         vtu_output = Kratos.VtuOutput(self.model_part, output_sub_model_parts=True, output_format=Kratos.VtuOutput.BINARY)
@@ -322,6 +324,7 @@ class TestVtuOutput(kratos_unittest.TestCase):
 
         vtu_output.PrintOutput("temp/vtu_output/time_step_test")
         vtu_output.GetModelPart().ProcessInfo[Kratos.TIME] += 1e-9
+        vtu_output.GetModelPart().ProcessInfo[Kratos.STEP] += 1
         vtu_output.PrintOutput("temp/vtu_output/time_step_test")
 
         model_part = vtu_output.GetModelPart()
