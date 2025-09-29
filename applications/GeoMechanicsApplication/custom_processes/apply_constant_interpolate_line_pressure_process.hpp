@@ -82,12 +82,12 @@ public:
     ApplyConstantInterpolateLinePressureProcess(ApplyConstantInterpolateLinePressureProcess&&) = delete;
     ApplyConstantInterpolateLinePressureProcess& operator=(ApplyConstantInterpolateLinePressureProcess&&) = delete;
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    void ExecuteInitialize() override
+    /// this function is designed for being called at the first solution step
+    /// Note that it depends on the values left by other processes at the nodes that it is interpolating
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY
-
+        if (mIsInitialized) return;
         const Variable<double>& var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
@@ -106,7 +106,7 @@ public:
                 else if (mIsFixedProvided) rNode.Free(var);
             }
         });
-
+        mIsInitialized = true;
         KRATOS_CATCH("")
     }
 
@@ -120,6 +120,7 @@ private:
     bool               mIsFixed;
     bool               mIsFixedProvided;
     bool               mIsSeepage;
+    bool               mIsInitialized = false;
     unsigned int       mGravityDirection;
     unsigned int       mOutOfPlaneDirection;
     unsigned int       mHorizontalDirection;

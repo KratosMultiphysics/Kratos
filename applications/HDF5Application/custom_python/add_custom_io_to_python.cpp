@@ -196,14 +196,14 @@ public:
         mAlphaBossak = AlphaBossak;
     }
 
-    void Write(const ModelPart& rModelPart)
+    void Write(const ModelPart& rModelPart, const Parameters Attributes)
     {
-        BaseType::Write(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak), Parameters("""{}"""));
+        BaseType::Write(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak), Attributes);
     }
 
-    void Read(ModelPart& rModelPart)
+    std::map<std::string, Parameters> Read(ModelPart& rModelPart)
     {
-        BaseType::Read(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak));
+        return BaseType::Read(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak));
     }
 
     ///@}
@@ -292,7 +292,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("WriteNodalResults", [](PythonNodalSolutionStepBossakIO& rSelf, const ModelPart& rModelPart) {
                 KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteNodalResults\" method in \"HDF5NodalSolutionStepBossakIO\". Please use \"Write\" method instead.\n";
-                rSelf.Write(rModelPart);
+                rSelf.Write(rModelPart, Parameters("""{}"""));
             },
             py::arg("model_part"))
         .def("ReadNodalResults", [](PythonNodalSolutionStepBossakIO& rSelf, ModelPart& rModelPart) {
@@ -300,7 +300,7 @@ void AddCustomIOToPython(pybind11::module& m)
                 return rSelf.Read(rModelPart);
             },
             py::arg("model_part"))
-        .def("Write", &PythonNodalSolutionStepBossakIO::Write, py::arg("model_part"))
+        .def("Write", &PythonNodalSolutionStepBossakIO::Write, py::arg("model_part"), py::arg("attributes") = Parameters("""{}"""))
         .def("Read", &PythonNodalSolutionStepBossakIO::Read, py::arg("model_part"))
         .def("SetAlphaBossak", &PythonNodalSolutionStepBossakIO::SetAlphaBossak, py::arg("alpha_bossak"))
         ;

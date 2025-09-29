@@ -50,8 +50,7 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
     int ierr = Element::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     KRATOS_ERROR_IF(this->Id() < 1)
         << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
@@ -60,47 +59,17 @@ int TransientPwInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurr
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-    // Verify specific properties
-    if (!r_properties.Has(MINIMUM_JOINT_WIDTH) || r_properties[MINIMUM_JOINT_WIDTH] <= 0.0)
-        KRATOS_ERROR << "MINIMUM_JOINT_WIDTH has Key zero, is not defined or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(TRANSVERSAL_PERMEABILITY) || r_properties[TRANSVERSAL_PERMEABILITY] < 0.0)
-        KRATOS_ERROR << "TRANSVERSAL_PERMEABILITY has Key zero, is not defined "
-                        "or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(BULK_MODULUS_FLUID) || r_properties[BULK_MODULUS_FLUID] <= 0.0)
-        KRATOS_ERROR << "BULK_MODULUS_FLUID has Key zero, is not defined or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] <= 0.0)
-        KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero, is not defined or has "
-                        "an invalid value at element"
-                     << this->Id() << std::endl;
-
-    KRATOS_ERROR_IF_NOT(r_properties.Has(BIOT_COEFFICIENT))
-        << "BIOT_COEFFICIENT does not exist in the material properties in "
-           "element"
-        << this->Id() << std::endl;
-
-    // Verify properties
-    if (!r_properties.Has(DENSITY_WATER) || r_properties[DENSITY_WATER] < 0.0)
-        KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(BULK_MODULUS_SOLID) || r_properties[BULK_MODULUS_SOLID] < 0.0)
-        KRATOS_ERROR << "BULK_MODULUS_SOLID does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(POROSITY) || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY does not exist in the material properties or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
+    const CheckProperties check_properties(this->GetProperties(), "material properties", this->Id(),
+                                           CheckProperties::Bounds::AllInclusive);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
+    check_properties.Check(TRANSVERSAL_PERMEABILITY);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
+    check_properties.CheckAvailability(BIOT_COEFFICIENT);
+    check_properties.Check(DENSITY_WATER);
+    check_properties.Check(BULK_MODULUS_SOLID);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
 
     return ierr;
 
@@ -237,8 +206,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
     KRATOS_TRY
 
     if (rVariable == FLUID_FLUX_VECTOR) {
-        const PropertiesType& r_properties = this->GetProperties();
-        const GeometryType&   r_geometry   = this->GetGeometry();
+        const auto&        r_properties = this->GetProperties();
+        const auto&        r_geometry   = this->GetGeometry();
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -293,8 +262,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], FluidFlux);
         }
     } else if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
-        const PropertiesType& r_properties = this->GetProperties();
-        const GeometryType&   r_geometry   = this->GetGeometry();
+        const auto&        r_properties = this->GetProperties();
+        const auto&        r_geometry   = this->GetGeometry();
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the jacobian and the shape functions local gradients Containers
@@ -359,8 +328,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
     KRATOS_TRY
 
     if (rVariable == PERMEABILITY_MATRIX) {
-        const GeometryType&   r_geometry   = this->GetGeometry();
-        const PropertiesType& r_properties = this->GetProperties();
+        const auto&        r_geometry   = this->GetGeometry();
+        const auto&        r_properties = this->GetProperties();
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining necessary variables
@@ -385,8 +354,8 @@ void TransientPwInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegration
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
     } else if (rVariable == LOCAL_PERMEABILITY_MATRIX) {
-        const GeometryType&   r_geometry   = this->GetGeometry();
-        const PropertiesType& r_properties = this->GetProperties();
+        const auto& r_geometry   = this->GetGeometry();
+        const auto& r_properties = this->GetProperties();
 
         // Defining the shape functions container
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);

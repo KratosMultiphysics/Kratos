@@ -83,7 +83,8 @@ public:
             "echo_level" : 0,
             "lambda_inner" : 0.5,
             "lambda_outer" : 0.5,
-            "number_of_inner_loops": 0
+            "number_of_inner_loops": 0,
+            "number_initial_points_if_importing_nurbs": 5000
         })" );
 
         return default_parameters;
@@ -97,6 +98,7 @@ private:
     double mLambdaInner;
     double mLambdaOuter;
     std::size_t mNumberOfInnerLoops;
+    int mNumberInitialPointsIfImportingNurbs;
     ModelPart* mpIgaModelPart = nullptr; 
     ModelPart* mpSkinModelPartInnerInitial = nullptr; 
     ModelPart* mpSkinModelPartOuterInitial = nullptr; 
@@ -138,7 +140,8 @@ private:
         const double Lambda,
         IndexType EchoLevel,
         ModelPart& rIgaModelPart,
-        ModelPart& rSkinModelPart 
+        ModelPart& rSkinModelPart,
+        const int NumberInitialPointsIfImportingNurbs
         );
 
     /**
