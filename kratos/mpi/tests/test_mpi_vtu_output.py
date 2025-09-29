@@ -178,6 +178,7 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
 
     def setUp(self):
         # Set some process info variables.
+        self.model_part.ProcessInfo[Kratos.STEP] = 0 # float
         self.model_part.ProcessInfo[Kratos.TIME] = 1.2345 # float
 
     def __OutputTest(self, output_type: str):
@@ -200,6 +201,7 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
             vtu_output.AddIntegrationPointVariable(Kratos.CONSTITUTIVE_MATRIX, data_location)
 
         for i in range(2):
+            self.model_part.ProcessInfo[Kratos.STEP] = i
             self.model_part.ProcessInfo[Kratos.TIME] += i
             self.__SetAllVariables(self.model_part, i)
             def AddExpression(exp_name_prefix, exp_type, variable, *args):
@@ -399,14 +401,6 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
                 self.model["test"].Conditions), len(self.model["test"].Conditions), step_id, "conditions", {}, {}))
             list_of_pvtu_file_names.append(check_gauss(self.model["test"], self.model["test"].Conditions, step_id, {}))
 
-            list_of_pvtu_file_names.append(check(self.model["test.sub_2"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
-                self.model["test.sub_2"].Conditions), len(self.model["test.sub_2"].Conditions), step_id, "conditions", {}, {}))
-            list_of_pvtu_file_names.append(check_gauss(self.model["test.sub_2"], self.model["test.sub_2"].Conditions, step_id, {}))
-
-            list_of_pvtu_file_names.append(check(self.model["test.sub_2.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
-                self.model["test.sub_2.sub_1"].Conditions), len(self.model["test.sub_2.sub_1"].Conditions), step_id, "conditions", {}, {}))
-            list_of_pvtu_file_names.append(check_gauss(self.model["test.sub_2.sub_1"], self.model["test.sub_2.sub_1"].Conditions, step_id, {}))
-
             list_of_pvtu_file_names.append(check(self.model["test.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
                 self.model["test.sub_1"].Elements), len(self.model["test.sub_1"].Elements), step_id, "elements", {}, {}))
             list_of_pvtu_file_names.append(check_gauss(self.model["test.sub_1"], self.model["test.sub_1"].Elements, step_id, {}))
@@ -414,6 +408,14 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
             list_of_pvtu_file_names.append(check(self.model["test.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
                 self.model["test.sub_1"].Conditions), len(self.model["test.sub_1"].Conditions), step_id, "conditions", {}, {}))
             list_of_pvtu_file_names.append(check_gauss(self.model["test.sub_1"], self.model["test.sub_1"].Conditions, step_id, {}))
+
+            list_of_pvtu_file_names.append(check(self.model["test.sub_2"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test.sub_2"].Conditions), len(self.model["test.sub_2"].Conditions), step_id, "conditions", {}, {}))
+            list_of_pvtu_file_names.append(check_gauss(self.model["test.sub_2"], self.model["test.sub_2"].Conditions, step_id, {}))
+
+            list_of_pvtu_file_names.append(check(self.model["test.sub_2.sub_1"], test_vtu_output.TestVtuOutput.GetNumberOfNodes(
+                self.model["test.sub_2.sub_1"].Conditions), len(self.model["test.sub_2.sub_1"].Conditions), step_id, "conditions", {}, {}))
+            list_of_pvtu_file_names.append(check_gauss(self.model["test.sub_2.sub_1"], self.model["test.sub_2.sub_1"].Conditions, step_id, {}))
 
         if data_communicator.Rank() == 0:
             test_vtu_output.TestVtuOutput.CheckPvdFile(self, f"temp/vtu_output/{output_type}_output.pvd", list_of_pvtu_file_names, [1.2345, 2.2345])
