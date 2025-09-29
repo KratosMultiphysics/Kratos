@@ -77,7 +77,7 @@ endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 # Setting the libs folder for the shared objects built in kratos
 if (APPLE)
   cmake_policy(SET CMP0042 NEW)
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/KratosMultiphysics/.libs")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
 else()
   set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif()
