@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <cstdint>
 
 // Project includes
 #include "input_output/base_64_encoded_output.h"
@@ -52,7 +53,7 @@ void XmlBase64BinaryNDDataElement<TDataType>::Write(
 
         rOStream << tabbing << "  ";
 
-        const unsigned int total_data_size = sizeof(TDataType) * span.size();
+        const std::uint64_t total_data_size = sizeof(TDataType) * span.size();
 
         {
             // Base 64 encoded output should be
