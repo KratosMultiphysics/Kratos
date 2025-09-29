@@ -40,11 +40,15 @@ public:
                                   Element::EquationIdVectorType& EquationId,
                                   const ProcessInfo&             CurrentProcessInfo) override
     {
-        rCurrentElement.Calculate(INTERNAL_FORCES_VECTOR, RHS_Contribution, CurrentProcessInfo);
-        RHS_Contribution -= mInternalForcesAtStartByElementId.at(rCurrentElement.GetId());
-        RHS_Contribution += CalculateFractionOfUnbalance(CurrentProcessInfo) *
-                            (mInternalForcesAtStartByElementId.at(rCurrentElement.GetId()) +
-                             mExternalForcesAtStartByElementId.at(rCurrentElement.GetId()));
+        Vector internal_forces;
+        rCurrentElement.Calculate(INTERNAL_FORCES_VECTOR, internal_forces, CurrentProcessInfo);
+
+        const auto fraction_of_unbalance = CalculateFractionOfUnbalance(CurrentProcessInfo);
+        RHS_Contribution =
+            -internal_forces +
+            (1 - fraction_of_unbalance) * mInternalForcesAtStartByElementId.at(rCurrentElement.GetId()) +
+            fraction_of_unbalance * mExternalForcesAtStartByElementId.at(rCurrentElement.GetId());
+
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
     }
 
