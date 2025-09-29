@@ -74,15 +74,16 @@ XmlElement::Pointer XmlAppendedDataElementWrapper::Get(
                     for (IndexType i_chunk = 0; i_chunk < number_of_chunks; ++i_chunk) {
 
                         const auto current_chunk_size = std::min(chunk_size, remainder);
+                        uLongf current_compressed_length = compressed_length;
 
                         // now compress the data using zlib
-                        const auto res = compress(compressed_data.data(), &compressed_length, uncompressed_data + offset, current_chunk_size);
+                        const auto res = compress(compressed_data.data(), &current_compressed_length, uncompressed_data + offset, current_chunk_size);
                         KRATOS_ERROR_IF_NOT(res == Z_OK)
-                            << "Zlib compression failed compression \"" << rDataArrayName << "\" with data " << *p_nd_data << ".\n";
+                            << "Zlib compression failed compressing \"" << rDataArrayName << "\" with data " << *p_nd_data << " [ ZLib error code = " << res << " ].\n";
 
                         // insert compressed data to the total compressed data
-                        compressed_total_data.insert(compressed_total_data.end(), compressed_data.data(), compressed_data.data() + compressed_length);
-                        header.push_back(compressed_length);
+                        compressed_total_data.insert(compressed_total_data.end(), compressed_data.data(), compressed_data.data() + current_compressed_length);
+                        header.push_back(current_compressed_length);
 
                         offset += current_chunk_size;
                         remainder -= current_chunk_size;
