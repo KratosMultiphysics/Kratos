@@ -26,6 +26,7 @@
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_IGA_element.h"
 #include "custom_elements/active_shell_3p_element.h"
+#include "custom_elements/active_adjoint_finite_difference_base_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -126,6 +127,8 @@ private:
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
     const ActiveShell3pElement mActiveShell3pElement;
+    const ActiveAdjointFiniteDifferenceBaseElement mActiveAdjointFiniteDifferenceBaseElement;
+
 
     //Conditions
     const OutputCondition mOutputCondition;
