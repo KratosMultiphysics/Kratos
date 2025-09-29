@@ -89,7 +89,6 @@
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_elements/calculation_contribution.h"
-#include "custom_elements/drained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_elements/interface_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
@@ -99,7 +98,6 @@
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_elements/transient_Pw_line_element.h"
 #include "custom_elements/transient_thermal_element.h"
-#include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 
 // Element policies
@@ -439,34 +437,6 @@ private:
         std::make_unique<ThreeDimensionalStressState>()};
     const UPwSmallStrainElement<3, 27> mUPwSmallStrainElement3D27N{
         0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
-        std::make_unique<ThreeDimensionalStressState>()};
-
-    // small strain drained elements:
-    const DrainedUPwSmallStrainElement<2, 3> mDrainedUPwSmallStrainElement2D3N{
-        0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<PlaneStrainStressState>()};
-    const DrainedUPwSmallStrainElement<2, 4> mDrainedUPwSmallStrainElement2D4N{
-        0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const DrainedUPwSmallStrainElement<3, 4> mDrainedUPwSmallStrainElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const DrainedUPwSmallStrainElement<3, 8> mDrainedUPwSmallStrainElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
-
-    // small strain undrained elements:
-    const UndrainedUPwSmallStrainElement<2, 3> mUndrainedUPwSmallStrainElement2D3N{
-        0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<PlaneStrainStressState>()};
-    const UndrainedUPwSmallStrainElement<2, 4> mUndrainedUPwSmallStrainElement2D4N{
-        0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const UndrainedUPwSmallStrainElement<3, 4> mUndrainedUPwSmallStrainElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const UndrainedUPwSmallStrainElement<3, 8> mUndrainedUPwSmallStrainElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
     // FIC elements

@@ -21,7 +21,7 @@
 namespace Kratos::Testing
 {
 
-class ElementSetupUtilities
+class KRATOS_API(KRATOS_GEO_TEST_UTILS) ElementSetupUtilities
 {
 public:
     static std::vector<Point> CreatePointsFor2D2NElement();

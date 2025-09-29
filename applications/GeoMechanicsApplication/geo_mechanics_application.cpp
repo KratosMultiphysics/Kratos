@@ -101,18 +101,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement3D20N", mUPwSmallStrainElement3D20N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement3D27N", mUPwSmallStrainElement3D27N)
 
-    // Drained small strain elements
-    KRATOS_REGISTER_ELEMENT("DrainedUPwSmallStrainElement2D3N", mDrainedUPwSmallStrainElement2D3N)
-    KRATOS_REGISTER_ELEMENT("DrainedUPwSmallStrainElement2D4N", mDrainedUPwSmallStrainElement2D4N)
-    KRATOS_REGISTER_ELEMENT("DrainedUPwSmallStrainElement3D4N", mDrainedUPwSmallStrainElement3D4N)
-    KRATOS_REGISTER_ELEMENT("DrainedUPwSmallStrainElement3D8N", mDrainedUPwSmallStrainElement3D8N)
-
-    // Undrained small strain elements
-    KRATOS_REGISTER_ELEMENT("UndrainedUPwSmallStrainElement2D3N", mUndrainedUPwSmallStrainElement2D3N)
-    KRATOS_REGISTER_ELEMENT("UndrainedUPwSmallStrainElement2D4N", mUndrainedUPwSmallStrainElement2D4N)
-    KRATOS_REGISTER_ELEMENT("UndrainedUPwSmallStrainElement3D4N", mUndrainedUPwSmallStrainElement3D4N)
-    KRATOS_REGISTER_ELEMENT("UndrainedUPwSmallStrainElement3D8N", mUndrainedUPwSmallStrainElement3D8N)
-
     // Small strain FIC elements
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainFICElement2D3N", mUPwSmallStrainFICElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainFICElement2D4N", mUPwSmallStrainFICElement2D4N)
