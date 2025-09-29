@@ -437,8 +437,6 @@ if(DEFINED KRATOS_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
-set (KRATOS_LIBS_PREFIX "KratosMultiphysics/libs")
-
 # Set installation directory
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
@@ -759,8 +757,8 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/python_registry_utilities.py" "KratosMultiphysics/python_registry_utilities.py" )
 
 # Install the libraries in the libs folder
-install(FILES ${Boost_LIBRARIES} DESTINATION "${KRATOS_LIBS_PREFIX}")
-install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION "${KRATOS_LIBS_PREFIX}")
+install(FILES ${Boost_LIBRARIES} DESTINATION libs)
+install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 install(FILES ${KRATOS_SOURCE_DIR}/kratos/pyproject.toml DESTINATION .)
 
 # Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
