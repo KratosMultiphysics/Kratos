@@ -74,17 +74,24 @@ public:
         GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, rA, rDx, rB);
 
         if (!mIsInitialized) {
-            for (auto& rElement : rModelPart.Elements()) {
-                mInternalForcesAtStartByElementId.insert({rElement.GetId(), Vector{}});
-                rElement.Calculate(INTERNAL_FORCES_VECTOR,
-                                   mInternalForcesAtStartByElementId[rElement.GetId()],
-                                   rModelPart.GetProcessInfo());
+            std::ranges::transform(
+                rModelPart.Elements(),
+                std::inserter(mInternalForcesAtStartByElementId, mInternalForcesAtStartByElementId.end()),
+                [&rModelPart](auto& rElement) {
+                Vector forces;
+                rElement.Calculate(INTERNAL_FORCES_VECTOR, forces, rModelPart.GetProcessInfo());
+                return std::make_pair(rElement.GetId(), forces);
+            });
 
-                mExternalForcesAtStartByElementId.insert({rElement.GetId(), Vector{}});
-                rElement.Calculate(EXTERNAL_FORCES_VECTOR,
-                                   mExternalForcesAtStartByElementId[rElement.GetId()],
-                                   rModelPart.GetProcessInfo());
-            }
+            std::ranges::transform(
+                rModelPart.Elements(),
+                std::inserter(mExternalForcesAtStartByElementId, mExternalForcesAtStartByElementId.end()),
+                [&rModelPart](auto& rElement) {
+                Vector forces;
+                rElement.Calculate(EXTERNAL_FORCES_VECTOR, forces, rModelPart.GetProcessInfo());
+                return std::make_pair(rElement.GetId(), forces);
+            });
+
             mIsInitialized = true;
         }
     }
