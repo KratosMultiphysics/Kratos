@@ -103,8 +103,16 @@ public:
      */
     [[nodiscard]] static LockObject& GetGlobalLock();
 
-    ///@}
+    /**
+     * @brief Adds a new ThreadManager instance to the list of managed thread managers.
+     * @param pThreadManager A smart pointer to the ThreadManager instance to be added.
+     * This static method appends the provided ThreadManager pointer to the internal
+     * collection of thread managers. It is typically used to register new thread
+     * managers for parallel execution management.
+     */
+    static void AddThreadManager(ThreadManager::Pointer pThreadManager);
 
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{

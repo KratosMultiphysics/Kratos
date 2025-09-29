@@ -152,6 +152,12 @@ LockObject& ParallelUtilities::GetGlobalLock()
 
     return *mspGlobalLock;
 }
+
+void ParallelUtilities::AddThreadManager(ThreadManager::Pointer pThreadManager)
+{
+    msThreadManagers.push_back(pThreadManager);
+}
+
 int& ParallelUtilities::GetNumberOfThreads()
 {
     if (!mspNumThreads) {
