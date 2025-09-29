@@ -7,7 +7,8 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Richard Faasse
+//  Main authors:    Gennady Markelov
+//                   Richard Faasse
 //
 
 #include "custom_elements/Pw_element.h"
@@ -302,7 +303,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput, Krato
     auto p_element = CreatePwLineElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
                                       "Missing variable DT_WATER_PRESSURE on nodes 0 1")
-									  
+
     RemoveTwoNodes(model_part);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     p_element = CreatePwLineElementWithoutPWDofs(model_part, p_properties);
@@ -1046,8 +1047,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
     expected_right_hand_side <<= 0.0001404394389, -9.276110236e-06, 1.140103478e-05;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 
-    // The following tests are from TransientPwLineElement_CalculateOnIntegrationPoints_Vector but they use an element from an integration test
-    // Act
+    // The following tests are from TransientPwLineElement_CalculateOnIntegrationPoints_Vector but
+    // they use an element from an integration test Act
     std::vector<double> results{};
     element.CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, results, process_info);
     auto const number_of_integration_points =
