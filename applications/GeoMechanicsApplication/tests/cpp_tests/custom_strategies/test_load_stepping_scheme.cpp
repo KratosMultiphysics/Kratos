@@ -158,7 +158,7 @@ TEST_P(LoadSteppingSchemeConditionRightHandSideScaling, RightHandSideIsScaledBas
                                        expected_right_hand_side, Defaults::relative_tolerance);
 }
 
-INSTANTIATE_TEST_CASE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
+INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                         LoadSteppingSchemeConditionRightHandSideScaling,
                         ::testing::Values(std::make_tuple(0.0, Vector(4, 0.0)),
                                           std::make_tuple(0.6, Vector(4, 6.0)),
