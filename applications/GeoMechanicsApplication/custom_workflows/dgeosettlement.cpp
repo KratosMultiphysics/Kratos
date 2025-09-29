@@ -29,7 +29,7 @@
 
 #include "adaptive_time_incrementor.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
-#include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
+#include "custom_processes/find_neighbour_elements_of_conditions_process.h"
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_info_parser.h"
@@ -401,7 +401,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     }
 
     // Note that the computing part and the main model part _share_ their process info and properties
-    GetComputationalModelPart().SetProcessInfo(main_model_part.GetProcessInfo());
+    GetComputationalModelPart().SetProcessInfo(main_model_part.pGetProcessInfo());
     for (auto i = ModelPart::SizeType{0}; i < main_model_part.NumberOfMeshes(); ++i) {
         auto& mesh = main_model_part.GetMesh(i);
         for (const auto& property : mesh.Properties()) {

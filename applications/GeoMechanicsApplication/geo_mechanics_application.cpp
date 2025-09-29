@@ -83,7 +83,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SteadyStatePwInterfaceElement3D6N", mSteadyStatePwInterfaceElement3D6N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwInterfaceElement3D8N", mSteadyStatePwInterfaceElement3D8N)
 
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement2D4N", mSteadyStatePwPipingElement2D4N)
     KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement2D2N", mGeoSteadyStatePwPipingElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement3D2N", mGeoSteadyStatePwPipingElement3D2N)
 
@@ -101,18 +100,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement3D10N", mUPwSmallStrainElement3D10N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement3D20N", mUPwSmallStrainElement3D20N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainElement3D27N", mUPwSmallStrainElement3D27N)
-
-    // Drained small strain elements
-    KRATOS_REGISTER_ELEMENT("DrainedUPwSmallStrainElement2D3N", mDrainedUPwSmallStrainElement2D3N)
-    KRATOS_REGISTER_ELEMENT("DrainedUPwSmallStrainElement2D4N", mDrainedUPwSmallStrainElement2D4N)
-    KRATOS_REGISTER_ELEMENT("DrainedUPwSmallStrainElement3D4N", mDrainedUPwSmallStrainElement3D4N)
-    KRATOS_REGISTER_ELEMENT("DrainedUPwSmallStrainElement3D8N", mDrainedUPwSmallStrainElement3D8N)
-
-    // Undrained small strain elements
-    KRATOS_REGISTER_ELEMENT("UndrainedUPwSmallStrainElement2D3N", mUndrainedUPwSmallStrainElement2D3N)
-    KRATOS_REGISTER_ELEMENT("UndrainedUPwSmallStrainElement2D4N", mUndrainedUPwSmallStrainElement2D4N)
-    KRATOS_REGISTER_ELEMENT("UndrainedUPwSmallStrainElement3D4N", mUndrainedUPwSmallStrainElement3D4N)
-    KRATOS_REGISTER_ELEMENT("UndrainedUPwSmallStrainElement3D8N", mUndrainedUPwSmallStrainElement3D8N)
 
     // Small strain FIC elements
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainFICElement2D3N", mUPwSmallStrainFICElement2D3N)
@@ -479,13 +466,10 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(JOINT_WIDTH)
 
     KRATOS_REGISTER_VARIABLE(NODAL_SMOOTHING)
-    KRATOS_REGISTER_VARIABLE(NODAL_CAUCHY_STRESS_TENSOR)
     KRATOS_REGISTER_VARIABLE(ENGINEERING_STRAIN_TENSOR)
     KRATOS_REGISTER_VARIABLE(ENGINEERING_STRAIN_VECTOR)
-    KRATOS_REGISTER_VARIABLE(NODAL_DAMAGE_VARIABLE)
     KRATOS_REGISTER_VARIABLE(NODAL_JOINT_AREA)
     KRATOS_REGISTER_VARIABLE(NODAL_JOINT_WIDTH)
-    KRATOS_REGISTER_VARIABLE(NODAL_JOINT_DAMAGE)
 
     KRATOS_REGISTER_VARIABLE(BIOT_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(PLATE_SHAPE_CORRECTION_FACTOR)

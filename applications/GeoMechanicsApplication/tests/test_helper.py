@@ -10,6 +10,8 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
+from KratosMultiphysics.GeoMechanicsApplication import unit_conversions
+
 
 def get_file_path(filename):
     import os
@@ -438,6 +440,23 @@ def are_dictionaries_almost_equal(expected: Dict[Any, Any],
     return True
 
 
+def want_test_plots() -> bool:
+    return os.environ.get("KRATOS_GEO_MAKE_TEST_PLOTS", "off").lower() == "on"
+
+
+def get_data_points_from_file(file_path, data_point_extractor):
+    result = []
+    with open(file_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+
+            result.append(data_point_extractor(line))
+
+    return result
+
+
 class GiDOutputFileReader:
     def __init__(self):
         self._reset_internal_state()
@@ -569,9 +588,6 @@ class GiDOutputFileReader:
 
     @staticmethod
     def nodal_values_at_time(result_item_name, time, output_data, node_ids=None):
-        if node_ids and node_ids != sorted(node_ids):
-            raise RuntimeError("Node IDs must be sorted")
-
         matching_item = None
         for item in output_data["results"][result_item_name]:
             if math.isclose(item["time"], time):
@@ -583,10 +599,13 @@ class GiDOutputFileReader:
         if matching_item["location"] != "OnNodes":
             raise RuntimeError(f"'{result_item_name}' is not a nodal result")
 
-        if not node_ids: # return all values
-            return [item["value"] for item in matching_item["values"]]
+        node_id_to_value_map = {item["node"] : item["value"] for item in matching_item["values"]}
 
-        return [item["value"] for item in matching_item["values"] if item["node"] in node_ids]
+        if node_ids is None: # return all values
+            node_ids = [item["node"] for item in matching_item["values"]]
+
+        return [node_id_to_value_map[node_id] for node_id in node_ids]
+
 
     @staticmethod
     def element_integration_point_values_at_time(result_item_name, time, output_data, element_ids=None, integration_point_indices=None):
