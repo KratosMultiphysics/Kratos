@@ -1401,33 +1401,6 @@ void SnakeCutSbmProcess::SetSurrogateToSkinProjections(
             }
         }
     }
-
-    //FIXME:
-    int count = 0;
-
-    const IndexType size_surrogate_loop = rSurrogateSubModelPart.NumberOfConditions();
-    for (auto& r_surrogate_condition : rSurrogateSubModelPart.Conditions())
-    {
-        // Search the closest condition in the skin model part
-        is_entering = !is_entering;
-
-        Node::Pointer p_surrogate_node_1 = r_surrogate_condition.pGetGeometry()->pGetPoint(0);
-        Node::Pointer p_surrogate_node_2 = r_surrogate_condition.pGetGeometry()->pGetPoint(1);
-        // if (count % (size_surrogate_loop-1)/10 == 0)
-        if (count % 20 == 0)
-        {
-
-            KRATOS_WATCH(p_surrogate_node_1->Coordinates())
-            KRATOS_WATCH(p_surrogate_node_2->Coordinates())
-            KRATOS_WATCH("-------------------------")
-            // add error
-            auto temp_node_id = p_surrogate_node_1->GetValue(PROJECTION_NODE_ID);
-            auto temp_node_id_2 = p_surrogate_node_2->GetValue(PROJECTION_NODE_ID);
-            p_surrogate_node_1->SetValue(PROJECTION_NODE_ID, temp_node_id_2);
-            p_surrogate_node_2->SetValue(PROJECTION_NODE_ID, temp_node_id);
-        }
-        count += 1;
-    }
 }
 
 void SnakeCutSbmProcess::AssestProjectionsFeasibility(
