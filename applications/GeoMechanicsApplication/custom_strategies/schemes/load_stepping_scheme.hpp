@@ -74,23 +74,8 @@ public:
         GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, rA, rDx, rB);
 
         if (!mIsInitialized) {
-            std::ranges::transform(
-                rModelPart.Elements(),
-                std::inserter(mInternalForcesAtStartByElementId, mInternalForcesAtStartByElementId.end()),
-                [&rModelPart](auto& rElement) {
-                Vector forces;
-                rElement.Calculate(INTERNAL_FORCES_VECTOR, forces, rModelPart.GetProcessInfo());
-                return std::make_pair(rElement.GetId(), forces);
-            });
-
-            std::ranges::transform(
-                rModelPart.Elements(),
-                std::inserter(mExternalForcesAtStartByElementId, mExternalForcesAtStartByElementId.end()),
-                [&rModelPart](auto& rElement) {
-                Vector forces;
-                rElement.Calculate(EXTERNAL_FORCES_VECTOR, forces, rModelPart.GetProcessInfo());
-                return std::make_pair(rElement.GetId(), forces);
-            });
+            SaveInternalForces(rModelPart);
+            SaveExternalForces(rModelPart);
 
             mIsInitialized = true;
         }
@@ -101,10 +86,34 @@ private:
     std::map<std::size_t, TLocalSystemVectorType> mExternalForcesAtStartByElementId;
     bool                                          mIsInitialized = false;
 
-    double CalculateFractionOfUnbalance(const ProcessInfo& rProcessInfo)
+    static double CalculateFractionOfUnbalance(const ProcessInfo& rProcessInfo)
     {
         return (rProcessInfo[TIME] - rProcessInfo[START_TIME]) /
                (rProcessInfo[END_TIME] - rProcessInfo[START_TIME]);
+    }
+
+    void SaveInternalForces(ModelPart& rModelPart)
+    {
+        std::ranges::transform(
+            rModelPart.Elements(),
+            std::inserter(mInternalForcesAtStartByElementId, mInternalForcesAtStartByElementId.end()),
+            [&rModelPart](auto& rElement) {
+            Vector forces;
+            rElement.Calculate(INTERNAL_FORCES_VECTOR, forces, rModelPart.GetProcessInfo());
+            return std::make_pair(rElement.GetId(), forces);
+        });
+    }
+
+    void SaveExternalForces(ModelPart& rModelPart)
+    {
+        std::ranges::transform(
+            rModelPart.Elements(),
+            std::inserter(mExternalForcesAtStartByElementId, mExternalForcesAtStartByElementId.end()),
+            [&rModelPart](auto& rElement) {
+            Vector forces;
+            rElement.Calculate(EXTERNAL_FORCES_VECTOR, forces, rModelPart.GetProcessInfo());
+            return std::make_pair(rElement.GetId(), forces);
+        });
     }
 };
 } // namespace Kratos
