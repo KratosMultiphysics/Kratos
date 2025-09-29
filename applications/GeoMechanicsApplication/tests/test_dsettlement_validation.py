@@ -88,7 +88,7 @@ def make_settlement_history_plot(
                 path_to_ref_data_points, extract_time_and_settlement_from_line
             ),
             "D-Settlement",
-            marker="+",
+            marker="1",
         )
     )
 
@@ -140,7 +140,7 @@ def make_stress_over_y_plot(
             item["file_path"], extract_stress_and_y_from_line
         )
         data_series_collection.append(
-            plot_utils.DataSeries(data_points, item["label"], marker="+")
+            plot_utils.DataSeries(data_points, item["label"], marker="1")
         )
 
     # Extract data points from the Kratos analysis results
