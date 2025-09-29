@@ -11,7 +11,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/registry.h"
 #include "linear_solvers_application.h"
 #include "custom_factories/dense_linear_solver_factory.h"
@@ -21,12 +20,13 @@
 #include "custom_solvers/eigen_sparse_qr_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
 
-#if defined USE_EIGEN_MKL
+#ifdef USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
 #include "custom_solvers/eigen_pardiso_llt_solver.h"
 #include "custom_solvers/eigen_pardiso_ldlt_solver.h"
 #include "custom_solvers/mkl_ilu.hpp" // MKLILU0Smoother, MKLILUTSmoother
 #include "mkl_service.h"
+#include "custom_includes/mkl_thread_manager.h"
 #endif
 
 Kratos::KratosApplication* CreateApplication()
@@ -51,13 +51,16 @@ void KratosLinearSolversApplication::Register()
         Registry::AddItem<std::string>("libraries.eigen");
     }
 
-    #if defined USE_EIGEN_MKL
+    #ifdef USE_EIGEN_MKL
     MKLVersion mkl_version;
     mkl_get_version(&mkl_version);
     KRATOS_INFO("") << "Using Intel MKL version "
                     << mkl_version.MajorVersion << "." << mkl_version.MinorVersion << "." << mkl_version.UpdateVersion
                     << " build " << mkl_version.Build << std::endl
                     << "MKL processor: " << mkl_version.Processor << std::endl;
+
+    // Appending the thread manager
+    ParallelUtilities::msThreadManagers.push_back(Kratos::make_shared<MKLThreadManager>());
     #endif
 
     RegisterDenseLinearSolvers();
@@ -84,7 +87,7 @@ void KratosLinearSolversApplication::Register()
     static auto SparseCGFactory = SparseCGType::Factory();
     KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
 
-#if defined USE_EIGEN_MKL
+#ifdef USE_EIGEN_MKL
 
     // Pardiso LU Solver
     using PardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<double>>;
