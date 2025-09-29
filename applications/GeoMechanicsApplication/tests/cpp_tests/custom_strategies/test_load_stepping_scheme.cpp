@@ -15,6 +15,7 @@
 #include "includes/element.h"
 #include "spaces/ublas_space.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include <algorithm>
 
 namespace
@@ -37,8 +38,8 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override
     {
-        rResult = {1};
-    };
+        rResult = {3, 4};
+    }
 
 private:
     Vector mInternalForces;
@@ -50,18 +51,13 @@ class MockConditionForLoadStepping : public Condition
 public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
-        rRightHandSideVector = Vector{ScalarVector(4, 10.0)};
+        rRightHandSideVector = Vector(4, 10.0);
     }
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
     {
-        rResult = {1};
+        rResult = {1, 2};
     }
-};
-
-class LoadSteppingSchemeConditionRightHandSideScaling
-    : public ::testing::TestWithParam<std::tuple<double, Vector>>
-{
 };
 
 Vector CreateVector(const std::initializer_list<double>& rInitializerList)
@@ -89,7 +85,7 @@ TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedB
 {
     // Arrange
     LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
-    auto       element = Kratos::make_intrusive<MockElementForLoadSteppingScheme>();
+    auto element = Kratos::make_intrusive<MockElementForLoadSteppingScheme>();
     element->SetInternalForces(CreateVector({-1.0, -2.0, -3.0, -4.0}));
     element->SetExternalForces(CreateVector({5.0, 6.0, 7.0, 8.0}));
 
@@ -111,15 +107,18 @@ TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedB
     element->SetInternalForces(CreateVector({-2.0, -3.0, -4.0, -5.0}));
 
     // Act & Assert
-    Vector actual_right_hand_side;
+    const std::vector expected_equation_ids = {3, 4};
+    Vector            actual_right_hand_side;
     scheme.CalculateRHSContribution(*element, actual_right_hand_side, equation_ids, CurrentProcessInfo);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, 1e-6);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance);
+    KRATOS_EXPECT_VECTOR_EQ(equation_ids, expected_equation_ids);
 
     Vector actual_right_hand_side_via_system_contribution;
     Matrix dummy_matrix;
     scheme.CalculateSystemContributions(*element, dummy_matrix, actual_right_hand_side_via_system_contribution,
                                         equation_ids, CurrentProcessInfo);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, 1e-6);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance);
+    KRATOS_EXPECT_VECTOR_EQ(equation_ids, expected_equation_ids);
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
@@ -128,6 +127,12 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::make_tuple(0.5, Vector(4, 1.0)),
                                            std::make_tuple(0.8, Vector(4, 2.2)),
                                            std::make_tuple(1.0, Vector(4, 3.0))));
+
+
+class LoadSteppingSchemeConditionRightHandSideScaling
+    : public ::testing::TestWithParam<std::tuple<double, Vector>>
+{
+};
 
 TEST_P(LoadSteppingSchemeConditionRightHandSideScaling, RightHandSideIsScaledBasedOnTime)
 {
@@ -143,17 +148,14 @@ TEST_P(LoadSteppingSchemeConditionRightHandSideScaling, RightHandSideIsScaledBas
 
     Vector actual_right_hand_side;
     scheme.CalculateRHSContribution(condition, actual_right_hand_side, actual_equation_ids, CurrentProcessInfo);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, 1e-6);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance);
 
     Vector actual_right_hand_side_via_system_contribution;
     Matrix dummy_matrix;
     scheme.CalculateSystemContributions(condition, dummy_matrix, actual_right_hand_side_via_system_contribution,
                                         actual_equation_ids, CurrentProcessInfo);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side_via_system_contribution,
-                                       expected_right_hand_side, 1e-6);
-
-    std::vector<std::size_t> expected_equation_ids = {1};
-    KRATOS_EXPECT_VECTOR_EQ(actual_equation_ids, expected_equation_ids);
+                                       expected_right_hand_side, Defaults::relative_tolerance);
 }
 
 INSTANTIATE_TEST_CASE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
@@ -161,5 +163,34 @@ INSTANTIATE_TEST_CASE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                         ::testing::Values(std::make_tuple(0.0, Vector(4, 0.0)),
                                           std::make_tuple(0.6, Vector(4, 6.0)),
                                           std::make_tuple(1.0, Vector(4, 10.0))));
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LoadSteppingScheme_CalculateRHSContribution_ReturnsCorrectConditionEquationIds)
+{
+    LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
+    MockConditionForLoadStepping                        condition;
+
+    std::vector<std::size_t> actual_equation_ids;
+    Vector                   actual_right_hand_side;
+    scheme.CalculateRHSContribution(condition, actual_right_hand_side, actual_equation_ids, ProcessInfo{});
+
+    const std::vector expected_equation_ids = {1, 2};
+    KRATOS_EXPECT_VECTOR_EQ(actual_equation_ids, expected_equation_ids);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       LoadSteppingScheme_CalculateSystemContributions_ReturnsCorrectConditionEquationIds)
+{
+    LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
+    MockConditionForLoadStepping                        condition;
+
+    std::vector<std::size_t> actual_equation_ids;
+    Vector                   actual_right_hand_side_via_system_contribution;
+    Matrix                   dummy_matrix;
+    scheme.CalculateSystemContributions(condition, dummy_matrix, actual_right_hand_side_via_system_contribution,
+                                        actual_equation_ids, ProcessInfo{});
+
+    const std::vector expected_equation_ids = {1, 2};
+    KRATOS_EXPECT_VECTOR_EQ(actual_equation_ids, expected_equation_ids);
+}
 
 } // namespace Kratos::Testing
