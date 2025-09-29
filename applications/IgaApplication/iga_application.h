@@ -127,7 +127,7 @@ private:
     const Shell5pElement mShell5pElement;
     const LaplacianIGAElement mLaplacianIGAElement;
     const ActiveShell3pElement mActiveShell3pElement;
-    const ActiveAdjointFiniteDifferenceBaseElement mActiveAdjointFiniteDifferenceBaseElement;
+    const ActiveAdjointFiniteDifferencingBaseElement<ActiveShell3pElement> mActiveAdjointFiniteDifferenceBaseElement;
 
 
     //Conditions

@@ -14,16 +14,12 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "active_adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_response_functions/response_utilities/finite_difference_utility.h"
 #include "includes/checks.h"
-#include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
-#include "custom_elements/beam_elements/cr_beam_element_linear_3D2N.hpp"
-#include "custom_elements/truss_elements/truss_element_3D2N.hpp"
-#include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
-#include "custom_elements/solid_elements/small_displacement.h"
-#include "custom_elements/nodal_elements/spring_damper_element.hpp"
+
 #include "custom_elements/active_shell_3p_element.h"
 
 #include "structural_mechanics_application_variables.h"
@@ -50,7 +46,7 @@ void CalculateOnIntegrationPoints(
         const auto& output_value = rAdjointElement.GetValue(rVariable);
 
         // Resize Output
-        const SizeType gauss_points_number = rAdjointElement.GetGeometry().IntegrationPointsNumber(rAdjointElement.GetIntegrationMethod());
+        const std::size_t gauss_points_number = rAdjointElement.GetGeometry().IntegrationPointsNumber(rAdjointElement.GetIntegrationMethod());
         if (rValues.size() != gauss_points_number) {
             rValues.resize(gauss_points_number);
         }
@@ -734,13 +730,9 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer& rSer
 
 }
 
-template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N<ShellKinematics::LINEAR>>;
-template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
-template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
-template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
-template class AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
-template class AdjointFiniteDifferencingBaseElement<SpringDamperElement<3>>;
-template class AdjointFiniteDifferencingBaseElement<ActiveShell3pElement>;
+// template instantiations
+template class ActiveAdjointFiniteDifferencingBaseElement<ActiveShell3pElement>;
+
 
 } // namespace Kratos
 

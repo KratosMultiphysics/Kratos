@@ -17,14 +17,12 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "includes/element.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/openmp_utils.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
-
-
-// Nach den Includes, vor der Namespace-Öffnung
-typedef ActiveAdjointFiniteDifferencingBaseElement<ActiveShell3pElement> ActiveAdjointFiniteDifferenceBaseElement;
+#include "custom_elements/active_shell_3p_element.h"
 
 namespace Kratos
 {
@@ -62,7 +60,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointFiniteDifferencingBaseElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>);
     ///@}
 
     ///@name Classes
@@ -72,7 +70,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    AdjointFiniteDifferencingBaseElement(IndexType NewId = 0,
+    ActiveAdjointFiniteDifferencingBaseElement(IndexType NewId = 0,
                         bool HasRotationDofs = false)
     : Element(NewId),
       mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGetGeometry())),
@@ -80,7 +78,7 @@ public:
     {
     }
 
-    AdjointFiniteDifferencingBaseElement(IndexType NewId,
+    ActiveAdjointFiniteDifferencingBaseElement(IndexType NewId,
                         GeometryType::Pointer pGeometry,
                         bool HasRotationDofs = false)
     : Element(NewId, pGeometry),
@@ -89,7 +87,7 @@ public:
     {
     }
 
-    AdjointFiniteDifferencingBaseElement(IndexType NewId,
+    ActiveAdjointFiniteDifferencingBaseElement(IndexType NewId,
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties,
                         bool HasRotationDofs = false)
