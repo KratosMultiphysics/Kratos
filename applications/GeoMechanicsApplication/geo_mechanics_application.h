@@ -324,9 +324,11 @@ private:
     const PwElement<3, 3> mTransientPwLineElement3D3N{
         0, Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
         transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const PwElement<3, 4> mTransientPwLineElement3D4N{
+    // PwElement3D4N is not used for modelling; but it tests 3D features of the PwElement, which may replace TransientPwElement in future
+    const PwElement<3, 4> PwElement3D4N{
         0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+
     const TransientPwInterfaceElement<2, 4> mTransientPwInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};

@@ -12,14 +12,13 @@
 
 #pragma once
 
-#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/node_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/kratos_export_api.h"
 #include "includes/properties.h"
 
 namespace Kratos
 {
-template <unsigned int TDim, unsigned int TNumNodes>
 class KRATOS_API(GEO_MECHANICS_APPLICATION) HydraulicDischarge
 {
 public:
@@ -32,7 +31,9 @@ public:
         KRATOS_TRY
 
         const IndexType number_of_integration_points = rGeometry.IntegrationPointsNumber(IntegrationMethod);
-        Matrix grad_Np_T(TNumNodes, TDim);
+        const auto dimension        = rGeometry.WorkingSpaceDimension();
+        const auto number_of_points = rGeometry.PointsNumber();
+        Matrix     grad_Np_T(number_of_points, dimension);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
@@ -40,16 +41,16 @@ public:
 
             auto integration_coefficient = rIntegrationCoefficients[integration_point];
 
-            for (unsigned int node = 0; node < TNumNodes; ++node) {
+            for (unsigned int node = 0; node < number_of_points; ++node) {
                 double hydraulic_discharge = 0;
-                for (unsigned int direction = 0; direction < TDim; ++direction) {
+                for (unsigned int direction = 0; direction < dimension; ++direction) {
                     hydraulic_discharge +=
                         grad_Np_T(node, direction) * rFluidFlux[integration_point][direction];
                 }
 
                 hydraulic_discharge *= integration_coefficient;
                 hydraulic_discharge += rGeometry[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
-                GeoElementUtilities::ThreadSafeNodeWrite(rGeometry[node], HYDRAULIC_DISCHARGE, hydraulic_discharge);
+                NodeUtilities::ThreadSafeNodeWrite(rGeometry[node], HYDRAULIC_DISCHARGE, hydraulic_discharge);
             }
         }
 

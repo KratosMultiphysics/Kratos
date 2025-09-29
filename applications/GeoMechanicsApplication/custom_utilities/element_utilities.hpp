@@ -216,14 +216,6 @@ public:
     static std::vector<Vector> EvaluateShapeFunctionsAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                                                          const Geometry<Node>& rGeometry);
 
-    template <class TValueType>
-    inline static void ThreadSafeNodeWrite(Node& rNode, const Variable<TValueType>& Var, const TValueType Value)
-    {
-        rNode.SetLock();
-        rNode.FastGetSolutionStepValue(Var) = Value;
-        rNode.UnSetLock();
-    }
-
 private:
     template <typename VectorType1, typename VectorType2>
     static void AddVectorAtPosition(const VectorType1& rSourceVector, VectorType2& rDestinationVector, std::size_t Offset)

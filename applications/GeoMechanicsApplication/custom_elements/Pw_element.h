@@ -108,9 +108,10 @@ public:
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
-        // Reset hydraulic discharge
-        for (auto& r_node : this->GetGeometry()) {
-            r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE) = 0.0;
+        if (this->GetGeometry().LocalSpaceDimension() != 1) {
+            for (auto& r_node : this->GetGeometry()) {
+                r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE) = 0.0;
+            }
         }
         KRATOS_CATCH("")
     }
@@ -130,8 +131,8 @@ public:
             const auto integration_coefficients = this->CalculateIntegrationCoefficients(det_J_container);
             std::vector<array_1d<double, 3>> fluid_flux;
             this->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_flux, rCurrentProcessInfo);
-            HydraulicDischarge<TDim, TNumNodes>::CalculateHydraulicDischarge(
-                fluid_flux, integration_coefficients, dN_dx_container, this->GetIntegrationMethod(), r_geometry);
+            HydraulicDischarge::CalculateHydraulicDischarge(fluid_flux, integration_coefficients, dN_dx_container,
+                                                            this->GetIntegrationMethod(), r_geometry);
         }
 
         KRATOS_CATCH("")
@@ -272,10 +273,11 @@ public:
     GeometryData::IntegrationMethod GetIntegrationMethod() const override
     {
         switch (this->GetGeometry().GetGeometryOrderType()) {
+            using enum GeometryData::KratosGeometryOrderType;
             using enum GeometryData::IntegrationMethod;
-        case GeometryData::Kratos_Cubic_Order:
+        case Kratos_Cubic_Order:
             return GetGeometry().LocalSpaceDimension() == 1 ? GI_GAUSS_3 : GI_GAUSS_4;
-        case GeometryData::Kratos_Quartic_Order:
+        case Kratos_Quartic_Order:
             return GI_GAUSS_5;
         default:
             return GI_GAUSS_2;
@@ -325,8 +327,6 @@ public:
         return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
-
-        return 0;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
@@ -448,9 +448,9 @@ private:
 
     void CachingDataForCalculator()
     {
-        mIntegrationCoefficients = SaveIntegrationCoefficients();
-        mNContainer              = SaveNContainer();
-        mFluidPressures          = SaveFluidPressure();
+        mIntegrationCoefficients = CalculateIntegrationCoefficients();
+        mNContainer              = CalculateNContainer();
+        mFluidPressures          = CalculateFluidPressure();
     }
 
     typename CompressibilityCalculator<TNumNodes>::InputProvider CreateCompressibilityInputProvider(const ProcessInfo& rCurrentProcessInfo)
@@ -500,14 +500,17 @@ private:
         return [this]() -> const Matrix& { return mNContainer; };
     }
 
-    Matrix SaveNContainer() { return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod()); }
+    Matrix CalculateNContainer()
+    {
+        return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+    }
 
     auto GetIntegrationCoefficients()
     {
         return [this]() -> const Vector& { return mIntegrationCoefficients; };
     }
 
-    Vector SaveIntegrationCoefficients()
+    Vector CalculateIntegrationCoefficients()
     {
         GetGeometry().DeterminantOfJacobian(mDetJCcontainer, this->GetIntegrationMethod());
         return mIntegrationCoefficientsCalculator.Run<Vector>(
@@ -519,7 +522,7 @@ private:
         return [this]() -> const std::vector<double>& { return mFluidPressures; };
     }
 
-    std::vector<double> SaveFluidPressure()
+    std::vector<double> CalculateFluidPressure()
     {
         array_1d<double, TNumNodes> pressure_vector;
         VariablesUtilities::GetNodalValues(this->GetGeometry(), WATER_PRESSURE, pressure_vector.begin());
@@ -562,7 +565,6 @@ private:
     }
 
     auto MakeLocalSpaceDimensionGetter() const
-
     {
         return [this]() -> std::size_t { return this->GetGeometry().LocalSpaceDimension(); };
     }

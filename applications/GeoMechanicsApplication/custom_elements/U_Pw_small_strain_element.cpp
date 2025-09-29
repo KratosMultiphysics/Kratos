@@ -19,6 +19,7 @@
 #include "custom_utilities/hydraulic_discharge.hpp"
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/node_utilities.h"
 #include "custom_utilities/output_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
@@ -96,7 +97,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::ResetHydraulicDischarge()
 
     // Reset hydraulic discharge
     for (auto& r_node : this->GetGeometry()) {
-        GeoElementUtilities::ThreadSafeNodeWrite(r_node, HYDRAULIC_DISCHARGE, 0.0);
+        NodeUtilities::ThreadSafeNodeWrite(r_node, HYDRAULIC_DISCHARGE, 0.0);
     }
 
     KRATOS_CATCH("")
@@ -125,7 +126,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateHydraulicDischarge(const P
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
 
-    HydraulicDischarge<TDim, TNumNodes>::CalculateHydraulicDischarge(
+    HydraulicDischarge::CalculateHydraulicDischarge(
         fluid_flux, integration_coefficients, Variables.DN_DXContainer, mThisIntegrationMethod, r_geometry);
 
     KRATOS_CATCH("")

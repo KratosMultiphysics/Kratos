@@ -57,5 +57,4 @@ std::map<IndexType, IndexType> NodeUtilities::CreateGlobalToLocalNodeIndexMap(co
 
     return result;
 }
-
 } // namespace Kratos

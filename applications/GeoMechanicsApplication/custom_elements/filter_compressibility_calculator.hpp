@@ -13,7 +13,6 @@
 #pragma once
 
 #include "contribution_calculator.h"
-#include "custom_retention/retention_law.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"

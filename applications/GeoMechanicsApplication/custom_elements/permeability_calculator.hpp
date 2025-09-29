@@ -18,8 +18,6 @@
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
 
-#include <utility>
-
 namespace Kratos
 {
 
