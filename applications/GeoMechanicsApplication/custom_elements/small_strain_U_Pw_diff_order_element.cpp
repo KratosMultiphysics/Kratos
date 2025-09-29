@@ -141,7 +141,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
 
     const auto number_of_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
     for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-        this->CalculateKinematics(Variables, GPoint);
+        this->ExtractShapeFunctionDataAtGPoint(Variables, GPoint);
         Variables.B            = b_matrices[GPoint];
         Variables.F            = deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
@@ -428,7 +428,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
-            this->CalculateKinematics(Variables, GPoint);
+            this->ExtractShapeFunctionDataAtGPoint(Variables, GPoint);
 
             RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
                 Variables.Np, Variables.PressureVector));
@@ -557,7 +557,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         const SizeType dimension = r_geometry.WorkingSpaceDimension();
         for (unsigned int g_point = 0; g_point < mConstitutiveLawVector.size(); ++g_point) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
-            this->CalculateKinematics(Variables, g_point);
+            this->ExtractShapeFunctionDataAtGPoint(Variables, g_point);
             Variables.B = b_matrices[g_point];
 
             Vector   body_acceleration = ZeroVector(dimension);
@@ -735,7 +735,6 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
 
     ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, r_prop, rCurrentProcessInfo);
 
-    // Stiffness matrix is needed to calculate Biot coefficient
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -760,17 +759,16 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
                                          strain_vectors, mStressVector, constitutive_matrices);
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NpContainer, Variables.PressureVector);
-    const auto degrees_of_saturation     = CalculateDegreesOfSaturation(fluid_pressures);
-    const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
+    const auto degrees_of_saturation = CalculateDegreesOfSaturation(fluid_pressures);
 
     auto       relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
     const auto permeability_update_factors  = GetOptionalPermeabilityUpdateFactors(strain_vectors);
-    std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
-                   relative_permeability_values.cbegin(), relative_permeability_values.begin(),
-                   std::multiplies<>{});
+    std::ranges::transform(permeability_update_factors, relative_permeability_values,
+                           relative_permeability_values.begin(), std::multiplies<>{});
     const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
     if (rVariable == INTERNAL_FORCES_VECTOR) {
+        const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
         const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
             constitutive_matrices, this->GetProperties());
         const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
@@ -796,7 +794,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables&
                                                                const std::vector<double>& relative_permeability_values,
                                                                const std::vector<double>& bishop_coefficients)
 {
-    Vector result = ZeroVector(this->GetNumberOfDOF());
+    Vector result(this->GetNumberOfDOF(), 0.0);
     for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
         Variables.B                      = b_matrices[GPoint];
         Variables.IntegrationCoefficient = integration_coefficients[GPoint];
@@ -880,7 +878,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
     ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, r_prop, rCurrentProcessInfo);
 
-    // Stiffness matrix is needed to calculate Biot coefficient
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag) ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -916,15 +913,14 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
     auto       relative_permeability_values = CalculateRelativePermeabilityValues(fluid_pressures);
     const auto permeability_update_factors  = GetOptionalPermeabilityUpdateFactors(strain_vectors);
-    std::transform(permeability_update_factors.cbegin(), permeability_update_factors.cend(),
-                   relative_permeability_values.cbegin(), relative_permeability_values.begin(),
-                   std::multiplies<>{});
+    std::ranges::transform(permeability_update_factors, relative_permeability_values,
+                           relative_permeability_values.begin(), std::multiplies<>{});
 
     const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
     if (CalculateStiffnessMatrixFlag) {
         for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-            this->CalculateKinematics(Variables, GPoint);
+            this->ExtractShapeFunctionDataAtGPoint(Variables, GPoint);
             Variables.B                  = b_matrices[GPoint];
             Variables.F                  = deformation_gradients[GPoint];
             Variables.StrainVector       = strain_vectors[GPoint];
@@ -1200,11 +1196,11 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint)
+void SmallStrainUPwDiffOrderElement::ExtractShapeFunctionDataAtGPoint(ElementVariables& rVariables,
+                                                                      unsigned int      GPoint)
 {
     KRATOS_TRY
 
-    // Setting the vector of shape functions and the matrix of the shape functions global gradients
     noalias(rVariables.Nu) = row(rVariables.NuContainer, GPoint);
     noalias(rVariables.Np) = row(rVariables.NpContainer, GPoint);
 

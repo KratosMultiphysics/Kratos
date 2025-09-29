@@ -190,7 +190,7 @@ private:
     std::string double_to_string(double value) const
     {
         std::ostringstream oss;
-        oss << std::defaultfloat  << value;
+        oss << std::defaultfloat << value;
         return oss.str();
     }
 

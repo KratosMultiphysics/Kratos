@@ -223,9 +223,9 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = CreateProperties();
-    properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
-    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
+    auto p_properties = CreateProperties();
+    p_properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
@@ -250,9 +250,9 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SumOfInternalAndExterna
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = CreateProperties();
-    properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
-    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(properties);
+    auto p_properties = CreateProperties();
+    p_properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
