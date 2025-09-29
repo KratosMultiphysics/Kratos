@@ -189,7 +189,7 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    virtual void ExtractShapeFunctionDataAtGPoint(ElementVariables& rVariables, unsigned int GPoint);
+    virtual void ExtractShapeFunctionDataAtIntegrationPoint(ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
@@ -202,9 +202,9 @@ protected:
 
     void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
                                        const ElementVariables& rVariables,
-                                       unsigned int            GPoint);
+                                       unsigned int            GPoint) const;
 
-    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
@@ -215,7 +215,7 @@ protected:
     [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables);
+    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
@@ -288,14 +288,14 @@ private:
                                    const std::vector<double>& degrees_of_saturation,
                                    const std::vector<double>& biot_moduli_inverse,
                                    const std::vector<double>& relative_permeability_values,
-                                   const std::vector<double>& bishop_coefficients);
+                                   const std::vector<double>& bishop_coefficients) const;
 
     Vector CalculateExternalForces(ElementVariables&          Variables,
                                    const std::vector<double>& integration_coefficients,
                                    const std::vector<double>& integration_coefficients_on_initial_configuration,
                                    const std::vector<double>& degrees_of_saturation,
                                    const std::vector<double>& relative_permeability_values,
-                                   const std::vector<double>& bishop_coefficients);
+                                   const std::vector<double>& bishop_coefficients) const;
 
 }; // Class SmallStrainUPwDiffOrderElement
 

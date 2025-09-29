@@ -141,7 +141,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
 
     const auto number_of_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
     for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-        this->ExtractShapeFunctionDataAtGPoint(Variables, GPoint);
+        this->ExtractShapeFunctionDataAtIntegrationPoint(Variables, GPoint);
         Variables.B            = b_matrices[GPoint];
         Variables.F            = deformation_gradients[GPoint];
         Variables.StrainVector = strain_vectors[GPoint];
@@ -428,7 +428,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
         for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
             // Compute Np, GradNpT, B and StrainVector
-            this->ExtractShapeFunctionDataAtGPoint(Variables, GPoint);
+            this->ExtractShapeFunctionDataAtIntegrationPoint(Variables, GPoint);
 
             RetentionParameters.SetFluidPressure(GeoTransportEquationUtilities::CalculateFluidPressure(
                 Variables.Np, Variables.PressureVector));
@@ -557,7 +557,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         const SizeType dimension = r_geometry.WorkingSpaceDimension();
         for (unsigned int g_point = 0; g_point < mConstitutiveLawVector.size(); ++g_point) {
             // compute element kinematics (Np, gradNpT, |J|, B, strains)
-            this->ExtractShapeFunctionDataAtGPoint(Variables, g_point);
+            this->ExtractShapeFunctionDataAtIntegrationPoint(Variables, g_point);
             Variables.B = b_matrices[g_point];
 
             Vector   body_acceleration = ZeroVector(dimension);
@@ -726,8 +726,8 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
                                                Vector&                 rOutput,
                                                const ProcessInfo&      rCurrentProcessInfo)
 {
-    rOutput = ZeroVector(this->GetGeometry().size() * this->GetGeometry().WorkingSpaceDimension() +
-                         mpPressureGeometry->size());
+    rOutput = Vector(this->GetNumberOfDOF(), 0.0);
+
     const PropertiesType&                           r_prop = this->GetProperties();
     const GeometryType&                             r_geom = GetGeometry();
     const GeometryType::IntegrationPointsArrayType& r_integration_points =
@@ -792,7 +792,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables&
                                                                const std::vector<double>& degrees_of_saturation,
                                                                const std::vector<double>& biot_moduli_inverse,
                                                                const std::vector<double>& relative_permeability_values,
-                                                               const std::vector<double>& bishop_coefficients)
+                                                               const std::vector<double>& bishop_coefficients) const
 {
     Vector result(this->GetNumberOfDOF(), 0.0);
     for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
@@ -838,7 +838,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateExternalForces(
     const std::vector<double>& integration_coefficients_on_initial_configuration,
     const std::vector<double>& degrees_of_saturation,
     const std::vector<double>& relative_permeability_values,
-    const std::vector<double>& bishop_coefficients)
+    const std::vector<double>& bishop_coefficients) const
 {
     Vector result = ZeroVector(this->GetNumberOfDOF());
     for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
@@ -920,7 +920,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
     if (CalculateStiffnessMatrixFlag) {
         for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-            this->ExtractShapeFunctionDataAtGPoint(Variables, GPoint);
+            this->ExtractShapeFunctionDataAtIntegrationPoint(Variables, GPoint);
             Variables.B                  = b_matrices[GPoint];
             Variables.F                  = deformation_gradients[GPoint];
             Variables.StrainVector       = strain_vectors[GPoint];
@@ -1196,7 +1196,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::ExtractShapeFunctionDataAtGPoint(ElementVariables& rVariables,
+void SmallStrainUPwDiffOrderElement::ExtractShapeFunctionDataAtIntegrationPoint(ElementVariables& rVariables,
                                                                       unsigned int      GPoint)
 {
     KRATOS_TRY
@@ -1301,7 +1301,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix(Matrix
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
                                                                    const ElementVariables& rVariables,
-                                                                   unsigned int GPoint)
+                                                                   unsigned int GPoint) const
 {
     KRATOS_TRY
 
@@ -1312,7 +1312,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce(VectorType& r
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector,
-                                                                 ElementVariables& rVariables)
+                                                                 ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1429,7 +1429,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType&
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
-                                                                  const ElementVariables& rVariables)
+                                                                  const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 

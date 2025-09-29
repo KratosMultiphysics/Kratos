@@ -140,7 +140,7 @@ Matrix ExpectedLeftHandSide()
     return result;
 }
 
-Vector ExpectedRightHandSide()
+Vector RightHandSideRegressionValues()
 {
     return UblasUtilities::CreateVector({127876, -41008.2, -35286.7, 15096.6, -13055.6, -67314.3, 62688.2, -65544.4,
                                          -23942.7, 136350, -118280, 9166.82, -116.855, 97.39, 154.882});
@@ -232,7 +232,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeo
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
 
-    auto r_geometry = p_element->GetGeometry();
+    auto& r_geometry = p_element->GetGeometry();
     for (int counter = 0; auto& node : r_geometry) {
         node.FastGetSolutionStepValue(WATER_PRESSURE)    = counter * 1.0e5;
         node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = counter * 5.0e5;
@@ -243,11 +243,10 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeo
     auto actual_rhs_values = Vector{};
     p_element->CalculateRightHandSide(actual_rhs_values, dummy_process_info);
 
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(ExpectedRightHandSide(), actual_rhs_values, 1e-5);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RightHandSideRegressionValues(), actual_rhs_values, 1e-5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SumOfInternalAndExternalForcesAreRHS,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_RHSEqualsUnbalanceVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto p_properties = CreateProperties();
@@ -259,7 +258,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SumOfInternalAndExterna
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
 
-    auto r_geometry = p_element->GetGeometry();
+    auto& r_geometry = p_element->GetGeometry();
     for (int counter = 0; auto& node : r_geometry) {
         node.FastGetSolutionStepValue(WATER_PRESSURE)    = counter * 1.0e5;
         node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = counter * 5.0e5;
@@ -277,6 +276,20 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SumOfInternalAndExterna
     p_element->Calculate(EXTERNAL_FORCES_VECTOR, external_forces, dummy_process_info);
 
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_rhs_values, (external_forces - internal_forces), 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateThrowsDebugErrorForUnknownVectorVariable,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
+    auto p_properties = CreateProperties();
+    p_properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
+
+
 }
 
 } // namespace Kratos::Testing
