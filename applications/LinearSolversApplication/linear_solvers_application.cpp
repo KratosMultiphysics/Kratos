@@ -60,7 +60,7 @@ void KratosLinearSolversApplication::Register()
                     << "MKL processor: " << mkl_version.Processor << std::endl;
 
     // Appending the thread manager
-    ParallelUtilities::msThreadManagers.push_back(Kratos::make_shared<MKLThreadManager>());
+    ParallelUtilities::AddThreadManager(Kratos::make_shared<MKLThreadManager>());
     #endif
 
     RegisterDenseLinearSolvers();
