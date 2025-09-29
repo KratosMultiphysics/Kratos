@@ -64,6 +64,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MKLThreadManager);
 
     ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    MKLThreadManager() = default;
+
+    /// Destructor.
+    ~MKLThreadManager() override = default;
+
+    ///@}
     ///@name Operations
     ///@{
 

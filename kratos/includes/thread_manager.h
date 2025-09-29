@@ -70,7 +70,7 @@ public:
     ThreadManager() = default;
 
     /// Destructor.
-    ~ThreadManager() = default;
+    virtual ~ThreadManager() = default;
 
     ///@}
     ///@name Operations
@@ -148,6 +148,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(CXX11ThreadManager);
 
     ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    CXX11ThreadManager() = default;
+
+    /// Destructor.
+    ~CXX11ThreadManager() override = default;
+
+    ///@}
     ///@name Operations
     ///@{
 
@@ -221,6 +231,16 @@ public:
 
     /// Pointer definition of OMPThreadManager
     KRATOS_CLASS_POINTER_DEFINITION(OMPThreadManager);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    OMPThreadManager() = default;
+
+    /// Destructor.
+    ~OMPThreadManager() override = default;
 
     ///@}
     ///@name Operations
