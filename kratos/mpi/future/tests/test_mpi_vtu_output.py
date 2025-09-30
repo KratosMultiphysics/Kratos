@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 import xml.etree.ElementTree as ET
 
-with kratos_unittest.WorkFolderScope("../../tests", __file__, True):
+with kratos_unittest.WorkFolderScope("../../../tests", __file__, True):
     import test_vtu_output
 
 from pathlib import Path
