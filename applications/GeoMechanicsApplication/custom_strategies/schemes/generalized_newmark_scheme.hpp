@@ -12,9 +12,9 @@
 #pragma once
 
 #include "custom_utilities/node_utilities.h"
-#include "custom_utilities/variables_utilities.hpp"
 #include "geomechanics_time_integration_scheme.hpp"
 #include "includes/model_part.h"
+
 #include <optional>
 
 namespace Kratos
@@ -62,19 +62,7 @@ public:
 
     void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
-        KRATOS_TRY
-
-        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING]) {
-            // Clear nodal variables
-            block_for_each(rModelPart.Nodes(),
-                           [](Node& rNode) { rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0; });
-
-            this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
-        } else {
-            this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
-        }
-
-        KRATOS_CATCH("")
+        this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
     }
 
 protected:

@@ -170,9 +170,6 @@ class GeoMechanicalSolver(PythonSolver):
         # Add temperature variables
         self._add_temperature_variables()
 
-        ## smoothing variables
-        self._add_smoothing_variables()
-
         # Add variables that the user defined in the ProjectParameters
         if (self.settings.Has("auxiliary_variables_list")):
             for i in range(self.settings["auxiliary_variables_list"].size()):
@@ -200,8 +197,6 @@ class GeoMechanicalSolver(PythonSolver):
         """
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.TIME_UNIT_CONVERTER, 1.0)
-        self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.NODAL_SMOOTHING,
-                                                  self.settings["nodal_smoothing"].GetBool())
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
         self.computing_model_part_name = "porous_computational_model_part"
@@ -371,9 +366,6 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.AIR_HUMIDITY)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.PRECIPITATION)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.WIND_SPEED)
-
-    def _add_smoothing_variables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _add_dynamic_dofs(self):
         # For being consistent for Serial and Trilinos
