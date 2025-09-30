@@ -11,20 +11,19 @@
 //
 
 #include "custom_strategies/schemes/load_stepping_scheme.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/condition.h"
 #include "includes/element.h"
 #include "spaces/ublas_space.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <algorithm> // REMOVE AFTER HELPER FUNCTION IS RE-USED
-
 namespace
 {
 
 using namespace Kratos;
 
-class MockElementForLoadSteppingScheme : public Element
+class MockElementForLoadStepping final : public Element
 {
 public:
     void Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo&) override
@@ -47,7 +46,7 @@ private:
     Vector mExternalForces;
 };
 
-class MockConditionForLoadStepping : public Condition
+class MockConditionForLoadStepping final : public Condition
 {
 public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
@@ -60,14 +59,6 @@ public:
         rResult = {1, 2};
     }
 };
-
-Vector CreateVector(const std::initializer_list<double>& rInitializerList)
-{
-    // TEMPORARY, USE VERSION IN UBLAS UTILS WHEN THAT'S MERGED
-    Vector result = ZeroVector(rInitializerList.size());
-    std::ranges::copy(rInitializerList, result.begin());
-    return result;
-}
 
 } // namespace
 
@@ -86,9 +77,9 @@ TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedB
 {
     // Arrange
     LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
-    auto element = Kratos::make_intrusive<MockElementForLoadSteppingScheme>();
-    element->SetInternalForces(CreateVector({1.0, 2.0, 3.0, 4.0}));
-    element->SetExternalForces(CreateVector({5.0, 6.0, 7.0, 8.0}));
+    auto element = Kratos::make_intrusive<MockElementForLoadStepping>();
+    element->SetInternalForces(UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0}));
+    element->SetExternalForces(UblasUtilities::CreateVector({5.0, 6.0, 7.0, 8.0}));
 
     ProcessInfo CurrentProcessInfo;
     const auto& [current_time, expected_right_hand_side] = GetParam();
@@ -105,7 +96,7 @@ TEST_P(LoadSteppingSchemeElementRightHandSideScaling, RightHandSideIsCalculatedB
     Vector           b;
     scheme.InitializeSolutionStep(model_part, A, Dx, b);
 
-    element->SetInternalForces(CreateVector({2.0, 3.0, 4.0, 5.0}));
+    element->SetInternalForces(UblasUtilities::CreateVector({2.0, 3.0, 4.0, 5.0}));
 
     // Act & Assert
     const std::vector expected_equation_ids = {3, 4};
@@ -159,10 +150,10 @@ TEST_P(LoadSteppingSchemeConditionRightHandSideScaling, RightHandSideIsScaledBas
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                        LoadSteppingSchemeConditionRightHandSideScaling,
-                        ::testing::Values(std::make_tuple(0.0, Vector(4, 0.0)),
-                                          std::make_tuple(0.6, Vector(4, 6.0)),
-                                          std::make_tuple(1.0, Vector(4, 10.0))));
+                         LoadSteppingSchemeConditionRightHandSideScaling,
+                         ::testing::Values(std::make_tuple(0.0, Vector(4, 0.0)),
+                                           std::make_tuple(0.6, Vector(4, 6.0)),
+                                           std::make_tuple(1.0, Vector(4, 10.0))));
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LoadSteppingScheme_CalculateRHSContribution_ReturnsCorrectConditionEquationIds)
 {
@@ -184,13 +175,29 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     MockConditionForLoadStepping                        condition;
 
     std::vector<std::size_t> actual_equation_ids;
-    Vector                   actual_right_hand_side_via_system_contribution;
+    Vector                   actual_right_hand_side;
     Matrix                   dummy_matrix;
-    scheme.CalculateSystemContributions(condition, dummy_matrix, actual_right_hand_side_via_system_contribution,
+    scheme.CalculateSystemContributions(condition, dummy_matrix, actual_right_hand_side,
                                         actual_equation_ids, ProcessInfo{});
 
     const std::vector expected_equation_ids = {1, 2};
     KRATOS_EXPECT_VECTOR_EQ(actual_equation_ids, expected_equation_ids);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       LoadSteppingScheme_CalculateElementRHSThrows_WhenCallingBeforeInitializeSolutionStep)
+{
+    LoadSteppingScheme<SparseSpaceType, LocalSpaceType> scheme;
+    MockElementForLoadStepping                          element;
+
+    std::vector<std::size_t> actual_equation_ids;
+    Vector                   actual_right_hand_side;
+    const std::string        expecteded_error_message =
+        "The load stepping scheme is not initialized properly. Make sure all initialization steps "
+        "are taken before calculating right hand side and/or system contributions";
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        scheme.CalculateRHSContribution(element, actual_right_hand_side, actual_equation_ids, ProcessInfo{}),
+        expecteded_error_message);
 }
 
 } // namespace Kratos::Testing

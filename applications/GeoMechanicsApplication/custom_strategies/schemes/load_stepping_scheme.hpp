@@ -40,6 +40,11 @@ public:
                                   Element::EquationIdVectorType& EquationId,
                                   const ProcessInfo&             CurrentProcessInfo) override
     {
+        KRATOS_ERROR_IF(mExternalForcesAtStartByElementId.empty() ||
+                        mInternalForcesAtStartByElementId.empty())
+            << "The load stepping scheme is not initialized properly. Make sure all initialization "
+               "steps are taken before calculating right hand side and/or system contributions.";
+
         Vector internal_forces;
         rCurrentElement.Calculate(INTERNAL_FORCES_VECTOR, internal_forces, CurrentProcessInfo);
 
