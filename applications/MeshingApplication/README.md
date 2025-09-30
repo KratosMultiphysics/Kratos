@@ -4,8 +4,11 @@
   <img src="https://github.com/KratosMultiphysics/Examples/blob/master/mmg_remeshing_examples/use_cases/channel_sphere2D/data/result.gif?raw=true" alt="Solution" style="width: 600px;"/>
 </p>
 
-Meshing Application provides several tools to create, manipulate and interact with meshes. It contains several interfaces to both Kratos
-third party libraries (Triangle, TetGen, MMG)
+The Meshing Application is a core component of the Kratos Multiphysics framework that provides tools and processes for mesh generation, adaptation, refinement, and interact with meshes. 
+
+ It offers various algorithms for computing metrics, remeshing based on different criteria, and interpolating variables between meshes.
+
+It contains several interfaces to both Kratos third party libraries (*Triangle*, *TetGen*, *MMG*)
 
 The application offers the functionalities listed below. If there is an Object without methods it means it can be called using the __Execute()__ function.
 
@@ -21,7 +24,7 @@ The application offers the functionalities listed below. If there is an Object w
 - [External Libraries](#external-libraries)
   * [TetGen](#tetgen)
   * [MMG](#mmg)
-  
+
 ## Interface
 
 ### Custom IO
@@ -145,4 +148,11 @@ Tetgen also enable to use the following __meshers__:
 [MMG](https://www.mmgtools.org/) is an open source software for simplicial remeshing. It provides 3 applications and 4 libraries. In Kratos it provides the following additional __procedures__:
 
 * __MmgProcess__: This class is a remesher which uses the MMG library. The class uses a class for the 2D and 3D cases (solid and surfaces). The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
-        
+
+#### Architecture
+
+The following diagram illustrates the high-level architecture of the *MMG* remeshing:
+
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MMG_files/mmg_architecture.png?raw=true" alt="MMG architecture" style="width: 600px;"/>
+</p>
