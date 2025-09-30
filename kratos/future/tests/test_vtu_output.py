@@ -8,7 +8,8 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 # import from the tests
-from kratos.tests.test_vtk_output_process import SetupModelPart2D, SetupModelPart3D
+with kratos_unittest.WorkFolderScope("../../tests", __file__, True):
+    from test_vtk_output_process import SetupModelPart2D, SetupModelPart3D
 
 class TestVtuOutputBase:
     @classmethod
