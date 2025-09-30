@@ -53,7 +53,7 @@ void  AddIOToPython(pybind11::module& m)
         .def("UpdateTensorAdaptor", &VtuOutput::UpdateTensorAdaptor, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
         .def("EmplaceTensorAdaptor", &VtuOutput::EmplaceTensorAdaptor, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
         .def("GetModelPart", &VtuOutput::GetModelPart, py::return_value_policy::reference)
-        .def("GetAvailableContainerList", &VtuOutput::GetAvailableContainerList)
+        .def("GetOutputContainerList", &VtuOutput::GetOutputContainerList)
         .def("PrintOutput", &VtuOutput::PrintOutput, py::arg("output_file_name_prefix"))
         .def("__str__", PrintObject<VtuOutput>)
         ;

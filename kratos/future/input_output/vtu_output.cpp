@@ -785,7 +785,7 @@ const ModelPart& VtuOutput::GetModelPart() const
     return mrModelPart;
 }
 
-std::vector<VtuOutput::SupportedContainerPointerType> VtuOutput::GetAvailableContainerList() const
+std::vector<VtuOutput::SupportedContainerPointerType> VtuOutput::GetOutputContainerList() const
 {
     std::vector<SupportedContainerPointerType> result;
     for (const auto& r_unstructured_grid : mUnstructuredGridDataList) {

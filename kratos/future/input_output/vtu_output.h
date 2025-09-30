@@ -38,7 +38,7 @@
  * @ingroup InputOutput
  *
  * This class provides functionality to export simulation data from a Kratos ModelPart to VTU files,
- * supporting both ASCII and binary formats. It allows users to register @ref Variable, @ref Flags, @ref ContainerExpression,
+ * supporting both ASCII and binary formats. It allows users to register @ref Variable, @ref Flags,
  * and @ref TensorAdaptor for output, and supports writing data on nodes, elements, conditions, and integration points.
  * The output can be configured to include submodel parts and supports parallel execution (MPI).
  *
@@ -47,7 +47,6 @@
  * - FieldPointerType: Variant type for supported field data pointers.
  * - CellContainerPointerType: Variant type for supported cell container pointers.
  * - SupportedVariablePointerType: Variant type for supported @ref Variable pointers.
- * - SupportedContainerExpressionPointerType: Variant type for supported @ref ContainerExpression pointers.
  * - SupportedTensorAdaptorPointerType: Variant type for supported @ref TensorAdaptor pointers.
  * - IndicesMap: Unordered map for index mapping between Kratos node ids and Vtk point indices.
  * - DataMap: Unordered map for @ref Globals::DataLocation and map of data field name and type of the data field.
@@ -129,8 +128,8 @@ public:
         ModelPart *                             mpModelPart;                  // Model part associated with the unstructured grid data.
         ModelPart::NodesContainerType::Pointer  mpPoints;                     // Points to be used in the unstructured grid.
         std::optional<CellContainerPointerType> mpCells;                      // Cells to be used in the unstructured grid.
-        std::map<std::string, FieldPointerType> mPointFields;                 // Point data fields such as expressions or tensor adaptors.
-        std::map<std::string, FieldPointerType> mCellFields;                  // Cell data fields such as expressions or tensor adaptors.
+        std::map<std::string, FieldPointerType> mPointFields;                 // Point data fields such as tensor adaptors.
+        std::map<std::string, FieldPointerType> mCellFields;                  // Cell data fields such as tensor adaptors.
     };
 
     ///@}
@@ -278,11 +277,11 @@ public:
     const ModelPart& GetModelPart() const;
 
     /**
-     * @brief Get the Available Container List
-     * @details This method returns the model part containers which are used in when writing fields.
+     * @brief Get the list of output containers
+     * @details This method returns containers of the model part which are used when writing fields.
      * @return std::vector<SupportedContainerPointerType>   List of container which are used in when writing fields.
      */
-    std::vector<SupportedContainerPointerType> GetAvailableContainerList() const;
+    std::vector<SupportedContainerPointerType> GetOutputContainerList() const;
 
     /**
      * @brief Prints the vtu output data to a file with the specified filename prefix.

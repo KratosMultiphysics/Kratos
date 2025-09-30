@@ -212,6 +212,27 @@ class TestVtuOutput(kratos_unittest.TestCase):
     def setUp(self):
         self.model_part.ProcessInfo[Kratos.STEP] = 0
 
+    def test_GetOutputContainerList(self):
+        unstructured_grid_list = self.GetUnstructuredGridList(self.model_part, self.model_part.GetRootModelPart().GetCommunicator().GetDataCommunicator(), True)
+
+        vtu_output = Kratos.Future.VtuOutput(self.model_part, output_sub_model_parts=True, output_format=Kratos.Future.VtuOutput.BINARY)
+        list_of_containers = vtu_output.GetOutputContainerList()
+
+        list_of_ref_containers = []
+        for mp, is_nodes_used, cells_container in unstructured_grid_list:
+            if is_nodes_used:
+                list_of_ref_containers.append(mp.Nodes)
+                list_of_ref_containers.append(mp.GetCommunicator().LocalMesh().Nodes)
+
+            if cells_container is not None:
+                list_of_ref_containers.append(cells_container)
+                if isinstance(cells_container, Kratos.ConditionsArray):
+                    list_of_ref_containers.append(mp.GetCommunicator().LocalMesh().Conditions)
+                elif isinstance(cells_container, Kratos.ElementsArray):
+                    list_of_ref_containers.append(mp.GetCommunicator().LocalMesh().Elements)
+
+        self.assertEqual(list_of_containers, list_of_ref_containers)
+
     def test_PointVariableAddition(self):
         vtu_output = Kratos.Future.VtuOutput(self.model_part, output_sub_model_parts=True, output_format=Kratos.Future.VtuOutput.BINARY)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.NodeHistorical)
