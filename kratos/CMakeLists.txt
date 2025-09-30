@@ -221,6 +221,13 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
         PATTERN "*.cpp" EXCLUDE
         PATTERN "*.hpp" EXCLUDE
     )
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/future/tests DESTINATION kratos/future
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+    )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
