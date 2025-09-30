@@ -77,6 +77,10 @@ public:
     {
         GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, rA, rDx, rB);
 
+        // Saving the internal and external forces should be done only once. However, the Initialize
+        // function (which would normally be the place for initializations like this), is called too
+        // early to be able to calculate external and internal forces (which is why it's done in
+        // InitializeSolutionStep).
         if (!mIsInitialized) {
             SaveInternalForces(rModelPart);
             SaveExternalForces(rModelPart);
