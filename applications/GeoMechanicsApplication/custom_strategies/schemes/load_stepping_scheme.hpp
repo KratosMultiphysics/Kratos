@@ -20,10 +20,10 @@ template <class TSparseSpace, class TDenseSpace>
 class LoadSteppingScheme : public GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>
 {
 public:
-    using TSystemVectorType = GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType;
-    using TSystemMatrixType = GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemMatrixType;
-    using TLocalSystemMatrixType = GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemMatrixType;
-    using TLocalSystemVectorType = GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType;
+    using TSystemVectorType = typename GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType;
+    using TSystemMatrixType = typename GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemMatrixType;
+    using TLocalSystemMatrixType = typename GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemMatrixType;
+    using TLocalSystemVectorType = typename GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType;
 
     void CalculateSystemContributions(Element&                       rCurrentElement,
                                       TLocalSystemMatrixType&        LHS_Contribution,
