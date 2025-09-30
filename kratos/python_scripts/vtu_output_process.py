@@ -16,7 +16,7 @@ class VtuOutputProcess(Kratos.OutputProcess):
         return Kratos.Parameters("""
         {
             "model_part_name"                   : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "file_format"                       : "compressed_raw",
+            "file_format"                       : "binary",
             "output_precision"                  : 7,
             "output_control_type"               : "step",
             "output_interval"                   : 1.0,
@@ -57,12 +57,8 @@ class VtuOutputProcess(Kratos.OutputProcess):
             self.writer_format = Kratos.VtuOutput.ASCII
         elif file_format == "binary":
             self.writer_format = Kratos.VtuOutput.BINARY
-        elif file_format == "raw":
-            self.writer_format = Kratos.VtuOutput.RAW
-        elif file_format == "compressed_raw":
-            self.writer_format = Kratos.VtuOutput.COMPRESSED_RAW
         else:
-            raise RuntimeError(f"Unsupported file format requested [ requested format = {file_format} ]. Supported file formats:\n\tascii\n\tbinary\n\traw\n\tcompressed_raw")
+            raise RuntimeError(f"Unsupported file format requested [ requested format = {file_format} ]. Supported file formats:\n\tascii\n\tbinary")
 
         if parameters["save_output_files_in_folder"].GetBool():
             self.output_path = Path(parameters["output_path"].GetString())
