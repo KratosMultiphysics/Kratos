@@ -255,3 +255,8 @@ def AssembleTestSuites():
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
+
+    # run future tests
+    if hasattr(KratosMultiphysics, "Future"):
+        from kratos.future.tests.test_KratosCore import AssembleTestSuites as AssembleFutureTestSuites
+        KratosUnittest.runTests(AssembleFutureTestSuites())
