@@ -293,7 +293,7 @@ class TestVtuOutput(kratos_unittest.TestCase):
         TestVtuOutput.CheckPvdFile(self, "temp/vtu_output/variable_test.pvd", list_of_vtu_file_names, [1 + 1e-9])
 
     def test_CellVariableAddition(self):
-        vtu_output = Kratos.VtuOutput(self.model_part, output_format=Kratos.VtuOutput.ASCII, output_sub_model_parts=True)
+        vtu_output = Kratos.Future.VtuOutput(self.model_part, output_format=Kratos.Future.VtuOutput.ASCII, output_sub_model_parts=True)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Condition)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.NodeHistorical)
         vtu_output.AddVariable(Kratos.PRESSURE, self.data_location.Element)
