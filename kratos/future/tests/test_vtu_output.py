@@ -83,18 +83,22 @@ class TestVtuOutputBase:
         self.WriteVtu(Kratos.Future.VtuOutput.COMPRESSED_RAW)
 
     def test_WriteMeshAsciiWithError(self):
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, "vtk_output_process_ref_files/temp")
         with self.assertRaises(RuntimeError):
             self.WriteVtu(Kratos.Future.VtuOutput.ASCII, True)
 
     def test_WriteMeshBinaryWithError(self):
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, "vtk_output_process_ref_files/temp")
         with self.assertRaises(RuntimeError):
             self.WriteVtu(Kratos.Future.VtuOutput.BINARY, True)
 
     def test_WriteMeshRawWithError(self):
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, "vtk_output_process_ref_files/temp")
         with self.assertRaises(RuntimeError):
             self.WriteVtu(Kratos.Future.VtuOutput.RAW, True)
 
     def test_WriteMeshCompressedRawWithError(self):
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, "vtk_output_process_ref_files/temp")
         with self.assertRaises(RuntimeError):
             self.WriteVtu(Kratos.Future.VtuOutput.COMPRESSED_RAW, True)
 
