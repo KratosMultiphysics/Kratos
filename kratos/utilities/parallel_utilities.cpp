@@ -47,8 +47,8 @@ int ParallelUtilities::GetNumThreads()
         num_threads.push_back(r_manager->GetNumThreads());
     }
 
-    // Find the maximum number of threads available
-    const int max_num_threads = *std::max_element(num_threads.begin(), num_threads.end());
+    // Find the minimum number of threads available
+    const int min_num_threads = *std::min_element(num_threads.begin(), num_threads.end());
 
     // Throw a warning if the number of threads is not the same in all ThreadManagers
     if (!std::all_of(num_threads.begin(), num_threads.end(), [&num_threads](const int value){ return value == num_threads[0]; })) {
@@ -57,17 +57,17 @@ int ParallelUtilities::GetNumThreads()
         for (std::size_t i=0; i<num_threads.size(); ++i) {
             err_msg << "ThreadManager " << msThreadManagers[i]->Info() << ": " << num_threads[i] << " threads.\n";
         }
-        err_msg << "The maximum number of threads available (" << max_num_threads << ") will be used.\n";
+        err_msg << "The minimum number of threads available (" << min_num_threads << ") will be used.\n";
         KRATOS_WARNING("ParallelUtilities") << err_msg.str();
 
-        // Set max_num_threads number of threads in the ThreadManagers
+        // Set min_num_threads number of threads in the ThreadManagers
         for (const auto& r_manager : msThreadManagers) {
-            r_manager->SetNumThreads(max_num_threads);
+            r_manager->SetNumThreads(min_num_threads);
         }
     }
 
-    // Return the maximum number of threads available
-    return max_num_threads;
+    // Return the minimum number of threads available
+    return min_num_threads;
 }
 
 void ParallelUtilities::SetNumThreads(const int NumThreads)
@@ -108,8 +108,8 @@ int ParallelUtilities::GetNumProcs()
         KRATOS_WARNING("ParallelUtilities") << err_msg.str();
     }
 
-    // Return the maximum number of processors available
-    return *std::max_element(num_procs.begin(), num_procs.end());
+    // Return the minimum number of processors available
+    return *std::min_element(num_procs.begin(), num_procs.end());
 }
 
 int ParallelUtilities::InitializeNumberOfThreads()
