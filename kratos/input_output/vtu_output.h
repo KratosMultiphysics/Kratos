@@ -13,54 +13,31 @@
 #pragma once
 
 // System includes
-#include <map>
 #include <string>
-#include <unordered_map>
 #include <variant>
+#include <unordered_map>
+#include <map>
 
 // External includes
 
 // Project includes
-#include "containers/flags.h"
-#include "containers/nd_data.h"
-#include "containers/variable.h"
-#include "expression/container_expression.h"
 #include "includes/define.h"
-#include "includes/global_variables.h"
 #include "includes/io.h"
 #include "includes/model_part.h"
-#include "tensor_adaptors/tensor_adaptor.h"
-#include "utilities/xml_utilities/xml_data_element_wrapper.h"
+#include "containers/variable.h"
+#include "containers/flags.h"
+#include "expression/container_expression.h"
 
+namespace Kratos {
 /**
  * @class VtuOutput
- * @brief Handles VTU (Visualization Toolkit Unstructured grid) output for Kratos ModelParts.
+ * @brief Class to output Kratos Flags, Variables and ContainerExpressions
+ *        to vtu. Supports both shared and distributed memory architectures.
+ *
+ * @details This class does not create or destroy any folder structures, hence the output
+ * file name prefix should have a valid parent directory.
  * @author Suneth Warnakulasuriya
- * @ingroup InputOutput
- *
- * This class provides functionality to export simulation data from a Kratos ModelPart to VTU files,
- * supporting both ASCII and binary formats. It allows users to register @ref Variable, @ref Flags, @ref ContainerExpression,
- * and @ref TensorAdaptor for output, and supports writing data on nodes, elements, conditions, and integration points.
- * The output can be configured to include submodel parts and supports parallel execution (MPI).
- *
- * @section TypeDefinitions Type Definitions
- * - IndexType: Alias for std::size_t.
- * - FieldPointerType: Variant type for supported field data pointers.
- * - CellContainerPointerType: Variant type for supported cell container pointers.
- * - SupportedVariablePointerType: Variant type for supported @ref Variable pointers.
- * - SupportedContainerExpressionPointerType: Variant type for supported @ref ContainerExpression pointers.
- * - SupportedTensorAdaptorPointerType: Variant type for supported @ref TensorAdaptor pointers.
- * - IndicesMap: Unordered map for index mapping between Kratos node ids and Vtk point indices.
- * - DataMap: Unordered map for @ref Globals::DataLocation and map of data field name and type of the data field.
- *
- * @section VtuOutput_Enums Enums
- * - WriterFormat: Specifies output format (ASCII, BINARY, RAW, COMPRESSED_RAW).
- *
- * @section VtuOutput_Structs Structs
- * - UnstructuredGridData: Holds data for an unstructured grid, including points, cells, and associated fields.
- *
  */
-namespace Kratos {
 class KRATOS_API(KRATOS_CORE) VtuOutput : public IO
 {
 public:
@@ -69,47 +46,23 @@ public:
 
     using IndexType = std::size_t;
 
-    using FieldPointerType = std::variant<
-                                    NDData<unsigned char>::Pointer,
-                                    NDData<bool>::Pointer,
-                                    NDData<int>::Pointer,
-                                    NDData<double>::Pointer
-                                >;
+    using SupportedVariables = std::variant<
+                                    const Variable<int>*,
+                                    const Variable<double>*,
+                                    const Variable<array_1d<double, 3>>*,
+                                    const Variable<array_1d<double, 4>>*,
+                                    const Variable<array_1d<double, 6>>*,
+                                    const Variable<array_1d<double, 9>>*>;
 
-    using CellContainerPointerType = std::variant<
-                                        ModelPart::ConditionsContainerType::Pointer,
-                                        ModelPart::ElementsContainerType::Pointer
-                                    >;
-
-    using SupportedVariablePointerType = std::variant<
-                                                Variable<int> const *,
-                                                Variable<double> const *,
-                                                Variable<array_1d<double, 3>> const *,
-                                                Variable<array_1d<double, 4>> const *,
-                                                Variable<array_1d<double, 6>> const *,
-                                                Variable<array_1d<double, 9>> const *,
-                                                Variable<Vector> const *,
-                                                Variable<Matrix> const *
-                                            >;
-
-    using SupportedContainerExpressionPointerType = std::variant<
-                                                        ContainerExpression<ModelPart::NodesContainerType>::Pointer,
-                                                        ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
-                                                        ContainerExpression<ModelPart::ElementsContainerType>::Pointer
-                                                    >;
-
-    using SupportedTensorAdaptorPointerType = std::variant<
-                                                    TensorAdaptor<bool>::Pointer,
-                                                    TensorAdaptor<int>::Pointer,
-                                                    TensorAdaptor<double>::Pointer
-                                                >;
-
-    using IndicesMap = std::unordered_map<IndexType, IndexType>;
-
-    template<class T>
-    using DataMap = std::unordered_map<Globals::DataLocation, std::map<std::string, T>>;
+    using SupportedCellContainerExpressions = std::variant<
+                                                ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
+                                                ContainerExpression<ModelPart::ElementsContainerType>::Pointer>;
 
     KRATOS_CLASS_POINTER_DEFINITION(VtuOutput);
+
+    KRATOS_DEFINE_LOCAL_FLAG( NODES );
+    KRATOS_DEFINE_LOCAL_FLAG( CONDITIONS );
+    KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS );
 
     ///@}
     ///@name Public enums
@@ -118,20 +71,8 @@ public:
     /// Enumerations for the output writer format.
     enum WriterFormat
     {
-        ASCII,                          /// ASCII format.
-        BINARY,                         /// Binary format.
-        RAW,                            /// Raw format. All data is appended to one stream.
-        COMPRESSED_RAW                  /// Data is first compressed with zlib and the appended to one stream.
-    };
-
-    struct UnstructuredGridData
-    {
-        bool                                    UsePointsForDataFieldOutput;  // If true, then the mpPoints represents a container in the model part, otherwise, mpPoints refers to a container which is on the fly generated.
-        ModelPart *                             mpModelPart;                  // Model part associated with the unstructured grid data.
-        ModelPart::NodesContainerType::Pointer  mpPoints;                     // Points to be used in the unstructured grid.
-        std::optional<CellContainerPointerType> mpCells;                      // Cells to be used in the unstructured grid.
-        std::map<std::string, FieldPointerType> mPointFields;                 // Point data fields such as expressions or tensor adaptors.
-        std::map<std::string, FieldPointerType> mCellFields;                  // Cell data fields such as expressions or tensor adaptors.
+        ASCII,  /// ASCII format.
+        BINARY  /// Binary format.
     };
 
     ///@}
@@ -139,189 +80,108 @@ public:
     ///@{
 
     /**
-     * @brief Construct a new Vtu Output
-     *
-     * @param rModelPart                Model part to be used in the vtu output.
-     * @param IsInitialConfiguration    Which nodal positions to be written out.
-     * @param OutputFormat              The format of the output.
-     * @param Precision                 Precision of the double values to be used when writing the doubles as ASCII.
-     * @param OutputSubModelParts       To consider all the submodel parts recursively for output.
-     * @param EchoLevel                 Echo level for to print information.
+     * @brief Construct a new Vtu Output IO
+     * @details Constructs a new VtuOuput IO instance with the given parameters.
+     * @param rModelPart                Model part to be used.
+     * @param IsInitialConfiguration    If true, the initial configuration is written.
+     * @param OutputFormat              Output format. Either ASCII or BINARY supported.
+     * @param Precision                 Precision of the double output.
      */
     VtuOutput(
         ModelPart& rModelPart,
         const bool IsInitialConfiguration = true,
-        const WriterFormat OutputFormat = WriterFormat::COMPRESSED_RAW,
-        const IndexType Precision = 9,
-        const bool OutputSubModelParts = false,
-        const IndexType EchoLevel = 0);
+        const WriterFormat OutputFormat = WriterFormat::BINARY,
+        const IndexType Precision = 9);
 
     ///@}
     ///@name Public operations
     ///@{
 
     /**
-     * @brief Adds a flag to the VTU output.
+     * @brief Adds historical variables to the output.
      *
-     * This method registers a flag variable to be included in the VTU output file.
-     * The flag will be associated with the specified data location (e.g., node, element, condition).
-     * This allows the Flag's values to be written to the output file when @ref PringOutput is called.
-     *
-     * @throws std::runtime_error if @ref AddFlag is called after @ref PrintOutput.
-     * @throws std::runtime_error if tries to add the same @p rFlagName more than ones.
-     * @throws std::runtime_error if there already exist a field name same as @p rFlagName in one of the compatible data locations with @p DataLocation .
-     * @throws std::runtime_error if @p DataLocation is not NodeNonHistorical, Condition, or Element.
-     *
-     * @param rFlagName The name of the flag to be added.
-     * @param rFlagVariable The flag variable to be added.
-     * @param DataLocation The location where the flag data is stored (e.g., NodeNonHistorical, Condition, Element).
-     *
-     * @see @ref FlagTensorAdaptor
+     * @tparam TDataType
+     * @param rVariable
      */
-    void AddFlag(
+    template<class TDataType>
+    void AddHistoricalVariable(const Variable<TDataType>& rVariable);
+
+    /**
+     * @brief Adds non historical variables to the output.
+     *
+     * @tparam TDataType
+     * @param rVariable         Variable to be added.
+     * @param rEntityFlags      Considered container for the variable. Either NODES, CONDITIONS or ELEMENTS
+     */
+    template<class TDataType>
+    void AddNonHistoricalVariable(
+        const Variable<TDataType>& rVariable,
+        const Flags& rEntityFlags);
+
+    /**
+     * @brief Adds flag output.
+     *
+     * @param rFlagName         Flag name.
+     * @param rFlagVariable     Variable to be added.
+     * @param rEntityFlags      Considered container for the variable. Either NODES, CONDITIONS or ELEMENTS
+     */
+    void AddFlagVariable(
         const std::string& rFlagName,
         const Flags& rFlagVariable,
-        Globals::DataLocation DataLocation);
+        const Flags& rEntityFlags);
 
     /**
-     * @brief Adds a variable to the output for a specified data location.
+     * @brief Adds container expressions to the vtu output.
      *
-     * Registers the given variable to be included in the VTU output at the specified
-     * data location (e.g., NodeHistorical, NodeNonHistorical, Condition, or Element). This allows the variable's values
-     * to be written to the output file when @ref PringOutput is called.
+     * This adds container expressions to the output. Proper care should be taken when updating ContainerExpressions because
+     * In python, when a container expression is assigned with a new container expression, it does not call the assignment operator.
+     * Hence, the new expression takes place. Therefore, when container expressions required to be outputted, then it is best
+     * to always clear the existing container expressions and add the new ones. Otherwise, the vtu output may be writing not the
+     * latest container expression.
      *
-     * @throws std::runtime_error if @ref AddVariable is called after @ref PrintOutput.
-     * @throws std::runtime_error if tries to add the same @p pVariable more than ones.
-     * @throws std::runtime_error if there already exist a field name same as @p pVariable in one of the compatible data locations with @p DataLocation .
-     * @throws std::runtime_error if @p DataLocation is not NodeHistorical, NodeNonHistorical, Condition, or Element.
-     *
-     * @param pVariable Pointer to the supported variable to be added.
-     * @param DataLocation The location in the model where the variable is defined (e.g., NodeHistorical, NodeNonHistorical, Condition, or Element).
-     *
-     * @see @ref VariableTensorAdaptor
-     * @see @ref HistoricalVariableTensorAdaptor
+     * @tparam TContainerType
+     * @param rExpressionName           Name for the container expression.
+     * @param pContainerExpression      Container expression.
      */
-    void AddVariable(
-        SupportedVariablePointerType pVariable,
-        Globals::DataLocation DataLocation);
-
-    /**
-     * @brief Adds a variable to be output at integration points.
-     *
-     * This method registers a variable for output at the integration points of the mesh elements or conditions.
-     * This allows the entities variable's integration point values to be written to the output file when @ref PringOutput is called.
-     *
-     * @throws std::runtime_error if @ref AddIntegrationPointVariable is called after @ref PrintOutput.
-     * @throws std::runtime_error if tries to add the same @p pVariable more than ones.
-     * @throws std::runtime_error if there already exist a field name same as @p pVariable in one of the compatible data locations with @p DataLocation .
-     * @throws std::runtime_error if @p DataLocation is not Condition or Element.
-     *
-     * @param pVariable Pointer to the supported variable to be added for output.
-     * @param DataLocation Specifies the location (e.g., Condition or Element) where the variable is used to calculate integration point values.
-     */
-    void AddIntegrationPointVariable(
-        SupportedVariablePointerType pVariable,
-        Globals::DataLocation DataLocation);
-
-    /**
-     * @brief Adds a container expression to the output with a specified name.
-     *
-     * This method registers a container expression, identified by a unique name,
-     * to be included in the VTU output. This copies the internal data of the container
-     * expression, therefore at the @ref PrintOutput call, the values at the point of calling
-     * @ref AddContainerExpression will be written.
-     *
-     * @throws std::runtime_error if @ref AddContainerExpression is called after @ref PrintOutput.
-     * @throws std::runtime_error if tries to add the same @p rExpressionName more than ones.
-     * @throws std::runtime_error if there already exist a field name same as @p rExpressionName in one of the compatible data locations represented by the container of @p pContainerExpression .
-     * @throws std::runtime_error if @p pContainerExpression does not corresponds to any of the containers which is written by this @ref VtuOutput .
-     *
-     * @param rExpressionName The name to associate with the container expression.
-     * @param pContainerExpression Pointer to the container expression to be added.
-     */
+    template <class TContainerType>
     void AddContainerExpression(
         const std::string& rExpressionName,
-        SupportedContainerExpressionPointerType pContainerExpression);
+        const typename ContainerExpression<TContainerType>::Pointer pContainerExpression);
 
     /**
-     * @brief Adds a tensor adaptor to the output.
-     *
-     * Registers a @ref TensorAdaptor with the specified name, and copies the internal data of the @ref TensorAdaptor
-     * to internal storage. When @ref PrintOutput is called, the values of the @ref TensorAdaptor at the point of addition will be written.
-     *
-     * @throws std::runtime_error if @ref AddTensorAdaptor is called after @ref PrintOutput.
-     * @throws std::runtime_error if tries to add the same @p rTensorAdaptorName more than ones.
-     * @throws std::runtime_error if there already exist a field name same as @p rTensorAdaptorName in one of the compatible data locations represented by the container of @p pTensorAdaptor .
-     * @throws std::runtime_error if @p pTensorAdaptor does not corresponds to any of the containers which is written by this @ref VtuOutput .
-     *
-     * @param rTensorAdaptorName The name to associate with the tensor adaptor.
-     * @param pTensorAdaptor Pointer to the tensor adaptor to be added.
-     */
-    void AddTensorAdaptor(
-        const std::string& rTensorAdaptorName,
-        SupportedTensorAdaptorPointerType pTensorAdaptor);
+    * @brief Clears the historical variables.
+    */
+    void ClearHistoricalVariables();
 
     /**
-     * @brief Updates the container expression associated with the given expression name.
-     *
-     * This method assigns the provided container expression pointer to the specified expression name.
-     * It is typically used to update or replace the expression stored in the data fields of @ref VtuOutput.
-     * This also copies the internal data of @p pContainerExpression to vtu output's internal data.
-     *
-     * @throws std::runtime_error if there is no field name same as @p rExpressionName in one of the compatible data locations represented by the container of @p pContainerExpression .
-     * @throws std::runtime_error if @p pContainerExpression does not corresponds to any of the containers which is written by this @ref VtuOutput .
-     *
-     * @param rExpressionName The name of the expression to be updated.
-     * @param pContainerExpression Pointer to the container expression to associate with the given name.
-     */
-    void UpdateContainerExpression(
-        const std::string& rExpressionName,
-        SupportedContainerExpressionPointerType pContainerExpression);
+    * @brief Clears the nodal non-historical variables.
+    */
+    void ClearNodalNonHistoricalVariables();
 
     /**
-     * @brief Updates the tensor adaptor associated with the given name.
-     *
-     * This method assigns a new tensor adaptor to the specified name, allowing
-     * for dynamic changes to the tensor adaptor used in the @ref VtuOutput process.
-     * This also copies the internal data of @p pTensorAdaptor to vtu output's internal data.
-     *
-     * @throws std::runtime_error if there is no field name same as @p rTensorAdaptorName in one of the compatible data locations represented by the container of @p pTensorAdaptor .
-     * @throws std::runtime_error if @p pTensorAdaptor does not corresponds to any of the containers which is written by this @ref VtuOutput .
-     *
-     * @param rTensorAdaptorName The name identifying the tensor adaptor to update.
-     * @param pTensorAdaptor Pointer to the new tensor adaptor to be associated.
-     */
-    void UpdateTensorAdaptor(
-        const std::string& rTensorAdaptorName,
-        SupportedTensorAdaptorPointerType pTensorAdaptor);
+    * @brief Clears the cell non-historical variables.
+    */
+    void ClearCellNonHistoricalVariables();
 
     /**
-     * @brief Inserts a @ref ContainerExpression into the internal storage with the specified name.
-     *
-     * This method:
-     *  - If PrintOutput is not called at all, then calls @ref AddContainerExpression
-     *  - If PrintOutput is at least once called, then calls @ref UpdateContainerExpresion
-     *
-     * @param rExpressionName The name to associate with the @ref ContainerExpression.
-     * @param pContainerExpression Pointer to the @ref ContainerExpression to be stored.
-     */
-    void EmplaceContainerExpression(
-        const std::string& rExpressionName,
-        SupportedContainerExpressionPointerType pContainerExpression);
+    * @brief Clears the nodal flags.
+    */
+    void ClearNodalFlags();
 
     /**
-     * @brief Inserts a @ref TensorAdaptor into the internal storage with the specified name.
-     *
-     * This method:
-     *  - If PrintOutput is not called at all, then calls @ref AddTensorAdaptor
-     *  - If PrintOutput is at least once called, then calls @ref UpdateTensorAdaptor
-     *
-     * @param rTensorAdaptorName The name to associate with the @ref TensorAdaptor.
-     * @param pTensorAdaptor Pointer to the @ref TensorAdaptor to be stored.
-     */
-    void EmplaceTensorAdaptor(
-        const std::string& rTensorAdaptorName,
-        SupportedTensorAdaptorPointerType pTensorAdaptor);
+    * @brief Clears the cell flags.
+    */
+    void ClearCellFlags();
+
+    /**
+    * @brief Clears the nodal container expressions.
+    */
+    void ClearNodalContainerExpressions();
+
+    /**
+    * @brief Clears the cell container expressions.
+    */
+    void ClearCellContainerExpressions();
 
     /**
     * @brief Returns the model part.
@@ -330,91 +190,62 @@ public:
     const ModelPart& GetModelPart() const;
 
     /**
-     * @brief Prints the vtu output data to a file with the specified filename prefix.
-     *
-     * Will create the folder with the provided @p rOutputFilenamePrefix . In this folder, following files will be created.
-     * - One vtu file per timestep, per model part's container (Including sub model parts if @p OutputSubModelParts is true) (in MPI, per rank as well).
-     * - If it find any gauss point fields, then there will be a vtu file per time step, per model part's container (in MPI, per rank as well).
-     * - If this is called in MPI, then this will create one pvtu file per timestep, per model part's container (will be having information of all the corresponding rank vtu files)
-     * - If this is called in MPI, then this will create one pvtu file per timestep, per model part's gauss point container (will be having information of all the corresponding rank vtu files)
-     *
-     * @throws If the @p mrModelPart's @ref ProcessInfo 's TIME value is already used with @ref PrintOutput unless it was the last TIME value.
-     *
-     * Finally it will create one pvd ( @p rOutputFilenamePrefix.pvd ) file for all the model parts, all the timesteps all the gauss point container linking
-     * - In MPI the pvtu files created.
-     * - In shared memory parallelism the vtu files created.
-     *
-     * @param rOutputFilenamePrefix The prefix to use for the output filename.
+     * @brief Writes the Vtu file.
+     * @details This writes the final vtu file. If this is a transient output, then @ref rOutputFilenamePrefix
+     * should have indication of the step, otherwise this will overwrite the same file.
+     * In the MPI case, this will create one .vtu file per rank, and a .pvtu file to combine them.
+     * @param rOutputFilenamePrefix         Output file name prefix.
      */
     void PrintOutput(const std::string& rOutputFilenamePrefix);
 
     ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    std::string Info() const override;
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override;
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override;
-
-    ///@}
-
 private:
     ///@name Private member variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart& mrModelPart; /// Reference to the model part.
 
-    const bool mIsInitialConfiguration;
+    const bool mIsInitialConfiguration; /// Flag indicating if it is the initial configuration.
 
-    bool mIsPVDFileHeaderWritten;
+    const WriterFormat mOutputFormat; /// The output format for writing the model part.
 
-    const IndexType mEchoLevel;
+    const IndexType mPrecision; /// The precision used for writing floating-point values.
 
-    const WriterFormat mOutputFormat;
+    bool mIsConditionsConsidered; /// Flag indicating if conditions are considered.
 
-    const IndexType mPrecision;
+    bool mIsElementsConsidered; /// Flag indicating if elements are considered.
 
-    DataMap<Flags const *> mFlags;
+    // TODO: In the future study to replace the std::map
+    // TODO: Study replace string, expensive, with hashes or keys
 
-    DataMap<SupportedVariablePointerType> mVariables;
+    std::unordered_map<IndexType, IndexType> mKratosVtuIndicesMap; /// Map to store Kratos VTU indices.
 
-    DataMap<SupportedVariablePointerType> mIntegrationPointVariables;
+    std::map<std::string, SupportedVariables> mHistoricalVariablesMap; /// Map to store supported historical variables.
 
-    std::vector<UnstructuredGridData> mUnstructuredGridDataList;
+    std::map<std::string, SupportedVariables> mNonHistoricalNodalVariablesMap; /// Map to store supported non-historical nodal variables.
+
+    std::map<std::string, SupportedVariables> mNonHistoricalCellVariablesMap; /// Map to store supported non-historical cell variables.
+
+    std::map<std::string, const Flags*> mNodalFlagsMap; /// Map to store nodal flags.
+
+    std::map<std::string, const Flags*> mCellFlagsMap; /// Map to store cell flags.
+
+    std::map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mPointContainerExpressionsMap; /// Map to store point container expressions.
+
+    std::map<std::string, SupportedCellContainerExpressions> mCellContainerExpressionsMap; /// Map to store supported cell container expressions.
 
     ///@}
     ///@name Private operations
     ///@{
 
-    template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
-    void WriteData(
-        std::vector<std::pair<std::string, std::string>>& rPVDFileNameInfo,
-        TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
-        TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
-        UnstructuredGridData& rUnstructuredGridData,
-        const std::string& rOutputPrefix,
-        const IndexType Step) const;
-
-    template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
-    std::pair<std::string, std::string> WriteUnstructuredGridData(
-        TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
-        TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
-        UnstructuredGridData& rUnstructuredGridData,
-        const std::string& rOutputPrefix,
-        const IndexType Step) const;
-
-    template<class TXmlElementDataWrapperCreateFunctor, class TXmlElementDataWrapperAppendFunctor>
-    std::pair<std::string, std::string> WriteIntegrationPointData(
-        TXmlElementDataWrapperCreateFunctor&& rElementDataWrapperCreateFunctor,
-        TXmlElementDataWrapperAppendFunctor&& rElementDataWrapperAppendFunctor,
-        UnstructuredGridData& rUnstructuredGridData,
-        const std::string& rOutputPrefix,
-        const IndexType Step) const;
+    /**
+    * @brief Writes the model part to a file.
+    * @param rOutputFileNamePrefix The output file name prefix.
+    * @param rModelPart            The model part to write.
+    */
+    void PrintModelPart(
+        const std::string& rOutputFileNamePrefix,
+        ModelPart& rModelPart) const;
 
     ///@}
 };

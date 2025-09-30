@@ -18,19 +18,20 @@
 
 // Project includes
 #include "includes/define.h"
-#include "xml_element.h"
+#include "expression/literal_flat_expression.h"
+#include "utilities/xml_utilities/xml_expression_element.h"
 
 namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
-/* @class XmlElementsArray
+/* @class XmlOStreamWriter
  * @ingroup KratosCore
  * @brief Output stream writer for XML format.
  * @author Suneth Warnakulasuriya
  */
-class KRATOS_API(KRATOS_CORE) XmlElementsArray : public XmlElement
+class KRATOS_API(KRATOS_CORE) XmlOStreamWriter
 {
 public:
     ///@name Life cycle
@@ -38,42 +39,52 @@ public:
 
     using IndexType = std::size_t;
 
-    using BaseType = XmlElement;
-
-    KRATOS_CLASS_POINTER_DEFINITION(XmlElementsArray);
-
     ///@}
     ///@name Life cycle
     ///@{
 
-    XmlElementsArray(const std::string& rTagName);
+    /**
+     * @brief Constructor.
+     * @param rOStream The output stream to write to.
+     */
+    XmlOStreamWriter(std::ostream& rOStream);
+
+    virtual ~XmlOStreamWriter() = default;
 
     ///@}
     ///@name Public operations
     ///@{
-
-    void AddElement(XmlElement::Pointer pElement);
-
-    std::vector<XmlElement::Pointer> GetElements() const;
-
-    void ClearElements();
 
     /**
      * @brief Writes an XML expression element.
      * @param XmlExpressionElement Expression xml element to be written.
      * @param Level The indentation level.
      */
-    void Write(
-        std::ostream& rOStream,
-        const IndexType Level = 0) const override;
+    void WriteElement(
+        const XmlExpressionElement& rElement,
+        const IndexType Level = 0);
 
     ///@}
 
-private:
-    ///@name Private member variables
+protected:
+    ///@name Protected member variables
     ///@{
 
-    std::vector<XmlElement::Pointer> mElementsArray;
+    std::ostream& mrOStream; /// The output stream
+
+    ///@}
+    ///@name Protected operations
+    ///@{
+
+    /**
+     * @brief Writes generic lazy type expressions
+     *
+     * @param rExpressions      Expressions list to write.
+     * @param rTabbing          Tabbing used for expression writing.
+     */
+    virtual void WriteExpressions(
+        const std::vector<Expression::ConstPointer>& rExpressions,
+        const std::string& rTabbing) = 0;
 
     ///@}
 };

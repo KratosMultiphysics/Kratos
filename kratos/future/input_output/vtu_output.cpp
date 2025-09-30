@@ -31,10 +31,10 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/string_utilities.h"
-#include "utilities/xml_utilities/xml_appended_data_element_wrapper.h"
-#include "utilities/xml_utilities/xml_elements_array.h"
-#include "utilities/xml_utilities/xml_in_place_data_element_wrapper.h"
-#include "utilities/xml_utilities/xml_utils.h"
+#include "future/utilities/xml_utilities/xml_appended_data_element_wrapper.h"
+#include "future/utilities/xml_utilities/xml_elements_array.h"
+#include "future/utilities/xml_utilities/xml_in_place_data_element_wrapper.h"
+#include "future/utilities/xml_utilities/xml_utils.h"
 
 // Include base h
 #include "vtu_output.h"
