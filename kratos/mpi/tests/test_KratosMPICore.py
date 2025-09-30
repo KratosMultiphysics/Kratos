@@ -98,8 +98,8 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    # KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-    # KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    KratosUnittest.runTests(AssembleTestSuites())
 
     # run future tests
     if hasattr(KratosMultiphysics, "Future"):
