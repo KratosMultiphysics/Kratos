@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <VTKFile byte_order="LittleEndian" type="UnstructuredGrid" version="0.1">
    <UnstructuredGrid>
       <Piece NumberOfCells="2" NumberOfPoints="3">
