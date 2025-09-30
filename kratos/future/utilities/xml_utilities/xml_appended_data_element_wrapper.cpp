@@ -45,8 +45,14 @@ XmlElement::Pointer XmlAppendedDataElementWrapper::Get(
     std::visit([this, &rDataArrayName](auto p_nd_data) {
         switch (this->mOutputType) {
             case RAW: {
-                const std::uint64_t data_size = p_nd_data->Size();
-                XmlUtilities::AppendData(this->mData, p_nd_data->ViewData().data(), data_size, &data_size, 1u);
+                const auto number_of_values = p_nd_data->Size();
+                if (number_of_values == 0) {
+                    const std::uint64_t data_size = 0;
+                    XmlUtilities::AppendData(this->mData, p_nd_data->ViewData().data(), number_of_values, &data_size, 1u);
+                } else {
+                    const std::uint64_t data_size = number_of_values * sizeof(*p_nd_data->ViewData().data());
+                    XmlUtilities::AppendData(this->mData, p_nd_data->ViewData().data(), number_of_values, &data_size, 1u);
+                }
                 break;
             }
             case RAW_COMPRESSED: {
