@@ -1498,7 +1498,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
                 }
             }
 
-            output_file << "   </Collection>\n</VTKFile>";
+            output_file << "   </Collection>\n</VTKFile>\n";
             output_file.close();
         }
 
