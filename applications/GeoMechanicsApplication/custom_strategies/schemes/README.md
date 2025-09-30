@@ -122,15 +122,15 @@ should have its counterparts in the other classes derived from `GeneralizedNewma
 For some problems, applying a load (either in the form of an external load, or gravity-induced) all at once results in convergence issues. The load stepping scheme can be used to apply these loads gradually throughout a stage. 
 
 Conceptually, the right hand side, or the 'unbalance' consists of internal and external forces. Equilibrium is reached when the internal forces and external forces equilibrate, leading to a 0 unbalance:
-$$RHS = RHS_{internal} + RHS_{external}$$
+$$RHS = F_{external} - F_{internal}$$
 
 The idea of the load stepping scheme, is that external forces are chosen in such a way throughout the stage, that every solution step is close to equilibrium. At the end of the stage, we end up with the full external forces. This means that although the intermediate steps do not represent a physical situation, the result at the end of the stage always represents the full problem.
 
 The following formulation is used for the $RHS_{external}$:
 
-$$RHS_{external} = -RHS_{0, internal} + f_{unbalance} \cdot (RHS_{0, external} + RHS_{0, internal})$$
+$$F_{external} =  (1 - f_{unbalance}) F_{0, internal}+ f_{unbalance} F_{0, external}$$
 
 where $RHS_{0,internal}$ and $RHS_{0,external}$ are the sums of the respective internal and external forces at the start of the stage and $f_{unbalance}$ is the fraction of unbalance that is applied. At this point, the fraction is tied to the current time in the stage:
 $$ f_{unbalance} = \frac{t - t_{start}}{t_{end} - t_{start}}$$,
 
-where $t$, $t_{start}$ and $t_{end}$ are the current, start and end time of the stage. Since time is used for the load stepping, the scheme is a static scheme (i.e. derivatives are disregarded).
+where $t$, $t_{start}$ and $t_{end}$ are the current, start and end time of the stage. Since time is used in this way for the load stepping, the scheme is a static scheme (i.e. derivatives are disregarded) and it should **_not_** be used in combination with time dependent processes. 
