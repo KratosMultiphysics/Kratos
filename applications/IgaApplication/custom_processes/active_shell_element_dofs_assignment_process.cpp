@@ -101,6 +101,20 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
     r_active_shell_mp.AddNodalSolutionStepVariable(REACTION_ACTIVE_SHELL_KAPPA_2);
     r_active_shell_mp.AddNodalSolutionStepVariable(REACTION_ACTIVE_SHELL_KAPPA_12);
 
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_ACTIVE_SHELL_ALPHA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_ACTIVE_SHELL_BETA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_ACTIVE_SHELL_GAMMA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_ACTIVE_SHELL_KAPPA_1);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_ACTIVE_SHELL_KAPPA_2);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_ACTIVE_SHELL_KAPPA_12);
+
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_REACTION_ACTIVE_SHELL_ALPHA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_REACTION_ACTIVE_SHELL_BETA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_REACTION_ACTIVE_SHELL_GAMMA);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_1);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_2);
+    r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_12);
+
     // KRATOS_WATCH(mIgaModelPartName) //CHECK LEO
     // KRATOS_WATCH(mActiveShellDofModelPartName) //CHECK LEO
 
@@ -123,22 +137,34 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
 
             std::vector<std::string>::iterator itr;
             if ((itr = std::find(mAppliedActuationList.begin(), mAppliedActuationList.end(), "alpha")) != mAppliedActuationList.end()) {
-                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                double value = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = value;
+                p_active_shell_node->FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_ALPHA) = value;
             }
             if ((itr = std::find(mAppliedActuationList.begin(), mAppliedActuationList.end(), "beta")) != mAppliedActuationList.end()) {
-                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_BETA) = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                double value = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_BETA) = value;
+                p_active_shell_node->FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_BETA) = value;
             }
             if ((itr = std::find(mAppliedActuationList.begin(), mAppliedActuationList.end(), "gamma")) != mAppliedActuationList.end()) {
-                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA) = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                double value = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA) = value;
+                p_active_shell_node->FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_GAMMA) = value;
             }
             if ((itr = std::find(mAppliedActuationList.begin(), mAppliedActuationList.end(), "kappa_1")) != mAppliedActuationList.end()) {
-                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1) = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                double value = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1) = value;
+                p_active_shell_node->FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_1) = value;
             }
             if ((itr = std::find(mAppliedActuationList.begin(), mAppliedActuationList.end(), "kappa_2")) != mAppliedActuationList.end()) {
-                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2) = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                double value = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2) = value;
+                p_active_shell_node->FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_2) = value;
             }
             if ((itr = std::find(mAppliedActuationList.begin(), mAppliedActuationList.end(), "kappa_12")) != mAppliedActuationList.end()) {
-                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12) = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                double value = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
+                p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12) = value;
+                p_active_shell_node->FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_12) = value;
             }
 
 
@@ -176,6 +202,14 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
         r_node.AddDof(ACTIVE_SHELL_KAPPA_2, REACTION_ACTIVE_SHELL_KAPPA_2);
         r_node.AddDof(ACTIVE_SHELL_KAPPA_12, REACTION_ACTIVE_SHELL_KAPPA_12);
 
+        // Adjoint DOFs
+        r_node.AddDof(ADJOINT_ACTIVE_SHELL_ALPHA, ADJOINT_REACTION_ACTIVE_SHELL_ALPHA);
+        r_node.AddDof(ADJOINT_ACTIVE_SHELL_BETA, ADJOINT_REACTION_ACTIVE_SHELL_BETA);
+        r_node.AddDof(ADJOINT_ACTIVE_SHELL_GAMMA, ADJOINT_REACTION_ACTIVE_SHELL_GAMMA);
+        r_node.AddDof(ADJOINT_ACTIVE_SHELL_KAPPA_1, ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_1);
+        r_node.AddDof(ADJOINT_ACTIVE_SHELL_KAPPA_2, ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_2);
+        r_node.AddDof(ADJOINT_ACTIVE_SHELL_KAPPA_12, ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_12);
+
         // Überprüfe die Werte der Dofs
         KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA));
         KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA));
@@ -192,16 +226,22 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
             if (fix_flag != "free" && fix_flag != "FREE" && fix_flag != "Free") {
                 if (dof_name == "alpha") {
                     r_node.Fix(ACTIVE_SHELL_ALPHA);
+                    r_node.Fix(ADJOINT_ACTIVE_SHELL_ALPHA);
                 } else if (dof_name == "beta") {
                     r_node.Fix(ACTIVE_SHELL_BETA);
+                    r_node.Fix(ADJOINT_ACTIVE_SHELL_BETA);
                 } else if (dof_name == "gamma") {
                     r_node.Fix(ACTIVE_SHELL_GAMMA);
+                    r_node.Fix(ADJOINT_ACTIVE_SHELL_GAMMA);
                 } else if (dof_name == "kappa_1") {
                     r_node.Fix(ACTIVE_SHELL_KAPPA_1);
+                    r_node.Fix(ADJOINT_ACTIVE_SHELL_KAPPA_1);
                 } else if (dof_name == "kappa_2") {
                     r_node.Fix(ACTIVE_SHELL_KAPPA_2);
+                    r_node.Fix(ADJOINT_ACTIVE_SHELL_KAPPA_2);
                 } else if (dof_name == "kappa_12") {
                     r_node.Fix(ACTIVE_SHELL_KAPPA_12);
+                    r_node.Fix(ADJOINT_ACTIVE_SHELL_KAPPA_12);
                 }
             }
         }

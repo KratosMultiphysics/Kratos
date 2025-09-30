@@ -96,6 +96,16 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(Equa
             rResult[index + 5] = iNode.GetDof(ADJOINT_ROTATION_Z).EquationId();
         }
     }
+    // Adjoint actuation DOFs (global node)
+    const NodeType& r_global_node = geom.GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
+    IndexType offset = geom.size() * num_dofs_per_node;
+    rResult[offset + 0] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_ALPHA).EquationId();
+    rResult[offset + 1] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_BETA).EquationId();
+    rResult[offset + 2] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_GAMMA).EquationId();
+    rResult[offset + 3] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_1).EquationId();
+    rResult[offset + 4] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_2).EquationId();
+    rResult[offset + 5] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_12).EquationId();
+
     KRATOS_CATCH("")
 }
 
@@ -129,6 +139,16 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(DofsVector
             rElementalDofList[index + 5] = this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z);
         }
     }
+
+    // Adjoint actuation DOFs (global node)
+    const NodeType& r_global_node = this->GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
+    rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_ALPHA));
+    rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_BETA));
+    rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_GAMMA));
+    rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_1));
+    rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_2));
+    rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_12));
+
     KRATOS_CATCH("")
 }
 
@@ -165,6 +185,17 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vecto
             rValues[index + 5] = rot[2];
         }
     }
+
+    // Adjoint actuation DOFs (global node)
+    const NodeType& r_global_node = geom.GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
+    IndexType offset = number_of_nodes * num_dofs_per_node;
+    rValues[offset + 0] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_ALPHA, Step);
+    rValues[offset + 1] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_BETA, Step);
+    rValues[offset + 2] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_GAMMA, Step);
+    rValues[offset + 3] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_1, Step);
+    rValues[offset + 4] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_2, Step);
+    rValues[offset + 5] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_12, Step);
+
     KRATOS_CATCH("")
 }
 
