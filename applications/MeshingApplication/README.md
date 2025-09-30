@@ -1,6 +1,8 @@
 # Meshing Application
 
-![](https://raw.githubusercontent.com/KratosMultiphysics/Examples/master/mmg_remeshing_examples/use_cases/channel_sphere2D/data/channel.png)
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/mmg_remeshing_examples/use_cases/channel_sphere2D/data/result.gif?raw=true" alt="Solution" style="width: 600px;"/>
+</p>
 
 Meshing Application provides several tools to create, manipulate and interact with meshes. It contains several interfaces to both Kratos
 third party libraries (Triangle, TetGen, MMG)
