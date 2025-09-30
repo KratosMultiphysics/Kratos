@@ -258,5 +258,7 @@ if __name__ == '__main__':
 
     # run future tests
     if hasattr(KratosMultiphysics, "Future"):
-        from kratos.future.tests.test_KratosCore import AssembleTestSuites as AssembleFutureTestSuites
-        KratosUnittest.runTests(AssembleFutureTestSuites())
+        import KratosMultiphysics.KratosUnittest as kratos_unittest
+        with kratos_unittest.WorkFolderScope("../future/tests", __file__, True):
+            from test_KratosCore import AssembleTestSuites as AssembleFutureTestSuites
+            KratosUnittest.runTests(AssembleFutureTestSuites())

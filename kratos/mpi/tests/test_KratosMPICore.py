@@ -102,3 +102,10 @@ def AssembleTestSuites():
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
+
+    # run future tests
+    if hasattr(KratosMultiphysics, "Future"):
+        import KratosMultiphysics.KratosUnittest as kratos_unittest
+        with kratos_unittest.WorkFolderScope("../future/mpi/tests", __file__, True):
+            from test_KratosMPICore import AssembleTestSuites as AssembleFutureTestSuites
+            KratosUnittest.runTests(AssembleFutureTestSuites())
