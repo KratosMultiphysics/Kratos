@@ -79,6 +79,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
     BoundedMatrix<double, TDim, N_DOF> aux_abs_k_matrix;
     rStiffnessMatrix = ZeroMatrix(N_DOF, N_DOF);
 
+    // Loop over integration points
     for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
         // calculate
         absorbing_variables.Ec = 0.0;
@@ -107,14 +108,19 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector& rRightHandSideVector,
                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
-    ElementMatrixType stiffness_matrix;
+    if (this->GetValue(SKIP_INTERNAL_FORCES)) {
+        rRightHandSideVector = ZeroVector(CONDITION_SIZE);
 
-    this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
+    } else {
+        ElementMatrixType stiffness_matrix;
 
-    Matrix global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
-    GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
+        this->CalculateConditionStiffnessMatrix(stiffness_matrix, rCurrentProcessInfo);
 
-    this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
+        Matrix global_stiffness_matrix = ZeroMatrix(CONDITION_SIZE, CONDITION_SIZE);
+        GeoElementUtilities::AssembleUUBlockMatrix(global_stiffness_matrix, stiffness_matrix);
+
+        this->CalculateAndAddRHS(rRightHandSideVector, global_stiffness_matrix);
+    }
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -145,6 +151,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
     BoundedMatrix<double, TDim, N_DOF> aux_abs_matrix;
     ElementMatrixType                  abs_matrix = ZeroMatrix(N_DOF, N_DOF);
 
+    // Loop over integration points
     for (unsigned int g_point = 0; g_point < num_g_points; ++g_point) {
         // calculate
         absorbing_variables.rho = 0.0;
@@ -282,7 +289,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetNeighbourElementVariables(
 
     // only get values from first neighbour
     Element& r_neighbour_element = neighbour_elements[0];
-    auto     prop_neighbour      = r_neighbour_element.GetProperties();
+    auto&     prop_neighbour      = r_neighbour_element.GetProperties();
 
     const GeometryType&                   r_neighbour_geom = r_neighbour_element.GetGeometry();
     const GeometryData::IntegrationMethod rIntegrationMethodNeighbour =

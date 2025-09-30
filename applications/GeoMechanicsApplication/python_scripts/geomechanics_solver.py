@@ -1,3 +1,5 @@
+import math
+
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
@@ -113,6 +115,7 @@ class GeoMechanicalSolver(PythonSolver):
             "rotation_dofs"              : false,
             "block_builder"              : true,
             "prebuild_dynamics"          : false,
+            "initialize_acceleration"    : false,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
                 "solver_type": "amgcl",
@@ -478,6 +481,46 @@ class GeoMechanicalSolver(PythonSolver):
                                                                                          max_iterations,
                                                                                          compute_reactions,
                                                                                          reform_step_dofs,
+                                                                                         move_mesh_flag)
+        elif strategy_type.lower() == "newton_raphson_linear_elastic":
+
+            # check if the solver_type, solution_type and scheme_type are set to the correct values
+            if ((self.settings["solver_type"].GetString().lower() != "u_pw")
+                    or (self.settings["solution_type"].GetString().lower() != "dynamic")):
+                raise ValueError(f"The selected strategy, {strategy_type.lower()}, is only available for the "
+                                 f"U-Pw solver, dynamic solution type and newmark scheme")
+
+            # check if the reduction_factor and increase_factor are set to 1.0
+            if (not math.isclose(self.settings["reduction_factor"].GetDouble(),1.0)
+                    or not math.isclose(self.settings["increase_factor"].GetDouble(),1.0)):
+                raise ValueError(f"The selected strategy, {strategy_type.lower()}, requires a reduction_factor and "
+                                 f"an increase_factor of 1.0.")
+
+            self.strategy_params = KratosMultiphysics.Parameters("{}")
+
+            beta = self.settings["newmark_beta"].GetDouble()
+            gamma = self.settings["newmark_gamma"].GetDouble()
+
+            calculate_initial_acceleration = self.settings["initialize_acceleration"].GetBool()
+
+            # delta time has to be initialized before solving solution steps
+            self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.settings["time_stepping"]["time_step"].GetDouble()
+
+            new_scheme = GeoMechanicsApplication.IncrementalNewmarkLinearElasticUScheme(beta, gamma)
+
+            new_builder_and_solver = GeoMechanicsApplication.ResidualBasedBlockBuilderAndSolverLinearElasticDynamic(
+                                                                                        self.linear_solver,
+                                                                                        beta,
+                                                                                        gamma,
+                                                                                        calculate_initial_acceleration)
+
+            solving_strategy = GeoMechanicsApplication.GeoMechanicNewtonRaphsonStrategyLinearElasticDynamic(
+                                                                                         self.computing_model_part,
+                                                                                         new_scheme,
+                                                                                         self.convergence_criterion,
+                                                                                         new_builder_and_solver,
+                                                                                         max_iterations,
+                                                                                         compute_reactions,
                                                                                          move_mesh_flag)
         elif strategy_type.lower() == "newton_raphson_with_piping":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
