@@ -66,7 +66,7 @@ void CalculateOnIntegrationPoints(
 } // namespace AdjointFiniteDifferenceBaseElementHelperUtils
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult,
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -76,9 +76,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(Equa
     const SizeType dimension = geom.WorkingSpaceDimension();
     const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
+    constexpr SizeType extra_actuation_dofs = 6;
 
-    if(rResult.size() != num_dofs)
-        rResult.resize(num_dofs, false);
+    if (rResult.size() != num_dofs + extra_actuation_dofs)
+        rResult.resize(num_dofs + extra_actuation_dofs, false);
 
     for(IndexType i = 0; i < geom.size(); ++i)
     {
@@ -110,7 +111,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVector(Equa
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList,
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
@@ -122,21 +123,20 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(DofsVector
     const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
 
-    if (rElementalDofList.size() != num_dofs)
-        rElementalDofList.resize(num_dofs);
+    rElementalDofList.clear();
+    rElementalDofList.reserve(num_dofs + 6);
 
     for (IndexType i = 0; i < number_of_nodes; ++i)
     {
-        const IndexType index = i * num_dofs_per_node ;
-        rElementalDofList[index    ] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
-        rElementalDofList[index + 1] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
-        rElementalDofList[index + 2] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
+        rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X));
+        rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y));
+        rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z));
 
         if(mHasRotationDofs)
         {
-            rElementalDofList[index + 3] = this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_X);
-            rElementalDofList[index + 4] = this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Y);
-            rElementalDofList[index + 5] = this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z);
+            rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_X));
+            rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Y));
+            rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z));
         }
     }
 
@@ -153,7 +153,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(DofsVector
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -164,8 +164,8 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vecto
     const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
 
-    if(rValues.size() != num_dofs)
-        rValues.resize(num_dofs, false);
+    if(rValues.size() != num_dofs + 6)
+        rValues.resize(num_dofs + 6, false);
 
     for (IndexType i = 0; i < number_of_nodes; ++i)
     {
@@ -200,7 +200,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vecto
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -261,7 +261,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const Varia
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
     const Variable<bool>& rVariable,
     std::vector<bool>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -270,7 +270,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -279,7 +279,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3>>& rVariable,
     std::vector<array_1d<double, 3>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -288,7 +288,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 4>>& rVariable,
     std::vector<array_1d<double, 4>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -297,7 +297,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 6>>& rVariable,
     std::vector<array_1d<double, 6>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -306,7 +306,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 9>>& rVariable,
     std::vector<array_1d<double, 9>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -315,7 +315,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -324,7 +324,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -333,7 +333,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnIntegratio
 }
 
 template <class TPrimalElement>
-int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -373,7 +373,7 @@ int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInf
 // Sensitivity functions
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -425,7 +425,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput,
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -472,7 +472,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -553,7 +553,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDispla
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable,
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable,
                                                 const Variable<Vector>& rStressVariable, Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
 {
@@ -613,7 +613,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
                                             const Variable<Vector>& rStressVariable,
                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -685,7 +685,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
 
 // private
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
+double ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {
     double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
     if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
@@ -697,7 +697,7 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
 }
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
+double ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {
     double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
     if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
@@ -709,7 +709,7 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
 }
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<double>& rDesignVariable) const
+double ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<double>& rDesignVariable) const
 {
     KRATOS_TRY;
 
@@ -725,7 +725,7 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
 }
 
 template <class TPrimalElement>
-double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const
+double ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const
 {
     KRATOS_TRY;
 
@@ -746,7 +746,7 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::save(Serializer& rSerializer) const
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
     rSerializer.save("mpPrimalElement", mpPrimalElement);
@@ -754,7 +754,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::save(Serializer& rSer
 }
 
 template <class TPrimalElement>
-void AdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer& rSerializer)
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
     rSerializer.load("mpPrimalElement", mpPrimalElement);

@@ -110,7 +110,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
+        return Kratos::make_intrusive<ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
@@ -118,7 +118,7 @@ public:
                               GeometryType::Pointer pGeometry,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<AdjointFiniteDifferencingBaseElement<TPrimalElement>>(
+        return Kratos::make_intrusive<ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>>(
             NewId, pGeometry, pProperties);
     }
 
