@@ -77,7 +77,6 @@ class GeoMechanicalSolver(PythonSolver):
             "clear_storage": false,
             "compute_reactions": false,
             "move_mesh_flag": false,
-            "nodal_smoothing": false,
             "reset_displacements":  false,
             "solution_type": "quasi_static",
             "scheme_type": "Newmark",
