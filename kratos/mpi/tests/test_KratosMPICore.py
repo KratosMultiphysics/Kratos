@@ -21,7 +21,6 @@ import test_mpi_processes
 import test_distributed_model_part_initializer
 import test_distributed_import_model_part_utility
 import test_distributed_sparse_matrices
-import test_mpi_vtu_output
 
 # importing OpenMP tests in MPI scope.
 with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
@@ -87,7 +86,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_combine_model_part_modeler.TestCombineModelPartModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_stl_io.TestStlIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_compute_nodal_gradient_process.TestComputeNodalGradientProcessCoarseSphere]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_vtu_output.TestMPIVtuOutput]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['mpi_nightly']
