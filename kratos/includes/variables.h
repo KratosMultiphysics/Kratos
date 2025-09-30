@@ -485,10 +485,6 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST)
     KRATOS_DEFINE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND)
 
-    // Variable used for synchronizing tensor adaptor data
-    // if a tensor adaptor is created from a local mesh nodes.
-    KRATOS_DEFINE_VARIABLE(Vector, TENSOR_ADAPTOR_SYNC)
-
 }  // namespace Kratos.
 
 #undef  KRATOS_EXPORT_MACRO
