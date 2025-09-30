@@ -652,7 +652,7 @@ std::string WritePartitionedUnstructuredGridData(
         }
 
         // now add the piece elements
-        for (IndexType i_rank = 0; i_rank < rDataCommunicator.Size(); ++i_rank) {
+        for (int i_rank = 0; i_rank < rDataCommunicator.Size(); ++i_rank) {
             const auto& r_file_name = r_base_name + "_" + std::to_string(i_rank) + ".vtu";
             auto piece = Kratos::make_shared<XmlElementsArray>("Piece");
             // since we are writing to the same folder the pvtu files
