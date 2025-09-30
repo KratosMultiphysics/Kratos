@@ -119,7 +119,7 @@ class ExpressionVtuOutput:
     def WriteOutput(self):
         for current_expression_name_data_pair in self.dict_of_expression_data.values():
             for expression_data in current_expression_name_data_pair.values():
-                self.vtu_output.EmplaceContainerExpression(expression_data.GetContainerExpressionName(), expression_data.GetContainerExpression(self.optimization_problem))
+                self.vtu_output.AddContainerExpression(expression_data.GetContainerExpressionName(), expression_data.GetContainerExpression(self.optimization_problem))
 
         output_file_name = self.output_file_name_prefix
         output_file_name = output_file_name.replace("<model_part_full_name>", self.model_part.FullName())
@@ -133,7 +133,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             """
             {
                 "file_name"                   : "<model_part_full_name>_<step>",
-                "file_format"                 : "compressed_raw",
+                "file_format"                 : "binary",
                 "output_path"                 : "Optimization_Results",
                 "save_output_files_in_folder" : true,
                 "write_deformed_configuration": false,
@@ -163,12 +163,8 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             self.writer_format = Kratos.VtuOutput.ASCII
         elif file_format == "binary":
             self.writer_format = Kratos.VtuOutput.BINARY
-        elif file_format == "raw":
-            self.writer_format = Kratos.VtuOutput.RAW
-        elif file_format == "compressed_raw":
-            self.writer_format = Kratos.VtuOutput.COMPRESSED_RAW
         else:
-            raise RuntimeError(f"Only supports \"ascii\", \"binary\", \"raw\", and \"compressed_raw\" file_format. [ provided file_format = \"{file_format}\" ].")
+            raise RuntimeError(f"Only supports \"ascii\" and \"binary\" file_format. [ provided file_format = \"{file_format}\" ].")
 
         self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
         self.list_of_expresson_vtu_outputs: 'list[ExpressionVtuOutput]' = []
