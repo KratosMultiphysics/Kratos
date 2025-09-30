@@ -791,6 +791,11 @@ std::vector<VtuOutput::SupportedContainerPointerType> VtuOutput::GetAvailableCon
     for (const auto& r_unstructured_grid : mUnstructuredGridDataList) {
         if (r_unstructured_grid.UsePointsForDataFieldOutput) {
             result.push_back(r_unstructured_grid.mpPoints);
+
+            if (!r_unstructured_grid.mpModelPart->GetRootModelPart().IsDistributed()) {
+                // since local mesh and the mesh are the same.
+                result.push_back(r_unstructured_grid.mpModelPart->GetCommunicator().LocalMesh().pNodes());
+            }
         }
 
         if (r_unstructured_grid.mpCells.has_value()) {
