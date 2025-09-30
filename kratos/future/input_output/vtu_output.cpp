@@ -667,6 +667,7 @@ std::string WritePartitionedUnstructuredGridData(
         // writing to file
         std::ofstream output_file;
         output_file.open(p_vtu_file_name, std::ios::out | std::ios::trunc);
+        output_file << "<?xml version=\"1.0\"?>\n";
         p_vtu_file_element.Write(output_file);
 
    }
@@ -1098,7 +1099,8 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
 
     // write the vtu file.
     std::ofstream output_file;
-    output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
+    output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc | std::ios::binary);
+    output_file << "<?xml version=\"1.0\"?>\n";
     vtk_file_element.Write(output_file);
     output_file.close();
 
@@ -1278,6 +1280,7 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
 
         std::ofstream output_file;
         output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
+        output_file << "<?xml version=\"1.0\"?>\n";
         vtk_file_element.Write(output_file);
         output_file.close();
 
@@ -1433,6 +1436,7 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
 
             std::ofstream output_file;
             output_file.open(rOutputFileNamePrefix + ".pvd", std::ios::out | std::ios::trunc);
+            output_file << "<?xml version=\"1.0\"?>\n";
             pvd_file_element.Write(output_file);
             output_file.close();
         } else {
