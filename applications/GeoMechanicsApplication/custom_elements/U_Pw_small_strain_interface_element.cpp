@@ -228,8 +228,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
     }
 
-    if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues();
-
     KRATOS_CATCH("")
 }
 
@@ -250,59 +248,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::ModifyInactiveElementStres
             const double x           = (JointWidth / MinimumJointWidth) - 1.0;
             StressVector *= std::max(0.01, exp(-x * decayFactor));
         }
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <>
-void UPwSmallStrainInterfaceElement<2, 4>::ExtrapolateGPValues()
-{
-    KRATOS_TRY
-
-    GeometryType& rGeom = this->GetGeometry();
-    const double& Area  = rGeom.Area();
-
-    for (unsigned int i = 0; i < 4; ++i) { // NumNodes
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
-        rGeom[i].UnSetLock();
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <>
-void UPwSmallStrainInterfaceElement<3, 6>::ExtrapolateGPValues()
-{
-    KRATOS_TRY
-
-    GeometryType& rGeom = this->GetGeometry();
-    const double& Area  = rGeom.Area();
-
-    for (unsigned int i = 0; i < 6; ++i) // NumNodes
-    {
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
-        rGeom[i].UnSetLock();
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <>
-void UPwSmallStrainInterfaceElement<3, 8>::ExtrapolateGPValues()
-{
-    KRATOS_TRY
-
-    GeometryType& rGeom = this->GetGeometry();
-    const double& Area  = rGeom.Area();
-
-    for (unsigned int i = 0; i < 8; ++i) // NumNodes
-    {
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
-        rGeom[i].UnSetLock();
     }
 
     KRATOS_CATCH("")
