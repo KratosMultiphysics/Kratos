@@ -574,26 +574,12 @@ std::string WritePartitionedUnstructuredGridData(
     const std::string& rOutputVtuFileName,
     const DataCommunicator& rDataCommunicator)
 {
-    // get list of file names
-    std::stringstream list_of_file_names;
-
     const int writing_rank = 0;
 
-    list_of_file_names << rOutputVtuFileName << "\n";
-    if (rDataCommunicator.Rank() == writing_rank) {
-        for (int rank = 0; rank < rDataCommunicator.Size(); ++rank) {
-            if (rank != writing_rank) {
-                std::string msg;
-                rDataCommunicator.Recv(msg, rank);
-                list_of_file_names << msg;
-            }
-        }
-    } else {
-        rDataCommunicator.Send(list_of_file_names.str(), writing_rank);
-    }
-
     // remove the rank from the rOutputVtuFileName.
-    const auto& p_vtu_file_name = rOutputVtuFileName.substr(0, rOutputVtuFileName.rfind("_"))  + ".pvtu";
+    const auto& r_base_name = rOutputVtuFileName.substr(0, rOutputVtuFileName.rfind("_"));
+
+    const auto& p_vtu_file_name = r_base_name  + ".pvtu";
 
     if (rDataCommunicator.Rank() == writing_rank) {
         // create the pvtu file
@@ -666,8 +652,8 @@ std::string WritePartitionedUnstructuredGridData(
         }
 
         // now add the piece elements
-        const auto& r_file_names = StringUtilities::SplitStringByDelimiter(list_of_file_names.str(), '\n');
-        for (const auto& r_file_name : r_file_names) {
+        for (IndexType i_rank = 0; i_rank < rDataCommunicator.Size(); ++i_rank) {
+            const auto& r_file_name = r_base_name + "_" + std::to_string(i_rank) + ".vtu";
             auto piece = Kratos::make_shared<XmlElementsArray>("Piece");
             // since we are writing to the same folder the pvtu files
             piece->AddAttribute(
