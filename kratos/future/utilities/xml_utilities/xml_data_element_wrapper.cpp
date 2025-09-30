@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <numeric>
 
 // Project includes
 #include "xml_elements_array.h"
@@ -34,6 +35,16 @@ XmlElement::Pointer XmlDataElementWrapper::Get(
 
     auto p_element = Kratos::make_shared<XmlElementsArray>("DataArray");
     p_element->AddAttribute("Name", rDataArrayName);
+
+    std::visit([&rDataArrayName](auto p_nd_data){
+        const auto& shape = p_nd_data->Shape();
+
+        KRATOS_ERROR_IF(std::accumulate(shape.begin() + 1, shape.end(), 1u, std::multiplies<unsigned int>{}) == 0)
+            << "Writing data arrays with zero components is prohibited. [ data array name = \""
+            << rDataArrayName << "\", shape = " << shape << ", nd data = " << *p_nd_data << " ].\n";
+
+    }, pNDData);
+
     std::visit([&p_element](auto p_nd_data) {
         XmlUtilities::AddDataArrayAttributes(*p_element, *p_nd_data);
     }, pNDData);

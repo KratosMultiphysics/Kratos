@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <numeric>
 
 // External includes
 
@@ -41,6 +42,12 @@ XmlElement::Pointer XmlInPlaceDataElementWrapper::Get(
     KRATOS_TRY
 
     return std::visit([this, &rDataArrayName](auto p_nd_data) -> XmlElement::Pointer {
+        const auto& shape = p_nd_data->Shape();
+
+        KRATOS_ERROR_IF(std::accumulate(shape.begin() + 1, shape.end(), 1u, std::multiplies<unsigned int>{}) == 0)
+            << "Writing data arrays with zero components is prohibited. [ data array name = \""
+            << rDataArrayName << "\", shape = " << shape << ", nd data = " << *p_nd_data << " ].\n";
+
         using nd_data_data_type = typename BareType<decltype(*p_nd_data)>::DataType;
 
         switch (this->mOutputType) {

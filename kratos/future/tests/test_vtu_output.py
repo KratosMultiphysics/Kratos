@@ -28,6 +28,7 @@ class TestVtuOutputBase:
         for i_cond, cond in enumerate(cls.model_part.Conditions):
             cond.SetValue(Kratos.DENSITY, i_cond * 4.362)
             cond.SetValue(Kratos.YOUNG_MODULUS, i_cond * 5.326)
+            cond.SetValue(Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, Kratos.Vector())
 
     @classmethod
     def setUpClass(cls, output_prefix: str, setup_method, output_sub_model_parts: bool) -> None:
@@ -40,7 +41,7 @@ class TestVtuOutputBase:
         setup_method(cls.model_part)
         cls.SetSolution()
 
-    def WriteVtu(self, output_format: Kratos.Future.VtuOutput.WriterFormat):
+    def WriteVtu(self, output_format: Kratos.Future.VtuOutput.WriterFormat, error_check = False):
         vtu_output = Kratos.Future.VtuOutput(self.model_part, Kratos.Configuration.Initial, output_format, 9, echo_level=0, output_sub_model_parts=self.output_sub_model_parts)
         vtu_output.AddVariable(Kratos.PRESSURE, Kratos.Globals.DataLocation.NodeHistorical)
         vtu_output.AddVariable(Kratos.VELOCITY, Kratos.Globals.DataLocation.NodeHistorical)
@@ -48,6 +49,10 @@ class TestVtuOutputBase:
         vtu_output.AddVariable(Kratos.DETERMINANT, Kratos.Globals.DataLocation.Element)
         vtu_output.AddVariable(Kratos.DENSITY, Kratos.Globals.DataLocation.Condition)
         vtu_output.AddVariable(Kratos.YOUNG_MODULUS, Kratos.Globals.DataLocation.Condition)
+        if error_check:
+            # adds a vector with zero size to check for the error. Because, in vtu lib,
+            # if the behavior is undefined if the "NumberOfComponents = 0".
+            vtu_output.AddVariable(Kratos.DETERMINANTS_OF_JACOBIAN_PARENT, Kratos.Globals.DataLocation.Condition)
 
         ta_1 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
         ta_1.CollectData()
@@ -76,6 +81,22 @@ class TestVtuOutputBase:
 
     def test_WriteMeshCompressedRaw(self):
         self.WriteVtu(Kratos.Future.VtuOutput.COMPRESSED_RAW)
+
+    def test_WriteMeshAsciiWithError(self):
+        with self.assertRaises(RuntimeError):
+            self.WriteVtu(Kratos.Future.VtuOutput.ASCII, True)
+
+    def test_WriteMeshBinaryWithError(self):
+        with self.assertRaises(RuntimeError):
+            self.WriteVtu(Kratos.Future.VtuOutput.BINARY, True)
+
+    def test_WriteMeshRawWithError(self):
+        with self.assertRaises(RuntimeError):
+            self.WriteVtu(Kratos.Future.VtuOutput.RAW, True)
+
+    def test_WriteMeshCompressedRawWithError(self):
+        with self.assertRaises(RuntimeError):
+            self.WriteVtu(Kratos.Future.VtuOutput.COMPRESSED_RAW, True)
 
     def Check(self, output_prefix, reference_prefix):
         def check_file(output_file_name: str, reference_file_name: str):
