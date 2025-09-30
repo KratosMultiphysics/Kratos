@@ -75,6 +75,12 @@ public:
                                     NDData<double>::Pointer
                                 >;
 
+    using SupportedContainerPointerType = std::variant<
+                                            ModelPart::NodesContainerType::Pointer,
+                                            ModelPart::ConditionsContainerType::Pointer,
+                                            ModelPart::ElementsContainerType::Pointer
+                                        >;
+
     using CellContainerPointerType = std::variant<
                                         ModelPart::ConditionsContainerType::Pointer,
                                         ModelPart::ElementsContainerType::Pointer
@@ -270,6 +276,13 @@ public:
     * @return The constant reference to the model part.
     */
     const ModelPart& GetModelPart() const;
+
+    /**
+     * @brief Get the Available Container List
+     * @details This method returns the model part containers which are used in when writing fields.
+     * @return std::vector<SupportedContainerPointerType>   List of container which are used in when writing fields.
+     */
+    std::vector<SupportedContainerPointerType> GetAvailableContainerList() const;
 
     /**
      * @brief Prints the vtu output data to a file with the specified filename prefix.

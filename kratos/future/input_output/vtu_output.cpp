@@ -785,6 +785,31 @@ const ModelPart& VtuOutput::GetModelPart() const
     return mrModelPart;
 }
 
+std::vector<VtuOutput::SupportedContainerPointerType> VtuOutput::GetAvailableContainerList() const
+{
+    std::vector<SupportedContainerPointerType> result;
+    for (const auto& r_unstructured_grid : mUnstructuredGridDataList) {
+        if (r_unstructured_grid.UsePointsForDataFieldOutput) {
+            result.push_back(r_unstructured_grid.mpPoints);
+        }
+
+        if (r_unstructured_grid.mpCells.has_value()) {
+            std::visit([&result, &r_unstructured_grid](auto p_cells) {
+                result.push_back(p_cells);
+
+                // since local mesh and the mesh are the same.
+                using container_type = BareType<decltype(*p_cells)>;
+                if constexpr(std::is_same_v<container_type, ModelPart::ConditionsContainerType>) {
+                    result.push_back(r_unstructured_grid.mpModelPart->GetCommunicator().LocalMesh().pConditions());
+                } else if constexpr(std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
+                    result.push_back(r_unstructured_grid.mpModelPart->GetCommunicator().LocalMesh().pElements());
+                }
+            }, r_unstructured_grid.mpCells.value());
+        }
+    }
+    return result;
+}
+
 void VtuOutput::AddFlag(
     const std::string& rFlagName,
     const Flags& rFlagVariable,
