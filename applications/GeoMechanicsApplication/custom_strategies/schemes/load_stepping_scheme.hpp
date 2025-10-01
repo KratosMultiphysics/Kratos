@@ -47,8 +47,7 @@ public:
         KRATOS_ERROR_IF(mExternalForcesAtStartByElementId.empty() ||
                         mInternalForcesAtStartByElementId.empty())
             << "The load stepping scheme is not initialized properly. Make sure all "
-               "initializations "
-               "are done before calculating system contributions.";
+               "initializations are done before calculating system contributions.";
 
         Vector internal_forces;
         rCurrentElement.Calculate(INTERNAL_FORCES_VECTOR, internal_forces, rCurrentProcessInfo);
@@ -74,14 +73,14 @@ public:
     }
 
     void CalculateRHSContribution(Condition&                     rCurrentCondition,
-                                  TLocalSystemVectorType&        RHS_Contribution,
-                                  Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo&             CurrentProcessInfo) override
+                                  TLocalSystemVectorType&        rRHS_Contribution,
+                                  Element::EquationIdVectorType& rEquationId,
+                                  const ProcessInfo&             rCurrentProcessInfo) override
     {
         GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution(
-            rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo);
+            rCurrentCondition, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
 
-        RHS_Contribution *= CalculateLoadFraction(CurrentProcessInfo);
+        rRHS_Contribution *= CalculateLoadFraction(rCurrentProcessInfo);
     }
 
     void InitializeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rB) override
