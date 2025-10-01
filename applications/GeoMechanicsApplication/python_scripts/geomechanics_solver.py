@@ -19,6 +19,7 @@ class GeoMechanicalSolver(PythonSolver):
 
     Derived classes can override the functions
     """
+    geo_info_label = "::[GeoMechanicalSolver]:: "
     def __init__(self, model, custom_settings):
 
         super().__init__(model, custom_settings)
@@ -44,7 +45,7 @@ class GeoMechanicalSolver(PythonSolver):
 
         self.min_buffer_size = 2
 
-        KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo(self.geo_info_label, "Construction finished")
 
         # Set if the analysis is restarted
         self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = self.settings["model_import_settings"]["input_type"].GetString() == "rest"
@@ -179,7 +180,7 @@ class GeoMechanicalSolver(PythonSolver):
                 variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
                 self.main_model_part.AddNodalSolutionStepVariable(variable)
 
-        KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo(self.geo_info_label, "Variables ADDED")
 
     def AddDofs(self):
         # handled in the specific solvers U_Pw, Pw, T
@@ -373,11 +374,8 @@ class GeoMechanicalSolver(PythonSolver):
 
     def _add_smoothing_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_CAUCHY_STRESS_TENSOR)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_DAMAGE_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_WIDTH)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_DAMAGE)
 
     def _add_dynamic_dofs(self):
         # For being consistent for Serial and Trilinos
@@ -417,7 +415,7 @@ class GeoMechanicalSolver(PythonSolver):
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
-            KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Constitutive law was successfully imported.")
+            KratosMultiphysics.Logger.PrintInfo(self.geo_info_label, "Constitutive law was successfully imported.")
         else:
             raise RuntimeError("::[GeoMechanicalSolver]:: Constitutive law was not imported.")
 

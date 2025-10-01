@@ -208,94 +208,96 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElementCheckThrowsOnFaultyInput, Kratos
     }
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "DENSITY_WATER does not exist in the material properties (Id = 0) at element 5")
+        "DENSITY_WATER does not exist in the material properties with Id 0 at element with Id 5.")
 
     p_element->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "DENSITY_WATER of material Id = 0 at element 5 has an invalid value -1000 which is below "
-        "the minimum allowed value of 0")
+        "DENSITY_WATER in the material properties with Id 0 at element with Id 5 has an invalid "
+        "value: -1000 is out of the range [0, -).")
 
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "DENSITY_SOLID does not exist in the material properties (Id = 0) at element 5")
+        "DENSITY_SOLID does not exist in the material properties with Id 0 at element with Id 5.")
 
     p_element->GetProperties().SetValue(DENSITY_SOLID, -1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "DENSITY_SOLID of material Id = 0 at element 5 has an invalid value -1000 which is below "
-        "the minimum allowed value of 0")
+        "DENSITY_SOLID in the material properties with Id 0 at element with Id 5 has an invalid "
+        "value: -1000 is out of the range [0, -).")
 
     p_element->GetProperties().SetValue(DENSITY_SOLID, 1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "POROSITY does not exist in the material properties (Id = 0) at element 5")
+        "POROSITY does not exist in the material properties with Id 0 at element with Id 5.")
 
     p_element->GetProperties().SetValue(POROSITY, -1.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "POROSITY of material Id = 0 at element 5 has an invalid "
-                                      "value -1 which is outside of the range [ 0, 1]")
-
-    p_element->GetProperties().SetValue(POROSITY, 2.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "POROSITY of material Id = 0 at element 5 has an invalid "
-                                      "value 2 which is outside of the range [ 0, 1]")
-
-    p_element->GetProperties().SetValue(POROSITY, 0.5);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "BULK_MODULUS_SOLID does not exist in the material properties (Id = 0) at element 5")
+        "POROSITY in the material properties with Id 0 at element with Id 5 has an invalid value: "
+        "-1 is out of the range [0, 1].")
+
+    p_element->GetProperties().SetValue(POROSITY, 2.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "POROSITY in the material properties with Id 0 at element with Id 5 has an invalid value: "
+        "2 is out of the range [0, 1].")
+
+    p_element->GetProperties().SetValue(POROSITY, 0.5);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "BULK_MODULUS_SOLID does not exist in the material "
+                                      "properties with Id 0 at element with Id 5.")
 
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, -1.0E6);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "BULK_MODULUS_SOLID of material Id = 0 at element 5 has an invalid value -1e+06 which is "
-        "below the minimum allowed value of 0")
+        "BULK_MODULUS_SOLID in the material properties with Id 0 at element with Id 5 has an "
+        "invalid value: -1e+06 is out of the range [0, -).")
 
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_element->Check(dummy_process_info),
-        "BULK_MODULUS_FLUID does not exist in the material properties (Id = 0) at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "BULK_MODULUS_FLUID does not exist in the material "
+                                      "properties with Id 0 at element with Id 5.")
 
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, -1.0E6);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "BULK_MODULUS_FLUID of material Id = 0 at element 5 has an invalid value -1e+06 which is "
-        "below the minimum allowed value of 0")
+        "BULK_MODULUS_FLUID in the material properties with Id 0 at element with Id 5 has an "
+        "invalid value: -1e+06 is out of the range [0, -).")
 
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_element->Check(dummy_process_info),
-        "DYNAMIC_VISCOSITY does not exist in the material properties (Id = 0) at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "DYNAMIC_VISCOSITY does not exist in the material properties "
+                                      "with Id 0 at element with Id 5.")
 
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E6);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "DYNAMIC_VISCOSITY of material Id = 0 at element 5 has an invalid value -1e+06 which is "
-        "below the minimum allowed value of 0")
+        "DYNAMIC_VISCOSITY in the material properties with Id 0 at element with Id 5 has an "
+        "invalid value: -1e+06 is out of the range [0, -).")
 
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_element->Check(dummy_process_info),
-        "BIOT_COEFFICIENT does not exist in the material properties (Id = 0) at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "BIOT_COEFFICIENT does not exist in the material properties "
+                                      "with Id 0 at element with Id 5.")
 
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "BIOT_COEFFICIENT of material Id = 0 at element 5 has an invalid value -1 which is below "
-        "the minimum allowed value of 0")
+        "BIOT_COEFFICIENT in the material properties with Id 0 at element with Id 5 has an invalid "
+        "value: -1 is out of the range [0, -).")
 
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "PERMEABILITY_XX does not exist in the material properties (Id = 0) at element 5")
+        "PERMEABILITY_XX does not exist in the material properties with Id 0 at element with Id 5.")
 
     p_element->GetProperties().SetValue(PERMEABILITY_XX, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
-        "PERMEABILITY_XX of material Id = 0 at element 5 has an invalid value -1 which is below "
-        "the minimum allowed value of 0")
+        "PERMEABILITY_XX in the material properties with Id 0 at element with Id 5 has an invalid "
+        "value: -1 is out of the range [0, -).")
 
     p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
     p_element->GetGeometry().begin()->Z() += 1;

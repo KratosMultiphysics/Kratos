@@ -64,62 +64,32 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-
-    KRATOS_ERROR_IF(this->Id() < 1)
-        << "Element found with Id 0 or negative, element: " << this->Id() << std::endl;
+    const auto element_Id = this->Id();
+    KRATOS_ERROR_IF(element_Id < 1)
+        << "Element found with Id 0 or negative, element: " << element_Id << std::endl;
 
     // Verify generic variables
     int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const CheckProperties check_properties(r_properties, "property at element", this->Id(),
+    const auto&           r_properties = this->GetProperties();
+    const CheckProperties check_properties(r_properties, "property", element_Id,
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
-
+    check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_properties[IGNORE_UNDRAINED]) {
         check_properties.Check(TRANSVERSAL_PERMEABILITY);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
     }
 
-    // Verify the constitutive law
-    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-        << "CONSTITUTIVE_LAW has Key zero or is not defined at element " << this->Id() << std::endl;
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
+    ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
 
-    if (r_properties[CONSTITUTIVE_LAW]) {
-        // Verify compatibility of the element with the constitutive law
-        ConstitutiveLaw::Features LawFeatures;
-        r_properties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-        bool correct_strain_measure = false;
-        for (unsigned int i = 0; i < LawFeatures.mStrainMeasures.size(); ++i) {
-            if (LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-                correct_strain_measure = true;
-        }
-        KRATOS_ERROR_IF_NOT(correct_strain_measure)
-            << "constitutive law is not compatible with the element type "
-               "StrainMeasure_Infinitesimal "
-            << this->Id() << std::endl;
+    ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(r_properties, element_Id);
 
-        // Check constitutive law
-        ierr = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, this->GetGeometry(), rCurrentProcessInfo);
-    } else
-        KRATOS_ERROR << "A constitutive law needs to be specified for the "
-                        "element "
-                     << this->Id() << std::endl;
-
-    const SizeType strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    if (TDim == 2) {
-        KRATOS_ERROR_IF_NOT(strain_size == 2)
-            << "Wrong constitutive law used. This is a 2D element! expected "
-               "strain size is 2 (el id = ) "
-            << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 3)
-            << "Wrong constitutive law used. This is a 3D element! expected "
-               "strain size is 3 (el id = ) "
-            << this->Id() << std::endl;
-    }
+    constexpr auto expected_size = TDim == 2 ? VOIGT_SIZE_2D_INTERFACE : VOIGT_SIZE_3D_INTERFACE;
+    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, element_Id);
 
     return ierr;
 
@@ -211,9 +181,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
-    const Matrix&         NContainer   = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+    const auto&   r_properties = this->GetProperties();
+    const auto&   r_geometry   = this->GetGeometry();
+    const Matrix& NContainer   = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
     array_1d<double, TNumNodes * TDim> DisplacementVector;
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, r_geometry, DISPLACEMENT);
     BoundedMatrix<double, TDim, TDim> RotationMatrix;
@@ -275,8 +245,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::ModifyInactiveElementStres
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties      = this->GetProperties();
-    const double&         MinimumJointWidth = r_properties[MINIMUM_JOINT_WIDTH];
+    const auto&   r_properties      = this->GetProperties();
+    const double& MinimumJointWidth = r_properties[MINIMUM_JOINT_WIDTH];
 
     if (JointWidth > MinimumJointWidth) {
         bool ConsiderGapClosure =
@@ -296,13 +266,6 @@ void UPwSmallStrainInterfaceElement<2, 4>::ExtrapolateGPValues(const std::vector
 {
     KRATOS_TRY
 
-    array_1d<double, 2> DamageContainer; // 2 Lobatto Points
-
-    for (unsigned int i = 0; i < 2; ++i) { // NumLobattoPoints
-        DamageContainer[i] = 0.0;
-        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue(DAMAGE_VARIABLE, DamageContainer[i]);
-    }
-
     GeometryType& rGeom = this->GetGeometry();
     const double& Area  = rGeom.Area();
 
@@ -312,16 +275,9 @@ void UPwSmallStrainInterfaceElement<2, 4>::ExtrapolateGPValues(const std::vector
     NodalJointWidth[2] = JointWidthContainer[1] * Area;
     NodalJointWidth[3] = JointWidthContainer[0] * Area;
 
-    array_1d<double, 4> NodalDamage;
-    NodalDamage[0] = DamageContainer[0] * Area;
-    NodalDamage[1] = DamageContainer[1] * Area;
-    NodalDamage[2] = DamageContainer[1] * Area;
-    NodalDamage[3] = DamageContainer[0] * Area;
-
     for (unsigned int i = 0; i < 4; ++i) { // NumNodes
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -334,14 +290,6 @@ void UPwSmallStrainInterfaceElement<3, 6>::ExtrapolateGPValues(const std::vector
 {
     KRATOS_TRY
 
-    array_1d<double, 3> DamageContainer; // 3 Lobatto Points
-
-    for (unsigned int i = 0; i < 3; ++i) // NumLobattoPoints
-    {
-        DamageContainer[i] = 0.0;
-        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue(DAMAGE_VARIABLE, DamageContainer[i]);
-    }
-
     GeometryType& rGeom = this->GetGeometry();
     const double& Area  = rGeom.Area();
 
@@ -353,19 +301,10 @@ void UPwSmallStrainInterfaceElement<3, 6>::ExtrapolateGPValues(const std::vector
     NodalJointWidth[4] = JointWidthContainer[1] * Area;
     NodalJointWidth[5] = JointWidthContainer[2] * Area;
 
-    array_1d<double, 6> NodalDamage;
-    NodalDamage[0] = DamageContainer[0] * Area;
-    NodalDamage[1] = DamageContainer[1] * Area;
-    NodalDamage[2] = DamageContainer[2] * Area;
-    NodalDamage[3] = DamageContainer[0] * Area;
-    NodalDamage[4] = DamageContainer[1] * Area;
-    NodalDamage[5] = DamageContainer[2] * Area;
-
     for (unsigned int i = 0; i < 6; ++i) // NumNodes
     {
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -377,14 +316,6 @@ template <>
 void UPwSmallStrainInterfaceElement<3, 8>::ExtrapolateGPValues(const std::vector<double>& JointWidthContainer)
 {
     KRATOS_TRY
-
-    array_1d<double, 4> DamageContainer; // 4 Lobatto Points
-
-    for (unsigned int i = 0; i < 4; ++i) // NumLobattoPoints
-    {
-        DamageContainer[i] = 0.0;
-        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue(DAMAGE_VARIABLE, DamageContainer[i]);
-    }
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area  = rGeom.Area();
@@ -399,21 +330,10 @@ void UPwSmallStrainInterfaceElement<3, 8>::ExtrapolateGPValues(const std::vector
     NodalJointWidth[6] = JointWidthContainer[2] * Area;
     NodalJointWidth[7] = JointWidthContainer[3] * Area;
 
-    array_1d<double, 8> NodalDamage;
-    NodalDamage[0] = DamageContainer[0] * Area;
-    NodalDamage[1] = DamageContainer[1] * Area;
-    NodalDamage[2] = DamageContainer[2] * Area;
-    NodalDamage[3] = DamageContainer[3] * Area;
-    NodalDamage[4] = DamageContainer[0] * Area;
-    NodalDamage[5] = DamageContainer[1] * Area;
-    NodalDamage[6] = DamageContainer[2] * Area;
-    NodalDamage[7] = DamageContainer[3] * Area;
-
     for (unsigned int i = 0; i < 8; ++i) // NumNodes
     {
         rGeom[i].SetLock();
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) += NodalDamage[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -708,8 +628,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
     KRATOS_TRY
 
     if (rVariable == FLUID_FLUX_VECTOR) {
-        const PropertiesType& r_properties = this->GetProperties();
-        const GeometryType&   r_geometry   = this->GetGeometry();
+        const auto&        r_properties = this->GetProperties();
+        const auto&        r_geometry   = this->GetGeometry();
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
@@ -806,8 +726,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], LocalRelDispVector);
         }
     } else if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
-        const PropertiesType& r_properties = this->GetProperties();
-        const GeometryType&   r_geometry   = this->GetGeometry();
+        const auto&        r_properties = this->GetProperties();
+        const auto&        r_geometry   = this->GetGeometry();
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
@@ -969,8 +889,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
     KRATOS_TRY
 
     if (rVariable == PERMEABILITY_MATRIX) {
-        const GeometryType&   r_geometry   = this->GetGeometry();
-        const PropertiesType& r_properties = this->GetProperties();
+        const auto& r_geometry   = this->GetGeometry();
+        const auto& r_properties = this->GetProperties();
 
         // Defining the shape functions container
         const Matrix& NContainer = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
@@ -1010,8 +930,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
     } else if (rVariable == LOCAL_PERMEABILITY_MATRIX) {
-        const GeometryType&   r_geometry   = this->GetGeometry();
-        const PropertiesType& r_properties = this->GetProperties();
+        const auto& r_geometry   = this->GetGeometry();
+        const auto& r_properties = this->GetProperties();
 
         // Defining the shape functions container
         const Matrix& NContainer = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
@@ -2032,7 +1952,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeBiotCoefficients
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
+    const auto& r_properties = this->GetProperties();
 
     // Properties variables
     if (hasBiotCoefficient) {

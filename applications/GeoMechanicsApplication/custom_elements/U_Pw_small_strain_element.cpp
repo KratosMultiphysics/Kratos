@@ -57,12 +57,12 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
     // Verify generic variables
     if (const auto ierr = UPwBaseElement::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_properties = this->GetProperties();
+    const auto& r_geometry   = this->GetGeometry();
 
     CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
-    const CheckProperties check_properties(r_properties, "property at element", this->Id(),
+    const CheckProperties check_properties(r_properties, "property", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.CheckAvailability(IGNORE_UNDRAINED);
     if (!r_properties[IGNORE_UNDRAINED]) {
@@ -71,32 +71,13 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
         check_properties.CheckPermeabilityProperties(r_geometry.WorkingSpaceDimension());
     }
 
-    // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(this->GetProperties().Has(CONSTITUTIVE_LAW))
-        << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
+    check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
+    const auto expected_size = this->GetStressStatePolicy().GetVoigtSize();
+    ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, this->Id());
 
-    // Verify that the constitutive law has the correct dimension
-    const SizeType strainSize = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    if (TDim == 2) {
-        KRATOS_ERROR_IF_NOT(strainSize == VOIGT_SIZE_2D_PLANE_STRAIN)
-            << "Wrong constitutive law used. This is a 2D element! expected "
-               "strain size is "
-            << VOIGT_SIZE_2D_PLANE_STRAIN << " But received: " << strainSize
-            << " in element id: " << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strainSize == VOIGT_SIZE_3D)
-            << "Wrong constitutive law used. This is a 3D element! expected "
-               "strain size is "
-            << VOIGT_SIZE_3D << " But received: " << strainSize << " in element id: " << this->Id()
-            << std::endl;
-    }
+    const auto error_code = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, r_geometry, rCurrentProcessInfo);
 
-    // Check constitutive law
-    if (!mConstitutiveLawVector.empty()) {
-        return mConstitutiveLawVector[0]->Check(r_properties, r_geometry, rCurrentProcessInfo);
-    }
-
-    return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
+    return error_code + RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
@@ -225,7 +206,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
 
     const auto number_of_integration_points =
         this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-    Matrix StressContainer(number_of_integration_points, mStressVector[0].size());
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         this->CalculateKinematics(Variables, integration_point);
@@ -243,79 +223,23 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
         mConstitutiveLawVector[integration_point]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
             STATE_VARIABLES, mStateVariablesFinalized[integration_point]);
-
-        if (rCurrentProcessInfo[NODAL_SMOOTHING])
-            this->SaveGPStress(StressContainer, mStressVector[integration_point], integration_point);
     }
 
-    if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues(StressContainer);
+    if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues();
 
     KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::SaveGPStress(Matrix&       rStressContainer,
-                                                          const Vector& StressVector,
-                                                          unsigned int  GPoint)
+void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues()
 {
     KRATOS_TRY
 
-    for (unsigned int i = 0; i < StressVector.size(); ++i) {
-        rStressContainer(GPoint, i) = StressVector[i];
-    }
-
-    /* INFO: (Quadrilateral_2D_4 with GI_GAUSS_2)
-     *
-     *                      |S0-0 S1-0 S2-0|
-     * rStressContainer =   |S0-1 S1-1 S2-1|
-     *                      |S0-2 S1-2 S2-2|
-     *                      |S0-3 S1-3 S2-3|
-     *
-     * S1-0 = S[1] at GP 0
-     */
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues(const Matrix& StressContainer)
-{
-    KRATOS_TRY
-
-    GeometryType&               r_geometry = this->GetGeometry();
-    const double&               area       = r_geometry.Area(); // In 3D this is volume
-    array_1d<Vector, TNumNodes> nodal_stress_vector;            // List with stresses at each node
-    array_1d<Matrix, TNumNodes> nodal_stress_tensor;
-
-    auto const StressTensorSize = this->GetStressStatePolicy().GetStressTensorSize();
-    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {
-        nodal_stress_vector[iNode].resize(this->GetStressStatePolicy().GetVoigtSize());
-        nodal_stress_tensor[iNode].resize(StressTensorSize, StressTensorSize);
-    }
-
-    BoundedMatrix<double, TNumNodes, TNumNodes> extrapolation_matrix;
-    this->CalculateExtrapolationMatrix(extrapolation_matrix);
-
-    Matrix AuxNodalStress;
-    AuxNodalStress.resize(TNumNodes, this->GetStressStatePolicy().GetVoigtSize());
-    noalias(AuxNodalStress) = prod(extrapolation_matrix, StressContainer);
-
-    /* INFO:
-     *
-     *                  |S0-0 S1-0 S2-0|
-     * AuxNodalStress = |S0-1 S1-1 S2-1|
-     *                  |S0-2 S1-2 S2-2|
-     *
-     * S1-0 = S[1] at node 0
-     */
+    GeometryType& r_geometry = this->GetGeometry();
+    const double& area       = r_geometry.Area(); // In 3D this is volume
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        noalias(nodal_stress_vector[i]) = row(AuxNodalStress, i) * area;
-        noalias(nodal_stress_tensor[i]) = MathUtils<double>::StressVectorToTensor(nodal_stress_vector[i]);
-
         r_geometry[i].SetLock();
-        noalias(r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) +=
-            nodal_stress_tensor[i];
         r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += area;
         r_geometry[i].UnSetLock();
     }
@@ -954,7 +878,7 @@ std::vector<array_1d<double, TDim>> UPwSmallStrainElement<TDim, TNumNodes>::Calc
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    const PropertiesType& r_properties = this->GetProperties();
+    const auto& r_properties = this->GetProperties();
 
     auto relative_permeability_values = this->CalculateRelativePermeabilityValues(
         GeoTransportEquationUtilities::CalculateFluidPressures(Variables.NContainer, Variables.PressureVector));
@@ -1424,7 +1348,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
+    const auto& r_properties = this->GetProperties();
 
     rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
