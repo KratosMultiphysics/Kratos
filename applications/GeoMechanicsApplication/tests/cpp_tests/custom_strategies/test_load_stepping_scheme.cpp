@@ -32,6 +32,8 @@ public:
         if (rVariable == EXTERNAL_FORCES_VECTOR) Output = mExternalForces;
     }
 
+    using Element::Calculate;
+
     void SetInternalForces(const Vector& rInternalForces) { mInternalForces = rInternalForces; }
 
     void SetExternalForces(const Vector& rExternalForces) { mExternalForces = rExternalForces; }
