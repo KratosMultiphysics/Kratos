@@ -20,6 +20,8 @@ template <class TSparseSpace, class TDenseSpace>
 class LoadSteppingScheme : public GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>
 {
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(LoadSteppingScheme);
+
     using TSystemVectorType =
         typename GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType;
     using TSystemMatrixType =
