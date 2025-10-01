@@ -1102,14 +1102,13 @@ public:
     }
 
     /**
-     * @brief Performs the update of the loose DOFs
-     * This function performs the update of the loose DOFs (i.e., those that are associated to no elements/conditions)
+     * @brief Performs the update of the constraints only DOFs
+     * This function performs the update of the constraints only DOFs (i.e., those that are not associated to elements/conditions)
      * @param rEffectiveDx Effective solution update vector
      * @param rDofSet The array of DOFs from elements and conditions
      * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
      */
-    //FIXME: Check if we need this after including the loose in the dofset
-    void UpdateConstraintsLooseDofs(
+    void UpdateConstraintsOnlyDofs(
         const TSystemVectorType& rEffectiveDx,
         DofsArrayType& rDofSet,
         DofsArrayType& rEffectiveDofSet)
@@ -1118,22 +1117,22 @@ public:
             // Create a temporary std::unordered_set to make the search efficient
             std::unordered_set<typename DofType::Pointer> aux_dof_set(rDofSet.GetContainer().begin(), rDofSet.GetContainer().end());
 
-            // Find the loose constraint DOFs by comparing the standard DOF set to the effective one
-            // Those nodes appearing in the effective DOFs set but not in the standard DOF set are loose DOFs
-            std::vector<typename DofType::Pointer> loose_dofs;
-            loose_dofs.reserve(rEffectiveDofSet.size());
+            // Find the constraints only DOFs by comparing the standard DOF set to the effective one
+            // Those nodes appearing in the effective DOFs set but not in the standard one are constraints only DOFs
+            std::vector<typename DofType::Pointer> constr_only_dofs;
+            constr_only_dofs.reserve(rEffectiveDofSet.size());
             for (unsigned int i = 0; i < rEffectiveDofSet.size(); ++i) {
                 auto p_eff_dof = rEffectiveDofSet.ptr_begin() + i;
                 if (aux_dof_set.find(*p_eff_dof) == aux_dof_set.end()) {
-                    loose_dofs.push_back(*p_eff_dof);
+                    constr_only_dofs.push_back(*p_eff_dof);
                 }
             }
 
-            // Update the constraint loose DOFs with the effective solution increment values
-            IndexPartition<IndexType>(loose_dofs.size()).for_each([&](IndexType Index){
-                auto p_loose_dof = loose_dofs[Index];
-                if (p_loose_dof->IsFree()) {
-                    p_loose_dof->GetSolutionStepValue() += rEffectiveDx[p_loose_dof->EffectiveEquationId()];
+            // Update the constraints only DOFs with the effective solution increment values
+            IndexPartition<IndexType>(constr_only_dofs.size()).for_each([&](IndexType Index){
+                auto p_constr_only_dof = constr_only_dofs[Index];
+                if (p_constr_only_dof->IsFree()) {
+                    p_constr_only_dof->GetSolutionStepValue() += rEffectiveDx[p_constr_only_dof->EffectiveEquationId()];
                 }
             });
         }
