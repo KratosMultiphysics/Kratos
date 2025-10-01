@@ -937,15 +937,15 @@ protected:
             rVariables.DNp_DXContainer, detJpContainer, this->GetIntegrationMethod());
 
         // variables computed at each integration point
-        const SizeType VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+        const SizeType voigt_size = this->GetStressStatePolicy().GetVoigtSize();
 
-        rVariables.B.resize(VoigtSize, TNumNodes * TDim, false);
-        noalias(rVariables.B) = ZeroMatrix(VoigtSize, TNumNodes * TDim);
+        rVariables.B.resize(voigt_size, TNumNodes * TDim, false);
+        noalias(rVariables.B) = ZeroMatrix(voigt_size, TNumNodes * TDim);
 
-        rVariables.StrainVector.resize(VoigtSize, false);
-        rVariables.ConstitutiveMatrix.resize(VoigtSize, VoigtSize, false);
+        rVariables.StrainVector.resize(voigt_size, false);
+        rVariables.ConstitutiveMatrix.resize(voigt_size, voigt_size, false);
 
-        rVariables.StressVector.resize(VoigtSize, false);
+        rVariables.StressVector.resize(voigt_size, false);
 
         // Needed parameters for consistency with the general constitutive law
         rVariables.F.resize(TDim, TDim, false);
