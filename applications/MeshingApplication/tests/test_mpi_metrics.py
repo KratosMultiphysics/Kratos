@@ -73,4 +73,6 @@ class TestMPIMetrics(KratosUnittest.TestCase):
                 self.assertAlmostEqual(tensor_i, tensor_i_ref)
 
 if __name__ == '__main__':
+    # Configure logging level and start the test runner
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

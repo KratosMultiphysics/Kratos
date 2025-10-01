@@ -80,7 +80,7 @@ class TestLocalRefineParallelToBoundaries(KratosUnittest.TestCase):
         # gid_output.ExecuteFinalizeSolutionStep()
         # gid_output.ExecuteFinalize()
 
-
-
 if __name__ == '__main__':
+    # Configure logging level and start the test runner
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

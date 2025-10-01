@@ -140,6 +140,7 @@ class TestRedistance(KratosUnittest.TestCase):
         self.assertEqual(len(model_part.Nodes), 462)
         print(model_part)
 
-
 if __name__ == '__main__':
+    # Configure logging level and start the test runner
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

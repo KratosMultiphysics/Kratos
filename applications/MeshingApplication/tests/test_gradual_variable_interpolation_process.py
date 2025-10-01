@@ -59,10 +59,12 @@ class TestGradualVariableInterpolationProcess(KratosUnittest.TestCase):
             self._SimulateStep(destination_model_part, process)
             for node in destination_model_part.Nodes:
                 obtained_output.append(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-        
+
         # Load the expected output and compare it with the obtained output
         expected_output = np.load("gradual_variable_interpolation_test_files/ExpectedOutput.npy")
         self.assertVectorAlmostEqual(expected_output, obtained_output)
-        
+
 if __name__ == '__main__':
+    # Configure logging level and start the test runner
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

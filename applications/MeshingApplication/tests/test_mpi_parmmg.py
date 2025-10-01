@@ -205,4 +205,6 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         CheckModelPartHierarchieNumbers(model_part, hierarchie[name_main_model_part])
 
 if __name__ == '__main__':
+    # Configure logging level and start the test runner
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

@@ -7,9 +7,67 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 
 # Import stuff
-from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
+
+def GiDDebug(model_part):
+    """
+    Exports the given Kratos model part to GiD format for debugging purposes.
+
+    This function initializes a GiD output process for the provided model part,
+    configures the output settings (such as file mode, mesh writing options, and nodal results),
+    and executes the necessary steps to write the output files. The output includes
+    the nodal "DISTANCE" variable and is written in binary format as a single file.
+    """
+    from gid_output_process import GiDOutputProcess
+    gid_output = GiDOutputProcess(main_model_part,
+                                "gid_output",
+                                KratosMultiphysics.Parameters("""
+                                    {
+                                        "result_file_configuration" : {
+                                            "gidpost_flags": {
+                                                "GiDPostMode": "GiD_PostBinary",
+                                                "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                "WriteConditionsFlag": "WriteConditions",
+                                                "MultiFileFlag": "SingleFile"
+                                            },
+                                            "nodal_results"       : ["DISTANCE"]
+                                        }
+                                    }
+                                    """)
+                                )
+
+    gid_output.ExecuteInitialize()
+    gid_output.ExecuteBeforeSolutionLoop()
+    gid_output.ExecuteInitializeSolutionStep()
+    gid_output.PrintOutput()
+    gid_output.ExecuteFinalizeSolutionStep()
+    gid_output.ExecuteFinalize()
+
+def GenerateSolution(current_model, output_file_name):
+    """
+    Generates a solution database by exporting specified variables from the given model to a JSON file.
+
+    This function initializes and executes a JSON output process for the provided Kratos model,
+    saving the specified variables (e.g., "DISTANCE") to the given output file.
+    """
+    # The following is used to create the solution database
+    import json_output_process
+
+    out_parameters = KratosMultiphysics.Parameters("""
+    {
+        "output_variables"     : ["DISTANCE"],
+        "output_file_name"     : "",
+        "model_part_name"      : "MainModelPart",
+        "time_frequency"       : 0.0
+    }
+    """)
+    out_parameters["output_file_name"].SetString(output_file_name)
+
+    out = json_output_process.JsonOutputProcess(current_model, out_parameters)
+    out.ExecuteInitialize()
+    out.ExecuteBeforeSolutionLoop()
+    out.ExecuteFinalizeSolutionStep()
 
 class TestRemeshMMG3D(KratosUnittest.TestCase):
 
@@ -82,30 +140,8 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         # We remesh
         mmg_process.Execute()
 
-        # Finally we export to GiD
-        gid_output = GiDOutputProcess(main_model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISTANCE"]
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        #gid_output.ExecuteInitialize()
-        #gid_output.ExecuteBeforeSolutionLoop()
-        #gid_output.ExecuteInitializeSolutionStep()
-        #gid_output.PrintOutput()
-        #gid_output.ExecuteFinalizeSolutionStep()
-        #gid_output.ExecuteFinalize()
+        # # Finally we export to GiD
+        # GiDDebug(main_model_part)
 
         check_parameters = KratosMultiphysics.Parameters("""
                             {
@@ -145,21 +181,7 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         check.ExecuteFinalizeSolutionStep()
 
         ## The following is used to create the solution database
-        #import json_output_process
-
-        #out_parameters = KratosMultiphysics.Parameters("""
-        #{
-            #"output_variables"     : ["DISTANCE"],
-            #"output_file_name"     : "mmg_eulerian_test/distante_extrapolation.json",
-            #"model_part_name"      : "MainModelPart",
-            #"time_frequency"       : 0.0
-        #}
-        #""")
-
-        #out = json_output_process.JsonOutputProcess(current_model, out_parameters)
-        #out.ExecuteInitialize()
-        #out.ExecuteBeforeSolutionLoop()
-        #out.ExecuteFinalizeSolutionStep()
+        # GenerateSolution(current_model, "mmg_eulerian_test/distante_extrapolation.json")
 
     def test_remesh_sphere_skin(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
@@ -214,39 +236,17 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         # We remesh
         mmg_process.Execute()
 
-        # Finally we export to GiD
-        gid_output = GiDOutputProcess(main_model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISTANCE"]
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        #gid_output.ExecuteInitialize()
-        #gid_output.ExecuteBeforeSolutionLoop()
-        #gid_output.ExecuteInitializeSolutionStep()
-        #gid_output.PrintOutput()
-        #gid_output.ExecuteFinalizeSolutionStep()
-        #gid_output.ExecuteFinalize()
+        # # Finally we export to GiD
+        # GiDDebug(main_model_part)
 
         check_parameters = KratosMultiphysics.Parameters("""
-                            {
-                                "reference_file_name"   : "mmg_eulerian_test/coarse_sphere_skin_test_result.sol",
-                                "output_file_name"      : "mmg_eulerian_test/coarse_sphere_skin_test_step=0.sol",
-                                "dimension"             : 3,
-                                "comparison_type"       : "sol_file"
-                            }
-                            """)
+        {
+            "reference_file_name"   : "mmg_eulerian_test/coarse_sphere_skin_test_result.sol",
+            "output_file_name"      : "mmg_eulerian_test/coarse_sphere_skin_test_step=0.sol",
+            "dimension"             : 3,
+            "comparison_type"       : "sol_file"
+        }
+        """)
         check_parameters["reference_file_name"].SetString(file_path + "/" + check_parameters["reference_file_name"].GetString())
         check_parameters["output_file_name"].SetString(file_path + "/" + check_parameters["output_file_name"].GetString())
         check_files = CompareTwoFilesCheckProcess(check_parameters)
@@ -277,21 +277,7 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         check.ExecuteFinalizeSolutionStep()
 
         ## The following is used to create the solution database
-        #import json_output_process
-
-        #out_parameters = KratosMultiphysics.Parameters("""
-        #{
-            #"output_variables"     : ["DISTANCE"],
-            #"output_file_name"     : "mmg_eulerian_test/distante_extrapolation_skin.json",
-            #"model_part_name"      : "MainModelPart",
-            #"time_frequency"       : 0.0
-        #}
-        #""")
-
-        #out = json_output_process.JsonOutputProcess(current_model, out_parameters)
-        #out.ExecuteInitialize()
-        #out.ExecuteBeforeSolutionLoop()
-        #out.ExecuteFinalizeSolutionStep()
+        GenerateSolution(current_model, "mmg_eulerian_test/distante_extrapolation_skin.json")
 
     def test_remesh_sphere_skin_prisms(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
@@ -349,30 +335,7 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         mmg_process.Execute()
 
         ## Finally we export to GiD
-        #from gid_output_process import GiDOutputProcess
-        #gid_output = GiDOutputProcess(main_model_part,
-                                    #"gid_output",
-                                    #KratosMultiphysics.Parameters("""
-                                        #{
-                                            #"result_file_configuration" : {
-                                                #"gidpost_flags": {
-                                                    #"GiDPostMode": "GiD_PostBinary",
-                                                    #"WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    #"WriteConditionsFlag": "WriteConditions",
-                                                    #"MultiFileFlag": "SingleFile"
-                                                #},
-                                                #"nodal_results"       : ["DISTANCE"]
-                                            #}
-                                        #}
-                                        #""")
-                                    #)
-
-        #gid_output.ExecuteInitialize()
-        #gid_output.ExecuteBeforeSolutionLoop()
-        #gid_output.ExecuteInitializeSolutionStep()
-        #gid_output.PrintOutput()
-        #gid_output.ExecuteFinalizeSolutionStep()
-        #gid_output.ExecuteFinalize()
+        # GiDDebug(main_model_part)
 
         check_parameters = KratosMultiphysics.Parameters("""
                             {
@@ -439,30 +402,8 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         # We remesh
         mmg_process.Execute()
 
-        # Finally we export to GiD
-        gid_output = GiDOutputProcess(main_model_part,
-                                    "gid_output",
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results"       : ["DISTANCE"]
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        #gid_output.ExecuteInitialize()
-        #gid_output.ExecuteBeforeSolutionLoop()
-        #gid_output.ExecuteInitializeSolutionStep()
-        #gid_output.PrintOutput()
-        #gid_output.ExecuteFinalizeSolutionStep()
-        #gid_output.ExecuteFinalize()
+        # # Finally we export to GiD
+        # GiDDebug(main_model_part)
 
         check_parameters = KratosMultiphysics.Parameters("""
                             {
@@ -483,4 +424,6 @@ class TestRemeshMMG3D(KratosUnittest.TestCase):
         check_files.ExecuteFinalize()
 
 if __name__ == '__main__':
+    # Configure logging level and start the test runner
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

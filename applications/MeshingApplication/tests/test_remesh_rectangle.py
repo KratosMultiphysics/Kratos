@@ -256,4 +256,6 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         DeleteFilesEndingWith("mmg_rectangle_test", ".sol")
 
 if __name__ == '__main__':
+    # Configure logging level and start the test runner
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

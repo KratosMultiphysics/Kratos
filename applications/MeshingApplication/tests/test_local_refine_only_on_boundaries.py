@@ -54,4 +54,6 @@ class TestLocalRefineOnlyOnBoundaries(KratosUnittest.TestCase):
         self.assertEqual(current_model["main_model_part.MainPart.Wall_BC.Wall1"].NumberOfElements(), 0)
 
 if __name__ == '__main__':
+    # Configure logging level and start the test runner
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
