@@ -113,7 +113,7 @@ Please note that `Tetgen license is not compatible` with Kratos, and hence it is
 * `MmgProcess`: This class is a remesher which uses the MMG library. The class uses a class for the 2D and 3D cases (solid and surfaces). The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh.
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MMG_files/mmg_workflow.png?raw=true" alt="MMG architecture" style="width: 600px;"/>
+  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MMG_files/mmg_workflow.png?raw=true" alt="MMG architecture" style="width: 900px;"/>
 </p>
 
 ##### Architecture
@@ -121,7 +121,7 @@ Please note that `Tetgen license is not compatible` with Kratos, and hence it is
 The following diagram illustrates the high-level architecture of the *MMG* remeshing:
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MMG_files/mmg_architecture.png?raw=true" alt="MMG architecture" style="width: 600px;"/>
+  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/MMG_files/mmg_architecture.png?raw=true" alt="MMG architecture" style="width: 900px;"/>
 </p>
 
 ##### Remeshing Strategies
