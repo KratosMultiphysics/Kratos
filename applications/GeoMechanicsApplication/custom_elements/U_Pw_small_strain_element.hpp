@@ -189,8 +189,6 @@ protected:
         Matrix UVoigtMatrix;
     };
 
-    void ExtrapolateGPValues();
-
     void CalculateMaterialStiffnessMatrix(MatrixType&        rStiffnessMatrix,
                                           const ProcessInfo& CurrentProcessInfo) override;
 

@@ -30,7 +30,6 @@
         "compute_reactions"                  : true,
         "move_mesh_flag"                     : false,
         "reform_dofs_at_each_step"           : false,
-        "nodal_smoothing"                    : false,
         "block_builder"                      : true,
         "reset_displacements"                : true,
         "convergence_criterion"              : "residual_criterion",

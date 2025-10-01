@@ -34,9 +34,8 @@ is simplified and only shows the functions that need emphasis._
 The child classes which actually specify which variables are used in the time integration scheme (e.g.
 the `BackwardEulerUPwScheme` or the `GeneralizedNewmarkTScheme`), only fill the lists of first/second order variables.
 
-The exceptions are the `NewmarkQuasistaticUPwScheme`, which has functionality for nodal smoothing (this should be moved
-to another location) and the damped and dynamic UPw schemes. More info on these can be found in
-the [Dynamic and damped schemes](#dynamic-and-damped-schemes) section.
+The exceptions are the damped and dynamic UPw schemes. More info on these can be found in
+the [Dynamic, damped and quasistatic Generalized Newmark schemes](#dynamic-damped-and-quasistatic-generalized-newmark-schemes) section.
 
 ## Static
 
