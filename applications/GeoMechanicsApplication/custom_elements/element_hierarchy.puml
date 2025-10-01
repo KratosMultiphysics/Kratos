@@ -45,10 +45,10 @@ class InterfaceElement
 Element <|-- InterfaceElement
 
 'Pw Elements
-class TransientPwLineElement
+class PwElement
 class GeoSteadyStatePwPipingElement
 
-Element <|-- TransientPwLineElement
+Element <|-- PwElement
 Element <|-- GeoSteadyStatePwPipingElement
 
 ''Thermal
