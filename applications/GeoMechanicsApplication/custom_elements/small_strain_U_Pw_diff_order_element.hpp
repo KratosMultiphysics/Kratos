@@ -430,7 +430,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                       std::vector<Vector>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo)
+                                      const ProcessInfo&      rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -737,7 +737,7 @@ protected:
                       VectorType&        rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
                       bool               CalculateStiffnessMatrixFlag,
-                      bool               CalculateResidualVectorFlag)
+                      bool               CalculateResidualVectorFlag) override
     {
         KRATOS_TRY
 
