@@ -79,11 +79,11 @@ void CheckDataArrayName(
     switch (rLocation) {
         case Globals::DataLocation::NodeHistorical:
         case Globals::DataLocation::NodeNonHistorical:
-            found_existing_name = rUnstructuredGridData.mPointFields.find(rName) != rUnstructuredGridData.mPointFields.end();
+            found_existing_name = rUnstructuredGridData.mMapOfPointTensorAdaptors.find(rName) != rUnstructuredGridData.mMapOfPointTensorAdaptors.end();
             break;
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
-            found_existing_name = rUnstructuredGridData.mCellFields.find(rName) != rUnstructuredGridData.mCellFields.end();
+            found_existing_name = rUnstructuredGridData.mMapOfCellTensorAdaptors.find(rName) != rUnstructuredGridData.mMapOfCellTensorAdaptors.end();
             break;
         default:
             KRATOS_ERROR << "Unsupported data location type.";
@@ -424,7 +424,7 @@ void AddFieldsFromTensorAdaptor(
 template<class TXmlDataElementWrapper>
 void AddFields(
     XmlElementsArray& rXmlElement,
-    const std::map<std::string, VtuOutput::FieldPointerType>& rMap,
+    const std::map<std::string, VtuOutput::SupportedTensorAdaptorPointerType>& rMap,
     TXmlDataElementWrapper& rXmlDataElementWrapper,
     const std::set<IndexType>& rIgnoredIndices,
     const IndexType EchoLevel)
@@ -432,8 +432,8 @@ void AddFields(
     for (const auto& r_pair : rMap) {
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting " << r_pair.first << " data...\n";
 
-        std::visit([&rXmlElement, &r_pair, &rXmlDataElementWrapper, &rIgnoredIndices](auto pNDData) {
-            rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetNonIgnoredNDData(rIgnoredIndices, pNDData)));
+        std::visit([&rXmlElement, &r_pair, &rXmlDataElementWrapper, &rIgnoredIndices](auto pTensorAdaptor) {
+            rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetNonIgnoredNDData(rIgnoredIndices, pTensorAdaptor->pGetStorage())));
         }, r_pair.second);
     }
 }
@@ -910,8 +910,6 @@ void VtuOutput::AddTensorAdaptor(
         << rTensorAdaptorName << " ].\n";
 
     std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
-        using tensor_adaptor_type = BareType<decltype(*p_tensor_adaptor)>;
-        using storage_type = typename tensor_adaptor_type::Storage;
         auto shape = p_tensor_adaptor->Shape();
         auto ta_span = p_tensor_adaptor->ViewData();
 
@@ -932,7 +930,7 @@ void VtuOutput::AddTensorAdaptor(
                     // check for existing field names
                     CheckDataArrayName(rTensorAdaptorName, {mesh_type}, mFlags, mVariables); // checks in the current data location of mVariables map
                     CheckDataArrayName(rTensorAdaptorName, mesh_type, r_unstructured_grid_data); // checks in the tensor adaptors list
-                    r_unstructured_grid_data.mCellFields[rTensorAdaptorName] = Kratos::make_shared<storage_type>(ta_span.data(), shape);
+                    r_unstructured_grid_data.mMapOfCellTensorAdaptors[rTensorAdaptorName] = p_tensor_adaptor;
                     break;
                 }
                 case Globals::DataLocation::NodeNonHistorical: {
@@ -940,7 +938,7 @@ void VtuOutput::AddTensorAdaptor(
                     // check for existing field names
                     CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::NodeHistorical}, mFlags, mVariables); // checks in the current data location of mVariables map
                     CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, r_unstructured_grid_data); // checks in the tensor adaptors list
-                    r_unstructured_grid_data.mPointFields[rTensorAdaptorName] = Kratos::make_shared<storage_type>(ta_span.data(), shape);
+                    r_unstructured_grid_data.mMapOfPointTensorAdaptors[rTensorAdaptorName] = p_tensor_adaptor;
                     break;
                 }
                 default:
@@ -964,8 +962,6 @@ void VtuOutput::UpdateTensorAdaptor(
     KRATOS_TRY
 
     std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
-        using tensor_adaptor_type = BareType<decltype(*p_tensor_adaptor)>;
-        using storage_type = typename tensor_adaptor_type::Storage;
         auto shape = p_tensor_adaptor->Shape();
         auto ta_span = p_tensor_adaptor->ViewData();
 
@@ -982,25 +978,25 @@ void VtuOutput::UpdateTensorAdaptor(
             switch (mesh_type) {
                 case Globals::DataLocation::Condition:
                 case Globals::DataLocation::Element: {
-                    auto data_field_itr = itr->mCellFields.find(rTensorAdaptorName);
+                    auto data_field_itr = itr->mMapOfCellTensorAdaptors.find(rTensorAdaptorName);
 
-                    KRATOS_ERROR_IF(data_field_itr == itr->mCellFields.end())
+                    KRATOS_ERROR_IF(data_field_itr == itr->mMapOfCellTensorAdaptors.end())
                         << "TensorAdaptor name = \""
                         << rTensorAdaptorName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
                         << *this;
 
-                    data_field_itr->second = Kratos::make_shared<storage_type>(ta_span.data(), shape);
+                    data_field_itr->second = p_tensor_adaptor;
                     break;
                 }
                 case Globals::DataLocation::NodeNonHistorical: {
-                    auto data_field_itr = itr->mPointFields.find(rTensorAdaptorName);
+                    auto data_field_itr = itr->mMapOfPointTensorAdaptors.find(rTensorAdaptorName);
 
-                    KRATOS_ERROR_IF(data_field_itr == itr->mPointFields.end())
+                    KRATOS_ERROR_IF(data_field_itr == itr->mMapOfPointTensorAdaptors.end())
                         << "TensorAdaptor name = \""
                         << rTensorAdaptorName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
                         << *this;
 
-                    data_field_itr->second = Kratos::make_shared<storage_type>(ta_span.data(), shape);
+                    data_field_itr->second = p_tensor_adaptor;
                     break;
                 }
                 default:
@@ -1095,7 +1091,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
         AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mFlags), *p_xml_data_element_wrapper, r_data_communicator, empty_ignored_indices, mEchoLevel);
         AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mVariables), *p_xml_data_element_wrapper, r_data_communicator, empty_ignored_indices, mEchoLevel);
         AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeHistorical, mVariables), *p_xml_data_element_wrapper, r_data_communicator, empty_ignored_indices, mEchoLevel, 0);
-        AddFields(*point_data_element, rUnstructuredGridData.mPointFields, *p_xml_data_element_wrapper, empty_ignored_indices, mEchoLevel);
+        AddFields(*point_data_element, rUnstructuredGridData.mMapOfPointTensorAdaptors, *p_xml_data_element_wrapper, empty_ignored_indices, mEchoLevel);
     }
 
     // create cell data
@@ -1109,7 +1105,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
             AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mVariables, rUnstructuredGridData.mpCells.value()), *p_xml_data_element_wrapper, r_data_communicator, ignored_indices, mEchoLevel);
             AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mFlags, rUnstructuredGridData.mpCells.value()), *p_xml_data_element_wrapper, r_data_communicator, ignored_indices, mEchoLevel);
         }, rUnstructuredGridData.mpCells.value());
-        AddFields(*cell_data_element, rUnstructuredGridData.mCellFields, *p_xml_data_element_wrapper, ignored_indices, mEchoLevel);
+        AddFields(*cell_data_element, rUnstructuredGridData.mMapOfCellTensorAdaptors, *p_xml_data_element_wrapper, ignored_indices, mEchoLevel);
     }
 
     std::stringstream output_vtu_file_name;
@@ -1564,7 +1560,7 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
 
         if (r_model_part_data.UsePointsForDataFieldOutput) {
             rOStream << "\n\t\t" << "Point fields:";
-            for (const auto& r_pair : r_model_part_data.mPointFields) {
+            for (const auto& r_pair : r_model_part_data.mMapOfPointTensorAdaptors) {
                 std::visit([&rOStream, &r_pair](auto pNDData){
                     rOStream << "\n\t\t\t" << r_pair.first << ": " << *pNDData;
                 }, r_pair.second);
@@ -1572,7 +1568,7 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
         }
 
         rOStream << "\n\t\t" << "Cell fields:";
-        for (const auto& r_pair : r_model_part_data.mCellFields) {
+        for (const auto& r_pair : r_model_part_data.mMapOfCellTensorAdaptors) {
             std::visit([&rOStream, &r_pair](auto pNDData){
                 rOStream << "\n\t\t\t" << r_pair.first << ": " << *pNDData;
             }, r_pair.second);

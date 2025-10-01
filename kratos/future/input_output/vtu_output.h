@@ -44,7 +44,6 @@
  *
  * @section TypeDefinitions Type Definitions
  * - IndexType: Alias for std::size_t.
- * - FieldPointerType: Variant type for supported field data pointers.
  * - CellContainerPointerType: Variant type for supported cell container pointers.
  * - SupportedVariablePointerType: Variant type for supported @ref Variable pointers.
  * - SupportedTensorAdaptorPointerType: Variant type for supported @ref TensorAdaptor pointers.
@@ -66,13 +65,6 @@ public:
     ///@{
 
     using IndexType = std::size_t;
-
-    using FieldPointerType = std::variant<
-                                    NDData<unsigned char>::Pointer,
-                                    NDData<bool>::Pointer,
-                                    NDData<int>::Pointer,
-                                    NDData<double>::Pointer
-                                >;
 
     using SupportedContainerPointerType = std::variant<
                                             ModelPart::NodesContainerType::Pointer,
@@ -124,12 +116,12 @@ public:
 
     struct UnstructuredGridData
     {
-        bool                                    UsePointsForDataFieldOutput;  // If true, then the mpPoints represents a container in the model part, otherwise, mpPoints refers to a container which is on the fly generated.
-        ModelPart *                             mpModelPart;                  // Model part associated with the unstructured grid data.
-        ModelPart::NodesContainerType::Pointer  mpPoints;                     // Points to be used in the unstructured grid.
-        std::optional<CellContainerPointerType> mpCells;                      // Cells to be used in the unstructured grid.
-        std::map<std::string, FieldPointerType> mPointFields;                 // Point data fields such as tensor adaptors.
-        std::map<std::string, FieldPointerType> mCellFields;                  // Cell data fields such as tensor adaptors.
+        bool                                    UsePointsForDataFieldOutput;                // If true, then the mpPoints represents a container in the model part, otherwise, mpPoints refers to a container which is on the fly generated.
+        ModelPart *                             mpModelPart;                                // Model part associated with the unstructured grid data.
+        ModelPart::NodesContainerType::Pointer  mpPoints;                                   // Points to be used in the unstructured grid.
+        std::optional<CellContainerPointerType> mpCells;                                    // Cells to be used in the unstructured grid.
+        std::map<std::string, SupportedTensorAdaptorPointerType> mMapOfPointTensorAdaptors; // Point data tensor adaptors.
+        std::map<std::string, SupportedTensorAdaptorPointerType> mMapOfCellTensorAdaptors;  // Cell data tensor adaptors.
     };
 
     ///@}
