@@ -114,3 +114,20 @@ the dynamic/damped schemes.
 
 One more anomaly is the `Predict` function, currently found in the `NewmarkDynamicUPwScheme` class. This functionality
 should have its counterparts in the other classes derived from `GeneralizedNewmarkScheme` class.
+
+## Load stepping scheme
+
+For some problems, applying an external load (for example gravity-induced) all at once results in convergence issues. The load stepping scheme can be used to apply the unbalance from these loads gradually throughout a stage. 
+
+Conceptually, the right hand side, or the 'unbalance' consists of internal and external forces. Equilibrium is reached when the internal forces and external forces equilibrate, leading to a 0 unbalance:
+$$RHS = F_{external} - F_{internal}$$
+
+The idea of the load stepping scheme, is that external forces are chosen in such a way throughout the stage, that every solution step is close to equilibrium. At the end of the stage, we end up with the full external forces. This means that although the intermediate steps do not represent a physical situation, the result at the end of the stage always represents the physical situation.
+
+The following formulation is used for the $F_{external}$:
+
+$$F_{external} =   F_{0, internal} + \lambda (F_{0, external}- F_{0, internal})$$
+where $F_{0,internal}$ and $F_{0,external}$ are the sums of the respective internal and external forces at the start of the stage and $\lambda$ is the load fraction (or fraction of initial unbalance) that is applied. At this point, the fraction is tied to the current time in the stage:
+$$ \lambda = \frac{t - t_{start}}{t_{end} - t_{start}}$$,
+
+where $t$, $t_{start}$ and $t_{end}$ are the current, start and end time of the stage. Since time is used in this way for the load stepping, the scheme is a static scheme (i.e. derivatives are disregarded) and it should **_not_** be used in combination with time dependent processes. 
