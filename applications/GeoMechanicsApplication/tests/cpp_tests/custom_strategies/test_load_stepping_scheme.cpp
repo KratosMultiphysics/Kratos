@@ -193,8 +193,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     std::vector<std::size_t> actual_equation_ids;
     Vector                   actual_right_hand_side;
     const std::string        expecteded_error_message =
-        "The load stepping scheme is not initialized properly. Make sure all initialization steps "
-        "are taken before calculating right hand side and/or system contributions";
+        "The load stepping scheme is not initialized properly. Make sure all initializations are "
+        "done before calculating system contributions.";
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         scheme.CalculateRHSContribution(element, actual_right_hand_side, actual_equation_ids, ProcessInfo{}),
         expecteded_error_message);

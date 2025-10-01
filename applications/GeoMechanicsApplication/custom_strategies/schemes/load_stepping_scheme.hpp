@@ -30,45 +30,47 @@ public:
         typename GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType;
 
     void CalculateSystemContributions(Element&                       rCurrentElement,
-                                      TLocalSystemMatrixType&        LHS_Contribution,
-                                      TLocalSystemVectorType&        RHS_Contribution,
-                                      Element::EquationIdVectorType& EquationId,
-                                      const ProcessInfo&             CurrentProcessInfo) override
+                                      TLocalSystemMatrixType&        rLHS_Contribution,
+                                      TLocalSystemVectorType&        rRHS_Contribution,
+                                      Element::EquationIdVectorType& rEquationId,
+                                      const ProcessInfo&             rCurrentProcessInfo) override
     {
-        CalculateRHSContribution(rCurrentElement, RHS_Contribution, EquationId, CurrentProcessInfo);
-        this->CalculateLHSContribution(rCurrentElement, LHS_Contribution, EquationId, CurrentProcessInfo);
+        this->CalculateLHSContribution(rCurrentElement, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
+        CalculateRHSContribution(rCurrentElement, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
     }
 
     void CalculateRHSContribution(Element&                       rCurrentElement,
-                                  TLocalSystemVectorType&        RHS_Contribution,
-                                  Element::EquationIdVectorType& EquationId,
-                                  const ProcessInfo&             CurrentProcessInfo) override
+                                  TLocalSystemVectorType&        rRHS_Contribution,
+                                  Element::EquationIdVectorType& rEquationId,
+                                  const ProcessInfo&             rCurrentProcessInfo) override
     {
         KRATOS_ERROR_IF(mExternalForcesAtStartByElementId.empty() ||
                         mInternalForcesAtStartByElementId.empty())
-            << "The load stepping scheme is not initialized properly. Make sure all initialization "
-               "steps are taken before calculating right hand side and/or system contributions.";
+            << "The load stepping scheme is not initialized properly. Make sure all "
+               "initializations "
+               "are done before calculating system contributions.";
 
         Vector internal_forces;
-        rCurrentElement.Calculate(INTERNAL_FORCES_VECTOR, internal_forces, CurrentProcessInfo);
+        rCurrentElement.Calculate(INTERNAL_FORCES_VECTOR, internal_forces, rCurrentProcessInfo);
 
-        const auto fraction_of_unbalance = CalculateFractionOfUnbalance(CurrentProcessInfo);
-        RHS_Contribution =
-            -internal_forces +
-            (1 - fraction_of_unbalance) * mInternalForcesAtStartByElementId.at(rCurrentElement.GetId()) +
-            fraction_of_unbalance * mExternalForcesAtStartByElementId.at(rCurrentElement.GetId());
+        const auto load_fraction = CalculateLoadFraction(rCurrentProcessInfo);
+        rRHS_Contribution =
+            mInternalForcesAtStartByElementId.at(rCurrentElement.GetId()) +
+            load_fraction * (mExternalForcesAtStartByElementId.at(rCurrentElement.GetId()) -
+                             mInternalForcesAtStartByElementId.at(rCurrentElement.GetId())) -
+            internal_forces;
 
-        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
 
     void CalculateSystemContributions(Condition&                     rCurrentCondition,
-                                      TLocalSystemMatrixType&        LHS_Contribution,
-                                      TLocalSystemVectorType&        RHS_Contribution,
-                                      Element::EquationIdVectorType& EquationId,
-                                      const ProcessInfo&             CurrentProcessInfo) override
+                                      TLocalSystemMatrixType&        rLHS_Contribution,
+                                      TLocalSystemVectorType&        rRHS_Contribution,
+                                      Element::EquationIdVectorType& rEquationId,
+                                      const ProcessInfo&             rCurrentProcessInfo) override
     {
-        CalculateRHSContribution(rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo);
-        this->CalculateLHSContribution(rCurrentCondition, LHS_Contribution, EquationId, CurrentProcessInfo);
+        this->CalculateLHSContribution(rCurrentCondition, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
+        CalculateRHSContribution(rCurrentCondition, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
     }
 
     void CalculateRHSContribution(Condition&                     rCurrentCondition,
@@ -79,7 +81,7 @@ public:
         GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution(
             rCurrentCondition, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-        RHS_Contribution *= CalculateFractionOfUnbalance(CurrentProcessInfo);
+        RHS_Contribution *= CalculateLoadFraction(CurrentProcessInfo);
     }
 
     void InitializeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rB) override
@@ -91,8 +93,8 @@ public:
         // early to be able to calculate external and internal forces (which is why it's done in
         // InitializeSolutionStep).
         if (!mIsInitialized) {
-            SaveInternalForces(rModelPart);
-            SaveExternalForces(rModelPart);
+            mInternalForcesAtStartByElementId = CalculateElementForces(rModelPart, INTERNAL_FORCES_VECTOR);
+            mExternalForcesAtStartByElementId = CalculateElementForces(rModelPart, EXTERNAL_FORCES_VECTOR);
 
             mIsInitialized = true;
         }
@@ -103,34 +105,24 @@ private:
     std::map<std::size_t, TLocalSystemVectorType> mExternalForcesAtStartByElementId;
     bool                                          mIsInitialized = false;
 
-    static double CalculateFractionOfUnbalance(const ProcessInfo& rProcessInfo)
+    static double CalculateLoadFraction(const ProcessInfo& rProcessInfo)
     {
         return (rProcessInfo[TIME] - rProcessInfo[START_TIME]) /
                (rProcessInfo[END_TIME] - rProcessInfo[START_TIME]);
     }
 
-    void SaveInternalForces(ModelPart& rModelPart)
+    std::map<std::size_t, TLocalSystemVectorType> CalculateElementForces(ModelPart& rModelPart,
+                                                                         Variable<Vector>& rForces)
     {
-        std::ranges::transform(
-            rModelPart.Elements(),
-            std::inserter(mInternalForcesAtStartByElementId, mInternalForcesAtStartByElementId.end()),
-            [&rModelPart](auto& rElement) {
+        std::map<std::size_t, TLocalSystemVectorType> result;
+        std::ranges::transform(rModelPart.Elements(), std::inserter(result, result.end()),
+                               [&rModelPart, &rForces](auto& rElement) {
             Vector forces;
-            rElement.Calculate(INTERNAL_FORCES_VECTOR, forces, rModelPart.GetProcessInfo());
+            rElement.Calculate(rForces, forces, rModelPart.GetProcessInfo());
             return std::make_pair(rElement.GetId(), forces);
         });
-    }
 
-    void SaveExternalForces(ModelPart& rModelPart)
-    {
-        std::ranges::transform(
-            rModelPart.Elements(),
-            std::inserter(mExternalForcesAtStartByElementId, mExternalForcesAtStartByElementId.end()),
-            [&rModelPart](auto& rElement) {
-            Vector forces;
-            rElement.Calculate(EXTERNAL_FORCES_VECTOR, forces, rModelPart.GetProcessInfo());
-            return std::make_pair(rElement.GetId(), forces);
-        });
+        return result;
     }
 };
 } // namespace Kratos
