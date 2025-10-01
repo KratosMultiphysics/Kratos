@@ -108,10 +108,10 @@ void SmallStrainUPwDiffOrderElement<3, 27>::SetUpPressureGeometryPointer()
                                         r_geometry(4), r_geometry(5), r_geometry(6), r_geometry(7));
 }
 
-void set_arithmetic_average_pressure(Geometry<Node>&                               rGeometry,
-                                     const Vector&                                 rPressure,
-                                     const std::vector<std::pair<size_t, size_t>>& rIndexPpairs,
-                                     size_t DestinationOffset = 0)
+void SetArithmeticAveragePressure(Geometry<Node>&                               rGeometry,
+                                  const Vector&                                 rPressure,
+                                  const std::vector<std::pair<size_t, size_t>>& rIndexPpairs,
+                                  size_t DestinationOffset = 0)
 {
     for (size_t i = 0; const auto& [first_index, second_index] : rIndexPpairs) {
         NodeUtilities::ThreadSafeNodeWrite(rGeometry[DestinationOffset + i], WATER_PRESSURE,
@@ -120,10 +120,10 @@ void set_arithmetic_average_pressure(Geometry<Node>&                            
     }
 }
 
-void set_arithmetic_average_pressure(Geometry<Node>& rGeometry,
-                                     const Vector&   rPressure,
-                                     const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& rIndices,
-                                     size_t DestinationOffset = 0)
+void SetArithmeticAveragePressure(Geometry<Node>& rGeometry,
+                                  const Vector&   rPressure,
+                                  const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& rIndices,
+                                  size_t DestinationOffset = 0)
 {
     for (size_t i = 0; const auto& [first_index, second_index, third_index, fourth_index] : rIndices) {
         NodeUtilities::ThreadSafeNodeWrite(rGeometry[DestinationOffset + i], WATER_PRESSURE,
@@ -144,7 +144,7 @@ void SmallStrainUPwDiffOrderElement<2, 6>::AssignPressureToIntermediateNodes()
     // 2D T6P3
     const Vector                                 pressure = GetPressures(this->GetGeometry(), 3);
     const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 0}};
-    set_arithmetic_average_pressure(r_geom, pressure, pairs, 3);
+    SetArithmeticAveragePressure(r_geom, pressure, pairs, 3);
     KRATOS_CATCH("")
 }
 
@@ -158,7 +158,7 @@ void SmallStrainUPwDiffOrderElement<2, 8>::AssignPressureToIntermediateNodes()
     // 2D Q8P4
     const Vector                                 pressure = GetPressures(this->GetGeometry(), 4);
     const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 3}, {3, 0}};
-    set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
+    SetArithmeticAveragePressure(r_geom, pressure, pairs, 4);
     KRATOS_CATCH("")
 }
 
@@ -172,9 +172,9 @@ void SmallStrainUPwDiffOrderElement<2, 9>::AssignPressureToIntermediateNodes()
     // 2D Q9P4
     const Vector                                 pressure = GetPressures(this->GetGeometry(), 4);
     const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 3}, {3, 0}};
-    set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
+    SetArithmeticAveragePressure(r_geom, pressure, pairs, 4);
     const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices = {{0, 1, 2, 3}};
-    set_arithmetic_average_pressure(r_geom, pressure, indices, 8);
+    SetArithmeticAveragePressure(r_geom, pressure, indices, 8);
     KRATOS_CATCH("")
 }
 
@@ -189,7 +189,7 @@ void SmallStrainUPwDiffOrderElement<3, 10>::AssignPressureToIntermediateNodes()
     const Vector                                 pressure = GetPressures(this->GetGeometry(), 4);
     const std::vector<std::pair<size_t, size_t>> pairs    = {{0, 1}, {1, 2}, {2, 0},
                                                              {0, 3}, {1, 3}, {2, 3}};
-    set_arithmetic_average_pressure(r_geom, pressure, pairs, 4);
+    SetArithmeticAveragePressure(r_geom, pressure, pairs, 4);
     KRATOS_CATCH("")
 }
 
@@ -282,7 +282,7 @@ void SmallStrainUPwDiffOrderElement<3, 20>::AssignPressureToIntermediateNodes()
          {5, 6},
          {6, 7},
          {7, 4}};
-    set_arithmetic_average_pressure(r_geom, pressure, pairs, 8);
+    SetArithmeticAveragePressure(r_geom, pressure, pairs, 8);
     KRATOS_CATCH("")
 }
 
@@ -311,11 +311,11 @@ void SmallStrainUPwDiffOrderElement<3, 27>::AssignPressureToIntermediateNodes()
          {5, 6},
          {6, 7},
          {7, 0}};
-    set_arithmetic_average_pressure(r_geom, pressure, pairs, 8);
+    SetArithmeticAveragePressure(r_geom, pressure, pairs, 8);
     // face centers
     const std::vector<std::tuple<size_t, size_t, size_t, size_t>>& indices = {
         {0, 1, 2, 3}, {0, 1, 4, 5}, {1, 2, 5, 6}, {2, 3, 6, 7}, {3, 0, 7, 4}, {4, 5, 6, 7}};
-    set_arithmetic_average_pressure(r_geom, pressure, indices, 20);
+    SetArithmeticAveragePressure(r_geom, pressure, indices, 20);
     // element center
     NodeUtilities::ThreadSafeNodeWrite(r_geom[26], WATER_PRESSURE,
                                        0.125 * (pressure[0] + pressure[1] + pressure[2] + pressure[3] +
