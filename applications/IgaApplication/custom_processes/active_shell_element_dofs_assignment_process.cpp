@@ -68,11 +68,11 @@ ActiveShellElementDofAssignmentProcess::ActiveShellElementDofAssignmentProcess(
         KRATOS_ERROR_IF(flag != "fix" && flag != "free")
             << "Invalid entry in 'unfixed_actuation_list': " << flag << ". Allowed: \"fix\" or \"free\"\n";
     }
-    // KRATOS_WATCH(ThisParameters.PrettyPrintJsonString()) //CHECKLEO
-    // KRATOS_WATCH(mIgaModelPartName) //CHECK LEO
-    // KRATOS_WATCH(mActiveShellDofModelPartName) //CHECK LEO
-    // KRATOS_WATCH(ThisParameters["iga_model_part_name"].GetString()) //CHECK LEO
-    // KRATOS_WATCH(ThisParameters["iga_model_part_name"].GetString()) //CHECK LEO
+    KRATOS_WATCH(ThisParameters.PrettyPrintJsonString()) //CHECKLEO
+    KRATOS_WATCH(mIgaModelPartName) //CHECK LEO
+    KRATOS_WATCH(mActiveShellDofModelPartName) //CHECK LEO
+    KRATOS_WATCH(ThisParameters["iga_model_part_name"].GetString()) //CHECK LEO
+    KRATOS_WATCH(ThisParameters["iga_model_part_name"].GetString()) //CHECK LEO
 
     KRATOS_CATCH("");
 }

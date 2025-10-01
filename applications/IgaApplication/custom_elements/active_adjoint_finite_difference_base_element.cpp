@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/define.h"
 #include "active_adjoint_finite_difference_base_element.h"
+
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_response_functions/response_utilities/finite_difference_utility.h"
 #include "includes/checks.h"
@@ -70,36 +71,65 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVecto
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    const GeometryType& geom = this->GetGeometry();
+    // const GeometryType& geom = this->GetGeometry();
 
-    const SizeType number_of_nodes = geom.PointsNumber();
-    const SizeType dimension = geom.WorkingSpaceDimension();
-    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-    const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
-    constexpr SizeType extra_actuation_dofs = 6;
+    // const SizeType number_of_nodes = geom.PointsNumber();
+    // const SizeType dimension = geom.WorkingSpaceDimension();
+    // const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+    // const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
+    // constexpr SizeType extra_actuation_dofs = 6;
 
-    if (rResult.size() != num_dofs + extra_actuation_dofs)
-        rResult.resize(num_dofs + extra_actuation_dofs, false);
+    // if (rResult.size() != num_dofs + extra_actuation_dofs)
+    //     rResult.resize(num_dofs + extra_actuation_dofs, false);
 
-    for(IndexType i = 0; i < geom.size(); ++i)
-    {
-        const IndexType index = i * num_dofs_per_node;
-        const NodeType& iNode = geom[i];
+    // for(IndexType i = 0; i < geom.size(); ++i)
+    // {
+    //     const IndexType index = i * num_dofs_per_node;
+    //     const NodeType& iNode = geom[i];
 
-        rResult[index]     = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
-        rResult[index + 2] = iNode.GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
+    //     rResult[index]     = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
+    //     rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
+    //     rResult[index + 2] = iNode.GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
 
-        if(mHasRotationDofs)
-        {
-            rResult[index + 3] = iNode.GetDof(ADJOINT_ROTATION_X).EquationId();
-            rResult[index + 4] = iNode.GetDof(ADJOINT_ROTATION_Y).EquationId();
-            rResult[index + 5] = iNode.GetDof(ADJOINT_ROTATION_Z).EquationId();
-        }
+    //     if(mHasRotationDofs)
+    //     {
+    //         rResult[index + 3] = iNode.GetDof(ADJOINT_ROTATION_X).EquationId();
+    //         rResult[index + 4] = iNode.GetDof(ADJOINT_ROTATION_Y).EquationId();
+    //         rResult[index + 5] = iNode.GetDof(ADJOINT_ROTATION_Z).EquationId();
+    //     }
+    // }
+    // // Adjoint actuation DOFs (global node)
+    // const auto& gp_vec = geom.GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP);
+    // KRATOS_ERROR_IF(gp_vec.size() == 0) << "ACTIVE_SHELL_NODE_GP is empty!" << std::endl;
+    // const NodeType& r_global_node = gp_vec[0];
+    // KRATOS_ERROR_IF_NOT(r_global_node.HasDofFor(ADJOINT_ACTIVE_SHELL_ALPHA)) << "Global node has no ADJOINT_ACTIVE_SHELL_ALPHA DOF!" << std::endl;
+
+    // const NodeType& r_global_node = geom.GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
+    // IndexType offset = geom.size() * num_dofs_per_node;
+    // rResult[offset + 0] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_ALPHA).EquationId();
+    // rResult[offset + 1] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_BETA).EquationId();
+    // rResult[offset + 2] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_GAMMA).EquationId();
+    // rResult[offset + 3] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_1).EquationId();
+    // rResult[offset + 4] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_2).EquationId();
+    // rResult[offset + 5] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_12).EquationId();
+
+    const SizeType number_of_control_points = GetGeometry().size();
+
+    if (rResult.size() != 3 * number_of_control_points + 6)
+        rResult.resize(3 * number_of_control_points + 6, false);
+
+    const IndexType pos = this->GetGeometry()[0].GetDofPosition(ADJOINT_DISPLACEMENT_X);
+
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        const IndexType index = i * 3;
+        rResult[index]     = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X, pos).EquationId();
+        rResult[index + 1] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y, pos + 1).EquationId();
+        rResult[index + 2] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Z, pos + 2).EquationId();
     }
-    // Adjoint actuation DOFs (global node)
-    const NodeType& r_global_node = geom.GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
-    IndexType offset = geom.size() * num_dofs_per_node;
+
+    // Globale Aktivierungs-Dofs vom Hintergrund-Knoten
+    const NodeType& r_global_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
+    IndexType offset = 3 * number_of_control_points;
     rResult[offset + 0] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_ALPHA).EquationId();
     rResult[offset + 1] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_BETA).EquationId();
     rResult[offset + 2] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_GAMMA).EquationId();
@@ -116,32 +146,58 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(Dofs
 {
     KRATOS_TRY
 
-    const GeometryType & geom = this->GetGeometry();
+    // const GeometryType & geom = this->GetGeometry();
 
-    const SizeType number_of_nodes = geom.PointsNumber();
-    const SizeType dimension =  geom.WorkingSpaceDimension();
-    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-    const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
+    // const SizeType number_of_nodes = geom.PointsNumber();
+    // const SizeType dimension =  geom.WorkingSpaceDimension();
+    // const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+    // const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
 
-    rElementalDofList.clear();
-    rElementalDofList.reserve(num_dofs + 6);
+    // rElementalDofList.clear();
+    // rElementalDofList.reserve(num_dofs + 6);
 
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
-        rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X));
-        rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y));
-        rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z));
+    // for (IndexType i = 0; i < number_of_nodes; ++i)
+    // {
+    //     rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X));
+    //     rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y));
+    //     rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z));
 
-        if(mHasRotationDofs)
-        {
-            rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_X));
-            rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Y));
-            rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z));
-        }
+    //     if(mHasRotationDofs)
+    //     {
+    //         rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_X));
+    //         rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Y));
+    //         rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z));
+    //     }
+    // }
+
+    // // Adjoint actuation DOFs (global node)
+    // const auto& gp_vec = geom.GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP);
+    // KRATOS_ERROR_IF(gp_vec.size() == 0) << "ACTIVE_SHELL_NODE_GP is empty!" << std::endl;
+    // const NodeType& r_global_node = gp_vec[0];
+    // KRATOS_ERROR_IF_NOT(r_global_node.HasDofFor(ADJOINT_ACTIVE_SHELL_ALPHA)) << "Global node has no ADJOINT_ACTIVE_SHELL_ALPHA DOF!" << std::endl;
+
+    // const NodeType& r_global_node = this->GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
+    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_ALPHA));
+    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_BETA));
+    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_GAMMA));
+    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_1));
+    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_2));
+    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_12));
+
+
+    const SizeType number_of_control_points = GetGeometry().size();
+
+    rElementalDofList.resize(0);
+    rElementalDofList.reserve(3 * number_of_control_points + 6);
+
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        rElementalDofList.push_back(GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X));
+        rElementalDofList.push_back(GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y));
+        rElementalDofList.push_back(GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z));
     }
 
-    // Adjoint actuation DOFs (global node)
-    const NodeType& r_global_node = this->GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
+    // add global actuation-Dofs from Global-Point:
+    const NodeType& r_global_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
     rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_ALPHA));
     rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_BETA));
     rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_GAMMA));
@@ -164,8 +220,8 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector
     const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
 
-    if(rValues.size() != num_dofs + 6)
-        rValues.resize(num_dofs + 6, false);
+    if(rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
 
     for (IndexType i = 0; i < number_of_nodes; ++i)
     {
@@ -185,17 +241,6 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector
             rValues[index + 5] = rot[2];
         }
     }
-
-    // Adjoint actuation DOFs (global node)
-    const NodeType& r_global_node = geom.GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
-    IndexType offset = number_of_nodes * num_dofs_per_node;
-    rValues[offset + 0] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_ALPHA, Step);
-    rValues[offset + 1] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_BETA, Step);
-    rValues[offset + 2] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_GAMMA, Step);
-    rValues[offset + 3] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_1, Step);
-    rValues[offset + 4] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_2, Step);
-    rValues[offset + 5] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_12, Step);
-
     KRATOS_CATCH("")
 }
 
@@ -253,7 +298,7 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::Calculate(const
     }
     else
     {
-        KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "Calculate function called for unknown variable: " << rVariable << std::endl;
+        KRATOS_WARNING("ActiveAdjointFiniteDifferencingBaseElement") << "Calculate function called for unknown variable: " << rVariable << std::endl;
         rOutput.clear();
     }
 
