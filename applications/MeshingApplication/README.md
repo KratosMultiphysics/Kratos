@@ -4,30 +4,42 @@
 |:---------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------:|:-----------:|
 | `MeshingApplication` | The *Meshing Application* is a core component of the Kratos Multiphysics framework that provides tools and processes for mesh generation, adaptation, refinement, and interact with meshes within *Kratos Multiphysics*. | <img src="https://img.shields.io/badge/Status-%F0%9F%9A%80%20Actively%20developed-Green"  width="300px"> | [*Pooyan Dadvand*](mailto:pooyan@altair.com)  <br />  [*Vicente Mataix Ferrándiz*](mailto:vmataix@altair.com) |
 
-## Features
-
 <p align="center">
   <img src="https://github.com/KratosMultiphysics/Examples/blob/master/mmg_remeshing_examples/use_cases/channel_sphere2D/data/result.gif?raw=true" alt="Solution" style="width: 600px;"/>
 </p>
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Examples/raw/918c47fb4d8a4c64f5c827cb432cf57cad7d84a5/mmg_remeshing_examples/use_cases/contacting_cylinders/data/nodal_h_2d.gif" alt="Solution" style="width: 600px;"/>
+</p>
+
+The application includes tests to check the proper functioning of the application.
+
+## Table of Contents
+
+- [Meshing Application](#meshing-application)
+  * [😎 Features](#---features)
+    + [Custom IO](#custom-io)
+    + [Utilities](#utilities)
+    + [Meshers](#meshers)
+    + [Processes](#processes)
+      - [Variable Interpolation](#variable-interpolation)
+      - [Metrics](#metrics)
+    + [External Libraries](#external-libraries)
+      - [TetGen](#tetgen)
+      - [MMG](#mmg)
+        * [Architecture](#architecture)
+        * [Remeshing Strategies](#remeshing-strategies)
+        * [🗎 Documentation:](#---documentation-)
+  * [⚙️ Examples:](#---examples-)
+    + [MMG examples](#mmg-examples)
+    + [ParMMG examples](#parmmg-examples)
+
+## 😎 Features
 
 It offers various algorithms for computing metrics, remeshing based on different criteria, and interpolating variables between meshes.
 
 It contains several interfaces to both Kratos third party libraries (*Triangle*, *TetGen*, *MMG*)
 
 The application offers the functionalities listed below. If there is an Object without methods it means it can be called using the `Execute()` function.
-
-- [Interface](#interface)
-  * [Custom IO](#custom-io)
-  * [Utilities](#utilities)
-  * [Meshers](#meshers)
-  * [Processes](#processes)
-    + [Metrics](#metrics)
-    + [LevelSet](#levelset)
-    + [Hessian](#hessian)
-    + [Error](#error)
-- [External Libraries](#external-libraries)
-  * [TetGen](#tetgen)
-  * [MMG](#mmg)
 
 ### Custom IO
 * `PFEMGidIO`: A specialized instance of GiDIO for the PFEM Application. 
@@ -121,7 +133,11 @@ The application supports several remeshing strategies:
 3. *Error-based*: Adapts the mesh based on error estimators or indicators.
 4. *Optimization*: Only optimizes the mesh quality without significant adaptation.
 
-## Examples:
+##### 🗎 Documentation:
+
+Further information regarding the formulation can be accessed in Chapter 6 of the *PhD thesis* authored by [Vicente Mataix Ferrándiz](mailto:vmataix@altair.com), available on [UPC Commons](https://upcommons.upc.edu/bitstream/2117/328952/1/TVMF1de1.pdf).
+
+## ⚙️ Examples:
 
 ### MMG examples
 
