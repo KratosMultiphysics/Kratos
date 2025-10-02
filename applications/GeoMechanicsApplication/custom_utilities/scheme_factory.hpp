@@ -63,6 +63,10 @@ public:
             return std::make_shared<LoadSteppingScheme<TSparseSpace, TDenseSpace>>();
         }
 
+        if (rSolverSettings["solution_type"].GetString() == "static") {
+            return std::make_shared<GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>>();
+        }
+
         KRATOS_ERROR << "Specified combination of solution_type ("
                      << rSolverSettings["solution_type"].GetString() << ") and scheme_type ("
                      << rSolverSettings["scheme_type"].GetString() << ") is not supported, aborting";
