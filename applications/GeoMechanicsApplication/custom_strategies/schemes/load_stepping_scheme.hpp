@@ -70,8 +70,9 @@ public:
                                       Element::EquationIdVectorType& rEquationId,
                                       const ProcessInfo&             rCurrentProcessInfo) override
     {
-        this->CalculateLHSContribution(rCurrentCondition, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
-        CalculateRHSContribution(rCurrentCondition, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::CalculateSystemContributions(
+            rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
+        rRHS_Contribution *= CalculateLoadFraction(rCurrentProcessInfo);
     }
 
     void CalculateRHSContribution(Condition&                     rCurrentCondition,
@@ -79,7 +80,7 @@ public:
                                   Element::EquationIdVectorType& rEquationId,
                                   const ProcessInfo&             rCurrentProcessInfo) override
     {
-        GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution(
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution(
             rCurrentCondition, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
 
         rRHS_Contribution *= CalculateLoadFraction(rCurrentProcessInfo);
