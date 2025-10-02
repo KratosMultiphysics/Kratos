@@ -413,11 +413,20 @@ void AddFieldsFromTensorAdaptor(
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting " << r_pair.first << " data...\n";
 
         if constexpr(std::is_same_v<data_type, Flags>) {
-            // the map is of type flags
-            // here we don't need to do any communication because Flags are always having a static data shape.
-            TTensorAdaptorType tensor_adaptor(pContainer, *r_pair.second, rArgs...);
-            tensor_adaptor.CollectData();
-            rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetWritingNDData(rWritingIndices, tensor_adaptor.pGetStorage())));
+            if (r_pair.first == "KRATOS_ID") {
+                auto p_nd_data = Kratos::make_shared<NDData<int>>(DenseVector<unsigned int>(1, rWritingIndices.size()));
+                auto span = p_nd_data->ViewData();
+                IndexPartition<IndexType>(rWritingIndices.size()).for_each([&pContainer, &span, &rWritingIndices](const auto Index) {
+                    span[Index] = (pContainer->begin() + rWritingIndices[Index])->Id();
+                });
+                rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, p_nd_data));
+            } else {
+                // the map is of type flags
+                // here we don't need to do any communication because Flags are always having a static data shape.
+                TTensorAdaptorType tensor_adaptor(pContainer, *r_pair.second, rArgs...);
+                tensor_adaptor.CollectData();
+                rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetWritingNDData(rWritingIndices, tensor_adaptor.pGetStorage())));
+            }
         } else {
             std::visit([&](const auto p_variable) {
                 AddFieldsFromTensorAdaptorImpl<TTensorAdaptorType>(
@@ -823,6 +832,7 @@ VtuOutput::VtuOutput(
     const WriterFormat OutputFormat,
     const IndexType Precision,
     const bool OutputSubModelParts,
+    const bool WriteIds,
     const IndexType EchoLevel)
     : mIsPVDFileHeaderWritten(false),
       mrModelPart(rModelPart),
@@ -838,6 +848,12 @@ VtuOutput::VtuOutput(
               [](const auto& rV1, const auto& rV2) {
                   return rV1.mpModelPart->FullName() < rV2.mpModelPart->FullName();
               });
+
+    if (WriteIds) {
+        mFlags[static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical)]["KRATOS_ID"] = nullptr;
+        mFlags[static_cast<IndexType>(Globals::DataLocation::Condition)]["KRATOS_ID"] = nullptr;
+        mFlags[static_cast<IndexType>(Globals::DataLocation::Element)]["KRATOS_ID"] = nullptr;
+    }
 }
 
 const ModelPart& VtuOutput::GetModelPart() const

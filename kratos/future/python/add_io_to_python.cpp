@@ -39,12 +39,13 @@ void  AddIOToPython(pybind11::module& m)
         ;
 
     vtu_output
-        .def(py::init<ModelPart&, const Globals::Configuration, const VtuOutput::WriterFormat, const std::size_t, const bool, const IndexType>(),
+        .def(py::init<ModelPart&, const Globals::Configuration, const VtuOutput::WriterFormat, const std::size_t, const bool, const bool, const IndexType>(),
             py::arg("model_part"),
             py::arg("configuration") = Globals::Configuration::Initial,
             py::arg("output_format") = VtuOutput::WriterFormat::COMPRESSED_RAW,
             py::arg("precision") = 9,
             py::arg("output_sub_model_parts") = false,
+            py::arg("write_ids") = false,
             py::arg("echo_level") = 0)
         .def("AddFlag", &VtuOutput::AddFlag, py::arg("flag_name"), py::arg("flag"), py::arg("data_location"))
         .def("AddVariable", &VtuOutput::AddVariable, py::arg("variable"), py::arg("data_location"))

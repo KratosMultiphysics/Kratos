@@ -140,6 +140,7 @@ public:
         const WriterFormat OutputFormat = WriterFormat::COMPRESSED_RAW,
         const IndexType Precision = 9,
         const bool OutputSubModelParts = false,
+        const bool WriteIds = false,
         const IndexType EchoLevel = 0);
 
     ///@}
