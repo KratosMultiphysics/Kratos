@@ -102,14 +102,11 @@ public:
         }
     }
 
-    void FinalizeSolutionStep(
-        ModelPart&                                                                       rModelPart,
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemMatrixType& rA,
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType& rDx,
-        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType& rb) override
+    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
         GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-        KRATOS_INFO("Load stepping") << "Fraction of unbalance: " << CalculateLoadFraction(rModelPart.GetProcessInfo());
+        KRATOS_INFO("Load stepping")
+            << "Fraction of unbalance: " << CalculateLoadFraction(rModelPart.GetProcessInfo());
     }
 
 private:
