@@ -34,6 +34,10 @@ public:
 
     CoulombYieldSurface(double FrictionAngleInRad, double Cohesion, double DilatationAngleInRad);
 
+    double GetFrictionAngleInRad() const;
+    double GetCohesion() const;
+    double GetDilatationAngleInRad() const;
+
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;
