@@ -19,6 +19,9 @@
             </DataArray>
          </Cells>
          <PointData>
+            <DataArray Name="KRATOS_ID" NumberOfComponents="1" format="ascii" type="Int32">
+              1  2  5
+            </DataArray>
             <DataArray Name="DISPLACEMENT" NumberOfComponents="3" format="ascii" type="Float64">
               0.000000000e+00  3.000000000e+00  0.000000000e+00  0.000000000e+00  1.500000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
             </DataArray>
@@ -35,6 +38,9 @@
             </DataArray>
             <DataArray Name="YOUNG_MODULUS" NumberOfComponents="1" format="ascii" type="Float64">
               0.000000000e+00  5.326000000e+00
+            </DataArray>
+            <DataArray Name="KRATOS_ID" NumberOfComponents="1" format="ascii" type="Int32">
+              1  2
             </DataArray>
          </CellData>
       </Piece>

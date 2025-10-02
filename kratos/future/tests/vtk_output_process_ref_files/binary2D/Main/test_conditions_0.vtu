@@ -26,6 +26,9 @@
             <DataArray Name="YOUNG_MODULUS" NumberOfComponents="1" format="binary" type="Float64">
               IAAAAAAAAAAAAAAAAAAAAOf7qfHSTRVA5/up8dJNJUDa+X5qvPQvQA==
             </DataArray>
+            <DataArray Name="KRATOS_ID" NumberOfComponents="1" format="binary" type="Int32">
+              EAAAAAAAAAABAAAAAgAAAAMAAAAEAAAA
+            </DataArray>
          </CellData>
       </Piece>
    </UnstructuredGrid>

@@ -26,6 +26,9 @@
             <DataArray Name="YOUNG_MODULUS" NumberOfComponents="1" format="ascii" type="Float64">
               0.000000000e+00  5.326000000e+00  1.065200000e+01  1.597800000e+01
             </DataArray>
+            <DataArray Name="KRATOS_ID" NumberOfComponents="1" format="ascii" type="Int32">
+              1  2  3  4
+            </DataArray>
          </CellData>
       </Piece>
    </UnstructuredGrid>
