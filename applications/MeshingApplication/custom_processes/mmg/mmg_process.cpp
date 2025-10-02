@@ -18,7 +18,7 @@
 // Project includes
 #include "custom_processes/mmg/mmg_process.h"
 #include "containers/model.h"
-// We indlude the internal variable interpolation process
+// We include the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 // Include the point locator
@@ -26,7 +26,8 @@
 #include "utilities/parallel_utilities.h"
 // Include the spatial containers needed for search
 #include "spatial_containers/spatial_containers.h" // kd-tree
-#include "includes/gid_io.h"
+// #include "includes/gid_io.h" // Legacy debug output
+#include "input_output/vtk_output.h"
 #include "includes/model_part_io.h"
 
 /* The mappers includes */
@@ -105,6 +106,9 @@ MmgProcess<TMMGLibrary>::MmgProcess(
     mpRefElement.clear();
     mpRefCondition.clear();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
 MmgProcess<TMMGLibrary>::MmgProcess(
@@ -208,6 +212,7 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
     // We initialize the mesh and solution data
     InitializeMeshData();
 
+    // We set the mesh optimization mode
     mMmgUtilities.SetMeshOptimizationModeParameter(optimization_mode);
 
     // We retrieve the data form the Kratos model part to fill sol
@@ -230,6 +235,20 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
 
     // Save to file
     if (safe_to_file) SaveSolutionToFile(false);
+
+    // // We set the parameters
+    // if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+    //     // We set the isosurface value
+    //     mMmgUtilities.SetLevelSetValueParameter(mThisParameters["isosurface_parameters"]["isosurface_value"].GetDouble());
+    //     // We set the remove small disconnected components value if needed
+    //     const double remove_small_disconnected_components = mThisParameters["isosurface_parameters"]["remove_small_disconnected_components"].GetDouble();
+    //     if (remove_small_disconnected_components > 0.0) {
+    //         mMmgUtilities.SetRemoveSmallDisconnectedComponentsParameter(remove_small_disconnected_components);
+    //     }
+    // }
+
+    // // Set some parameters
+    // mMmgUtilities.SetRelaxationParameter(mThisParameters["advanced_parameters"]["relaxation_value"].GetDouble());
 
     // We execute the remeshing
     ExecuteRemeshing();
@@ -287,7 +306,7 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
 
     /* Save to file */
     const bool save_to_file = mThisParameters["save_external_files"].GetBool();
-    if (GetMmgVersion() == "5.5" && mDiscretization == DiscretizationOption::ISOSURFACE && save_to_file) {
+    if (mDiscretization == DiscretizationOption::ISOSURFACE && save_to_file) {
         InitializeSolDataDistance();
         SaveSolutionToFile(true);
     }
@@ -384,15 +403,16 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataMetric()
 {
     KRATOS_TRY;
 
+    // We initialize the solution data with the given modelpart
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // This will only run for version >= 5.5
-        if (mThisParameters["isosurface_parameters"]["use_metric_field"].GetBool())
+        if (mThisParameters["isosurface_parameters"]["use_metric_field"].GetBool()) {
             mMmgUtilities.GenerateIsosurfaceMetricDataFromModelPart(mrThisModelPart);
+        }
     } else {
         // We initialize the solution data with the given modelpart
         mMmgUtilities.GenerateSolDataFromModelPart(mrThisModelPart);
     }
-
 
     KRATOS_CATCH("");
 }
@@ -419,14 +439,16 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
     const bool invert_value = mThisParameters["isosurface_parameters"]["invert_value"].GetBool();
     const Variable<double>& r_scalar_variable = KratosComponents<Variable<double>>::Get(r_isosurface_variable_name);
 
-    // Auxiliary value
+    // Auxiliary values
     const double sign = invert_value ? -1.0 : 1.0;
-    double isosurface_value = 0.0;
+    struct TLS {
+        double isosurface_value = 0.0;
+    };
 
     // We iterate over the nodes
     auto& r_mmg_utilities = mMmgUtilities;
-    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(isosurface_value,
-        [&it_node_begin,&r_mmg_utilities,&r_scalar_variable,&r_isosurface_variable_name,&nonhistorical_variable,&sign](std::size_t i, double& isosurface_value) {
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each(TLS(),
+        [&it_node_begin,&r_mmg_utilities,&r_scalar_variable,&r_isosurface_variable_name,&nonhistorical_variable,&sign](std::size_t i, TLS& rTLS) {
         auto it_node = it_node_begin + i;
 
         const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
@@ -435,16 +457,16 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
                 KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_scalar_variable)) << r_isosurface_variable_name << " field not found as a non-historical variable " << std::endl;
 
                 // We get the isosurface value (non-historical variable)
-                isosurface_value = it_node->GetValue( r_scalar_variable );
+                rTLS.isosurface_value = it_node->GetValue( r_scalar_variable );
             } else {
                 KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(r_scalar_variable)) << r_isosurface_variable_name << " field not found as a historical variable " << std::endl;
 
                 // We get the isosurface value (historical variable)
-                isosurface_value = it_node->FastGetSolutionStepValue( r_scalar_variable );
+                rTLS.isosurface_value = it_node->FastGetSolutionStepValue( r_scalar_variable );
             }
 
             // We set the isosurface variable
-            r_mmg_utilities.SetMetricScalar(sign * isosurface_value, i + 1);
+            r_mmg_utilities.SetMetricScalar(sign * rTLS.isosurface_value, i + 1);
         }
     });
 
@@ -514,11 +536,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     /* Save to file */
     if (save_to_file) {
-        if (GetMmgVersion() == "5.5") {
-            if (mDiscretization != DiscretizationOption::ISOSURFACE) {
-                SaveSolutionToFile(true);
-            }
-        } else {
+        if (mDiscretization != DiscretizationOption::ISOSURFACE) {
             SaveSolutionToFile(true);
         }
     }
@@ -1305,13 +1323,25 @@ void MmgProcess<TMMGLibrary>::CreateDebugPrePostRemeshOutput(ModelPart& rOldMode
     transfer_process_last.Execute();
 
     const int step = mrThisModelPart.GetProcessInfo()[STEP];
-    const double label = static_cast<double>(step);
-    GidIO<> gid_io("BEFORE_AND_AFTER_MMG_MESH_STEP=" + std::to_string(step), GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
 
-    gid_io.InitializeMesh(label);
-    gid_io.WriteMesh(r_auxiliary_model_part.GetMesh());
-    gid_io.FinalizeMesh();
-    gid_io.InitializeResults(label, r_auxiliary_model_part.GetMesh());
+    // LEGACY GID OUTPUT
+    // const double label = static_cast<double>(step);
+    // GidIO<> gid_io("BEFORE_AND_AFTER_MMG_MESH_STEP=" + std::to_string(step), GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+
+    // gid_io.InitializeMesh(label);
+    // gid_io.WriteMesh(r_auxiliary_model_part.GetMesh());
+    // gid_io.FinalizeMesh();
+    // gid_io.InitializeResults(label, r_auxiliary_model_part.GetMesh());
+
+    // VTK OUTPUT
+    auto volume_vtk_output_parameters = Parameters(R"({
+        "model_part_name"                    : "})"+r_auxiliary_model_part.Name()+R"({",
+        "file_format"                        : "ascii"
+        "output_sub_model_parts"             : true,
+        "output_path"                        : "})" + "MMG_Output_" + std::to_string(step) + R"({"
+    })");
+    VtkOutput vtk_output(r_auxiliary_model_part, volume_vtk_output_parameters);
+    vtk_output.PrintOutput();
 
     // Remove auxiliar model parts
     r_owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Auxiliar");
@@ -1456,11 +1486,13 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
         "filename"                             : "out",
         "discretization_type"                  : "Standard",
         "isosurface_parameters"                : {
-            "isosurface_variable"              : "DISTANCE",
-            "invert_value"                     : false,
-            "nonhistorical_variable"           : false,
-            "use_metric_field"                 : false,
-            "remove_internal_regions"          : false
+            "isosurface_variable"                  : "DISTANCE",
+            "invert_value"                         : false,
+            "nonhistorical_variable"               : false,
+            "use_metric_field"                     : false,
+            "remove_internal_regions"              : false,
+            "isosurface_value"                     : 0.0,
+            "remove_small_disconnected_components" : -1.0
         },
         "framework"                            : "Eulerian",
         "internal_variables_parameters"        : {
@@ -1477,6 +1509,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "maximal_size"                        : 10.0
         },
         "advanced_parameters"                     : {
+            "relaxation_value"                    : 0.4,
             "force_hausdorff_value"               : false,
             "hausdorff_value"                     : 0.0001,
             "no_move_mesh"                        : false,

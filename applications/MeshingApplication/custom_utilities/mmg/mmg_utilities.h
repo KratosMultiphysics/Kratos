@@ -432,10 +432,78 @@ public:
 
     /**
      * @brief This sets the optimization mode using the API
+     * where triangles are preserved at the interface.
+     * @param[in] PreserveTrianglesAtInterface Boolean to set the preservation of triangles at the interface
+     */
+    virtual void PreserveTrianglesAtInterface(const bool PreserveTrianglesAtInterface);
+
+    /**
+     * @brief This sets the optimization mode using the API
      * where edge lengths are preserved, ignoring the metric values.
      * @param[in] EnableMeshOptimization Boolean to set the mesh optimization mode
      */
     virtual void SetMeshOptimizationModeParameter(const bool EnableMeshOptimization);
+
+    /**
+     * @brief This sets the optimization for LES simulations mode using the API
+     * where edge lengths are preserved, ignoring the metric values.
+     * @param[in] EnableMeshOptimization Boolean to set the mesh optimization mode
+     */
+    virtual void SetMeshOptimizationLESModeParameter(const bool EnableMeshOptimization);
+
+    /**
+     * @brief This sets the normal regularization using the API
+     * @param[in] EnableNormalRegularization Boolean to set the normal regularization mode
+     */
+    virtual void SetNormalRegularizationParameter(const bool EnableNormalRegularization);
+
+    /**
+     * @brief This sets the coordinate regularization using the API
+     * @param[in] EnableCoordinateRegularization Boolean to set the coordinate regularization mode
+     */
+    virtual void SetCoordinateRegularizationParameter(const bool EnableCoordinateRegularization);
+
+    /**
+     * @brief This sets the point relocation using the API
+     * @param[in] EnablePointRelocation Boolean to set the point relocation mode
+     */
+    virtual void SetPointRelocationParameter(const bool EnablePointRelocation);
+
+    /**
+     * @brief This sets the edge length using the API
+     * @param[in] EdgeLength The desired edge length
+     */
+    virtual void SetEdgeLengthParameter(const double EdgeLength);
+
+    /**
+     * @brief This sets the level set value using the API
+     * @param[in] LevelSetValue The desired level set value
+     */
+    virtual void SetLevelSetValueParameter(const double LevelSetValue);
+
+    /**
+     * @brief This sets the remove small disconnected components value using the API
+     * @param[in] RMCValue The desired remove small disconnected components value
+     */
+    virtual void SetRemoveSmallDisconnectedComponentsParameter(const double RMCValue);
+
+    /**
+     * @brief Sets the number of material regions or parameters to be used.
+     * @param[in] NumberOfRegions The number of distinct material regions to configure.
+     */
+    virtual void SetNumberOfMaterialParameter(const int NumberOfRegions);
+
+    /**
+     * @brief Sets the number of subdomains or parameters to be used.
+     * @param[in] NumberOfSubdomains The number of distinct subdomains to configure.
+     */
+    virtual void SetNumberOfSubdomainsParameter(const int NumberOfSubdomains);
+
+    /**
+     * @brief This sets the relaxation value using the API
+     * @param[in] RelaxationValue The desired relaxation value
+     */
+    virtual void SetRelaxationParameter(const double RelaxationValue);
 
     /**
      * @brief This sets the size of the mesh

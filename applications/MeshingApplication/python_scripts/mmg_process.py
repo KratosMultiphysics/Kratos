@@ -74,11 +74,13 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "discretization_type"                  : "Standard",
             "isosurface_parameters"                : {
-                "isosurface_variable"              : "DISTANCE",
-                "invert_value"                     : false,
-                "nonhistorical_variable"           : false,
-                "use_metric_field"                 : false,
-                "remove_internal_regions"          : false
+                "isosurface_variable"                  : "DISTANCE",
+                "invert_value"                         : false,
+                "nonhistorical_variable"               : false,
+                "use_metric_field"                     : false,
+                "remove_internal_regions"              : false,
+                "isosurface_value"                     : 0.0,
+                "remove_small_disconnected_components" : -1.0
             },
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        : {
@@ -127,6 +129,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "interpolation"                    : "constant"
             },
             "advanced_parameters"                  : {
+                "relaxation_value"                 : 0.4,
                 "force_hausdorff_value"            : false,
                 "hausdorff_value"                  : 0.0001,
                 "no_move_mesh"                     : false,
