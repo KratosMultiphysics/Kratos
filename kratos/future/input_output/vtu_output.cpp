@@ -908,12 +908,23 @@ void VtuOutput::AddFlag(
 
     switch (DataLocation) {
         case Globals::DataLocation::NodeNonHistorical:
-            // additionally check here in the historical containers.
+            // user is trying to add a flag to nodes. now we are checking
+            // whether there are variables with the same name in the variables
+            // from the nodal historical.
+            // note: there is no break here.
             CheckDataArrayName(rFlagName, {Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
-            CheckDataArrayName(rFlagName, {DataLocation}, mFlags, mVariables); // checks in the current data location of mVariables map
-            CheckDataArrayName(rFlagName, DataLocation, mUnstructuredGridDataList); // checks in the tensor adaptors list
+            // user is trying to add a flag variable to nodes, conditions or elements.
+            // here we check if the given flag name is there in the existing flags for user specified data location,
+            // and also in the variables.
+            CheckDataArrayName(rFlagName, {DataLocation}, mFlags, mVariables);
+
+            // since specified flags are used to output in every unstructured grid. We check here whether
+            // any of the tensor adaptors in the given data location contains the same name as rFlagName.
+            CheckDataArrayName(rFlagName, DataLocation, mUnstructuredGridDataList);
+
+            // If there are no conflicts, we add the flag variable.
             mFlags[static_cast<IndexType>(DataLocation)][rFlagName] = &rFlagVariable;
             break;
         default:
@@ -936,15 +947,28 @@ void VtuOutput::AddVariable(
 
     switch (DataLocation) {
         case Globals::DataLocation::NodeHistorical:
-            // additionally check here in the non historical containers.
+            // Now the user is adding a nodal historical variable. So, this checks whether
+            // the a variable with the same name exists in the nodal non-historical variables map.
+            // note: there is no break in here.
             CheckDataArrayName(GetName(pVariable), {Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
         case Globals::DataLocation::NodeNonHistorical:
-            // additionally check here in the historical containers.
+            // Now the user is adding a nodal non-historical variable. So this checks whether
+            // a variable with the same name exists in the nodal historical variables map.
+            // not: there is no break in here.
             CheckDataArrayName(GetName(pVariable), {Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
-            CheckDataArrayName(GetName(pVariable), {DataLocation}, mFlags, mVariables); // checks in the current data location of mVariables map
+            // Now the user is trying to add a nodal-historical, nodal-non-historical, element or condition variable.
+            // so now we check whether another variable with the same name exists
+            // in the user specified container in flags and variables maps.
+            CheckDataArrayName(GetName(pVariable), {DataLocation}, mFlags, mVariables);
+
+            // this checks whether there is already a tensor adaptor added with a name equal to the variable name
+            // in any of the unstructured grids. Since these variables will be used to output data in all the unstructured grids,
+            // non-of them should have any tensor adaptors with this name.
             CheckDataArrayName(GetName(pVariable), DataLocation, mUnstructuredGridDataList); // checks in the tensor adaptors list
+
+            // if there are no conflicts, adding the variable.
             mVariables[static_cast<IndexType>(DataLocation)][GetName(pVariable)] = pVariable;
             break;
         default:
@@ -968,7 +992,11 @@ void VtuOutput::AddIntegrationPointVariable(
     switch (DataLocation) {
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
-            CheckDataArrayName(GetName(pVariable), {DataLocation}, mIntegrationPointVariables); // checks in the current data location of mIntegrationPointVariables map
+            // checks if the integration point variable name already exists on the
+            // list of integration point variables.
+            CheckDataArrayName(GetName(pVariable), {DataLocation}, mIntegrationPointVariables);
+
+            // If no conflicts in the naming is found, then put integration point variable for the output.
             mIntegrationPointVariables[static_cast<IndexType>(DataLocation)][GetName(pVariable)] = pVariable;
             break;
         default:
@@ -1027,6 +1055,8 @@ void VtuOutput::AddTensorAdaptor(
                     // checks if the given rTensorAdaptorName is already there in the list of nodal tensor adaptors
                     // of the unstructured grid referred by itr.
                     CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, *itr);
+
+                    // If no conflicts in the naming is found, then put the tensor adaptor for output.
                     itr->mMapOfPointTensorAdaptors[rTensorAdaptorName] = p_tensor_adaptor;
                     break;
                 }
@@ -1050,18 +1080,16 @@ void VtuOutput::UpdateTensorAdaptor(
 {
     KRATOS_TRY
 
+    // a visitor for TensorAdaptor<int>, TensorAdaptor<bool>, TensorAdaptor<double>
     std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
-        auto shape = p_tensor_adaptor->Shape();
-        auto ta_span = p_tensor_adaptor->ViewData();
-
-        // the tensor adaptors may have different number of components in dimensions from 2 to N [Eg.
-        // tensor adaptors created from dynamic variables, having zero entities. ] Hence doing
-        // communication to correctly size the number of components in higher dimensions.
-        std::vector<unsigned int> local_data_shape(shape.begin() + 1, shape.end());
-        const auto& max_data_shape = this->mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_data_shape);
-        if (shape[0] == 0) std::copy(max_data_shape.begin(), max_data_shape.end(), shape.begin() + 1);
-
-        std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &ta_span, &shape](auto pContainer){
+        // a visitor for NodesContainer::Pointer, ConditionsContainer::Pointer, ElementsContainerPointer
+        // of the given p_tensor_adaptor
+        std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor](auto pContainer){
+            // finds the unstructured grid for which the given tensor adaptor's pContainer refers to.
+            // mesh_type is of Kratos::Globals::DataLocation enum
+            // itr points to the unstructured grid which is referring to the given pContainer.
+            // if not found, mesh_type is returned with Kratos::Globals::DataLocation::ModelPart
+            // enum value, which will throw an error.
             [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mUnstructuredGridDataList);
 
             switch (mesh_type) {
