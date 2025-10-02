@@ -1158,6 +1158,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 2) << "--- Collecting nodal data fields...\n";
         // generate and add point field data
         std::vector<IndexType> all_indices(p_nodes->size());
+        std::iota(all_indices.begin(), all_indices.end(), 0);
         AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, mFlags[static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel);
         AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, mVariables[static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel);
         AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, mVariables[static_cast<IndexType>(Globals::DataLocation::NodeHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel, 0);
