@@ -4157,8 +4157,10 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     auto& r_elements_array = rModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
 
-    // The following nodes will be remeshed
-    std::unordered_set<IndexType> remeshed_nodes;
+    // Set flag on nodes
+    block_for_each(r_nodes_array,[](NodeType& rNode) {
+        rNode.Set(OLD_ENTITY, true);
+    });
 
     /* Manually set of the mesh */
     MMGMeshInfo<TMMGLibrary> mmg_mesh_info;
@@ -4169,8 +4171,9 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             auto it_cond = it_cond_begin + i;
 
             if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) { // Lines
-                for (auto& r_node : it_cond->GetGeometry())
-                    remeshed_nodes.insert(r_node.Id());
+                for (auto& r_node : it_cond->GetGeometry()) {
+                    r_node.Set(OLD_ENTITY, false);
+                }
                 num_lines += 1;
             } else {
                 it_cond->Set(OLD_ENTITY, true);
@@ -4189,12 +4192,14 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             auto it_elem = it_elem_begin + i;
 
             if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3) { // Triangles
-                for (auto& r_node : it_elem->GetGeometry())
-                    remeshed_nodes.insert(r_node.Id());
+                for (auto& r_node : it_elem->GetGeometry()) {
+                    r_node.Set(OLD_ENTITY, false);
+                }
                 num_tri += 1;
             } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) { // Quadrilaterals
-                for (auto& r_node : it_elem->GetGeometry())
-                    remeshed_nodes.insert(r_node.Id());
+                for (auto& r_node : it_elem->GetGeometry()) {
+                    r_node.Set(OLD_ENTITY, false);
+                }
                 num_quad += 1;
             } else {
                 it_elem->Set(OLD_ENTITY, true);
@@ -4215,12 +4220,14 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             auto it_cond = it_cond_begin + i;
 
             if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // Triangles
-                for (auto& r_node : it_cond->GetGeometry())
-                    remeshed_nodes.insert(r_node.Id());
+                for (auto& r_node : it_cond->GetGeometry()) {
+                    r_node.Set(OLD_ENTITY, false);
+                }
                 num_tri += 1;
             } else if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) { // Quadrilaterals
-                for (auto& r_node : it_cond->GetGeometry())
-                    remeshed_nodes.insert(r_node.Id());
+                for (auto& r_node : it_cond->GetGeometry()) {
+                    r_node.Set(OLD_ENTITY, false);
+                }
                 num_quad += 1;
             } else {
                 it_cond->Set(OLD_ENTITY, true);
@@ -4240,15 +4247,17 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             auto it_elem = it_elem_begin + i;
 
             if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
-                for (auto& r_node : it_elem->GetGeometry())
-                    remeshed_nodes.insert(r_node.Id());
+                for (auto& r_node : it_elem->GetGeometry()) {
+                    r_node.Set(OLD_ENTITY, false);
+                }
                 num_tetra += 1;
             } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
                 if (CollapsePrismElements) {
                     KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 1) << "Prismatic element " << it_elem->Id() << " will be collapsed to a triangle" << std::endl;
                 } else {
-                    for (auto& r_node : it_elem->GetGeometry())
-                        remeshed_nodes.insert(r_node.Id());
+                    for (auto& r_node : it_elem->GetGeometry()) {
+                        r_node.Set(OLD_ENTITY, false);
+                    }
                     num_prisms += 1;
                 }
             } else {
@@ -4269,8 +4278,9 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             auto it_cond = it_cond_begin + i;
 
             if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2) { // Lines
-                for (auto& r_node : it_cond->GetGeometry())
-                    remeshed_nodes.insert(r_node.Id());
+                for (auto& r_node : it_cond->GetGeometry()) {
+                    r_node.Set(OLD_ENTITY, false);
+                }
                 num_lines += 1;
             } else {
                 it_cond->Set(OLD_ENTITY, true);
@@ -4284,8 +4294,9 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             auto it_elem = it_elem_begin + i;
 
             if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // Triangles
-                for (auto& r_node : it_elem->GetGeometry())
-                    remeshed_nodes.insert(r_node.Id());
+                for (auto& r_node : it_elem->GetGeometry()) {
+                    r_node.Set(OLD_ENTITY, false);
+                }
                 num_tri += 1;
             } else if (CollapsePrismElements && (it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) {
                 KRATOS_INFO_IF("MmgUtilities", mEchoLevel > 1) << "Prismatic element " << it_elem->Id() << " will be collapsed to a triangle" << std::endl;
@@ -4299,15 +4310,12 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         mmg_mesh_info.NumberOfTriangles = num_tri;
     }
 
-    // Set flag on nodes
-    block_for_each(r_nodes_array,
-        [&remeshed_nodes](NodeType& rNode) {
-        if (remeshed_nodes.find(rNode.Id()) == remeshed_nodes.end()) {
-            rNode.Set(OLD_ENTITY, true);
-        }
+    // Sum all nodes that are not OLD_ENTITY
+    mmg_mesh_info.NumberOfNodes = block_for_each<SumReduction<IndexType>>(r_nodes_array, [](NodeType& rNode) {
+        return static_cast<IndexType>(rNode.IsNot(OLD_ENTITY));
     });
 
-    mmg_mesh_info.NumberOfNodes = remeshed_nodes.size();
+    // Set mesh size
     SetMeshSize(mmg_mesh_info);
 
     // We reorder the ids to avoid conflicts with the rest (using as reference the OLD_ENTITY)
@@ -4409,7 +4417,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
 
     // The ISOSURFACE has some reserved Ids. We reassign
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        // Create auxiliar model part
+        // Create auxiliary model part
         if (!rModelPart.HasSubModelPart("SKIN_ISOSURFACE")) {
             rModelPart.CreateSubModelPart("SKIN_ISOSURFACE");
         }
@@ -4433,15 +4441,15 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
         }
 
         // Identify the submodelparts with elements
-        std::unordered_set<std::string> auxiliar_set_elements;
+        std::unordered_set<std::string> auxiliary_set_elements;
         // We build a set for all the model parts containing elements
         for (auto& r_elem_color : elem_colors) {
             const IndexType color = r_elem_color.second;
             const auto& r_sub_model_parts_names = rColors[color];
-            auxiliar_set_elements.insert(r_sub_model_parts_names.begin(), r_sub_model_parts_names.end());
+            auxiliary_set_elements.insert(r_sub_model_parts_names.begin(), r_sub_model_parts_names.end());
         }
-        std::vector<std::string> auxiliar_vector_elements(auxiliar_set_elements.size());
-        std::copy(auxiliar_set_elements.begin(), auxiliar_set_elements.end(), std::back_inserter(auxiliar_vector_elements));
+        std::vector<std::string> auxiliar_vector_elements(auxiliary_set_elements.size());
+        std::copy(auxiliary_set_elements.begin(), auxiliary_set_elements.end(), std::back_inserter(auxiliar_vector_elements));
 
         // Move the map to the end
         if (id_2_exists) {
@@ -4539,10 +4547,12 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             SetNodes(r_coordinates[0], r_coordinates[1], r_coordinates[2], nodes_colors[rNode.Id()], rNode.Id());
 
             bool blocked = false;
-            if (rNode.IsDefined(BLOCKED))
+            if (rNode.IsDefined(BLOCKED)) {
                 blocked = rNode.Is(BLOCKED);
-            if (blocked)
+            }
+            if (blocked) {
                 BlockNode(rNode.Id());
+            }
         }
     });
 
@@ -4555,10 +4565,12 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             SetConditions(rCondition.GetGeometry(), cond_colors[rCondition.Id()], rCondition.Id());
 
             bool blocked = false;
-            if (rCondition.IsDefined(BLOCKED))
+            if (rCondition.IsDefined(BLOCKED)) {
                 blocked = rCondition.Is(BLOCKED);
-            if (blocked)
+            }
+            if (blocked) {
                 BlockCondition(rCondition.Id());
+            }
         }
     });
 
@@ -4571,27 +4583,31 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
             SetElements(rElement.GetGeometry(), elem_colors[rElement.Id()], rElement.Id());
 
             bool blocked = false;
-            if (rElement.IsDefined(BLOCKED))
+            if (rElement.IsDefined(BLOCKED)) {
                 blocked = rElement.Is(BLOCKED);
-            if (blocked)
+            }
+            if (blocked) {
                 BlockElement(rElement.Id());
+            }
         }
     });
 
-    // Create auxiliar colors maps
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
+    // Create auxiliary colors maps
+    for(IndexType i = 0; i < r_conditions_array.size(); ++i)  {
         auto it_cond = it_cond_begin + i;
         const IndexType cond_id = it_cond->Id();
         const IndexType color = cond_colors[cond_id];
-        if ((rColorMapCondition.find(color) == rColorMapCondition.end()))
+        if ((rColorMapCondition.find(color) == rColorMapCondition.end())) {
             rColorMapCondition.insert (IndexPairType(color,cond_id));
+        }
     }
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+    for(IndexType i = 0; i < r_elements_array.size(); ++i) {
         auto it_elem = it_elem_begin + i;
         const IndexType elem_id = it_elem->Id();
         const IndexType color = elem_colors[elem_id];
-        if ((rColorMapElement.find(color) == rColorMapElement.end()))
+        if ((rColorMapElement.find(color) == rColorMapElement.end())) {
             rColorMapElement.insert (IndexPairType(color,elem_id));
+        }
     }
 
     // Add missing entities

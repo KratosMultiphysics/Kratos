@@ -380,10 +380,12 @@ void MmgProcess<TMMGLibrary>::InitializeMeshData()
     mDofs.clear();
 
     // Assign dofs
-    for (auto it_dof = r_old_dofs.begin(); it_dof != r_old_dofs.end(); ++it_dof)
+    for (auto it_dof = r_old_dofs.begin(); it_dof != r_old_dofs.end(); ++it_dof) {
         mDofs.push_back(Kratos::make_unique<Node::DofType>(**it_dof));
-    for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+    }
+    for (auto it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof) {
         (**it_dof).FreeDof();
+    }
 
     mrThisModelPart.Nodes().Unique();
     mrThisModelPart.Conditions().Unique();
