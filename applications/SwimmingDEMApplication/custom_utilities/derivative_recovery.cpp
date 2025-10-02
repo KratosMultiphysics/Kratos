@@ -1458,6 +1458,7 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, 
             inode->FastGetSolutionStepValue(NODAL_WEIGHTS).clear();
             KRATOS_WARNING("SwimmingDEM") << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours" << std::endl;
             KRATOS_WARNING("SwimmingDEM") << "for the gradient recovery. A lower accuracy method has been employed for this node." << std::endl;
+            exit(1);
         }
         ++i;
     }
@@ -1703,6 +1704,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
                 // Terms of order 2
                 if (ord >= 2)
                 {
+                    // std::cout << "Computing order 3 for i = " << i << " and k = " << k << std::endl;
                     if (k == 4)
                     {
                         A(i, k) = rel_coordinates[0] * rel_coordinates[1]; // x y
@@ -1732,45 +1734,56 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
                 // Terms of order 3
                 if (ord == 3)
                 {
+                    // std::cout << "Computing order 3 for i = " << i << " and k = " << k << std::endl;
                     if (k == 10)
                     {
-                        A(i, k) == rel_coordinates[0] * rel_coordinates[1] * rel_coordinates[2];  // x y z
+                        A(i, k) = rel_coordinates[0] * rel_coordinates[1] * rel_coordinates[2];  // x y z
+                        // std::cout << "k = " << 10 << " done" << std::endl;
                     }
                     else if (k == 11)
                     {
                         A(i, k) = rel_coordinates[0] * rel_coordinates[0] * rel_coordinates[1];  // x^2 y
+                        // std::cout << "k = " << 11 << " done" << std::endl;
                     }
                     else if (k == 12)
                     {
                         A(i, k) = rel_coordinates[0] * rel_coordinates[0] * rel_coordinates[2];  // x^2 z
+                        // std::cout << "k = " << 12 << " done" << std::endl;
                     }
                     else if (k == 13)
                     {
                         A(i, k) = rel_coordinates[0] * rel_coordinates[1] * rel_coordinates[1];  // x y^2
+                        // std::cout << "k = " << 13 << " done" << std::endl;
                     }
                     else if (k == 14)
                     {
                         A(i, k) = rel_coordinates[0] * rel_coordinates[2] * rel_coordinates[2];  // x z^2
+                        // std::cout << "k = " << 14 << " done" << std::endl;
                     }
                     else if (k == 15)
                     {
                         A(i, k) = rel_coordinates[1] * rel_coordinates[1] * rel_coordinates[2];  // y^2 z
+                        // std::cout << "k = " << 15 << " done" << std::endl;
                     }
                     else if (k == 16)
                     {
                         A(i, k) = rel_coordinates[1] * rel_coordinates[2] * rel_coordinates[2];  // y z^2
+                        // std::cout << "k = " << 16 << " done" << std::endl;
                     }
                     else if (k == 17)
                     {
                         A(i, k) = rel_coordinates[0] * rel_coordinates[0] * rel_coordinates[0];  // x^3
+                        // std::cout << "k = " << 17 << " done" << std::endl;
                     }
                     else if (k == 18)
                     {
                         A(i, k) = rel_coordinates[1] * rel_coordinates[1] * rel_coordinates[1]; // y^3
+                        // std::cout << "k = " << 18 << " done" << std::endl;
                     }
                     else if (k == 19)
                     {
                         A(i, k) = rel_coordinates[2] * rel_coordinates[2] * rel_coordinates[2];  // z^3
+                        // std::cout << "k = " << 19 << " done" << std::endl;
                     }
                 }
 
@@ -1780,6 +1793,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
                 }
             }
         }
+
         if constexpr (TDim == 2){
             Node& neigh = neigh_nodes[i];
             const array_1d <double, 3> rel_coordinates = (neigh.Coordinates() - origin) * h_inv;
@@ -1806,46 +1820,19 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
     // std::cout << "Computing A^T A for node " << p_node->Id() << std::endl;
     noalias(AtransA) = prod(trans(A), A);
     // std::cout << "Computed A^T A with size (" << AtransA.size1() << ", " << AtransA.size2() << ") for node " << p_node->Id() << std::endl;
-    if (std::abs(MathUtils<double>::Det(AtransA)) < 0.01){
-        // std::cout << "Determinant of AtransA not ok for node " << p_node->Id() << std::endl;
+    double det_AtransA = std::abs(MathUtils<double>::Det(AtransA));
+    if (det_AtransA < 0.001){
+        std::cout << "Found Det(AtransA) = " << det_AtransA << " for node " << p_node->Id() << std::endl;
+        std::cout << "A = " << std::endl;
+        for (unsigned int i = 0; i < A.size1(); i++)
+        {
+            for (unsigned int j = 0; j < A.size2(); j++)
+            {
+                std::cout << "A(" << i << "," << j << ") = " << A(i, j) << std::endl;
+            }
+        }
         return false;
     }
-    // std::cout << "Determinant of AtransA ok for node " << p_node->Id() << std::endl;
-        
-    // unsigned int n_relevant_terms = 0;
-    // if (mCalculatingTheGradient){
-    //     n_relevant_terms = TDim;
-    // }
-    // else if (mCalculatingTheLaplacian){
-    //     n_relevant_terms = n_poly_terms - (TDim + 1);
-    // }
-    // else {
-    //     n_relevant_terms = n_poly_terms - 1;
-    // }
-
-    // std::vector<unsigned int> relevant_terms;
-    // relevant_terms.resize(n_relevant_terms);
-    // double normalization =  1.0;
-    // if (mCalculatingTheGradient){
-    //     normalization = h_inv;
-    //     relevant_terms[0] = 1;
-    //     relevant_terms[1] = 2;
-    //     if (TDim == 3) relevant_terms[2] = 3;
-    // }
-    // else if (mCalculatingTheLaplacian){
-    //     normalization = h_inv * h_inv;
-    //     relevant_terms[0] = 4;
-    //     relevant_terms[1] = 5;
-    //     relevant_terms[2] = 6;
-    //     relevant_terms[3] = 7;
-    //     relevant_terms[4] = 8;
-    //     relevant_terms[5] = 9;
-    // }
-    // else {
-    //     for (unsigned int i = 1; i < n_poly_terms; ++i){
-    //         relevant_terms[i - 1] = i;
-    //     }
-    // }
 
     double normalization = h_inv;  // Review this!
     unsigned int n_relevant_terms = TDim;
@@ -1909,7 +1896,19 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
 //        abs_difference = abs(C(7, 0) - 1.0) + abs(C(8, 0) - 1.0) + abs(C(8, 0) - 1.0);
 
     const double tolerance = 0.001; // recommended by E Ortega
-    KRATOS_ERROR_IF(abs_difference > tolerance) << "Unable to fulfil the tolerance of the superconvergent gradient recovery for node with id = " << p_node->Id() << std::endl;
+    if(abs_difference >= tolerance)
+    {
+        std::cout << "Unable to fulfil the tolerance of the superconvergent gradient recovery for node with id = " << p_node->Id() << ", obtained error = " << abs_difference << std::endl;
+        std::cout << "C = " << std::endl;
+        for(unsigned int i = 0; i < C.size1(); i++)
+        {
+            std::cout << "C[" << i << "] = " << C(i, 0) << std::endl;
+        }
+        exit(1);
+    } else {
+        std::cout << "Node " << p_node->Id() << " has fulfilled the tolerance." << std::endl;
+    }
+    // KRATOS_ERROR_IF(abs_difference > tolerance) << "Unable to fulfil the tolerance of the superconvergent gradient recovery for node with id = " << p_node->Id() << ", obtained error = " << abs_difference << std::endl;
     return (abs_difference > tolerance? false : true);
 }
 //**************************************************************************************************************************************************
@@ -2243,163 +2242,6 @@ void DerivativeRecovery<TDim>::ClassifyEdgeNodes(ModelPart& r_model_part)
             }
         }
     }
-}
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-template <std::size_t TDim>
-void DerivativeRecovery<TDim>::ComputeCoefficientsMatrix(Node::Pointer& p_node, DenseMatrix<double>& CoeffsMatrix, const unsigned int& ord, bool& is_matrix_successfully_computed)
-{
-    unsigned int n_poly_terms = Factorial(TDim + ord) / (Factorial(ord) * Factorial(TDim)); // 2 is the polynomial order
-
-    GlobalPointersVector<Node >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
-    unsigned int n_nodal_neighs = (unsigned int)neigh_nodes.size();
-    const double h_inv = 1.0 / CalculateTheMaximumDistanceToNeighbours(p_node); // we use it as a scaling parameter to improve stability
-    // const double h_inv = 1.0;
-    const array_1d <double, 3> origin = p_node->Coordinates();
-    DenseMatrix<double> A(n_nodal_neighs, n_poly_terms);
-
-    // Write the A matrix from Zhang (2005), each row being (1 xi_i eta_i ... xi_i^k eta_i^l ... eta_i^(k+1))
-    // where the i-th row correspoinds to the ith neighbor (in relative coords)
-    // unsigned int min_neighbours = Factorial(TDim + ord) / (Factorial(TDim) * Factorial(ord));
-    for (unsigned int i = 0; i < n_nodal_neighs; ++i){
-        A(i, 0) = 1.0;
-        if constexpr (TDim == 3){
-            Node& neigh = neigh_nodes[i];
-            const array_1d <double, 3> rel_coordinates = (neigh.Coordinates() - origin) * h_inv;
-            for (unsigned int k = 1; k < n_poly_terms; ++k)
-            {
-                // Terms of order 1
-                if (ord >= 1)
-                {
-                    if (k < 4)
-                    {
-                        A(i, k) = rel_coordinates[k - 1]; // x, y and z
-                    }
-                }
-
-                // Terms of order 2
-                if (ord >= 2)
-                {
-                    if (k == 4)
-                    {
-                        A(i, k) = rel_coordinates[0] * rel_coordinates[1]; // x y
-                    }
-                    else if (k == 5)
-                    {
-                        A(i, k) = rel_coordinates[0] * rel_coordinates[2]; // x z
-                    }
-                    else if (k == 6)
-                    {
-                        A(i, k) = rel_coordinates[1] * rel_coordinates[2]; // y z
-                    }
-                    else if (k == 7)
-                    {
-                        A(i, k) = rel_coordinates[0] * rel_coordinates[0]; // x^2
-                    }
-                    else if (k == 8)
-                    {
-                        A(i, k) = rel_coordinates[1] * rel_coordinates[1]; // y^2
-                    }
-                    else if (k == 9)
-                    {
-                        A(i, k) = rel_coordinates[2] * rel_coordinates[2]; // z^2
-                    }
-                }
-
-                // Terms of order 3
-                if (ord == 3)
-                {
-                    if (k == 10)
-                    {
-                        A(i, k) == rel_coordinates[0] * rel_coordinates[1] * rel_coordinates[2];  // x y z
-                    }
-                    else if (k == 11)
-                    {
-                        A(i, k) = rel_coordinates[0] * rel_coordinates[0] * rel_coordinates[1];  // x^2 y
-                    }
-                    else if (k == 12)
-                    {
-                        A(i, k) = rel_coordinates[0] * rel_coordinates[0] * rel_coordinates[2];  // x^2 z
-                    }
-                    else if (k == 13)
-                    {
-                        A(i, k) = rel_coordinates[0] * rel_coordinates[1] * rel_coordinates[1];  // x y^2
-                    }
-                    else if (k == 14)
-                    {
-                        A(i, k) = rel_coordinates[0] * rel_coordinates[2] * rel_coordinates[2];  // x z^2
-                    }
-                    else if (k == 15)
-                    {
-                        A(i, k) = rel_coordinates[1] * rel_coordinates[1] * rel_coordinates[2];  // y^2 z
-                    }
-                    else if (k == 16)
-                    {
-                        A(i, k) = rel_coordinates[1] * rel_coordinates[2] * rel_coordinates[2];  // y z^2
-                    }
-                    else if (k == 17)
-                    {
-                        A(i, k) = rel_coordinates[0] * rel_coordinates[0] * rel_coordinates[0];  // x^3
-                    }
-                    else if (k == 18)
-                    {
-                        A(i, k) = rel_coordinates[1] * rel_coordinates[1] * rel_coordinates[1]; // y^3
-                    }
-                    else if (k == 19)
-                    {
-                        A(i, k) = rel_coordinates[2] * rel_coordinates[2] * rel_coordinates[2];  // z^3
-                    }
-                }
-
-                if (ord > 3)
-                {
-                    KRATOS_ERROR << "Superconvergent gradient recovery of order " << ord << "not implemented yet in 3D!" << std::endl;
-                }
-            }
-        }
-    }
-
-    DenseMatrix<double>AtransA(n_poly_terms, n_poly_terms);
-    noalias(AtransA) = prod(trans(A), A);
-    if (std::abs(MathUtils<double>::Det(AtransA)) < 0.01){
-        is_matrix_successfully_computed = false;
-    }
-    const DenseMatrix<double> AtransAinv = mMyCustomFunctions.Inverse(AtransA);
-
-    // Assign the values to the coeffs matrix
-    DenseMatrix<double> AtransAinvAtrans(n_poly_terms, n_nodal_neighs);
-    noalias(AtransAinvAtrans) = prod(AtransAinv, trans(A));
-
-    for (unsigned int i = 0; i < AtransAinvAtrans.size1(); i++)
-    {
-        for (unsigned int j = 0; j < AtransAinvAtrans.size2(); j++)
-        {
-            CoeffsMatrix(i, j) = AtransAinvAtrans(i, j) * h_inv;
-        }
-    }
-
-    // Print matricies
-    if(p_node->Id() == -1)
-    {
-        std::cout << "(new) A =" << std::endl;
-        for (unsigned int i = 0; i < A.size1(); i++)
-        {
-            for (unsigned int j = 0; j < A.size2(); j++)
-            {
-                std::cout << "  A(" << i << ", " << j << ") = " << A(i, j) << std::endl;
-            }
-        }
-        std::cout << "(new) AtransAinvAtrans =" << std::endl;
-        for (unsigned int i = 0; i < AtransAinvAtrans.size1(); i++)
-        {
-            for (unsigned int j = 0; j < AtransAinvAtrans.size2(); j++)
-            {
-                std::cout << "  AtrAinvAtr(" << i << ", " << j << ") = " << AtransAinvAtrans(i, j) << std::endl;
-            }
-        }
-        std::cout << "for node " << p_node->Coordinates() << std::endl;
-    }
-
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
