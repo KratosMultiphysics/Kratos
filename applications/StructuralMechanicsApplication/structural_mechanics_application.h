@@ -123,10 +123,12 @@
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
-// Constitutive laws for the Timoshenko beams
+
+// Constitutive laws for the Timoshenko beams and Reissner-Mindlin shells
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law_3d.h"
 #include "custom_constitutive/timoshenko_plane_strain_beam_elastic_constitutive_law.h"
+#include "custom_constitutive/reissner_mindlin_shell_elastic_constitutive_law.h"
 
 
 namespace Kratos
@@ -536,6 +538,7 @@ private:
     const TimoshenkoBeamElasticConstitutiveLaw mTimoshenkoBeamElasticConstitutiveLaw;
     const TimoshenkoBeamElasticConstitutiveLaw3D mTimoshenkoBeamElasticConstitutiveLaw3D;
     const TimoshenkoBeamPlaneStrainElasticConstitutiveLaw mTimoshenkoBeamPlaneStrainElasticConstitutiveLaw;
+    const ReissnerMindlinShellElasticConstitutiveLaw mReissnerMindlinShellElasticConstitutiveLaw;
 
     ///@}
     ///@name Private Operators
