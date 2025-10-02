@@ -190,8 +190,8 @@ public:
     {
         KRATOS_TRY
 
-        const GeometryType& r_geom             = GetGeometry();
-        const auto          integration_method = this->GetIntegrationMethod();
+        const auto& r_geom             = GetGeometry();
+        const auto  integration_method = this->GetIntegrationMethod();
         const GeometryType::IntegrationPointsArrayType& integration_points =
             r_geom.IntegrationPoints(integration_method);
         const auto Np_container = mpPressureGeometry->ShapeFunctionsValues(integration_method);
@@ -434,82 +434,82 @@ public:
     {
         KRATOS_TRY
 
-        const GeometryType& r_geom = GetGeometry();
-        const auto          number_of_integration_points =
+        const auto& r_geom = GetGeometry();
+        const auto  number_of_integration_points =
             r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
         rOutput.resize(number_of_integration_points);
 
         if (rVariable == CAUCHY_STRESS_VECTOR) {
-            for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
-                if (rOutput[GPoint].size() != mStressVector[GPoint].size())
-                    rOutput[GPoint].resize(mStressVector[GPoint].size(), false);
+            for (unsigned int g_point = 0; g_point < number_of_integration_points; ++g_point) {
+                if (rOutput[g_point].size() != mStressVector[g_point].size())
+                    rOutput[g_point].resize(mStressVector[g_point].size(), false);
 
-                rOutput[GPoint] = mStressVector[GPoint];
+                rOutput[g_point] = mStressVector[g_point];
             }
         } else if (rVariable == TOTAL_STRESS_VECTOR) {
-            ElementVariables Variables;
-            this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+            ElementVariables variables;
+            this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
             ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, GetProperties(), rCurrentProcessInfo);
             ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
             ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-            const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
+            const auto b_matrices = CalculateBMatrices(variables.DNu_DXContainer, variables.NuContainer);
             const auto deformation_gradients = CalculateDeformationGradients();
             auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-                deformation_gradients, b_matrices, Variables.DisplacementVector,
-                Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+                deformation_gradients, b_matrices, variables.DisplacementVector,
+                variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
             std::vector<Matrix> constitutive_matrices;
             this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
-                                                 Variables.NuContainer, Variables.DNu_DXContainer,
+                                                 variables.NuContainer, variables.DNu_DXContainer,
                                                  strain_vectors, mStressVector, constitutive_matrices);
             const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
                 constitutive_matrices, this->GetProperties());
             const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-                Variables.NpContainer, Variables.PressureVector);
+                variables.NpContainer, variables.PressureVector);
             const auto bishop_coefficients = this->CalculateBishopCoefficients(fluid_pressures);
 
-            for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-                rOutput[GPoint] =
-                    mStressVector[GPoint] + PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[GPoint] *
-                                                bishop_coefficients[GPoint] * fluid_pressures[GPoint] *
-                                                GetStressStatePolicy().GetVoigtVector();
+            for (unsigned int g_point = 0; g_point < mConstitutiveLawVector.size(); ++g_point) {
+                rOutput[g_point] = mStressVector[g_point] +
+                                   PORE_PRESSURE_SIGN_FACTOR * biot_coefficients[g_point] *
+                                       bishop_coefficients[g_point] * fluid_pressures[g_point] *
+                                       GetStressStatePolicy().GetVoigtVector();
             }
         } else if (rVariable == ENGINEERING_STRAIN_VECTOR) {
-            ElementVariables Variables;
-            this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+            ElementVariables variables;
+            this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
-            for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-                noalias(Variables.Nu) = row(Variables.NuContainer, GPoint);
+            for (unsigned int g_point = 0; g_point < mConstitutiveLawVector.size(); ++g_point) {
+                noalias(variables.Nu) = row(variables.NuContainer, g_point);
 
                 Matrix J0;
                 Matrix InvJ0;
-                double detJInitialConfiguration;
-                Matrix DNu_DXInitialConfiguration;
+                double det_J_initial_configuration;
+                Matrix DNu_DX_initial_configuration;
                 this->CalculateDerivativesOnInitialConfiguration(
-                    detJInitialConfiguration, J0, InvJ0, DNu_DXInitialConfiguration, GPoint);
+                    det_J_initial_configuration, J0, InvJ0, DNu_DX_initial_configuration, g_point);
 
                 // Calculating operator B
-                Variables.B = this->CalculateBMatrix(DNu_DXInitialConfiguration, Variables.Nu);
+                variables.B = this->CalculateBMatrix(DNu_DX_initial_configuration, variables.Nu);
 
                 // Compute infinitesimal strain
-                Variables.StrainVector = StressStrainUtilities::CalculateCauchyStrain(
-                    Variables.B, Variables.DisplacementVector);
+                variables.StrainVector = StressStrainUtilities::CalculateCauchyStrain(
+                    variables.B, variables.DisplacementVector);
 
-                if (rOutput[GPoint].size() != Variables.StrainVector.size())
-                    rOutput[GPoint].resize(Variables.StrainVector.size(), false);
+                if (rOutput[g_point].size() != variables.StrainVector.size())
+                    rOutput[g_point].resize(variables.StrainVector.size(), false);
 
-                rOutput[GPoint] = Variables.StrainVector;
+                rOutput[g_point] = variables.StrainVector;
             }
         } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-            ElementVariables Variables;
-            this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+            ElementVariables variables;
+            this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
-            const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
+            const auto b_matrices = CalculateBMatrices(variables.DNu_DXContainer, variables.NuContainer);
             const auto deformation_gradients = CalculateDeformationGradients();
             rOutput                          = StressStrainUtilities::CalculateStrains(
-                deformation_gradients, b_matrices, Variables.DisplacementVector,
-                Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+                deformation_gradients, b_matrices, variables.DisplacementVector,
+                variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
         } else {
             for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
                 rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
@@ -698,7 +698,7 @@ protected:
     {
         KRATOS_TRY
 
-        const GeometryType& r_geom = GetGeometry();
+        const auto& r_geom = GetGeometry();
 
         // Definition of variables
         ElementVariables variables;
@@ -741,8 +741,9 @@ protected:
     {
         KRATOS_TRY
 
-        const PropertiesType&                           r_prop = this->GetProperties();
-        const GeometryType&                             r_geom = GetGeometry();
+        const auto& r_prop = this->GetProperties();
+        const auto& r_geom = GetGeometry();
+
         const GeometryType::IntegrationPointsArrayType& r_integration_points =
             r_geom.IntegrationPoints(this->GetIntegrationMethod());
 
@@ -753,12 +754,12 @@ protected:
             ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+        ElementVariables variables;
+        this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
-        const auto b_matrices = CalculateBMatrices(Variables.DNu_DXContainer, Variables.NuContainer);
+        const auto b_matrices = CalculateBMatrices(variables.DNu_DXContainer, variables.NuContainer);
         const auto integration_coefficients =
-            this->CalculateIntegrationCoefficients(r_integration_points, Variables.detJuContainer);
+            this->CalculateIntegrationCoefficients(r_integration_points, variables.detJuContainer);
 
         const auto det_Js_initial_configuration = GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(
             r_geom, this->GetIntegrationMethod());
@@ -768,16 +769,16 @@ protected:
 
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, Variables.DisplacementVector,
-            Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+            deformation_gradients, b_matrices, variables.DisplacementVector,
+            variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
         std::vector<Matrix> constitutive_matrices;
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
-                                             Variables.NuContainer, Variables.DNu_DXContainer,
+                                             variables.NuContainer, variables.DNu_DXContainer,
                                              strain_vectors, mStressVector, constitutive_matrices);
         const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
             constitutive_matrices, this->GetProperties());
         const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
-            Variables.NpContainer, Variables.PressureVector);
+            variables.NpContainer, variables.PressureVector);
         const auto degrees_of_saturation     = CalculateDegreesOfSaturation(fluid_pressures);
         const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
         const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
@@ -791,35 +792,35 @@ protected:
         const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
         if (CalculateStiffnessMatrixFlag) {
-            for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-                this->ExtractShapeFunctionDataAtIntegrationPoint(Variables, GPoint);
-                Variables.B                  = b_matrices[GPoint];
-                Variables.F                  = deformation_gradients[GPoint];
-                Variables.StrainVector       = strain_vectors[GPoint];
-                Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
+            for (unsigned int g_point = 0; g_point < r_integration_points.size(); ++g_point) {
+                this->ExtractShapeFunctionDataAtIntegrationPoint(variables, g_point);
+                variables.B                  = b_matrices[g_point];
+                variables.F                  = deformation_gradients[g_point];
+                variables.StrainVector       = strain_vectors[g_point];
+                variables.ConstitutiveMatrix = constitutive_matrices[g_point];
 
-                Variables.RelativePermeability = relative_permeability_values[GPoint];
-                Variables.BishopCoefficient    = bishop_coefficients[GPoint];
+                variables.RelativePermeability = relative_permeability_values[g_point];
+                variables.BishopCoefficient    = bishop_coefficients[g_point];
 
-                Variables.BiotCoefficient        = biot_coefficients[GPoint];
-                Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
-                Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
-                Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+                variables.BiotCoefficient        = biot_coefficients[g_point];
+                variables.BiotModulusInverse     = biot_moduli_inverse[g_point];
+                variables.DegreeOfSaturation     = degrees_of_saturation[g_point];
+                variables.IntegrationCoefficient = integration_coefficients[g_point];
 
-                Variables.IntegrationCoefficientInitialConfiguration =
-                    integration_coefficients_on_initial_configuration[GPoint];
+                variables.IntegrationCoefficientInitialConfiguration =
+                    integration_coefficients_on_initial_configuration[g_point];
 
-                this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+                this->CalculateAndAddLHS(rLeftHandSideMatrix, variables);
             }
         }
 
         if (CalculateResidualVectorFlag) {
             const auto internal_forces = CalculateInternalForces(
-                Variables, b_matrices, integration_coefficients, biot_coefficients, degrees_of_saturation,
+                variables, b_matrices, integration_coefficients, biot_coefficients, degrees_of_saturation,
                 biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
 
             const auto external_forces = CalculateExternalForces(
-                Variables, integration_coefficients, integration_coefficients_on_initial_configuration,
+                variables, integration_coefficients, integration_coefficients_on_initial_configuration,
                 degrees_of_saturation, relative_permeability_values, bishop_coefficients);
             rRightHandSideVector = external_forces - internal_forces;
         }
@@ -836,35 +837,35 @@ protected:
                                    const std::vector<double>& rBishopCoefficients) const
     {
         Vector result(this->GetNumberOfDOF(), 0.0);
-        for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-            rVariables.B                      = rBMatrices[GPoint];
-            rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
+        for (unsigned int g_point = 0; g_point < rIntegrationCoefficients.size(); ++g_point) {
+            rVariables.B                      = rBMatrices[g_point];
+            rVariables.IntegrationCoefficient = rIntegrationCoefficients[g_point];
 
-            this->CalculateAndAddStiffnessForce(result, rVariables, GPoint);
+            this->CalculateAndAddStiffnessForce(result, rVariables, g_point);
         }
 
-        for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-            rVariables.B                      = rBMatrices[GPoint];
-            rVariables.BishopCoefficient      = rBishopCoefficients[GPoint];
-            rVariables.BiotCoefficient        = rBiotCoefficients[GPoint];
-            rVariables.DegreeOfSaturation     = rDegreesOfSaturation[GPoint];
-            rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
-            noalias(rVariables.Np)            = row(rVariables.NpContainer, GPoint);
+        for (unsigned int g_point = 0; g_point < rIntegrationCoefficients.size(); ++g_point) {
+            rVariables.B                      = rBMatrices[g_point];
+            rVariables.BishopCoefficient      = rBishopCoefficients[g_point];
+            rVariables.BiotCoefficient        = rBiotCoefficients[g_point];
+            rVariables.DegreeOfSaturation     = rDegreesOfSaturation[g_point];
+            rVariables.IntegrationCoefficient = rIntegrationCoefficients[g_point];
+            noalias(rVariables.Np)            = row(rVariables.NpContainer, g_point);
 
             this->CalculateAndAddCouplingTerms(result, rVariables);
         }
         if (!rVariables.IgnoreUndrained) {
-            for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-                noalias(rVariables.Np)            = row(rVariables.NpContainer, GPoint);
-                rVariables.BiotModulusInverse     = rBiotModuliInverse[GPoint];
-                rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
+            for (unsigned int g_point = 0; g_point < rIntegrationCoefficients.size(); ++g_point) {
+                noalias(rVariables.Np)            = row(rVariables.NpContainer, g_point);
+                rVariables.BiotModulusInverse     = rBiotModuliInverse[g_point];
+                rVariables.IntegrationCoefficient = rIntegrationCoefficients[g_point];
 
                 this->CalculateAndAddCompressibilityFlow(result, rVariables);
             }
-            for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-                noalias(rVariables.DNp_DX)        = rVariables.DNp_DXContainer[GPoint];
-                rVariables.RelativePermeability   = rRelativePermeabilityValues[GPoint];
-                rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
+            for (unsigned int g_point = 0; g_point < rIntegrationCoefficients.size(); ++g_point) {
+                noalias(rVariables.DNp_DX)        = rVariables.DNp_DXContainer[g_point];
+                rVariables.RelativePermeability   = rRelativePermeabilityValues[g_point];
+                rVariables.IntegrationCoefficient = rIntegrationCoefficients[g_point];
 
                 this->CalculateAndAddPermeabilityFlow(result, rVariables);
             }
@@ -881,20 +882,20 @@ protected:
                                    const std::vector<double>& rBishopCoefficients) const
     {
         Vector result = ZeroVector(this->GetNumberOfDOF());
-        for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-            noalias(rVariables.Nu)        = row(rVariables.NuContainer, GPoint);
-            rVariables.DegreeOfSaturation = rDegreesOfSaturation[GPoint];
+        for (unsigned int g_point = 0; g_point < rIntegrationCoefficients.size(); ++g_point) {
+            noalias(rVariables.Nu)        = row(rVariables.NuContainer, g_point);
+            rVariables.DegreeOfSaturation = rDegreesOfSaturation[g_point];
             rVariables.IntegrationCoefficientInitialConfiguration =
-                rIntegrationCoefficientsOnInitialConfiguration[GPoint];
+                rIntegrationCoefficientsOnInitialConfiguration[g_point];
             this->CalculateAndAddMixBodyForce(result, rVariables);
         }
         if (!rVariables.IgnoreUndrained) {
-            for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-                noalias(rVariables.Nu)            = row(rVariables.NuContainer, GPoint);
-                noalias(rVariables.DNp_DX)        = rVariables.DNp_DXContainer[GPoint];
-                rVariables.RelativePermeability   = rRelativePermeabilityValues[GPoint];
-                rVariables.BishopCoefficient      = rBishopCoefficients[GPoint];
-                rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
+            for (unsigned int g_point = 0; g_point < rIntegrationCoefficients.size(); ++g_point) {
+                noalias(rVariables.Nu)            = row(rVariables.NuContainer, g_point);
+                noalias(rVariables.DNp_DX)        = rVariables.DNp_DXContainer[g_point];
+                rVariables.RelativePermeability   = rRelativePermeabilityValues[g_point];
+                rVariables.BishopCoefficient      = rBishopCoefficients[g_point];
+                rVariables.IntegrationCoefficient = rIntegrationCoefficients[g_point];
 
                 this->CalculateAndAddFluidBodyFlow(result, rVariables);
             }
@@ -907,7 +908,7 @@ protected:
     {
         KRATOS_TRY
 
-        const GeometryType& r_geom  = GetGeometry();
+        const auto&    r_geom       = GetGeometry();
         const SizeType num_g_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
         // variables at all integration points
@@ -973,7 +974,7 @@ protected:
     {
         KRATOS_TRY
 
-        const GeometryType& r_geom = GetGeometry();
+        const auto& r_geom = GetGeometry();
 
         Vector BodyAccelerationAux = ZeroVector(3);
         rVariables.BodyAcceleration.resize(TNumNodes * TDim, false);
@@ -1018,7 +1019,7 @@ protected:
     {
         KRATOS_TRY
 
-        const PropertiesType& r_properties = this->GetProperties();
+        const auto& r_properties = this->GetProperties();
 
         rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
         rVariables.UseHenckyStrain =
