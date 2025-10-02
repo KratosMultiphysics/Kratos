@@ -64,17 +64,11 @@ int ReissnerMindlinShellElasticConstitutiveLaw::Check(
 ) const
 {
     BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-    // KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS))    << "YOUNG_MODULUS is not defined in the properties" << std::endl;
-    // KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))    << "POISSON_RATIO is not defined in the properties" << std::endl;
-    // KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CROSS_AREA))       << "CROSS_AREA is not defined in the properties"    << std::endl;
-    // KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(AREA_EFFECTIVE_Y)) << "AREA_EFFECTIVE_Y is not defined in the properties" << std::endl;
-    // KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(I33))              << "I33 is not defined in the properties"            << std::endl;
-    // KRATOS_ERROR_IF_NOT(rMaterialProperties[YOUNG_MODULUS] > 0.0)    << "The YOUNG_MODULUS value is lower than 0.0" << std::endl;
-    // KRATOS_ERROR_IF_NOT(rMaterialProperties[CROSS_AREA] > 0.0)       << "The CROSS_AREA value is lower than 0.0" << std::endl;
-    // KRATOS_ERROR_IF_NOT(rMaterialProperties[I33] > 0.0)              << "The I33 value is lower than 0.0" << std::endl;
-    // KRATOS_ERROR_IF_NOT(rMaterialProperties[AREA_EFFECTIVE_Y] > 0.0) << "The AREA_EFFECTIVE_Y value is lower than 0.0" << std::endl;
-    // KRATOS_ERROR_IF    (rMaterialProperties[POISSON_RATIO] < 0.0)    << "The POISSON_RATIO value is lower than 0.0" << std::endl;
-    // KRATOS_ERROR_IF_NOT(rMaterialProperties[POISSON_RATIO] < 0.5)    << "The POISSON_RATIO cannot be greater than or equal 0.5." << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS))    << "YOUNG_MODULUS is not defined in the properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))    << "POISSON_RATIO is not defined in the properties" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[YOUNG_MODULUS] > 0.0)    << "The YOUNG_MODULUS value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF    (rMaterialProperties[POISSON_RATIO] < 0.0)    << "The POISSON_RATIO value is lower than 0.0" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties[POISSON_RATIO] < 0.5)    << "The POISSON_RATIO cannot be greater than or equal 0.5." << std::endl;
     return 0;
 }
 
@@ -117,27 +111,6 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponseCauchy
     const double nu = r_material_properties[POISSON_RATIO];
     const double t  = r_material_properties[THICKNESS];
 
-    BoundedMatrixType3x3 Dm; // Membrane constitutive matrix
-    BoundedMatrixType3x3 Db; // Bending constitutive
-    BoundedMatrixType2x2 Ds; // Shear constitutive matrix
-    Dm.clear();
-    Db.clear();
-    Ds.clear();
-
-    BoundedVector3 Em;    // Membrane strains
-    BoundedVector3 Kappa; // Curvatures
-    BoundedVector2 Gamma; // Shear strains
-
-    // Assign the strains
-    Em[0] = r_generalized_strain_vector[0];
-    Em[1] = r_generalized_strain_vector[1];
-    Em[2] = r_generalized_strain_vector[2];
-    Kappa[0] = r_generalized_strain_vector[3];
-    Kappa[1] = r_generalized_strain_vector[4];
-    Kappa[2] = r_generalized_strain_vector[5];
-    Gamma[0] = r_generalized_strain_vector[6];
-    Gamma[1] = r_generalized_strain_vector[7];
-
     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS) || r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         auto &r_generalized_stress_vector = rValues.GetStressVector();
         if (r_generalized_stress_vector.size() != strain_size)
@@ -154,7 +127,7 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponseCauchy
         const double h_max = rValues.GetElementGeometry().MaxEdgeLength();
         const double alpha = 0.1; // This could be an input property
         const double stenberg_stabilization = t_square / (t_square + alpha * h_max * h_max);
-        const double G = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues.GetMaterialProperties());
+        const double G = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
         const double Ds_factor = G * k_shear * t * stenberg_stabilization;
 
         auto &r_gen_const_matrix = rValues.GetConstitutiveMatrix();

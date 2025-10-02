@@ -45,11 +45,6 @@ public:
     using BaseType = BeamConstitutiveLaw;
     using SizeType = std::size_t;
 
-    using BoundedMatrixType3x3 = BoundedMatrix<double, 3, 3>;
-    using BoundedMatrixType2x2 = BoundedMatrix<double, 2, 2>;
-    using BoundedVector3 = BoundedVector<double, 3>;
-    using BoundedVector2 = BoundedVector<double, 2>;
-
     /**
      * Counted pointer of ReissnerMindlinShellElasticConstitutiveLaw
      */
