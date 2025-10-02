@@ -930,9 +930,9 @@
               <value n="SOFTENING_TYPE" pn="Softening type" help="Defines the softening type (linear softening=0, exponential softening=1)" string_is="double" state="[PartParamState]" show_in_window="1" v="0"/>
               <value n="AREA_EFFECTIVE_Y" pn="Area Effective Y" help="Area Effective Y" string_is="double" state="[PartParamState]" show_in_window="1" v="0.01"/>
             </group>
-            <group n="Sand_Left" ov="surface" tree_state="close">
+            <group n="Sand_Left" ov="surface" tree_state="open">
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="8$SmallStrainUDSM2DPlaneStrainLaw" tree_state="active,open,selected"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650" tree_state="close"/>
@@ -958,7 +958,7 @@
               <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5" tree_state="close"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -970,7 +970,7 @@
               <value n="GEO_FRICTION_ANGLE" pn="Friction Angle" help="Friction Angle" string_is="double" state="[PartParamState]" show_in_window="1" v="35"/>
               <value n="GEO_TENSILE_STRENGTH" pn="Tensile Strength" help="Tensile Strength" string_is="double" state="[PartParamState]" show_in_window="1" v="10"/>
               <value n="GEO_DILATANCY_ANGLE" pn="Dilatancy Angle" help="Dilatancy Angle" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0"/>
-              <value n="THICKNESS" pn="THICKNESS" help="THICKNESS" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
+              <value n="THICKNESS" pn="THICKNESS" help="THICKNESS" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
               <value n="1$UDSM_NAME" pn="UDSM_NAME" help="UDSM_NAME" state="[PartParamState]" string_is="string" show_in_window="1" v=".\geo_soil_models\PlaxisModels64.dll"/>
               <value n="1$UDSM_NUMBER" pn="UDSM_NUMBER" help="UDSM_NUMBER" string_is="double" state="[PartParamState]" show_in_window="1" v="1"/>
               <value n="1$IS_FORTRAN_UDSM" pn="Is Fortran UDSM" values="true,false" help="Is Fortran UDSM" state="[PartParamState]" show_in_window="1" v="true"/>
@@ -1060,17 +1060,17 @@
               <value n="6$IS_FORTRAN_UDSM" pn="Is Fortran UDSM" values="true,false" help="Is Fortran UDSM" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="P$6$1$1. K" pn="Parameter 1: 1. K" help="1. K" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0"/>
               <value n="S$6$1$N/A" pn="State Variable 1: N/A" help="N/A" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0"/>
-              <value n="8$UDSM_NAME" pn="UDSM_NAME" help="UDSM_NAME" state="[PartParamState]" string_is="string" show_in_window="1" v=".\geo_soil_models\example64.dll"/>
-              <value n="8$UDSM_NUMBER" pn="UDSM_NUMBER" help="UDSM_NUMBER" string_is="double" state="[PartParamState]" show_in_window="1" v="2"/>
-              <value n="8$INDEX_OF_UMAT_C_PARAMETER" pn="Index of C" help="Index of C" string_is="double" state="[PartParamState]" show_in_window="1" v="3"/>
-              <value n="8$INDEX_OF_UMAT_PHI_PARAMETER" pn="Index of Phi" help="Index of Phi" string_is="double" state="[PartParamState]" show_in_window="1" v="4"/>
-              <value n="8$IS_FORTRAN_UDSM" pn="Is Fortran UDSM" values="true,false" help="Is Fortran UDSM" state="[PartParamState]" show_in_window="1" v="true"/>
-              <value n="P$8$1$G" pn="Parameter 1: G" help="G" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0"/>
-              <value n="P$8$2$nu" pn="Parameter 2: nu" help="nu" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0"/>
-              <value n="P$8$3$C" pn="Parameter 3: C" help="C" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0"/>
-              <value n="P$8$4$Phi" pn="Parameter 4: Phi" help="Phi" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0"/>
-              <value n="P$8$5$Psi" pn="Parameter 5: Psi" help="Psi" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0"/>
-              <value n="P$8$6$Tens" pn="Parameter 6: Tens" help="Tens" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0"/>
+              <value n="8$UDSM_NAME" pn="UDSM_NAME" help="UDSM_NAME" state="[PartParamState]" string_is="string" show_in_window="1" v=".\geo_soil_models\example64.dll" tree_state="close"/>
+              <value n="8$UDSM_NUMBER" pn="UDSM_NUMBER" help="UDSM_NUMBER" string_is="double" state="[PartParamState]" show_in_window="1" v="2" tree_state="close"/>
+              <value n="8$INDEX_OF_UMAT_C_PARAMETER" pn="Index of C" help="Index of C" string_is="double" state="[PartParamState]" show_in_window="1" v="3" tree_state="close"/>
+              <value n="8$INDEX_OF_UMAT_PHI_PARAMETER" pn="Index of Phi" help="Index of Phi" string_is="double" state="[PartParamState]" show_in_window="1" v="4" tree_state="close"/>
+              <value n="8$IS_FORTRAN_UDSM" pn="Is Fortran UDSM" values="true,false" help="Is Fortran UDSM" state="[PartParamState]" show_in_window="1" v="true" tree_state="close"/>
+              <value n="P$8$1$G" pn="Parameter 1: G" help="G" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
+              <value n="P$8$2$nu" pn="Parameter 2: nu" help="nu" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
+              <value n="P$8$3$C" pn="Parameter 3: C" help="C" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
+              <value n="P$8$4$Phi" pn="Parameter 4: Phi" help="Phi" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
+              <value n="P$8$5$Psi" pn="Parameter 5: Psi" help="Psi" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
+              <value n="P$8$6$Tens" pn="Parameter 6: Tens" help="Tens" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
               <value n="DENSITY" pn="Density" unit_magnitude="Density" help="Density" string_is="double" state="[PartParamState]" show_in_window="1" v="7850" units="kg/m^3"/>
               <value n="YIELD_STRESS" pn="Yield stress" unit_magnitude="P" help="Yield stress" string_is="double" state="[PartParamState]" show_in_window="1" v="5.5e6" units="Pa"/>
               <value n="REFERENCE_HARDENING_MODULUS" pn="Kinematic hardening modulus" help="Kinematic hardening modulus" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -3529,7 +3529,7 @@
         </container>
         <include n="InitialConditions" active="0" path="apps/Structural/xml/InitialConditions.spd"/>
         <container n="Boundary Conditions" pn="Boundary conditions" un="STNodalConditions,GEOMNodalConditions" icon="nodal" open_window="0" tree_state="open">
-          <condition n="DISPLACEMENT" pn="Displacement" ov="point,line,surface" ovm="" icon="shells16" help="Displacement" state="[CheckNodalConditionStateGeoMechanical]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="active,open,selected">
+          <condition n="DISPLACEMENT" pn="Displacement" ov="point,line,surface" ovm="" icon="shells16" help="Displacement" state="[CheckNodalConditionStateGeoMechanical]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="open">
             <value n="activeX" pn="X Active" v="false" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <value n="activeY" pn="Y Active" v="false" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <value n="activeZ" pn="Z Active" v="false" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1"/>
