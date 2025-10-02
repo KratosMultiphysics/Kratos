@@ -27,7 +27,10 @@ namespace Kratos
  * Sm = Dm · Em (3 components)
  * Sb = Db · Kappa (3 components)
  * Ss = Ds · Gamma (2 components)
- * As well as the generalized constitutive matrices Dm, Db and Ds.
+ * As well as the generalized constitutive matrices Dm (3x3), Db (3x3) and Ds (2x2).
+ * References:
+ * - "Structural Analysis with the Finite Element Method. Linear Statics", Eugenio Oñate.
+ * - Gil Rama et al., "Efficient Co-rotational 3-node shell Element", 2016, American Journal of Engineering and Applied Sciences.
  * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReissnerMindlinShellElasticConstitutiveLaw : public BeamConstitutiveLaw
