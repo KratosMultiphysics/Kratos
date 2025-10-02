@@ -82,10 +82,10 @@
 #include "geometries/triangle_3d_6.h"
 
 // elements
+#include "custom_elements/Pw_element.h"
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_elements/calculation_contribution.h"
@@ -96,7 +96,6 @@
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_elements/transient_Pw_interface_element.hpp"
-#include "custom_elements/transient_Pw_line_element.h"
 #include "custom_elements/transient_thermal_element.h"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 
@@ -301,42 +300,31 @@ private:
         0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const TransientPwLineElement<2, 2> mTransientPwLineElement2D2N{
-        0,
-        Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const TransientPwLineElement<2, 3> mTransientPwLineElement2D3N{
-        0,
-        Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const TransientPwLineElement<2, 4> mTransientPwLineElement2D4N{
-        0,
-        Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const TransientPwLineElement<2, 5> mTransientPwLineElement2D5N{
-        0,
-        Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const TransientPwLineElement<3, 2> mTransientPwLineElement3D2N{
-        0,
-        Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const TransientPwLineElement<3, 3> mTransientPwLineElement3D3N{
-        0,
-        Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const std::vector<CalculationContribution> transient_Pw_element_contribution = {
+        CalculationContribution::Permeability, CalculationContribution::Compressibility,
+        CalculationContribution::FluidBodyFlow};
+    const PwElement<2, 2> mTransientPwLineElement2D2N{
+        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const PwElement<2, 3> mTransientPwLineElement2D3N{
+        0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const PwElement<2, 4> mTransientPwLineElement2D4N{
+        0, Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const PwElement<2, 5> mTransientPwLineElement2D5N{
+        0, Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const PwElement<3, 2> mTransientPwLineElement3D2N{
+        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const PwElement<3, 3> mTransientPwLineElement3D3N{
+        0, Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    // PwElement3D4N is not used for modelling; but it tests 3D features of the PwElement, which may replace TransientPwElement in future
+    const PwElement<3, 4> PwElement3D4N{
+        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
 
     const TransientPwInterfaceElement<2, 4> mTransientPwInterfaceElement2D4N{
         0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
@@ -547,16 +535,6 @@ private:
         0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
         std::make_unique<ThreeDimensionalStressState>()};
     const UPwSmallStrainInterfaceElement<3, 8> mUPwSmallStrainInterfaceElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
-
-    const UPwSmallStrainLinkInterfaceElement<2, 4> mUPwSmallStrainLinkInterfaceElement2D4N{
-        0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const UPwSmallStrainLinkInterfaceElement<3, 6> mUPwSmallStrainLinkInterfaceElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const UPwSmallStrainLinkInterfaceElement<3, 8> mUPwSmallStrainLinkInterfaceElement3D8N{
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
