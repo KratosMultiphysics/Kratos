@@ -109,39 +109,24 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponseCauchy
 {
     const auto& r_cl_law_options = rValues.GetOptions();
     auto &r_material_properties = rValues.GetMaterialProperties();
-    auto &r_strain_vector = rValues.GetStrainVector();
-    AddInitialStrainVectorContribution(r_strain_vector);
+    auto &r_generalized_strain_vector = rValues.GetStrainVector();
+    AddInitialStrainVectorContribution(r_generalized_strain_vector);
     const auto strain_size = GetStrainSize();
 
-    const double axial_strain = r_strain_vector[0]; // E_l
-    const double curvature    = r_strain_vector[1]; // Kappa
-    const double shear_strain = r_strain_vector[2]; // Gamma_xy
-
-    const double E    = r_material_properties[YOUNG_MODULUS];
-    const double A    = r_material_properties[CROSS_AREA];
-    const double I    = r_material_properties[I33];
-
-    const double G    = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
-    const double A_s  = r_material_properties[AREA_EFFECTIVE_Y];
+    const double E  = r_material_properties[YOUNG_MODULUS];
+    const double nu = r_material_properties[POISSON_RATIO];
+    const double t  = r_material_properties[THICKNESS];
 
     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         auto &r_generalized_stress_vector = rValues.GetStressVector();
         if (r_generalized_stress_vector.size() != strain_size)
             r_generalized_stress_vector.resize(strain_size, false);
 
-        const double EA  = E * A;
-        const double EI  = E * I;
-        const double GAs = G * A_s;
 
-        r_generalized_stress_vector[0] = EA * axial_strain;  // N
-        r_generalized_stress_vector[1] = EI * curvature;     // M
-        r_generalized_stress_vector[2] = GAs * shear_strain; // V
+
+
 
         AddInitialStressVectorContribution(r_generalized_stress_vector);
-
-        if (r_material_properties.Has(BEAM_PRESTRESS_PK2)) {
-            r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
-        }
 
         if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy
@@ -149,9 +134,10 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponseCauchy
                 r_stress_derivatives.resize(strain_size, strain_size, false);
             r_stress_derivatives.clear();
 
-            r_stress_derivatives(0, 0) = EA;  // dN_dEl
-            r_stress_derivatives(1, 1) = EI;  // dM_dkappa
-            r_stress_derivatives(2, 2) = GAs; // dV_dGamma_xy
+
+
+
+
         }
     }
 }
