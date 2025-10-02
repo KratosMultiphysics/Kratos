@@ -16,7 +16,7 @@
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
-#include "custom_utilities/hydraulic_discharge.hpp"
+#include "custom_utilities/hydraulic_discharge.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/node_utilities.h"
