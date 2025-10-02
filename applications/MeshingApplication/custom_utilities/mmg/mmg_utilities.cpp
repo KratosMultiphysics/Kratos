@@ -1978,9 +1978,9 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetEdgeLengthParameter(const double EdgeLe
     KRATOS_TRY;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgSol, MMG2D_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
+        KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgSol, MMG2D_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
+        KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -1995,9 +1995,9 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetEdgeLengthParameter(const double EdgeLe
     KRATOS_TRY;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgSol, MMG3D_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
+        KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgSol, MMG3D_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
+        KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -2012,9 +2012,9 @@ void MmgUtilities<MMGLibrary::MMGS>::SetEdgeLengthParameter(const double EdgeLen
     KRATOS_TRY;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgSol, MMGS_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
+        KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgSol, MMGS_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
+        KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_hsiz, EdgeLength) ) << "Unable to set edge length" << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -2028,7 +2028,7 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetLevelSetValueParameter(const double Lev
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgSol, MMG2D_DPARAM_ls, LevelSetValue) ) << "Unable to set level set value" << std::endl;
+    KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgSol, MMG2D_DPARAM_ls, LevelSetValue) ) << "Unable to set level set value" << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -2041,7 +2041,7 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetLevelSetValueParameter(const double Lev
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgSol, MMG3D_DPARAM_ls, LevelSetValue) ) << "Unable to set level set value" << std::endl;
+    KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgSol, MMG3D_DPARAM_ls, LevelSetValue) ) << "Unable to set level set value" << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -2054,7 +2054,7 @@ void MmgUtilities<MMGLibrary::MMGS>::SetLevelSetValueParameter(const double Leve
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgSol, MMGS_DPARAM_ls, LevelSetValue) ) << "Unable to set level set value" << std::endl;
+    KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgSol, MMGS_DPARAM_ls, LevelSetValue) ) << "Unable to set level set value" << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -2068,9 +2068,9 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetRemoveSmallDisconnectedComponentsParame
     KRATOS_TRY;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgSol, MMG2D_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
+        KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgSol, MMG2D_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
+        KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -2085,9 +2085,9 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetRemoveSmallDisconnectedComponentsParame
     KRATOS_TRY;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgSol, MMG3D_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
+        KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgSol, MMG3D_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
+        KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -2102,9 +2102,9 @@ void MmgUtilities<MMGLibrary::MMGS>::SetRemoveSmallDisconnectedComponentsParamet
     KRATOS_TRY;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgSol, MMGS_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
+        KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgSol, MMGS_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
+        KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_rmc, RMCValue) ) << "Unable to set remove small disconnected components value" << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -2212,9 +2212,9 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetRelaxationParameter(const double Relaxa
     KRATOS_ERROR_IF( RelaxationValue > 1.0 || RelaxationValue < 0.0) << "Relaxation value must be >= 0.0 and <= 1.0" << std::endl;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgSol, MMG2D_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
+        KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgSol, MMG2D_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
+        KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
     }
 #endif
 
@@ -2233,9 +2233,9 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetRelaxationParameter(const double Relaxa
     KRATOS_ERROR_IF( RelaxationValue > 1.0 || RelaxationValue < 0.0) << "Relaxation value must be >= 0.0 and <= 1.0" << std::endl;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgSol, MMG3D_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
+        KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgSol, MMG3D_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
+        KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
     }
 #endif
 
@@ -2254,9 +2254,9 @@ void MmgUtilities<MMGLibrary::MMGS>::SetRelaxationParameter(const double Relaxat
     KRATOS_ERROR_IF( RelaxationValue > 1.0 || RelaxationValue < 0.0) << "Relaxation value must be >= 0.0 and <= 1.0" << std::endl;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgSol, MMGS_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
+        KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgSol, MMGS_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
+        KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_xreg, RelaxationValue) ) << "Unable to set relaxation value" << std::endl;
     }
 #endif
 

@@ -236,19 +236,19 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
     // Save to file
     if (safe_to_file) SaveSolutionToFile(false);
 
-    // // We set the parameters
-    // if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-    //     // We set the isosurface value
-    //     mMmgUtilities.SetLevelSetValueParameter(mThisParameters["isosurface_parameters"]["isosurface_value"].GetDouble());
-    //     // We set the remove small disconnected components value if needed
-    //     const double remove_small_disconnected_components = mThisParameters["isosurface_parameters"]["remove_small_disconnected_components"].GetDouble();
-    //     if (remove_small_disconnected_components > 0.0) {
-    //         mMmgUtilities.SetRemoveSmallDisconnectedComponentsParameter(remove_small_disconnected_components);
-    //     }
-    // }
+    // We set the parameters
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // We set the isosurface value
+        mMmgUtilities.SetLevelSetValueParameter(mThisParameters["isosurface_parameters"]["isosurface_value"].GetDouble());
+        // We set the remove small disconnected components value if needed
+        const double remove_small_disconnected_components = mThisParameters["isosurface_parameters"]["remove_small_disconnected_components"].GetDouble();
+        if (remove_small_disconnected_components > 0.0) {
+            mMmgUtilities.SetRemoveSmallDisconnectedComponentsParameter(remove_small_disconnected_components);
+        }
+    }
 
-    // // Set some parameters
-    // mMmgUtilities.SetRelaxationParameter(mThisParameters["advanced_parameters"]["relaxation_value"].GetDouble());
+    // Set some parameters
+    mMmgUtilities.SetRelaxationParameter(mThisParameters["advanced_parameters"]["relaxation_value"].GetDouble());
 
     // We execute the remeshing
     ExecuteRemeshing();
