@@ -223,7 +223,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
             self.assertEqual(number_search_results, 1)
             node_results = results[0]
             self.assertEqual(node_results.NumberOfGlobalResults(), 8)
-            ids = node_results.GetResultIndices()
+            ids = results.GetResultIndices()[0]
             self.assertEqual(len(ids), 8)
             for id in ids:
                 self.assertTrue(id in cond_id_ref)
@@ -252,7 +252,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
             if node_results.NumberOfLocalResults() == 1:
                 self.assertTrue(node_results[0].IsObjectFound())
             # Global result
-            ids = node_results.GetDistances()
+            ids = results.GetDistances()[0]
             self.assertEqual(len(ids), 1)
             # Distance is different depending on the search type used (GeometricalObjectBins or not)
             if search_type == "GeometricalObjectBins":
@@ -281,7 +281,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
             if node_results.NumberOfLocalResults() == 1:
                 self.assertTrue(node_results[0].IsObjectFound())
             # Global result
-            ids = node_results.GetDistances()
+            ids = results.GetDistances()[0]
             self.assertEqual(len(ids), 1)
             # Distance is different depending on the search type used (GeometricalObjectBins or not)
             if search_type == "GeometricalObjectBins":
@@ -480,10 +480,11 @@ class TestSearchWrapperSmallSquare(KratosUnittest.TestCase):
         self.assertGreater(check, 0)
         if number_search_results > 0:
             self.assertEqual(number_search_results, 5)
+            all_ids = results.GetResultIndices()
             for i in range(5):
                 node_results = results[i]
                 global_id = node_results.GetGlobalIndex()
-                ids = node_results.GetResultIndices()
+                ids = all_ids[i]
                 number_of_global_results = node_results.NumberOfGlobalResults()
                 if global_id > 0: # Solution defined in this rank
                     ref_ids = id_ref[global_id]

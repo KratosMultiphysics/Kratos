@@ -110,27 +110,24 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator)
 {
-    // Only can be done with homogeneous communication
-    if constexpr (TSpatialSearchCommunication != SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS) {
-        // Prepare the global results
-        GlobalResultsVector all_global_results;
-        const std::size_t size_vector = block_for_each<SumReduction<std::size_t>>(mPointResults, [&](auto p_result){
-            return p_result->NumberOfGlobalResults();
-        });
-        all_global_results.reserve(size_vector);
-        const std::size_t number_of_global_solutions = mPointResults.size();
-        for(std::size_t i=0; i<number_of_global_solutions; ++i) {
-            auto& r_global_results = mPointResults[i]->GetGlobalResults();
-            const std::size_t number_of_gp = r_global_results.size();
-            for(std::size_t i=0; i<number_of_gp; ++i) {
-                auto& r_gp = r_global_results(i);
-                all_global_results.push_back(r_gp);
-            }
+    // Prepare the global results
+    GlobalResultsVector all_global_results;
+    const std::size_t size_vector = block_for_each<SumReduction<std::size_t>>(mPointResults, [&](auto p_result){
+        return p_result->NumberOfGlobalResults();
+    });
+    all_global_results.reserve(size_vector);
+    const std::size_t number_of_global_solutions = mPointResults.size();
+    for(std::size_t i=0; i<number_of_global_solutions; ++i) {
+        auto& r_global_results = mPointResults[i]->GetGlobalResults();
+        const std::size_t number_of_gp = r_global_results.size();
+        for(std::size_t i=0; i<number_of_gp; ++i) {
+            auto& r_gp = r_global_results(i);
+            all_global_results.push_back(r_gp);
         }
-
-        // Generate the communicator
-        mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicatorType>(rDataCommunicator, all_global_results.ptr_begin(), all_global_results.ptr_end());
     }
+
+    // Generate the communicator
+    mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicatorType>(rDataCommunicator, all_global_results.ptr_begin(), all_global_results.ptr_end());
 }
 
 /***********************************************************************************/
@@ -649,16 +646,10 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
 /***********************************************************************************/
 
 /// Template instantiation
-// SYNCHRONOUS_HOMOGENEOUS
-template class SpatialSearchResultContainerVector<Node, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
-template class SpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
-template class SpatialSearchResultContainerVector<Element, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
-template class SpatialSearchResultContainerVector<Condition, SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>;
+template class SpatialSearchResultContainerVector<Node, SpatialSearchCommunication::SYNCHRONOUS>;
+template class SpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS>;
+template class SpatialSearchResultContainerVector<Element, SpatialSearchCommunication::SYNCHRONOUS>;
+template class SpatialSearchResultContainerVector<Condition, SpatialSearchCommunication::SYNCHRONOUS>;
 
-// SYNCHRONOUS_HETEROGENEOUS
-template class SpatialSearchResultContainerVector<Node, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
-template class SpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
-template class SpatialSearchResultContainerVector<Element, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
-template class SpatialSearchResultContainerVector<Condition, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS>;
 
 }  // namespace Kratos

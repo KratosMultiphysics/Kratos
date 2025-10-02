@@ -38,7 +38,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @author Vicente Mataix Ferrandiz
  */
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS>
 class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainerVector
 {
 public:

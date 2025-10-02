@@ -36,13 +36,12 @@ namespace Kratos
 /**
  * @enum SpatialSearchCommunication
  * @brief Enum class for defining types of spatial search communication.
- * This enum class is used to specify the type of communication used to communicate search results between partitions.
+ * @details This enum class is used to specify the type of communication used to communicate search results between partitions.
  */
 enum class SpatialSearchCommunication
 {
-    SYNCHRONOUS_HOMOGENEOUS,   ///< Synchronous where all partitions know everything.
-    SYNCHRONOUS_HETEROGENEOUS, ///< Synchronous where sub-data communicators are considered.
-    ASYNCHRONOUS               ///< Asynchronous communication. Not implemented yet.
+    SYNCHRONOUS,   ///< Synchronous where all partitions know everything.
+    ASYNCHRONOUS   ///< Asynchronous communication. Not implemented yet.
 };
 
 ///@}
@@ -60,7 +59,7 @@ class DataCommunicator;  // forward declaration
  * @ingroup KratosCore
  * @author Vicente Mataix Ferrandiz
  */
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS_HOMOGENEOUS>
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS>
 class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainer
 {
 public:
@@ -464,49 +463,6 @@ public:
     void Barrier();
 
     /**
-     * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
-     * @tparam TFunctorType Functor type.
-     * @param UserFunctor The user-provided function.
-     * @return A proxy to the results.
-     */
-    template<class TFunctorType>
-    ResultsProxy<
-    SpatialSearchResultType,
-    TFunctorType // TODO: Unfortunately this is deprecated in c++17, so we will have to change this call in the future
-    > Apply(TFunctorType&& UserFunctor)
-    {
-        // Check if the communicator has been created
-        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
-        // Apply the user-provided function
-        return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
-    }
-
-    /**
-     * @brief Retrieves the global distances
-     * @return A vector containing all the distances
-     */
-    std::vector<double> GetDistances();
-
-    /**
-     * @brief Retrieves if is local the entity
-     * @return A vector containing all the booleans showing is local the entity
-     */
-    std::vector<bool> GetResultIsLocal();
-
-    /**
-     * @brief Retrieves the rank of the entity
-     * @return A vector containing all the ranks of the entity
-     */
-    std::vector<int> GetResultRank();
-
-    /**
-     * @brief Retrieves if is active the entity
-     * @return A vector containing all the booleans showing is active the entity
-     */
-    std::vector<bool> GetResultIsActive();
-
-    /**
      * @brief Retrieves if inside the geometry
      * @param rPoint The point coordinates
      * @param Tolerance The tolerance considered
@@ -525,30 +481,6 @@ public:
     std::vector<Vector> GetResultShapeFunctions(const array_1d<double, 3>& rPoint);
 
     /**
-     * @brief Considers the global pointer communicator to get the indices of the resulting object
-     * @return A vector containing all the indices
-     */
-    std::vector<IndexType> GetResultIndices();
-
-    /**
-     * @brief Considers the global pointer communicator to get the indices of the nodes of the resulting object
-     * @return A vector containing all the indices
-     */
-    std::vector<std::vector<IndexType>> GetResultNodeIndices();
-
-    /**
-     * @brief Considers the global pointer communicator to get the partition indices of the nodes of the resulting object
-     * @return A vector containing all the indices
-     */
-    std::vector<std::vector<int>> GetResultPartitionIndices();
-
-    /**
-     * @brief Considers the global pointer communicator to get the coordinates of the resulting object
-     * @return A vector containing all the coordinates
-     */
-    std::vector<std::vector<array_1d<double, 3>>> GetResultCoordinates();
-
-    /**
      * @brief Removes elements from the given ranks.
      * @details This function takes a list of ranks and removes the elements at those ranks from the list.
      * @param rRanks A constant reference to a std::vector<int> containing the ranks where no local solution is expected.
@@ -563,13 +495,12 @@ public:
     void RemoveResultsFromIndexesList(const std::vector<IndexType>& rIndexes);
 
     /**
-    * @brief Generates a vector of indexes where the elements in the input vector are greater than zero.
-    * @details This function takes an input vector and iterates through its elements. It adds the indexes of elements
-    * that are greater than zero to a new vector and returns that vector.
-    * @param rInputVector The input vector to process.
-    * @return A vector of indexes where elements in the input vector are greater than zero.
-    * @note Static method that can be used without an instance of this class. Will be called in the vector class.
-    */
+     * @brief Generates a vector of indexes where the elements in the input vector are greater than zero.
+     * @details This function takes an input vector and iterates through its elements. It adds the indexes of elements that are greater than zero to a new vector and returns that vector.
+     * @param rInputVector The input vector to process.
+     * @return A vector of indexes where elements in the input vector are greater than zero.
+     * @note Static method that can be used without an instance of this class. Will be called in the vector class.
+     */
     static std::vector<int> GenerateGreaterThanZeroIndexes(const std::vector<int>& rInputVector);
 
     ///@}
@@ -708,6 +639,37 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
+     * @tparam TFunctorType Functor type.
+     * @param UserFunctor The user-provided function.
+     * @return A proxy to the results.
+     */
+    template<class TFunctorType>
+    ResultsProxy<
+    SpatialSearchResultType,
+    TFunctorType // TODO: Unfortunately this is deprecated in c++17, so we will have to change this call in the future
+    > Apply(TFunctorType&& UserFunctor)
+    {
+        // Check if the communicator has been created
+        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+        // Apply the user-provided function
+        return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
+    }
+
+    /**
+     * @brief Retrieves the rank of the entity
+     * @return A vector containing all the ranks of the entity
+     */
+    std::vector<int> GetResultRank();
+
+    /**
+     * @brief Considers the global pointer communicator to get the indices of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<IndexType> GetResultIndices();
 
     ///@}
     ///@name Serialization

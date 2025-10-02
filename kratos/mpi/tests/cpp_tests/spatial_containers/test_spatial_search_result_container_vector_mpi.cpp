@@ -101,73 +101,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorOpera
     KRATOS_EXPECT_EQ(r_local_pointers.size(), r_result.NumberOfLocalResults());
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorSynchronizeAllSubDataCommunicators, KratosMPICoreFastSuite)
-{
-    // The data communicator
-    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-
-    // MPI data
-    const int rank = r_data_comm.Rank();
-    const int size = r_data_comm.Size();
-
-    // Create a test object
-    SpatialSearchResultContainerVector<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS_HETEROGENEOUS> container_vector;
-
-    // Initialize result
-    std::vector<std::size_t> indexes(rank + 1);
-    std::size_t counter = 0;
-    for (auto& index : indexes) {
-        index = counter;
-        counter++;
-    }
-    std::vector<const DataCommunicator*> data_communicators(indexes.size());
-    for (std::size_t i = 0; i < indexes.size(); i++) {
-        std::vector<int> ranks(size - i);
-        for (std::size_t j = 0; j < ranks.size(); j++) {
-            ranks[j] = size - j - 1;
-        }
-        std::sort(ranks.begin(), ranks.end());
-        const DataCommunicator& r_sub_data_comm = r_data_comm.GetSubDataCommunicator(ranks, std::to_string(i+1));
-        data_communicators[i] = &r_sub_data_comm;
-    }
-
-    // Initialize results
-    container_vector.InitializeResults(data_communicators);
-
-    // Create a result
-    GeometricalObject object = GeometricalObject(rank + 1);
-    SpatialSearchResult<GeometricalObject> result(&object);
-    result.SetDistance(0.5*(rank + 1));
-
-    // Add the result to the containers
-    for (std::size_t i = 0; i < indexes.size(); i++) {
-        // Container
-        auto& r_container = container_vector[i];
-
-        // Add the result to the container
-        r_container.AddResult(result);
-    }
-
-    // SynchronizeAll
-    container_vector.SynchronizeAll(r_data_comm);
-
-    // Check that the results were added correctly
-    KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), static_cast<std::size_t>(rank + 1));
-    for (std::size_t i = 0; i < indexes.size(); i++) {
-        // Container
-        auto& r_container = container_vector[i];
-        KRATOS_EXPECT_EQ(r_container.NumberOfLocalResults(), 1);
-        KRATOS_EXPECT_EQ(r_container.NumberOfGlobalResults(), static_cast<std::size_t>(size - i));
-        const DataCommunicator& r_sub_data_comm = *data_communicators[i];
-        KRATOS_EXPECT_EQ(r_container.NumberOfGlobalResults(), static_cast<std::size_t>(r_sub_data_comm.Size()));
-    }
-
-    // Cleanup subdatacommunicators leftovers
-    for (std::size_t i = 0; i < indexes.size(); i++) {
-        ParallelEnvironment::UnregisterDataCommunicator(std::to_string(i+1));
-    }
-}
-
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetDistances, KratosMPICoreFastSuite)
 {
     // The data communicator
@@ -255,6 +188,154 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
         auto& r_partial_result_is_local = r_result_is_local[i];
         KRATOS_EXPECT_EQ(r_partial_result_is_local.size(), 1);
         KRATOS_EXPECT_EQ(r_partial_result_is_local[0], i == rank);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetResultIsActive, KratosMPICoreFastSuite)
+{
+    // The data communicator
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+
+    // MPI data
+    const int rank = r_data_comm.Rank();
+    const int size = r_data_comm.Size();
+
+    // Create a test object
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
+
+    // Initialize result
+    std::vector<const DataCommunicator*> data_communicators(size, &r_data_comm);
+
+    // Initialize results
+    container_vector.InitializeResults(data_communicators);
+
+    // Add the result to the containers
+    auto& r_container = container_vector[rank];
+
+    // Create a result
+    GeometricalObject object = GeometricalObject(rank + 1);
+    SpatialSearchResult<GeometricalObject> result(&object, rank);
+
+    // Add the result to the container
+    r_container.AddResult(result);
+
+    // Synchronize the container between partitions
+    container_vector.SynchronizeAll(r_data_comm);
+
+    // Check that the results were added correctly
+    KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), static_cast<std::size_t>(size));
+
+    // Compute is active
+    auto is_active = container_vector.GetResultIsActive();
+
+    // Check is active
+    KRATOS_EXPECT_EQ(static_cast<int>(is_active.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+        KRATOS_EXPECT_TRUE(static_cast<int>(is_active[i_rank][0]));
+    }
+
+    // Deactivate the object
+    object.Set(ACTIVE, false);
+
+    // Compute is active
+    is_active = container_vector.GetResultIsActive();
+
+    // Check is active
+    KRATOS_EXPECT_EQ(static_cast<int>(is_active.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+        KRATOS_EXPECT_FALSE(static_cast<int>(is_active[i_rank][0]));
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetResultIndices, KratosMPICoreFastSuite)
+{
+    // The data communicator
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+
+    // MPI data
+    const int rank = r_data_comm.Rank();
+    const int size = r_data_comm.Size();
+
+    // Create a test object
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
+
+    // Initialize result
+    std::vector<const DataCommunicator*> data_communicators(size, &r_data_comm);
+
+    // Initialize results
+    container_vector.InitializeResults(data_communicators);
+
+    // Add the result to the containers
+    auto& r_container = container_vector[rank];
+
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    r_container.AddResult(result);
+
+    // Synchronize the container between partitions
+    container_vector.SynchronizeAll(r_data_comm);
+
+    // Compute indices
+    auto indices = container_vector.GetResultIndices();
+
+    // Check indices
+    KRATOS_EXPECT_EQ(static_cast<int>(indices.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+        KRATOS_EXPECT_EQ(static_cast<int>(indices[i_rank][0]), i_rank + 1);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetResultCoordinates, KratosMPICoreFastSuite)
+{
+    // The data communicator
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+
+    // MPI data
+    const int rank = r_data_comm.Rank();
+    const int size = r_data_comm.Size();
+
+    // Create a test object
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
+
+    // Initialize result
+    std::vector<const DataCommunicator*> data_communicators(size, &r_data_comm);
+
+    // Initialize results
+    container_vector.InitializeResults(data_communicators);
+
+    // Add the result to the containers
+    auto& r_container = container_vector[rank];
+
+    // Generate a geometry
+    auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto p_node2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    Geometry<Node>::Pointer p_geom = Kratos::make_shared<Line2D2<Node>>(p_node1, p_node2);
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1, p_geom);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    r_container.AddResult(result);
+
+    // Synchronize the container between partitions
+    container_vector.SynchronizeAll(r_data_comm);
+
+    // Compute shape functions
+    auto coordinates = container_vector.GetResultCoordinates();
+
+    // Check shape functions
+    KRATOS_EXPECT_EQ(static_cast<int>(coordinates.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+        KRATOS_EXPECT_EQ(coordinates[i_rank][0].size(), 2);
+        KRATOS_EXPECT_VECTOR_NEAR(coordinates[i_rank][0][0], p_node1->Coordinates(), 1.0e-12);
+        KRATOS_EXPECT_VECTOR_NEAR(coordinates[i_rank][0][1], p_node2->Coordinates(), 1.0e-12);
     }
 }
 

@@ -239,6 +239,157 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsLocal, Kr
     KRATOS_EXPECT_TRUE(r_is_local[1][0]);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsActive, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
+
+    // Initialize result
+    DataCommunicator data_communicator;
+    const std::vector<std::size_t> indexes{0};
+    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
+    container_vector.InitializeResults(data_communicators);
+
+    // Container 1
+    auto& r_container_1 = container_vector[0];
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(1);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    r_container_1.AddResult(result);
+
+    // SynchronizeAll
+    container_vector.SynchronizeAll(data_communicator);
+
+    // Compute is active
+    auto is_active = container_vector.GetResultIsActive()[0];
+
+    // Check is active
+    KRATOS_EXPECT_EQ(is_active.size(), 1);
+    KRATOS_EXPECT_TRUE(is_active[0]);
+
+    // Deactivate the object
+    object.Set(ACTIVE, false);
+
+    // Compute is active
+    is_active = container_vector.GetResultIsActive()[0];
+
+    // Check is active
+    KRATOS_EXPECT_EQ(is_active.size(), 1);
+    KRATOS_EXPECT_FALSE(is_active[0]);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIndices, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
+
+    // Initialize result
+    DataCommunicator data_communicator;
+    const std::vector<std::size_t> indexes{0};
+    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
+    container_vector.InitializeResults(data_communicators);
+
+    // Container
+    auto& r_container = container_vector[0];
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(1);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    r_container.AddResult(result);
+
+    // SynchronizeAll
+    container_vector.SynchronizeAll(data_communicator);
+
+    // Compute indices
+    auto indices = container_vector.GetResultIndices()[0];
+
+    // Check indices
+    KRATOS_EXPECT_EQ(indices.size(), 1);
+    KRATOS_EXPECT_EQ(indices[0], object.Id());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultNodeIndices, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
+
+    // Initialize result
+    DataCommunicator data_communicator;
+    const std::vector<std::size_t> indexes{0};
+    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
+    container_vector.InitializeResults(data_communicators);
+
+    // Container
+    auto& r_container = container_vector[0];
+
+    // Generate a geometry
+    auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto p_node2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    Geometry<Node>::Pointer p_geom = Kratos::make_shared<Line2D2<Node>>(p_node1, p_node2);
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(1, p_geom);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    r_container.AddResult(result);
+
+    // SynchronizeAll
+    container_vector.SynchronizeAll(data_communicator);
+
+    // Compute indices
+    auto indices = container_vector.GetResultNodeIndices()[0];
+
+    // Check indices
+    KRATOS_EXPECT_EQ(indices.size(), 1);
+    KRATOS_EXPECT_EQ(indices[0][0], 1);
+    KRATOS_EXPECT_EQ(indices[0][1], 2);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultCoordinates, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
+
+    // Initialize result
+    DataCommunicator data_communicator;
+    const std::vector<std::size_t> indexes{0};
+    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
+    container_vector.InitializeResults(data_communicators);
+
+    // Container
+    auto& r_container = container_vector[0];
+
+    // Generate a geometry
+    auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto p_node2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    Geometry<Node>::Pointer p_geom = Kratos::make_shared<Line2D2<Node>>(p_node1, p_node2);
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(1, p_geom);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    r_container.AddResult(result);
+
+    // SynchronizeAll
+    container_vector.SynchronizeAll(data_communicator);
+
+    // Compute result coordinates
+    auto coordinates = container_vector.GetResultCoordinates()[0];
+
+    // Check result coordinates
+    KRATOS_EXPECT_EQ(coordinates.size(), 1);
+    KRATOS_EXPECT_EQ(coordinates[0].size(), 2);
+    KRATOS_EXPECT_VECTOR_NEAR(coordinates[0][0], p_node1->Coordinates(), 1.0e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(coordinates[0][1], p_node2->Coordinates(), 1.0e-12);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultRank, KratosCoreFastSuite)
 {
     // Create a test object
