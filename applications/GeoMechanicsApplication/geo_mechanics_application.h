@@ -86,7 +86,6 @@
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_elements/calculation_contribution.h"
@@ -536,16 +535,6 @@ private:
         0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
         std::make_unique<ThreeDimensionalStressState>()};
     const UPwSmallStrainInterfaceElement<3, 8> mUPwSmallStrainInterfaceElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
-
-    const UPwSmallStrainLinkInterfaceElement<2, 4> mUPwSmallStrainLinkInterfaceElement2D4N{
-        0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const UPwSmallStrainLinkInterfaceElement<3, 6> mUPwSmallStrainLinkInterfaceElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const UPwSmallStrainLinkInterfaceElement<3, 8> mUPwSmallStrainLinkInterfaceElement3D8N{
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
