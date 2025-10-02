@@ -827,6 +827,72 @@ protected:
         KRATOS_CATCH("")
     }
 
+    void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR_IF_NOT(rVariable == INTERNAL_FORCES_VECTOR || rVariable == EXTERNAL_FORCES_VECTOR)
+            << "Variable " << rVariable.Name() << " is unknown for element with Id " << this->GetId() << ".";
+
+        rOutput = Vector(this->GetNumberOfDOF(), 0.0);
+
+        const auto& r_prop = this->GetProperties();
+        const auto& r_geom = GetGeometry();
+
+        const GeometryType::IntegrationPointsArrayType& r_integration_points =
+            r_geom.IntegrationPoints(this->GetIntegrationMethod());
+
+        ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, r_prop, rCurrentProcessInfo);
+
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        ElementVariables variables;
+        this->InitializeElementVariables(variables, rCurrentProcessInfo);
+
+        const auto b_matrices = CalculateBMatrices(variables.DNu_DXContainer, variables.NuContainer);
+        const auto integration_coefficients =
+            this->CalculateIntegrationCoefficients(r_integration_points, variables.detJuContainer);
+
+        const auto det_Js_initial_configuration = GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(
+            r_geom, this->GetIntegrationMethod());
+
+        const auto deformation_gradients = CalculateDeformationGradients();
+        auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
+            deformation_gradients, b_matrices, variables.DisplacementVector,
+            variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+        std::vector<Matrix> constitutive_matrices;
+        this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
+                                             variables.NuContainer, variables.DNu_DXContainer,
+                                             strain_vectors, mStressVector, constitutive_matrices);
+        const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
+            variables.NpContainer, variables.PressureVector);
+        const auto degrees_of_saturation = CalculateDegreesOfSaturation(fluid_pressures);
+
+        auto relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
+            mRetentionLawVector, this->GetProperties(), fluid_pressures);
+        const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+        std::ranges::transform(permeability_update_factors, relative_permeability_values,
+                               relative_permeability_values.begin(), std::multiplies<>{});
+        const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
+
+        if (rVariable == INTERNAL_FORCES_VECTOR) {
+            const auto derivatives_of_saturation = CalculateDerivativesOfSaturation(fluid_pressures);
+            const auto biot_coefficients = GeoTransportEquationUtilities::CalculateBiotCoefficients(
+                constitutive_matrices, this->GetProperties());
+            const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+                biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
+            rOutput = CalculateInternalForces(variables, b_matrices, integration_coefficients,
+                                              biot_coefficients, degrees_of_saturation, biot_moduli_inverse,
+                                              relative_permeability_values, bishop_coefficients);
+        } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
+            const auto integration_coefficients_on_initial_configuration =
+                this->CalculateIntegrationCoefficients(r_integration_points, det_Js_initial_configuration);
+            rOutput = CalculateExternalForces(
+                variables, integration_coefficients, integration_coefficients_on_initial_configuration,
+                degrees_of_saturation, relative_permeability_values, bishop_coefficients);
+        }
+    }
+
     Vector CalculateInternalForces(ElementVariables&          rVariables,
                                    const std::vector<Matrix>& rBMatrices,
                                    const std::vector<double>& rIntegrationCoefficients,
