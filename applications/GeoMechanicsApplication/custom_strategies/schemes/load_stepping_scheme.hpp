@@ -102,6 +102,16 @@ public:
         }
     }
 
+    void FinalizeSolutionStep(
+        ModelPart&                                                                       rModelPart,
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemMatrixType& rA,
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType& rDx,
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType& rb) override
+    {
+        GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+        KRATOS_INFO("Load stepping") << "Fraction of unbalance: " << CalculateLoadFraction(rModelPart.GetProcessInfo());
+    }
+
 private:
     std::map<std::size_t, TLocalSystemVectorType> mInternalForcesAtStartByElementId;
     std::map<std::size_t, TLocalSystemVectorType> mExternalForcesAtStartByElementId;
