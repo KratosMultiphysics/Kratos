@@ -829,7 +829,7 @@ protected:
         KRATOS_CATCH("")
     }
 
-    void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_ERROR_IF_NOT(rVariable == INTERNAL_FORCES_VECTOR || rVariable == EXTERNAL_FORCES_VECTOR)
             << "Variable " << rVariable.Name() << " is unknown for element with Id " << this->GetId() << ".";
