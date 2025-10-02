@@ -42,7 +42,7 @@ class TestVtuOutputBase:
         cls.SetSolution()
 
     def WriteVtu(self, output_format: Kratos.Future.VtuOutput.WriterFormat, error_check = False):
-        vtu_output = Kratos.Future.VtuOutput(self.model_part, Kratos.Configuration.Initial, output_format, 9, echo_level=0, output_sub_model_parts=self.output_sub_model_parts)
+        vtu_output = Kratos.Future.VtuOutput(self.model_part, Kratos.Configuration.Initial, output_format, 9, echo_level=0, output_sub_model_parts=self.output_sub_model_parts, write_ids=True)
         vtu_output.AddVariable(Kratos.PRESSURE, Kratos.Globals.DataLocation.NodeHistorical)
         vtu_output.AddVariable(Kratos.VELOCITY, Kratos.Globals.DataLocation.NodeHistorical)
         vtu_output.AddVariable(Kratos.DISPLACEMENT, Kratos.Globals.DataLocation.NodeHistorical)
