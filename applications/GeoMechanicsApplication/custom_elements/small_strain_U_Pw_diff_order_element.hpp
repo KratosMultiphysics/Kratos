@@ -1229,7 +1229,7 @@ protected:
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
-        const Vector coupling_force = prod((-1.0) * coupling_matrix, rVariables.PressureVector);
+        const Vector coupling_force = prod(coupling_matrix, rVariables.PressureVector);
         GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_force);
 
         if (!rVariables.IgnoreUndrained) {
