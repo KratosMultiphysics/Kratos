@@ -895,6 +895,8 @@ protected:
         }
     }
 
+    using Element::Calculate;
+
     Vector CalculateInternalForces(ElementVariables&          rVariables,
                                    const std::vector<Matrix>& rBMatrices,
                                    const std::vector<double>& rIntegrationCoefficients,
