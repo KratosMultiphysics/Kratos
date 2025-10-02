@@ -391,11 +391,6 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         main_model_part.CreateSubModelPart(mComputationalSubModelPartName);
     }
 
-    if (rSolverSettings.Has("nodal_smoothing")) {
-        main_model_part.GetProcessInfo().SetValue(NODAL_SMOOTHING,
-                                                  rSolverSettings["nodal_smoothing"].GetBool());
-    }
-
     // Note that the computing part and the main model part _share_ their process info and properties
     GetComputationalModelPart().SetProcessInfo(main_model_part.pGetProcessInfo());
     for (auto i = ModelPart::SizeType{0}; i < main_model_part.NumberOfMeshes(); ++i) {

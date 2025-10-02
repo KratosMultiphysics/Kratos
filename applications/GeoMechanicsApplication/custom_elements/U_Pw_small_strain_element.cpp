@@ -212,25 +212,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
             STATE_VARIABLES, mStateVariablesFinalized[integration_point]);
     }
 
-    if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues();
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::ExtrapolateGPValues()
-{
-    KRATOS_TRY
-
-    GeometryType& r_geometry = this->GetGeometry();
-    const double& area       = r_geometry.Area(); // In 3D this is volume
-
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += area;
-        r_geometry[i].UnSetLock();
-    }
-
     KRATOS_CATCH("")
 }
 
