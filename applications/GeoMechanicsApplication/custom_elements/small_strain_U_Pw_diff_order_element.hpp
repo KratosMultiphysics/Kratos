@@ -70,6 +70,8 @@ public:
         return 0;
     }();
 
+    static constexpr std::size_t TNumberOfDOF = TNumNodes * TDim + TNumPNodes;
+
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
@@ -213,7 +215,7 @@ public:
             TDim, TNumNodes, integration_points.size(),
             r_geom.ShapeFunctionsValues(integration_method), solid_densities, integration_coefficients);
 
-        rMassMatrix = ZeroMatrix(GetNumberOfDOF(), GetNumberOfDOF());
+        rMassMatrix = ZeroMatrix(TNumberOfDOF, TNumberOfDOF);
         GeoElementUtilities::AssembleUUBlockMatrix(rMassMatrix, mass_matrix_u);
 
         KRATOS_CATCH("")
@@ -832,7 +834,7 @@ protected:
         KRATOS_ERROR_IF_NOT(rVariable == INTERNAL_FORCES_VECTOR || rVariable == EXTERNAL_FORCES_VECTOR)
             << "Variable " << rVariable.Name() << " is unknown for element with Id " << this->GetId() << ".";
 
-        rOutput = Vector(this->GetNumberOfDOF(), 0.0);
+        rOutput = Vector(TNumberOfDOF, 0.0);
 
         const auto& r_prop = this->GetProperties();
         const auto& r_geom = GetGeometry();
@@ -902,7 +904,7 @@ protected:
                                    const std::vector<double>& rRelativePermeabilityValues,
                                    const std::vector<double>& rBishopCoefficients) const
     {
-        Vector result(this->GetNumberOfDOF(), 0.0);
+        Vector result(TNumberOfDOF, 0.0);
         for (unsigned int g_point = 0; g_point < rIntegrationCoefficients.size(); ++g_point) {
             rVariables.B                      = rBMatrices[g_point];
             rVariables.IntegrationCoefficient = rIntegrationCoefficients[g_point];
@@ -947,7 +949,7 @@ protected:
                                    const std::vector<double>& rRelativePermeabilityValues,
                                    const std::vector<double>& rBishopCoefficients) const
     {
-        Vector result = ZeroVector(this->GetNumberOfDOF());
+        Vector result = ZeroVector(TNumberOfDOF);
         for (unsigned int g_point = 0; g_point < rIntegrationCoefficients.size(); ++g_point) {
             noalias(rVariables.Nu)        = row(rVariables.NuContainer, g_point);
             rVariables.DegreeOfSaturation = rDegreesOfSaturation[g_point];
@@ -1471,7 +1473,7 @@ protected:
                                                                                  GetProperties());
     }
 
-    [[nodiscard]] SizeType GetNumberOfDOF() const override { return TNumNodes * TDim + TNumPNodes; }
+    [[nodiscard]] SizeType GetNumberOfDOF() const override { return TNumberOfDOF; }
 
 private:
     GeometryType::Pointer mpPressureGeometry;
