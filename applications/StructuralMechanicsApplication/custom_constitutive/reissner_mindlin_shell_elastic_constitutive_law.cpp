@@ -145,12 +145,17 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponseCauchy
 
         const double one_minus_nu2 = 1.0 - nu * nu;
         const double half_one_minus_nu = 0.5 * (1.0 - nu);
+        const double t_square = t * t;
+
         const double Dm_factor = E * t / one_minus_nu2;
-        const double Db_factor = E * t * t * t / (12.0 * one_minus_nu2);
+        const double Db_factor = E * t * t_square / (12.0 * one_minus_nu2);
+
         const double k_shear = 5.0 / 6.0; // Shear correction factor
-        // const double h_max = rValues.GetElementGeometry().MaxEdgeLength();
-        // const double alpha = 1.0; // This could be an input property
-        // const double Ds_factor = k_shear * t / (t * t + alpha * h_max * h_max);
+        const double h_max = rValues.GetElementGeometry().MaxEdgeLength();
+        const double alpha = 0.1; // This could be an input property
+        const double stenberg_stabilization = t_square / (t_square + alpha * h_max * h_max);
+        const double G = ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues.GetMaterialProperties());
+        const double Ds_factor = G * k_shear * t * stenberg_stabilization;
 
         auto &r_gen_const_matrix = rValues.GetConstitutiveMatrix();
         if (r_gen_const_matrix.size1() != strain_size || r_gen_const_matrix.size2() != strain_size)
@@ -172,8 +177,8 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponseCauchy
         r_gen_const_matrix(5, 5) = Db_factor * half_one_minus_nu;
 
         // Shear constitutive matrix
-        r_gen_const_matrix(6, 6) = k_shear * t * ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues.GetMaterialProperties());
-        r_gen_const_matrix(7, 7) = r_gen_const_matrix(6, 6);
+        r_gen_const_matrix(6, 6) = Ds_factor;
+        r_gen_const_matrix(7, 7) = Ds_factor;
 
         if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
             noalias(r_generalized_stress_vector) = prod(r_gen_const_matrix, r_generalized_strain_vector);
