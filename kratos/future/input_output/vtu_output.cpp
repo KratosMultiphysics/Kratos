@@ -139,7 +139,6 @@ NDDataPointerType GetWritingNDData(
 
     const auto& origin_shape = pNDData->Shape();
 
-
     KRATOS_ERROR_IF(origin_shape.size() == 0)
         << "NDData shape should have at least one dimension representing number of entities [ nd data = "
         << *pNDData << " ].\n";
@@ -414,6 +413,7 @@ void AddFieldsFromTensorAdaptor(
 
         if constexpr(std::is_same_v<data_type, Flags>) {
             if (r_pair.first == "KRATOS_ID") {
+                // this is specific to write KRATOS_IDS.
                 auto p_nd_data = Kratos::make_shared<NDData<int>>(DenseVector<unsigned int>(1, rWritingIndices.size()));
                 auto span = p_nd_data->ViewData();
                 IndexPartition<IndexType>(rWritingIndices.size()).for_each([&pContainer, &span, &rWritingIndices](const auto Index) {
@@ -452,9 +452,6 @@ void AddFields(
         KRATOS_INFO_IF("VtuOutput", EchoLevel > 2) << "------ Collecting " << r_pair.first << " data...\n";
 
         std::visit([&rXmlElement, &r_pair, &rXmlDataElementWrapper, &rWritingIndices, &rDataCommunicator](auto pTensorAdaptor) {
-            // get the storage type of the tensor adaptor. This may be NDData<int>, NDData<double>, ...
-            using storage_type = typename BareType<decltype(*pTensorAdaptor)>::Storage;
-
             // here we need to make sure all the tensor adaptors from every rank has the same data shape, even
             // from the ranks which do not have any entities. Therefore following check is done with mpi communication
 
@@ -511,6 +508,8 @@ void AddFields(
             }
 
             if (ta_shape[0] == 0) {
+                // get the storage type of the tensor adaptor. This may be NDData<int>, NDData<double>, ...
+                using storage_type = typename BareType<decltype(*pTensorAdaptor)>::Storage;
                 // this is a rank with an empty container.
                 rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, Kratos::make_shared<storage_type>(ref_ta_shape)));
             } else {
@@ -850,6 +849,10 @@ VtuOutput::VtuOutput(
               });
 
     if (WriteIds) {
+        // Adds a dummy place holder called "KRATOS_ID" to every container type
+        // so the user is prohibited from adding any tensor adaptors
+        // with the name KRATOS_ID in future. This will be treated
+        // separately, hence the use of nullptr.
         mFlags[static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical)]["KRATOS_ID"] = nullptr;
         mFlags[static_cast<IndexType>(Globals::DataLocation::Condition)]["KRATOS_ID"] = nullptr;
         mFlags[static_cast<IndexType>(Globals::DataLocation::Element)]["KRATOS_ID"] = nullptr;
@@ -869,7 +872,8 @@ std::vector<VtuOutput::SupportedContainerPointerType> VtuOutput::GetOutputContai
             result.push_back(r_unstructured_grid.mpPoints);
 
             if (!r_unstructured_grid.mpModelPart->GetRootModelPart().IsDistributed()) {
-                // since local mesh and the mesh are the same.
+                // since local mesh and the mesh are the same in the case of non-distributed
+                // run.
                 result.push_back(r_unstructured_grid.mpModelPart->GetCommunicator().LocalMesh().pNodes());
             }
         }
@@ -985,36 +989,45 @@ void VtuOutput::AddTensorAdaptor(
         << "TensorAdaptors can be added only before the first call to the PrintOutput [ tensor adaptor name = "
         << rTensorAdaptorName << " ].\n";
 
+    // a visitor for TensorAdaptor<int>, TensorAdaptor<bool>, TensorAdaptor<double>
     std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
-        auto shape = p_tensor_adaptor->Shape();
-        auto ta_span = p_tensor_adaptor->ViewData();
-
-        // the tensor adaptors may have different number of components in dimensions from 2 to N [Eg.
-        // tensor adaptors created from dynamic variables, having zero entities. ] Hence doing
-        // communication to correctly size the number of components in higher dimensions.
-        std::vector<unsigned int> local_data_shape(shape.begin() + 1, shape.end());
-        const auto& max_data_shape = this->mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_data_shape);
-        if (shape[0] == 0) std::copy(max_data_shape.begin(), max_data_shape.end(), shape.begin() + 1);
-
-        std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor, &ta_span, &shape](auto pContainer){
+        // a visitor for NodesContainer::Pointer, ConditionsContainer::Pointer, ElementsContainerPointer
+        // of the given p_tensor_adaptor
+        std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor](auto pContainer){
+            // finds the unstructured grid for which the given tensor adaptor's pContainer refers to.
+            // mesh_type is of Kratos::Globals::DataLocation enum
+            // itr points to the unstructured grid which is referring to the given pContainer.
+            // if not found, mesh_type is returned with Kratos::Globals::DataLocation::ModelPart
+            // enum value, which will throw an error.
             [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mUnstructuredGridDataList);
 
             switch (mesh_type) {
                 case Globals::DataLocation::Condition:
                 case Globals::DataLocation::Element: {
-                    auto& r_unstructured_grid_data = *itr;
-                    // check for existing field names
+                    // here we have to check if the specified tensor adaptor name is there in the found unstructured grid
+                    // referred by the itr.
+
+                    // checks in the condition or element maps of flags and variables whether the rTensorAdaptorName already
+                    // exists.
                     CheckDataArrayName(rTensorAdaptorName, {mesh_type}, mFlags, mVariables); // checks in the current data location of mVariables map
-                    CheckDataArrayName(rTensorAdaptorName, mesh_type, r_unstructured_grid_data); // checks in the tensor adaptors list
-                    r_unstructured_grid_data.mMapOfCellTensorAdaptors[rTensorAdaptorName] = p_tensor_adaptor;
+
+                    // checks in either Condition or Element map of tensor adaptors whether the given  rTensorAdaptorName
+                    // exists
+                    CheckDataArrayName(rTensorAdaptorName, mesh_type, *itr);
+
+                    // If no conflicts in the naming is found, then put the tensor adaptor for output.
+                    itr->mMapOfCellTensorAdaptors[rTensorAdaptorName] = p_tensor_adaptor;
                     break;
                 }
                 case Globals::DataLocation::NodeNonHistorical: {
-                    auto& r_unstructured_grid_data = *itr;
-                    // check for existing field names
-                    CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::NodeHistorical}, mFlags, mVariables); // checks in the current data location of mVariables map
-                    CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, r_unstructured_grid_data); // checks in the tensor adaptors list
-                    r_unstructured_grid_data.mMapOfPointTensorAdaptors[rTensorAdaptorName] = p_tensor_adaptor;
+                    // checks if the given rTensorAdaptorName is already there in the nodal non-historical
+                    // variables list, nodal-non-historical variables list and flags list.
+                    CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
+
+                    // checks if the given rTensorAdaptorName is already there in the list of nodal tensor adaptors
+                    // of the unstructured grid referred by itr.
+                    CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, *itr);
+                    itr->mMapOfPointTensorAdaptors[rTensorAdaptorName] = p_tensor_adaptor;
                     break;
                 }
                 default:
