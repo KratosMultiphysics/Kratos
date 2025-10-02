@@ -467,19 +467,19 @@ void AddFields(
             //        containers or 0.
 
             std::vector<unsigned int> communicated_shape(ta_shape.begin(), ta_shape.end());
-            auto all_shapes = rDataCommunicator.AllGatherv(communicated_shape);
+            auto all_ta_shapes = rDataCommunicator.AllGatherv(communicated_shape);
 
             // find a data shape from some rank which has non-empty container
             DenseVector<unsigned int> ref_ta_shape(max_number_of_dimensions, 0);
-            for (const auto& rank_shape : all_shapes) {
+            for (const auto& rank_shape : all_ta_shapes) {
                 if (rank_shape[0] != 0) {
                     std::copy(rank_shape.begin() + 1, rank_shape.end(), ref_ta_shape.begin() + 1);
                     break;
                 }
             }
 
-            for (IndexType i_rank = 0; i_rank < all_shapes.size(); ++i_rank) {
-                auto& rank_shape = all_shapes[i_rank];
+            for (IndexType i_rank = 0; i_rank < all_ta_shapes.size(); ++i_rank) {
+                auto& rank_shape = all_ta_shapes[i_rank];
 
                 // modify the rank shape if it is coming from a rank having an empty container.
                 if (rank_shape[0] == 0) {
