@@ -194,7 +194,8 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         """
         test_name = "dry_column_uniform_load"
         test_root = "dsettlement"
-        project_path = test_helper.get_file_path(os.path.join(test_root, test_name))
+        project_path = test_helper.get_file_path(os.path.join(test_root, test_name, "coarse_mesh"))
+        ref_path = test_helper.get_file_path(os.path.join(test_root, test_name))
 
         import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
 
@@ -208,6 +209,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         self.assertEqual(status, 0)
 
         project_path = pathlib.Path(project_path)
+        ref_path = pathlib.Path(ref_path)
 
         reader = test_helper.GiDOutputFileReader()
 
@@ -220,7 +222,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             make_settlement_history_plot(
                 (output_stage_3, output_stage_4, output_stage_5),
                 top_node_ids,
-                project_path / "ref_settlement_data.txt",
+                ref_path / "ref_settlement_data.txt",
                 project_path / "test_case_1_settlement_plot.svg",
             )
 
@@ -232,12 +234,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             # Make a stress plot at the start of the analysis
             ref_data = [
                 {
-                    "file_path": project_path
+                    "file_path": ref_path
                     / "ref_effective_vertical_stresses_after_0.1_days.txt",
                     "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
                 {
-                    "file_path": project_path
+                    "file_path": ref_path
                     / "ref_total_vertical_stresses_after_0.1_days.txt",
                     "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
                 },
@@ -255,12 +257,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             # Make a stress plot after 100.1 days
             ref_data = [
                 {
-                    "file_path": project_path
+                    "file_path": ref_path
                     / "ref_effective_vertical_stresses_after_100.1_days.txt",
                     "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
                 {
-                    "file_path": project_path
+                    "file_path": ref_path
                     / "ref_total_vertical_stresses_after_100.1_days.txt",
                     "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
                 },
@@ -278,12 +280,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
             ref_data = [
                 {
-                    "file_path": project_path
+                    "file_path": ref_path
                     / "ref_effective_vertical_stresses_after_10000_days.txt",
                     "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
                 },
                 {
-                    "file_path": project_path
+                    "file_path": ref_path
                     / "ref_total_vertical_stresses_after_10000_days.txt",
                     "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
                 },
@@ -329,6 +331,158 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 (
                     expected_settlement_after_ten_thousand_days
                     - actual_settlement_after_ten_thousand_days
+                )
+                / actual_settlement_after_ten_thousand_days
+            )
+            < 0.01
+        )
+
+    def test_settlement_dry_column_fine_mesh(self):
+        """
+        This test validates the settlement of a dry column under uniform load.
+        The test runs multiple stages of a settlement simulation and checks the
+        settlement values at specific times against expected results.
+        The expected settlement values are based on an analytical solution.
+        """
+        test_name = "dry_column_uniform_load"
+        test_root = "dsettlement"
+        project_path = test_helper.get_file_path(os.path.join(test_root, test_name, "fine_mesh"))
+        ref_path = test_helper.get_file_path(os.path.join(test_root, test_name))
+
+        import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
+
+        n_stages = 5
+        project_parameters_filenames = [
+            f"ProjectParameters_stage{i+1}.json" for i in range(n_stages)
+        ]
+        status = run_geo_settlement.run_stages(
+            project_path, project_parameters_filenames
+        )
+        self.assertEqual(status, 0)
+
+        project_path = pathlib.Path(project_path)
+        ref_path = pathlib.Path(ref_path)
+
+        reader = test_helper.GiDOutputFileReader()
+
+        output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
+        output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
+
+        if test_helper.want_test_plots():
+            output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
+            top_node_ids = [2, 3, 1008]
+            make_settlement_history_plot(
+                (output_stage_3, output_stage_4, output_stage_5),
+                top_node_ids,
+                ref_path / "ref_settlement_data.txt",
+                project_path / "test_case_1_settlement_plot.svg",
+                )
+
+            left_side_corner_node_ids = [3] + list(range(1023, 2021)) + [4]
+            ref_y_coordinates = get_ref_y_coordinates(
+                project_path / "stage1.post.msh", left_side_corner_node_ids
+            )
+
+            # Make a stress plot at the start of the analysis
+            ref_data = [
+                {
+                    "file_path": ref_path
+                                 / "ref_effective_vertical_stresses_after_0.1_days.txt",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
+                },
+                {
+                    "file_path": ref_path
+                                 / "ref_total_vertical_stresses_after_0.1_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
+            ]
+            make_stress_over_y_plot(
+                output_stage_3,
+                unit_conversions.days_to_seconds(0.1) + 1.0,
+                ref_y_coordinates,
+                left_side_corner_node_ids,
+                ref_data,
+                project_path / "test_case_1_stress_plot_after_0.1_days.svg",
+                want_water_pressure_plot=False,
+                )
+
+            # Make a stress plot after 100.1 days
+            ref_data = [
+                {
+                    "file_path": ref_path
+                                 / "ref_effective_vertical_stresses_after_100.1_days.txt",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
+                },
+                {
+                    "file_path": ref_path
+                                 / "ref_total_vertical_stresses_after_100.1_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
+            ]
+            make_stress_over_y_plot(
+                output_stage_5,
+                unit_conversions.days_to_seconds(100.1) + 1.0,
+                ref_y_coordinates,
+                left_side_corner_node_ids,
+                ref_data,
+                project_path / "test_case_1_stress_plot_after_100.1_days.svg",
+                want_water_pressure_plot=False,
+                )
+
+            # Make a stress plot at the end of the fifth stage (when consolidation is supposed to be finished)
+            ref_data = [
+                {
+                    "file_path": ref_path
+                                 / "ref_effective_vertical_stresses_after_10000_days.txt",
+                    "label": r"$\sigma_{\mathrm{eff, yy}}$ [D-Settlement]",
+                },
+                {
+                    "file_path": ref_path
+                                 / "ref_total_vertical_stresses_after_10000_days.txt",
+                    "label": r"$\sigma_{\mathrm{tot, yy}}$ [D-Settlement]",
+                },
+            ]
+            make_stress_over_y_plot(
+                output_stage_5,
+                unit_conversions.days_to_seconds(10000),
+                ref_y_coordinates,
+                left_side_corner_node_ids,
+                ref_data,
+                project_path / "test_case_1_stress_plot_after_10000_days.svg",
+                want_water_pressure_plot=False,
+                )
+
+        # Check some results
+        top_middle_node_id = 1008
+        actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
+            "TOTAL_DISPLACEMENT", 8640000, output_stage_3, [top_middle_node_id]
+        )[0][1]
+        expected_settlement_after_one_hundred_days = -3.22
+
+        # Assert the value to be within 1% of the analytical solution
+        self.assertTrue(
+            abs(
+                (
+                        expected_settlement_after_one_hundred_days
+                        - actual_settlement_after_one_hundred_days
+                )
+                / expected_settlement_after_one_hundred_days
+            )
+            < 0.01
+        )
+
+        actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
+            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [top_middle_node_id]
+        )[0][1]
+
+        expected_settlement_after_ten_thousand_days = -8.01
+
+        # Assert the value to be within 1% of the analytical solution
+        self.assertTrue(
+            abs(
+                (
+                        expected_settlement_after_ten_thousand_days
+                        - actual_settlement_after_ten_thousand_days
                 )
                 / actual_settlement_after_ten_thousand_days
             )
