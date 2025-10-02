@@ -905,12 +905,12 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeComponent(ModelP
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container, unsigned int& ord)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container, const unsigned int& ord)
 {
     mCalculatingTheGradient = true;
     if (mFirstGradientRecovery){
         KRATOS_INFO("SwimmingDEM") << "Constructing first-step neighbour clouds for material derivative..." << std::endl;
-        SetNeighboursAndWeights(r_model_part, ord);
+        SetNeighboursAndWeights(r_model_part, ord, 100);
         mFirstGradientRecovery = false;
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for material derivative." << std::endl;
     }
@@ -1090,13 +1090,13 @@ void DerivativeRecovery<TDim>::SmoothVectorField(ModelPart& r_model_part, Variab
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
 template <class TScalarVariable>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, unsigned int& ord)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, const unsigned int& ord)
 {
     mCalculatingTheGradient = true;
     if (mFirstGradientRecovery){
         KRATOS_INFO("SwimmingDEM") << "Constructing first-step neighbour clouds for gradient recovery..." << std::endl;
         SetEdgeNodesAndWeights(r_model_part);
-        SetNeighboursAndWeights(r_model_part, ord);
+        SetNeighboursAndWeights(r_model_part, ord, 100);
         mFirstGradientRecovery = false;
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for gradient recovery." << std::endl;
     }
@@ -1144,14 +1144,14 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, const unsigned int& ord)
 {
     std::cout << "Entering RecoverSuperconvergentLaplacian" << std::endl;
 
     mCalculatingTheLaplacian = true;
     if (mFirstLaplacianRecovery){
         KRATOS_INFO("SwimmingDEM") << "Constructing first-step neighbour clouds for laplacian recovery..." << std::endl;
-        SetNeighboursAndWeights(r_model_part, ord);
+        SetNeighboursAndWeights(r_model_part, ord, 100);
         mFirstLaplacianRecovery = false;
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for laplacian recovery." << std::endl;
     }
@@ -1196,14 +1196,14 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_mode
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, const unsigned int& ord)
 {
     std::cout << "Entering RecoverSuperconvergentVelocityLaplacianFromGradient" << std::endl;
 
     mCalculatingTheGradient = true;
     if (mFirstLaplacianRecovery){
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for laplacian recovery." << std::endl;
-        SetNeighboursAndWeights(r_model_part, ord);
+        SetNeighboursAndWeights(r_model_part, ord, 100);
         mFirstLaplacianRecovery = false;
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for laplacian recovery." << std::endl;
     }
@@ -1255,7 +1255,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
     mCalculatingGradientAndLaplacian = true;
     if (mFirstLaplacianRecovery){
         KRATOS_INFO("SwimmingDEM") << "Constructing first-step neighbour clouds for material derivative and laplacian recovery..." << std::endl;
-        SetNeighboursAndWeights(r_model_part, ord);
+        SetNeighboursAndWeights(r_model_part, ord, 100);
         mFirstLaplacianRecovery = false;
         KRATOS_INFO("SwimmingDEM") << "Finished constructing neighbour clouds for material derivative and laplacian recovery." << std::endl;
     }
@@ -1270,7 +1270,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
-        if (!n_neigh){ // then we keep the defualt value
+        if (!n_neigh){ // then we keep the default value
             continue;
         }
         for (unsigned int i = 0; i < n_relevant_terms; ++i){ // resetting polynomial_coefficients to 0
@@ -1433,34 +1433,40 @@ void DerivativeRecovery<TDim>::SetEdgeNodesAndWeights(ModelPart& r_model_part)
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, const unsigned int& ord)
+void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, const unsigned int& ord, const unsigned int& max_iters)
 {
     // Finding elements concurrent to each node. The nodes of these elements will form the initial cloud of points
     FindNodalNeighboursProcess neighbour_finder(r_model_part);
     neighbour_finder.Execute();
-    const unsigned int n_max_iterations = 100;
+    const unsigned int n_max_iterations = std::min(max_iters, (unsigned int)r_model_part.NumberOfNodes());
     unsigned int i = 0;
 
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        // The weights only make sense if the node is a vertex node
-        if (inode->GetValue(IS_EDGE_NODE)) continue;
-
-        bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()), ord);
-        GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
-        unsigned int iteration = 0;
-        while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
-            the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()), ord);
-            ++iteration;
-        }
-        if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
-            mSomeCloudsDontWork = true;
+        if (inode->GetValue(IS_EDGE_NODE))
+        {
+            // We do not need the neighbour nodes for an edge node (its gradient is computed using the vertex nodes data)
+            GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
             neigh_nodes.clear();
-            inode->FastGetSolutionStepValue(NODAL_WEIGHTS).clear();
-            KRATOS_WARNING("SwimmingDEM") << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours" << std::endl;
-            KRATOS_WARNING("SwimmingDEM") << "for the gradient recovery. A lower accuracy method has been employed for this node." << std::endl;
-            exit(1);
+        } else {
+            // Keep adding neighbour nodes until the A matrix of inode is valid
+            bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()), ord);
+            GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+            unsigned int iteration = 0;
+            while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
+                the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()), ord);
+                ++iteration;
+            }
+            // Unable to find enough neighbour nodes for n_max_iterations
+            if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
+                mSomeCloudsDontWork = true;
+                neigh_nodes.clear();
+                inode->FastGetSolutionStepValue(NODAL_WEIGHTS).clear();
+                KRATOS_WARNING("SwimmingDEM") << "Warning!, Max iterations (" << n_max_iterations << ") achieved for the node with id " << inode->Id() << " and it has not been possible to form an adequate cloud of neighbours" << std::endl;
+                // KRATOS_WARNING("SwimmingDEM") << "for the gradient recovery. A lower accuracy method has been employed for this node." << std::endl;
+                exit(1);
+            }
+            ++i;
         }
-        ++i;
     }
 }
 //**************************************************************************************************************************************************
@@ -1822,15 +1828,15 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
     // std::cout << "Computed A^T A with size (" << AtransA.size1() << ", " << AtransA.size2() << ") for node " << p_node->Id() << std::endl;
     double det_AtransA = std::abs(MathUtils<double>::Det(AtransA));
     if (det_AtransA < 0.001){
-        std::cout << "Found Det(AtransA) = " << det_AtransA << " for node " << p_node->Id() << std::endl;
-        std::cout << "A = " << std::endl;
-        for (unsigned int i = 0; i < A.size1(); i++)
-        {
-            for (unsigned int j = 0; j < A.size2(); j++)
-            {
-                std::cout << "A(" << i << "," << j << ") = " << A(i, j) << std::endl;
-            }
-        }
+        // std::cout << "Found Det(AtransA) = " << det_AtransA << " for node " << p_node->Id() << std::endl;
+        // std::cout << "A = " << std::endl;
+        // for (unsigned int i = 0; i < A.size1(); i++)
+        // {
+        //     for (unsigned int j = 0; j < A.size2(); j++)
+        //     {
+        //         std::cout << "A(" << i << "," << j << ") = " << A(i, j) << std::endl;
+        //     }
+        // }
         return false;
     }
 
@@ -1906,7 +1912,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
         }
         exit(1);
     } else {
-        std::cout << "Node " << p_node->Id() << " has fulfilled the tolerance." << std::endl;
+        // std::cout << "Node " << p_node->Id() << " has fulfilled the tolerance." << std::endl;
     }
     // KRATOS_ERROR_IF(abs_difference > tolerance) << "Unable to fulfil the tolerance of the superconvergent gradient recovery for node with id = " << p_node->Id() << ", obtained error = " << abs_difference << std::endl;
     return (abs_difference > tolerance? false : true);
@@ -1994,7 +2000,7 @@ double DerivativeRecovery<TDim>::CalculateTheMinumumEdgeLength(ModelPart& r_mode
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::ComputeGradientForVertexNode(Node& r_node, unsigned int& ord, Vector& gradient, Variable<double>& scalar_container)
+void DerivativeRecovery<TDim>::ComputeGradientForVertexNode(Node& r_node, const unsigned int& ord, Vector& gradient, Variable<double>& scalar_container)
 {
     GlobalPointersVector<Node >& neigh_nodes = r_node.GetValue(NEIGHBOUR_NODES);
     unsigned int n_neigh = neigh_nodes.size();
@@ -2035,7 +2041,7 @@ void DerivativeRecovery<TDim>::ComputeGradientForVertexNode(Node& r_node, unsign
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::ComputeGradientForEdgeNode(Node& r_node, unsigned int& ord, Vector& gradient, Variable<double>& scalar_container)
+void DerivativeRecovery<TDim>::ComputeGradientForEdgeNode(Node& r_node, const unsigned int& ord, Vector& gradient, Variable<double>& scalar_container)
 {
     GlobalPointersVector<Node >& vertex_nodes = r_node.GetValue(CONTIGUOUS_NODES);
     unsigned int n_vertex_nodes = vertex_nodes.size();
@@ -2120,7 +2126,7 @@ void DerivativeRecovery<TDim>::ComputeGradientForEdgeNode(Node& r_node, unsigned
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::CheckNeighbours(ModelPart& r_model_part)
+void DerivativeRecovery<TDim>::CheckContiguousNodes(ModelPart& r_model_part)
 {
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode)
     {
@@ -2134,7 +2140,7 @@ void DerivativeRecovery<TDim>::CheckNeighbours(ModelPart& r_model_part)
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
 template <class TScalarVariable>
-void DerivativeRecovery<TDim>::RecoverSuperconvergentGradientAlt(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, unsigned int& ord)
+void DerivativeRecovery<TDim>::RecoverSuperconvergentGradientAlt(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, const unsigned int& ord, const unsigned int& max_iters)
 {
     // Construct the clouds
     mCalculatingTheGradient = true;
@@ -2143,13 +2149,13 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradientAlt(ModelPart& r_mo
         ClassifyEdgeNodes(r_model_part);
     
         // std::cout << "Checking neighbours before settings weights..." << std::endl;
-        // CheckNeighbours(r_model_part);
+        // CheckContiguousNodes(r_model_part);
         // std::cout << "Done" << std::endl;
 
-        SetNeighboursAndWeights(r_model_part, ord);
+        SetNeighboursAndWeights(r_model_part, ord, max_iters);
 
         // std::cout << "Checking neighbours after settings weights..." << std::endl;
-        CheckNeighbours(r_model_part);
+        CheckContiguousNodes(r_model_part);
         // std::cout << "Done" << std::endl;
 
         mFirstGradientRecovery = false;
@@ -2246,7 +2252,7 @@ void DerivativeRecovery<TDim>::ClassifyEdgeNodes(ModelPart& r_model_part)
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(unsigned int& ord, DenseMatrix<double>& result)
+void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(const unsigned int& ord, DenseMatrix<double>& result)
 {
     // If the gradient is computed at the node itself, then
     // the computation can be simplified
@@ -2285,7 +2291,7 @@ void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(unsigned int& or
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(array_1d<double, 3>& position, Node& r_node, unsigned int& ord, DenseMatrix<double>& result)
+void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(array_1d<double, 3>& position, Node& r_node, const unsigned int& ord, DenseMatrix<double>& result)
 {
     // Be aware that the derivatives here must be consistent with the definition provided
     // in the computation of the coefficients matrix
@@ -2384,9 +2390,9 @@ void DerivativeRecovery<TDim>::ComputeDerivativeMonomialsVector(array_1d<double,
 // Explicit instantiations
 template class DerivativeRecovery<2>;
 template class DerivativeRecovery<3>;
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&, unsigned int&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&, unsigned int&);
-template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradientAlt< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&, unsigned int&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&, const unsigned int&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&, const unsigned int&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradientAlt< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&, const unsigned int&, const unsigned int&);
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
 template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
 }  // namespace Kratos.

@@ -11,15 +11,16 @@ class ZhangGuoGradientRecoverer(recoverer.GradientRecoverer):
     def RecoverGradientOfScalar(self, scalar_variable, gradient_variable):
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, scalar_variable, gradient_variable, self.recovery_order)
     def RecoverGradientOfVelocity(self):
-        # print(f"We calling RecoverGradientOfVelocity")
-        # exit(0)
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradientAlt(self.model_part, Kratos.VELOCITY_X, Kratos.VELOCITY_X_GRADIENT, self.recovery_order)
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradientAlt(self.model_part, Kratos.VELOCITY_Y, Kratos.VELOCITY_Y_GRADIENT, self.recovery_order)
-        self.cplusplus_recovery_tool.RecoverSuperconvergentGradientAlt(self.model_part, Kratos.VELOCITY_Z, Kratos.VELOCITY_Z_GRADIENT, self.recovery_order)
+        max_iters = 1000000
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradientAlt(self.model_part, Kratos.VELOCITY_X, Kratos.VELOCITY_X_GRADIENT, self.recovery_order, max_iters)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradientAlt(self.model_part, Kratos.VELOCITY_Y, Kratos.VELOCITY_Y_GRADIENT, self.recovery_order, max_iters)
+        self.cplusplus_recovery_tool.RecoverSuperconvergentGradientAlt(self.model_part, Kratos.VELOCITY_Z, Kratos.VELOCITY_Z_GRADIENT, self.recovery_order, max_iters)
 
     def RecoverPressureGradient(self):
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.PRESSURE, Fluid.RECOVERED_PRESSURE_GRADIENT, self.recovery_order)
     def RecoverFluidFractionGradient(self):
+        print("Recovering gradient")
+        exit()
         self.cplusplus_recovery_tool.RecoverSuperconvergentGradient(self.model_part, Kratos.FLUID_FRACTION, Kratos.FLUID_FRACTION_GRADIENT, self.recovery_order)
 
 class ZhangGuoMaterialAccelerationRecoverer(recoverer.MaterialAccelerationRecoverer, ZhangGuoGradientRecoverer):

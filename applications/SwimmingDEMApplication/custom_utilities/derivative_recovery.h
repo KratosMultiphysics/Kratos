@@ -141,18 +141,18 @@ void AddTimeDerivativeComponent(ModelPart& r_model_part, Variable<array_1d<doubl
 void RecoverGradientOfAScalar(const VariableData& origin_variable, const VariableData& destination_variable);
 
 template <class TScalarVariable>
-void RecoverSuperconvergentGradient(ModelPart& r_model_part,  TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, unsigned int& ord);
+void RecoverSuperconvergentGradient(ModelPart& r_model_part,  TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, const unsigned int& ord);
 
 template <class TScalarVariable>
-void RecoverSuperconvergentGradientAlt(ModelPart& r_model_part,  TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, unsigned int& ord);
+void RecoverSuperconvergentGradientAlt(ModelPart& r_model_part,  TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container, const unsigned int& ord, const unsigned int& max_iters);
 
-void RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, unsigned int& ord);
+void RecoverSuperconvergentMatDeriv(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, const unsigned int& ord);
 
-void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord);
+void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, const unsigned int& ord);
 
-void RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord);
+void RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container, const unsigned int& ord);
 
-void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord);
+void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container, Variable<array_1d<double, 3> >& laplacian_container, unsigned int& ord);
 
 void CalculateLocalMassMatrix(const unsigned&, const ModelPart::ElementsContainerType::iterator&, Matrix&);
 
@@ -309,7 +309,7 @@ struct IsCloser{
 inline int Factorial(const unsigned int n);
 bool IsEdgeNode(Geometry<Node>::GeometriesArrayType&, Node::Pointer&);
 void SetEdgeNodesAndWeights(ModelPart&);
-void SetNeighboursAndWeights(ModelPart& r_model_part, const unsigned int&);
+void SetNeighboursAndWeights(ModelPart& r_model_part, const unsigned int&, const unsigned int&);
 void SetNeighboursAndWeightsForTheLaplacian(ModelPart& r_model_part, const unsigned int&);
 void OrderByDistance(Node::Pointer &p_node, GlobalPointersVector<Node >& neigh_nodes);
 bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer &p_node, const unsigned int&);
@@ -324,11 +324,11 @@ double CalculateTheMaximumDistanceToNeighbours(Node::Pointer& p_node);
 double CalculateTheMaximumEdgeLength(ModelPart& r_model_part);
 double CalculateTheMinumumEdgeLength(ModelPart& r_model_part);
 void ClassifyEdgeNodes(ModelPart& r_model_part);
-void ComputeDerivativeMonomialsVector(unsigned int& ord, DenseMatrix<double>& result);
-void ComputeDerivativeMonomialsVector(array_1d<double, 3>& position, Node& r_node, unsigned int& ord, DenseMatrix<double>& result);
-void ComputeGradientForVertexNode(Node& inode, unsigned int& ord, Vector& gradient, Variable<double>& scalar_container);
-void ComputeGradientForEdgeNode(Node& inode, unsigned int& ord, Vector& gradient, Variable<double>& scalar_container);
-void CheckNeighbours(ModelPart& r_model_part);
+void ComputeDerivativeMonomialsVector(const unsigned int& ord, DenseMatrix<double>& result);
+void ComputeDerivativeMonomialsVector(array_1d<double, 3>& position, Node& r_node, const unsigned int& ord, DenseMatrix<double>& result);
+void ComputeGradientForVertexNode(Node& inode, const unsigned int& ord, Vector& gradient, Variable<double>& scalar_container);
+void ComputeGradientForEdgeNode(Node& inode, const unsigned int& ord, Vector& gradient, Variable<double>& scalar_container);
+void CheckContiguousNodes(ModelPart& r_model_part);
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
