@@ -46,7 +46,7 @@ public:
     enum XmlOutputType
     {
         RAW = 0,
-        RAW_COMPRESSED = 1
+        COMPRESSED_RAW = 1
     };
 
     ///@}

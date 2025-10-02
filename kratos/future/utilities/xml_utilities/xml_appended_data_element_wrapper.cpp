@@ -53,7 +53,7 @@ XmlElement::Pointer XmlAppendedDataElementWrapper::Get(
                 XmlUtilities::AppendData(this->mData, p_nd_data->ViewData().data(), number_of_values, &data_size, 1u);
                 break;
             }
-            case RAW_COMPRESSED: {
+            case COMPRESSED_RAW: {
                 using nd_data_type = typename BareType<decltype(*p_nd_data)>::DataType;
 
                 const auto uncompressed_data = reinterpret_cast<Bytef const *>(p_nd_data->ViewData().data());
