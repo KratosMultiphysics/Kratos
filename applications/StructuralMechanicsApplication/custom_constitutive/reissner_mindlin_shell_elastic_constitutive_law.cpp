@@ -117,27 +117,67 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponseCauchy
     const double nu = r_material_properties[POISSON_RATIO];
     const double t  = r_material_properties[THICKNESS];
 
-    if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+    BoundedMatrixType3x3 Dm; // Membrane constitutive matrix
+    BoundedMatrixType3x3 Db; // Bending constitutive
+    BoundedMatrixType2x2 Ds; // Shear constitutive matrix
+    Dm.clear();
+    Db.clear();
+    Ds.clear();
+
+    BoundedVector3 Em;    // Membrane strains
+    BoundedVector3 Kappa; // Curvatures
+    BoundedVector2 Gamma; // Shear strains
+
+    // Assign the strains
+    Em[0] = r_generalized_strain_vector[0];
+    Em[1] = r_generalized_strain_vector[1];
+    Em[2] = r_generalized_strain_vector[2];
+    Kappa[0] = r_generalized_strain_vector[3];
+    Kappa[1] = r_generalized_strain_vector[4];
+    Kappa[2] = r_generalized_strain_vector[5];
+    Gamma[0] = r_generalized_strain_vector[6];
+    Gamma[1] = r_generalized_strain_vector[7];
+
+    if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS) || r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         auto &r_generalized_stress_vector = rValues.GetStressVector();
         if (r_generalized_stress_vector.size() != strain_size)
             r_generalized_stress_vector.resize(strain_size, false);
 
+        const double one_minus_nu2 = 1.0 - nu * nu;
+        const double half_one_minus_nu = 0.5 * (1.0 - nu);
+        const double Dm_factor = E * t / one_minus_nu2;
+        const double Db_factor = E * t * t * t / (12.0 * one_minus_nu2);
+        const double k_shear = 5.0 / 6.0; // Shear correction factor
+        // const double h_max = rValues.GetElementGeometry().MaxEdgeLength();
+        // const double alpha = 1.0; // This could be an input property
+        // const double Ds_factor = k_shear * t / (t * t + alpha * h_max * h_max);
 
+        auto &r_gen_const_matrix = rValues.GetConstitutiveMatrix();
+        if (r_gen_const_matrix.size1() != strain_size || r_gen_const_matrix.size2() != strain_size)
+            r_gen_const_matrix.resize(strain_size, strain_size, false);
+        r_gen_const_matrix.clear();
 
+        // Membrane constitutive matrix
+        r_gen_const_matrix(0, 0) = Dm_factor;
+        r_gen_const_matrix(0, 1) = Dm_factor * nu;
+        r_gen_const_matrix(1, 0) = r_gen_const_matrix(0, 1);
+        r_gen_const_matrix(1, 1) = Dm_factor;
+        r_gen_const_matrix(2, 2) = Dm_factor * half_one_minus_nu;
 
+        // Bending constitutive matrix
+        r_gen_const_matrix(3, 3) = Db_factor;
+        r_gen_const_matrix(3, 4) = Db_factor * nu;
+        r_gen_const_matrix(4, 3) = r_gen_const_matrix(3, 4);
+        r_gen_const_matrix(4, 4) = Db_factor;
+        r_gen_const_matrix(5, 5) = Db_factor * half_one_minus_nu;
 
-        AddInitialStressVectorContribution(r_generalized_stress_vector);
+        // Shear constitutive matrix
+        r_gen_const_matrix(6, 6) = k_shear * t * ConstitutiveLawUtilities<3>::CalculateShearModulus(rValues.GetMaterialProperties());
+        r_gen_const_matrix(7, 7) = r_gen_const_matrix(6, 6);
 
-        if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            auto &r_stress_derivatives = rValues.GetConstitutiveMatrix(); // dN_dEl, dM_dkappa, dV_dGamma_xy
-            if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)
-                r_stress_derivatives.resize(strain_size, strain_size, false);
-            r_stress_derivatives.clear();
-
-
-
-
-
+        if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+            noalias(r_generalized_stress_vector) = prod(r_gen_const_matrix, r_generalized_strain_vector);
+            AddInitialStressVectorContribution(r_generalized_stress_vector);
         }
     }
 }
