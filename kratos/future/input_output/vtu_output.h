@@ -15,7 +15,6 @@
 // System includes
 #include <map>
 #include <string>
-#include <unordered_map>
 #include <variant>
 
 // External includes
@@ -47,8 +46,7 @@
  * - CellContainerPointerType: Variant type for supported cell container pointers.
  * - SupportedVariablePointerType: Variant type for supported @ref Variable pointers.
  * - SupportedTensorAdaptorPointerType: Variant type for supported @ref TensorAdaptor pointers.
- * - IndicesMap: Unordered map for index mapping between Kratos node ids and Vtk point indices.
- * - DataMap: Unordered map for @ref Globals::DataLocation and map of data field name and type of the data field.
+ * - DataList: A list of map of data field name and type of the data field for each @ref Globals::DataLocation.
  *
  * @section VtuOutput_Enums Enums
  * - WriterFormat: Specifies output format (ASCII, BINARY, RAW, COMPRESSED_RAW).
@@ -94,10 +92,8 @@ public:
                                                     TensorAdaptor<double>::Pointer
                                                 >;
 
-    using IndicesMap = std::unordered_map<IndexType, IndexType>;
-
     template<class T>
-    using DataMap = std::unordered_map<Globals::DataLocation, std::map<std::string, T>>;
+    using DataList = std::array<std::map<std::string, T>, static_cast<std::size_t>(Kratos::Globals::DataLocation::NumberOfDataLocations)>;
 
     KRATOS_CLASS_POINTER_DEFINITION(VtuOutput);
 
@@ -325,11 +321,11 @@ private:
 
     const IndexType mPrecision;
 
-    DataMap<Flags const *> mFlags;
+    DataList<Flags const *> mFlags;
 
-    DataMap<SupportedVariablePointerType> mVariables;
+    DataList<SupportedVariablePointerType> mVariables;
 
-    DataMap<SupportedVariablePointerType> mIntegrationPointVariables;
+    DataList<SupportedVariablePointerType> mIntegrationPointVariables;
 
     std::vector<UnstructuredGridData> mUnstructuredGridDataList;
 

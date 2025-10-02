@@ -58,13 +58,11 @@ template<class... T>
 void CheckDataArrayName(
     const std::string& rName,
     const std::vector<Globals::DataLocation>& rLocations,
-    const VtuOutput::DataMap<T>&... rMaps)
+    const VtuOutput::DataList<T>&... rList)
 {
     for (const auto& r_location : rLocations) {
-        const bool found_existing_name =
-            !(... && (rMaps.find(r_location) == rMaps.end() ||
-                      rMaps.find(r_location)->second.find(rName) ==
-                          rMaps.find(r_location)->second.end()));
+        const bool found_existing_name = !(... && (rList[static_cast<IndexType>(r_location)].find(rName) == rList[static_cast<IndexType>(r_location)].end()));
+
         KRATOS_ERROR_IF(found_existing_name)
                 << "Found an existing data array with the same name = \"" << rName << "\".\n";
     }
@@ -613,34 +611,20 @@ std::string GetName(
     return std::visit([](const auto& rArg) { return rArg->Name(); }, rArg);
 }
 
-template<class TKeyType, class T>
-const T& GetUnorderedMapValue(
-    const TKeyType& rKey,
-    const std::unordered_map<TKeyType, T>& rMap)
-{
-    auto itr = rMap.find(rKey);
-    if (itr != rMap.end()) {
-        return itr->second;
-    } else {
-        static const T default_value{};
-        return default_value;
-    }
-}
-
-template<class TMapType, class TCellPointerType>
-const TMapType& GetContainerMap(
-    const std::unordered_map<Globals::DataLocation, TMapType>& rMap,
+template<class T, class TCellPointerType>
+const typename VtuOutput::DataList<T>::value_type& GetContainerMap(
+    const VtuOutput::DataList<T>& rList,
     TCellPointerType pCellPointer)
 {
-    return std::visit([&rMap](auto pContainer) -> const TMapType& {
+    return std::visit([&rList](auto pContainer) -> const typename VtuOutput::DataList<T>::value_type& {
         using container_type = BareType<decltype(*pContainer)>;
         if constexpr(std::is_same_v<container_type, ModelPart::ConditionsContainerType>) {
-            return GetUnorderedMapValue(Globals::DataLocation::Condition, rMap);
+            return rList[static_cast<IndexType>(Globals::DataLocation::Condition)];
         } else if constexpr(std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
-            return GetUnorderedMapValue(Globals::DataLocation::Element, rMap);
+            return rList[static_cast<IndexType>(Globals::DataLocation::Element)];
         } else {
             KRATOS_ERROR << "Unsupported container type.";
-            return GetUnorderedMapValue(Globals::DataLocation::Element, rMap);
+            return rList[static_cast<IndexType>(Globals::DataLocation::Element)];
         }
     }, pCellPointer);
 }
@@ -756,29 +740,28 @@ template<class TMapType>
 void PrintDataLocationData(
     std::ostream& rOStream,
     const std::string& rMapType,
-    const std::unordered_map<Globals::DataLocation, TMapType>& rMap)
+    const VtuOutput::DataList<TMapType>& rList)
 {
     rOStream << "List of " << rMapType << "s:";
-    for (const auto& [data_location, map] : rMap) {
-        switch (data_location) {
-            case Globals::DataLocation::NodeHistorical:
+    for (IndexType i = 0; i < rList.size(); ++i) {
+        switch (i) {
+            case static_cast<IndexType>(Globals::DataLocation::NodeHistorical):
                 rOStream << "\n\tNode historical " << rMapType << "s:";
                 break;
-            case Globals::DataLocation::NodeNonHistorical:
+            case static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical):
                 rOStream << "\n\tNode " << rMapType << "s:";
                 break;
-            case Globals::DataLocation::Condition:
+            case static_cast<IndexType>(Globals::DataLocation::Condition):
                 rOStream << "\n\tCondition " << rMapType << "s:";
                 break;
-            case Globals::DataLocation::Element:
+            case static_cast<IndexType>(Globals::DataLocation::Element):
                 rOStream << "\n\tElement " << rMapType << "s:";
                 break;
             default:
-                rOStream << "\n\tUnsupported " << rMapType << "s:";
                 break;
         }
 
-        for ([[maybe_unused]]const auto& [name, variable] : map) {
+        for ([[maybe_unused]]const auto& [name, variable] : rList[i]) {
             rOStream << "\n\t\t" << name;
         }
     }
@@ -911,7 +894,7 @@ void VtuOutput::AddFlag(
         case Globals::DataLocation::Element:
             CheckDataArrayName(rFlagName, {DataLocation}, mFlags, mVariables); // checks in the current data location of mVariables map
             CheckDataArrayName(rFlagName, DataLocation, mUnstructuredGridDataList); // checks in the tensor adaptors list
-            mFlags[DataLocation][rFlagName] = &rFlagVariable;
+            mFlags[static_cast<IndexType>(DataLocation)][rFlagName] = &rFlagVariable;
             break;
         default:
             KRATOS_ERROR << "Flags can be only added to NodeNonHistorical, Condition, and Element data locations.";
@@ -942,7 +925,7 @@ void VtuOutput::AddVariable(
         case Globals::DataLocation::Element:
             CheckDataArrayName(GetName(pVariable), {DataLocation}, mFlags, mVariables); // checks in the current data location of mVariables map
             CheckDataArrayName(GetName(pVariable), DataLocation, mUnstructuredGridDataList); // checks in the tensor adaptors list
-            mVariables[DataLocation][GetName(pVariable)] = pVariable;
+            mVariables[static_cast<IndexType>(DataLocation)][GetName(pVariable)] = pVariable;
             break;
         default:
             KRATOS_ERROR << "Variables can be only added to NodeHistorical, NodeNonHistorical, Condition, and Element data locations.";
@@ -966,7 +949,7 @@ void VtuOutput::AddIntegrationPointVariable(
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
             CheckDataArrayName(GetName(pVariable), {DataLocation}, mIntegrationPointVariables); // checks in the current data location of mIntegrationPointVariables map
-            mIntegrationPointVariables[DataLocation][GetName(pVariable)] = pVariable;
+            mIntegrationPointVariables[static_cast<IndexType>(DataLocation)][GetName(pVariable)] = pVariable;
             break;
         default:
             KRATOS_ERROR << "Integration point variables can be only added to Condition, and Element data locations.";
@@ -1159,9 +1142,9 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 2) << "--- Collecting nodal data fields...\n";
         // generate and add point field data
         std::vector<IndexType> all_indices(p_nodes->size());
-        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mFlags), *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel);
-        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeNonHistorical, mVariables), *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel);
-        AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, GetUnorderedMapValue(Globals::DataLocation::NodeHistorical, mVariables), *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel, 0);
+        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, mFlags[static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel);
+        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, mVariables[static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel);
+        AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, mVariables[static_cast<IndexType>(Globals::DataLocation::NodeHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel, 0);
         AddFields(*point_data_element, rUnstructuredGridData.mMapOfPointTensorAdaptors, *p_xml_data_element_wrapper, all_indices, r_data_communicator, mEchoLevel);
     }
 
