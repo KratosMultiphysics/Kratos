@@ -66,8 +66,6 @@ public:
 
     /// The definition of the sizetype
     using SizeType = std::size_t;
-    using BaseType::CalculateDerivativesOnInitialConfiguration;
-    using BaseType::CalculateGreenLagrangeStrain;
 
     /// Counted pointer of UpdatedLagrangianUPwDiffOrderElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianUPwDiffOrderElement);

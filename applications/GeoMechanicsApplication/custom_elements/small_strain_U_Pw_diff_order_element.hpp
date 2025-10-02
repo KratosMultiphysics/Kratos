@@ -1313,7 +1313,7 @@ protected:
         KRATOS_CATCH("")
     }
 
-    Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
+    inline Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
     {
         return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
     }
