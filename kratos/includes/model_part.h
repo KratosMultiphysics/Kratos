@@ -29,7 +29,6 @@
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
-#include "containers/geometry_container.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
@@ -247,16 +246,20 @@ public:
     /**
     * Contains all geometries, which can be addressed by specific identifiers.
     */
-    typedef GeometryContainer<GeometryType> GeometryContainerType;
+   /// Type alias for the container of geometries.
+    using GeometryContainerType = PointerVectorSet<GeometryType,
+        IndexedObject,
+        std::less<typename IndexedObject::result_type>,
+        std::equal_to<typename IndexedObject::result_type>,
+        typename GeometryType::Pointer,
+        std::vector<typename GeometryType::Pointer>
+    >;
 
-    /// Geometry Iterator
-    typedef typename GeometryContainerType::GeometryIterator GeometryIterator;
+    /// Iterator for geometries in the container. Provides direct references to geometries.
+    typedef typename GeometryContainerType::iterator GeometryIterator;
 
-    /// Const Geometry Iterator
-    typedef typename GeometryContainerType::GeometryConstantIterator GeometryConstantIterator;
-
-    /// Geometry Hash Map Container. Stores with hash of Ids to corresponding geometries.
-    typedef typename GeometryContainerType::GeometriesMapType GeometriesMapType;
+    /// Const iterator for geometries in the container. Provides direct references to geometries.
+    typedef typename GeometryContainerType::const_iterator GeometryConstantIterator;
 
     /// The container of the sub model parts. A hash table is used.
     /**
@@ -1352,7 +1355,7 @@ public:
 
     SizeType NumberOfGeometries() const
     {
-        return mGeometries.NumberOfGeometries();
+        return mGeometries.size();
     }
 
     /**
@@ -1472,7 +1475,7 @@ public:
         ModelPart* p_root_model_part = &this->GetRootModelPart();
 
         block_for_each(GeometryBegin, GeometriesEnd, [p_root_model_part](const auto& prGeometry) {
-            const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Get(prGeometry);
+            const auto& r_geometry = ReferenceGetter<GeometryContainerType::value_type>::Get(prGeometry);
             const auto& r_geometries = p_root_model_part->Geometries();
             auto it_found = r_geometries.find(r_geometry.Id());
             if (it_found != p_root_model_part->GeometriesEnd()) {
@@ -1507,7 +1510,7 @@ public:
             ModelPart* p_root_model_part = &this->GetRootModelPart();
 
             block_for_each(rInputContainer.begin(), rInputContainer.end(), [p_root_model_part](const auto& prGeometry) {
-                const auto& r_geometry = ReferenceGetter<GeometriesMapType::value_type>::Get(prGeometry);
+                const auto& r_geometry = ReferenceGetter<GeometryContainerType::value_type>::Get(prGeometry);
                 const auto& r_geometries = p_root_model_part->Geometries();
                 auto it_found = r_geometries.find(r_geometry.Id());
                 if (it_found != p_root_model_part->GeometriesEnd()) {
@@ -1536,53 +1539,64 @@ public:
 
     /// Returns the Geometry::Pointer corresponding to the Id
     typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {
-        return mGeometries.pGetGeometry(GeometryId);
+        auto i = mGeometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
+        return *(i.base());
     }
 
     /// Returns the const Geometry::Pointer corresponding to the Id
     const typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) const {
-        return mGeometries.pGetGeometry(GeometryId);
+        auto i = mGeometries.find(GeometryId);
+        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
+        return *(i.base());
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
     typename GeometryType::Pointer pGetGeometry(std::string GeometryName) {
-        return mGeometries.pGetGeometry(GeometryName);
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        auto i = mGeometries.find(hash_index);
+        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryName << ".";
+        return *(i.base());
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
     const typename GeometryType::Pointer pGetGeometry(std::string GeometryName) const {
-        return mGeometries.pGetGeometry(GeometryName);
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        auto i = mGeometries.find(hash_index);
+        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryName << ".";
+        return *(i.base());
     }
 
     /// Returns a reference geometry corresponding to the id
     GeometryType& GetGeometry(IndexType GeometryId) {
-        return mGeometries.GetGeometry(GeometryId);
+        return *pGetGeometry(GeometryId);
     }
 
     /// Returns a const reference geometry corresponding to the id
     const GeometryType& GetGeometry(IndexType GeometryId) const {
-        return mGeometries.GetGeometry(GeometryId);
+        return *pGetGeometry(GeometryId);
     }
 
     /// Returns a reference geometry corresponding to the name
     GeometryType& GetGeometry(std::string GeometryName) {
-        return mGeometries.GetGeometry(GeometryName);
+        return *pGetGeometry(GeometryName);
     }
 
     /// Returns a const reference geometry corresponding to the name
     const GeometryType& GetGeometry(std::string GeometryName) const {
-        return mGeometries.GetGeometry(GeometryName);
+        return *pGetGeometry(GeometryName);
     }
 
 
     /// Checks if has geometry by id.
     bool HasGeometry(IndexType GeometryId) const {
-        return mGeometries.HasGeometry(GeometryId);
+        return (mGeometries.find(GeometryId) != mGeometries.end());
     }
 
     /// Checks if has geometry by name.
     bool HasGeometry(std::string GeometryName) const {
-        return mGeometries.HasGeometry(GeometryName);
+        auto hash_index = GeometryType::GenerateId(GeometryName);
+        return (mGeometries.find(hash_index) != mGeometries.end());
     }
 
 
@@ -1601,35 +1615,35 @@ public:
 
     /// Begin geometry iterator
     GeometryIterator GeometriesBegin() {
-        return mGeometries.GeometriesBegin();
+        return mGeometries.begin();
     }
 
     /// Begin geometry const iterator
     GeometryConstantIterator GeometriesBegin() const {
-        return mGeometries.GeometriesBegin();
+        return mGeometries.begin();
     }
 
     /// End geometry iterator
     GeometryIterator GeometriesEnd() {
-        return mGeometries.GeometriesEnd();
+        return mGeometries.end();
     }
 
     /// End geometry const iterator
     GeometryConstantIterator GeometriesEnd() const {
-        return mGeometries.GeometriesEnd();
+        return mGeometries.end();
     }
 
 
-    /// Get geometry map container
-    GeometriesMapType& Geometries()
+    /// Get geometry container
+    GeometryContainerType& Geometries()
     {
-        return mGeometries.Geometries();
+        return mGeometries;
     }
 
     /// Get geometry map container
-    const GeometriesMapType& Geometries() const
+    const GeometryContainerType& Geometries() const
     {
-        return mGeometries.Geometries();
+        return mGeometries;
     }
 
     ///@}
@@ -1716,35 +1730,47 @@ public:
     ///@}
     ///@name Access
     ///@{
+    
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo& GetProcessInfo()
     {
-        return *mpProcessInfo;
+        return *(this->GetRootModelPart().mpProcessInfo);
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo const& GetProcessInfo() const
     {
-        return *mpProcessInfo;
+        return *(this->GetRootModelPart().mpProcessInfo);
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo::Pointer pGetProcessInfo()
     {
-        return mpProcessInfo;
+        return this->GetRootModelPart().mpProcessInfo;
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     const ProcessInfo::Pointer pGetProcessInfo() const
     {
-        return mpProcessInfo;
+        return this->GetRootModelPart().mpProcessInfo;
     }
 
+    /**
+     * @brief Set the @ref ProcessInfo associated with the current @ref ModelPart tree.
+     * @param pNewProcessInfo pointer to the new @ref ProcessInfo object.
+     */
     void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
     {
-        mpProcessInfo = pNewProcessInfo;
-    }
-
-    void SetProcessInfo(ProcessInfo& NewProcessInfo)
-    {
-        *mpProcessInfo = NewProcessInfo;
+        this->GetRootModelPart().mpProcessInfo = pNewProcessInfo;
     }
 
     SizeType NumberOfMeshes()
@@ -2244,11 +2270,21 @@ template <> struct ModelPart::Container<ModelPart::MasterSlaveConstraintContaine
     static MasterSlaveConstraintContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.MasterSlaveConstraints(); }
 };
 
-template <> struct ModelPart::Container<ModelPart::GeometriesMapType> {
+template <> struct ModelPart::Container<ModelPart::GeometryContainerType> {
     static std::string GetEntityName() { return "geometry"; }
     // TODO: Can be used once we move the geometries container to meshes.
-    // static GeometriesMapType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Geometries(); }
+    // static GeometryContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Geometries(); }
 };
+
+template <> struct ModelPart::Container<ModelPart::PropertiesContainerType> {
+    static std::string GetEntityName() { return "property"; }
+    static ModelPart::PropertiesContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Properties(); }
+};
+
+template <> struct ModelPart::Container<ModelPart::DofsArrayType> {
+    static std::string GetEntityName() { return "dof"; }
+};
+
 
 ///@}
 ///@name Input and output

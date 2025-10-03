@@ -15,6 +15,8 @@ has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("
 ##### SELF-CONTAINED TESTS #####
 # CL tests
 from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
+# Constraint tests
+from test_link_constraint import TestLinkConstraint
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
@@ -106,6 +108,7 @@ from structural_mechanics_test_factory import TimoshenkoBeam3D2NTest as TTimoshe
 from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshenkoBeam2D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D3NTest as TTimoshenkoBeam2D3NTest
 from structural_mechanics_test_factory import TimoshenkoCurvedBeam2D3NTest as TTimoshenkoCurvedBeam2D3NTest
+from structural_mechanics_test_factory import TimoshenkoCurvedBeam3D3NTest as TTimoshenkoCurvedBeam3D3NTest
 from structural_mechanics_test_factory import AutomatedInitialVariableProcessTest as TAutomatedInitialVariableProcessTest
 from structural_mechanics_test_factory import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from structural_mechanics_test_factory import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -275,6 +278,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
     nightSuite.addTest(TInitialStateElasticityTest('test_execution'))
     nightSuite.addTest(TInitialStrainShellQ4ThickTest('test_execution'))
+    # Constraint tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCase(TestLinkConstraint))
     # Mass calculation tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
@@ -361,6 +366,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TTimoshenkoBeam2D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D3NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoCurvedBeam2D3NTest('test_execution'))
+    smallSuite.addTest(TTimoshenkoCurvedBeam3D3NTest('test_execution'))
     smallSuite.addTest(TAutomatedInitialVariableProcessTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))

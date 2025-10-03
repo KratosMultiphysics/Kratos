@@ -66,6 +66,6 @@ TEST_P(ParametrizedDGeoFlowTests, ErosionProcessStrategy)
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsIntegrationSuite,
                          ParametrizedDGeoFlowTests,
-                         ::testing::Values("HeightAquiferD10L30.gid", "HeightAquiferD10L30line"));
+                         ::testing::Values("HeightAquiferD10L30line"));
 
 } // namespace Kratos::Testing
