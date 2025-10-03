@@ -14,12 +14,16 @@
 
 // System includes
 #include <numeric>
+#include <algorithm>
+#include <vector>
+#include <iterator>
 
 // External includes
 #include <pybind11/numpy.h>
 
 // Project includes
 #include "containers/nd_data.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos::Python
 {
@@ -97,7 +101,7 @@ bool AssignDataImpl(
         const auto& cast_array = rArray.cast<pybind11::array_t<TPybindArrayType, pybind11::array::c_style>>();
         auto r_destination_span = rDDArray.ViewData();
         const auto& r_origin_data = cast_array.data();
-        IndexPartition<IndexType>(r_destination_span.size()).for_each([&r_destination_span, &r_origin_data](const auto Index) {
+        IndexPartition<std::size_t>(r_destination_span.size()).for_each([&r_destination_span, &r_origin_data](const auto Index) {
             r_destination_span[Index] = static_cast<TDataType>(r_origin_data[Index]);
         });
         return true;

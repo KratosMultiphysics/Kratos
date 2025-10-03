@@ -102,24 +102,23 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         test_name = 'line_loads_in_stages'
         parent_name = 'line_load_tests'
         file_path = test_helper.get_file_path(os.path.join(parent_name, test_name, "Legacy"))
-        comparison_data = [("test_stage1.post.res", 50.0),
-                           ("test_stage2.post.res", 100.0)]
+        comparison_data = [("test_stage1.post.res", 50.0, 1.0),
+                           ("test_stage2.post.res", 100.0, 2.0)]
         number_of_stages = len(comparison_data)
         run_multiple_stages.run_stages(file_path, number_of_stages)
 
-        time = 1.0
         bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
-        for output_file_name, expected_total_reaction_y in comparison_data:
+        for output_file_name, expected_total_reaction_y, stage_time in comparison_data:
             output_file_path = os.path.join(file_path, output_file_name)
-            total_reaction_y = self.total_reaction_y_from_file(output_file_path, time, bottom_node_ids)
+            total_reaction_y = self.total_reaction_y_from_file(output_file_path, stage_time, bottom_node_ids)
             self.assertAlmostEqual(total_reaction_y, expected_total_reaction_y, places=3)
 
     def test_line_loads_with_orchestrator(self):
        test_name = 'line_loads_in_stages'
        parent_name = 'line_load_tests'
        file_path = test_helper.get_file_path(os.path.join(parent_name, test_name, "Orchestrator"))
-       comparison_data = [("test_stage1.post.res", 50.0),
-                          ("test_stage2.post.res", 100.0)]
+       comparison_data = [("test_stage1.post.res", 50.0, 1.0),
+                          ("test_stage2.post.res", 100.0, 2.0)]
 
        project_parameters_filename = test_helper.get_file_path(os.path.join(file_path, "ProjectParameters.json"))
        # Parse simulation settings and run simulation
@@ -136,11 +135,10 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
        orchestrator_instance = orchestrator_class(project)
        orchestrator_instance.Run()
 
-       time = 1.0
        bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
-       for output_file_name, expected_total_reaction_y in comparison_data:
+       for output_file_name, expected_total_reaction_y, stage_time in comparison_data:
            output_file_path = os.path.join(file_path, output_file_name)
-           total_reaction_y = self.total_reaction_y_from_file(output_file_path, time, bottom_node_ids)
+           total_reaction_y = self.total_reaction_y_from_file(output_file_path, stage_time, bottom_node_ids)
            self.assertAlmostEqual(total_reaction_y, expected_total_reaction_y, places=3)
 
        os.chdir(cwd)
@@ -158,7 +156,7 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         project_parameters_filename = test_helper.get_file_path(os.path.join(file_path, "ProjectParametersLoadFromCheckpoint.json"))
         self.run_orchestrator_based_workflow(file_path, project_parameters_filename)
 
-        time = 1.0
+        time = 2.0
         bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
         for output_file_name, expected_total_reaction_y in comparison_data:
             output_file_path = os.path.join(file_path, output_file_name)

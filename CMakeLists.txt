@@ -79,7 +79,7 @@ if (APPLE)
   cmake_policy(SET CMP0042 NEW)
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
 else()
-  set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif()
 
 # If no test policy enable by default
@@ -393,6 +393,11 @@ endif(KRATOS_BUILD_BENCHMARK MATCHES ON)
 if(DEFINED ENV{PYTHON_EXECUTABLE})
   set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
 endif(DEFINED ENV{PYTHON_EXECUTABLE})
+
+# Try to use python library from env variable
+if(DEFINED ENV{PYTHON_LIBRARY})
+  set(PYTHON_LIBRARY $ENV{PYTHON_LIBRARY})
+endif(DEFINED ENV{PYTHON_LIBRARY})
 
 include(pybind11Tools)
 
@@ -754,6 +759,7 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+install(FILES ${KRATOS_SOURCE_DIR}/kratos/pyproject.toml DESTINATION .)
 
 # Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
 add_subdirectory("scripts/post_install")
