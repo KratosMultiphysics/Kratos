@@ -2171,14 +2171,14 @@ void MmgUtilities<MMGLibrary::MMGS>::SetNumberOfMaterialParameter(const int Numb
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG2D>::SetNumberOfSubdomainsParameter(const int NumberOfSubdomains)
+void MmgUtilities<MMGLibrary::MMG2D>::SetReferenceOfSubdomainsParameter(const int ReferenceOfSubdomain)
 {
     KRATOS_TRY;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgSol, MMG2D_IPARAM_numsubdomain, NumberOfSubdomains) ) << "Unable to set number of subdomains" << std::endl;
+        KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgSol, MMG2D_IPARAM_numsubdomain, ReferenceOfSubdomain) ) << "Unable to set reference of subdomain" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgMet, MMG2D_IPARAM_numsubdomain, NumberOfSubdomains) ) << "Unable to set number of subdomains" << std::endl;
+        KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgMet, MMG2D_IPARAM_numsubdomain, ReferenceOfSubdomain) ) << "Unable to set reference of subdomain" << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -2188,14 +2188,14 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetNumberOfSubdomainsParameter(const int N
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMG3D>::SetNumberOfSubdomainsParameter(const int NumberOfSubdomains)
+void MmgUtilities<MMGLibrary::MMG3D>::SetReferenceOfSubdomainsParameter(const int ReferenceOfSubdomain)
 {
     KRATOS_TRY;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgSol, MMG3D_IPARAM_numsubdomain, NumberOfSubdomains) ) << "Unable to set number of subdomains" << std::endl;
+        KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgSol, MMG3D_IPARAM_numsubdomain, ReferenceOfSubdomain) ) << "Unable to set reference of subdomain" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgMet, MMG3D_IPARAM_numsubdomain, NumberOfSubdomains) ) << "Unable to set number of subdomains" << std::endl;
+        KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgMet, MMG3D_IPARAM_numsubdomain, ReferenceOfSubdomain) ) << "Unable to set reference of subdomain" << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -2205,14 +2205,14 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetNumberOfSubdomainsParameter(const int N
 /***********************************************************************************/
 
 template<>
-void MmgUtilities<MMGLibrary::MMGS>::SetNumberOfSubdomainsParameter(const int NumberOfSubdomains)
+void MmgUtilities<MMGLibrary::MMGS>::SetReferenceOfSubdomainsParameter(const int ReferenceOfSubdomain)
 {
     KRATOS_TRY;
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgSol, MMGS_IPARAM_numsubdomain, NumberOfSubdomains) ) << "Unable to set number of subdomains" << std::endl;
+        KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgSol, MMGS_IPARAM_numsubdomain, ReferenceOfSubdomain) ) << "Unable to set reference of subdomain" << std::endl;
     } else {
-        KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgMet, MMGS_IPARAM_numsubdomain, NumberOfSubdomains) ) << "Unable to set number of subdomains" << std::endl;
+        KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgMet, MMGS_IPARAM_numsubdomain, ReferenceOfSubdomain) ) << "Unable to set reference of subdomain" << std::endl;
     }
 
     KRATOS_CATCH("");

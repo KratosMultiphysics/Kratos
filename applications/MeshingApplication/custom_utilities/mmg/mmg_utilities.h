@@ -493,9 +493,9 @@ public:
 
     /**
      * @brief Sets the number of subdomains or parameters to be used.
-     * @param[in] NumberOfSubdomains The number of distinct subdomains to configure.
+     * @param[in] ReferenceOfSubdomain The number of distinct subdomains to configure.
      */
-    virtual void SetNumberOfSubdomainsParameter(const int NumberOfSubdomains);
+    virtual void SetReferenceOfSubdomainsParameter(const int ReferenceOfSubdomain);
 
     /**
      * @brief This sets the relaxation value using the API
