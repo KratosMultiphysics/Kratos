@@ -334,6 +334,15 @@ protected:
         mConstitutiveLawVector = rThisConstitutiveLawVector;
     }
 
+    /**
+     * @brief Sets the used SetSubTriangulationGeometries
+     * @param rSubTriangulationGeometries SubTriangulationGeometries used
+     */
+    void SetSubTriangulationGeometries(const std::vector<GeometryType::Pointer>& rSubTriangulationGeometries)
+    {
+        mpSubTriangulationGeometries = rSubTriangulationGeometries;
+    }
+
 
     ///@}
     ///@name Protected  Access

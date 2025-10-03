@@ -93,6 +93,9 @@ Element::Pointer CSDSG3ThickShellElement3D3N::Clone(
     // The vector containing the constitutive laws
     p_new_elem->SetConstitutiveLawVector(mConstitutiveLawVector);
 
+    // The triangulation geometries
+    p_new_elem->SetSubTriangulationGeometries(mpSubTriangulationGeometries);
+
     return p_new_elem;
 
     KRATOS_CATCH("");
