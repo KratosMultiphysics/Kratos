@@ -166,6 +166,26 @@ void CSDSG3ThickShellElement3D3N::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void CSDSG3ThickShellElement3D3N::CalculateB(
+    Matrix &rB,
+    const GeometryType::Pointer pTriangleGeometry // the geometry of the sub-triangle
+)
+{
+    const IndexType strain_size = GetStrainSize();
+    const IndexType number_of_nodes = pTriangleGeometry->PointsNumber();
+    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+
+    if (rB.size1() != strain_size || rB.size2() != system_size)
+        rB.resize(strain_size, system_size, false);
+    rB.clear();
+
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     MatrixType& rLHS,
     VectorType& rRHS,

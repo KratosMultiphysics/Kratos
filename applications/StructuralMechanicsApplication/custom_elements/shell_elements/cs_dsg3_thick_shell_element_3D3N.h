@@ -119,7 +119,7 @@ public:
     /**
      * @brief Indicates the amount of DoFs per node (u, v, w, theta_x, theta_y, theta_z)
      */
-    virtual IndexType GetDoFsPerNode() const
+    IndexType GetDoFsPerNode() const
     {
         return 6;
     }
@@ -197,6 +197,14 @@ public:
         return GetGeometry().IntegrationPoints(ThisMethod);
     }
 
+    /**
+     * @brief This method computes the Strain-Displacement matrix B, used to relate nodal displacements to strains
+     * @details The B matrix includes the membrane, bending and shear parts. Size of 8x18 since we have 8 generalized strains and 18 dofs (3 nodes with 6 dofs each)
+     */
+    void CalculateB(
+        Matrix &rB,
+        const GeometryType::Pointer pTriangleGeometry // the geometry of the sub-triangle
+    );
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -240,6 +248,17 @@ public:
      */
     int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
+
+    /**
+    * @brief This function returns the size of the strain vector
+    **/
+    IndexType GetStrainSize() const
+    {
+        // We can call this method after we perform the Initialize
+        return mConstitutiveLawVector[0]->GetStrainSize();
+    }
+
+
     ///@}
     ///@name Access
     ///@{
@@ -282,6 +301,8 @@ protected:
     IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; /// Currently selected integration methods
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
+
+    std::vector<GeometryType::Pointer> mSubTriangulationGeometries; /// the 3 sub-triangles used for the DSG
 
     ///@}
     ///@name Protected Operators
