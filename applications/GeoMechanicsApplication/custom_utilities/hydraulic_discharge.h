@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include "custom_utilities/node_utilities.h"
-#include "geo_mechanics_application_variables.h"
 #include "includes/kratos_export_api.h"
 #include "includes/properties.h"
 
