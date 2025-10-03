@@ -25,11 +25,11 @@ CoulombYieldSurface::CoulombYieldSurface(double FrictionAngleInRad, double Cohes
 {
 }
 
-double CoulombYieldSurface::GetFrictionAngleInRad() const { return mFrictionAngle; }
+double CoulombYieldSurface::GetFrictionAngleInRadians() const { return mFrictionAngle; }
 
 double CoulombYieldSurface::GetCohesion() const { return mCohesion; }
 
-double CoulombYieldSurface::GetDilatationAngleInRad() const { return mDilatationAngle; }
+double CoulombYieldSurface::GetDilatationAngleInRadians() const { return mDilatationAngle; }
 
 double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
