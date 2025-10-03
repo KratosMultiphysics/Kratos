@@ -32,45 +32,46 @@ void CSDSG3ThickShellElement3D3N::Initialize(const ProcessInfo& rCurrentProcessI
     KRATOS_TRY
 
     // Initialization should not be done again in a restart!
-    // if (!rCurrentProcessInfo[IS_RESTARTED]) {
-    //     if (this->UseGeometryIntegrationMethod()) {
-    //         if (GetProperties().Has(INTEGRATION_ORDER) ) {
-    //             mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
-    //         } else {
-    //             mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
-    //         }
-    //     }
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        if (UseGeometryIntegrationMethod()) {
+            if (GetProperties().Has(INTEGRATION_ORDER) ) {
+                mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
+            } else {
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            }
+        }
 
-    //     const auto& r_integration_points = this->IntegrationPoints(mThisIntegrationMethod);
+        const auto& r_integration_points = this->IntegrationPoints(mThisIntegrationMethod);
 
-    //     // Constitutive Law initialisation
-    //     if (mConstitutiveLawVector.size() != r_integration_points.size())
-    //         mConstitutiveLawVector.resize(r_integration_points.size());
-    //     InitializeMaterial();
-    // }
+        // Constitutive Law initialisation
+        if (mConstitutiveLawVector.size() != r_integration_points.size())
+            mConstitutiveLawVector.resize(r_integration_points.size());
+        InitializeMaterial();
+    }
     KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-// void CSDSG3ThickShellElement3D3N::InitializeMaterial()
-// {
-//     KRATOS_TRY
+void CSDSG3ThickShellElement3D3N::InitializeMaterial()
+{
+    KRATOS_TRY
 
-//     if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
-//         const auto& r_geometry   = GetGeometry();
-//         const auto& r_properties = GetProperties();
-//         auto N_values            = Vector();
-//         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-//             mConstitutiveLawVector[point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
-//             mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, N_values);
-//         }
-//     } else
-//         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+    // TODO: ensure retro-compatibility with older SHELLS using Section class
 
-//     KRATOS_CATCH("");
-// }
+    const auto& r_properties = GetProperties();
+    if (r_properties[CONSTITUTIVE_LAW] != nullptr) {
+        auto N_values = Vector();
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+            mConstitutiveLawVector[point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, GetGeometry(), N_values);
+        }
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the CS-DSG3 shell element with ID " << this->Id() << std::endl;
+
+    KRATOS_CATCH("")
+}
 
 /***********************************************************************************/
 /***********************************************************************************/

@@ -131,6 +131,12 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * @brief This method initializes the constitutive law vector and the individual constitutive laws too
+     * @warning Must be called before any calculation is done
+     */
+    void InitializeMaterial(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief It creates a new element pointer and clones the previous element data
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
