@@ -765,35 +765,66 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
     
     // Get the closest Condition the initial_skin_model_part_in.Conditions
     IndexType id_1 = p_nearest_point->Id();
-    auto nearest_condition_1 = rSkinModelPart.GetCondition(id_1);
-    // Check if the condition is the first one and therefore the previous one does not exist
-    IndexType id_2 = id_1 - 1;
-    if (id_1 == rSkinModelPart.ConditionsBegin()->Id()) {
-        int number_conditions = rSkinModelPart.NumberOfConditions();
-        id_2 = id_1 + number_conditions - 1; 
+    const IndexType first_condition_id = rSkinModelPart.ConditionsBegin()->Id();
+    const IndexType number_conditions = rSkinModelPart.NumberOfConditions();
+
+    auto compute_cross_product_z = [&](IndexType condition_id) {
+        const auto& r_primary_condition = rSkinModelPart.GetCondition(condition_id);
+
+        IndexType previous_condition_id;
+        if (condition_id == first_condition_id) {
+            previous_condition_id = static_cast<IndexType>(first_condition_id + number_conditions - 1);
+        } else {
+            previous_condition_id = condition_id - 1;
+        }
+        const auto& r_previous_condition = rSkinModelPart.GetCondition(previous_condition_id);
+
+        const auto& r_candidate_point_1 = r_primary_condition.GetGeometry()[1].Coordinates();
+        const auto& r_candidate_point_2 = r_previous_condition.GetGeometry()[0].Coordinates();
+
+        array_1d<double,3> v_1;
+        array_1d<double,3> v_2;
+
+        if (MathUtils<double>::Norm(r_candidate_point_1 - rPoint1) > MathUtils<double>::Norm(r_candidate_point_2 - rPoint1)) {
+            // Need to invert the order to preserve the positivity of the area
+            v_1 = r_candidate_point_2 - rPoint1;
+            v_2 = r_primary_condition.GetGeometry()[0] - rPoint1;
+        } else {
+            v_1 = r_primary_condition.GetGeometry()[0] - rPoint1;
+            v_2 = r_candidate_point_1 - rPoint1;
+        }
+
+        array_1d<double,3> cross_product;
+        MathUtils<double>::CrossProduct(cross_product, v_1, v_2);
+        return cross_product[2];
+    };
+
+    const double cross_product_main_z = compute_cross_product_z(id_1);
+
+    IndexType id_2;
+    if (id_1 == first_condition_id) {
+        id_2 = static_cast<IndexType>(first_condition_id + number_conditions - 1);
+    } else {
+        id_2 = id_1 - 1;
     }
-    auto nearest_condition_2 = rSkinModelPart.GetCondition(id_2);
-    // The two candidates nodes
-    const auto& r_coords_candidate_point_1 = nearest_condition_1.GetGeometry()[1].Coordinates();
-    const auto& r_coords_candidate_point_2 = nearest_condition_2.GetGeometry()[0].Coordinates();
-    
-    array_1d<double,3> v_1;
-    array_1d<double,3> v_2;
 
-    if (MathUtils<double>::Norm(r_coords_candidate_point_1-rPoint1) > MathUtils<double>::Norm(r_coords_candidate_point_2-rPoint1)){
-        // Need to invert the order to preserve the positivity of the area
-        v_1 = r_coords_candidate_point_2 - rPoint1;
-        v_2 = nearest_condition_1.GetGeometry()[0] - rPoint1;
-    } else 
-    {
-        v_1 = nearest_condition_1.GetGeometry()[0] - rPoint1;
-        v_2 = r_coords_candidate_point_1 - rPoint1;
+    const double cross_product_previous_z = compute_cross_product_z(id_2);
+
+    if (cross_product_main_z * cross_product_previous_z < 0.0) {
+        const auto& r_condition_main = rSkinModelPart.GetCondition(id_1);
+        const auto& r_condition_previous = rSkinModelPart.GetCondition(id_2);
+
+        Node temp_point(0, rPoint1.X(), rPoint1.Y(), rPoint1.Z());
+        const Node& r_main_second_node = r_condition_main.GetGeometry()[1];
+        const Node& r_prev_first_node = r_condition_previous.GetGeometry()[0];
+        const Node& r_prev_second_node = r_condition_previous.GetGeometry()[1];
+
+        if (SegmentsIntersect(temp_point, r_main_second_node, r_prev_first_node, r_prev_second_node)) {
+            return cross_product_previous_z > 0.0;
+        }
     }
 
-    array_1d<double,3> cross_product;
-    MathUtils<double>::CrossProduct(cross_product, v_1, v_2);
-
-    return cross_product[2] > 0;
+    return cross_product_main_z > 0.0;
 }
 
 
