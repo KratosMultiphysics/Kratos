@@ -30,51 +30,55 @@
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "future/utilities/xml_utilities/xml_data_element_wrapper.h"
 
+namespace Kratos::Future {
+
 /**
  * @class VtuOutput
  * @brief Handles VTU (Visualization Toolkit Unstructured grid) output for Kratos ModelParts.
  * @author Suneth Warnakulasuriya
- * @ingroup InputOutput
+ * @ingroup KratosCore
  *
  * This class provides functionality to export simulation data from a Kratos ModelPart to VTU files,
- * supporting both ASCII and binary formats. It allows users to register @ref Variable, @ref Flags,
+ * supporting both ASCII, BINARY, RAW and COMPRESSED_RAW with zlib compression. It allows users to register @ref Variable , @ref Flags ,
  * and @ref TensorAdaptor for output, and supports writing data on nodes, elements, conditions, and integration points.
  * The output can be configured to include submodel parts and supports parallel execution (MPI).
  *
- * @section TypeDefinitions Type Definitions
- * - IndexType: Alias for std::size_t.
- * - CellContainerPointerType: Variant type for supported cell container pointers.
- * - SupportedVariablePointerType: Variant type for supported @ref Variable pointers.
- * - SupportedTensorAdaptorPointerType: Variant type for supported @ref TensorAdaptor pointers.
- * - DataList: A list of map of data field name and type of the data field for each @ref Globals::DataLocation.
+ * @section vtu_output_usage Usage
+ * This output put process can be used at any point in the simulation (static or dynamic). But, upon construction of an object of
+ * @ref VtuOutput, all the variables, flags, integration point variables and tensor adaptors should be added
+ * using @ref AddFlag, @ref AddVariable, @ref AddIntegrationPointVariable or @ref AddTensorAdaptor . Once the
+ * @ref PrintOutput is called, no more data fields can be added because Vtk library does not support varying fields.
  *
- * @section VtuOutput_Enums Enums
- * - WriterFormat: Specifies output format (ASCII, BINARY, RAW, COMPRESSED_RAW).
+ * But, already added @ref TensorAdaptor objects may be replaced with new @ref TensorAdaptor objects after calling @ref PrintOutput
+ * by using @ref UpdateTensorAdaptor method.
  *
- * @section VtuOutput_Structs Structs
- * - UnstructuredGridData: Holds data for an unstructured grid, including points, cells, and associated fields.
+ * A convenience method called @ref EmplaceTensorAdaptor is there to add the @ref TensorAdaptor if it is not existing and if the call is
+ * before the first call of @ref PrintOutput. Otherwise, it will try replacing an existing @ref TensorAdaptor.
  *
  */
-namespace Kratos::Future {
 class KRATOS_API(KRATOS_CORE) VtuOutput : public IO
 {
 public:
     ///@name Type definitions
     ///@{
 
+    // Index type definition
     using IndexType = std::size_t;
 
+    // Variant defining supported container (i.e. @ref PointerVectorSet ) type pointers.
     using SupportedContainerPointerType = std::variant<
                                             ModelPart::NodesContainerType::Pointer,
                                             ModelPart::ConditionsContainerType::Pointer,
                                             ModelPart::ElementsContainerType::Pointer
                                         >;
 
+    // Variant defining supported cell type @ref PointerVectorSte which can be visualized with cell data with vtk library.
     using CellContainerPointerType = std::variant<
                                         ModelPart::ConditionsContainerType::Pointer,
                                         ModelPart::ElementsContainerType::Pointer
                                     >;
 
+    // Variant defining all the @ref Variable types which are supported to be visualized at point or cell data with vtk library.
     using SupportedVariablePointerType = std::variant<
                                                 Variable<int> const *,
                                                 Variable<double> const *,
@@ -86,12 +90,15 @@ public:
                                                 Variable<Matrix> const *
                                             >;
 
+    // Variant definining all the supported @ref TensorAdaptor which can be used to pass data fields to point or cell data using the vtk library.
     using SupportedTensorAdaptorPointerType = std::variant<
                                                     TensorAdaptor<bool>::Pointer,
                                                     TensorAdaptor<int>::Pointer,
                                                     TensorAdaptor<double>::Pointer
                                                 >;
 
+
+    // A list of maps of name and a @p T for different locations ( @ref Globals::DataLocation ) which are used for output at later time.
     template<class T>
     using DataList = std::array<std::map<std::string, T>, static_cast<std::size_t>(Kratos::Globals::DataLocation::NumberOfDataLocations)>;
 
@@ -104,10 +111,10 @@ public:
     /// Enumerations for the output writer format.
     enum WriterFormat
     {
-        ASCII,                          /// ASCII format.
-        BINARY,                         /// Binary format.
-        RAW,                            /// Raw format. All data is appended to one stream.
-        COMPRESSED_RAW                  /// Data is first compressed with zlib and the appended to one stream.
+        ASCII,                          ///< ASCII format.
+        BINARY,                         ///< Binary format.
+        RAW,                            ///< Raw format. All data is appended to one stream.
+        COMPRESSED_RAW                  ///< Data is first compressed with zlib and the appended to one stream.
     };
 
     struct UnstructuredGridData
@@ -132,6 +139,7 @@ public:
      * @param OutputFormat              The format of the output.
      * @param Precision                 Precision of the double values to be used when writing the doubles as ASCII.
      * @param OutputSubModelParts       To consider all the submodel parts recursively for output.
+     * @param WriteIds                  To write ids under the name "KRATOS_ID" to be visualized.
      * @param EchoLevel                 Echo level for to print information.
      */
     VtuOutput(
@@ -150,9 +158,10 @@ public:
     /**
      * @brief Adds a flag to the VTU output.
      *
-     * This method registers a flag variable to be included in the VTU output file.
-     * The flag will be associated with the specified data location (e.g., node, element, condition).
-     * This allows the Flag's values to be written to the output file when @ref PringOutput is called.
+     * This method registers a flag @p rFlagVariable to be included in the VTU output file.
+     * The flag will be associated with the specified data location (e.g., node, element, condition, refer @ref Globals::DataLocation )
+     * given by @p DataLocation . This allows the Flag's values to be written to the output file
+     * when @ref PrintOutput is called with the name @p rFlagName.
      *
      * @throws std::runtime_error if @ref AddFlag is called after @ref PrintOutput.
      * @throws std::runtime_error if tries to add the same @p rFlagName more than ones.
@@ -163,7 +172,7 @@ public:
      * @param rFlagVariable The flag variable to be added.
      * @param DataLocation The location where the flag data is stored (e.g., NodeNonHistorical, Condition, Element).
      *
-     * @see @ref FlagTensorAdaptor
+     * @see @ref FlagsTensorAdaptor
      */
     void AddFlag(
         const std::string& rFlagName,
@@ -173,9 +182,9 @@ public:
     /**
      * @brief Adds a variable to the output for a specified data location.
      *
-     * Registers the given variable to be included in the VTU output at the specified
-     * data location (e.g., NodeHistorical, NodeNonHistorical, Condition, or Element). This allows the variable's values
-     * to be written to the output file when @ref PringOutput is called.
+     * Registers the given @p pVariable to be included in the VTU output at the specified
+     * @p DataLocation (e.g., NodeHistorical, NodeNonHistorical, Condition, or Element, refer @ref Globals::DataLocation).
+     * This allows the variable's values to be written to the output file when @ref PrintOutput is called.
      *
      * @throws std::runtime_error if @ref AddVariable is called after @ref PrintOutput.
      * @throws std::runtime_error if tries to add the same @p pVariable more than ones.
@@ -195,8 +204,9 @@ public:
     /**
      * @brief Adds a variable to be output at integration points.
      *
-     * This method registers a variable for output at the integration points of the mesh elements or conditions.
-     * This allows the entities variable's integration point values to be written to the output file when @ref PringOutput is called.
+     * This method registers a @p pVariable for output at the integration points of the mesh elements or conditions
+     * specified by @p DataLocation  (refer @ref Globals::DataLocation ). This allows the entities variable's integration point values to
+     * be written to the output file when @ref PrintOutput is called.
      *
      * @throws std::runtime_error if @ref AddIntegrationPointVariable is called after @ref PrintOutput.
      * @throws std::runtime_error if tries to add the same @p pVariable more than ones.
@@ -213,8 +223,9 @@ public:
     /**
      * @brief Adds a tensor adaptor to the output.
      *
-     * Registers a @ref TensorAdaptor with the specified name, and copies the internal data of the @ref TensorAdaptor
-     * to internal storage. When @ref PrintOutput is called, the values of the @ref TensorAdaptor at the point of addition will be written.
+     * Registers a @p pTensorAdaptor with the specified @p TensorAdaptorName for the the vtu output. this does not
+     * copy the tensor adaptor. When @ref PrintOutput is called, the values of the @p pTensorAdaptor at this point will
+     * be written to vtu.
      *
      * @throws std::runtime_error if @ref AddTensorAdaptor is called after @ref PrintOutput.
      * @throws std::runtime_error if tries to add the same @p rTensorAdaptorName more than ones.
@@ -281,9 +292,7 @@ public:
      * - If this is called in MPI, then this will create one pvtu file per timestep, per model part's container (will be having information of all the corresponding rank vtu files)
      * - If this is called in MPI, then this will create one pvtu file per timestep, per model part's gauss point container (will be having information of all the corresponding rank vtu files)
      *
-     * @throws If the @p mrModelPart's @ref ProcessInfo 's TIME value is already used with @ref PrintOutput unless it was the last TIME value.
-     *
-     * Finally it will create one pvd ( @p rOutputFilenamePrefix.pvd ) file for all the model parts, all the timesteps all the gauss point container linking
+     * Finally it will create one pvd ( @p rOutputFilenamePrefix .pvd ) file for all the model parts, all the timesteps all the gauss point container linking
      * - In MPI the pvtu files created.
      * - In shared memory parallelism the vtu files created.
      *
