@@ -23,3 +23,22 @@ The following assertions are made in this test:
 1. The total vertical displacement at the top of the column is expected to be within 1% of the analytical solution, -3.22m, after 100 days (stage 3).
 2. The total vertical displacement at the top of the column is expected to be within 1% of the analytical solution, -8.02m, after 10000 days (stage 5).
 
+## Results
+
+The following plot shows the evolution of settlement obtained with Kratos, and compares it with the result from D-Settlement 23.2.1.  Nodes 2, 3, and 104 are located at the top edge of the soil column:
+
+![Settlement](test_case_1_settlement_plot.svg)
+
+The following plots show the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$) and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times.
+
+At the start of the analysis (after 0.1 days):
+
+![Stress plot after 0.1 days](test_case_1_stress_plot_after_0.1_days.svg)
+
+After 100.1 days:
+
+![Stress plot after 100.1 days](test_case_1_stress_plot_after_100.1_days.svg)
+
+After 10,000 days of settlement:
+
+![Stress plot after 10000 days](test_case_1_stress_plot_after_10000_days.svg)

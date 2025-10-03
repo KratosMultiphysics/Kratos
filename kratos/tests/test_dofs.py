@@ -238,13 +238,11 @@ class TestDofs(KratosUnittest.TestCase):
 
         # Create and fill the effective DOF array and the slaves to master map
         eff_dofs_array = KratosMultiphysics.DofsArrayType()
-        slaves_to_master_map = KratosMultiphysics.SlaveToMasterDofsMap()
-        KratosMultiphysics.DofArrayUtilities.SetUpEffectiveDofArray(test_model_part, dofs_array, eff_dofs_array, slaves_to_master_map)
+        KratosMultiphysics.DofArrayUtilities.SetUpEffectiveDofArray(test_model_part, dofs_array, eff_dofs_array)
 
         # Check results
         self.assertEqual(len(dofs_array), 16)
         self.assertEqual(len(eff_dofs_array), 15)
-        self.assertEqual(len(slaves_to_master_map), 2)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
