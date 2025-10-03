@@ -35,7 +35,7 @@
     #include "custom_processes/parmmg/pmmg_process.h"
 #endif
 
-namespace Kratos:Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
