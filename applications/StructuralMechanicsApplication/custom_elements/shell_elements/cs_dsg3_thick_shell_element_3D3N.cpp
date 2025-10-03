@@ -146,23 +146,20 @@ void CSDSG3ThickShellElement3D3N::GetDofList(
 {
     KRATOS_TRY;
 
-    // const auto& r_geom = GetGeometry();
-    // const SizeType number_of_nodes = r_geom.size();
-    // const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
-    // const SizeType dimension = r_geom.WorkingSpaceDimension();
-    // rElementalDofList.resize(dofs_per_node * number_of_nodes);
-    // SizeType index = 0;
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, w, theta_x, theta_y, theta_z
+    rElementalDofList.resize(dofs_per_node * number_of_nodes);
+    IndexType index = 0;
 
-    // for (IndexType i = 0; i < number_of_nodes; ++i) {
-    //     rElementalDofList[index++]   = r_geom[i].pGetDof(DISPLACEMENT_X);
-    //     rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_Y);
-    //     if (dimension == 3) {
-    //         rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_Z);
-    //         rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_X);
-    //         rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Y);
-    //     }
-    //     rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Z);
-    // }
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_Y);
+        rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_Z);
+        rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_X);
+        rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Y);
+        rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Z);
+    }
     KRATOS_CATCH("")
 }
 
