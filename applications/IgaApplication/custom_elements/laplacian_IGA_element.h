@@ -92,6 +92,8 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
      * @brief This function provides a more general interface to the element.
      * @details It is designed so that rLHSvariables and rRHSvariables are
