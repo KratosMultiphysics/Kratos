@@ -315,28 +315,30 @@ public:
 
         BaseType::Predict();
 
-        // Getting model part
-        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
-
-        // We get the system
-        TSystemMatrixType& rA = *BaseType::mpA;
-        TSystemVectorType& rDx = *BaseType::mpDx;
-        TSystemVectorType& rb = *BaseType::mpb;
-
-        // We solve the system in order to check the active set once
-        TSparseSpace::SetToZero(rA);
-        TSparseSpace::SetToZero(rDx);
-        TSparseSpace::SetToZero(rb);
-
-        typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
+        // We get the builder and solver
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = BaseType::GetBuilderAndSolver();
-        p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
 
-        // Check active set
-        const SizeType echo_level_convergence_criteria = BaseType::mpConvergenceCriteria->GetEchoLevel();
-        BaseType::mpConvergenceCriteria->SetEchoLevel(0);
-        mpMPCContactCriteria->PostCriteria(r_model_part, BaseType::GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
-        BaseType::mpConvergenceCriteria->SetEchoLevel(echo_level_convergence_criteria);
+        // Check if the DOF set is initialized
+        if (p_builder_and_solver->GetDofSetIsInitializedFlag()) {
+            // We get the system
+            TSystemMatrixType& rA = *BaseType::mpA;
+            TSystemVectorType& rDx = *BaseType::mpDx;
+            TSystemVectorType& rb = *BaseType::mpb;
+
+            // We solve the system in order to check the active set once
+            TSparseSpace::SetToZero(rA);
+            TSparseSpace::SetToZero(rDx);
+            TSparseSpace::SetToZero(rb);
+
+            typename TSchemeType::Pointer p_scheme = BaseType::GetScheme();
+            p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
+
+            // Check active set
+            const SizeType echo_level_convergence_criteria = BaseType::mpConvergenceCriteria->GetEchoLevel();
+            BaseType::mpConvergenceCriteria->SetEchoLevel(0);
+            mpMPCContactCriteria->PostCriteria(StrategyBaseType::GetModelPart(), BaseType::GetBuilderAndSolver()->GetDofSet(), rA, rDx, rb);
+            BaseType::mpConvergenceCriteria->SetEchoLevel(echo_level_convergence_criteria);
+        }
 
         KRATOS_CATCH("")
     }
