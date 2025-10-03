@@ -2042,6 +2042,108 @@ void MmgUtilities<MMGLibrary::MMGS>::SetEdgeLengthParameter(const double EdgeLen
 /***********************************************************************************/
 
 template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetMinEdgeLengthParameter(const double MinEdgeLength)
+{
+    KRATOS_TRY;
+
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgSol, MMG2D_DPARAM_hmin, MinEdgeLength) ) << "Unable to set minimum edge length" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_hmin, MinEdgeLength) ) << "Unable to set minimum edge length" << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetMinEdgeLengthParameter(const double MinEdgeLength)
+{
+    KRATOS_TRY;
+
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgSol, MMG3D_DPARAM_hmin, MinEdgeLength) ) << "Unable to set minimum edge length" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_hmin, MinEdgeLength) ) << "Unable to set minimum edge length" << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetMinEdgeLengthParameter(const double MinEdgeLength)
+{
+    KRATOS_TRY;
+
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgSol, MMGS_DPARAM_hmin, MinEdgeLength) ) << "Unable to set minimum edge length" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_hmin, MinEdgeLength) ) << "Unable to set minimum edge length" << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetMaxEdgeLengthParameter(const double MaxEdgeLength)
+{
+    KRATOS_TRY;
+
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgSol, MMG2D_DPARAM_hmax, MaxEdgeLength) ) << "Unable to set maximum edge length" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( !MMG2D_Set_dparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_hmax, MaxEdgeLength) ) << "Unable to set maximum edge length" << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetMaxEdgeLengthParameter(const double MaxEdgeLength)
+{
+    KRATOS_TRY;
+
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgSol, MMG3D_DPARAM_hmax, MaxEdgeLength) ) << "Unable to set maximum edge length" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( !MMG3D_Set_dparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_hmax, MaxEdgeLength) ) << "Unable to set maximum edge length" << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetMaxEdgeLengthParameter(const double MaxEdgeLength)
+{
+    KRATOS_TRY;
+
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgSol, MMGS_DPARAM_hmax, MaxEdgeLength) ) << "Unable to set maximum edge length" << std::endl;
+    } else {
+        KRATOS_ERROR_IF( !MMGS_Set_dparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_hmax, MaxEdgeLength) ) << "Unable to set maximum edge length" << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetLevelSetValueParameter(const double LevelSetValue)
 {
     KRATOS_TRY;
@@ -3187,20 +3289,13 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallMetric(Parameters ConfigurationP
         KRATOS_ERROR_IF(MMG2D_Set_dparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1) << "Unable to set gradation" << std::endl;
     }
 
-    // Minimal edge size
-    if (ConfigurationParameters["force_sizes"]["force_min"].GetBool()) {
-        KRATOS_ERROR_IF(MMG2D_Set_dparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_hmin, ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble()) != 1) << "Unable to set the minimal edge size " << std::endl;
-    }
-
-    // Maximal edge size
-    if (ConfigurationParameters["force_sizes"]["force_max"].GetBool()) {
-        KRATOS_ERROR_IF(MMG2D_Set_dparameter(mMmgMesh, mMmgMet, MMG2D_DPARAM_hmax, ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble()) != 1) << "Unable to set the maximal edge size " << std::endl;
-    }
+    // Force sizes
+    ForceSizes(ConfigurationParameters);
 
     // Actually computing remesh
     int ier;
     if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
-//         ier = MMG2D_mmg2dmov(mMmgMesh, mMmgMet, mMmgDisp); // TODO: Reactivate when dependency problem is solved
+        // ier = MMG2D_mmg2dmov(mMmgMesh, mMmgMet, mMmgDisp); // TODO: Reactivate when dependency problem is solved
         ier = MMG2D_mmg2dlib(mMmgMesh, mMmgMet);
     } else {
         ier = MMG2D_mmg2dlib(mMmgMesh, mMmgMet);
@@ -3232,10 +3327,13 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallIsoSurface(Parameters Configurat
     /** (Not mandatory): check if the number of given entities match with mesh size */
     KRATOS_ERROR_IF( MMG2D_Chk_meshData(mMmgMesh, p_sol) != 1 ) << "Unable to check if the number of given entities match with mesh size" << std::endl;
 
+    // Force sizes
+    ForceSizes(ConfigurationParameters);
+
     /**------------------- Level set discretization ---------------------------*/
 
-//     /* Debug mode ON (default value = OFF) */
-//     KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh, p_sol,MMG2D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
+    // /* Debug mode ON (default value = OFF) */
+    // KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh, p_sol,MMG2D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
     const int ier = MMG2D_mmg2dls(mMmgMesh, mMmgSol, mMmgMet);
 
@@ -3290,15 +3388,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallMetric(Parameters ConfigurationP
         KRATOS_ERROR_IF(MMG3D_Set_dparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1) << "Unable to set gradation" << std::endl;
     }
 
-    // Minimal edge size
-    if (ConfigurationParameters["force_sizes"]["force_min"].GetBool()) {
-        KRATOS_ERROR_IF(MMG3D_Set_dparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_hmin, ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble()) != 1) << "Unable to set the minimal edge size " << std::endl;
-    }
-
-    // Maximal edge size
-    if (ConfigurationParameters["force_sizes"]["force_max"].GetBool()) {
-        KRATOS_ERROR_IF(MMG3D_Set_dparameter(mMmgMesh, mMmgMet, MMG3D_DPARAM_hmax, ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble()) != 1) << "Unable to set the maximal edge size " << std::endl;
-    }
+    // Force sizes
+    ForceSizes(ConfigurationParameters);
 
     // Actually computing remesh
     int ier;
@@ -3347,19 +3438,12 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallIsoSurface(Parameters Configurat
         KRATOS_ERROR_IF(MMG3D_Set_dparameter(mMmgMesh, p_sol, MMG3D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1) << "Unable to set gradation" << std::endl;
     }
 
-    // Minimal edge size
-    if (ConfigurationParameters["force_sizes"]["force_min"].GetBool()) {
-        KRATOS_ERROR_IF(MMG3D_Set_dparameter(mMmgMesh, p_sol, MMG3D_DPARAM_hmin, ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble()) != 1) << "Unable to set the minimal edge size " << std::endl;
-    }
-
-    // Minimal edge size
-    if (ConfigurationParameters["force_sizes"]["force_max"].GetBool()) {
-        KRATOS_ERROR_IF(MMG3D_Set_dparameter(mMmgMesh, p_sol, MMG3D_DPARAM_hmax, ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble()) != 1) << "Unable to set the maximal edge size " << std::endl;
-    }
+    // Force sizes
+    ForceSizes(ConfigurationParameters);
 
     /**------------------- level set discretization ---------------------------*/
-//     /* Debug mode ON (default value = OFF) */
-//     KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh, p_sol,MMG3D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
+    // /* Debug mode ON (default value = OFF) */
+    // KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh, p_sol,MMG3D_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
     const int ier = MMG3D_mmg3dls(mMmgMesh, mMmgSol, mMmgMet);
 
@@ -3414,15 +3498,8 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallMetric(Parameters ConfigurationPa
         KRATOS_ERROR_IF(MMGS_Set_dparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1)  << "Unable to set gradation" << std::endl;
     }
 
-    // Minimal edge size
-    if (ConfigurationParameters["force_sizes"]["force_min"].GetBool()) {
-        KRATOS_ERROR_IF(MMGS_Set_dparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_hmin, ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble()) != 1) << "Unable to set the minimal edge size " << std::endl;
-    }
-
-    // Maximal edge size
-    if (ConfigurationParameters["force_sizes"]["force_max"].GetBool()) {
-        KRATOS_ERROR_IF(MMGS_Set_dparameter(mMmgMesh, mMmgMet, MMGS_DPARAM_hmax, ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble()) != 1) << "Unable to set the maximal edge size " << std::endl;
-    }
+    // Force sizes
+    ForceSizes(ConfigurationParameters);
 
     // Actually computing remesh
     int ier;
@@ -3457,9 +3534,12 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters Configurati
     /** (Not mandatory): check if the number of given entities match with mesh size */
     KRATOS_ERROR_IF( MMGS_Chk_meshData(mMmgMesh, p_sol) != 1 ) << "Unable to check if the number of given entities match with mesh size" << std::endl;
 
+    // Force sizes
+    ForceSizes(ConfigurationParameters);
+
     /**------------------- level set discretization ---------------------------*/
-//     /* Debug mode ON (default value = OFF) */
-//     KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh, p_sol,MMGS_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
+    // /* Debug mode ON (default value = OFF) */
+    // KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh, p_sol,MMGS_IPARAM_debug, 1) != 1 ) << "Unable to set on debug mode" << std::endl;
 
     const int ier = MMGS_mmgsls(mMmgMesh, mMmgSol, mMmgMet);
 
@@ -3651,20 +3731,20 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetConditions(
         KRATOS_ERROR << "ERROR:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
     else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2) { // Line
         KRATOS_ERROR << "Kratos_Line3D2 remeshing pending to be implemented" << std::endl;
-//         const IndexType id1 = rGeometry[0].Id(); // First node id
-//         const IndexType id2 = rGeometry[1].Id(); // Second node id
-//
-//         KRATOS_ERROR_IF( MMG3D_Set_edge(mMmgMesh, id1, id2, Color, Index) != 1 ) << "Unable to set edge" << std::endl;
-//
-//         // Set fixed boundary
-//         bool blocked_1 = false;
-//         if (rGeometry[0].IsDefined(BLOCKED))
-//             blocked_1 = rGeometry[0].Is(BLOCKED);
-//         bool blocked_2 = false;
-//         if (rGeometry[1].IsDefined(BLOCKED))
-//             blocked_2 = rGeometry[1].Is(BLOCKED);
-//
-//         if ((blocked_1 && blocked_2)) KRATOS_ERROR_IF( MMG3D_Set_requiredEdge(mMmgMesh, Index) != 1 ) << "Unable to block edge" << std::endl;
+        // const IndexType id1 = rGeometry[0].Id(); // First node id
+        // const IndexType id2 = rGeometry[1].Id(); // Second node id
+
+        // KRATOS_ERROR_IF( MMG3D_Set_edge(mMmgMesh, id1, id2, Color, Index) != 1 ) << "Unable to set edge" << std::endl;
+
+        // // Set fixed boundary
+        // bool blocked_1 = false;
+        // if (rGeometry[0].IsDefined(BLOCKED))
+        //     blocked_1 = rGeometry[0].Is(BLOCKED);
+        // bool blocked_2 = false;
+        // if (rGeometry[1].IsDefined(BLOCKED))
+        //     blocked_2 = rGeometry[1].Is(BLOCKED);
+
+        // if ((blocked_1 && blocked_2)) KRATOS_ERROR_IF( MMG3D_Set_requiredEdge(mMmgMesh, Index) != 1 ) << "Unable to block edge" << std::endl;
     } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {// Triangle
         const IndexType id_1 = rGeometry[0].Id(); // First node Id
         const IndexType id_2 = rGeometry[1].Id(); // Second node Id
@@ -3782,10 +3862,10 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetElements(
 
         KRATOS_ERROR_IF( MMG3D_Set_prism(mMmgMesh, id_1, id_2, id_3, id_4, id_5, id_6, Color, Index) != 1 ) << "Unable to set prism" << std::endl;
     } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) { // Hexaedron
-//         const IndexType id_5 = rGeometry[4].Id(); // 5th node Id
-//         const IndexType id_6 = rGeometry[5].Id(); // 6th node Id
-//         const IndexType id_6 = rGeometry[7].Id(); // 7th node Id
-//         const IndexType id_6 = rGeometry[8].Id(); // 8th node Id
+        // const IndexType id_5 = rGeometry[4].Id(); // 5th node Id
+        // const IndexType id_6 = rGeometry[5].Id(); // 6th node Id
+        // const IndexType id_6 = rGeometry[7].Id(); // 7th node Id
+        // const IndexType id_6 = rGeometry[8].Id(); // 8th node Id
 
         const SizeType size_geometry = rGeometry.size();
         KRATOS_ERROR << "ERROR: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY " << size_geometry << std::endl;
@@ -4070,7 +4150,7 @@ void MmgUtilities<MMGLibrary::MMGS>::GetMetricScalar(double& rMetric)
 
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         rMetric = 0.0;
-//         KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
+        // KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgSol, &rMetric) != 1 ) << "Unable to get solution" << std::endl;
     } else {
         KRATOS_ERROR_IF( MMGS_Get_scalarSol(mMmgMet, &rMetric) != 1 ) << "Unable to get scalar metric" << std::endl;
     }
@@ -5262,6 +5342,28 @@ void MmgUtilities<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags(Model
     rModelPart.RemoveSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::ForceSizes(Parameters ConfigurationParameters)
+{
+    const double constant_size = ConfigurationParameters["force_sizes"]["constant_size"].GetDouble();
+    if (constant_size > 0.0) {
+        SetEdgeLengthParameter(constant_size);
+    } else {
+        // Minimal edge size
+        if (ConfigurationParameters["force_sizes"]["force_min"].GetBool()) {
+            SetMinEdgeLengthParameter(ConfigurationParameters["force_sizes"]["minimal_size"].GetDouble());
+        }
+
+        // Maximal edge size
+        if (ConfigurationParameters["force_sizes"]["force_max"].GetBool()) {
+            SetMaxEdgeLengthParameter(ConfigurationParameters["force_sizes"]["maximal_size"].GetDouble());
+        }
+    }
 }
 
 /***********************************************************************************/

@@ -474,6 +474,18 @@ public:
     virtual void SetEdgeLengthParameter(const double EdgeLength);
 
     /**
+     * @brief This sets the minimum edge length using the API
+     * @param[in] MinEdgeLength The desired minimum edge length
+     */
+    virtual void SetMinEdgeLengthParameter(const double MinEdgeLength);
+
+    /**
+     * @brief This sets the maximum edge length using the API
+     * @param[in] MaxEdgeLength The desired maximum edge length
+     */
+    virtual void SetMaxEdgeLengthParameter(const double MaxEdgeLength);
+
+    /**
      * @brief This sets the level set value using the API
      * @param[in] LevelSetValue The desired level set value
      */
@@ -869,6 +881,8 @@ public:
         } else {
             discretization = "Unknown";
         }
+
+        // Print all member variables
         rOStream << "Echo Level: "          << mEchoLevel         << "\n"
                  << "Remove Regions: "      << mRemoveRegions     << "\n"
                  << "Discretization: "      << discretization    << "\n"
@@ -896,6 +910,12 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Sets the edge length related parameters for the mesh
+     * @param ConfigurationParameters The configuration parameters
+     */
+    void ForceSizes(Parameters ConfigurationParameters);
 
     /**
      * @brief Sets a flag according to a given status over all submodelparts

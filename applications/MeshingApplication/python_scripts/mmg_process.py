@@ -50,23 +50,23 @@ class MmgProcess(KratosMultiphysics.Process):
             "model_part_name"                  : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "blocking_threshold_size"          : false,
             "threshold_sizes"                  : {
-                "minimal_size"                     : 0.1,
-                "maximal_size"                     : 10.0
+                "minimal_size"                 : 0.1,
+                "maximal_size"                 : 10.0
             },
             "strategy"                         : "levelset",
             "level_set_strategy_parameters"    : {
-                "scalar_variable"                  : "DISTANCE",
-                "gradient_variable"                : "DISTANCE_GRADIENT"
+                "scalar_variable"              : "DISTANCE",
+                "gradient_variable"            : "DISTANCE_GRADIENT"
             },
             "error_strategy_parameters"        : {
                 "compute_error_extra_parameters"     : {
-                    "stress_vector_variable"              : "CAUCHY_STRESS_VECTOR",
-                    "penalty_normal"                      : 1.0e4,
-                    "penalty_tangential"                  : 1.0e4
+                    "stress_vector_variable"         : "CAUCHY_STRESS_VECTOR",
+                    "penalty_normal"                 : 1.0e4,
+                    "penalty_tangential"             : 1.0e4
                 },
                 "error_metric_parameters"            : {
-                    "error_threshold"                       : 1.0e-4,
-                    "interpolation_error"                   : 0.04
+                    "error_threshold"                : 1.0e-4,
+                    "interpolation_error"            : 0.04
                 },
                 "set_target_number_of_elements"       : false,
                 "target_number_of_elements"           : 1000,
@@ -92,7 +92,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "interpolation_type"                   : "LST",
                 "internal_variable_interpolation_list" :[]
             },
-            "hessian_strategy_parameters"              :{
+            "hessian_strategy_parameters"          : {
                 "metric_variable"                  : ["DISTANCE"],
                 "non_historical_metric_variable"   : [false],
                 "normalization_factor"             : [1.0],
@@ -110,17 +110,18 @@ class MmgProcess(KratosMultiphysics.Process):
             "time_stepping"                    : {},
             "automatic_remesh"                 : true,
             "automatic_remesh_parameters"      : {
-                "automatic_remesh_type"            : "Ratio",
-                "min_size_ratio"                   : 1.0,
-                "max_size_ratio"                   : 3.0,
-                "refer_type"                       : "Mean",
-                "min_size_current_percentage"      : 50.0,
-                "max_size_current_percentage"      : 98.0
+                "automatic_remesh_type"        : "Ratio",
+                "min_size_ratio"               : 1.0,
+                "max_size_ratio"               : 3.0,
+                "refer_type"                   : "Mean",
+                "min_size_current_percentage"  : 50.0,
+                "max_size_current_percentage"  : 98.0
             },
             "initial_remeshing"                : false,
             "fix_contour_model_parts"          : [],
             "fix_conditions_model_parts"       : [],
             "fix_elements_model_parts"         : [],
+            "constant_size"                    : -1.0,
             "force_min"                        : false,
             "minimal_size"                     : 0.1,
             "force_max"                        : false,
@@ -176,7 +177,7 @@ class MmgProcess(KratosMultiphysics.Process):
                     "max_num_search_iterations"    : 8,
                     "echo_level"                   : 0
                 }
-            }, 
+            },
             "extrapolate_contour_values"       : true,
             "surface_elements"                 : false,
             "search_parameters"                : {
@@ -381,6 +382,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("interpolate_non_historical",self.settings["interpolate_non_historical"])
         mmg_parameters.AddValue("extrapolate_contour_values",self.settings["extrapolate_contour_values"])
         mmg_parameters.AddValue("search_parameters",self.settings["search_parameters"])
+        mmg_parameters["force_sizes"].AddValue("constant_size",self.settings["constant_size"])
         mmg_parameters["force_sizes"].AddValue("force_min",self.settings["force_min"])
         mmg_parameters["force_sizes"].AddValue("minimal_size",self.settings["minimal_size"])
         mmg_parameters["force_sizes"].AddValue("force_max",self.settings["force_max"])

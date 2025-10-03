@@ -136,7 +136,7 @@ template<MMGLibrary TMMGLibrary>
 MmgProcess<TMMGLibrary>::~MmgProcess()
 {
     if (!mFinalizeIsInvoked) {
-        KRATOS_WARNING("MmgProcess") << "The function Finalize was not invoked. Invoking it in the destructor. Please, be aware that this may lead to memory leaks if you create several instances of the MmgProcess" << std::endl;
+        KRATOS_WARNING("MmgProcess") << "The function ExecuteFinalize was not invoked. Invoking it in the destructor. Please, be aware that this may lead to memory leaks if you create several instances of the MmgProcess" << std::endl;
         ExecuteFinalize();
     }
 }
@@ -181,7 +181,7 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
     KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite recommended to create more than one sub model part if you have more than one element or condition)" << std::endl;
 
     // The conditions are re-created in the process
-    if( mRemoveRegions ) {
+    if(mRemoveRegions) {
         // Mark conditions from submodelparts
         MarkConditionsSubmodelParts(mrModelPart);
 
@@ -340,14 +340,14 @@ void MmgProcess<TMMGLibrary>::ExecuteFinalize()
     FreeMemory();
 
     // Nodes not belonging to an element are removed
-    if(mRemoveRegions) {
+    if (mRemoveRegions) {
         CleanSuperfluousNodes();
         CleanSuperfluousConditions();
     }
 
     // Save the mesh in an .mdpa format
     const bool save_mdpa_file = mThisParameters["save_mdpa_file"].GetBool();
-    if(save_mdpa_file) OutputMdpa();
+    if (save_mdpa_file) OutputMdpa();
 
     // Set the finalize flag
     mFinalizeIsInvoked = true;
@@ -463,7 +463,7 @@ void MmgProcess<TMMGLibrary>::InitializeSolDataDistance()
     // Set size of the solution
     mMmgUtilities.SetSolSizeScalar(r_nodes_array.size() );
 
-    // GEtting variable for scalar filed
+    // Getting variable for scalar filed
     const std::string& r_isosurface_variable_name = mThisParameters["isosurface_parameters"]["isosurface_variable"].GetString();
     const bool nonhistorical_variable = mThisParameters["isosurface_parameters"]["nonhistorical_variable"].GetBool();
     const bool invert_value = mThisParameters["isosurface_parameters"]["invert_value"].GetBool();
@@ -859,7 +859,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
         SetToZeroEntityData(mrModelPart.Elements(), r_old_model_part.Elements());
 
     // Finally remove old model part
-    r_owner_model.DeleteModelPart(mrModelPart.Name()+"_Old");
+    r_owner_model.DeleteModelPart(mrModelPart.Name() + "_Old");
 
     /* We clean conditions with duplicated geometries (this is an error on fluid simulations) */
     if (mFramework == FrameworkEulerLagrange::EULERIAN) {
@@ -930,8 +930,7 @@ void MmgProcess<TMMGLibrary>::ApplyLocalParameters()
     // apply (triangle or tetra), the reference of these entities and the hmin, hmax and
     // hausdorff values to apply
     for (auto parameter_settings : parameter_array) {
-        for (auto model_part_name_object : parameter_settings["model_part_name_list"])
-        {
+        for (auto model_part_name_object : parameter_settings["model_part_name_list"]) {
             KRATOS_ERROR_IF_NOT(parameter_settings.Has("hmin")) << "hmin is missing in the local entity parameters list";
             const double hmin = parameter_settings["hmin"].GetDouble();
             KRATOS_ERROR_IF_NOT(parameter_settings.Has("hmax")) << "hmax is missing in the local entity parameters list";
@@ -1064,7 +1063,7 @@ void MmgProcess<TMMGLibrary>::CollapsePrismsToTriangles()
     const SizeType total_number_of_nodes = mrModelPart.GetRootModelPart().NumberOfNodes(); // Nodes must be ordered
     const SizeType total_number_of_elements = mrModelPart.GetRootModelPart().NumberOfElements(); // Elements must be ordered
 
-    for(IndexType i = 0; i < r_elements_array.size(); ++i){
+    for(IndexType i = 0; i < r_elements_array.size(); ++i) {
         const auto it_elem = it_elem_begin + i;
 
         // We get the element geometry
@@ -1199,7 +1198,7 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
 
     // Iterate over nodes
     const SizeType num_nodes = r_nodes_array.size();
-    for(IndexType i = 0; i < num_nodes; ++i){
+    for(IndexType i = 0; i < num_nodes; ++i) {
         const auto it_node = it_node_begin + i;
 
         const IndexType index_node = it_node->Id();
@@ -1220,7 +1219,7 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
     GeometryType::PointsArrayType element_nodes(6);
     auto& r_pnodes_vector = element_nodes.GetContainer();
     const SizeType num_elements = r_elements_array.size();
-    for(IndexType i = 0; i < num_elements; ++i){
+    for(IndexType i = 0; i < num_elements; ++i) {
         const auto it_elem = it_elem_begin + i;
 
         // We get the condition geometry
@@ -1254,7 +1253,7 @@ void MmgProcess<TMMGLibrary>::ExtrudeTrianglestoPrisms(ModelPart& rOldModelPart)
     VariableUtils().ResetFlag(NEW_ENTITY, mrModelPart.Nodes());
     VariableUtils().ResetFlag(NEW_ENTITY, mrModelPart.Elements());
 
-    // Remove auxiliar entities marked as TO_ERASE
+    // Remove auxiliary entities marked as TO_ERASE
     mrModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     mrModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
@@ -1564,6 +1563,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "internal_variable_interpolation_list" :[]
         },
         "force_sizes"                             : {
+            "constant_size"                       : -1.0,
             "force_min"                           : false,
             "minimal_size"                        : 0.1,
             "force_max"                           : false,
