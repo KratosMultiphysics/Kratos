@@ -22,7 +22,7 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/hydraulic_discharge.hpp"
+#include "custom_utilities/hydraulic_discharge.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 #include "filter_compressibility_calculator.hpp"
