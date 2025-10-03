@@ -72,8 +72,8 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     int ierr = UPwBaseElement::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const CheckProperties check_properties(r_properties, "property at element", element_Id,
+    const auto&           r_properties = this->GetProperties();
+    const CheckProperties check_properties(r_properties, "property", element_Id,
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
     check_properties.CheckAvailability(IGNORE_UNDRAINED);
@@ -181,9 +181,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
-    const Matrix&         NContainer   = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+    const auto&   r_properties = this->GetProperties();
+    const auto&   r_geometry   = this->GetGeometry();
+    const Matrix& NContainer   = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
     array_1d<double, TNumNodes * TDim> DisplacementVector;
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector, r_geometry, DISPLACEMENT);
     BoundedMatrix<double, TDim, TDim> RotationMatrix;
@@ -204,19 +204,13 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
     ConstitutiveLaw::Parameters ConstitutiveParameters(r_geometry, r_properties, rCurrentProcessInfo);
     SetConstitutiveParameters(ConstitutiveParameters, ConstitutiveMatrix, StrainVector, Np, GradNpT, detF, F);
 
-    // Auxiliary output variables
-    unsigned int        NumGPoints = mConstitutiveLawVector.size();
-    std::vector<double> JointWidthContainer(NumGPoints);
-
     // Loop over integration points
-    for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
+    for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
         InterfaceElementUtilities::CalculateNuMatrix(Nu, NContainer, GPoint);
 
         noalias(RelDispVector) = prod(Nu, DisplacementVector);
 
         noalias(StrainVector) = prod(RotationMatrix, RelDispVector);
-
-        JointWidthContainer[GPoint] = mInitialGap[GPoint] + StrainVector[TDim - 1];
 
         this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters,
                                           StrainVector[TDim - 1], MinimumJointWidth, GPoint);
@@ -234,8 +228,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::FinalizeSolutionStep(const
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
     }
 
-    if (rCurrentProcessInfo[NODAL_SMOOTHING]) this->ExtrapolateGPValues(JointWidthContainer);
-
     KRATOS_CATCH("")
 }
 
@@ -245,8 +237,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::ModifyInactiveElementStres
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties      = this->GetProperties();
-    const double&         MinimumJointWidth = r_properties[MINIMUM_JOINT_WIDTH];
+    const auto&   r_properties      = this->GetProperties();
+    const double& MinimumJointWidth = r_properties[MINIMUM_JOINT_WIDTH];
 
     if (JointWidth > MinimumJointWidth) {
         bool ConsiderGapClosure =
@@ -256,86 +248,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::ModifyInactiveElementStres
             const double x           = (JointWidth / MinimumJointWidth) - 1.0;
             StressVector *= std::max(0.01, exp(-x * decayFactor));
         }
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <>
-void UPwSmallStrainInterfaceElement<2, 4>::ExtrapolateGPValues(const std::vector<double>& JointWidthContainer)
-{
-    KRATOS_TRY
-
-    GeometryType& rGeom = this->GetGeometry();
-    const double& Area  = rGeom.Area();
-
-    array_1d<double, 4> NodalJointWidth;
-    NodalJointWidth[0] = JointWidthContainer[0] * Area;
-    NodalJointWidth[1] = JointWidthContainer[1] * Area;
-    NodalJointWidth[2] = JointWidthContainer[1] * Area;
-    NodalJointWidth[3] = JointWidthContainer[0] * Area;
-
-    for (unsigned int i = 0; i < 4; ++i) { // NumNodes
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
-        rGeom[i].UnSetLock();
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <>
-void UPwSmallStrainInterfaceElement<3, 6>::ExtrapolateGPValues(const std::vector<double>& JointWidthContainer)
-{
-    KRATOS_TRY
-
-    GeometryType& rGeom = this->GetGeometry();
-    const double& Area  = rGeom.Area();
-
-    array_1d<double, 6> NodalJointWidth;
-    NodalJointWidth[0] = JointWidthContainer[0] * Area;
-    NodalJointWidth[1] = JointWidthContainer[1] * Area;
-    NodalJointWidth[2] = JointWidthContainer[2] * Area;
-    NodalJointWidth[3] = JointWidthContainer[0] * Area;
-    NodalJointWidth[4] = JointWidthContainer[1] * Area;
-    NodalJointWidth[5] = JointWidthContainer[2] * Area;
-
-    for (unsigned int i = 0; i < 6; ++i) // NumNodes
-    {
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
-        rGeom[i].UnSetLock();
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <>
-void UPwSmallStrainInterfaceElement<3, 8>::ExtrapolateGPValues(const std::vector<double>& JointWidthContainer)
-{
-    KRATOS_TRY
-
-    GeometryType& rGeom = this->GetGeometry();
-    const double& Area  = rGeom.Area();
-
-    array_1d<double, 8> NodalJointWidth;
-    NodalJointWidth[0] = JointWidthContainer[0] * Area;
-    NodalJointWidth[1] = JointWidthContainer[1] * Area;
-    NodalJointWidth[2] = JointWidthContainer[2] * Area;
-    NodalJointWidth[3] = JointWidthContainer[3] * Area;
-    NodalJointWidth[4] = JointWidthContainer[0] * Area;
-    NodalJointWidth[5] = JointWidthContainer[1] * Area;
-    NodalJointWidth[6] = JointWidthContainer[2] * Area;
-    NodalJointWidth[7] = JointWidthContainer[3] * Area;
-
-    for (unsigned int i = 0; i < 8; ++i) // NumNodes
-    {
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_WIDTH) += NodalJointWidth[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_JOINT_AREA) += Area;
-        rGeom[i].UnSetLock();
     }
 
     KRATOS_CATCH("")
@@ -628,8 +540,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
     KRATOS_TRY
 
     if (rVariable == FLUID_FLUX_VECTOR) {
-        const PropertiesType& r_properties = this->GetProperties();
-        const GeometryType&   r_geometry   = this->GetGeometry();
+        const auto&        r_properties = this->GetProperties();
+        const auto&        r_geometry   = this->GetGeometry();
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
@@ -726,8 +638,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], LocalRelDispVector);
         }
     } else if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
-        const PropertiesType& r_properties = this->GetProperties();
-        const GeometryType&   r_geometry   = this->GetGeometry();
+        const auto&        r_properties = this->GetProperties();
+        const auto&        r_geometry   = this->GetGeometry();
         const unsigned int NumGPoints = r_geometry.IntegrationPointsNumber(mThisIntegrationMethod);
 
         // Defining the shape functions, the Jacobian and the shape functions local gradients Containers
@@ -889,8 +801,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
     KRATOS_TRY
 
     if (rVariable == PERMEABILITY_MATRIX) {
-        const GeometryType&   r_geometry   = this->GetGeometry();
-        const PropertiesType& r_properties = this->GetProperties();
+        const auto& r_geometry   = this->GetGeometry();
+        const auto& r_properties = this->GetProperties();
 
         // Defining the shape functions container
         const Matrix& NContainer = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
@@ -930,8 +842,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
     } else if (rVariable == LOCAL_PERMEABILITY_MATRIX) {
-        const GeometryType&   r_geometry   = this->GetGeometry();
-        const PropertiesType& r_properties = this->GetProperties();
+        const auto& r_geometry   = this->GetGeometry();
+        const auto& r_properties = this->GetProperties();
 
         // Defining the shape functions container
         const Matrix& NContainer = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
@@ -1952,7 +1864,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeBiotCoefficients
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
+    const auto& r_properties = this->GetProperties();
 
     // Properties variables
     if (hasBiotCoefficient) {
