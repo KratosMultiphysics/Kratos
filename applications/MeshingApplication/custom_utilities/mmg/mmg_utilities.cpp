@@ -2285,6 +2285,108 @@ void MmgUtilities<MMGLibrary::MMGS>::SetRelaxationParameter(const double Relaxat
 /***********************************************************************************/
 
 template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetLevelSetDiscretizationOnSurfacesOnlyParameter(const bool SurfacesOnly)
+{
+    KRATOS_TRY;
+
+#if MMG_VERSION_GE(5,7)
+    KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgSol, MMG2D_IPARAM_isosurf, SurfacesOnly) ) << "Unable to set level set discretization on surfaces only" << std::endl;
+#else
+    KRATOS_WARNING("MmgUtilities") << "MMG2D does not have the option to set level set discretization on surfaces only until version 5.7" << std::endl;
+#endif
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetLevelSetDiscretizationOnSurfacesOnlyParameter(const bool SurfacesOnly)
+{
+    KRATOS_TRY;
+
+#if MMG_VERSION_GE(5,7)
+    KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgSol, MMG3D_IPARAM_isosurf, SurfacesOnly) ) << "Unable to set level set discretization on surfaces only" << std::endl;
+#else
+    KRATOS_WARNING("MmgUtilities") << "MMG3D does not have the option to set level set discretization on surfaces only until version 5.7" << std::endl;
+#endif
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetLevelSetDiscretizationOnSurfacesOnlyParameter(const bool SurfacesOnly)
+{
+    KRATOS_TRY;
+
+#if MMG_VERSION_GE(5,7)
+    KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgSol, MMGS_IPARAM_isosurf, SurfacesOnly) ) << "Unable to set level set discretization on surfaces only" << std::endl;
+#else
+    KRATOS_WARNING("MmgUtilities") << "MMGS does not have the option to set level set discretization on surfaces only until version 5.7" << std::endl;
+#endif
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG2D>::SetIsosurfaceBoundaryMaterialReferenceParameter(const int MaterialReference)
+{
+    KRATOS_TRY;
+
+#if MMG_VERSION_GE(5,7)
+    KRATOS_ERROR_IF( !MMG2D_Set_iparameter(mMmgMesh, mMmgSol, MMG2D_IPARAM_isoref, MaterialReference) ) << "Unable to set isosurface boundary material reference" << std::endl;
+#else
+    KRATOS_WARNING("MmgUtilities") << "MMG2D does not have the option to set isosurface boundary material reference until version 5.7" << std::endl;
+#endif
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMG3D>::SetIsosurfaceBoundaryMaterialReferenceParameter(const int MaterialReference)
+{
+    KRATOS_TRY;
+
+#if MMG_VERSION_GE(5,7)
+    KRATOS_ERROR_IF( !MMG3D_Set_iparameter(mMmgMesh, mMmgSol, MMG3D_IPARAM_isoref, MaterialReference) ) << "Unable to set isosurface boundary material reference" << std::endl;
+#else
+    KRATOS_WARNING("MmgUtilities") << "MMG3D does not have the option to set isosurface boundary material reference until version 5.7" << std::endl;
+#endif
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgUtilities<MMGLibrary::MMGS>::SetIsosurfaceBoundaryMaterialReferenceParameter(const int MaterialReference)
+{
+    KRATOS_TRY;
+
+#if MMG_VERSION_GE(5,7)
+    KRATOS_ERROR_IF( !MMGS_Set_iparameter(mMmgMesh, mMmgSol, MMGS_IPARAM_isoref, MaterialReference) ) << "Unable to set isosurface boundary material reference" << std::endl;
+#else
+    KRATOS_WARNING("MmgUtilities") << "MMGS does not have the option to set isosurface boundary material reference until version 5.7" << std::endl;
+#endif
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
 void MmgUtilities<MMGLibrary::MMG2D>::SetMeshSize(MMGMeshInfo<MMGLibrary::MMG2D>& rMMGMeshInfo)
 {
     KRATOS_TRY;

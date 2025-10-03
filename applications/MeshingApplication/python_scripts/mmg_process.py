@@ -80,7 +80,9 @@ class MmgProcess(KratosMultiphysics.Process):
                 "use_metric_field"                     : false,
                 "remove_internal_regions"              : false,
                 "isosurface_value"                     : 0.0,
-                "remove_small_disconnected_components" : -1.0
+                "remove_small_disconnected_components" : -1.0,
+                "discretization_on_surfaces_only"      : false,
+                "boundary_reference"                   : 10
             },
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        : {

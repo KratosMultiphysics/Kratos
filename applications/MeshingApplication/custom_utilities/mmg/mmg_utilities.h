@@ -504,6 +504,18 @@ public:
     virtual void SetRelaxationParameter(const double RelaxationValue);
 
     /**
+     * @brief Sets the parameter to control whether level set discretization is applied only on surfaces.
+     * @param SurfacesOnly If true, level set discretization will be restricted to surfaces only; if false, it will be applied to the entire domain.
+     */
+    virtual void SetLevelSetDiscretizationOnSurfacesOnlyParameter(const bool SurfacesOnly);
+
+    /**
+     * @brief Sets the material reference for the isosurface boundary.
+     * @param MaterialReference The material reference value to be set for the isosurface boundary.
+     */
+    virtual void SetIsosurfaceBoundaryMaterialReferenceParameter(const int MaterialReference);
+
+    /**
      * @brief This sets the size of the mesh
      * @param[in,out] rMMGMeshInfo The number of nodes, conditions and elements
      */

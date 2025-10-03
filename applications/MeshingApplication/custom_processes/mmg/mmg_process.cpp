@@ -956,11 +956,18 @@ void MmgProcess<TMMGLibrary>::PostMeshAndMetricInitialization()
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         // We set the isosurface value
         mMmgUtilities.SetLevelSetValueParameter(mThisParameters["isosurface_parameters"]["isosurface_value"].GetDouble());
+
         // We set the remove small disconnected components value if needed
         const double remove_small_disconnected_components = mThisParameters["isosurface_parameters"]["remove_small_disconnected_components"].GetDouble();
         if (remove_small_disconnected_components > 0.0) {
             mMmgUtilities.SetRemoveSmallDisconnectedComponentsParameter(remove_small_disconnected_components);
         }
+
+        // We set if discretize only on the surface
+        mMmgUtilities.SetLevelSetDiscretizationOnSurfacesOnlyParameter(mThisParameters["isosurface_parameters"]["discretization_on_surfaces_only"].GetBool());
+
+        // We set the material reference value
+        mMmgUtilities.SetIsosurfaceBoundaryMaterialReferenceParameter(mThisParameters["isosurface_parameters"]["boundary_reference"].GetInt());
     }
 
     // Set some parameters
@@ -1544,7 +1551,9 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "use_metric_field"                     : false,
             "remove_internal_regions"              : false,
             "isosurface_value"                     : 0.0,
-            "remove_small_disconnected_components" : -1.0
+            "remove_small_disconnected_components" : -1.0,
+            "discretization_on_surfaces_only"      : false,
+            "boundary_reference"                   : 10
         },
         "framework"                            : "Eulerian",
         "internal_variables_parameters"        : {
