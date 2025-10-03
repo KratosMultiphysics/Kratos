@@ -68,15 +68,13 @@ void CSDSG3ThickShellElement3D3N::InitializeSubtriangles()
     // Compute barycenter coordinates
     const auto &r_center_coords = r_geometry.Center();
     auto p_barycenter = Kratos::make_intrusive<NodeType>(r_center_coords[0], r_center_coords[1], r_center_coords[2]);
-    // auto p_node_1 = Kratos::make_intrusive<NodeType>(r_geometry[0]);
+    auto p_node_1 = Kratos::make_intrusive<NodeType>(r_geometry[0].X(), r_geometry[0].Y(), r_geometry[0].Z());
+    auto p_node_2 = Kratos::make_intrusive<NodeType>(r_geometry[1].X(), r_geometry[1].Y(), r_geometry[1].Z());
+    auto p_node_3 = Kratos::make_intrusive<NodeType>(r_geometry[2].X(), r_geometry[2].Y(), r_geometry[2].Z());
 
-    // auto node_1(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
-    // auto node_2(Kratos::make_intrusive<NodeType>(4, 0.0, -1.0, 0.0));
-    // auto node_3(Kratos::make_intrusive<NodeType>(5, 2.0, -1.0, 0.0));
-
-    mpSubTriangulationGeometries[0] = Kratos::make_shared<Triangle3D3<NodeType>>(p_barycenter, p_barycenter, p_barycenter);
-    //     mpSubTriangulationGeometries[1] = Kratos::make_shared<Triangle3D3<Point>>(tri1);
-    //     mpSubTriangulationGeometries[2] = Kratos::make_shared<Triangle3D3<Point>>(tri2);
+    mpSubTriangulationGeometries[0] = Kratos::make_shared<Triangle3D3<NodeType>>(p_barycenter, p_node_1, p_node_2);
+    mpSubTriangulationGeometries[1] = Kratos::make_shared<Triangle3D3<NodeType>>(p_barycenter, p_node_2, p_node_3);
+    mpSubTriangulationGeometries[2] = Kratos::make_shared<Triangle3D3<NodeType>>(p_barycenter, p_node_3, p_node_1);
 
     KRATOS_CATCH("")
 }
