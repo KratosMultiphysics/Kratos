@@ -240,10 +240,10 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
 
     /* We print the original model part */
     KRATOS_INFO_IF("", mEchoLevel > 0) <<
-    "//---------------------------------------------------//" << std::endl <<
-    "//---------------  BEFORE REMESHING   ---------------//" << std::endl <<
-    "//---------------------------------------------------//" << std::endl <<
-    std::endl << mrModelPart << std::endl;
+    "//---------------------------------------------------//\n"   <<
+    "//---------------  BEFORE REMESHING   ---------------//\n"   <<
+    "//---------------------------------------------------//\n\n" <<
+    mrModelPart << std::endl;
 
     // We initialize the mesh and solution data
     InitializeMeshData();
@@ -280,10 +280,10 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
 
     /* We print the resulting model part */
     KRATOS_INFO_IF("", mEchoLevel > 0) <<
-    "//---------------------------------------------------//" << std::endl <<
-    "//---------------   AFTER REMESHING   ---------------//" << std::endl <<
-    "//---------------------------------------------------//" << std::endl <<
-    std::endl << mrModelPart << std::endl;
+    "//---------------------------------------------------//\n" <<
+    "//---------------   AFTER REMESHING   ---------------//\n" <<
+    "//---------------------------------------------------//\n\n" <<
+    mrModelPart << std::endl;
 
     KRATOS_CATCH("");
 }
