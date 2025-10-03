@@ -23,8 +23,6 @@
 // Project includes
 #include "processes/process.h"
 #include "includes/key_hash.h"
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
 #include "custom_utilities/mmg/mmg_utilities.h"
 #include "containers/variables_list.h"
 #include "meshing_application.h"
