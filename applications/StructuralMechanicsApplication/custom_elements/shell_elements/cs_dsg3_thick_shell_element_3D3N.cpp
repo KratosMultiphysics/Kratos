@@ -115,7 +115,7 @@ void CSDSG3ThickShellElement3D3N::EquationIdVector(
     KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
-    const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
+    const SizeType dofs_per_node = GetDoFsPerNode();
 
     IndexType local_index = 0;
 
