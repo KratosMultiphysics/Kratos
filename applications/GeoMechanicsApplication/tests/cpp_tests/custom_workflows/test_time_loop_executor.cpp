@@ -27,8 +27,7 @@ namespace
 class DummySolverStrategy : public StrategyWrapper
 {
 public:
-    explicit DummySolverStrategy(TimeStepEndState::ConvergenceState AConvergenceState)
-        : mConvergenceState{AConvergenceState}
+    DummySolverStrategy()
     {
         mModel.Reset();
         mpModelPart = &mModel.CreateModelPart("TestModelPart");
@@ -124,7 +123,7 @@ public:
         // intentionally empty
     }
 
-    TimeStepEndState::ConvergenceState SolveSolutionStep() override { return mConvergenceState; }
+    MOCK_METHOD(TimeStepEndState::ConvergenceState, SolveSolutionStep, (), (override));
 
     void FinalizeSolutionStep() override { ++mCountFinalizeSolutionStepCalled; }
 
@@ -136,7 +135,6 @@ public:
     }
 
 private:
-    TimeStepEndState::ConvergenceState mConvergenceState{TimeStepEndState::ConvergenceState::converged};
     Model                 mModel;
     ModelPart*            mpModelPart                                  = nullptr;
     bool                  mIsCloned                                    = false;
@@ -190,8 +188,10 @@ std::shared_ptr<DummySolverStrategy> RunFixedCycleTimeLoop(std::size_t WantedNum
 {
     TimeLoopExecutor executor;
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(WantedNumOfCyclesPerStep));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    auto solver_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*solver_strategy, SolveSolutionStep()).WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::converged));
     executor.SetSolverStrategyWrapper(solver_strategy);
+
     const auto step_states = executor.Run(TimeStepEndState{});
 
     return solver_strategy;
@@ -208,8 +208,11 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsPerformedStatesAfterRunningAnAlwaysConv
     TimeLoopExecutor executor;
     const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
-    executor.SetSolverStrategyWrapper(
-        std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
+    auto converging_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*converging_strategy, SolveSolutionStep())
+        .WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::converged));
+    executor.SetSolverStrategyWrapper(converging_strategy);
+
     const auto step_states = executor.Run(MakeConvergedStepState());
 
     KRATOS_EXPECT_EQ(increments.size(), step_states.size());
@@ -223,8 +226,10 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsOneNonConvergedPerformedStateAfterRunni
     TimeLoopExecutor executor;
     const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
-    executor.SetSolverStrategyWrapper(
-        std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::non_converged));
+    auto p_solving_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*p_solving_strategy, SolveSolutionStep()).WillOnce(testing::Return(TimeStepEndState::ConvergenceState::non_converged));
+    executor.SetSolverStrategyWrapper(p_solving_strategy);
+
     const auto step_states = executor.Run(MakeConvergedStepState());
 
     KRATOS_EXPECT_EQ(1, step_states.size());
@@ -237,8 +242,11 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsEndTimesAfterRunningAnAlwaysConvergingS
     TimeLoopExecutor executor;
     const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
-    executor.SetSolverStrategyWrapper(
-        std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
+    auto converging_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*converging_strategy, SolveSolutionStep())
+        .WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::converged));
+    executor.SetSolverStrategyWrapper(converging_strategy);
+
     const auto step_states = executor.Run(MakeConvergedStepState());
 
     KRATOS_EXPECT_DOUBLE_EQ(std::accumulate(increments.begin(), increments.end(), 0.),
@@ -250,8 +258,11 @@ KRATOS_TEST_CASE_IN_SUITE(GetFiveCyclesWhenFiveCyclesAreNeeded, KratosGeoMechani
     TimeLoopExecutor executor;
     const auto       wanted_num_of_cycles_per_step = 5;
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    executor.SetSolverStrategyWrapper(
-        std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
+    auto converging_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*converging_strategy, SolveSolutionStep())
+        .WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::converged));
+    executor.SetSolverStrategyWrapper(converging_strategy);
+
     const auto step_states = executor.Run(TimeStepEndState{});
 
     // The test time incrementor assumes fixed time increments of 0.5 and an end time of 1.0
@@ -267,8 +278,11 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrement
     TimeLoopExecutor executor;
     const auto       increments = std::vector<double>{0.1, 0.2, 0.3, 0.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
-    executor.SetSolverStrategyWrapper(
-        std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
+    auto converging_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*converging_strategy, SolveSolutionStep())
+        .WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::converged));
+    executor.SetSolverStrategyWrapper(converging_strategy);
+
     const auto step_states = executor.Run(MakeConvergedStepState());
 
     KRATOS_EXPECT_EQ(increments.size(), step_states.size());
@@ -323,8 +337,10 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechan
     TimeLoopExecutor executor;
     const auto       wanted_num_of_cycles_per_step = 1;
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    auto solver_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*solver_strategy, SolveSolutionStep()).WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::converged));
     executor.SetSolverStrategyWrapper(solver_strategy);
+
     const auto step_states = executor.Run(TimeStepEndState{});
     KRATOS_EXPECT_EQ(step_states.size(), solver_strategy->GetCountOutputProcessCalled());
     KRATOS_EXPECT_EQ(2, step_states.size());
@@ -335,8 +351,10 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectFinalizeSolutionStepCalledOnceForEveryStep, Krat
     TimeLoopExecutor executor;
     const auto       wanted_num_of_cycles_per_step = 3;
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    auto solver_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*solver_strategy, SolveSolutionStep()).WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::converged));
     executor.SetSolverStrategyWrapper(solver_strategy);
+
     const auto step_states = executor.Run(TimeStepEndState{});
     KRATOS_EXPECT_EQ(step_states.size(), solver_strategy->GetCountFinalizeSolutionStepCalled());
 }
@@ -346,9 +364,12 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunCompletesO
     TimeLoopExecutor executor;
     const auto       wanted_num_of_cycles_per_step = std::size_t{1};
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    auto solver_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*solver_strategy, SolveSolutionStep()).WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::converged));
     executor.SetSolverStrategyWrapper(solver_strategy);
+
     executor.Run(TimeStepEndState{});
+
     KRATOS_EXPECT_EQ(solver_strategy->GetCountInitializeOutputCalled(), 1);
     KRATOS_EXPECT_EQ(solver_strategy->GetCountFinalizeOutputCalled(), 1);
 }
@@ -358,7 +379,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunThrows, Kr
     TimeLoopExecutor executor;
     const auto       wanted_num_of_cycles_per_step = std::size_t{1};
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    auto solver_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*solver_strategy, SolveSolutionStep()).WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::converged));
     solver_strategy->SetOutputProcessCallback([]() { throw Exception{"Test exception"}; });
     executor.SetSolverStrategyWrapper(solver_strategy);
 
