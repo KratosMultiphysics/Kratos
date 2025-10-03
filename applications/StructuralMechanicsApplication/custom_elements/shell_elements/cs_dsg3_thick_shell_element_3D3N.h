@@ -137,6 +137,12 @@ public:
     void InitializeMaterial();
 
     /**
+     * @brief This method initializes the constitutive law vector and the individual constitutive laws too
+     * @warning Must be called before any calculation is done
+     */
+    void InitializeSubtriangles();
+
+    /**
      * @brief It creates a new element pointer and clones the previous element data
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
@@ -209,7 +215,7 @@ public:
      */
     void CalculateBTriangle(
         MatrixType &rB,
-        const GeometryType::Pointer pTriangleGeometry // the geometry of the sub-triangle
+        const Geometry<NodeType>::Pointer pTriangleGeometry // the geometry of the sub-triangle
     );
 
     void CalculateB(
@@ -312,7 +318,7 @@ protected:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
-    std::vector<GeometryType::Pointer> mpSubTriangulationGeometries; /// the 3 sub-triangles used for the DSG
+    std::vector<Geometry<NodeType>::Pointer> mpSubTriangulationGeometries; /// the 3 sub-triangles used for the DSG
 
     ///@}
     ///@name Protected Operators
@@ -344,7 +350,7 @@ protected:
      * @brief Sets the used SetSubTriangulationGeometries
      * @param rSubTriangulationGeometries SubTriangulationGeometries used
      */
-    void SetSubTriangulationGeometries(const std::vector<GeometryType::Pointer>& rSubTriangulationGeometries)
+    void SetSubTriangulationGeometries(const std::vector<Geometry<NodeType>::Pointer>& rSubTriangulationGeometries)
     {
         mpSubTriangulationGeometries = rSubTriangulationGeometries;
     }

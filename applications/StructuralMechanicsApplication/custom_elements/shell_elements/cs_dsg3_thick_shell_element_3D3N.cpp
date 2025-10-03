@@ -20,6 +20,7 @@
 #include "cs_dsg3_thick_shell_element_3D3N.h"
 // #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "geometries/triangle_3d_3.h"
 
 namespace Kratos
 {
@@ -48,6 +49,35 @@ void CSDSG3ThickShellElement3D3N::Initialize(const ProcessInfo& rCurrentProcessI
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
     }
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void CSDSG3ThickShellElement3D3N::InitializeSubtriangles()
+{
+    KRATOS_TRY
+
+    if (mpSubTriangulationGeometries.size() != 3)
+        mpSubTriangulationGeometries.resize(3);
+
+    const auto &r_geometry = GetGeometry();
+    const auto &r_points = r_geometry.Points();
+
+    // Compute barycenter coordinates
+    const auto &r_center_coords = r_geometry.Center();
+    auto p_barycenter = Kratos::make_intrusive<NodeType>(r_center_coords[0], r_center_coords[1], r_center_coords[2]);
+    // auto p_node_1 = Kratos::make_intrusive<NodeType>(r_geometry[0]);
+
+    // auto node_1(Kratos::make_intrusive<NodeType>(3, 1.0, 1.0, 0.0));
+    // auto node_2(Kratos::make_intrusive<NodeType>(4, 0.0, -1.0, 0.0));
+    // auto node_3(Kratos::make_intrusive<NodeType>(5, 2.0, -1.0, 0.0));
+
+    mpSubTriangulationGeometries[0] = Kratos::make_shared<Triangle3D3<NodeType>>(p_barycenter, p_barycenter, p_barycenter);
+    //     mpSubTriangulationGeometries[1] = Kratos::make_shared<Triangle3D3<Point>>(tri1);
+    //     mpSubTriangulationGeometries[2] = Kratos::make_shared<Triangle3D3<Point>>(tri2);
+
     KRATOS_CATCH("")
 }
 
@@ -168,7 +198,7 @@ void CSDSG3ThickShellElement3D3N::GetDofList(
 
 void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     MatrixType &rB,
-    const GeometryType::Pointer pTriangleGeometry // the geometry of the sub-triangle
+    const Geometry<NodeType>::Pointer pTriangleGeometry // the geometry of the sub-triangle
 )
 {
     const IndexType strain_size = GetStrainSize();
@@ -339,6 +369,7 @@ void CSDSG3ThickShellElement3D3N::save(Serializer& rSerializer) const
     int IntMethod = int(this->GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("SubTriangulationGeometries", mpSubTriangulationGeometries);
 }
 
 /***********************************************************************************/
@@ -351,6 +382,7 @@ void CSDSG3ThickShellElement3D3N::load(Serializer& rSerializer)
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("SubTriangulationGeometries", mpSubTriangulationGeometries);
 }
 
 } // Namespace Kratos
