@@ -272,19 +272,8 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
     // Save to file
     if (safe_to_file) SaveSolutionToFile(false);
 
-    // We set the parameters
-    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
-        // We set the isosurface value
-        mMmgUtilities.SetLevelSetValueParameter(mThisParameters["isosurface_parameters"]["isosurface_value"].GetDouble());
-        // We set the remove small disconnected components value if needed
-        const double remove_small_disconnected_components = mThisParameters["isosurface_parameters"]["remove_small_disconnected_components"].GetDouble();
-        if (remove_small_disconnected_components > 0.0) {
-            mMmgUtilities.SetRemoveSmallDisconnectedComponentsParameter(remove_small_disconnected_components);
-        }
-    }
-
-    // Set some parameters
-    mMmgUtilities.SetRelaxationParameter(mThisParameters["advanced_parameters"]["relaxation_value"].GetDouble());
+    // Post mesh and metric initialization
+    PostMeshAndMetricInitialization();
 
     // We execute the remeshing
     ExecuteRemeshing();
@@ -917,8 +906,8 @@ void MmgProcess<TMMGLibrary>::InitializeElementsAndConditions()
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-void MmgProcess<TMMGLibrary>::ApplyLocalParameters() {
-
+void MmgProcess<TMMGLibrary>::ApplyLocalParameters() 
+{
     // Find colors with a unique submodelpart (size == 1)
     std::unordered_map<std::string, IndexType> string_to_color;
     for (auto& r_color : mColors) {
@@ -955,6 +944,27 @@ void MmgProcess<TMMGLibrary>::ApplyLocalParameters() {
             mMmgUtilities.SetLocalParameter(color, hmin, hmax, hausdorff);
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibrary TMMGLibrary>
+void MmgProcess<TMMGLibrary>::PostMeshAndMetricInitialization()
+{
+    // We set the parameters
+    if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+        // We set the isosurface value
+        mMmgUtilities.SetLevelSetValueParameter(mThisParameters["isosurface_parameters"]["isosurface_value"].GetDouble());
+        // We set the remove small disconnected components value if needed
+        const double remove_small_disconnected_components = mThisParameters["isosurface_parameters"]["remove_small_disconnected_components"].GetDouble();
+        if (remove_small_disconnected_components > 0.0) {
+            mMmgUtilities.SetRemoveSmallDisconnectedComponentsParameter(remove_small_disconnected_components);
+        }
+    }
+
+    // Set some parameters
+    mMmgUtilities.SetRelaxationParameter(mThisParameters["advanced_parameters"]["relaxation_value"].GetDouble());
 }
 
 /***********************************************************************************/

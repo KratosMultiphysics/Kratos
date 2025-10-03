@@ -312,14 +312,15 @@ protected:
      */
     static inline FrameworkEulerLagrange ConvertFramework(const std::string& rString)
     {
-        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
+        if (rString == "Lagrangian" || rString == "LAGRANGIAN") {
             return FrameworkEulerLagrange::LAGRANGIAN;
-        else if(rString == "Eulerian" || rString == "EULERIAN")
+        } else if (rString == "Eulerian" || rString == "EULERIAN") {
             return FrameworkEulerLagrange::EULERIAN;
-        else if(rString == "ALE")
+        } else if (rString == "ALE") {
             return FrameworkEulerLagrange::ALE;
-        else
+        } else {
             return FrameworkEulerLagrange::EULERIAN;
+        }
     }
 
     /**
@@ -329,14 +330,15 @@ protected:
      */
     static inline DiscretizationOption ConvertDiscretization(const std::string& rString)
     {
-        if(rString == "Lagrangian" || rString == "LAGRANGIAN")
+        if (rString == "Lagrangian" || rString == "LAGRANGIAN") {
             return DiscretizationOption::LAGRANGIAN;
-        else if(rString == "Standard" || rString == "STANDARD")
+        } else if (rString == "Standard" || rString == "STANDARD") {
             return DiscretizationOption::STANDARD;
-        else if(rString == "Isosurface" || rString == "ISOSURFACE" || rString == "IsoSurface")
+        } else if (rString == "Isosurface" || rString == "ISOSURFACE" || rString == "IsoSurface") {
             return DiscretizationOption::ISOSURFACE;
-        else
+        } else {
             return DiscretizationOption::STANDARD;
+        }
     }
 
     /**
@@ -453,6 +455,11 @@ protected:
      * in the parameters, to locally control the size and curvature of the remeshing.
     */
     void ApplyLocalParameters();
+
+    /**
+     * @brief Performs post operations after initializes the mesh and metric for remeshing.
+     */
+    void PostMeshAndMetricInitialization();
 
     ///@}
 private:
