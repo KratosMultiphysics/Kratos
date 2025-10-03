@@ -91,7 +91,10 @@ namespace Kratos
         mpOriginModelPart = &rOriginModelPart;
 
         // Set the origin process info to the virtual model part
-        mrVirtualModelPart.SetProcessInfo(rOriginModelPart.GetProcessInfo());
+        // FIXME: This is creating a copy of ProcessInfo. Modified to keep the same behaviour before and after pr #13376.
+        // Note : There was a mishandled time stepping when the ProcessInfo is a reference instead of a copy
+        //        , resulting in different time step between fluid and structure solver. 
+        mrVirtualModelPart.SetProcessInfo(ProcessInfo::Pointer(new ProcessInfo(*rOriginModelPart.pGetProcessInfo())));
 
         // Add the required varibles to the virtual model part
         mrVirtualModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
