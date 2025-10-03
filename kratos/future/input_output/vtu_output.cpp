@@ -1466,8 +1466,6 @@ void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
 
     const auto& r_process_info = mrModelPart.GetProcessInfo();
 
-    // Add the time step info.
-    // check if a similar time has been already printed to vtu.
     // here we do not check whether the r_process_info has the time variable specified
     // because, in a const DataValueContainer, if the variable is not there, it returns the
     // zero value of the variable.
