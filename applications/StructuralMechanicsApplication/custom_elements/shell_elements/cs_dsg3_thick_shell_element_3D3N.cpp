@@ -198,6 +198,59 @@ void CSDSG3ThickShellElement3D3N::CalculateB(
     const double N2_y = aux_prod * (coords_1[0] - coords_3[0]);
     const double N3_x = aux_prod * (coords_1[1] - coords_2[1]);
     const double N3_y = aux_prod * (coords_2[0] - coords_1[0]);
+
+    // Membrane components
+    rB(0, 0) = N1_x;
+    rB(0, 1) = N1_y;
+    rB(2, 0) = N1_y;
+    rB(2, 1) = N1_x;
+
+    rB(0, 6) = N2_x;
+    rB(0, 7) = N2_y;
+    rB(2, 6) = N2_y;
+    rB(2, 7) = N2_x;
+
+    rB(0, 12) = N3_x;
+    rB(0, 13) = N3_y;
+    rB(2, 12) = N3_y;
+    rB(2, 13) = N3_x;
+
+    // Bending components
+    rB(3, 4) =  N1_x;
+    rB(4, 3) = -N1_y;
+    rB(5, 3) = -N1_x;
+    rB(5, 4) =  N1_y;
+
+    rB(3, 10) = N2_x;
+    rB(4, 9) = -N2_y;
+    rB(5, 9) = -N2_x;
+    rB(5, 10) = N2_y;
+
+    rB(3, 16) =  N3_x;
+    rB(4, 15) = -N3_y;
+    rB(5, 15) = -N3_x;
+    rB(5, 16) =  N3_y;
+
+    // Shear components
+    // Bs1
+    rB(6, 2) = aux_prod * (b - c);
+    rB(6, 4) = 0.5;
+    rB(7, 2) = aux_prod * (d - a);
+    rB(7, 3) = -0.5;
+    // Bs2
+    rB(6, 8) = aux_prod * c;
+    rB(6, 9) = aux_prod * (-b * c) * 0.5;
+    rB(6, 10) = aux_prod * (a * c) * 0.5;
+    rB(7, 8) = aux_prod * (-d);
+    rB(7, 9) = aux_prod * (b * d) * 0.5;
+    rB(7, 10) = aux_prod * (-a * d) * 0.5;
+    // Bs3
+    rB(6, 14) = aux_prod * (-b);
+    rB(6, 15) = aux_prod * (b * c) * 0.5;
+    rB(6, 16) = aux_prod * (b * d) * 0.5;
+    rB(7, 14) = aux_prod * a;
+    rB(7, 15) = aux_prod * (-a * c) * 0.5;
+    rB(7, 16) = aux_prod * (a * d) * 0.5;
 }
 
 /***********************************************************************************/
