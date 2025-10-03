@@ -18,7 +18,7 @@
 
 // Application includes
 #include "cs_dsg3_thick_shell_element_3D3N.h"
-#include "custom_utilities/constitutive_law_utilities.h"
+// #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -166,8 +166,8 @@ void CSDSG3ThickShellElement3D3N::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::CalculateB(
-    Matrix &rB,
+void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
+    MatrixType &rB,
     const GeometryType::Pointer pTriangleGeometry // the geometry of the sub-triangle
 )
 {
@@ -251,6 +251,30 @@ void CSDSG3ThickShellElement3D3N::CalculateB(
     rB(7, 14) = aux_prod * a;
     rB(7, 15) = aux_prod * (-a * c) * 0.5;
     rB(7, 16) = aux_prod * (a * d) * 0.5;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void CSDSG3ThickShellElement3D3N::CalculateB(
+    MatrixType &rB
+)
+{
+    const IndexType strain_size = GetStrainSize();
+    const IndexType number_of_nodes = GetGeometry().PointsNumber();
+    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+    if (rB.size1() != strain_size || rB.size2() != system_size)
+        rB.resize(strain_size, system_size, false);
+    rB.clear();
+
+    MatrixType B_triangle(strain_size, system_size);
+
+    for (IndexType i = 0; i < 3; ++i) {
+        CalculateBTriangle(B_triangle, mpSubTriangulationGeometries[i]); // clear inside
+        noalias(rB) += mpSubTriangulationGeometries[i]->Area() * B_triangle;
+    }
+    rB /= GetGeometry().Area();
 }
 
 /***********************************************************************************/

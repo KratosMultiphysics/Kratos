@@ -198,12 +198,16 @@ public:
     }
 
     /**
-     * @brief This method computes the Strain-Displacement matrix B, used to relate nodal displacements to strains
+     * @brief This method computes the Strain-Displacement matrix B, used to relate nodal displacements to strains for a triangle sub-element
      * @details The B matrix includes the membrane, bending and shear parts. Size of 8x18 since we have 8 generalized strains and 18 dofs (3 nodes with 6 dofs each)
      */
-    void CalculateB(
-        Matrix &rB,
+    void CalculateBTriangle(
+        MatrixType &rB,
         const GeometryType::Pointer pTriangleGeometry // the geometry of the sub-triangle
+    );
+
+    void CalculateB(
+        MatrixType &rB
     );
 
     /**
@@ -302,7 +306,7 @@ protected:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
-    std::vector<GeometryType::Pointer> mSubTriangulationGeometries; /// the 3 sub-triangles used for the DSG
+    std::vector<GeometryType::Pointer> mpSubTriangulationGeometries; /// the 3 sub-triangles used for the DSG
 
     ///@}
     ///@name Protected Operators
