@@ -61,14 +61,16 @@ void CSDSG3ThickShellElement3D3N::InitializeMaterial()
     // TODO: ensure retro-compatibility with older SHELLS using Section class
 
     const auto& r_properties = GetProperties();
+    const auto& r_geometry = GetGeometry();
     if (r_properties[CONSTITUTIVE_LAW] != nullptr) {
         auto N_values = Vector();
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
             mConstitutiveLawVector[point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, GetGeometry(), N_values);
+            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, N_values);
         }
-    } else
+    } else {
         KRATOS_ERROR << "A constitutive law needs to be specified for the CS-DSG3 shell element with ID " << this->Id() << std::endl;
+    }
 
     KRATOS_CATCH("")
 }
@@ -111,29 +113,26 @@ void CSDSG3ThickShellElement3D3N::EquationIdVector(
     ) const
 {
     KRATOS_TRY
-    // const auto& r_geometry = GetGeometry();
-    // const SizeType number_of_nodes = r_geometry.size();
-    // const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
-    // const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, theta
 
-    // IndexType local_index = 0;
+    IndexType local_index = 0;
 
-    // if (rResult.size() != dofs_per_node * number_of_nodes)
-    //     rResult.resize(dofs_per_node * number_of_nodes, false);
+    if (rResult.size() != dofs_per_node * number_of_nodes)
+        rResult.resize(dofs_per_node * number_of_nodes, false);
 
-    // const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
-    // const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_X);
+    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_X);
 
-    // for (IndexType i = 0; i < number_of_nodes; ++i) {
-    //     rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos).EquationId();
-    //     rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
-    //     if (dimension == 3) {
-    //         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Z, xpos + 2).EquationId();
-    //         rResult[local_index++] = r_geometry[i].GetDof(ROTATION_X, rot_pos).EquationId();
-    //         rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y, rot_pos + 1).EquationId();
-    //     }
-    //     rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z, rot_pos + 2).EquationId();
-    // }
+    for (IndexType i = 0; i < number_of_nodes; ++i) {
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Z, xpos + 2).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_X, rot_pos     ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y, rot_pos + 1 ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z, rot_pos + 2 ).EquationId();
+    }
     KRATOS_CATCH("")
 }
 

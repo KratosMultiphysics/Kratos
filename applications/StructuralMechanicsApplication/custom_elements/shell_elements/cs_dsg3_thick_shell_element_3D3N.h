@@ -134,7 +134,7 @@ public:
      * @brief This method initializes the constitutive law vector and the individual constitutive laws too
      * @warning Must be called before any calculation is done
      */
-    void InitializeMaterial(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeMaterial();
 
     /**
      * @brief It creates a new element pointer and clones the previous element data
