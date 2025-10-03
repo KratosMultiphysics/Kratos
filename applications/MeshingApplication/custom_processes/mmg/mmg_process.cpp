@@ -195,7 +195,7 @@ void MmgProcess<TMMGLibrary>::ExecuteInitialize()
         });
         mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE); // In theory with RemoveConditions is enough
 
-        // Setting to erare on the auxiliar model part
+        // Setting to erase on the auxiliary model part
         if (mrModelPart.HasSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART")) {
             VariableUtils().SetFlag(TO_ERASE, true, mrModelPart.GetSubModelPart("AUXILIAR_ISOSURFACE_MODEL_PART").Conditions());
         }

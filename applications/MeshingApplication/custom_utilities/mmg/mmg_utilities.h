@@ -824,11 +824,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -849,39 +847,23 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const // override
     {
+        std::string discretization;
+        if (mDiscretization == DiscretizationOption::STANDARD) {
+            discretization = "Standard";
+        } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+            discretization = "Lagrangian";
+        } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
+            discretization = "Isosurface";
+        } else {
+            discretization = "Unknown";
+        }
+        rOStream << "Echo Level: "          << mEchoLevel         << "\n"
+                 << "Remove Regions: "      << mRemoveRegions     << "\n"
+                 << "Discretization: "      << discretization    << "\n"
+                 << "Using Metric Tensor: " << mUsingMetricTensor << std::endl;
     }
 
-protected:
-
-    ///@name Protected Member Variables
-    ///@{
-
     ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -891,7 +873,7 @@ private:
     ///@{
 
     SizeType mEchoLevel = 0;                                               /// The echo level of the utilities
-    bool mRemoveRegions = false;                                           /// Cuttig-out specified regions during surface remeshing
+    bool mRemoveRegions = false;                                           /// Cutting-out specified regions during surface remeshing
     DiscretizationOption mDiscretization = DiscretizationOption::STANDARD; /// Discretization The discretization type
     bool mUsingMetricTensor = true;                                        /// Controls if the metric used is a tensor (true) or a scalar (false)
 
@@ -912,15 +894,7 @@ private:
         ModelPart& rModelPart,
         const Flags& rFlag,
         const bool FlagValue
-        )
-    {
-        // We call it recursively
-        for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
-            VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Conditions());
-            VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Elements());
-            ResursivelyAssignFlagEntities(r_sub_model_part, rFlag, FlagValue);
-        }
-    }
+        );
 
     ///@}
     ///@name Private  Access

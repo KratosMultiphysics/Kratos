@@ -5165,6 +5165,24 @@ void MmgUtilities<TMMGLibrary>::AssignAndClearAuxiliarSubModelPartForFlags(Model
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<MMGLibrary TMMGLibrary>
+void MmgUtilities<TMMGLibrary>::ResursivelyAssignFlagEntities(
+    ModelPart& rModelPart,
+    const Flags& rFlag,
+    const bool FlagValue
+    )
+{
+    // We call it recursively
+    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+        VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Conditions());
+        VariableUtils().SetFlag(rFlag, FlagValue, r_sub_model_part.Elements());
+        ResursivelyAssignFlagEntities(r_sub_model_part, rFlag, FlagValue);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class MmgUtilities<MMGLibrary::MMG2D>;
 template class MmgUtilities<MMGLibrary::MMG3D>;
 template class MmgUtilities<MMGLibrary::MMGS>;
