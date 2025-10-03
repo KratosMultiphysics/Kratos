@@ -211,7 +211,6 @@ protected:
     void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
                                             const ElementVariables& rVariables) const;
 
-    [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
@@ -271,15 +270,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-    // Private Operations
-
-    template <class TValueType>
-    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
-    {
-        rNode.SetLock();
-        rNode.FastGetSolutionStepValue(Var) = Value;
-        rNode.UnSetLock();
-    }
 
     Vector CalculateInternalForces(ElementVariables&          Variables,
                                    const std::vector<Matrix>& b_matrices,
@@ -296,7 +286,6 @@ private:
                                    const std::vector<double>& degrees_of_saturation,
                                    const std::vector<double>& relative_permeability_values,
                                    const std::vector<double>& bishop_coefficients) const;
-
 }; // Class SmallStrainUPwDiffOrderElement
 
 } // namespace Kratos
