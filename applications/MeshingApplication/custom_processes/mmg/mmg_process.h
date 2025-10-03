@@ -60,15 +60,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// Index definition
-    using IndexType = std::size_t;
-
-    /// Size definition
-    using SizeType = std::size_t;
-
-    /// Index vector
-    using IndexVectorType = std::vector<IndexType>;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -101,6 +92,12 @@ public:
     /// Pointer definition of MmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
 
+    /// Index definition
+    using IndexType = std::size_t;
+
+    /// Size definition
+    using SizeType = std::size_t;
+
     // Geometry definition
     using GeometryType = Geometry<Node>;
 
@@ -124,20 +121,28 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // Constructor
-
     /**
-     * @brief This is the default constructor, which is used to read the input files
-     * @param rThisModelPart The model part
+     * @brief This is the default constructor, with model as input
+     * @param rModel The model
      * @param ThisParameters The parameters
      */
     MmgProcess(
-        ModelPart& rThisModelPart,
+        Model& rModel,
+        Parameters ThisParameters = Parameters(R"({})")
+        );
+
+    /**
+     * @brief This is the default constructor, with model part as input
+     * @param rModelPart The model part
+     * @param ThisParameters The parameters
+     */
+    MmgProcess(
+        ModelPart& rModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
     /// Destructor.
-    ~MmgProcess() override = default;
+    ~MmgProcess() override;
 
     ///@}
     ///@name Operators
@@ -148,6 +153,19 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Creates a new instance of the process.
+     * @details This method is responsible for creating and returning a pointer to a new process instance,
+     * configured with the provided model and parameters.
+     * @param rModel Reference to the model on which the process will operate.
+     * @param ThisParameters Parameters used to configure the process.
+     * @return Process::Pointer A smart pointer to the newly created process instance.
+     */
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
 
     /**
      * @brief Execute method is used to execute the Process algorithms.
@@ -252,8 +270,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;                                      /// The model part to compute
-    Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
+    ModelPart& mrModelPart;                                          /// The model part to compute
+    Parameters mThisParameters;                                      /// The parameters (can be used for general purposes)
     Node::DofsContainerType mDofs;                                   /// Storage for the dof of the node
 
     std::string mFilename;                                           /// I/O file name
@@ -262,12 +280,14 @@ protected:
     FrameworkEulerLagrange mFramework;                               /// The framework
 
     DiscretizationOption mDiscretization;                            /// The discretization option
-    bool mRemoveRegions;                                             /// Cuttig-out specified regions during surface remeshing
+    bool mRemoveRegions;                                             /// Cutting-out specified regions during surface remeshing
 
     std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
 
     std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference element
     std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference condition
+
+    bool mFinalizeIsInvoked = false;                                 /// Flag to check if finalize has been invoked
 
     ///@}
     ///@name Protected Operators

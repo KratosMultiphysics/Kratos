@@ -4,8 +4,8 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
@@ -135,6 +134,7 @@ void  AddProcessesToPython(pybind11::module& m)
 #ifdef INCLUDE_MMG
     // 2D
     py::class_<MmgProcess<MMGLibrary::MMG2D>, MmgProcess<MMGLibrary::MMG2D>::Pointer, Process>(m, "MmgProcess2D")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
     .def("OutputMdpa", &MmgProcess<MMGLibrary::MMG2D>::OutputMdpa)
@@ -144,6 +144,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     // 3D
     py::class_<MmgProcess<MMGLibrary::MMG3D>, MmgProcess<MMGLibrary::MMG3D>::Pointer, Process>(m, "MmgProcess3D")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
     .def("OutputMdpa", &MmgProcess<MMGLibrary::MMG3D>::OutputMdpa)
@@ -153,6 +154,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     // 3D surfaces
     py::class_<MmgProcess<MMGLibrary::MMGS>, MmgProcess<MMGLibrary::MMGS>::Pointer, Process>(m, "MmgProcess3DSurfaces")
+    .def(py::init<Model&, Parameters>())
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
     .def("OutputMdpa", &MmgProcess<MMGLibrary::MMGS>::OutputMdpa)
