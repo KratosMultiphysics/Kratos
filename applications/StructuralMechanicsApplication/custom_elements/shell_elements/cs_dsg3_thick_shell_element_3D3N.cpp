@@ -180,7 +180,24 @@ void CSDSG3ThickShellElement3D3N::CalculateB(
         rB.resize(strain_size, system_size, false);
     rB.clear();
 
-    
+    const double area = pTriangleGeometry->Area();
+    const auto& r_points = pTriangleGeometry->Points();
+    const auto& coords_1 = r_points[0].Coordinates();
+    const auto& coords_2 = r_points[1].Coordinates();
+    const auto& coords_3 = r_points[2].Coordinates();
+
+    const double a = coords_2[0] - coords_1[0];
+    const double b = coords_2[1] - coords_1[1];
+    const double c = coords_3[1] - coords_1[1];
+    const double d = coords_3[0] - coords_1[0];
+
+    const double aux_prod = 0.5 / area;
+    const double N1_x = aux_prod * (coords_2[1] - coords_3[1]);
+    const double N1_y = aux_prod * (coords_3[0] - coords_2[0]);
+    const double N2_x = aux_prod * (coords_3[1] - coords_1[1]);
+    const double N2_y = aux_prod * (coords_1[0] - coords_3[0]);
+    const double N3_x = aux_prod * (coords_1[1] - coords_2[1]);
+    const double N3_y = aux_prod * (coords_2[0] - coords_1[0]);
 }
 
 /***********************************************************************************/
