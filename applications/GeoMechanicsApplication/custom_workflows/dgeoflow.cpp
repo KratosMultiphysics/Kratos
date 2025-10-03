@@ -19,6 +19,7 @@
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
 
+#include <filesystem>
 #include <iomanip>
 #include <sstream>
 
@@ -394,11 +395,13 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
 
 void KratosExecute::WriteCriticalHeadResultToFile() const
 {
+    const auto workingDirectory = std::filesystem::path{mWorkingDirectory} / "criticalHead.json";
+
     KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0)
-        << "Writing result to: " << mWorkingDirectory << "\\criticalHead.json" << std::endl;
+        << "Writing result to: " << workingDirectory.generic_string() << std::endl;
 
     // output critical head_json
-    std::ofstream critical_head_file(mWorkingDirectory + "\\criticalHead.json");
+    std::ofstream critical_head_file(workingDirectory);
 
     critical_head_file << "{\n";
     critical_head_file << "\t \"PipeData\":\t{\n";
