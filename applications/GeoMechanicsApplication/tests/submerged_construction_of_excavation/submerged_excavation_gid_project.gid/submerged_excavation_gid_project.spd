@@ -18,6 +18,7 @@
     <group n="Strut" onoff="1" color="#4d4dff" type=""/>
     <group n="Bottom_Edge" onoff="1" color="#4d804d" type=""/>
     <group n="Left_and_Right_Sides" onoff="1" color="#ff0000" type=""/>
+    <group n="Strut_Support_At_Symmetry_Line" onoff="1" color="#ffff00" type=""/>
   </groups>
   <units/>
   <!-- Fill this fields to automatically active an App without the init window -->
@@ -141,7 +142,7 @@
             <value n="echo_level" pn="Echo level" state="[SolverParamState]" v="1" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
           </container>
         </container>
-        <container n="Geotechnical Parts" pn="Geotechnical Parts" un="STParts" icon="shells16" update_proc="UpdateParts" tree_state="open">
+        <container n="Geotechnical Parts" pn="Geotechnical Parts" un="STParts" icon="shells16" update_proc="UpdateParts" tree_state="close">
           <condition n="Parts_Soil" pn="Soil" ov="surface" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="open">
             <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" v="UPwSmallStrainElement2D" dict="[GetElements ElementType Soil]" state="normal">
               <dependencies node="../value[@n!='Material']" actualize="1"/>
@@ -930,9 +931,9 @@
               <value n="SOFTENING_TYPE" pn="Softening type" help="Defines the softening type (linear softening=0, exponential softening=1)" string_is="double" state="[PartParamState]" show_in_window="1" v="0"/>
               <value n="AREA_EFFECTIVE_Y" pn="Area Effective Y" help="Area Effective Y" string_is="double" state="[PartParamState]" show_in_window="1" v="0.01"/>
             </group>
-            <group n="Sand_Left" ov="surface" tree_state="open">
+            <group n="Sand_Left" ov="surface" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="8$SmallStrainUDSM2DPlaneStrainLaw" tree_state="active,open,selected"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="8$SmallStrainUDSM2DPlaneStrainLaw" tree_state="open"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650" tree_state="close"/>
@@ -3559,6 +3560,20 @@
             <group n="Left_and_Right_Sides" ov="line" tree_state="close">
               <value n="activeX" pn="X Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
               <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="activeZ" pn="Z Active" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
+              <value n="is_fixedX" pn="X Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="is_fixedY" pn="Y Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="is_fixedZ" pn="Z Fixed" values="true,false" help="Fixed" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
+              <value n="value_value_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_value_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_value_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Value" state="[CheckDimension 3D]" show_in_window="1" v="0.0"/>
+              <value n="value_table_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
+              <value n="value_table_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
+              <value n="value_table_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Table" state="[CheckDimension 3D]" show_in_window="1" v="0"/>
+            </group>
+            <group n="Strut_Support_At_Symmetry_Line" ov="point" tree_state="open">
+              <value n="activeX" pn="X Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="active,selected,close"/>
               <value n="activeZ" pn="Z Active" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
               <value n="is_fixedX" pn="X Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
               <value n="is_fixedY" pn="Y Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
