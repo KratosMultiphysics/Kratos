@@ -21,6 +21,8 @@ namespace Kratos
 {
 TensionCutoff::TensionCutoff(double TensileStrength) : mTensileStrength{TensileStrength} {}
 
+double TensionCutoff::GetTensileStrength() const { return mTensileStrength; }
+
 double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
 {
     auto principal_stress_vector = Vector{ZeroVector{3}};

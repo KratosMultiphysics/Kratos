@@ -224,7 +224,7 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS Kratos DESTINATION libs )
+install(TARGETS Kratos DESTINATION libs)
 install(TARGETS KratosCore DESTINATION libs)
 
 # Mpi
