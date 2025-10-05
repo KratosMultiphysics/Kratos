@@ -2,6 +2,7 @@ import typing
 from enum import Enum
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+from .expression_bounding_manager import ExpressionBoundingManager
 
 class PropertiesDataLocation(Enum):
     ElementProperties = 100
