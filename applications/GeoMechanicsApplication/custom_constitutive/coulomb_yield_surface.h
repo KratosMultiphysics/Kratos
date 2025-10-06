@@ -38,6 +38,10 @@ public:
     [[nodiscard]] double GetCohesion() const;
     [[nodiscard]] double GetDilatationAngleInRadians() const;
 
+    void SetFrictionAngleInRadians(double FrictionAngleInRad) { mFrictionAngle = FrictionAngleInRad; }
+    void SetCohesion(double Cohesion) { mCohesion = Cohesion; }
+    void SetDilatationAngleInRadians(double DilatationAngleInRad) { mDilatationAngle = DilatationAngleInRad; }
+
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;

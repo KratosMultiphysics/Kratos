@@ -36,11 +36,19 @@ public:
     [[nodiscard]] bool   IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
     [[nodiscard]] Vector DoReturnMapping(const Properties& rProperties,
                                          const Vector&     rTrialSigmaTau,
-                                         CoulombYieldSurface::CoulombAveragingType AveragingType) const;
+                                         CoulombYieldSurface::CoulombAveragingType AveragingType);
 
 private:
     CoulombYieldSurface mCoulombYieldSurface;
     TensionCutoff       mTensionCutOff;
+    double mEquivalentPlasticStrain = 0.0;
+
+    double UpdateFrictionAngle(const Properties& rProperties, double kappa) const;
+    double UpdateCohesion(const Properties& rProperties, double kappa) const;
+    double UpdateDilatancyAngle(const Properties& rProperties, double kappa) const;
+    double CalculateEquivalentPlasticStrain(const Vector& rSigmaTau,
+        CoulombYieldSurface::CoulombAveragingType AveragingType,
+        double lambda) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;
