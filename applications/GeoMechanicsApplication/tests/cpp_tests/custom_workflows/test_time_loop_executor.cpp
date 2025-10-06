@@ -141,7 +141,7 @@ TimeStepEndState MakeConvergedStepState()
     return result;
 }
 
-void RunFixedCycleTimeLoop(std::size_t WantedNumOfCyclesPerStep, const std::shared_ptr<DummySolverStrategy>& rpSolver)
+void RunTwoTimeStepsWithFixedNumberOfCycles(std::size_t WantedNumOfCyclesPerStep, const std::shared_ptr<DummySolverStrategy>& rpSolver)
 {
     TimeLoopExecutor executor;
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(WantedNumOfCyclesPerStep));
@@ -259,7 +259,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrement
 KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetOnSolverStrategyAfterRunningAStepLoop, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto solver_strategy = std::make_shared<DummySolverStrategy>();
-    RunFixedCycleTimeLoop(1, solver_strategy);
+    RunTwoTimeStepsWithFixedNumberOfCycles(1, solver_strategy);
 
     KRATOS_EXPECT_DOUBLE_EQ(1.0, solver_strategy->GetEndTime());
     KRATOS_EXPECT_DOUBLE_EQ(0.5, solver_strategy->GetTimeIncrement());
@@ -271,7 +271,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectATimeStepCloneAtStartOfStep, KratosGeoMechanicsF
     auto solver_strategy = std::make_shared<DummySolverStrategy>();
 
     EXPECT_CALL(*solver_strategy, CloneTimeStep).Times(testing::AtLeast(1));
-    RunFixedCycleTimeLoop(1, solver_strategy);
+    RunTwoTimeStepsWithFixedNumberOfCycles(1, solver_strategy);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectNoRestoreCalledForOneCycle, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -279,7 +279,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectNoRestoreCalledForOneCycle, KratosGeoMechanicsFa
     auto solver_strategy = std::make_shared<DummySolverStrategy>();
 
     EXPECT_CALL(*solver_strategy, RestorePositionsAndDOFVectorToStartOfStep).Times(0);
-    RunFixedCycleTimeLoop(1, solver_strategy);
+    RunTwoTimeStepsWithFixedNumberOfCycles(1, solver_strategy);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -287,7 +287,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFas
     auto solver_strategy = std::make_shared<DummySolverStrategy>();
 
     EXPECT_CALL(*solver_strategy, RestorePositionsAndDOFVectorToStartOfStep).Times(testing::AtLeast(1));
-    RunFixedCycleTimeLoop(2, solver_strategy);
+    RunTwoTimeStepsWithFixedNumberOfCycles(2, solver_strategy);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -295,7 +295,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMe
     auto solver_strategy = std::make_shared<DummySolverStrategy>();
 
     EXPECT_CALL(*solver_strategy, AccumulateTotalDisplacementField).Times(2);
-    RunFixedCycleTimeLoop(1, solver_strategy);
+    RunTwoTimeStepsWithFixedNumberOfCycles(1, solver_strategy);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
