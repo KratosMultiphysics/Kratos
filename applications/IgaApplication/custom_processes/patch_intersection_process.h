@@ -15,7 +15,6 @@
 #include "includes/model_part.h"
 #include "geometries/geometry.h"
 #include "integration/integration_info.h"
-// #include "custom_utilities/create_breps_sbm_utilities.h"
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/brep_curve_on_surface.h"
 #include "geometries/brep_surface.h"

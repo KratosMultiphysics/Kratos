@@ -574,10 +574,7 @@ void PatchSubdivisionModeler::ProcessPatch_(
                 const Parameters c = condition_list[i];
                 if (!is_edge_cond(c) || !has_mp(c)) continue;
                 const std::string mp = c["iga_model_part"].GetString();
-                KRATOS_WATCH(mp)
-                KRATOS_WATCH("ciaooo")
                 const std::string l  = to_lower(mp);
-                KRATOS_WATCH(l)
                 if (!has_ext && (l.find("outer") != std::string::npos || l.find("external") != std::string::npos)) {
                     ext_tmpl = c.Clone(); has_ext = true; continue;
                 }

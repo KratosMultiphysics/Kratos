@@ -13,12 +13,7 @@
 #include "custom_processes/patch_intersection_process.h"
 
 #include "includes/kratos_components.h"
-#include <algorithm>
-#include <cmath>
-#include <limits>
-#include <string>
-#include <vector>
-#include <iostream>
+#include "includes/variables.h"
 
 namespace Kratos {
 
@@ -150,7 +145,7 @@ void PatchIntersectionProcess::ComputeIntersections()
 
 
     // 2) For every adjacent pair, create body-fitted conditions
-    const std::string cond_name_bodyfitted = "CutSbmLaplacianInterfaceCondition"; // <- change if needed // TODO:
+    const std::string cond_name_bodyfitted = "LaplacianCouplingCondition"; // <- change if needed // TODO:
 
     for (std::size_t i = 0; i < patches.size(); ++i) {
         const auto& A = patches[i];
@@ -240,10 +235,17 @@ void PatchIntersectionProcess::ComputeIntersections()
                     if (v1 <= v0 + mTol) continue; // skip degenerate
 
                     // Endpoints on A and B (same v-interval, different fixed u)
-                    const Point A0(u_fixed_A, v0, 0.0);
-                    const Point A1(u_fixed_A, v1, 0.0);
-                    const Point B0(u_fixed_B, v0, 0.0);
-                    const Point B1(u_fixed_B, v1, 0.0);
+                    Point A0(u_fixed_A, v0, 0.0);
+                    Point A1(u_fixed_A, v1, 0.0);
+                    Point B0(u_fixed_B, v0, 0.0);
+                    Point B1(u_fixed_B, v1, 0.0);
+
+                    // Ensure the B-side curve is oriented so that its surface normal points outward
+                    if (A_right_B_left) {
+                        std::swap(A0, A1);
+                    } else {
+                        std::swap(B0, B1);
+                    }
 
                     // Create Brep on A
                     CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart);
@@ -341,6 +343,7 @@ void PatchIntersectionProcess::ComputeIntersections()
                 std::vector<GeometryPointerType> breps_B;
                 breps_A.reserve(union_breaks_u.size());
                 breps_B.reserve(union_breaks_u.size());
+                KRATOS_WATCH(union_breaks_u)
 
                 for (std::size_t k = 0; k + 1 < union_breaks_u.size(); ++k) {
                     const double u0 = union_breaks_u[k];
@@ -348,10 +351,17 @@ void PatchIntersectionProcess::ComputeIntersections()
                     if (u1 <= u0 + mTol) continue; // skip degenerate
 
                     // Endpoints on A and B (same u-interval, different fixed v)
-                    const Point A0(u0, v_fixed_A, 0.0);
-                    const Point A1(u1, v_fixed_A, 0.0);
-                    const Point B0(u0, v_fixed_B, 0.0);
-                    const Point B1(u1, v_fixed_B, 0.0);
+                    Point A0(u0, v_fixed_A, 0.0);
+                    Point A1(u1, v_fixed_A, 0.0);
+                    Point B0(u0, v_fixed_B, 0.0);
+                    Point B1(u1, v_fixed_B, 0.0);
+
+                    // Ensure the B-side curve is oriented so that its surface normal points outward
+                    if (A_top_B_bot) {
+                        std::swap(B0, B1);
+                    } else {
+                        std::swap(A0, A1);
+                    }
 
                     // Create Brep on A
                     CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart);
@@ -576,7 +586,7 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
         const double mid  = 0.5 * (t1 + t0);
         for (SizeType i = 0; i < ip_per_span; ++i) {
             const double t = mid + half * xi[i];
-            ips.emplace_back(IntegrationPoint<1>(t, w[i]));
+            ips.emplace_back(IntegrationPoint<1>(t, w[i] * half));
         }
         return ips;
     };
@@ -607,8 +617,21 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
 
         // Create primary-side conditions and attach the mirrored QP-geometry as neighbour
         for (std::size_t q = 0; q < qpPrim.size(); ++q) {
-            const auto& pGeomPrim = qpPrim(q);
-            const auto& pGeomMir  = qpMir(q);
+            auto pGeomPrim = qpPrim(q);
+            auto pGeomMir  = qpMir(q);
+
+            const auto integration_method = pGeomPrim->GetDefaultIntegrationMethod();
+            const array_1d<double, 3> normal_primary = pGeomPrim->Normal(0, integration_method);
+            array_1d<double, 3> normal_mirror = pGeomMir->Normal(0, integration_method);
+            
+            // Be sure they have opposite orientation (flip mirrored if needed)
+            if (MathUtils<double>::Dot(normal_primary, normal_mirror) > 0.0) {
+                array_1d<double, 3> tangent_parameter_space;
+                pGeomMir->Calculate(LOCAL_TANGENT, tangent_parameter_space);
+                tangent_parameter_space[0] *= -1.0;
+                tangent_parameter_space[1] *= -1.0;
+                pGeomMir->Assign(LOCAL_TANGENT, tangent_parameter_space);
+            }
 
             Condition::Pointer pCond = rRefCond.Create(next_id++, pGeomPrim, PropertiesPointerType());
             pCond->SetValue(KNOT_SPAN_SIZES, knot_span_sizes);
@@ -620,7 +643,6 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
             // Ensure nodes of the QP-geometry are present
             for (SizeType i = 0; i < pGeomPrim->size(); ++i) {
                 rTargetSubModelPart.Nodes().push_back(pGeomPrim->pGetPoint(i));
-                // TODO: maybe also add the nodes of the mirror geometry?
             }
 
             new_conditions.push_back(pCond);
