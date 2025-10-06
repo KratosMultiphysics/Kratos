@@ -54,18 +54,18 @@ std::string GetEndianness()
     }
 }
 
-template<class... T>
+template<class T>
 void CheckDataArrayName(
     const std::string& rName,
-    const std::vector<Globals::DataLocation>& rLocations,
-    const VtuOutput::DataList<T>&... rList)
+    const Globals::DataLocation& rLocation,
+    const VtuOutput::DataList<T>& rList)
 {
-    for (const auto& r_location : rLocations) {
-        const bool found_existing_name = !(... && (rList[static_cast<IndexType>(r_location)].find(rName) == rList[static_cast<IndexType>(r_location)].end()));
+    KRATOS_TRY
 
-        KRATOS_ERROR_IF(found_existing_name)
-                << "Found an existing data array with the same name = \"" << rName << "\".\n";
-    }
+    KRATOS_ERROR_IF(rList[static_cast<IndexType>(rLocation)].find(rName) != rList[static_cast<IndexType>(rLocation)].end())
+            << "Found an existing data array with the same name = \"" << rName << "\".\n";
+
+    KRATOS_CATCH("");
 }
 
 void CheckDataArrayName(
@@ -73,6 +73,8 @@ void CheckDataArrayName(
     const Globals::DataLocation& rLocation,
     const VtuOutput::UnstructuredGridData& rUnstructuredGridData)
 {
+    KRATOS_TRY
+
     bool found_existing_name = false;
     switch (rLocation) {
         case Globals::DataLocation::NodeHistorical:
@@ -88,8 +90,11 @@ void CheckDataArrayName(
         default:
             KRATOS_ERROR << "Unsupported data location type.";
     }
+
     KRATOS_ERROR_IF(found_existing_name)
             << "Found an existing data array with the same name = \"" << rName << "\".\n";
+
+    KRATOS_CATCH("");
 }
 
 void CheckDataArrayName(
@@ -97,6 +102,8 @@ void CheckDataArrayName(
     const Globals::DataLocation& rLocation,
     const std::vector<VtuOutput::UnstructuredGridData>& rListOfUnstructuredGridData)
 {
+    KRATOS_TRY
+
     for (const auto& r_model_part_data : rListOfUnstructuredGridData) {
         switch (rLocation) {
             case Globals::DataLocation::NodeHistorical:
@@ -110,6 +117,8 @@ void CheckDataArrayName(
                 CheckDataArrayName(rName, rLocation, r_model_part_data);
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 std::string GetEntityName(const std::optional<VtuOutput::CellContainerPointerType>& pCellContainer)
@@ -300,6 +309,23 @@ void AddConnectivityData(
     }, pCells);
 }
 
+/**
+ * @brief This i
+ *
+ * @tparam TTensorAdaptorType
+ * @tparam TContainerPointerType
+ * @tparam TDataType
+ * @tparam TXmlDataElementWrapper
+ * @tparam TArgs
+ * @param rXmlElement
+ * @param pContainer
+ * @param rVariable
+ * @param rXmlDataElementWrapper
+ * @param rDataCommunicator
+ * @param rWritingIndices
+ * @param EchoLevel
+ * @param rArgs
+ */
 template<class TTensorAdaptorType, class TContainerPointerType, class TDataType, class TXmlDataElementWrapper, class... TArgs>
 void AddFieldsFromTensorAdaptorImpl(
     XmlElementsArray& rXmlElement,
@@ -396,6 +422,23 @@ void AddFieldsFromTensorAdaptorImpl(
     KRATOS_CATCH("");
 }
 
+/**
+ * @brief
+ *
+ * @tparam TTensorAdaptorType
+ * @tparam TContainerPointerType
+ * @tparam TMapType
+ * @tparam TXmlDataElementWrapper
+ * @tparam TArgs
+ * @param rXmlElement
+ * @param pContainer
+ * @param rMap
+ * @param rXmlDataElementWrapper
+ * @param rDataCommunicator
+ * @param rWritingIndices
+ * @param EchoLevel
+ * @param rArgs
+ */
 template<class TTensorAdaptorType, class TContainerPointerType, class TMapType, class TXmlDataElementWrapper, class... TArgs>
 void AddFieldsFromTensorAdaptor(
     XmlElementsArray& rXmlElement,
@@ -908,7 +951,8 @@ void VtuOutput::AddFlag(
             // whether there are variables with the same name in the variables
             // from the nodal historical.
             // note: there is no break here.
-            CheckDataArrayName(rFlagName, {Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
+            CheckDataArrayName(rFlagName, Globals::DataLocation::NodeHistorical, mFlags);
+            CheckDataArrayName(rFlagName, Globals::DataLocation::NodeHistorical, mVariables);
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
             // The following code block will be executed for Globals::DataLocation::NodeHistorical, Globals::DataLocation::Condition, and Globals::DataLocation::Element.
@@ -916,7 +960,8 @@ void VtuOutput::AddFlag(
             // user is trying to add a flag variable to nodes, conditions or elements.
             // here we check if the given flag name is there in the existing flags for user specified data location,
             // and also in the variables.
-            CheckDataArrayName(rFlagName, {DataLocation}, mFlags, mVariables);
+            CheckDataArrayName(rFlagName, DataLocation, mFlags);
+            CheckDataArrayName(rFlagName, DataLocation, mVariables);
 
             // since specified flags are used to output in every unstructured grid. We check here whether
             // any of the tensor adaptors in the given data location contains the same name as rFlagName.
@@ -949,12 +994,14 @@ void VtuOutput::AddVariable(
             // Now the user is adding a nodal historical variable. So, this checks whether
             // the a variable with the same name exists in the nodal non-historical variables map.
             // note: there is no break in here.
-            CheckDataArrayName(rVariable.Name(), {Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
+            CheckDataArrayName(rVariable.Name(), Globals::DataLocation::NodeNonHistorical, mFlags);
+            CheckDataArrayName(rVariable.Name(), Globals::DataLocation::NodeNonHistorical, mVariables);
         case Globals::DataLocation::NodeNonHistorical:
             // Now the user is adding a nodal non-historical variable. So this checks whether
             // a variable with the same name exists in the nodal historical variables map.
             // not: there is no break in here.
-            CheckDataArrayName(rVariable.Name(), {Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
+            CheckDataArrayName(rVariable.Name(), Globals::DataLocation::NodeHistorical, mFlags);
+            CheckDataArrayName(rVariable.Name(), Globals::DataLocation::NodeHistorical, mVariables);
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
             // The following code block will be executed for Globals::DataLocation::NodeHistorical, Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::Condition, and Globals::DataLocation::Element.
@@ -962,7 +1009,8 @@ void VtuOutput::AddVariable(
             // Now the user is trying to add a nodal-historical, nodal-non-historical, element or condition variable.
             // so now we check whether another variable with the same name exists
             // in the user specified container in flags and variables maps.
-            CheckDataArrayName(rVariable.Name(), {DataLocation}, mFlags, mVariables);
+            CheckDataArrayName(rVariable.Name(), DataLocation, mFlags);
+            CheckDataArrayName(rVariable.Name(), DataLocation, mVariables);
 
             // this checks whether there is already a tensor adaptor added with a name equal to the variable name
             // in any of the unstructured grids. Since these variables will be used to output data in all the unstructured grids,
@@ -998,7 +1046,7 @@ void VtuOutput::AddIntegrationPointVariable(
 
             // checks if the integration point variable name already exists on the
             // list of integration point variables.
-            CheckDataArrayName(rVariable.Name(), {DataLocation}, mIntegrationPointVariables);
+            CheckDataArrayName(rVariable.Name(), DataLocation, mIntegrationPointVariables);
 
             // If no conflicts in the naming is found, then put integration point variable for the output.
             mIntegrationPointVariables[static_cast<IndexType>(DataLocation)][rVariable.Name()] = &rVariable;
@@ -1042,7 +1090,8 @@ void VtuOutput::AddTensorAdaptor(
 
                 // checks in the condition or element maps of flags and variables whether the rTensorAdaptorName already
                 // exists.
-                CheckDataArrayName(rTensorAdaptorName, {mesh_type}, mFlags, mVariables); // checks in the current data location of mVariables map
+                CheckDataArrayName(rTensorAdaptorName, mesh_type, mFlags); // checks in the current data location of mFlags map
+                CheckDataArrayName(rTensorAdaptorName, mesh_type, mVariables); // checks in the current data location of mVariables map
 
                 // checks in either Condition or Element map of tensor adaptors whether the given  rTensorAdaptorName
                 // exists
@@ -1055,7 +1104,10 @@ void VtuOutput::AddTensorAdaptor(
             case Globals::DataLocation::NodeNonHistorical: {
                 // checks if the given rTensorAdaptorName is already there in the nodal non-historical
                 // variables list, nodal-non-historical variables list and flags list.
-                CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
+                CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, mFlags);
+                CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, mVariables);
+                CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeHistorical, mFlags);
+                CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeHistorical, mVariables);
 
                 // checks if the given rTensorAdaptorName is already there in the list of nodal tensor adaptors
                 // of the unstructured grid referred by itr.
