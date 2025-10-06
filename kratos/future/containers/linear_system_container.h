@@ -35,6 +35,7 @@ namespace Kratos::Future
  * This auxiliary container is intended to store all the arrays requires for the linear system setup
  * @tparam TSparseMatrixType The sparse matrix type
  * @tparam TSystemVectorType The system vector type
+ * TODO: to be changed to LinearSystem and have the matrices and vectors stored by their name in a dictionary, so we can reuse them if needed in the strategy
  */
 template <class TSparseMatrixType, class TSystemVectorType>
 struct LinearSystemContainer

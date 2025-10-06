@@ -210,7 +210,7 @@ public:
             // Apply constraints to LHS
             auto p_lhs = rLinearSystemContainer.pLhs;
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT); //TODO: check if AMGCL transpose is doing a copy here
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
             rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
         } else {
             // Assign the Dirichlet relation matrix as the effective ones since there are no other constraints
@@ -223,7 +223,7 @@ public:
             // Apply Dirichlet constraints to LHS
             auto p_lhs = rLinearSystemContainer.pLhs;
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT); //TODO: check if AMGCL transpose is doing a copy here
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
             rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
         }
     }

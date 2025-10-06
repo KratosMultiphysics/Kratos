@@ -54,17 +54,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Scaling type definition
-    enum class ScalingType
-    {
-        NoScaling,
-        NormDiagonal,
-        NormDiagonalRatio,
-        MaxDiagonal,
-        MaxDiagonalRatio,
-        PrescribedDiagonal
-    };
-
     /// Pointer definition of BlockBuilder
     KRATOS_CLASS_POINTER_DEFINITION(BlockBuilder);
 
@@ -107,22 +96,7 @@ public:
         Settings.ValidateAndAssignDefaults(default_parameters);
 
         // Set scaling type
-        const std::string scaling_type = Settings["scaling_type"].GetString();
-            if (scaling_type == "no_scaling") {
-                mScalingType = ScalingType::NoScaling;
-            } else if (scaling_type == "norm_diagonal") {
-                mScalingType = ScalingType::NormDiagonal;
-            } else if (scaling_type == "norm_diagonal_ratio") {
-                mScalingType = ScalingType::NormDiagonalRatio;
-            } else if (scaling_type == "max_diagonal") {
-                mScalingType = ScalingType::MaxDiagonal;
-            } else if (scaling_type == "max_diagonal_ratio") {
-                mScalingType = ScalingType::MaxDiagonalRatio;
-            } else if (scaling_type == "prescribed_diagonal") {
-                mScalingType = ScalingType::PrescribedDiagonal;
-            } else {
-                KRATOS_ERROR << "Provided \'" << scaling_type << "\' is not supported." << std::endl;
-            }
+        mScalingType = Settings["scaling_type"].GetString();
     }
 
     virtual ~BlockBuilder() = default;
@@ -205,7 +179,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ScalingType mScalingType; // Diagonal scaling type
+    std::string mScalingType; // Diagonal scaling type
 
     ///@}
     ///@name Private Operations
@@ -337,22 +311,28 @@ private:
      */
     virtual double GetDiagonalScalingFactor(const TSparseMatrixType& rLHS) const
     {
-        if (mScalingType == ScalingType::NoScaling) {
+        if (mScalingType == "no_scaling") {
             return 1.0;
-        } else if (mScalingType == ScalingType::NormDiagonal) {
+        } else if (mScalingType == "norm_diagonal") {
             return rLHS.NormDiagonal();
-        } else if (mScalingType == ScalingType::NormDiagonalRatio) {
+        } else if (mScalingType == "norm_diagonal_ratio") {
             return rLHS.NormDiagonal() / rLHS.size1();
-        } else if (mScalingType == ScalingType::MaxDiagonal) {
+        } else if (mScalingType == "max_diagonal") {
             return rLHS.MaxDiagonal();
-        } else if (mScalingType == ScalingType::MaxDiagonalRatio) {
+        } else if (mScalingType == "max_diagonal_ratio") {
             return rLHS.MaxDiagonal() / rLHS.size1();
-        } else if (mScalingType == ScalingType::PrescribedDiagonal) {
+        } else if (mScalingType == "prescribed_diagonal") {
             const auto& r_process_info = (this->GetModelPart()).GetProcessInfo();
             KRATOS_ERROR_IF_NOT(r_process_info.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined in ProcessInfo container. Please set 'BUILD_SCALE_FACTOR' variable." << std::endl;
             return r_process_info.GetValue(BUILD_SCALE_FACTOR);
         } else {
-            KRATOS_ERROR << "Wrong scaling type." << std::endl;
+            KRATOS_ERROR << "Wrong scaling type: \'" << mScalingType << "\'. Available options are:\n" <<
+                "\t- \'no_scaling\'\n" <<
+                "\t- \'norm_diagonal\'\n" <<
+                "\t- \'norm_diagonal_ratio\'\n" <<
+                "\t- \'max_diagonal\'\n" <<
+                "\t- \'max_diagonal_ratio\'\n" <<
+                "\t- \'prescribed_diagonal\'\n" << std::endl;
         }
     }
 

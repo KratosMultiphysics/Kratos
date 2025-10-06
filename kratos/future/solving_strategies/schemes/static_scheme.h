@@ -225,8 +225,8 @@ public:
         auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
         auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
 
-        // First update the constraints loose DOFs with the effective solution vector
-        this->UpdateConstraintsLooseDofs(r_eff_dx, r_dof_set, r_eff_dof_set);
+        // First update the constraints only DOFs with the effective solution vector
+        this->UpdateConstraintsOnlyDofs(r_eff_dx, r_dof_set, r_eff_dof_set);
 
         // Get the solution update vector from the effective one
         this->CalculateUpdateVector(rLinearSystemContainer);
