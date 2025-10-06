@@ -36,7 +36,7 @@ public:
         ON_CALL(*this, SolveSolutionStep()).WillByDefault(testing::Return(TimeStepEndState::ConvergenceState::converged));
     }
 
-    [[nodiscard]] std::size_t GetNumberOfIterations() const override { return 1; }
+    MOCK_METHOD(std::size_t, GetNumberOfIterations,(), (const, override));
 
     [[nodiscard]] double GetEndTime() const override { return mpModelPart->GetProcessInfo()[TIME]; }
 
@@ -93,11 +93,6 @@ public:
         return mCountOutputProcessCalled;
     }
 
-    [[nodiscard]] std::size_t GetCountFinalizeSolutionStepCalled() const
-    {
-        return mCountFinalizeSolutionStepCalled;
-    }
-
     [[nodiscard]] std::size_t GetCountFinalizeOutputCalled() const
     {
         return mCountFinalizeOutputCalled;
@@ -111,7 +106,7 @@ public:
     MOCK_METHOD(void, ComputeIncrementalDisplacementField, (), (override));
     MOCK_METHOD(TimeStepEndState::ConvergenceState, SolveSolutionStep, (), (override));
 
-    void FinalizeSolutionStep() override { ++mCountFinalizeSolutionStepCalled; }
+    MOCK_METHOD(void, FinalizeSolutionStep, (), (override));
 
     void FinalizeOutput() override { ++mCountFinalizeOutputCalled; }
 
@@ -128,7 +123,6 @@ private:
     std::size_t           mCountInitializeOutputCalled                 = 0;
     std::size_t           mCountAccumulateTotalDisplacementFieldCalled = 0;
     std::size_t           mCountOutputProcessCalled                    = 0;
-    std::size_t           mCountFinalizeSolutionStepCalled             = 0;
     std::size_t           mCountFinalizeOutputCalled                   = 0;
     std::function<void()> mOutputProcessCallback;
 };
@@ -352,8 +346,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectFinalizeSolutionStepCalledOnceForEveryStep, Krat
     auto solver_strategy = std::make_shared<DummySolverStrategy>();
     executor.SetSolverStrategyWrapper(solver_strategy);
 
+    EXPECT_CALL(*solver_strategy, FinalizeSolutionStep).Times(2);
     const auto step_states = executor.Run(TimeStepEndState{});
-    KRATOS_EXPECT_EQ(step_states.size(), solver_strategy->GetCountFinalizeSolutionStepCalled());
+    KRATOS_EXPECT_EQ(2, step_states.size());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunCompletesOk, KratosGeoMechanicsFastSuiteWithoutKernel)
