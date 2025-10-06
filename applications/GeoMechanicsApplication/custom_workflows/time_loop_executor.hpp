@@ -69,6 +69,8 @@ public:
             // clone without end time, the end time is overwritten anyway
             mStrategyWrapper->CloneTimeStep();
             NewEndState = RunCycleLoop(NewEndState);
+            KRATOS_ERROR_IF_NOT(NewEndState.Converged())
+                << "The calculation exited without converging.\n";
             mStrategyWrapper->ComputeIncrementalDisplacementField();
             mStrategyWrapper->AccumulateTotalDisplacementField();
             mStrategyWrapper->FinalizeSolutionStep();

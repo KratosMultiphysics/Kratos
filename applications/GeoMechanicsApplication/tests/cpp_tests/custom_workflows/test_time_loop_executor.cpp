@@ -12,6 +12,7 @@
 //
 
 #include "containers/model.h"
+#include "custom_workflows/adaptive_time_incrementor.h"
 #include "custom_workflows/prescribed_time_incrementor.h"
 #include "custom_workflows/time_loop_executor.hpp"
 #include "custom_workflows/time_step_end_state.hpp"
@@ -220,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsPerformedStatesAfterRunningAnAlwaysConv
                                    [](const auto& step_state) { return step_state.Converged(); }))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsOneNonConvergedPerformedStateAfterRunningANeverConvergingSolverStrategy,
+KRATOS_TEST_CASE_IN_SUITE(TimeLoopExecutorThrowsAfterRunningANeverConvergingSolverStrategy,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
@@ -230,10 +231,22 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsOneNonConvergedPerformedStateAfterRunni
     EXPECT_CALL(*p_solving_strategy, SolveSolutionStep()).WillOnce(testing::Return(TimeStepEndState::ConvergenceState::non_converged));
     executor.SetSolverStrategyWrapper(p_solving_strategy);
 
-    const auto step_states = executor.Run(MakeConvergedStepState());
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(executor.Run(MakeConvergedStepState()),
+                                      "The calculation exited without converging.");
+}
 
-    KRATOS_EXPECT_EQ(1, step_states.size());
-    KRATOS_EXPECT_TRUE(step_states[0].NonConverged())
+KRATOS_TEST_CASE_IN_SUITE(TimeLoopExecutorThrowsAfterRunningAdaptiveTimeIncrementorWithNeverConvergingSolverStrategy,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    TimeLoopExecutor executor;
+    executor.SetTimeIncrementor(std::make_unique<AdaptiveTimeIncrementor>(0.0, 1.0, 1.0, 2, 0.5));
+    auto p_solving_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*p_solving_strategy, SolveSolutionStep())
+        .WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::non_converged));
+    executor.SetSolverStrategyWrapper(p_solving_strategy);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(executor.Run(MakeConvergedStepState()),
+                                      "The calculation exited without converging.");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsEndTimesAfterRunningAnAlwaysConvergingSolverStrategy,
