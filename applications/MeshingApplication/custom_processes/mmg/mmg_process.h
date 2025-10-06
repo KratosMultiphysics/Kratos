@@ -83,7 +83,6 @@ class KRATOS_API(MESHING_APPLICATION) MmgProcess
     : public Process
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
@@ -118,6 +117,11 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    MmgProcess() = default;
 
     /**
      * @brief This is the default constructor, with model as input
@@ -268,7 +272,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrModelPart;                                          /// The model part to compute
+    ModelPart* mpModelPart = nullptr;                                /// The model part pointer to compute
     Parameters mThisParameters;                                      /// The parameters (can be used for general purposes)
     Node::DofsContainerType mDofs;                                   /// Storage for the dof of the node
 
@@ -468,7 +472,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    MmgUtilities<TMMGLibrary> mMmgUtilities;                         /// The MMG utilities class
+    /// The MMG utilities class
+    MmgUtilities<TMMGLibrary> mMmgUtilities;
 
     ///@}
     ///@name Private Operators
@@ -512,6 +517,13 @@ private:
 ///@name Type Definitions
 ///@{
 
+/// Registry current process
+KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics.MeshingApplication", Process, MmgProcess<MMGLibrary::MMG2D>)
+KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, MmgProcess<MMGLibrary::MMG2D>)
+KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics.MeshingApplication", Process, MmgProcess<MMGLibrary::MMG3D>)
+KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, MmgProcess<MMGLibrary::MMG3D>)
+KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics.MeshingApplication", Process, MmgProcess<MMGLibrary::MMGS>)
+KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, MmgProcess<MMGLibrary::MMGS>)
 
 ///@}
 ///@name Input and output
