@@ -174,7 +174,8 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         self.functionals = np.zeros(self.n_functionals)
         self.EvaluateFunctionals(print_functional=False)
         self._SetInitialFunctionals()
-        self.functional_weights = self._RescaleFunctionalWeightsByInitialValues()
+        self._SetNormalizationFunctionals()
+        self.functional_weights = self._RescaleFunctionalWeightsByNormalizationValues()
 
     def _ImportCouplingFunctionalWeights(self):
         coupling_weights = [0.0, 0.0]
@@ -193,21 +194,31 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         self.initial_coupling_functionals = np.asarray([self.initial_fluid_functional, self.initial_transport_functional])
         self.initial_coupling_functionals_abs_value = np.abs(self.initial_coupling_functionals)
 
-    def _RescaleFunctionalWeightsByInitialValues(self):
+    def _SetNormalizationFunctionals(self):
+        if self.fluid_functional_normalization_strategy == "initial":
+            self.fluid_functional_normalization_value = self.initial_fluid_functional
+        else: # custom value, already defined
+            pass
+        if self.transport_functional_normalization_strategy == "initial":
+            self.transport_functional_normalization_value = self.initial_transport_functional
+        else: # custom value, already defined
+            pass
+
+    def _RescaleFunctionalWeightsByNormalizationValues(self):
         # fluid
         if ((np.abs(self.normalized_coupling_functional_weights[0]) < 1e-10) or (np.sum(np.abs(self.normalized_fluid_functional_weights)) < 1e-10)):
             fluid_functional_weights = np.zeros(self.normalized_fluid_functional_weights.size)
         else:
             fluid_functional_weights  = self.normalized_fluid_functional_weights * self.normalized_coupling_functional_weights[0]
             if (abs(self.initial_fluid_functional) > 1e-15):
-                fluid_functional_weights /= abs(self.initial_fluid_functional)
+                fluid_functional_weights /= abs(self.fluid_functional_normalization_value)
         # transport
         if ((np.abs(self.normalized_coupling_functional_weights[1]) < 1e-10) or (np.sum(np.abs(self.normalized_transport_functional_weights)) < 1e-10)):
             transport_functional_weights = np.zeros(self.normalized_transport_functional_weights.size)
         else:
             transport_functional_weights  = self.normalized_transport_functional_weights * self.normalized_coupling_functional_weights[1]
             if (abs(self.initial_transport_functional) > 1e-15):
-                transport_functional_weights /= abs(self.initial_transport_functional)
+                transport_functional_weights /= abs(self.transport_functional_normalization_value)
         return np.concatenate((fluid_functional_weights, transport_functional_weights))
     
     def _PrintFunctionalWeightsPhysicsInfo(self):
@@ -557,6 +568,10 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
             "optimization_problem_settings": {
                 "functional_weights": {
                     "fluid_functionals": {
+                    "normalization" : {
+                        "type" : "initial",
+                        "value": 0.0
+                        },
                         "resistance" : {
                             "weight": 1.0
                         },
@@ -567,8 +582,11 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
                             "weight": 0.0
                         }
                     },
-                    "transport_functionals":
-                    {
+                    "transport_functionals": {
+                        "normalization" : {
+                            "type" : "initial",
+                            "value": 0.0
+                            },
                         "outlet_transport_scalar" : {
                             "weight"    : 0.0,
                             "outlet_model_part": "Outlet",

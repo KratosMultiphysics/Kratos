@@ -256,11 +256,17 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.functionals = np.zeros(self.n_functionals)
         self.EvaluateFunctionals(print_functional=False)
         self._SetInitialFunctionals()
-        self.functional_weights = self._RescaleFunctionalWeightsByInitialValues()
+        self._SetNormalizationFunctionals()
+        self.functional_weights = self._RescaleFunctionalWeightsByNormalizationValues()
 
     def _ImportFluidFunctionalWeights(self):
         fluid_weights = [0.0, 0.0, 0.0]
         functional_weights_parameters = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["fluid_functionals"]
+        self.fluid_functional_normalization_strategy = functional_weights_parameters["normalization"]["type"].GetString()
+        if self.fluid_functional_normalization_strategy == "custom":
+            self.fluid_functional_normalization_value = functional_weights_parameters["normalization"]["value"].GetDouble()
+        else:
+            self.fluid_functional_normalization_strategy == "initial"
         fluid_weights[0] = functional_weights_parameters["resistance"]["weight"].GetDouble()
         fluid_weights[1] = functional_weights_parameters["strain_rate"]["weight"].GetDouble()
         fluid_weights[2] = functional_weights_parameters["vorticity"]["weight"].GetDouble()
@@ -270,14 +276,20 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.initial_fluid_functional = np.dot(self.normalized_fluid_functional_weights, self.initial_fluid_functionals_values)
         if (abs(self.initial_fluid_functional) < 1e-10):
             self.MpiPrint("[WARNING] Initial fluid functional is zero")
+
+    def _SetNormalizationFunctionals(self):
+        if self.fluid_functional_normalization_strategy == "initial":
+            self.fluid_functional_normalization_value = self.initial_fluid_functional
+        else: # custom value, already defined
+            pass
         
-    def _RescaleFunctionalWeightsByInitialValues(self):
+    def _RescaleFunctionalWeightsByNormalizationValues(self):
         if (np.sum(np.abs(self.normalized_fluid_functional_weights)) < 1e-10):
             fluid_functional_weights = np.zeros(self.normalized_fluid_functional_weights.size)
         else:
             fluid_functional_weights  = self.normalized_fluid_functional_weights.copy()
             if (abs(self.initial_fluid_functional) > 1e-15):
-                fluid_functional_weights /= abs(self.initial_fluid_functional)
+                fluid_functional_weights /= abs(self.fluid_functional_normalization_value)
         return np.concatenate((fluid_functional_weights, np.zeros(self.n_functionals-self.n_fluid_functionals)))
 
     def _NormalizeFunctionalWeights(self, weights):
@@ -1664,6 +1676,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             "optimization_problem_settings": {
                 "functional_weights": {
                     "fluid_functionals": {
+                        "normalization" : {
+                            "type" : "initial",
+                            "value": 0.0
+                        },
                         "resistance" : {
                             "weight": 1.0
                         },
@@ -1674,8 +1690,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                             "weight": 0.0
                         }
                     },
-                    "transport_functionals":
-                    {
+                    "transport_functionals": {
+                        "normalization" : {
+                            "type" : "initial",
+                            "value": 0.0
+                        },
                         "outlet_transport_scalar" : {
                             "weight"    : 0.0,
                             "outlet_model_part": "Outlet",

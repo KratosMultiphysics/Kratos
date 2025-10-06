@@ -159,11 +159,17 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self.functionals = np.zeros(self.n_functionals)
         self.EvaluateFunctionals(print_functional=False)
         self._SetInitialFunctionals()
-        self.functional_weights = self._RescaleFunctionalWeightsByInitialValues()
+        self._SetNormalizationFunctionals()
+        self.functional_weights = self._RescaleFunctionalWeightsByNormalizationValues()
 
     def _ImportTransportFunctionalWeights(self):
         transport_weights = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         functional_weights_parameters = self.optimization_parameters["optimization_settings"]["optimization_problem_settings"]["functional_weights"]["transport_functionals"]
+        self.transport_functional_normalization_strategy = functional_weights_parameters["normalization"]["type"].GetString()
+        if self.transport_functional_normalization_strategy == "custom":
+            self.transport_functional_normalization_value = functional_weights_parameters["normalization"]["value"].GetDouble()
+        else:
+            self.transport_functional_normalization_strategy == "initial"
         transport_weights[0] = functional_weights_parameters["outlet_transport_scalar"]["weight"].GetDouble()
         if (abs(transport_weights[0] > 1e-10)):
             raise RuntimeError("OUTLET_TRANSPORT_SCALAR FUNCTIONAL NOT WORKIUNG AND ITS WEIGHT IS DIFFERENT FROM ZERO", "Running '_ImportTransportFunctionalWeights' with the wrong transport_weights[0].")
@@ -180,13 +186,19 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         if (abs(self.initial_transport_functional) < 1e-10):
             self.MpiPrint("[WARNING] Initial transport functional is zero")
 
-    def _RescaleFunctionalWeightsByInitialValues(self):
+    def _SetNormalizationFunctionals(self):
+        if self.transport_functional_normalization_strategy == "initial":
+            self.transport_functional_normalization_value = self.initial_transport_functional
+        else: # custom value, already defined
+            pass
+
+    def _RescaleFunctionalWeightsByNormalizationValues(self):
         if (np.sum(np.abs(self.normalized_transport_functional_weights)) < 1e-10):
             transport_functional_weights = np.zeros(self.normalized_transport_functional_weights.size)
         else:
             transport_functional_weights  = self.normalized_transport_functional_weights.copy()
             if (abs(self.initial_transport_functional) > 1e-15):
-                transport_functional_weights /= abs(self.initial_transport_functional)
+                transport_functional_weights /= abs(self.transport_functional_normalization_value)
         return np.concatenate((np.zeros(self.n_functionals-self.n_transport_functionals), transport_functional_weights))
     
     def _PrintFunctionalWeightsPhysicsInfo(self):
@@ -649,6 +661,10 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         {
             "optimization_problem_settings": {
                 "functional_weights": {
+                    "normalization" : {
+                        "type" : "initial",
+                        "value": 0.0
+                        },
                     "transport_functionals": {
                         "outlet_transport_scalar" : {
                             "weight"    : 0.0,
