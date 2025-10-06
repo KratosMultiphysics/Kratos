@@ -37,8 +37,6 @@ public:
         ON_CALL(*this, SolveSolutionStep()).WillByDefault(testing::Return(TimeStepEndState::ConvergenceState::converged));
     }
 
-    MOCK_METHOD(std::size_t, GetNumberOfIterations, (), (const, override));
-
     [[nodiscard]] double GetEndTime() const override { return mpModelPart->GetProcessInfo()[TIME]; }
 
     void SetEndTime(double EndTime) override { mpModelPart->GetProcessInfo()[TIME] = EndTime; }
@@ -60,11 +58,10 @@ public:
 
     void IncrementStepNumber() override { ++mpModelPart->GetProcessInfo()[STEP]; }
 
-    MOCK_METHOD(void, CloneTimeStep, (), (override));
-
-    MOCK_METHOD(void, RestorePositionsAndDOFVectorToStartOfStep, (), (override));
-
-    MOCK_METHOD(void, AccumulateTotalDisplacementField,(), (override));
+    void SetOutputProcessCallback(std::function<void()> Callback)
+    {
+        mOutputProcessCallback = std::move(Callback);
+    }
 
     void OutputProcess() override
     {
@@ -72,44 +69,32 @@ public:
         if (mOutputProcessCallback) mOutputProcessCallback();
     }
 
-    [[nodiscard]] std::size_t GetCountInitializeOutputCalled() const
-    {
-        return mCountInitializeOutputCalled;
-    }
-
     [[nodiscard]] std::size_t GetCountOutputProcessCalled() const
     {
         return mCountOutputProcessCalled;
     }
 
-    [[nodiscard]] std::size_t GetCountFinalizeOutputCalled() const
-    {
-        return mCountFinalizeOutputCalled;
-    }
-
-    MOCK_METHOD(void, InitializeOutput,(), (override));
-
-    MOCK_METHOD(void, Predict, (), (override));
-    MOCK_METHOD(void, InitializeSolutionStep, (), (override));
     MOCK_METHOD(void, Initialize, (), (override));
-    MOCK_METHOD(void, ComputeIncrementalDisplacementField, (), (override));
+    MOCK_METHOD(void, InitializeSolutionStep, (), (override));
     MOCK_METHOD(TimeStepEndState::ConvergenceState, SolveSolutionStep, (), (override));
-
     MOCK_METHOD(void, FinalizeSolutionStep, (), (override));
 
-    MOCK_METHOD(void, FinalizeOutput,(), (override));
+    MOCK_METHOD(void, Predict, (), (override));
 
-    void SetOutputProcessCallback(std::function<void()> Callback)
-    {
-        mOutputProcessCallback = std::move(Callback);
-    }
+    MOCK_METHOD(void, ComputeIncrementalDisplacementField, (), (override));
+    MOCK_METHOD(void, AccumulateTotalDisplacementField,(), (override));
+
+    MOCK_METHOD(void, CloneTimeStep, (), (override));
+    MOCK_METHOD(void, RestorePositionsAndDOFVectorToStartOfStep, (), (override));
+    MOCK_METHOD(std::size_t, GetNumberOfIterations, (), (const, override));
+
+    MOCK_METHOD(void, InitializeOutput,(), (override));
+    MOCK_METHOD(void, FinalizeOutput,(), (override));
 
 private:
     Model                 mModel;
     ModelPart*            mpModelPart                                  = nullptr;
-    std::size_t           mCountInitializeOutputCalled                 = 0;
     std::size_t           mCountOutputProcessCalled                    = 0;
-    std::size_t           mCountFinalizeOutputCalled                   = 0;
     std::function<void()> mOutputProcessCallback;
 };
 
