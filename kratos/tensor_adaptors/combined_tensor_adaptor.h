@@ -149,12 +149,14 @@ public:
      *
      * @note    This always return a flat tensor adaptor having only one dimensionality.
      *
-     * @param rTensorAdaptorVector          List of tensor adaptors.
-     * @param CollectAndStoreRecursively    If true, @ref CollectData() and @ref StoreData() methods will call sub tensor adaptors recursively.
+     * @param rTensorAdaptorVector                          List of tensor adaptors.
+     * @param PerformCollectDataOnCombinedTensorAdaptors    If true, @ref CollectData() method will call combined tensor adaptors' @ref CollectData.
+     * @param PerformStoreDataOnCombinedTensorAdaptors      If true, @ref StoreData() method will call combined tensor adaptors' @ref StoreData.
      */
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
-        const bool CollectAndStoreRecursively = false);
+        const bool PerformCollectDataOnCombinedTensorAdaptors = true,
+        const bool PerformStoreDataOnCombinedTensorAdaptors = true);
 
     /**
      * @brief Construct a new Combined Tensor Adaptor  given list of @ref TensorAdaptor instances along the specified @p Axis.
@@ -178,25 +180,29 @@ public:
      * @throws std::runtime_error if the @p Axis is equal or larger than the largest number of dimensions found in the tensor adaptors of @p rTensorAdaptorVector.
      * @throws std::runtime_error if the number of components in each dimension except for axis dimension is not equal on all the tensor adaptors in @p rTensorAdaptorVector.
      *
-     * @param rTensorAdaptorVector          List of tensor adaptors.
-     * @param Axis                          Axis to concatenate the tensor adaptors.
-     * @param CollectAndStoreRecursively    If true, @ref CollectData() and @ref StoreData() methods will call sub tensor adaptors recursively.
+     * @param rTensorAdaptorVector                          List of tensor adaptors.
+     * @param Axis                                          Axis to concatenate the tensor adaptors.
+     * @param PerformCollectDataOnCombinedTensorAdaptors    If true, @ref CollectData() method will call combined tensor adaptors' @ref CollectData.
+     * @param PerformStoreDataOnCombinedTensorAdaptors      If true, @ref StoreData() method will call combined tensor adaptors' @ref StoreData.
      */
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const unsigned int Axis,
-        const bool CollectAndStoreRecursively = false);
+        const bool PerformCollectDataOnCombinedTensorAdaptors = true,
+        const bool PerformStoreDataOnCombinedTensorAdaptors = true);
 
     /**
      * @brief Construct a new Combined Tensor Adaptor based on an existing @p rOther.
      *
-     * @param rOther                        Other @ref CombinedTensorAdaptor to copy/refer from.
-     * @param CollectAndStoreRecursively    If true, @ref CollectData() and @ref StoreData() methods will call sub tensor adaptors recursively.
-     * @param Copy                          If true, the underlying internal data will be copied along with the pointers to the containers.
+     * @param rOther                                        Other @ref CombinedTensorAdaptor to copy/refer from.
+     * @param PerformCollectDataOnCombinedTensorAdaptors    If true, @ref CollectData() method will call combined tensor adaptors' @ref CollectData.
+     * @param PerformStoreDataOnCombinedTensorAdaptors      If true, @ref StoreData() method will call combined tensor adaptors' @ref StoreData.
+     * @param Copy                                          If true, the underlying internal data will be copied along with the pointers to the containers.
      */
     CombinedTensorAdaptor(
         const CombinedTensorAdaptor& rOther,
-        const bool CollectAndStoreRecursively = false,
+        const bool PerformCollectDataOnCombinedTensorAdaptors = true,
+        const bool PerformStoreDataOnCombinedTensorAdaptors = true,
         const bool Copy = true);
 
     virtual ~CombinedTensorAdaptor() = default;
@@ -242,7 +248,9 @@ private:
     ///@name Private member variables
     ///@{
 
-    const bool mCollectAndStoreRecursively;
+    const bool mPerformCollectDataOnCombinedTensorAdaptors;
+
+    const bool mPerformStoreDataOnCombinedTensorAdaptors;
 
     const int mAxis;
 
