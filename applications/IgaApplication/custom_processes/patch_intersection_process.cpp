@@ -9,7 +9,7 @@
 //
 //  Main authors:    Nicolò Antonelli
 
-#include "iga_application_variables.h" // KNOT_SPAN_SIZES, PATCH_PARAMETER_SPACE_CORNERS
+#include "iga_application_variables.h"
 #include "custom_processes/patch_intersection_process.h"
 
 #include "includes/kratos_components.h"
@@ -112,6 +112,46 @@ void PatchIntersectionProcess::ComputeIntersections()
     ModelPart& coupling_sub_model_part = mrModelPart.HasSubModelPart("MultipatchCouplingConditions")
         ? mrModelPart.GetSubModelPart("MultipatchCouplingConditions")
         : mrModelPart.CreateSubModelPart("MultipatchCouplingConditions");
+
+    auto compute_effective_knot_spans = [&](ModelPart* pPatchA, ModelPart* pPatchB) {
+        Vector fallback;
+        if (coupling_sub_model_part.Has(KNOT_SPAN_SIZES)) {
+            fallback = coupling_sub_model_part.GetValue(KNOT_SPAN_SIZES);
+        } else if (coupling_sub_model_part.GetParentModelPart().Has(KNOT_SPAN_SIZES)) {
+            fallback = coupling_sub_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+        }
+        if (fallback.size() == 0) {
+            fallback = ZeroVector(2);
+        }
+
+        auto fetch_spans = [&](ModelPart* pPatch) -> Vector {
+            if (pPatch && pPatch->Has(KNOT_SPAN_SIZES)) {
+                return pPatch->GetValue(KNOT_SPAN_SIZES);
+            }
+            return Vector();
+        };
+
+        Vector span_a = fetch_spans(pPatchA);
+        Vector span_b = fetch_spans(pPatchB);
+
+        const SizeType common_size = std::min(span_a.size(), span_b.size());
+        if (common_size > 0) {
+            Vector effective = ZeroVector(common_size);
+            for (SizeType idx = 0; idx < common_size; ++idx) {
+                effective[idx] = std::min(span_a[idx], span_b[idx]);
+            }
+            return effective;
+        }
+
+        if (span_a.size() > 0) {
+            return span_a;
+        }
+        if (span_b.size() > 0) {
+            return span_b;
+        }
+
+        return fallback;
+    };
 
     for (auto& patch : mrModelPart.SubModelParts()) {
         const std::string& name = patch.Name();
@@ -256,13 +296,16 @@ void PatchIntersectionProcess::ComputeIntersections()
                     breps_B.push_back(mrModelPart.pGetGeometry(next_id));
                 }
 
+                const Vector effective_span_sizes = compute_effective_knot_spans(A.pPatch, B.pPatch);
+
                 // Create interface conditions on A and attach mirrored QP geometry from B
                 CreateConditionsFromBrepCurvesWithMirroredNeighbours(
                     breps_A, breps_B,
                     coupling_sub_model_part,      // target sub-model part
                     cond_name_bodyfitted,         // condition name
                     ip_per_span,                  // identical IP layout on both sides
-                    deriv_order                   // shape func derivative order
+                    deriv_order,                  // shape func derivative order
+                    effective_span_sizes
                 );
             }
 
@@ -343,7 +386,6 @@ void PatchIntersectionProcess::ComputeIntersections()
                 std::vector<GeometryPointerType> breps_B;
                 breps_A.reserve(union_breaks_u.size());
                 breps_B.reserve(union_breaks_u.size());
-                KRATOS_WATCH(union_breaks_u)
 
                 for (std::size_t k = 0; k + 1 < union_breaks_u.size(); ++k) {
                     const double u0 = union_breaks_u[k];
@@ -373,12 +415,15 @@ void PatchIntersectionProcess::ComputeIntersections()
                 }
 
                 // Create interface conditions on A and attach mirrored QP geometry from B
+                const Vector effective_span_sizes = compute_effective_knot_spans(A.pPatch, B.pPatch);
+
                 CreateConditionsFromBrepCurvesWithMirroredNeighbours(
                     breps_A, breps_B,
                     coupling_sub_model_part,      // target sub-model part
                     cond_name_bodyfitted,         // condition name
                     ip_per_span,                  // identical IP layout on both sides
-                    deriv_order                   // shape func derivative order
+                    deriv_order,                  // shape func derivative order
+                    effective_span_sizes
                 );
             } // end horizontal adjacency
 
@@ -442,76 +487,14 @@ void PatchIntersectionProcess::CreateAndAddBrepCurve(
     rModelPart.AddGeometry(p_brep);
 }
 
-
-void PatchIntersectionProcess::CreateConditionsFromBrepCurves(
-    const std::vector<GeometryPointerType>& rBrepCurves,
-    ModelPart& rTargetSubModelPart,
-    const std::string& rConditionName,
-    SizeType ip_per_span)
-{
-    KRATOS_INFO_IF("PatchIntersectionProcess", mEchoLevel > 3) << "CreateConditionsFromBrepCurves: number of Brep curves = " << rBrepCurves.size() << std::endl;
-    if (rBrepCurves.empty()) return;
-
-    KRATOS_ERROR_IF(!KratosComponents<Condition>::Has(rConditionName))
-        << rConditionName << " not registered." << std::endl;
-
-    const Condition& rRefCond = KratosComponents<Condition>::Get(rConditionName);
-
-    // Pick KNOT_SPAN_SIZES from the parent (same as IgaModelerSbm)
-    const Vector& knot_span_sizes = rTargetSubModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
-    
-    KRATOS_INFO_IF("PatchIntersectionProcess", mEchoLevel > 3) << "  Knot span sizes: " << knot_span_sizes << std::endl;
-    
-    // Next condition id in the root model part
-    SizeType next_id = (rTargetSubModelPart.GetRootModelPart().Conditions().empty())
-        ? 1
-        : (rTargetSubModelPart.GetRootModelPart().Conditions().back().Id() + 1);
-
-    ModelPart::ConditionsContainerType new_conditions;
-
-    for (const auto& pCurve : rBrepCurves) {
-        
-        KRATOS_ERROR_IF(pCurve.get() == nullptr) << "Null Brep curve geometry." << std::endl;
-
-        // Generate quadrature-point geometries on the BREP curve
-        GeometryType::GeometriesArrayType qp_geoms;
-
-        IntegrationInfo info = pCurve->GetDefaultIntegrationInfo();
-        info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
-
-        // Derivative order = 2 (same default as IgaModelerSbm)
-        pCurve->CreateQuadraturePointGeometries(qp_geoms, 2, info);
-
-        // Create one condition per QP geometry
-        for (auto it = qp_geoms.ptr_begin(); it != qp_geoms.ptr_end(); ++it) {
-            Condition::Pointer pNew = rRefCond.Create(next_id, (*it), PropertiesPointerType());
-
-            // Propagate mesh sizes
-            pNew->SetValue(KNOT_SPAN_SIZES, knot_span_sizes);
-
-            // Ensure the nodes of the QP geometry are present in the target submodel part
-            for (SizeType i = 0; i < (*it)->size(); ++i) {
-                rTargetSubModelPart.Nodes().push_back((*it)->pGetPoint(i));
-            }
-
-            new_conditions.push_back(pNew);
-            ++next_id;
-        }
-    }
-
-    if (!new_conditions.empty()) {
-        rTargetSubModelPart.AddConditions(new_conditions.begin(), new_conditions.end());
-        KRATOS_INFO_IF("PatchIntersectionProcess", mEchoLevel > 2) << "Added " << new_conditions.size() << " conditions. \n" << std::endl;
-    }
-}
-
 void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbours(
     const std::vector<GeometryPointerType>& rBrepCurvesPrimary,
     const std::vector<GeometryPointerType>& rBrepCurvesMirror,
     ModelPart& rTargetSubModelPart,
     const std::string& rConditionName,
     SizeType ip_per_span,     // <- interpreted as points per SEGMENT here
-    SizeType deriv_order)
+    SizeType deriv_order,
+    const Vector& rEffectiveKnotSpanSizes)
 {
     KRATOS_ERROR_IF(rBrepCurvesPrimary.size() != rBrepCurvesMirror.size())
         << "CreateConditionsFromBrepCurvesWithMirroredNeighbours: curve lists have different sizes ("
@@ -526,8 +509,6 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
     SizeType next_id = (rTargetSubModelPart.GetRootModelPart().Conditions().empty())
         ? 1
         : (rTargetSubModelPart.GetRootModelPart().Conditions().back().Id() + 1);
-
-    const Vector& knot_span_sizes = rTargetSubModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
 
     ModelPart::ConditionsContainerType new_conditions;
 
@@ -634,7 +615,7 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
             }
 
             Condition::Pointer pCond = rRefCond.Create(next_id++, pGeomPrim, PropertiesPointerType());
-            pCond->SetValue(KNOT_SPAN_SIZES, knot_span_sizes);
+            pCond->SetValue(KNOT_SPAN_SIZES, rEffectiveKnotSpanSizes);
 
             std::vector<Geometry<Node>::Pointer> neigh(1);
             neigh[0] = pGeomMir; // cross-link with exact matching location
