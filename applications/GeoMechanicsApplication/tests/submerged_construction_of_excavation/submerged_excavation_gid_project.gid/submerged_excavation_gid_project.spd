@@ -143,7 +143,7 @@
             <value n="echo_level" pn="Echo level" state="[SolverParamState]" v="1" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
           </container>
         </container>
-        <container n="Geotechnical Parts" pn="Geotechnical Parts" un="STParts" icon="shells16" update_proc="UpdateParts" tree_state="open">
+        <container n="Geotechnical Parts" pn="Geotechnical Parts" un="STParts" icon="shells16" update_proc="UpdateParts" tree_state="close">
           <condition n="Parts_Soil" pn="Soil" ov="surface" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="open">
             <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" v="UPwSmallStrainElement2D" dict="[GetElements ElementType Soil]" state="normal">
               <dependencies node="../value[@n!='Material']" actualize="1"/>
@@ -3572,12 +3572,12 @@
               <value n="value_table_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
               <value n="value_table_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Table" state="[CheckDimension 3D]" show_in_window="1" v="0"/>
             </group>
-            <group n="Strut_Support_At_Symmetry_Line" ov="point" tree_state="open">
+            <group n="Strut_Support_At_Symmetry_Line" ov="point" tree_state="close">
               <value n="activeX" pn="X Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
-              <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
               <value n="activeZ" pn="Z Active" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
               <value n="is_fixedX" pn="X Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
-              <value n="is_fixedY" pn="Y Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="is_fixedY" pn="Y Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="active,selected,close"/>
               <value n="is_fixedZ" pn="Z Fixed" values="true,false" help="Fixed" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
               <value n="value_value_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
               <value n="value_value_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>

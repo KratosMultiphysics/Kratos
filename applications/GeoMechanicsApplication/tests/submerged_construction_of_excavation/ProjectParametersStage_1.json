@@ -101,8 +101,8 @@
             "Parameters"    : {
                 "model_part_name" : "PorousDomain.Strut_Support_At_Symmetry_Line",
                 "variable_name"   : "DISPLACEMENT",
-                "active"          : [true,false,false],
-                "is_fixed"        : [true,false,false],
+                "active"          : [true,true,false],
+                "is_fixed"        : [true,true,false],
                 "value"           : [0.0,0.0,0.0],
                 "table"           : [0,0,0]
             }
