@@ -458,11 +458,6 @@ public:
     void SynchronizeAll();
 
     /**
-     * @brief Enforces a barrier, waiting for other partitions
-     */
-    void Barrier();
-
-    /**
      * @brief Retrieves if inside the geometry
      * @param rPoint The point coordinates
      * @param Tolerance The tolerance considered

@@ -112,14 +112,6 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Gen
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Barrier()
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::SynchronizeAll()
 {
     // TODO: Try to avoid use simple calls of Send/Recv and try to use more efficient methods
@@ -489,6 +481,5 @@ template class SpatialSearchResultContainer<Node, SpatialSearchCommunication::SY
 template class SpatialSearchResultContainer<GeometricalObject, SpatialSearchCommunication::SYNCHRONOUS>;
 template class SpatialSearchResultContainer<Element, SpatialSearchCommunication::SYNCHRONOUS>;
 template class SpatialSearchResultContainer<Condition, SpatialSearchCommunication::SYNCHRONOUS>;
-
 
 }  // namespace Kratos
