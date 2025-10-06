@@ -612,13 +612,6 @@ void AddUnstructuredGridData(
     }
 }
 
-template<class... TArgs>
-std::string GetName(
-    const std::variant<TArgs...>& rArg)
-{
-    return std::visit([](const auto& rArg) { return rArg->Name(); }, rArg);
-}
-
 template<class T, class TCellPointerType>
 const typename VtuOutput::DataList<T>::value_type& GetContainerMap(
     const VtuOutput::DataList<T>& rList,
@@ -898,7 +891,7 @@ std::vector<VtuOutput::SupportedContainerPointerType> VtuOutput::GetOutputContai
 void VtuOutput::AddFlag(
     const std::string& rFlagName,
     const Flags& rFlagVariable,
-    Globals::DataLocation DataLocation)
+    const Globals::DataLocation& DataLocation)
 {
     KRATOS_TRY
 
@@ -935,41 +928,42 @@ void VtuOutput::AddFlag(
     KRATOS_CATCH("");
 }
 
+template<class TDataType>
 void VtuOutput::AddVariable(
-    SupportedVariablePointerType pVariable,
-    Globals::DataLocation DataLocation)
+    const Variable<TDataType>& rVariable,
+    const Globals::DataLocation& DataLocation)
 {
     KRATOS_TRY
 
     KRATOS_ERROR_IF(mIsPVDFileHeaderWritten)
         << "Variables can be added only before the first call to the PrintOutput [ variable name = "
-        << GetName(pVariable) << " ].\n";
+        << rVariable.Name() << " ].\n";
 
     switch (DataLocation) {
         case Globals::DataLocation::NodeHistorical:
             // Now the user is adding a nodal historical variable. So, this checks whether
             // the a variable with the same name exists in the nodal non-historical variables map.
             // note: there is no break in here.
-            CheckDataArrayName(GetName(pVariable), {Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
+            CheckDataArrayName(rVariable.Name(), {Globals::DataLocation::NodeNonHistorical}, mFlags, mVariables);
         case Globals::DataLocation::NodeNonHistorical:
             // Now the user is adding a nodal non-historical variable. So this checks whether
             // a variable with the same name exists in the nodal historical variables map.
             // not: there is no break in here.
-            CheckDataArrayName(GetName(pVariable), {Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
+            CheckDataArrayName(rVariable.Name(), {Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
             // Now the user is trying to add a nodal-historical, nodal-non-historical, element or condition variable.
             // so now we check whether another variable with the same name exists
             // in the user specified container in flags and variables maps.
-            CheckDataArrayName(GetName(pVariable), {DataLocation}, mFlags, mVariables);
+            CheckDataArrayName(rVariable.Name(), {DataLocation}, mFlags, mVariables);
 
             // this checks whether there is already a tensor adaptor added with a name equal to the variable name
             // in any of the unstructured grids. Since these variables will be used to output data in all the unstructured grids,
             // non-of them should have any tensor adaptors with this name.
-            CheckDataArrayName(GetName(pVariable), DataLocation, mUnstructuredGridDataList); // checks in the tensor adaptors list
+            CheckDataArrayName(rVariable.Name(), DataLocation, mUnstructuredGridDataList); // checks in the tensor adaptors list
 
             // if there are no conflicts, adding the variable.
-            mVariables[static_cast<IndexType>(DataLocation)][GetName(pVariable)] = pVariable;
+            mVariables[static_cast<IndexType>(DataLocation)][rVariable.Name()] = &rVariable;
             break;
         default:
             KRATOS_ERROR << "Variables can be only added to NodeHistorical, NodeNonHistorical, Condition, and Element data locations.";
@@ -979,25 +973,26 @@ void VtuOutput::AddVariable(
     KRATOS_CATCH("");
 }
 
+template<class TDataType>
 void VtuOutput::AddIntegrationPointVariable(
-    SupportedVariablePointerType pVariable,
-    Globals::DataLocation DataLocation)
+    const Variable<TDataType>& rVariable,
+    const Globals::DataLocation& DataLocation)
 {
     KRATOS_TRY
 
     KRATOS_ERROR_IF(mIsPVDFileHeaderWritten)
         << "Integration point variables can be added only before the first call to the PrintOutput [ integration point variable name = "
-        << GetName(pVariable) << " ].\n";
+        << rVariable.Name() << " ].\n";
 
     switch (DataLocation) {
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
             // checks if the integration point variable name already exists on the
             // list of integration point variables.
-            CheckDataArrayName(GetName(pVariable), {DataLocation}, mIntegrationPointVariables);
+            CheckDataArrayName(rVariable.Name(), {DataLocation}, mIntegrationPointVariables);
 
             // If no conflicts in the naming is found, then put integration point variable for the output.
-            mIntegrationPointVariables[static_cast<IndexType>(DataLocation)][GetName(pVariable)] = pVariable;
+            mIntegrationPointVariables[static_cast<IndexType>(DataLocation)][rVariable.Name()] = &rVariable;
             break;
         default:
             KRATOS_ERROR << "Integration point variables can be only added to Condition, and Element data locations.";
@@ -1007,9 +1002,10 @@ void VtuOutput::AddIntegrationPointVariable(
     KRATOS_CATCH("");
 }
 
+template<class TTensorAdaptorPointerType>
 void VtuOutput::AddTensorAdaptor(
     const std::string& rTensorAdaptorName,
-    SupportedTensorAdaptorPointerType pTensorAdaptor)
+    TTensorAdaptorPointerType pTensorAdaptor)
 {
     KRATOS_TRY
 
@@ -1017,122 +1013,118 @@ void VtuOutput::AddTensorAdaptor(
         << "TensorAdaptors can be added only before the first call to the PrintOutput [ tensor adaptor name = "
         << rTensorAdaptorName << " ].\n";
 
-    // a visitor for TensorAdaptor<int>, TensorAdaptor<bool>, TensorAdaptor<double>
-    std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
-        // a visitor for NodesContainer::Pointer, ConditionsContainer::Pointer, ElementsContainerPointer
-        // of the given p_tensor_adaptor
-        std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor](auto pContainer){
-            // finds the unstructured grid for which the given tensor adaptor's pContainer refers to.
-            // mesh_type is of Kratos::Globals::DataLocation enum
-            // itr points to the unstructured grid which is referring to the given pContainer.
-            // if not found, mesh_type is returned with Kratos::Globals::DataLocation::ModelPart
-            // enum value, which will throw an error.
-            [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mUnstructuredGridDataList);
+    // a visitor for NodesContainer::Pointer, ConditionsContainer::Pointer, ElementsContainerPointer
+    // of the given pTensorAdaptor
+    std::visit([this, &rTensorAdaptorName, &pTensorAdaptor](auto pContainer){
+        // finds the unstructured grid for which the given tensor adaptor's pContainer refers to.
+        // mesh_type is of Kratos::Globals::DataLocation enum
+        // itr points to the unstructured grid which is referring to the given pContainer.
+        // if not found, mesh_type is returned with Kratos::Globals::DataLocation::ModelPart
+        // enum value, which will throw an error.
+        [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mUnstructuredGridDataList);
 
-            switch (mesh_type) {
-                case Globals::DataLocation::Condition:
-                case Globals::DataLocation::Element: {
-                    // here we have to check if the specified tensor adaptor name is there in the found unstructured grid
-                    // referred by the itr.
+        switch (mesh_type) {
+            case Globals::DataLocation::Condition:
+            case Globals::DataLocation::Element: {
+                // here we have to check if the specified tensor adaptor name is there in the found unstructured grid
+                // referred by the itr.
 
-                    // checks in the condition or element maps of flags and variables whether the rTensorAdaptorName already
-                    // exists.
-                    CheckDataArrayName(rTensorAdaptorName, {mesh_type}, mFlags, mVariables); // checks in the current data location of mVariables map
+                // checks in the condition or element maps of flags and variables whether the rTensorAdaptorName already
+                // exists.
+                CheckDataArrayName(rTensorAdaptorName, {mesh_type}, mFlags, mVariables); // checks in the current data location of mVariables map
 
-                    // checks in either Condition or Element map of tensor adaptors whether the given  rTensorAdaptorName
-                    // exists
-                    CheckDataArrayName(rTensorAdaptorName, mesh_type, *itr);
+                // checks in either Condition or Element map of tensor adaptors whether the given  rTensorAdaptorName
+                // exists
+                CheckDataArrayName(rTensorAdaptorName, mesh_type, *itr);
 
-                    // If no conflicts in the naming is found, then put the tensor adaptor for output.
-                    itr->mMapOfCellTensorAdaptors[rTensorAdaptorName] = p_tensor_adaptor;
-                    break;
-                }
-                case Globals::DataLocation::NodeNonHistorical: {
-                    // checks if the given rTensorAdaptorName is already there in the nodal non-historical
-                    // variables list, nodal-non-historical variables list and flags list.
-                    CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
-
-                    // checks if the given rTensorAdaptorName is already there in the list of nodal tensor adaptors
-                    // of the unstructured grid referred by itr.
-                    CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, *itr);
-
-                    // If no conflicts in the naming is found, then put the tensor adaptor for output.
-                    itr->mMapOfPointTensorAdaptors[rTensorAdaptorName] = p_tensor_adaptor;
-                    break;
-                }
-                default:
-                    KRATOS_ERROR
-                        << "The container in the TensorAdaptor is not referring to any of the containers "
-                        << "written by this Vtu output [ tensor adaptor name = " << rTensorAdaptorName
-                        << ", tensor_adaptor = " << *p_tensor_adaptor << " ]\n"
-                        << *this;
-                    break;
+                // If no conflicts in the naming is found, then put the tensor adaptor for output.
+                itr->mMapOfCellTensorAdaptors[rTensorAdaptorName] = pTensorAdaptor;
+                break;
             }
-        }, p_tensor_adaptor->GetContainer());
-    }, pTensorAdaptor);
+            case Globals::DataLocation::NodeNonHistorical: {
+                // checks if the given rTensorAdaptorName is already there in the nodal non-historical
+                // variables list, nodal-non-historical variables list and flags list.
+                CheckDataArrayName(rTensorAdaptorName, {Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
+
+                // checks if the given rTensorAdaptorName is already there in the list of nodal tensor adaptors
+                // of the unstructured grid referred by itr.
+                CheckDataArrayName(rTensorAdaptorName, Globals::DataLocation::NodeNonHistorical, *itr);
+
+                // If no conflicts in the naming is found, then put the tensor adaptor for output.
+                itr->mMapOfPointTensorAdaptors[rTensorAdaptorName] = pTensorAdaptor;
+                break;
+            }
+            default:
+                KRATOS_ERROR
+                    << "The container in the TensorAdaptor is not referring to any of the containers "
+                    << "written by this Vtu output [ tensor adaptor name = " << rTensorAdaptorName
+                    << ", tensor_adaptor = " << *pTensorAdaptor << " ]\n"
+                    << *this;
+                break;
+        }
+    }, pTensorAdaptor->GetContainer());
 
     KRATOS_CATCH("");
 }
 
+template<class TTensorAdaptorPointerType>
 void VtuOutput::UpdateTensorAdaptor(
     const std::string& rTensorAdaptorName,
-    SupportedTensorAdaptorPointerType pTensorAdaptor)
+    TTensorAdaptorPointerType pTensorAdaptor)
 {
     KRATOS_TRY
 
-    // a visitor for TensorAdaptor<int>, TensorAdaptor<bool>, TensorAdaptor<double>
-    std::visit([this, &rTensorAdaptorName](auto p_tensor_adaptor) {
-        // a visitor for NodesContainer::Pointer, ConditionsContainer::Pointer, ElementsContainerPointer
-        // of the given p_tensor_adaptor
-        std::visit([this, &rTensorAdaptorName, &p_tensor_adaptor](auto pContainer){
-            // finds the unstructured grid for which the given tensor adaptor's pContainer refers to.
-            // mesh_type is of Kratos::Globals::DataLocation enum
-            // itr points to the unstructured grid which is referring to the given pContainer.
-            // if not found, mesh_type is returned with Kratos::Globals::DataLocation::ModelPart
-            // enum value, which will throw an error.
-            [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mUnstructuredGridDataList);
+    // a visitor for NodesContainer::Pointer, ConditionsContainer::Pointer, ElementsContainerPointer
+    // of the given pTensorAdaptor
+    std::visit([this, &rTensorAdaptorName, &pTensorAdaptor](auto pContainer){
+        // finds the unstructured grid for which the given tensor adaptor's pContainer refers to.
+        // mesh_type is of Kratos::Globals::DataLocation enum
+        // itr points to the unstructured grid which is referring to the given pContainer.
+        // if not found, mesh_type is returned with Kratos::Globals::DataLocation::ModelPart
+        // enum value, which will throw an error.
+        [[maybe_unused]] auto [mesh_type, itr] = FindUnstructuredGridData(*pContainer, this->mUnstructuredGridDataList);
 
-            switch (mesh_type) {
-                case Globals::DataLocation::Condition:
-                case Globals::DataLocation::Element: {
-                    auto data_field_itr = itr->mMapOfCellTensorAdaptors.find(rTensorAdaptorName);
+        switch (mesh_type) {
+            case Globals::DataLocation::Condition:
+            case Globals::DataLocation::Element: {
+                auto data_field_itr = itr->mMapOfCellTensorAdaptors.find(rTensorAdaptorName);
 
-                    KRATOS_ERROR_IF(data_field_itr == itr->mMapOfCellTensorAdaptors.end())
-                        << "TensorAdaptor name = \""
-                        << rTensorAdaptorName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
-                        << *this;
+                KRATOS_ERROR_IF(data_field_itr == itr->mMapOfCellTensorAdaptors.end())
+                    << "TensorAdaptor name = \""
+                    << rTensorAdaptorName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
+                    << *this;
 
-                    data_field_itr->second = p_tensor_adaptor;
-                    break;
-                }
-                case Globals::DataLocation::NodeNonHistorical: {
-                    auto data_field_itr = itr->mMapOfPointTensorAdaptors.find(rTensorAdaptorName);
-
-                    KRATOS_ERROR_IF(data_field_itr == itr->mMapOfPointTensorAdaptors.end())
-                        << "TensorAdaptor name = \""
-                        << rTensorAdaptorName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
-                        << *this;
-
-                    data_field_itr->second = p_tensor_adaptor;
-                    break;
-                }
-                default:
-                    KRATOS_ERROR
-                        << "The container in the TensorAdaptor is not referring to any of the containers "
-                        << "written by this Vtu output [ tensor adaptor name = " << rTensorAdaptorName
-                        << ", tensor_adaptor = " << *p_tensor_adaptor << " ]\n"
-                        << *this;
-                    break;
+                data_field_itr->second = pTensorAdaptor;
+                break;
             }
-        }, p_tensor_adaptor->GetContainer());
-    }, pTensorAdaptor);
+            case Globals::DataLocation::NodeNonHistorical: {
+                auto data_field_itr = itr->mMapOfPointTensorAdaptors.find(rTensorAdaptorName);
+
+                KRATOS_ERROR_IF(data_field_itr == itr->mMapOfPointTensorAdaptors.end())
+                    << "TensorAdaptor name = \""
+                    << rTensorAdaptorName << "\" not found in the existing data fields. It is only allowed to update existing data fields. VtuOutput: \n"
+                    << *this;
+
+                data_field_itr->second = pTensorAdaptor;
+                break;
+            }
+            default:
+                KRATOS_ERROR
+                    << "The container in the TensorAdaptor is not referring to any of the containers "
+                    << "written by this Vtu output [ tensor adaptor name = " << rTensorAdaptorName
+                    << ", tensor_adaptor = " << *pTensorAdaptor << " ]\n"
+                    << *this;
+                break;
+        }
+    }, pTensorAdaptor->GetContainer());
 
     KRATOS_CATCH("");
 }
 
+template<class TTensorAdaptorPointerType>
 void VtuOutput::EmplaceTensorAdaptor(
     const std::string& rTensorAdaptorName,
-    SupportedTensorAdaptorPointerType pTensorAdaptor)
+    TTensorAdaptorPointerType pTensorAdaptor)
 {
     if (!mIsPVDFileHeaderWritten) {
         AddTensorAdaptor(rTensorAdaptorName, pTensorAdaptor);
@@ -1685,5 +1677,37 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
         }
     }
 }
+
+// template instantiations
+#ifndef KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION
+#define KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(...)                                                             \
+    template void VtuOutput::AddVariable(const Variable<__VA_ARGS__>&, const Globals::DataLocation&);                   \
+    template void VtuOutput::AddIntegrationPointVariable(const Variable<__VA_ARGS__>&, const Globals::DataLocation&);   \
+
+#endif
+
+#ifndef KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION
+#define KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(DATA_TYPE)                                            \
+    template void VtuOutput::AddTensorAdaptor(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);       \
+    template void VtuOutput::UpdateTensorAdaptor(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);    \
+    template void VtuOutput::EmplaceTensorAdaptor(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
+
+#endif
+
+KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(int)
+KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(double)
+KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(array_1d<double, 3>)
+KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(array_1d<double, 4>)
+KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(array_1d<double, 6>)
+KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(array_1d<double, 9>)
+KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(Vector)
+KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(Matrix)
+
+KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(bool)
+KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(int)
+KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(double)
+
+#undef KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION
+#undef KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION
 
 } // namespace Kratos
