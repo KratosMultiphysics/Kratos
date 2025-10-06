@@ -215,7 +215,7 @@ Element::Pointer ElementSetupUtilities::Create2D6NElement()
 Element::Pointer ElementSetupUtilities::Create2D6NDiffOrderElement(const PointerVector<Node>& rNodes,
                                                                    const Properties::Pointer& rProperties)
 {
-    return make_intrusive<SmallStrainUPwDiffOrderElement>(
+    return make_intrusive<SmallStrainUPwDiffOrderElement<2, 6>>(
         1, std::make_shared<Triangle2D6<Node>>(rNodes), rProperties,
         std::make_unique<PlaneStrainStressState>(), nullptr);
 }

@@ -41,9 +41,10 @@ public:
                                          const Matrix& rMassMatrix,
                                          const Matrix& rStiffnessMatrix);
 
-    static Matrix CalculateStiffnessMatrixGPoint(const Matrix& rB,
-                                                 const Matrix& rConstitutiveMatrix,
-                                                 double        IntegrationCoefficient);
+    static void CalculateStiffnessMatrixGPoint(Matrix&       rStiffness,
+                                               const Matrix& rB,
+                                               const Matrix& rConstitutiveMatrix,
+                                               double        IntegrationCoefficient);
 
     static Matrix CalculateStiffnessMatrix(const std::vector<Matrix>& rBs,
                                            const std::vector<Matrix>& rConstitutiveMatrices,
