@@ -87,7 +87,7 @@ public:
         return mCountFinalizeOutputCalled;
     }
 
-    void InitializeOutput() override { ++mCountInitializeOutputCalled; }
+    MOCK_METHOD(void, InitializeOutput,(), (override));
 
     MOCK_METHOD(void, Predict, (), (override));
     MOCK_METHOD(void, InitializeSolutionStep, (), (override));
@@ -97,7 +97,7 @@ public:
 
     MOCK_METHOD(void, FinalizeSolutionStep, (), (override));
 
-    void FinalizeOutput() override { ++mCountFinalizeOutputCalled; }
+    MOCK_METHOD(void, FinalizeOutput,(), (override));
 
     void SetOutputProcessCallback(std::function<void()> Callback)
     {
@@ -347,10 +347,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunCompletesO
     auto solver_strategy = std::make_shared<DummySolverStrategy>();
     executor.SetSolverStrategyWrapper(solver_strategy);
 
+    EXPECT_CALL(*solver_strategy, InitializeOutput).Times(1);
+    EXPECT_CALL(*solver_strategy, FinalizeOutput).Times(1);
     executor.Run(TimeStepEndState{});
-
-    KRATOS_EXPECT_EQ(solver_strategy->GetCountInitializeOutputCalled(), 1);
-    KRATOS_EXPECT_EQ(solver_strategy->GetCountFinalizeOutputCalled(), 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -362,16 +361,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunThrows, Kr
     solver_strategy->SetOutputProcessCallback([]() { throw Exception{"Test exception"}; });
     executor.SetSolverStrategyWrapper(solver_strategy);
 
-    auto exception_caught = false;
-    try {
-        executor.Run(MakeConvergedStepState());
-    } catch (const Exception&) {
-        exception_caught = true;
-    }
-
-    KRATOS_EXPECT_TRUE(exception_caught)
-    KRATOS_EXPECT_EQ(solver_strategy->GetCountInitializeOutputCalled(), 1);
-    KRATOS_EXPECT_EQ(solver_strategy->GetCountFinalizeOutputCalled(), 1);
+    EXPECT_CALL(*solver_strategy, InitializeOutput).Times(1);
+    EXPECT_CALL(*solver_strategy, FinalizeOutput).Times(1);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(executor.Run(MakeConvergedStepState()), "Test exception");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TimeLoopExecutor_CallsProcessExecuteBeforeSolutionLoop_AfterInitialize,
