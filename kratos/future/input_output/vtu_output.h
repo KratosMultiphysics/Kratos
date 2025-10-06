@@ -50,7 +50,7 @@ namespace Kratos::Future {
  * @ref PrintOutput is called, no more data fields can be added because Vtk library does not support varying fields.
  *
  * But, already added @ref TensorAdaptor objects may be replaced with new @ref TensorAdaptor objects after calling @ref PrintOutput
- * by using @ref UpdateTensorAdaptor method.
+ * by using @ref ReplaceTensorAdaptor method.
  *
  * A convenience method called @ref EmplaceTensorAdaptor is there to add the @ref TensorAdaptor if it is not existing and if the call is
  * before the first call of @ref PrintOutput. Otherwise, it will try replacing an existing @ref TensorAdaptor.
@@ -260,7 +260,7 @@ public:
      * @param pTensorAdaptor                Pointer to the new tensor adaptor to be associated.
      */
     template<class TTensorAdaptorPointerType>
-    void UpdateTensorAdaptor(
+    void ReplaceTensorAdaptor(
         const std::string& rTensorAdaptorName,
         TTensorAdaptorPointerType pTensorAdaptor);
 
@@ -269,7 +269,7 @@ public:
      *
      * This method:
      *  - If PrintOutput is not called at all, then calls @ref AddTensorAdaptor
-     *  - If PrintOutput is at least once called, then calls @ref UpdateTensorAdaptor
+     *  - If PrintOutput is at least once called, then calls @ref ReplaceTensorAdaptor
      *
      * @tparam TTensorAdaptorPointerType    Pointer type of the tensor adaptor.
      * @param rTensorAdaptorName            The name to associate with the @ref TensorAdaptor.

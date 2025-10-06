@@ -509,9 +509,9 @@ void AddFields(
 
             if (ta_shape[0] == 0) {
                 // get the storage type of the tensor adaptor. This may be NDData<int>, NDData<double>, ...
-                using storage_type = typename BareType<decltype(*pTensorAdaptor)>::Storage;
+                using TDataType = typename BareType<decltype(*pTensorAdaptor)>::Storage;
                 // this is a rank with an empty container.
-                rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, Kratos::make_shared<storage_type>(ref_ta_shape)));
+                rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, Kratos::make_shared<TDataType>(ref_ta_shape)));
             } else {
                 // this is a rank with non-empty container.
                 rXmlElement.AddElement(rXmlDataElementWrapper.Get(r_pair.first, GetWritingNDData(rWritingIndices, pTensorAdaptor->pGetStorage())));
@@ -1068,7 +1068,7 @@ void VtuOutput::AddTensorAdaptor(
 }
 
 template<class TTensorAdaptorPointerType>
-void VtuOutput::UpdateTensorAdaptor(
+void VtuOutput::ReplaceTensorAdaptor(
     const std::string& rTensorAdaptorName,
     TTensorAdaptorPointerType pTensorAdaptor)
 {
@@ -1087,6 +1087,7 @@ void VtuOutput::UpdateTensorAdaptor(
         switch (mesh_type) {
             case Globals::DataLocation::Condition:
             case Globals::DataLocation::Element: {
+                // the following code will be executed if the mesh_type is either Condition or Element.
                 auto data_field_itr = itr->mMapOfCellTensorAdaptors.find(rTensorAdaptorName);
 
                 KRATOS_ERROR_IF(data_field_itr == itr->mMapOfCellTensorAdaptors.end())
@@ -1129,7 +1130,7 @@ void VtuOutput::EmplaceTensorAdaptor(
     if (!mIsPVDFileHeaderWritten) {
         AddTensorAdaptor(rTensorAdaptorName, pTensorAdaptor);
     } else {
-        UpdateTensorAdaptor(rTensorAdaptorName, pTensorAdaptor);
+        ReplaceTensorAdaptor(rTensorAdaptorName, pTensorAdaptor);
     }
 }
 
@@ -1689,7 +1690,7 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
 #ifndef KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION
 #define KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(DATA_TYPE)                                            \
     template void VtuOutput::AddTensorAdaptor(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);       \
-    template void VtuOutput::UpdateTensorAdaptor(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);    \
+    template void VtuOutput::ReplaceTensorAdaptor(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
     template void VtuOutput::EmplaceTensorAdaptor(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
 
 #endif

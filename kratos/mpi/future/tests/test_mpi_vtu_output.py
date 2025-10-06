@@ -212,7 +212,7 @@ class TestMPIVtuOutput(kratos_unittest.TestCase):
                 if i == 0:
                     vtu_output.AddTensorAdaptor(f"ta_{ta_name_prefix}_{variable.Name()}", ta)
                 else:
-                    vtu_output.UpdateTensorAdaptor(f"ta_{ta_name_prefix}_{variable.Name()}", ta)
+                    vtu_output.ReplaceTensorAdaptor(f"ta_{ta_name_prefix}_{variable.Name()}", ta)
 
             AddTensorAdaptor("hist", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.Nodes, Kratos.PRESSURE)
             AddTensorAdaptor("hist", Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor, self.model_part.Nodes, Kratos.DISPLACEMENT)
