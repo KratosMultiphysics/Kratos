@@ -85,7 +85,7 @@ public:
     }
 
 private:
-    void CallExecuteBeforeSolutionLoopOnProcesses()
+    void CallExecuteBeforeSolutionLoopOnProcesses() const
     {
         for (const auto& r_process_observable : mProcessObservables) {
             auto p_process = r_process_observable.lock();
