@@ -3629,7 +3629,7 @@
             <value n="value_direction_Y" wn="SelfWeight3D _Y" pn="Value Y" v="0.0" help="Direction" show_in_window="1"/>
             <value n="value_direction_Z" wn="SelfWeight3D _Z" pn="Value Z" v="-1.0" help="Direction" state="[CheckDimension 3D]" show_in_window="1"/>
           </condition>
-          <condition n="SelfWeight2D" pn="Self weight" ov="line,surface" ovm="" icon="shells16" help="Self weight application by means of the AssignVectorByDirectionProcess in the core" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction" tree_state="open">
+          <condition n="SelfWeight2D" pn="Self weight" ov="line,surface" ovm="" icon="shells16" help="Self weight application by means of the AssignVectorByDirectionProcess in the core" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction" tree_state="active,open,selected">
             <value n="constrained" pn="Constrained" v="false" values="true,false" help="Constrained" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
               <dependencies value="No" node="../value[@n='modulus']" att1="state" v1="normal"/>
@@ -3639,9 +3639,18 @@
             </value>
             <value n="function_modulus" pn="Function" v="" help="Value" state="hidden" show_in_window="1" cal_state="normal"/>
             <value n="modulus" pn="Modulus" v="9.81" units="m/s^2" unit_magnitude="Acceleration" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
-            <value n="value_direction_X" wn="SelfWeight2D _X" pn="Value X" v="0.0" help="Direction" show_in_window="1"/>
-            <value n="value_direction_Y" wn="SelfWeight2D _Y" pn="Value Y" v="-1.0" help="Direction" show_in_window="1"/>
+            <value n="value_direction_X" wn="SelfWeight2D _X" pn="Value X" v="0.0" help="Direction" show_in_window="1" state=""/>
+            <value n="value_direction_Y" wn="SelfWeight2D _Y" pn="Value Y" v="-1.0" help="Direction" show_in_window="1" state=""/>
             <value n="value_direction_Z" wn="SelfWeight2D _Z" pn="Value Z" v="0.0" help="Direction" state="[CheckDimension 3D]" show_in_window="1"/>
+            <group n="All_Soil" ov="line" tree_state="close">
+              <value n="constrained" pn="Constrained" values="true,false" help="Constrained" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="No" tree_state="close"/>
+              <value n="function_modulus" pn="Function" help="Value" state="hidden" show_in_window="1" cal_state="normal" v=""/>
+              <value n="modulus" pn="Modulus" unit_magnitude="Acceleration" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="9.81" units="m/s^2" tree_state="close"/>
+              <value n="value_direction_X" wn="SelfWeight2D _X" pn="Value X" help="Direction" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_direction_Y" wn="SelfWeight2D _Y" pn="Value Y" help="Direction" show_in_window="1" state="" v="-1.0" tree_state="close"/>
+              <value n="value_direction_Z" wn="SelfWeight2D _Z" pn="Value Z" help="Direction" state="[CheckDimension 3D]" show_in_window="1" v="0.0"/>
+            </group>
           </condition>
           <condition n="SelfWeight2Da" pn="Self weight" ov="line,surface" ovm="" icon="shells16" help="Self weight application by means of the AssignVectorByDirectionProcess in the core" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction">
             <value n="constrained" pn="Constrained" v="false" values="true,false" help="Constrained" state="[ConditionParameterState]" show_in_window="1"/>
@@ -3785,7 +3794,7 @@
             <value n="specific_weight" pn="Specific weight" v="10000" units="" unit_magnitude="" help="Specific weight" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <value n="table" pn="Table" v="0, 0" fieldtype="vector" dimensions="2" help="Table" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
           </condition>
-          <condition n="K0 procedure" pn="K0 procedure" ov="surface" ovm="" icon="shells16" help="Apply the K0 procedure to an area" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="active,open,selected">
+          <condition n="K0 procedure" pn="K0 procedure" ov="surface" ovm="" icon="shells16" help="Apply the K0 procedure to an area" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="open">
             <value n="use_standard_procedure" pn="Use Standard Procedure" v="true" values="true,false" help="Use Standard Procedure" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <group n="All_Soil" ov="surface" tree_state="close">
               <value n="use_standard_procedure" pn="Use Standard Procedure" values="true,false" help="Use Standard Procedure" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>

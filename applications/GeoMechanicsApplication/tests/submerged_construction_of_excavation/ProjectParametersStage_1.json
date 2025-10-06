@@ -125,6 +125,18 @@
             }
         }],
         "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "PorousDomain.All_Soil",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        },{
             "python_module" : "apply_k0_procedure_process",
             "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
             "process_name"  : "apply_k0_procedure_process",
