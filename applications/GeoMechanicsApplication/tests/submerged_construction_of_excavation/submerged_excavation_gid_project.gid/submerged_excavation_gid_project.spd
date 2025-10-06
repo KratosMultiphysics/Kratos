@@ -24,7 +24,7 @@
   <units/>
   <!-- Fill this fields to automatically active an App without the init window -->
   <hiddenfield n="activeapp" active="0" v="GeoMechanics" state="disabled"/>
-  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="close"/>
+  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="active,selected,close"/>
   <appLink n="ThermicLauncher" public="1" pn="Thermic" active="0" appid="ThermicLauncher" prefix="ThermicLauncher"/>
   <appLink n="ConvectionDiffusion" public="0" pn="Convection-diffusion" active="0" appid="ConvectionDiffusion" prefix="CNVDFF"/>
   <appLink n="Structural" public="1" pn="Structural" active="0" appid="Structural" prefix="ST"/>
@@ -143,7 +143,7 @@
             <value n="echo_level" pn="Echo level" state="[SolverParamState]" v="1" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
           </container>
         </container>
-        <container n="Geotechnical Parts" pn="Geotechnical Parts" un="STParts" icon="shells16" update_proc="UpdateParts" tree_state="close">
+        <container n="Geotechnical Parts" pn="Geotechnical Parts" un="STParts" icon="shells16" update_proc="UpdateParts" tree_state="open">
           <condition n="Parts_Soil" pn="Soil" ov="surface" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="open">
             <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" v="UPwSmallStrainElement2D" dict="[GetElements ElementType Soil]" state="normal">
               <dependencies node="../value[@n!='Material']" actualize="1"/>
@@ -318,33 +318,33 @@
             <value n="AREA_EFFECTIVE_Y" pn="Area Effective Y" v="0.01" help="Area Effective Y" string_is="double" state="[PartParamState]" show_in_window="1"/>
             <group n="Clay_Left" ov="surface" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="8$SmallStrainUDSM2DPlaneStrainLaw" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="open"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
-              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650" tree_state="close"/>
+              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2048.66" tree_state="close"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
-              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.3" tree_state="close"/>
+              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.203874" tree_state="close"/>
               <value n="BULK_MODULUS_SOLID" pn="BULK_MODULUS_SOLID" help="BULK_MODULUS_SOLID" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0e9" tree_state="close"/>
               <value n="BULK_MODULUS_FLUID" pn="BULK_MODULUS_FLUID" help="BULK_MODULUS_FLUID" string_is="double" state="[PartParamState]" show_in_window="1" v="2.0e6" tree_state="close"/>
               <value n="PERMEABILITY_XX" pn="Permeability XX" help="Permeability XX" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_YY" pn="Permeability YY" help="Permeability YY" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_XY" pn="Permeability XY" help="Permeability XY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
               <value n="DYNAMIC_VISCOSITY" pn="DYNAMIC_VISCOSITY" help="DYNAMIC_VISCOSITY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.001" tree_state="close"/>
-              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0"/>
-              <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2"/>
+              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0" tree_state="close"/>
+              <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2" tree_state="close"/>
               <value n="BIOT_COEFFICIENT" pn="BIOT_COEFFICIENT" help="BIOT_COEFFICIENT" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
-              <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedLaw" tree_state="close"/>
+              <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedBelowPhreaticLevelLaw" tree_state="open"/>
               <value n="SATURATED_SATURATION" pn="SATURATED_SATURATION" help="SATURATED_SATURATION" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
-              <value n="RESIDUAL_SATURATION" pn="RESIDUAL_SATURATION" help="RESIDUAL_SATURATION" string_is="double" state="hidden" show_in_window="1" v="1e-10"/>
+              <value n="RESIDUAL_SATURATION" pn="RESIDUAL_SATURATION" help="RESIDUAL_SATURATION" string_is="double" state="normal" show_in_window="1" v="1e-10" tree_state="close"/>
               <value n="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" pn="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" help="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" string_is="double" state="hidden" show_in_window="1" v=".561"/>
               <value n="VAN_GENUCHTEN_GN" pn="VAN_GENUCHTEN_GN" help="VAN_GENUCHTEN_GN" string_is="double" state="hidden" show_in_window="1" v="1.377"/>
               <value n="VAN_GENUCHTEN_GL" pn="VAN_GENUCHTEN_GL" help="VAN_GENUCHTEN_GL" string_is="double" state="hidden" show_in_window="1" v="1.25"/>
-              <value n="MINIMUM_RELATIVE_PERMEABILITY" pn="MINIMUM_RELATIVE_PERMEABILITY" help="MINIMUM_RELATIVE_PERMEABILITY" string_is="double" state="hidden" show_in_window="1" v="0.0001"/>
-              <value n="K0_MAIN_DIRECTION" pn="K0_MAIN_DIRECTION" help="K0_MAIN_DIRECTION" string_is="double" state="[PartParamState]" show_in_window="1" v="1"/>
-              <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
+              <value n="MINIMUM_RELATIVE_PERMEABILITY" pn="MINIMUM_RELATIVE_PERMEABILITY" help="MINIMUM_RELATIVE_PERMEABILITY" string_is="double" state="normal" show_in_window="1" v="0.0001" tree_state="close"/>
+              <value n="K0_MAIN_DIRECTION" pn="K0_MAIN_DIRECTION" help="K0_MAIN_DIRECTION" string_is="double" state="[PartParamState]" show_in_window="1" v="1" tree_state="close"/>
+              <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5" tree_state="close"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -472,33 +472,33 @@
             </group>
             <group n="Clay_Upper_Right" ov="surface" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="8$SmallStrainUDSM2DPlaneStrainLaw" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="open"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
-              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650" tree_state="close"/>
+              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2048.66" tree_state="close"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
-              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.3" tree_state="close"/>
+              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.203874" tree_state="close"/>
               <value n="BULK_MODULUS_SOLID" pn="BULK_MODULUS_SOLID" help="BULK_MODULUS_SOLID" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0e9" tree_state="close"/>
               <value n="BULK_MODULUS_FLUID" pn="BULK_MODULUS_FLUID" help="BULK_MODULUS_FLUID" string_is="double" state="[PartParamState]" show_in_window="1" v="2.0e6" tree_state="close"/>
               <value n="PERMEABILITY_XX" pn="Permeability XX" help="Permeability XX" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_YY" pn="Permeability YY" help="Permeability YY" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_XY" pn="Permeability XY" help="Permeability XY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
               <value n="DYNAMIC_VISCOSITY" pn="DYNAMIC_VISCOSITY" help="DYNAMIC_VISCOSITY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.001" tree_state="close"/>
-              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0"/>
-              <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2"/>
+              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0" tree_state="close"/>
+              <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2" tree_state="close"/>
               <value n="BIOT_COEFFICIENT" pn="BIOT_COEFFICIENT" help="BIOT_COEFFICIENT" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
-              <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedLaw" tree_state="close"/>
+              <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedBelowPhreaticLevelLaw" tree_state="close"/>
               <value n="SATURATED_SATURATION" pn="SATURATED_SATURATION" help="SATURATED_SATURATION" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
-              <value n="RESIDUAL_SATURATION" pn="RESIDUAL_SATURATION" help="RESIDUAL_SATURATION" string_is="double" state="hidden" show_in_window="1" v="1e-10"/>
+              <value n="RESIDUAL_SATURATION" pn="RESIDUAL_SATURATION" help="RESIDUAL_SATURATION" string_is="double" state="normal" show_in_window="1" v="1e-10" tree_state="close"/>
               <value n="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" pn="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" help="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" string_is="double" state="hidden" show_in_window="1" v=".561"/>
               <value n="VAN_GENUCHTEN_GN" pn="VAN_GENUCHTEN_GN" help="VAN_GENUCHTEN_GN" string_is="double" state="hidden" show_in_window="1" v="1.377"/>
               <value n="VAN_GENUCHTEN_GL" pn="VAN_GENUCHTEN_GL" help="VAN_GENUCHTEN_GL" string_is="double" state="hidden" show_in_window="1" v="1.25"/>
-              <value n="MINIMUM_RELATIVE_PERMEABILITY" pn="MINIMUM_RELATIVE_PERMEABILITY" help="MINIMUM_RELATIVE_PERMEABILITY" string_is="double" state="hidden" show_in_window="1" v="0.0001"/>
-              <value n="K0_MAIN_DIRECTION" pn="K0_MAIN_DIRECTION" help="K0_MAIN_DIRECTION" string_is="double" state="[PartParamState]" show_in_window="1" v="1"/>
-              <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
+              <value n="MINIMUM_RELATIVE_PERMEABILITY" pn="MINIMUM_RELATIVE_PERMEABILITY" help="MINIMUM_RELATIVE_PERMEABILITY" string_is="double" state="normal" show_in_window="1" v="0.0001" tree_state="close"/>
+              <value n="K0_MAIN_DIRECTION" pn="K0_MAIN_DIRECTION" help="K0_MAIN_DIRECTION" string_is="double" state="[PartParamState]" show_in_window="1" v="1" tree_state="close"/>
+              <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5" tree_state="close"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -626,33 +626,33 @@
             </group>
             <group n="Clay_Middle_Right" ov="surface" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="8$SmallStrainUDSM2DPlaneStrainLaw" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="open"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
-              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650" tree_state="close"/>
+              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2048.66" tree_state="open"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
-              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.3" tree_state="close"/>
+              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.203874" tree_state="close"/>
               <value n="BULK_MODULUS_SOLID" pn="BULK_MODULUS_SOLID" help="BULK_MODULUS_SOLID" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0e9" tree_state="close"/>
               <value n="BULK_MODULUS_FLUID" pn="BULK_MODULUS_FLUID" help="BULK_MODULUS_FLUID" string_is="double" state="[PartParamState]" show_in_window="1" v="2.0e6" tree_state="close"/>
               <value n="PERMEABILITY_XX" pn="Permeability XX" help="Permeability XX" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_YY" pn="Permeability YY" help="Permeability YY" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_XY" pn="Permeability XY" help="Permeability XY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
               <value n="DYNAMIC_VISCOSITY" pn="DYNAMIC_VISCOSITY" help="DYNAMIC_VISCOSITY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.001" tree_state="close"/>
-              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0"/>
-              <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2"/>
+              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0" tree_state="close"/>
+              <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2" tree_state="close"/>
               <value n="BIOT_COEFFICIENT" pn="BIOT_COEFFICIENT" help="BIOT_COEFFICIENT" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
-              <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedLaw" tree_state="close"/>
+              <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedBelowPhreaticLevelLaw" tree_state="close"/>
               <value n="SATURATED_SATURATION" pn="SATURATED_SATURATION" help="SATURATED_SATURATION" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
-              <value n="RESIDUAL_SATURATION" pn="RESIDUAL_SATURATION" help="RESIDUAL_SATURATION" string_is="double" state="hidden" show_in_window="1" v="1e-10"/>
+              <value n="RESIDUAL_SATURATION" pn="RESIDUAL_SATURATION" help="RESIDUAL_SATURATION" string_is="double" state="normal" show_in_window="1" v="1e-10" tree_state="close"/>
               <value n="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" pn="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" help="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" string_is="double" state="hidden" show_in_window="1" v=".561"/>
               <value n="VAN_GENUCHTEN_GN" pn="VAN_GENUCHTEN_GN" help="VAN_GENUCHTEN_GN" string_is="double" state="hidden" show_in_window="1" v="1.377"/>
               <value n="VAN_GENUCHTEN_GL" pn="VAN_GENUCHTEN_GL" help="VAN_GENUCHTEN_GL" string_is="double" state="hidden" show_in_window="1" v="1.25"/>
-              <value n="MINIMUM_RELATIVE_PERMEABILITY" pn="MINIMUM_RELATIVE_PERMEABILITY" help="MINIMUM_RELATIVE_PERMEABILITY" string_is="double" state="hidden" show_in_window="1" v="0.0001"/>
-              <value n="K0_MAIN_DIRECTION" pn="K0_MAIN_DIRECTION" help="K0_MAIN_DIRECTION" string_is="double" state="[PartParamState]" show_in_window="1" v="1"/>
-              <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
+              <value n="MINIMUM_RELATIVE_PERMEABILITY" pn="MINIMUM_RELATIVE_PERMEABILITY" help="MINIMUM_RELATIVE_PERMEABILITY" string_is="double" state="normal" show_in_window="1" v="0.0001" tree_state="close"/>
+              <value n="K0_MAIN_DIRECTION" pn="K0_MAIN_DIRECTION" help="K0_MAIN_DIRECTION" string_is="double" state="[PartParamState]" show_in_window="1" v="1" tree_state="close"/>
+              <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5" tree_state="close"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -780,33 +780,33 @@
             </group>
             <group n="Clay_Lower_Right" ov="surface" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="8$SmallStrainUDSM2DPlaneStrainLaw" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="close"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
-              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650" tree_state="close"/>
+              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2048.66" tree_state="close"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
-              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.3" tree_state="close"/>
+              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.203874" tree_state="close"/>
               <value n="BULK_MODULUS_SOLID" pn="BULK_MODULUS_SOLID" help="BULK_MODULUS_SOLID" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0e9" tree_state="close"/>
               <value n="BULK_MODULUS_FLUID" pn="BULK_MODULUS_FLUID" help="BULK_MODULUS_FLUID" string_is="double" state="[PartParamState]" show_in_window="1" v="2.0e6" tree_state="close"/>
               <value n="PERMEABILITY_XX" pn="Permeability XX" help="Permeability XX" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_YY" pn="Permeability YY" help="Permeability YY" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_XY" pn="Permeability XY" help="Permeability XY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
               <value n="DYNAMIC_VISCOSITY" pn="DYNAMIC_VISCOSITY" help="DYNAMIC_VISCOSITY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.001" tree_state="close"/>
-              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0"/>
-              <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2"/>
+              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0" tree_state="close"/>
+              <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2" tree_state="close"/>
               <value n="BIOT_COEFFICIENT" pn="BIOT_COEFFICIENT" help="BIOT_COEFFICIENT" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
-              <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedLaw" tree_state="close"/>
+              <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedBelowPhreaticLevelLaw" tree_state="active,close"/>
               <value n="SATURATED_SATURATION" pn="SATURATED_SATURATION" help="SATURATED_SATURATION" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
-              <value n="RESIDUAL_SATURATION" pn="RESIDUAL_SATURATION" help="RESIDUAL_SATURATION" string_is="double" state="hidden" show_in_window="1" v="1e-10"/>
+              <value n="RESIDUAL_SATURATION" pn="RESIDUAL_SATURATION" help="RESIDUAL_SATURATION" string_is="double" state="normal" show_in_window="1" v="1e-10" tree_state="close"/>
               <value n="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" pn="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" help="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" string_is="double" state="hidden" show_in_window="1" v=".561"/>
               <value n="VAN_GENUCHTEN_GN" pn="VAN_GENUCHTEN_GN" help="VAN_GENUCHTEN_GN" string_is="double" state="hidden" show_in_window="1" v="1.377"/>
               <value n="VAN_GENUCHTEN_GL" pn="VAN_GENUCHTEN_GL" help="VAN_GENUCHTEN_GL" string_is="double" state="hidden" show_in_window="1" v="1.25"/>
-              <value n="MINIMUM_RELATIVE_PERMEABILITY" pn="MINIMUM_RELATIVE_PERMEABILITY" help="MINIMUM_RELATIVE_PERMEABILITY" string_is="double" state="hidden" show_in_window="1" v="0.0001"/>
-              <value n="K0_MAIN_DIRECTION" pn="K0_MAIN_DIRECTION" help="K0_MAIN_DIRECTION" string_is="double" state="[PartParamState]" show_in_window="1" v="1"/>
-              <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
+              <value n="MINIMUM_RELATIVE_PERMEABILITY" pn="MINIMUM_RELATIVE_PERMEABILITY" help="MINIMUM_RELATIVE_PERMEABILITY" string_is="double" state="normal" show_in_window="1" v="0.0001" tree_state="close"/>
+              <value n="K0_MAIN_DIRECTION" pn="K0_MAIN_DIRECTION" help="K0_MAIN_DIRECTION" string_is="double" state="[PartParamState]" show_in_window="1" v="1" tree_state="close"/>
+              <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5" tree_state="close"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -933,13 +933,13 @@
               <value n="AREA_EFFECTIVE_Y" pn="Area Effective Y" help="Area Effective Y" string_is="double" state="[PartParamState]" show_in_window="1" v="0.01"/>
             </group>
             <group n="Sand_Left" ov="surface" tree_state="close">
-              <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="8$SmallStrainUDSM2DPlaneStrainLaw" tree_state="open"/>
+              <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="open"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="open"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
-              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650" tree_state="close"/>
+              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2496.33" tree_state="close"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
-              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.3" tree_state="close"/>
+              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.305810" tree_state="close"/>
               <value n="BULK_MODULUS_SOLID" pn="BULK_MODULUS_SOLID" help="BULK_MODULUS_SOLID" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0e9" tree_state="close"/>
               <value n="BULK_MODULUS_FLUID" pn="BULK_MODULUS_FLUID" help="BULK_MODULUS_FLUID" string_is="double" state="[PartParamState]" show_in_window="1" v="2.0e6" tree_state="close"/>
               <value n="PERMEABILITY_XX" pn="Permeability XX" help="Permeability XX" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
@@ -1088,20 +1088,20 @@
             </group>
             <group n="Sand_Right" ov="surface" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="8$SmallStrainUDSM2DPlaneStrainLaw" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="close"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
-              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650" tree_state="close"/>
+              <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2496.33" tree_state="close"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
-              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.3" tree_state="close"/>
+              <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.305810" tree_state="close"/>
               <value n="BULK_MODULUS_SOLID" pn="BULK_MODULUS_SOLID" help="BULK_MODULUS_SOLID" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0e9" tree_state="close"/>
               <value n="BULK_MODULUS_FLUID" pn="BULK_MODULUS_FLUID" help="BULK_MODULUS_FLUID" string_is="double" state="[PartParamState]" show_in_window="1" v="2.0e6" tree_state="close"/>
               <value n="PERMEABILITY_XX" pn="Permeability XX" help="Permeability XX" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_YY" pn="Permeability YY" help="Permeability YY" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_XY" pn="Permeability XY" help="Permeability XY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
               <value n="DYNAMIC_VISCOSITY" pn="DYNAMIC_VISCOSITY" help="DYNAMIC_VISCOSITY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.001" tree_state="close"/>
-              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0"/>
-              <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2"/>
+              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0" tree_state="close"/>
+              <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2" tree_state="close"/>
               <value n="BIOT_COEFFICIENT" pn="BIOT_COEFFICIENT" help="BIOT_COEFFICIENT" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
               <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedLaw" tree_state="close"/>
               <value n="SATURATED_SATURATION" pn="SATURATED_SATURATION" help="SATURATED_SATURATION" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
@@ -1110,11 +1110,11 @@
               <value n="VAN_GENUCHTEN_GN" pn="VAN_GENUCHTEN_GN" help="VAN_GENUCHTEN_GN" string_is="double" state="hidden" show_in_window="1" v="1.377"/>
               <value n="VAN_GENUCHTEN_GL" pn="VAN_GENUCHTEN_GL" help="VAN_GENUCHTEN_GL" string_is="double" state="hidden" show_in_window="1" v="1.25"/>
               <value n="MINIMUM_RELATIVE_PERMEABILITY" pn="MINIMUM_RELATIVE_PERMEABILITY" help="MINIMUM_RELATIVE_PERMEABILITY" string_is="double" state="hidden" show_in_window="1" v="0.0001"/>
-              <value n="K0_MAIN_DIRECTION" pn="K0_MAIN_DIRECTION" help="K0_MAIN_DIRECTION" string_is="double" state="[PartParamState]" show_in_window="1" v="1"/>
-              <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
+              <value n="K0_MAIN_DIRECTION" pn="K0_MAIN_DIRECTION" help="K0_MAIN_DIRECTION" string_is="double" state="[PartParamState]" show_in_window="1" v="1" tree_state="close"/>
+              <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5" tree_state="close"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -3629,7 +3629,7 @@
             <value n="value_direction_Y" wn="SelfWeight3D _Y" pn="Value Y" v="0.0" help="Direction" show_in_window="1"/>
             <value n="value_direction_Z" wn="SelfWeight3D _Z" pn="Value Z" v="-1.0" help="Direction" state="[CheckDimension 3D]" show_in_window="1"/>
           </condition>
-          <condition n="SelfWeight2D" pn="Self weight" ov="line,surface" ovm="" icon="shells16" help="Self weight application by means of the AssignVectorByDirectionProcess in the core" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction" tree_state="active,open,selected">
+          <condition n="SelfWeight2D" pn="Self weight" ov="line,surface" ovm="" icon="shells16" help="Self weight application by means of the AssignVectorByDirectionProcess in the core" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction" tree_state="open">
             <value n="constrained" pn="Constrained" v="false" values="true,false" help="Constrained" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
               <dependencies value="No" node="../value[@n='modulus']" att1="state" v1="normal"/>
