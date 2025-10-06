@@ -76,10 +76,6 @@ public:
         return mCountAccumulateTotalDisplacementFieldCalled;
     }
 
-    void ComputeIncrementalDisplacementField() override
-    {
-        // intentionally empty
-    }
 
     void OutputProcess() override
     {
@@ -107,23 +103,13 @@ public:
         return mCountFinalizeOutputCalled;
     }
 
-    void Initialize() override
-    {
-        // intentionally empty
-    }
 
     void InitializeOutput() override { ++mCountInitializeOutputCalled; }
 
-    void InitializeSolutionStep() override
-    {
-        // intentionally empty
-    }
-
-    void Predict() override
-    {
-        // intentionally empty
-    }
-
+    MOCK_METHOD(void, Predict, (), (override));
+    MOCK_METHOD(void, InitializeSolutionStep,(), (override));
+    MOCK_METHOD(void, Initialize,(), (override));
+    MOCK_METHOD(void, ComputeIncrementalDisplacementField,(), (override));
     MOCK_METHOD(TimeStepEndState::ConvergenceState, SolveSolutionStep, (), (override));
 
     void FinalizeSolutionStep() override { ++mCountFinalizeSolutionStepCalled; }
