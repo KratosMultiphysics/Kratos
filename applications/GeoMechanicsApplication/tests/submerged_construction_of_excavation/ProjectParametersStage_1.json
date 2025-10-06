@@ -62,7 +62,7 @@
         "newmark_gamma"                      : 0.5,
         "newmark_theta"                      : 0.5,
         "problem_domain_sub_model_part_list" : ["Clay_Left","Clay_Upper_Right","Clay_Middle_Right","Clay_Lower_Right","Sand_Left","Sand_Right","Wall_Clay_Interface_Left","Wall_Clay_Interface_Upper_Right","Wall_Clay_Interface_Middle_Right","Wall_Clay_Interface_Lower_Right","Wall_Sand_Interface_Left","Wall_Sand_Interface_Right","Diaphragm_Wall","Strut"],
-        "processes_sub_model_part_list"      : ["Bottom_Edge","Left_and_Right_Sides","Strut_Support_At_Symmetry_Line"],
+        "processes_sub_model_part_list"      : ["Bottom_Edge","Left_and_Right_Sides","Strut_Support_At_Symmetry_Line","All_Soil"],
         "body_domain_sub_model_part_list"    : ["Clay_Left","Clay_Upper_Right","Clay_Middle_Right","Clay_Lower_Right","Sand_Left","Sand_Right","Wall_Clay_Interface_Left","Wall_Clay_Interface_Upper_Right","Wall_Clay_Interface_Middle_Right","Wall_Clay_Interface_Lower_Right","Wall_Sand_Interface_Left","Wall_Sand_Interface_Right","Diaphragm_Wall","Strut"],
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization",
@@ -124,7 +124,16 @@
                 "specific_weight"        : 10000.0
             }
         }],
-        "loads_process_list"       : [],
+        "loads_process_list"       : [{
+            "python_module" : "apply_k0_procedure_process",
+            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name"  : "apply_k0_procedure_process",
+            "Parameters"    : {
+                "model_part_name"        : "PorousDomain.All_Soil",
+                "variable_name"          : "CAUCHY_STRESS_TENSOR",
+                "use_standard_procedure" : true
+            }
+        }],
         "list_other_processes"     : []
     },
     "output_processes" : {
