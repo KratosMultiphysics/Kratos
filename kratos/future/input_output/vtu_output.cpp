@@ -309,25 +309,8 @@ void AddConnectivityData(
     }, pCells);
 }
 
-/**
- * @brief This i
- *
- * @tparam TTensorAdaptorType
- * @tparam TContainerPointerType
- * @tparam TDataType
- * @tparam TXmlDataElementWrapper
- * @tparam TArgs
- * @param rXmlElement
- * @param pContainer
- * @param rVariable
- * @param rXmlDataElementWrapper
- * @param rDataCommunicator
- * @param rWritingIndices
- * @param EchoLevel
- * @param rArgs
- */
 template<class TTensorAdaptorType, class TContainerPointerType, class TDataType, class TXmlDataElementWrapper, class... TArgs>
-void AddFieldsFromTensorAdaptorImpl(
+void AddFieldsUsingTensorAdaptorImpl(
     XmlElementsArray& rXmlElement,
     TContainerPointerType pContainer,
     const Variable<TDataType>& rVariable,
@@ -422,25 +405,8 @@ void AddFieldsFromTensorAdaptorImpl(
     KRATOS_CATCH("");
 }
 
-/**
- * @brief
- *
- * @tparam TTensorAdaptorType
- * @tparam TContainerPointerType
- * @tparam TMapType
- * @tparam TXmlDataElementWrapper
- * @tparam TArgs
- * @param rXmlElement
- * @param pContainer
- * @param rMap
- * @param rXmlDataElementWrapper
- * @param rDataCommunicator
- * @param rWritingIndices
- * @param EchoLevel
- * @param rArgs
- */
 template<class TTensorAdaptorType, class TContainerPointerType, class TMapType, class TXmlDataElementWrapper, class... TArgs>
-void AddFieldsFromTensorAdaptor(
+void AddFieldsUsingTensorAdaptor(
     XmlElementsArray& rXmlElement,
     TContainerPointerType pContainer,
     const TMapType& rMap,
@@ -475,7 +441,7 @@ void AddFieldsFromTensorAdaptor(
             }
         } else {
             std::visit([&](const auto p_variable) {
-                AddFieldsFromTensorAdaptorImpl<TTensorAdaptorType>(
+                AddFieldsUsingTensorAdaptorImpl<TTensorAdaptorType>(
                     rXmlElement, pContainer, *p_variable, rXmlDataElementWrapper,
                     rDataCommunicator, rWritingIndices, EchoLevel, rArgs...);
             }, r_pair.second);
@@ -1256,9 +1222,9 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
         // generate and add point field data
         std::vector<IndexType> all_indices(p_nodes->size());
         std::iota(all_indices.begin(), all_indices.end(), 0);
-        AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, mFlags[static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel);
-        AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, mVariables[static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel);
-        AddFieldsFromTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, mVariables[static_cast<IndexType>(Globals::DataLocation::NodeHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel, 0);
+        AddFieldsUsingTensorAdaptor<FlagsTensorAdaptor>(*point_data_element, p_nodes, mFlags[static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel);
+        AddFieldsUsingTensorAdaptor<VariableTensorAdaptor>(*point_data_element, p_nodes, mVariables[static_cast<IndexType>(Globals::DataLocation::NodeNonHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel);
+        AddFieldsUsingTensorAdaptor<HistoricalVariableTensorAdaptor>(*point_data_element, p_nodes, mVariables[static_cast<IndexType>(Globals::DataLocation::NodeHistorical)], *p_xml_data_element_wrapper, r_data_communicator, all_indices, mEchoLevel, 0);
         AddFields(*point_data_element, rUnstructuredGridData.mMapOfPointTensorAdaptors, *p_xml_data_element_wrapper, all_indices, r_data_communicator, mEchoLevel);
     }
 
@@ -1270,8 +1236,8 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     if (rUnstructuredGridData.mpCells.has_value()) {
         KRATOS_INFO_IF("VtuOutput", mEchoLevel > 2) << "--- Collecting " << GetEntityName(rUnstructuredGridData.mpCells) << " data fields...\n";
         std::visit([this, &rUnstructuredGridData, &cell_data_element, &p_xml_data_element_wrapper, &r_data_communicator, &writing_indices](auto p_container){
-            AddFieldsFromTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mVariables, rUnstructuredGridData.mpCells.value()), *p_xml_data_element_wrapper, r_data_communicator, writing_indices, mEchoLevel);
-            AddFieldsFromTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mFlags, rUnstructuredGridData.mpCells.value()), *p_xml_data_element_wrapper, r_data_communicator, writing_indices, mEchoLevel);
+            AddFieldsUsingTensorAdaptor<VariableTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mVariables, rUnstructuredGridData.mpCells.value()), *p_xml_data_element_wrapper, r_data_communicator, writing_indices, mEchoLevel);
+            AddFieldsUsingTensorAdaptor<FlagsTensorAdaptor>(*cell_data_element, p_container, GetContainerMap(this->mFlags, rUnstructuredGridData.mpCells.value()), *p_xml_data_element_wrapper, r_data_communicator, writing_indices, mEchoLevel);
         }, rUnstructuredGridData.mpCells.value());
         AddFields(*cell_data_element, rUnstructuredGridData.mMapOfCellTensorAdaptors, *p_xml_data_element_wrapper, writing_indices, r_data_communicator, mEchoLevel);
     }
