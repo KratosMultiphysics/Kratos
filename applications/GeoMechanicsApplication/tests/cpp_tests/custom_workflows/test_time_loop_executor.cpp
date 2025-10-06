@@ -18,7 +18,9 @@
 #include "custom_workflows/time_step_end_state.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
+#include <algorithm>
 #include <numeric>
 
 using namespace Kratos;
@@ -104,10 +106,10 @@ public:
     MOCK_METHOD(void, ExecuteBeforeSolutionLoop, (), (override));
 };
 
-class FixedCyclesTimeIncrementor : public TimeIncrementor
+class FixedNumberOfCyclesForTwoTimeStepsIncrementor : public TimeIncrementor
 {
 public:
-    explicit FixedCyclesTimeIncrementor(std::size_t DesiredNumOfCyclesPerStep)
+    explicit FixedNumberOfCyclesForTwoTimeStepsIncrementor(std::size_t DesiredNumOfCyclesPerStep)
         : mNumCyclesPerStep{DesiredNumOfCyclesPerStep}
     {
     }
@@ -145,10 +147,11 @@ void RunTwoTimeStepsWithFixedNumberOfCycles(std::size_t WantedNumOfCyclesPerStep
                                             const std::shared_ptr<MockSolverStrategy>& rpSolver)
 {
     TimeLoopExecutor executor;
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(WantedNumOfCyclesPerStep));
+    executor.SetTimeIncrementor(
+        std::make_unique<FixedNumberOfCyclesForTwoTimeStepsIncrementor>(WantedNumOfCyclesPerStep));
     executor.SetSolverStrategyWrapper(rpSolver);
 
-    const auto step_states = executor.Run(TimeStepEndState{});
+    executor.Run(TimeStepEndState{});
 }
 
 } // namespace
@@ -160,7 +163,7 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsPerformedStatesAfterRunningAnAlwaysConv
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
+    const auto       increments = std::vector{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
     auto p_converging_strategy = std::make_shared<MockSolverStrategy>();
     EXPECT_CALL(*p_converging_strategy, SolveSolutionStep())
@@ -178,7 +181,7 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopExecutorThrowsAfterRunningANeverConvergingSolv
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
+    const auto       increments = std::vector{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
     auto p_solving_strategy = std::make_shared<MockSolverStrategy>();
     EXPECT_CALL(*p_solving_strategy, SolveSolutionStep()).WillOnce(testing::Return(TimeStepEndState::ConvergenceState::non_converged));
@@ -191,8 +194,14 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopExecutorThrowsAfterRunningANeverConvergingSolv
 KRATOS_TEST_CASE_IN_SUITE(TimeLoopExecutorThrowsAfterRunningAdaptiveTimeIncrementorWithNeverConvergingSolverStrategy,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    TimeLoopExecutor executor;
-    executor.SetTimeIncrementor(std::make_unique<AdaptiveTimeIncrementor>(0.0, 1.0, 1.0, 2, 0.5));
+    TimeLoopExecutor      executor;
+    constexpr double      start_time           = 0.0;
+    constexpr double      end_time             = 1.0;
+    constexpr double      start_increment      = 1.0;
+    constexpr std::size_t max_number_of_cycles = 2;
+    constexpr double      reduction_factor     = 0.5;
+    executor.SetTimeIncrementor(std::make_unique<AdaptiveTimeIncrementor>(
+        start_time, end_time, start_increment, max_number_of_cycles, reduction_factor));
     auto p_solving_strategy = std::make_shared<MockSolverStrategy>();
     EXPECT_CALL(*p_solving_strategy, SolveSolutionStep())
         .WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::non_converged));
@@ -206,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsEndTimesAfterRunningAnAlwaysConvergingS
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
+    const auto       increments = std::vector{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
     auto p_converging_strategy = std::make_shared<MockSolverStrategy>();
     EXPECT_CALL(*p_converging_strategy, SolveSolutionStep())
@@ -222,8 +231,9 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsEndTimesAfterRunningAnAlwaysConvergingS
 KRATOS_TEST_CASE_IN_SUITE(GetFiveCyclesWhenFiveCyclesAreNeeded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto       wanted_num_of_cycles_per_step = 5;
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    const auto       wanted_num_of_cycles_per_step = std::size_t{5};
+    executor.SetTimeIncrementor(
+        std::make_unique<FixedNumberOfCyclesForTwoTimeStepsIncrementor>(wanted_num_of_cycles_per_step));
     auto p_converging_strategy = std::make_shared<MockSolverStrategy>();
     executor.SetSolverStrategyWrapper(p_converging_strategy);
 
@@ -240,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetFiveCyclesWhenFiveCyclesAreNeeded, KratosGeoMechani
 KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrementor, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto       increments = std::vector<double>{0.1, 0.2, 0.3, 0.4};
+    const auto       increments = std::vector{0.1, 0.2, 0.3, 0.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
     auto p_converging_strategy = std::make_shared<MockSolverStrategy>();
     executor.SetSolverStrategyWrapper(p_converging_strategy);
@@ -250,11 +260,11 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrement
     KRATOS_EXPECT_EQ(increments.size(), step_states.size());
     KRATOS_EXPECT_TRUE(std::all_of(step_states.begin(), step_states.end(),
                                    [](const auto& state) { return state.num_of_cycles == 1; }))
-    auto time = 0.0;
-    for (auto index = std::size_t{0}; index < increments.size(); ++index) {
-        time += increments[index];
-        KRATOS_EXPECT_DOUBLE_EQ(time, step_states[index].time);
-    }
+    std::vector<double> actual_times;
+    std::ranges::transform(step_states, std::back_inserter(actual_times),
+                           [](const auto& rState) { return rState.time; });
+
+    KRATOS_EXPECT_VECTOR_NEAR(actual_times, (std::vector{0.1, 0.3, 0.6, 1.0}), Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetOnSolverStrategyAfterRunningAStepLoop, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -302,8 +312,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMe
 KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto       wanted_num_of_cycles_per_step = 1;
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    const auto       wanted_num_of_cycles_per_step = std::size_t{1};
+    executor.SetTimeIncrementor(
+        std::make_unique<FixedNumberOfCyclesForTwoTimeStepsIncrementor>(wanted_num_of_cycles_per_step));
     auto p_solver_strategy = std::make_shared<MockSolverStrategy>();
     executor.SetSolverStrategyWrapper(p_solver_strategy);
 
@@ -315,8 +326,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechan
 KRATOS_TEST_CASE_IN_SUITE(ExpectFinalizeSolutionStepCalledOnceForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto       wanted_num_of_cycles_per_step = 3;
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    const auto       wanted_num_of_cycles_per_step = std::size_t{3};
+    executor.SetTimeIncrementor(
+        std::make_unique<FixedNumberOfCyclesForTwoTimeStepsIncrementor>(wanted_num_of_cycles_per_step));
     auto p_solver_strategy = std::make_shared<MockSolverStrategy>();
     executor.SetSolverStrategyWrapper(p_solver_strategy);
 
@@ -325,11 +337,12 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectFinalizeSolutionStepCalledOnceForEveryStep, Krat
     KRATOS_EXPECT_EQ(2, step_states.size());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunCompletesOk, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedOnceWhenRunCompletesOk, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
     const auto       wanted_num_of_cycles_per_step = std::size_t{1};
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    executor.SetTimeIncrementor(
+        std::make_unique<FixedNumberOfCyclesForTwoTimeStepsIncrementor>(wanted_num_of_cycles_per_step));
     auto p_solver_strategy = std::make_shared<MockSolverStrategy>();
     executor.SetSolverStrategyWrapper(p_solver_strategy);
 
@@ -342,7 +355,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunThrows, Kr
 {
     TimeLoopExecutor executor;
     const auto       wanted_num_of_cycles_per_step = std::size_t{1};
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    executor.SetTimeIncrementor(
+        std::make_unique<FixedNumberOfCyclesForTwoTimeStepsIncrementor>(wanted_num_of_cycles_per_step));
     auto p_solver_strategy = std::make_shared<MockSolverStrategy>();
     p_solver_strategy->SetOutputProcessCallback([]() { throw Exception{"Test exception"}; });
     executor.SetSolverStrategyWrapper(p_solver_strategy);
@@ -356,8 +370,7 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopExecutor_CallsProcessExecuteBeforeSolutionLoop
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     TimeLoopExecutor executor;
-    const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
-    executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
+    executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(std::vector<double>{}));
 
     auto p_solving_strategy = std::make_shared<MockSolverStrategy>();
     executor.SetSolverStrategyWrapper(p_solving_strategy);

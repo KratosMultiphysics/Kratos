@@ -44,8 +44,8 @@ public:
 
     void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override
     {
-        mTimeStepExecutor->SetProcessObservables(rProcessObservables);
         mProcessObservables = rProcessObservables;
+        mTimeStepExecutor->SetProcessObservables(rProcessObservables);
     }
 
     void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) override
