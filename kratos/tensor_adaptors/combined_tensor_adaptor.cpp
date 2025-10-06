@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <numeric>
 #include <sstream>
 
 // External includes
@@ -153,6 +154,48 @@ void CombinedTensorAdaptor<TDataType>::Check() const
     std::for_each(mTensorAdaptors.begin(), mTensorAdaptors.end(), [](auto& pTensorAdaptor) {
         pTensorAdaptor->Check();
     });
+
+    // now check the size compatibility of the combined tensor adaptor storage.
+    if (mAxis == -1) {
+        // this is the case everything is raveled.
+        const auto ravelled_size = std::accumulate(
+                                                    mTensorAdaptors.begin(),
+                                                    mTensorAdaptors.end(),
+                                                    IndexType{},
+                                                    [](const auto& rValue, const auto& pTensorAdaptor) { return rValue + pTensorAdaptor->Size(); }
+                                        );
+
+        KRATOS_ERROR_IF_NOT(this->Size() == ravelled_size)
+            << "Size mismatch [ tensor adaptor size = " << this->Size()
+            << ", ravelled size of combined tensor adaptors = " << ravelled_size
+            << ", combined tensor adaptor = " << *this << " ].\n";
+
+    } else {
+        const auto& combined_shape = this->Shape();
+        IndexType axis_components = 0;
+        for (const auto& p_sub_tensor_adaptor : mTensorAdaptors) {
+            const auto& orig_sub_shape = p_sub_tensor_adaptor->Shape();
+            DenseVector<unsigned int> sub_shape(combined_shape.size(), 1);
+            std::copy(orig_sub_shape.begin(), orig_sub_shape.end(), sub_shape.begin());
+
+            KRATOS_ERROR_IF_NOT(combined_shape.size() == sub_shape.size())
+                << "Number of dimensions mismatch [ combined tensor adaptor shape = " << combined_shape << ", "
+                << "sub tensor adaptor shape = " << sub_shape << ", combined tensor adaptor = " << *this << ", "
+                << "sub tensor adaptor = " << *p_sub_tensor_adaptor << " ].\n";
+
+            for (int i = 0; i < static_cast<int>(combined_shape.size()); ++i) {
+                KRATOS_ERROR_IF(i != mAxis && combined_shape[i] != sub_shape[i])
+                    << "Number of components in dimension = " << i << " mismatch [ combined tensor adaptor shape = " << combined_shape << ", "
+                    << "sub tensor adaptor shape = " << sub_shape << ", combined tensor adaptor = " << *this << ", "
+                    << "sub tensor adaptor = " << *p_sub_tensor_adaptor << " ].\n";
+            }
+            axis_components += sub_shape[mAxis];
+        }
+
+        KRATOS_ERROR_IF_NOT(axis_components == combined_shape[mAxis])
+            << "Number of components in combining dimension = " << mAxis << " mismatch [ combined tensor adaptor shape = " << combined_shape << ", "
+            << "combined tensor adaptor = " << *this << " ].\n";
+    }
 
     KRATOS_CATCH("");
 }
