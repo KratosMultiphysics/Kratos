@@ -201,7 +201,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         n_stages = 5
         project_parameters_filenames = [
-            f"ProjectParameters_stage{i+1}.json" for i in range(n_stages)
+            f"../common/ProjectParameters_stage{i+1}.json" for i in range(n_stages)
         ]
         status = run_geo_settlement.run_stages(
             project_path, project_parameters_filenames
@@ -353,7 +353,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         n_stages = 5
         project_parameters_filenames = [
-            f"ProjectParameters_stage{i+1}.json" for i in range(n_stages)
+            f"../common/ProjectParameters_stage{i+1}.json" for i in range(n_stages)
         ]
         status = run_geo_settlement.run_stages(
             project_path, project_parameters_filenames
