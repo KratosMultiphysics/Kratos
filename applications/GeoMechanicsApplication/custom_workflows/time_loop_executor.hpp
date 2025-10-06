@@ -62,10 +62,7 @@ public:
     std::vector<TimeStepEndState> Run(const TimeStepEndState& EndState) override
     {
         mStrategyWrapper->Initialize();
-        for (const auto& process_observable : mProcessObservables) {
-            auto process = process_observable.lock();
-            if (process) process->ExecuteBeforeSolutionLoop();
-        }
+        CallExecuteBeforeSolutionLoopOnProcesses();
 
         std::vector<TimeStepEndState> result;
         TimeStepEndState              NewEndState = EndState;
@@ -88,6 +85,14 @@ public:
     }
 
 private:
+    void CallExecuteBeforeSolutionLoopOnProcesses()
+    {
+        for (const auto& r_process_observable : mProcessObservables) {
+            auto p_process = r_process_observable.lock();
+            if (p_process) p_process->ExecuteBeforeSolutionLoop();
+        }
+    }
+
     TimeStepEndState RunCycle(double PreviousTime)
     {
         // Setting the time and time increment may be needed for the processes
