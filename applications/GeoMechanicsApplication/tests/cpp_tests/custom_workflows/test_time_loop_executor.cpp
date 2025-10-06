@@ -82,19 +82,19 @@ public:
     MOCK_METHOD(void, Predict, (), (override));
 
     MOCK_METHOD(void, ComputeIncrementalDisplacementField, (), (override));
-    MOCK_METHOD(void, AccumulateTotalDisplacementField,(), (override));
+    MOCK_METHOD(void, AccumulateTotalDisplacementField, (), (override));
 
     MOCK_METHOD(void, CloneTimeStep, (), (override));
     MOCK_METHOD(void, RestorePositionsAndDOFVectorToStartOfStep, (), (override));
     MOCK_METHOD(std::size_t, GetNumberOfIterations, (), (const, override));
 
-    MOCK_METHOD(void, InitializeOutput,(), (override));
-    MOCK_METHOD(void, FinalizeOutput,(), (override));
+    MOCK_METHOD(void, InitializeOutput, (), (override));
+    MOCK_METHOD(void, FinalizeOutput, (), (override));
 
 private:
     Model                 mModel;
-    ModelPart*            mpModelPart                                  = nullptr;
-    std::size_t           mCountOutputProcessCalled                    = 0;
+    ModelPart*            mpModelPart               = nullptr;
+    std::size_t           mCountOutputProcessCalled = 0;
     std::function<void()> mOutputProcessCallback;
 };
 
@@ -141,7 +141,8 @@ TimeStepEndState MakeConvergedStepState()
     return result;
 }
 
-void RunTwoTimeStepsWithFixedNumberOfCycles(std::size_t WantedNumOfCyclesPerStep, const std::shared_ptr<DummySolverStrategy>& rpSolver)
+void RunTwoTimeStepsWithFixedNumberOfCycles(std::size_t WantedNumOfCyclesPerStep,
+                                            const std::shared_ptr<DummySolverStrategy>& rpSolver)
 {
     TimeLoopExecutor executor;
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(WantedNumOfCyclesPerStep));
