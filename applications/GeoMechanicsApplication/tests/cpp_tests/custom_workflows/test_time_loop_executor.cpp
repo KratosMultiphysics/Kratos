@@ -64,17 +64,7 @@ public:
 
     MOCK_METHOD(void, RestorePositionsAndDOFVectorToStartOfStep, (), (override));
 
-    [[nodiscard]] bool IsRestoreCalled() const { return mIsRestoreCalled; }
-
-    void AccumulateTotalDisplacementField() override
-    {
-        ++mCountAccumulateTotalDisplacementFieldCalled;
-    }
-
-    [[nodiscard]] std::size_t GetCountAccumulateTotalDisplacementFieldCalled() const
-    {
-        return mCountAccumulateTotalDisplacementFieldCalled;
-    }
+    MOCK_METHOD(void, AccumulateTotalDisplacementField,(), (override));
 
     void OutputProcess() override
     {
@@ -117,9 +107,7 @@ public:
 private:
     Model                 mModel;
     ModelPart*            mpModelPart                                  = nullptr;
-    bool                  mIsRestoreCalled                             = false;
     std::size_t           mCountInitializeOutputCalled                 = 0;
-    std::size_t           mCountAccumulateTotalDisplacementFieldCalled = 0;
     std::size_t           mCountOutputProcessCalled                    = 0;
     std::size_t           mCountFinalizeOutputCalled                   = 0;
     std::function<void()> mOutputProcessCallback;
@@ -320,9 +308,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFas
 KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto solver_strategy = std::make_shared<DummySolverStrategy>();
-    RunFixedCycleTimeLoop(1, solver_strategy);
 
-    KRATOS_EXPECT_EQ(2, solver_strategy->GetCountAccumulateTotalDisplacementFieldCalled());
+    EXPECT_CALL(*solver_strategy, AccumulateTotalDisplacementField).Times(2);
+    RunFixedCycleTimeLoop(1, solver_strategy);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechanicsFastSuiteWithoutKernel)
