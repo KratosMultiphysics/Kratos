@@ -1,7 +1,7 @@
 {
   "problem_data": {
     "problem_name"                    : "mesh",
-    "start_time"                      : 8640008.64,
+    "start_time"                      : 8640086.4,
     "end_time"                        : 8726400,
     "echo_level"                      : 1,
     "parallel_type"                   : "OpenMP",
@@ -20,7 +20,8 @@
     },
     "time_stepping": {
       "time_step"                     : 8640.0,
-      "max_delta_time_factor"         : 1000000000
+      "max_delta_time_factor"         : 1000000000,
+      "minimum_allowable_value"       : 86.41
     },
     "buffer_size"                     : 2,
     "echo_level"                      : 1,

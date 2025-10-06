@@ -19,7 +19,8 @@
     },
     "time_stepping": {
       "time_step"                     : 86.4,
-      "max_delta_time_factor"         : 86400000000
+      "max_delta_time_factor"         : 86400000000,
+      "minimum_allowable_value"       : 1.0e-6
     },
     "buffer_size"                     : 2,
     "echo_level"                      : 1,
