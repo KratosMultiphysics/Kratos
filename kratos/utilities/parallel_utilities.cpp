@@ -40,34 +40,37 @@ std::vector<ThreadManager::Pointer> ParallelUtilities::msThreadManagers = { Krat
 
 int ParallelUtilities::GetNumThreads()
 {
-    // Get the number of threads available in each ThreadManager
-    std::vector<int> num_threads;
-    num_threads.reserve(msThreadManagers.size());
-    for (const auto& r_manager : msThreadManagers) {
-        num_threads.push_back(r_manager->GetNumThreads());
-    }
-
-    // Find the minimum number of threads available
-    const int min_num_threads = *std::min_element(num_threads.begin(), num_threads.end());
-
-    // Throw a warning if the number of threads is not the same in all ThreadManagers
-    if (!std::all_of(num_threads.begin(), num_threads.end(), [&num_threads](const int value){ return value == num_threads[0]; })) {
-        std::stringstream err_msg;
-        err_msg << "The number of threads is not the same in all ThreadManagers:\n";
-        for (std::size_t i=0; i<num_threads.size(); ++i) {
-            err_msg << "ThreadManager " << msThreadManagers[i]->Info() << ": " << num_threads[i] << " threads.\n";
-        }
-        err_msg << "The minimum number of threads available (" << min_num_threads << ") will be used.\n";
-        KRATOS_WARNING("ParallelUtilities") << err_msg.str();
-
-        // Set min_num_threads number of threads in the ThreadManagers
+    // If mspNumThreads is not initialized, initialize it
+    if (!mspNumThreads) {
+        // Get the number of threads available in each ThreadManager
+        std::vector<int> num_threads;
+        num_threads.reserve(msThreadManagers.size());
         for (const auto& r_manager : msThreadManagers) {
-            r_manager->SetNumThreads(min_num_threads);
+            num_threads.push_back(r_manager->GetNumThreads());
         }
-    }
 
-    // Return the minimum number of threads available
-    return min_num_threads;
+        // Find the minimum number of threads available
+        const int min_num_threads = *std::min_element(num_threads.begin(), num_threads.end());
+
+        // Throw a warning if the number of threads is not the same in all ThreadManagers
+        if (!std::all_of(num_threads.begin(), num_threads.end(), [&num_threads](const int value){ return value == num_threads[0]; })) {
+            std::stringstream err_msg;
+            err_msg << "The number of threads is not the same in all ThreadManagers:\n";
+            for (std::size_t i=0; i<num_threads.size(); ++i) {
+                err_msg << "ThreadManager " << msThreadManagers[i]->Info() << ": " << num_threads[i] << " threads.\n";
+            }
+            err_msg << "The minimum number of threads available (" << min_num_threads << ") will be used.\n";
+            KRATOS_WARNING("ParallelUtilities") << err_msg.str();
+
+            // Set min_num_threads number of threads in the ThreadManagers
+            SetNumThreads(min_num_threads);
+        }
+
+        // Return the minimum number of threads available
+        return min_num_threads;
+    } else { // mspNumThreads is already initialized
+        return *mspNumThreads;
+    }
 }
 
 void ParallelUtilities::SetNumThreads(const int NumThreads)
