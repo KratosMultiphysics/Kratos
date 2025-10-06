@@ -270,7 +270,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-
     Vector CalculateInternalForces(ElementVariables&          Variables,
                                    const std::vector<Matrix>& b_matrices,
                                    const std::vector<double>& integration_coefficients,

@@ -800,9 +800,9 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
         Variables.NpContainer, Variables.PressureVector);
     const auto degrees_of_saturation = CalculateDegreesOfSaturation(fluid_pressures);
 
-    auto       relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
+    auto relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
         mRetentionLawVector, this->GetProperties(), fluid_pressures);
-    const auto permeability_update_factors  = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+    const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
     std::ranges::transform(permeability_update_factors, relative_permeability_values,
                            relative_permeability_values.begin(), std::multiplies<>{});
     const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);

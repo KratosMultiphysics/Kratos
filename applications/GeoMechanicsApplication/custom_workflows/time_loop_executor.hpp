@@ -44,6 +44,7 @@ public:
 
     void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override
     {
+        mProcessObservables = rProcessObservables;
         mTimeStepExecutor->SetProcessObservables(rProcessObservables);
     }
 
@@ -61,6 +62,8 @@ public:
     std::vector<TimeStepEndState> Run(const TimeStepEndState& EndState) override
     {
         mStrategyWrapper->Initialize();
+        CallExecuteBeforeSolutionLoopOnProcesses();
+
         std::vector<TimeStepEndState> result;
         TimeStepEndState              NewEndState = EndState;
         ScopedOutputFileAccess        limit_output_file_access_to_this_scope{*mStrategyWrapper};
@@ -69,6 +72,8 @@ public:
             // clone without end time, the end time is overwritten anyway
             mStrategyWrapper->CloneTimeStep();
             NewEndState = RunCycleLoop(NewEndState);
+            KRATOS_ERROR_IF_NOT(NewEndState.Converged())
+                << "The calculation exited without converging.\n";
             mStrategyWrapper->ComputeIncrementalDisplacementField();
             mStrategyWrapper->AccumulateTotalDisplacementField();
             mStrategyWrapper->FinalizeSolutionStep();
@@ -80,6 +85,14 @@ public:
     }
 
 private:
+    void CallExecuteBeforeSolutionLoopOnProcesses() const
+    {
+        for (const auto& r_process_observable : mProcessObservables) {
+            auto p_process = r_process_observable.lock();
+            if (p_process) p_process->ExecuteBeforeSolutionLoop();
+        }
+    }
+
     TimeStepEndState RunCycle(double PreviousTime)
     {
         // Setting the time and time increment may be needed for the processes
@@ -117,11 +130,12 @@ private:
         }
     }
 
-    std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
-    std::function<bool()>             mCancelDelegate;
-    std::function<void(double)>       mProgressDelegate;
-    std::unique_ptr<TimeStepExecutor> mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
-    std::shared_ptr<StrategyWrapper>  mStrategyWrapper;
+    std::unique_ptr<TimeIncrementor>    mTimeIncrementor;
+    std::function<bool()>               mCancelDelegate;
+    std::function<void(double)>         mProgressDelegate;
+    std::unique_ptr<TimeStepExecutor>   mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
+    std::shared_ptr<StrategyWrapper>    mStrategyWrapper;
+    std::vector<std::weak_ptr<Process>> mProcessObservables;
 };
 
 } // namespace Kratos
