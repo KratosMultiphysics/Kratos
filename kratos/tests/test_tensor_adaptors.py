@@ -412,7 +412,7 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         u_ta.data /= 2.0
         p_ta.data /= 2.0
 
-        copy_combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_ta, collect_recursively=False, store_recursively=False)
+        copy_combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_ta, perform_collect_data_recursively=False, perform_store_data_recursively=False)
         copy_combined_ta.CollectData()
         for i, node in enumerate(self.model_part.Nodes):
             self.assertAlmostEqual(node.GetValue(Kratos.PRESSURE), copy_combined_ta.data[i, 0] * 2.0)

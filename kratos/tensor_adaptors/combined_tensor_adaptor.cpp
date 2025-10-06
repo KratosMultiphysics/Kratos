@@ -40,10 +40,10 @@ template<class TDataType>
 CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     const TensorAdaptorVectorType& rTensorAdaptorVector,
     const unsigned int Axis,
-    const bool PerformCollectDataOnCombinedTensorAdaptors,
-    const bool PerformStoreDataOnCombinedTensorAdaptors)
-    : mPerformCollectDataOnCombinedTensorAdaptors(PerformCollectDataOnCombinedTensorAdaptors),
-      mPerformStoreDataOnCombinedTensorAdaptors(PerformStoreDataOnCombinedTensorAdaptors),
+    const bool PerformCollectDataRecursively,
+    const bool PerformStoreDataRecursively)
+    : mPerformCollectDataRecursively(PerformCollectDataRecursively),
+      mPerformStoreDataRecursively(PerformStoreDataRecursively),
       mAxis(Axis),
       mTensorAdaptors(rTensorAdaptorVector)
 {
@@ -108,10 +108,10 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
 template<class TDataType>
 CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     const TensorAdaptorVectorType& rTensorAdaptorVector,
-    const bool PerformCollectDataOnCombinedTensorAdaptors,
-    const bool PerformStoreDataOnCombinedTensorAdaptors)
-    : mPerformCollectDataOnCombinedTensorAdaptors(PerformCollectDataOnCombinedTensorAdaptors),
-      mPerformStoreDataOnCombinedTensorAdaptors(PerformStoreDataOnCombinedTensorAdaptors),
+    const bool PerformCollectDataRecursively,
+    const bool PerformStoreDataRecursively)
+    : mPerformCollectDataRecursively(PerformCollectDataRecursively),
+      mPerformStoreDataRecursively(PerformStoreDataRecursively),
       mAxis(-1), // represent that this combined tensor adaptor is used with ravel
       mTensorAdaptors(rTensorAdaptorVector)
 {
@@ -134,12 +134,12 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
 template<class TDataType>
 CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     const CombinedTensorAdaptor& rOther,
-    const bool PerformCollectDataOnCombinedTensorAdaptors,
-    const bool PerformStoreDataOnCombinedTensorAdaptors,
+    const bool PerformCollectDataRecursively,
+    const bool PerformStoreDataRecursively,
     const bool Copy)
     : BaseType(rOther, Copy),
-      mPerformCollectDataOnCombinedTensorAdaptors(PerformCollectDataOnCombinedTensorAdaptors),
-      mPerformStoreDataOnCombinedTensorAdaptors(PerformStoreDataOnCombinedTensorAdaptors),
+      mPerformCollectDataRecursively(PerformCollectDataRecursively),
+      mPerformStoreDataRecursively(PerformStoreDataRecursively),
       mAxis(rOther.mAxis),
       mTensorAdaptors(rOther.mTensorAdaptors)
 {
@@ -163,7 +163,7 @@ void CombinedTensorAdaptor<TDataType>::CollectData()
     KRATOS_TRY
 
     // if recursively collection is chose, first collect data to the sub TensorAdaptors
-    if (mPerformCollectDataOnCombinedTensorAdaptors) {
+    if (mPerformCollectDataRecursively) {
         std::for_each(mTensorAdaptors.begin(), mTensorAdaptors.end(), [](auto& pTensorAdaptor) {
             pTensorAdaptor->CollectData();
         });
@@ -236,7 +236,7 @@ void CombinedTensorAdaptor<TDataType>::StoreData()
     }
 
     // if recursively storing is chosen, lastly call store data in the sub TensorAdaptors
-    if (mPerformStoreDataOnCombinedTensorAdaptors) {
+    if (mPerformStoreDataRecursively) {
         std::for_each(mTensorAdaptors.begin(), mTensorAdaptors.end(), [](auto& pTensorAdaptor) {
             pTensorAdaptor->StoreData();
         });
@@ -256,8 +256,8 @@ std::string CombinedTensorAdaptor<TDataType>::Info() const
 {
     std::stringstream info;
     info << "CombinedTensorAdaptor: "
-         << "collect data recursively = " << (mPerformCollectDataOnCombinedTensorAdaptors ? "true" : "false") << ", "
-         << "store data recursively = " << (mPerformStoreDataOnCombinedTensorAdaptors ? "true" : "false") << ", ";
+         << "collect data recursively = " << (mPerformCollectDataRecursively ? "true" : "false") << ", "
+         << "store data recursively = " << (mPerformStoreDataRecursively ? "true" : "false") << ", ";
 
     if (mAxis == -1) {
         info << "Ravel = true";

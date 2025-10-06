@@ -84,9 +84,9 @@ void AddCombinedTensorAdaptor(
 {
     using combined_ta_type = CombinedTensorAdaptor<TDataType>;
     pybind11::class_<combined_ta_type, typename combined_ta_type::Pointer, typename combined_ta_type::BaseType>(rModule, rName.c_str())
-        .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType&, const bool, const bool>(), pybind11::arg("list_of_tensor_adaptors"), pybind11::arg("collect_recursively") = true, pybind11::arg("store_recursively") = true) // reveling ctor
-        .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType&, const unsigned int, const bool, const bool>(), pybind11::arg("list_of_tensor_adaptors"), pybind11::arg("axis"), pybind11::arg("collect_recursively") = true, pybind11::arg("store_recursively") = true) // axis based ctor
-        .def(pybind11::init<const combined_ta_type&, const bool, const bool, const bool>(), pybind11::arg("list_of_tensor_adaptors"), pybind11::arg("collect_recursively") = true, pybind11::arg("store_recursively") = true, pybind11::arg("copy") = true)
+        .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType&, const bool, const bool>(), pybind11::arg("list_of_tensor_adaptors"), pybind11::arg("perform_collect_data_recursively") = true, pybind11::arg("perform_store_data_recursively") = true) // reveling ctor
+        .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType&, const unsigned int, const bool, const bool>(), pybind11::arg("list_of_tensor_adaptors"), pybind11::arg("axis"), pybind11::arg("perform_collect_data_recursively") = true, pybind11::arg("perform_store_data_recursively") = true) // axis based ctor
+        .def(pybind11::init<const combined_ta_type&, const bool, const bool, const bool>(), pybind11::arg("list_of_tensor_adaptors"), pybind11::arg("perform_collect_data_recursively") = true, pybind11::arg("perform_store_data_recursively") = true, pybind11::arg("copy") = true)
         .def("GetTensorAdaptors", &combined_ta_type::GetTensorAdaptors)
         ;
 }

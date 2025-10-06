@@ -117,8 +117,8 @@ namespace Kratos {
  * - @ref ModelPart::MasterSlaveConstraintContainerType
  *
  * @section CombinedTensorAdaptor_Usage Usage
- * - @ref CollectData() - To read in the data from sub tensor adaptors to the @ref CombinedTensorAdaptor. If @p CollectAndStoreRecursively is true, then this will first call @ref CollectData() of the sub tensor adaptors.
- * - @ref StoreData() - To store back the data from @ref CombinedTensorAdaptor to sub tensor adaptors. If @p CollectAndStoreRecursively is true, then this will call sub tensor adaptors' @ref StoreData() afterwards.
+ * - @ref CollectData() - To read in the data from sub tensor adaptors to the @ref CombinedTensorAdaptor. If @p PerformCollectDataRecursively is true, then this will first call @ref CollectData() of the sub tensor adaptors.
+ * - @ref StoreData() - To store back the data from @ref CombinedTensorAdaptor to sub tensor adaptors. If @p PerformStoreDataRecursively is true, then this will call sub tensor adaptors' @ref StoreData() afterwards.
  * - @ref GetContainer() - Not used. throws an error
  * - @ref HasContainer() - Can be used to check if the container is there. Returns false for CombinedTensorAdaptor.
  *
@@ -150,13 +150,13 @@ public:
      * @note    This always return a flat tensor adaptor having only one dimensionality.
      *
      * @param rTensorAdaptorVector                          List of tensor adaptors.
-     * @param PerformCollectDataOnCombinedTensorAdaptors    If true, @ref CollectData() method will call combined tensor adaptors' @ref CollectData.
-     * @param PerformStoreDataOnCombinedTensorAdaptors      If true, @ref StoreData() method will call combined tensor adaptors' @ref StoreData.
+     * @param PerformCollectDataRecursively    If true, @ref CollectData() method will call combined tensor adaptors' @ref CollectData.
+     * @param PerformStoreDataRecursively      If true, @ref StoreData() method will call combined tensor adaptors' @ref StoreData.
      */
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
-        const bool PerformCollectDataOnCombinedTensorAdaptors = true,
-        const bool PerformStoreDataOnCombinedTensorAdaptors = true);
+        const bool PerformCollectDataRecursively = true,
+        const bool PerformStoreDataRecursively = true);
 
     /**
      * @brief Construct a new Combined Tensor Adaptor  given list of @ref TensorAdaptor instances along the specified @p Axis.
@@ -182,27 +182,27 @@ public:
      *
      * @param rTensorAdaptorVector                          List of tensor adaptors.
      * @param Axis                                          Axis to concatenate the tensor adaptors.
-     * @param PerformCollectDataOnCombinedTensorAdaptors    If true, @ref CollectData() method will call combined tensor adaptors' @ref CollectData.
-     * @param PerformStoreDataOnCombinedTensorAdaptors      If true, @ref StoreData() method will call combined tensor adaptors' @ref StoreData.
+     * @param PerformCollectDataRecursively    If true, @ref CollectData() method will call combined tensor adaptors' @ref CollectData.
+     * @param PerformStoreDataRecursively      If true, @ref StoreData() method will call combined tensor adaptors' @ref StoreData.
      */
     CombinedTensorAdaptor(
         const TensorAdaptorVectorType& rTensorAdaptorVector,
         const unsigned int Axis,
-        const bool PerformCollectDataOnCombinedTensorAdaptors = true,
-        const bool PerformStoreDataOnCombinedTensorAdaptors = true);
+        const bool PerformCollectDataRecursively = true,
+        const bool PerformStoreDataRecursively = true);
 
     /**
      * @brief Construct a new Combined Tensor Adaptor based on an existing @p rOther.
      *
      * @param rOther                                        Other @ref CombinedTensorAdaptor to copy/refer from.
-     * @param PerformCollectDataOnCombinedTensorAdaptors    If true, @ref CollectData() method will call combined tensor adaptors' @ref CollectData.
-     * @param PerformStoreDataOnCombinedTensorAdaptors      If true, @ref StoreData() method will call combined tensor adaptors' @ref StoreData.
+     * @param PerformCollectDataRecursively    If true, @ref CollectData() method will call combined tensor adaptors' @ref CollectData.
+     * @param PerformStoreDataRecursively      If true, @ref StoreData() method will call combined tensor adaptors' @ref StoreData.
      * @param Copy                                          If true, the underlying internal data will be copied along with the pointers to the containers.
      */
     CombinedTensorAdaptor(
         const CombinedTensorAdaptor& rOther,
-        const bool PerformCollectDataOnCombinedTensorAdaptors = true,
-        const bool PerformStoreDataOnCombinedTensorAdaptors = true,
+        const bool PerformCollectDataRecursively = true,
+        const bool PerformStoreDataRecursively = true,
         const bool Copy = true);
 
     virtual ~CombinedTensorAdaptor() = default;
@@ -248,9 +248,9 @@ private:
     ///@name Private member variables
     ///@{
 
-    const bool mPerformCollectDataOnCombinedTensorAdaptors;
+    const bool mPerformCollectDataRecursively;
 
-    const bool mPerformStoreDataOnCombinedTensorAdaptors;
+    const bool mPerformStoreDataRecursively;
 
     const int mAxis;
 
