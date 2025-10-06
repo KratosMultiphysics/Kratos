@@ -77,10 +77,12 @@ void CheckDataArrayName(
     switch (rLocation) {
         case Globals::DataLocation::NodeHistorical:
         case Globals::DataLocation::NodeNonHistorical:
+            // The following code block will be executed for Globals::DataLocation::NodeHistorical and Globals::DataLocation::NodeNonHistorical.
             found_existing_name = rUnstructuredGridData.mMapOfPointTensorAdaptors.find(rName) != rUnstructuredGridData.mMapOfPointTensorAdaptors.end();
             break;
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
+            // The following code block will be executed for Globals::DataLocation::Condition and Globals::DataLocation::Element.
             found_existing_name = rUnstructuredGridData.mMapOfCellTensorAdaptors.find(rName) != rUnstructuredGridData.mMapOfCellTensorAdaptors.end();
             break;
         default:
@@ -99,6 +101,7 @@ void CheckDataArrayName(
         switch (rLocation) {
             case Globals::DataLocation::NodeHistorical:
             case Globals::DataLocation::NodeNonHistorical:
+                // The following code block will be executed for Globals::DataLocation::NodeHistorical and Globals::DataLocation::NodeNonHistorical.
                 if (r_model_part_data.UsePointsForDataFieldOutput) {
                     CheckDataArrayName(rName, rLocation, r_model_part_data);
                 }
@@ -908,6 +911,8 @@ void VtuOutput::AddFlag(
             CheckDataArrayName(rFlagName, {Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
+            // The following code block will be executed for Globals::DataLocation::NodeHistorical, Globals::DataLocation::Condition, and Globals::DataLocation::Element.
+
             // user is trying to add a flag variable to nodes, conditions or elements.
             // here we check if the given flag name is there in the existing flags for user specified data location,
             // and also in the variables.
@@ -952,6 +957,8 @@ void VtuOutput::AddVariable(
             CheckDataArrayName(rVariable.Name(), {Globals::DataLocation::NodeHistorical}, mFlags, mVariables);
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
+            // The following code block will be executed for Globals::DataLocation::NodeHistorical, Globals::DataLocation::NodeNonHistorical, Globals::DataLocation::Condition, and Globals::DataLocation::Element.
+
             // Now the user is trying to add a nodal-historical, nodal-non-historical, element or condition variable.
             // so now we check whether another variable with the same name exists
             // in the user specified container in flags and variables maps.
@@ -987,6 +994,8 @@ void VtuOutput::AddIntegrationPointVariable(
     switch (DataLocation) {
         case Globals::DataLocation::Condition:
         case Globals::DataLocation::Element:
+            // The following code block will be executed for Globals::DataLocation::Condition and Globals::DataLocation::Element.
+
             // checks if the integration point variable name already exists on the
             // list of integration point variables.
             CheckDataArrayName(rVariable.Name(), {DataLocation}, mIntegrationPointVariables);
@@ -1026,6 +1035,8 @@ void VtuOutput::AddTensorAdaptor(
         switch (mesh_type) {
             case Globals::DataLocation::Condition:
             case Globals::DataLocation::Element: {
+                // The following code block will be executed for Globals::DataLocation::Condition and Globals::DataLocation::Element.
+
                 // here we have to check if the specified tensor adaptor name is there in the found unstructured grid
                 // referred by the itr.
 
@@ -1087,7 +1098,7 @@ void VtuOutput::ReplaceTensorAdaptor(
         switch (mesh_type) {
             case Globals::DataLocation::Condition:
             case Globals::DataLocation::Element: {
-                // the following code will be executed if the mesh_type is either Condition or Element.
+                // The following code block will be executed for Globals::DataLocation::Condition and Globals::DataLocation::Element.
                 auto data_field_itr = itr->mMapOfCellTensorAdaptors.find(rTensorAdaptorName);
 
                 KRATOS_ERROR_IF(data_field_itr == itr->mMapOfCellTensorAdaptors.end())
