@@ -76,7 +76,6 @@ public:
         return mCountAccumulateTotalDisplacementFieldCalled;
     }
 
-
     void OutputProcess() override
     {
         ++mCountOutputProcessCalled;
@@ -103,13 +102,12 @@ public:
         return mCountFinalizeOutputCalled;
     }
 
-
     void InitializeOutput() override { ++mCountInitializeOutputCalled; }
 
     MOCK_METHOD(void, Predict, (), (override));
-    MOCK_METHOD(void, InitializeSolutionStep,(), (override));
-    MOCK_METHOD(void, Initialize,(), (override));
-    MOCK_METHOD(void, ComputeIncrementalDisplacementField,(), (override));
+    MOCK_METHOD(void, InitializeSolutionStep, (), (override));
+    MOCK_METHOD(void, Initialize, (), (override));
+    MOCK_METHOD(void, ComputeIncrementalDisplacementField, (), (override));
     MOCK_METHOD(TimeStepEndState::ConvergenceState, SolveSolutionStep, (), (override));
 
     void FinalizeSolutionStep() override { ++mCountFinalizeSolutionStepCalled; }
@@ -132,6 +130,12 @@ private:
     std::size_t           mCountFinalizeSolutionStepCalled             = 0;
     std::size_t           mCountFinalizeOutputCalled                   = 0;
     std::function<void()> mOutputProcessCallback;
+};
+
+class MockProcess : public Process
+{
+public:
+    MOCK_METHOD(void, ExecuteBeforeSolutionLoop, (), (override));
 };
 
 class FixedCyclesTimeIncrementor : public TimeIncrementor
@@ -393,6 +397,25 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOutputIsInitializedAndFinalizedWhenRunThrows, Kr
     KRATOS_EXPECT_TRUE(exception_caught)
     KRATOS_EXPECT_EQ(solver_strategy->GetCountInitializeOutputCalled(), 1);
     KRATOS_EXPECT_EQ(solver_strategy->GetCountFinalizeOutputCalled(), 1);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TimeLoopExecutor_CallsProcessExecuteBeforeSolutionLoop_AfterInitialize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    TimeLoopExecutor executor;
+    const auto       increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
+    executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
+
+    auto        solving_strategy = std::make_shared<DummySolverStrategy>();
+    EXPECT_CALL(*solving_strategy, SolveSolutionStep())
+        .WillRepeatedly(testing::Return(TimeStepEndState::ConvergenceState::converged));
+    executor.SetSolverStrategyWrapper(solving_strategy);
+
+    auto p_process = std::make_shared<MockProcess>();
+    std::vector<std::weak_ptr<Process>> process_observables {p_process};
+    executor.SetProcessObservables(process_observables);
+
+    EXPECT_CALL(*p_process, ExecuteBeforeSolutionLoop).After(EXPECT_CALL(*solving_strategy, Initialize));
+    executor.Run(MakeConvergedStepState());
 }
 
 } // namespace Kratos::Testing

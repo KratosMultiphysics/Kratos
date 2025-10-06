@@ -45,6 +45,7 @@ public:
     void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override
     {
         mTimeStepExecutor->SetProcessObservables(rProcessObservables);
+        mProcessObservables = rProcessObservables;
     }
 
     void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) override
@@ -61,6 +62,11 @@ public:
     std::vector<TimeStepEndState> Run(const TimeStepEndState& EndState) override
     {
         mStrategyWrapper->Initialize();
+        for (const auto& process_observable : mProcessObservables) {
+            auto process = process_observable.lock();
+            if (process) process->ExecuteBeforeSolutionLoop();
+        }
+
         std::vector<TimeStepEndState> result;
         TimeStepEndState              NewEndState = EndState;
         ScopedOutputFileAccess        limit_output_file_access_to_this_scope{*mStrategyWrapper};
@@ -119,11 +125,12 @@ private:
         }
     }
 
-    std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
-    std::function<bool()>             mCancelDelegate;
-    std::function<void(double)>       mProgressDelegate;
-    std::unique_ptr<TimeStepExecutor> mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
-    std::shared_ptr<StrategyWrapper>  mStrategyWrapper;
+    std::unique_ptr<TimeIncrementor>    mTimeIncrementor;
+    std::function<bool()>               mCancelDelegate;
+    std::function<void(double)>         mProgressDelegate;
+    std::unique_ptr<TimeStepExecutor>   mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
+    std::shared_ptr<StrategyWrapper>    mStrategyWrapper;
+    std::vector<std::weak_ptr<Process>> mProcessObservables;
 };
 
 } // namespace Kratos
