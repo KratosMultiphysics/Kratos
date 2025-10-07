@@ -110,7 +110,7 @@ template<class TObjectType, SpatialSearchCommunication TSpatialSearchCommunicati
 void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rClassName) {
     using ContainerType = SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>;
     auto cls = pybind11::class_<ContainerType, typename ContainerType::Pointer>(m, rClassName.c_str())
-    .def(pybind11::init<const DataCommunicator&>())
+    .def(pybind11::init<>())
     .def("IsObjectFound", &ContainerType::IsObjectFound)
     .def("NumberOfLocalResults", &ContainerType::NumberOfLocalResults)
     .def("NumberOfGlobalResults", &ContainerType::NumberOfGlobalResults)
@@ -129,7 +129,6 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("SetLocalIndex", &ContainerType::SetLocalIndex)
     .def("GetResultIsInside", &ContainerType::GetResultIsInside)
     .def("GetResultShapeFunctions", &ContainerType::GetResultShapeFunctions)
-    .def("GetDataCommunicator", &ContainerType::GetDataCommunicator)
     .def("GetLocalResults", &ContainerType::GetLocalResults)
     .def("GetGlobalResults", &ContainerType::GetGlobalResults)
     .def("GetGlobalPointerCommunicator", &ContainerType::GetGlobalPointerCommunicator)
