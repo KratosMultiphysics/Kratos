@@ -148,5 +148,101 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerMergeOverride, KratosCoreFastSuite) 
     KRATOS_EXPECT_EQ(container_target.GetValue(VISCOSITY), viscosity_1);
 
 }
+
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerFind1, KratosCoreFastSuite) {
+    DataValueContainer container;
+
+    const double density = 1000.0;
+    const double viscosity = 1e-3;
+    const array_1d<double, 3> velocity{0.1, 0.2, 0.3};
+
+    container.SetValue(VELOCITY, velocity);
+    container.SetValue(DENSITY, density);
+    container.SetValue(VISCOSITY, viscosity);
+
+    KRATOS_EXPECT_EQ(container.find(PRESSURE), container.end());
+    KRATOS_EXPECT_EQ(container.find(ACCELERATION), container.end());
+    KRATOS_EXPECT_EQ(container.find(ACCELERATION_X), container.end());
+    KRATOS_EXPECT_EQ(container.find(ACCELERATION_Y), container.end());
+    KRATOS_EXPECT_EQ(container.find(ACCELERATION_Z), container.end());
+
+    KRATOS_EXPECT_NE(container.find(DENSITY), container.end());
+    KRATOS_EXPECT_NE(container.find(VISCOSITY), container.end());
+    KRATOS_EXPECT_NE(container.find(VELOCITY), container.end());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_X), container.end());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_Y), container.end());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_Z), container.end());
+
+    auto& container_density = container.GetValue(DENSITY);
+    auto& container_viscosity = container.GetValue(VISCOSITY);
+    auto& container_velocity = container.GetValue(VELOCITY);
+
+    KRATOS_EXPECT_EQ(&container_density, &*container.find(DENSITY));
+    KRATOS_EXPECT_EQ(&container_viscosity, &*container.find(VISCOSITY));
+    KRATOS_EXPECT_EQ(&container_velocity, &*container.find(VELOCITY));
+    KRATOS_EXPECT_EQ(&container_velocity[0], &*container.find(VELOCITY_X));
+    KRATOS_EXPECT_EQ(&container_velocity[1], &*container.find(VELOCITY_Y));
+    KRATOS_EXPECT_EQ(&container_velocity[2], &*container.find(VELOCITY_Z));
+
+    auto itr = container.find(VELOCITY);
+    auto copy_itr = itr;
+    KRATOS_EXPECT_NE(&itr, &copy_itr);
+    KRATOS_EXPECT_EQ(itr, copy_itr);
+
+    KRATOS_EXPECT_EQ(container.find(VELOCITY), container.begin());
+    KRATOS_EXPECT_EQ(container.find(VELOCITY_X), container.begin());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_Y), container.begin());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_Z), container.begin());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_Y), container.find(VELOCITY_X));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerFind2, KratosCoreFastSuite) {
+    DataValueContainer non_const_container;
+
+    const double density = 1000.0;
+    const double viscosity = 1e-3;
+    const array_1d<double, 3> velocity{0.1, 0.2, 0.3};
+
+    non_const_container.SetValue(VELOCITY, velocity);
+    non_const_container.SetValue(DENSITY, density);
+    non_const_container.SetValue(VISCOSITY, viscosity);
+
+    const auto& container = non_const_container;
+
+    KRATOS_EXPECT_EQ(container.find(PRESSURE), container.end());
+    KRATOS_EXPECT_EQ(container.find(ACCELERATION), container.end());
+    KRATOS_EXPECT_EQ(container.find(ACCELERATION_X), container.end());
+    KRATOS_EXPECT_EQ(container.find(ACCELERATION_Y), container.end());
+    KRATOS_EXPECT_EQ(container.find(ACCELERATION_Z), container.end());
+
+    KRATOS_EXPECT_NE(container.find(DENSITY), container.end());
+    KRATOS_EXPECT_NE(container.find(VISCOSITY), container.end());
+    KRATOS_EXPECT_NE(container.find(VELOCITY), container.end());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_X), container.end());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_Y), container.end());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_Z), container.end());
+
+    auto& container_density = container.GetValue(DENSITY);
+    auto& container_viscosity = container.GetValue(VISCOSITY);
+    auto& container_velocity = container.GetValue(VELOCITY);
+
+    KRATOS_EXPECT_EQ(&container_density, &*container.find(DENSITY));
+    KRATOS_EXPECT_EQ(&container_viscosity, &*container.find(VISCOSITY));
+    KRATOS_EXPECT_EQ(&container_velocity, &*container.find(VELOCITY));
+    KRATOS_EXPECT_EQ(&container_velocity[0], &*container.find(VELOCITY_X));
+    KRATOS_EXPECT_EQ(&container_velocity[1], &*container.find(VELOCITY_Y));
+    KRATOS_EXPECT_EQ(&container_velocity[2], &*container.find(VELOCITY_Z));
+
+    auto itr = container.find(VELOCITY);
+    auto copy_itr = itr;
+    KRATOS_EXPECT_NE(&itr, &copy_itr);
+    KRATOS_EXPECT_EQ(itr, copy_itr);
+
+    KRATOS_EXPECT_EQ(container.find(VELOCITY), container.begin());
+    KRATOS_EXPECT_EQ(container.find(VELOCITY_X), container.begin());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_Y), container.begin());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_Z), container.begin());
+    KRATOS_EXPECT_NE(container.find(VELOCITY_Y), container.find(VELOCITY_X));
+}
 }
 } // namespace Kratos.
