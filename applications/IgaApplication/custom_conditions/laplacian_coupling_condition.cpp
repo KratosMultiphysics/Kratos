@@ -46,8 +46,8 @@ void LaplacianCouplingCondition::InitializeMemberVariables()
     mNormalParameterSpaceB /= MathUtils<double>::Norm(mNormalParameterSpaceB);
     mNormalPhysicalSpaceB = mNormalParameterSpaceB;
 
-    KRATOS_ERROR_IF(std::abs(norm_2(mNormalPhysicalSpaceA + mNormalPhysicalSpaceB) -1) > std::sqrt(2)+1e-12) 
-        << "LaplacianCouplingCondition found non opposite normals." << std::endl;
+    KRATOS_ERROR_IF(std::abs(inner_prod(mNormalPhysicalSpaceA, mNormalPhysicalSpaceB)+1) > 1e-12)
+        << "LaplacianCouplingCondition: normals are not opposite." << std::endl;
 }
 
 void LaplacianCouplingCondition::CalculateLocalSystem(
@@ -145,6 +145,7 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
     double nitsche_penalty_free = -1.0;
     if (GetProperties().Has(PENALTY_FACTOR)) {
         penalty_factor = -1.0; // GetProperties()[PENALTY_FACTOR];
+        // penalty_factor = 10.0; 
         if (penalty_factor <= 0.0) {
             penalty_factor = 0.0;
             nitsche_penalty_free = 1.0;

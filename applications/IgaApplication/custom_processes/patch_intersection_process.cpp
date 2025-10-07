@@ -368,7 +368,7 @@ void PatchIntersectionProcess::ComputeIntersections()
                 const SizeType pA = p_surf_A->PolynomialDegree(0);
                 const SizeType pB = p_surf_B->PolynomialDegree(0);
                 const SizeType ip_per_span =
-                    2 * static_cast<SizeType>(std::max(pA, pB)) + 1;  // odd, like elsewhere
+                    2 * static_cast<SizeType>(std::max(pA, pB)) + 1;
                 const SizeType deriv_order = 2;
 
                 // fresh geometry id from the root model part
