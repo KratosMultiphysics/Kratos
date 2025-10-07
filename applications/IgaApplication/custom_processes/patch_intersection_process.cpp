@@ -14,6 +14,10 @@
 
 #include "includes/kratos_components.h"
 #include "includes/variables.h"
+#include "integration/integration_point_utilities.h"
+
+#include <algorithm>
+#include <limits>
 
 namespace Kratos {
 
@@ -280,19 +284,15 @@ void PatchIntersectionProcess::ComputeIntersections()
                     Point B0(u_fixed_B, v0, 0.0);
                     Point B1(u_fixed_B, v1, 0.0);
 
-                    // Ensure the B-side curve is oriented so that its surface normal points outward
-                    if (A_right_B_left) {
-                        std::swap(A0, A1);
-                    } else {
-                        std::swap(B0, B1);
-                    }
+                    const bool flip_A = A_right_B_left;
+                    const bool flip_B = A_left_B_right;
 
                     // Create Brep on A
-                    CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart);
+                    CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart, flip_A);
                     breps_A.push_back(mrModelPart.pGetGeometry(next_id));
 
                     // Create Brep on B
-                    CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart);
+                    CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart, flip_B);
                     breps_B.push_back(mrModelPart.pGetGeometry(next_id));
                 }
 
@@ -398,19 +398,15 @@ void PatchIntersectionProcess::ComputeIntersections()
                     Point B0(u0, v_fixed_B, 0.0);
                     Point B1(u1, v_fixed_B, 0.0);
 
-                    // Ensure the B-side curve is oriented so that its surface normal points outward
-                    if (A_top_B_bot) {
-                        std::swap(B0, B1);
-                    } else {
-                        std::swap(A0, A1);
-                    }
+                    const bool flip_A = A_bot_B_top;
+                    const bool flip_B = A_top_B_bot;
 
                     // Create Brep on A
-                    CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart);
+                    CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart, flip_A);
                     breps_A.push_back(mrModelPart.pGetGeometry(next_id));
 
                     // Create Brep on B
-                    CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart);
+                    CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart, flip_B);
                     breps_B.push_back(mrModelPart.pGetGeometry(next_id));
                 }
 
@@ -440,20 +436,26 @@ void PatchIntersectionProcess::CreateAndAddBrepCurve(
     const Point& rCoordsA,                                   // (uA, vA, 0)
     const Point& rCoordsB,                                   // (uB, vB, 0)
     IndexType& rLastGeometryId,                              // consumed & incremented
-    ModelPart& rModelPart)
+    ModelPart& rModelPart,
+    const bool MustBeFlipped)
 {
-    // define active range: the first point and second point are in order
+    Point first_point = rCoordsA;
+    Point second_point = rCoordsB;
+
     Vector active_range_knot_vector = ZeroVector(2);
-    // Compute the knot vector needed
-    if (rCoordsA[0] == rCoordsB[0]) {
-        // the brep curve is vertical
-        active_range_knot_vector[0] = rCoordsA[1];
-        active_range_knot_vector[1] = rCoordsB[1];
+    if (first_point[0] == second_point[0]) {
+        active_range_knot_vector[0] = first_point[1];
+        active_range_knot_vector[1] = second_point[1];
     } else {
-        // the brep curve is horizontal
-        active_range_knot_vector[0] = rCoordsA[0];
-        active_range_knot_vector[1] = rCoordsB[0];
+        active_range_knot_vector[0] = first_point[0];
+        active_range_knot_vector[1] = second_point[0];
     }
+    std::sort(active_range_knot_vector.begin(), active_range_knot_vector.end());
+
+    if (MustBeFlipped) {
+        std::swap(first_point, second_point);
+    }
+
     NurbsInterval brep_active_range(active_range_knot_vector[0], active_range_knot_vector[1]);
 
     // --- build a degree-1 (linear) NURBS curve in UV with Node control points
@@ -468,8 +470,8 @@ void PatchIntersectionProcess::CreateAndAddBrepCurve(
         : rModelPart.NumberOfNodes() + 1;
 
     // Create two parametric nodes (u, v, 0)
-    auto pN1 = rModelPart.CreateNewNode(next_node_id++, rCoordsA[0], rCoordsA[1], 0.0);
-    auto pN2 = rModelPart.CreateNewNode(next_node_id++, rCoordsB[0], rCoordsB[1], 0.0);
+    auto pN1 = rModelPart.CreateNewNode(next_node_id++, first_point[0], first_point[1], 0.0);
+    auto pN2 = rModelPart.CreateNewNode(next_node_id++, second_point[0], second_point[1], 0.0);
 
     PointerVector<Node> ctrl_pts;
     ctrl_pts.push_back(pN1);
@@ -512,36 +514,13 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
 
     ModelPart::ConditionsContainerType new_conditions;
 
-    // --- small helper: Gauss nodes/weights on [-1,1] for n=1..10
-    auto gauss_nodes_weights = [](int n, std::vector<double>& xi, std::vector<double>& w)
+    // --- small helper: Gauss nodes/weights on [0,1]
+    auto gauss_nodes_weights = [](int n) -> const std::vector<std::array<double, 2>>&
     {
-        KRATOS_ERROR_IF(n < 1 || n > 10) << "Gauss order " << n << " not implemented (1…10)." << std::endl;
-        static const double X[10][10] = {
-            { 0 },
-            { -0.5773502691896257,  0.5773502691896257 },
-            { 0.0, -0.7745966692414834,  0.7745966692414834 },
-            { -0.3399810435848563,  0.3399810435848563, -0.8611363115940526,  0.8611363115940526 },
-            { 0.0, -0.5384693101056831,  0.5384693101056831, -0.9061798459386640,  0.9061798459386640 },
-            { -0.2386191860831969,  0.2386191860831969, -0.6612093864662645,  0.6612093864662645, -0.9324695142031521,  0.9324695142031521 },
-            { 0.0, -0.4058451513773972,  0.4058451513773972, -0.7415311855993945,  0.7415311855993945, -0.9491079123427585,  0.9491079123427585 },
-            { -0.1834346424956498,  0.1834346424956498, -0.5255324099163290,  0.5255324099163290, -0.7966664774136267,  0.7966664774136267, -0.9602898564975363,  0.9602898564975363 },
-            { 0.0, -0.3242534234038089,  0.3242534234038089, -0.6133714327005904,  0.6133714327005904, -0.8360311073266358,  0.8360311073266358, -0.9681602395076261,  0.9681602395076261 },
-            { -0.1488743389816312,  0.1488743389816312, -0.4333953941292472,  0.4333953941292472, -0.6794095682990244,  0.6794095682990244, -0.8650633666889845,  0.8650633666889845, -0.9739065285171717,  0.9739065285171717 }
-        };
-        static const double W[10][10] = {
-            { 2.0 },
-            { 1.0, 1.0 },
-            { 0.8888888888888888, 0.5555555555555556, 0.5555555555555556 },
-            { 0.6521451548625461, 0.6521451548625461, 0.3478548451374539, 0.3478548451374539 },
-            { 0.5688888888888889, 0.4786286704993665, 0.4786286704993665, 0.2369268850561891, 0.2369268850561891 },
-            { 0.4679139345726910, 0.4679139345726910, 0.3607615730481386, 0.3607615730481386, 0.1713244923791704, 0.1713244923791704 },
-            { 0.4179591836734694, 0.3818300505051189, 0.3818300505051189, 0.2797053914892766, 0.2797053914892766, 0.1294849661688697, 0.1294849661688697 },
-            { 0.3626837833783620, 0.3626837833783620, 0.3137066458778873, 0.3137066458778873, 0.2223810344533745, 0.2223810344533745, 0.1012285362903763, 0.1012285362903763 },
-            { 0.3302393550012598, 0.3123470770400029, 0.3123470770400029, 0.2606106964029354, 0.2606106964029354, 0.1806481606948574, 0.1806481606948574, 0.0812743883615744, 0.0812743883615744 },
-            { 0.2955242247147529, 0.2955242247147529, 0.2692667193099963, 0.2692667193099963, 0.2190863625159820, 0.2190863625159820, 0.1494513491505806, 0.1494513491505806, 0.0666713443086881, 0.0666713443086881 }
-        };
-        xi.assign(X[n-1], X[n-1] + n);
-        w .assign(W[n-1], W[n-1] + n);
+        const auto& gauss_table = IntegrationPointUtilities::s_gauss_legendre;
+        KRATOS_ERROR_IF(n < 1 || n > static_cast<int>(gauss_table.size()))
+            << "Gauss order " << n << " not implemented." << std::endl;
+        return gauss_table[n - 1];
     };
 
     auto build_shared_ips = [&](GeometryPointerType pBrep) -> IPArray
@@ -558,16 +537,19 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
         }
 
         // Build Gauss nodes on [t0,t1]
-        std::vector<double> xi, w;
-        gauss_nodes_weights(static_cast<int>(ip_per_span), xi, w);
-
         IPArray ips;
         ips.reserve(ip_per_span);
-        const double half = 0.5 * (t1 - t0);
-        const double mid  = 0.5 * (t1 + t0);
+        const double length = t1 - t0;
+        const double abs_length = std::abs(length);
+        KRATOS_ERROR_IF(abs_length < std::numeric_limits<double>::epsilon())
+            << "Degenerate Brep curve interval detected (length ~ 0)." << std::endl;
+        const auto& gauss_entries = gauss_nodes_weights(static_cast<int>(ip_per_span));
+
         for (SizeType i = 0; i < ip_per_span; ++i) {
-            const double t = mid + half * xi[i];
-            ips.emplace_back(IntegrationPoint<1>(t, w[i] * half));
+            const double xi = gauss_entries[i][0];
+            const double wi = gauss_entries[i][1];
+            const double t = t0 + length * xi;
+            ips.emplace_back(IntegrationPoint<1>(t, wi * abs_length));
         }
         return ips;
     };
@@ -599,7 +581,8 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
         // Create primary-side conditions and attach the mirrored QP-geometry as neighbour
         for (std::size_t q = 0; q < qpPrim.size(); ++q) {
             auto pGeomPrim = qpPrim(q);
-            auto pGeomMir  = qpMir(q);
+            // the brep are always created in opposite directions
+            auto pGeomMir  = qpMir(qpPrim.size()-q-1); 
 
             const auto integration_method = pGeomPrim->GetDefaultIntegrationMethod();
             const array_1d<double, 3> normal_primary = pGeomPrim->Normal(0, integration_method);
@@ -607,11 +590,13 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
             
             // Be sure they have opposite orientation (flip mirrored if needed)
             if (MathUtils<double>::Dot(normal_primary, normal_mirror) > 0.0) {
-                array_1d<double, 3> tangent_parameter_space;
-                pGeomMir->Calculate(LOCAL_TANGENT, tangent_parameter_space);
-                tangent_parameter_space[0] *= -1.0;
-                tangent_parameter_space[1] *= -1.0;
-                pGeomMir->Assign(LOCAL_TANGENT, tangent_parameter_space);
+
+                KRATOS_ERROR << "normals are not perpendicular: n*n = "<< MathUtils<double>::Dot(normal_primary, normal_mirror) << std::endl;
+                // array_1d<double, 3> tangent_parameter_space;
+                // pGeomMir->Calculate(LOCAL_TANGENT, tangent_parameter_space);
+                // tangent_parameter_space[0] *= -1.0;
+                // tangent_parameter_space[1] *= -1.0;
+                // pGeomMir->Assign(LOCAL_TANGENT, tangent_parameter_space);
             }
 
             Condition::Pointer pCond = rRefCond.Create(next_id++, pGeomPrim, PropertiesPointerType());

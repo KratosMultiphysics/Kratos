@@ -17,6 +17,7 @@
 #include "custom_conditions/laplacian_coupling_condition.h"
 
 #include "includes/variables.h"
+#include "iga_application_variables.h"
 
 namespace Kratos
 {
@@ -44,6 +45,9 @@ void LaplacianCouplingCondition::InitializeMemberVariables()
     mNormalParameterSpaceB = r_geometry_patchB.Normal(0, GetIntegrationMethod());
     mNormalParameterSpaceB /= MathUtils<double>::Norm(mNormalParameterSpaceB);
     mNormalPhysicalSpaceB = mNormalParameterSpaceB;
+
+    KRATOS_ERROR_IF(std::abs(norm_2(mNormalPhysicalSpaceA + mNormalPhysicalSpaceB) -1) > std::sqrt(2)+1e-12) 
+        << "LaplacianCouplingCondition found non opposite normals." << std::endl;
 }
 
 void LaplacianCouplingCondition::CalculateLocalSystem(
@@ -137,6 +141,32 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
     const double detJ_patch_A = norm_2(determinant_factor_patch_A);
     const double weight = integration_points_patch_A[0].Weight() * detJ_patch_A;
 
+    double penalty_factor;
+    double nitsche_penalty_free = -1.0;
+    if (GetProperties().Has(PENALTY_FACTOR)) {
+        penalty_factor = -1.0; // GetProperties()[PENALTY_FACTOR];
+        if (penalty_factor <= 0.0) {
+            penalty_factor = 0.0;
+            nitsche_penalty_free = 1.0;
+        }
+    } else {
+        KRATOS_ERROR << "LaplacianCouplingCondition requires PENALTY_FACTOR to be defined in the Properties." << std::endl;
+    }
+
+    double characteristic_length = 1.0;
+    if (Has(KNOT_SPAN_SIZES)) {
+        const Vector& knot_span_sizes = GetValue(KNOT_SPAN_SIZES);
+        if (!knot_span_sizes.empty()) {
+            characteristic_length = knot_span_sizes[0];
+            if (knot_span_sizes.size() > 1) {
+                characteristic_length = std::min(characteristic_length, knot_span_sizes[1]);
+            }
+        }
+    }
+    if (characteristic_length <= 0.0) {
+        characteristic_length = 1.0;
+    }
+    const double penalty_over_h = (characteristic_length > 0.0) ? penalty_factor / characteristic_length : 0.0;
 
     Vector DN_dot_n_patch_A = ZeroVector(n_patch_A);
     Vector DN_dot_n_patch_B = ZeroVector(n_patch_B);
@@ -153,7 +183,6 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
             DN_dot_n_patch_B[b] += DN_patch_B(b, d) * mNormalPhysicalSpaceB[d];
         }
     }
-
     // Assembling coupling terms 
     for (IndexType i = 0; i < n_patch_A; ++i) {
         for (IndexType j = 0; j < n_patch_B; ++j) {
@@ -187,7 +216,6 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
         }
     }
 
-    double nitsche_penalty_free = 1.0;
     // 0.5*(grad v_A + grad v_B) · (u_A n_A + u_B n_B)
     for (IndexType i = 0; i < n_patch_A; ++i) {
         const double grad_test_A_nA = DNn_A_nA[i];
@@ -210,6 +238,56 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
             rLeftHandSideMatrix(n_patch_A + i, n_patch_A + j) += nitsche_penalty_free * 0.5 * weight * grad_test_B_nB * N_patch_B(0, j);
         }
     }
+
+    if (penalty_over_h != 0.0) {
+        const double dot_nA_nA = MathUtils<double>::Dot(mNormalPhysicalSpaceA, mNormalPhysicalSpaceA);
+        const double dot_nA_nB = MathUtils<double>::Dot(mNormalPhysicalSpaceA, mNormalPhysicalSpaceB);
+        const double dot_nB_nB = MathUtils<double>::Dot(mNormalPhysicalSpaceB, mNormalPhysicalSpaceB);
+
+        for (IndexType i = 0; i < n_patch_A; ++i) {
+            for (IndexType j = 0; j < n_patch_A; ++j) {
+                rLeftHandSideMatrix(i, j) += penalty_over_h * weight * N_patch_A(0, i) * N_patch_A(0, j) * dot_nA_nA;
+            }
+            for (IndexType j = 0; j < n_patch_B; ++j) {
+                rLeftHandSideMatrix(i, n_patch_A + j) += penalty_over_h * weight * N_patch_A(0, i) * N_patch_B(0, j) * dot_nA_nB;
+            }
+        }
+
+        for (IndexType i = 0; i < n_patch_B; ++i) {
+            for (IndexType j = 0; j < n_patch_A; ++j) {
+                rLeftHandSideMatrix(n_patch_A + i, j) += penalty_over_h * weight * N_patch_B(0, i) * N_patch_A(0, j) * dot_nA_nB;
+            }
+            for (IndexType j = 0; j < n_patch_B; ++j) {
+                rLeftHandSideMatrix(n_patch_A + i, n_patch_A + j) += penalty_over_h * weight * N_patch_B(0, i) * N_patch_B(0, j) * dot_nB_nB;
+            }
+        }
+
+    }
+
+    
+    // // Rubén's penalty 
+    // if (penalty_over_h != 0.0) {
+    //     const double penalty_weight = penalty_over_h * weight;
+
+    //     // Penalty contribution: (w_A + w_B) * (u_A - u_B)
+    //     for (IndexType i = 0; i < n_patch_A; ++i) {
+    //         for (IndexType j = 0; j < n_patch_A; ++j) {
+    //             rLeftHandSideMatrix(i, j) += penalty_weight * N_patch_A(0, i) * N_patch_A(0, j);
+    //         }
+    //         for (IndexType j = 0; j < n_patch_B; ++j) {
+    //             rLeftHandSideMatrix(i, n_patch_A + j) -= penalty_weight * N_patch_A(0, i) * N_patch_B(0, j);
+    //         }
+    //     }
+
+    //     for (IndexType i = 0; i < n_patch_B; ++i) {
+    //         for (IndexType j = 0; j < n_patch_A; ++j) {
+    //             rLeftHandSideMatrix(n_patch_A + i, j) += penalty_weight * N_patch_B(0, i) * N_patch_A(0, j);
+    //         }
+    //         for (IndexType j = 0; j < n_patch_B; ++j) {
+    //             rLeftHandSideMatrix(n_patch_A + i, n_patch_A + j) -= penalty_weight * N_patch_B(0, i) * N_patch_B(0, j);
+    //         }
+    //     }
+    // }
 
     KRATOS_CATCH("")
 }

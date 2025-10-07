@@ -97,7 +97,8 @@ private:
         const Point& rCoordsA,
         const Point& rCoordsB,
         IndexType& rLastGeometryId,
-        ModelPart& rModelPart
+        ModelPart& rModelPart,
+        bool MustBeFlipped = false
     );
 
     // Creates body-fitted conditions from the given BrepCurveOnSurface geometries.
@@ -115,7 +116,8 @@ private:
         ModelPart& rTargetSubModelPart,
         const std::string& rConditionName,
         SizeType ip_per_span,          // force same #IPs on both sides
-        SizeType deriv_order = 1       // usually 1 for interface lines
+        SizeType deriv_order,          // usually 1 for interface lines
+        const Vector& rEffectiveKnotSpanSizes
     );
 
 
