@@ -231,6 +231,7 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const double aux_prod = 0.5 / area;
 
     // Membrane components with drilling rotations (Zhang et al 2011)
+    // CST membrane part
     rB(0, 0) = y23;
     rB(0, 1) = x32;
     rB(2, 0) = x32;
@@ -246,6 +247,22 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     rB(2, 12) = x21;
     rB(2, 13) = y12;
 
+    const double temp = alpha / 6.0;
+    const double temp2 = 2.0 * temp;
+    // Drilling rotation membrane components
+    rB(0, 5) = temp * y23 * (y13 + y12);
+    rB(1, 5) = temp * x32 * (x31 + x21);
+    rB(2, 5) = temp2 * (x31 * y13 + x21 * y21);
+
+    rB(0, 11) = temp * y31 * (y21 + y23);
+    rB(1, 11) = temp * x13 * (x12 + x32);
+    rB(2, 11) = temp2 * (x12 * y21 + x32 * y32);
+
+    rB(0, 17) = temp * y12 * (y32 + y31);
+    rB(1, 17) = temp * x21 * (x23 + x13);
+    rB(2, 17) = temp2 * (x23 * y32 + x13 * y13);
+
+    // SECOND ORDER MISSING!!!! todo
     // ...
 
     // Bending components
@@ -267,9 +284,9 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     // Shear components
     // Bs1
     rB(6, 2) = y21 + y13;
-    rB(6, 4) = 0.5;
+    rB(6, 4) = area;
     rB(7, 2) = x31 + x12;
-    rB(7, 3) = -0.5;
+    rB(7, 3) = -area;
     // Bs2
     rB(6, 8) = y31;
     rB(6, 9) = y12 * y31 * 0.5;
