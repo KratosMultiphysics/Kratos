@@ -22,6 +22,7 @@
 // Future Extensions
 #include "future/python/add_linear_solvers_to_python.h"
 #include "future/python/add_processes_to_python.h"
+#include "future/python/add_io_to_python.h"
 
 namespace Kratos::Future::Python
 {
@@ -33,6 +34,8 @@ void AddFutureToPython(py::module& m)
     AddLinearSolversToPython(m);
 
     AddProcessesToPython(m);
+
+    AddIOToPython(m);
 }
 
 }  // namespace Kratos::Future::Python.
