@@ -220,27 +220,25 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector
     const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
 
-    if(rValues.size() != num_dofs)
-        rValues.resize(num_dofs, false);
+    const SizeType number_of_control_points = GetGeometry().size();
 
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
+    rValues.resize(3 * number_of_control_points + 6);
 
-        const IndexType index = i * num_dofs_per_node;
-        rValues[index]     = disp[0];
-        rValues[index + 1] = disp[1];
-        rValues[index + 2] = disp[2];
-
-        if(mHasRotationDofs)
-        {
-            const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
-            rValues[index + 3] = rot[0];
-            rValues[index + 4] = rot[1];
-            rValues[index + 5] = rot[2];
-        }
+    IndexType local_index = 0;
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        rValues[local_index++] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X);
+        rValues[local_index++] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y);
+        rValues[local_index++] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z);
     }
+
+    const NodeType& r_global_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
+    rValues[local_index++] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_ALPHA);
+    rValues[local_index++] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_BETA);
+    rValues[local_index++] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_GAMMA);
+    rValues[local_index++] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_1);
+    rValues[local_index++] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_2);
+    rValues[local_index++] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_12);
+
     KRATOS_CATCH("")
 }
 
@@ -451,6 +449,28 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensit
             for(IndexType i = 0; i < derived_RHS.size(); ++i)
                 rOutput(i_node, i) = derived_RHS[i];
         }
+    }
+    else if (
+        rDesignVariable == ACTIVE_SHELL_ALPHA || 
+        rDesignVariable == ACTIVE_SHELL_BETA || 
+        rDesignVariable == ACTIVE_SHELL_GAMMA ||
+        rDesignVariable == ACTIVE_SHELL_KAPPA_1 ||
+        rDesignVariable == ACTIVE_SHELL_KAPPA_2 ||
+        rDesignVariable == ACTIVE_SHELL_KAPPA_12)
+    {
+        Vector ref_RHS, perturbed_RHS;
+        this->pGetPrimalElement()->CalculateRightHandSide(ref_RHS, rCurrentProcessInfo);
+
+        NodeType& r_global_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
+
+        r_global_node.FastGetSolutionStepValue(rDesignVariable) += delta;
+        this->pGetPrimalElement()->CalculateRightHandSide(perturbed_RHS, rCurrentProcessInfo);
+        r_global_node.FastGetSolutionStepValue(rDesignVariable) -= delta;
+
+        noalias(perturbed_RHS) = (perturbed_RHS - ref_RHS) / delta;
+
+        rOutput.resize(1, local_size, false);
+        std::copy(perturbed_RHS.begin(), perturbed_RHS.end(), rOutput.data().begin());
     }
     else
     {
