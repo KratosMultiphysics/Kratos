@@ -87,6 +87,131 @@ public:
     using SizeType = ContainerType::size_type;
 
     ///@}
+    ///@name Class definitions
+    ///@{
+
+    /**
+     * @class IteratorWrapper
+     * @author Suneth Warnakulasuriya
+     * @brief A wrapper class for iterators used in DataValueContainer to provide component-wise access and comparison.
+     *
+     * This class encapsulates an @ref iterator and a component index, allowing access to a specific @p ComponentIndex of the data
+     * pointed to by the @p Itr. It also provides comparison operators for both the underlying iterator and the wrapper itself.
+     *
+     * @note The @p operator++ , @p operator-- , @p operator+ , @p operator- are not defined in this wrapper, because
+     *       the bare @ref iterator points to a @p void* and it is impossible to deduce the type if you increment or decrement
+     *       the bare @ref iterator.
+     *
+     */
+    template<class TDataType>
+    class IteratorWrapper {
+    public:
+        ///@name Life cycle
+        ///@{
+
+        IteratorWrapper(
+            iterator Itr,
+            const SizeType ComponentIndex = 0)
+            : mItr(Itr),
+            mComponentIndex(ComponentIndex)
+            {}
+
+        ///@}
+        ///@name Public operations
+        ///@{
+
+        TDataType& operator*()
+        {
+            return *(static_cast<TDataType*>(mItr->second) + mComponentIndex);
+        }
+
+        /**
+         * @brief Comparator to compare the actual IteratorWrapper.
+         */
+        bool operator==(const IteratorWrapper& rOther) const
+        {
+            return mItr == rOther.mItr && mComponentIndex == rOther.mComponentIndex;
+        }
+
+        /**
+         * @brief Comparator to compare the actual IteratorWrapper.
+         */
+        bool operator!=(const IteratorWrapper& rOther) const
+        {
+            return !this->operator==(rOther);
+        }
+
+        ///@}
+
+    private:
+        ///@name Private member variables
+        ///@{
+
+        iterator mItr;
+
+        SizeType mComponentIndex;
+
+        ///@}
+    };
+
+    /**
+     * @class ConstIteratorWrapper
+     * @author Suneth Warnakulasuriya
+     * @brief A wrapper class for const iterators used in DataValueContainer to provide component-wise access and comparison.
+     *
+     * This class encapsulates an @ref const_iterator and a component index, allowing access to a specific @p ComponentIndex of the data
+     * pointed to by the @p ConstItr. It also provides comparison operators for both the underlying iterator and the wrapper itself.
+     *
+     * @note The @p operator++ , @p operator-- , @p operator+ , @p operator- are not defined in this wrapper, because
+     *       the bare @ref const_iterator points to a @p void* and it is impossible to deduce the type if you increment or decrement
+     *       the bare @ref const_iterator.
+     */
+    template<class TDataType>
+    class ConstIteratorWrapper {
+    public:
+        ///@name Life cycle
+        ///@{
+
+        ConstIteratorWrapper(
+            const_iterator ConstItr,
+            const SizeType ComponentIndex = 0)
+            : mConstItr(ConstItr),
+              mComponentIndex(ComponentIndex)
+        {}
+
+        ///@}
+        ///@name Public operations
+        ///@{
+
+        const TDataType& operator*() const
+        {
+            return *(static_cast<TDataType*>(mConstItr->second) + mComponentIndex);
+        }
+
+        bool operator==(const ConstIteratorWrapper& rOther) const
+        {
+            return mConstItr == rOther.mConstItr && mComponentIndex == rOther.mComponentIndex;
+        }
+
+        bool operator!=(const ConstIteratorWrapper& rOther) const
+        {
+            return !this->operator==(rOther);
+        }
+
+        ///@}
+
+    private:
+        ///@name Private member variables
+        ///@{
+
+        const_iterator mConstItr;
+
+        SizeType mComponentIndex;
+
+        ///@}
+    };
+
+    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -238,6 +363,28 @@ public:
     const_iterator end() const
     {
         return mData.end();
+    }
+
+    template<class TDataType>
+    ConstIteratorWrapper<TDataType> find(const Variable<TDataType>& rThisVariable) const
+    {
+        auto itr = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()));
+        if (itr != end()) {
+            return ConstIteratorWrapper<TDataType>(itr, rThisVariable.GetComponentIndex());
+        } else {
+            return ConstIteratorWrapper<TDataType>(itr);
+        }
+    }
+
+    template<class TDataType>
+    IteratorWrapper<TDataType> find(const Variable<TDataType>& rThisVariable)
+    {
+        auto itr = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey()));
+        if (itr != end()) {
+            return IteratorWrapper<TDataType>(itr, rThisVariable.GetComponentIndex());
+        } else {
+            return IteratorWrapper<TDataType>(itr);
+        }
     }
 
     DataValueContainer& operator=(DataValueContainer&&) noexcept = default;
