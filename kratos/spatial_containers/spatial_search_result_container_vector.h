@@ -228,6 +228,9 @@ public:
         typename ContainerType::const_iterator iter_;
     };
 
+    /// Definition of the max value
+    static constexpr double MaxValue = std::numeric_limits<double>::max();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -427,23 +430,149 @@ public:
 
     /**
      * @brief Retrieves if inside the geometry.
-     * @param rPoint The point coordinates.
+     * @param rResults The vector containing all the booleans showing is inside the geometry.
+     * @param rPoints The points container.
      * @param rDataCommunicator The data communicator.
      * @param Tolerance The tolerance considered.
-     * @return A vector containing all the booleans showing is inside the geometry.
      */
-    std::vector<std::vector<bool>> GetResultIsInside(
-        const array_1d<double, 3>& rPoint,
+    template<typename TPointContainerType>
+    void GetResultIsInside(
+        std::vector<std::vector<bool>>& rResults,
+        const TPointContainerType& rPoints,
         const DataCommunicator& rDataCommunicator,
         const double Tolerance = std::numeric_limits<double>::epsilon()
-        );
+        )
+    {
+        // Get the iterator to the points
+        auto it_point_begin = rPoints.begin();
+
+        // Define the coordinates vector
+        const std::size_t number_of_global_solutions = mPointResults.size();
+        if (rResults.size() != number_of_global_solutions) {
+            rResults.resize(number_of_global_solutions);
+        }
+
+        // Get the is inside
+        Point point;
+        for(std::size_t i = 0; i<number_of_global_solutions; ++i) {
+            auto& r_partial_results = mPointResults[i];
+            auto& r_global_results = r_partial_results->GetGlobalResults();
+
+            // If local point
+            const bool is_local_point = r_partial_results->IsLocalPoint();
+
+            if (is_local_point) {
+                auto it_point = it_point_begin + r_partial_results->GetLocalIndex();
+                noalias(point) = it_point->Coordinates();
+            } else {
+                for (unsigned int i = 0; i < 3; i++) {
+                    point[i] = -MaxValue;
+                }
+            }
+            for (unsigned int i = 0; i < 3; i++) {
+                point[i] = rDataCommunicator.MaxAll(point[i]);
+            }
+
+            // Call Apply to get the proxy
+            auto proxy = this->Apply([&Tolerance, &point](GlobalPointerResultType& rGP) -> bool {
+                auto p_object = rGP->Get();
+                if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
+                    auto& r_geometry = p_object->GetGeometry();
+                    Point::CoordinatesArrayType aux_coords;
+                    return r_geometry.IsInside(point, aux_coords, Tolerance);
+                } else if constexpr (std::is_same<TObjectType, Node>::value) {
+                    KRATOS_ERROR << "Nodes do not provide is inside. Not possible to compute is inside for point: " << point[0]<< "\t" << point[1] << "\t" << point[2] << " with tolerance " << Tolerance << std::endl;
+                    return false;
+                } else {
+                    KRATOS_ERROR << "Not implemented yet. Not possible to compute is inside for point: " << point[0]<< "\t" << point[1] << "\t" << point[2] << " with tolerance " << Tolerance << std::endl;
+                    return false;
+                }
+            });
+
+            // Get the is inside
+            const std::size_t number_of_gp = r_global_results.size();
+            auto& r_is_inside = rResults[i];
+            r_is_inside.resize(number_of_gp);
+            for(std::size_t j = 0; j < number_of_gp; ++j) {
+                auto& r_gp = r_global_results(j);
+                r_is_inside[j] = rDataCommunicator.MaxAll(proxy.Get(r_gp));
+            }
+        }
+    }
 
     /**
-     * @brief Considers the global pointer communicator to get the shape functions of the resulting object
-     * @param rPoint The point coordinates
-     * @return A vector containing all the shape functions
+     * @brief Considers the global pointer communicator to get the shape functions of the resulting object.
+     * @param rResults A vector to store the shape functions of the resulting object.
+     * @param rPoints The points container.
      */
-    std::vector<std::vector<Vector>> GetResultShapeFunctions(const array_1d<double, 3>& rPoint);
+    template<typename TPointContainerType>
+    void GetResultShapeFunctions(
+        std::vector<std::vector<Vector>>& rResults,
+        const TPointContainerType& rPoints,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        // Get the iterator to the points
+        auto it_point_begin = rPoints.begin();
+
+        // Define the coordinates vector
+        const std::size_t number_of_global_solutions = mPointResults.size();
+        if (rResults.size() != number_of_global_solutions) {
+            rResults.resize(number_of_global_solutions);
+        }
+
+        // Get the shape functions
+        Point point;
+        for(std::size_t i = 0; i<number_of_global_solutions; ++i) {
+            auto& r_partial_results = mPointResults[i];
+            auto& r_global_results = r_partial_results->GetGlobalResults();
+
+            // If local point
+            const bool is_local_point = r_partial_results->IsLocalPoint();
+
+            if (is_local_point) {
+                auto it_point = it_point_begin + r_partial_results->GetLocalIndex();
+                noalias(point) = it_point->Coordinates();
+            } else {
+                for (unsigned int i = 0; i < 3; i++) {
+                    point[i] = -MaxValue;
+                }
+            }
+            for (unsigned int i = 0; i < 3; i++) {
+                point[i] = rDataCommunicator.MaxAll(point[i]);
+            }
+
+            // Call Apply to get the proxy
+            auto proxy = this->Apply([&point](GlobalPointerResultType& rGP) -> Vector {
+                auto p_object = rGP->Get();
+                if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
+                    auto& r_geometry = p_object->GetGeometry();
+                    Vector N(r_geometry.size());
+                    array_1d<double, 3> local_coordinates;
+                    r_geometry.PointLocalCoordinates(local_coordinates, point);
+                    r_geometry.ShapeFunctionsValues(N, local_coordinates);
+                    return N;
+                } else if constexpr (std::is_same<TObjectType, Node>::value) {
+                    KRATOS_ERROR << "Nodes do not provide shape functions. Not possible to compute shape functions for point: " << point[0]<< "\t" << point[1] << "\t" << point[2] << std::endl;
+                    Vector N;
+                    return N;
+                } else {
+                    KRATOS_ERROR << "Not implemented yet. Not possible to compute shape functions for point: " << point[0]<< "\t" << point[1] << "\t" << point[2] << std::endl;
+                    Vector N;
+                    return N;
+                }
+            });
+
+            // Get the shape functions
+            const std::size_t number_of_gp = r_global_results.size();
+            auto& r_shape_functions = rResults[i];
+            r_shape_functions.resize(number_of_gp);
+            for(std::size_t j = 0; j < number_of_gp; ++j) {
+                auto& r_gp = r_global_results(j);
+                r_shape_functions[j] = proxy.Get(r_gp);
+            }
+        }
+    }
 
     /**
      * @brief Considers the global pointer communicator to get the indices of the resulting object.

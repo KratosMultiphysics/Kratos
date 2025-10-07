@@ -104,47 +104,6 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerSynchronizeAll, KratosCore
     KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultShapeFunctions, KratosCoreFastSuite)
-{
-    // Create a test object
-    DataCommunicator data_communicator;
-    SpatialSearchResultContainer<GeometricalObject> container;
-
-    // Generate a geometry
-    auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto p_node2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
-    Geometry<Node>::Pointer p_geom = Kratos::make_shared<Line2D2<Node>>(p_node1, p_node2);
-
-    // Create a test result
-    GeometricalObject object = GeometricalObject(1, p_geom);
-    SpatialSearchResult<GeometricalObject> result(&object);
-
-    // Add the result to the container
-    container.AddResult(result);
-
-    // Synchronize the container between partitions
-    container.SynchronizeAll(data_communicator);
-
-    // Compute shape functions
-    Point point = Point(0.5, 0.0, 0.0);
-    auto shape_functions = container.GetResultShapeFunctions(point);
-
-    // Check shape functions
-    KRATOS_EXPECT_EQ(shape_functions.size(), 1);
-    KRATOS_EXPECT_NEAR(shape_functions[0][0], 0.5, 1.0e-12);
-    KRATOS_EXPECT_NEAR(shape_functions[0][1], 0.5, 1.0e-12);
-
-    // Check is inside
-    auto is_inside_true = container.GetResultIsInside(point, data_communicator, 1.0e-5);
-    KRATOS_EXPECT_EQ(is_inside_true.size(), 1);
-    KRATOS_EXPECT_TRUE(is_inside_true[0]);
-
-    Point point_outside = Point(1.0e6, 1.0e6, 1.0e6);
-    auto is_inside_false = container.GetResultIsInside(point_outside, data_communicator, 1.0e-5);
-    KRATOS_EXPECT_EQ(is_inside_false.size(), 1);
-    KRATOS_EXPECT_FALSE(is_inside_false[0]);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerRemoveResultsFromIndexesList, KratosCoreFastSuite)
 {
     // Create a test object

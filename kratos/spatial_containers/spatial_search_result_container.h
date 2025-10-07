@@ -459,26 +459,6 @@ public:
     void SynchronizeAll(const DataCommunicator& rDataCommunicator);
 
     /**
-     * @brief Retrieves if inside the geometry
-     * @param rPoint The point coordinates.
-     * @param rDataCommunicator The data communicator.
-     * @param Tolerance The tolerance considered.
-     * @return A vector containing all the booleans showing is inside the geometry
-     */
-    std::vector<bool> GetResultIsInside(
-        const array_1d<double, 3>& rPoint,
-        const DataCommunicator& rDataCommunicator,
-        const double Tolerance = std::numeric_limits<double>::epsilon()
-        );
-
-    /**
-     * @brief Considers the global pointer communicator to get the shape functions of the resulting object
-     * @param rPoint The point coordinates.
-     * @return A vector containing all the shape functions
-     */
-    std::vector<Vector> GetResultShapeFunctions(const array_1d<double, 3>& rPoint);
-
-    /**
      * @brief Removes elements from the given ranks.
      * @details This function takes a list of ranks and removes the elements at those ranks from the list.
      * @param rRanks A constant reference to a std::vector<int> containing the ranks where no local solution is expected.

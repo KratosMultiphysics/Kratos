@@ -127,8 +127,6 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("SetGlobalIndex", &ContainerType::SetGlobalIndex)
     .def("GetLocalIndex", &ContainerType::GetLocalIndex)
     .def("SetLocalIndex", &ContainerType::SetLocalIndex)
-    .def("GetResultIsInside", &ContainerType::GetResultIsInside)
-    .def("GetResultShapeFunctions", &ContainerType::GetResultShapeFunctions)
     .def("GetLocalResults", &ContainerType::GetLocalResults)
     .def("GetGlobalResults", &ContainerType::GetGlobalResults)
     .def("GetGlobalPointerCommunicator", &ContainerType::GetGlobalPointerCommunicator)
@@ -199,8 +197,25 @@ void BindSpatialSearchResultContainerVector(pybind11::module& m, const std::stri
         self.GetResultIsActive(results, rDataCommunicator);
         return results;
     })
-    .def("GetResultIsInside", &ContainerVectorType::GetResultIsInside)
-    .def("GetResultShapeFunctions", &ContainerVectorType::GetResultShapeFunctions)
+    .def("GetResultIsInside", [](
+        ContainerVectorType& self,
+        ModelPart::NodesContainerType& rPoints,
+        const DataCommunicator& rDataCommunicator,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) {
+        std::vector<std::vector<bool>> results;
+        self.GetResultIsInside(results, rPoints, rDataCommunicator, Tolerance);
+        return results;
+    })
+    .def("GetResultShapeFunctions", [](
+        ContainerVectorType& self,
+        ModelPart::NodesContainerType& rPoints,
+        const DataCommunicator& rDataCommunicator
+        ) {
+        std::vector<std::vector<Vector>> results;
+        self.GetResultShapeFunctions(results, rPoints, rDataCommunicator);
+        return results;
+    })
     .def("GetResultIndices", [](ContainerVectorType& self) {
         std::vector<std::vector<std::size_t>> results;
         self.GetResultIndices(results);

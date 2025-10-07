@@ -18,6 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/line_2d_2.h"
+#include "containers/model.h"
 #include "spatial_containers/spatial_search_result.h"
 #include "spatial_containers/spatial_search_result_container_vector.h"
 
@@ -274,6 +275,65 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsActive, K
     // Check is active
     KRATOS_EXPECT_EQ(is_active.size(), 1);
     KRATOS_EXPECT_FALSE(is_active[0][0]);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultShapeFunctions, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainerVector<GeometricalObject> container_vector;
+
+    // Initialize result
+    DataCommunicator data_communicator;
+    const std::vector<std::size_t> indexes{0};
+    container_vector.InitializeResults(indexes.size());
+
+    // Container 1
+    auto& r_container_1 = container_vector[0];
+
+    // Generate a geometry
+    auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto p_node2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    Geometry<Node>::Pointer p_geom = Kratos::make_shared<Line2D2<Node>>(p_node1, p_node2);
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(1, p_geom);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    r_container_1.AddResult(result);
+    r_container_1.SetLocalIndex(0);
+
+    // Synchronize the container between partitions
+    container_vector.SynchronizeAll(data_communicator);
+
+    // Define the model
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("Main");
+    auto p_test_node = r_model_part.CreateNewNode(1, 0.5, 0.0, 0.0);
+
+    // Compute shape functions
+    std::vector<std::vector<Vector>> shape_functions;
+    container_vector.GetResultShapeFunctions(shape_functions, r_model_part.Nodes(), data_communicator);
+
+    // Check shape functions
+    KRATOS_EXPECT_EQ(shape_functions[0].size(), 1);
+    KRATOS_EXPECT_NEAR(shape_functions[0][0][0], 0.5, 1.0e-12);
+    KRATOS_EXPECT_NEAR(shape_functions[0][0][1], 0.5, 1.0e-12);
+
+    // Check is inside
+    std::vector<std::vector<bool>> is_inside_true;
+    container_vector.GetResultIsInside(is_inside_true, r_model_part.Nodes(), data_communicator, 1.0e-5);
+    KRATOS_EXPECT_EQ(is_inside_true[0].size(), 1);
+    KRATOS_EXPECT_TRUE(is_inside_true[0][0]);
+
+    // Check is outside
+    p_test_node->X() = 1.0e6;
+    p_test_node->Y() = 1.0e6;
+    p_test_node->Z() = 1.0e6;
+    std::vector<std::vector<bool>> is_inside_false;
+    container_vector.GetResultIsInside(is_inside_false, r_model_part.Nodes(), data_communicator, 1.0e-5);
+    KRATOS_EXPECT_EQ(is_inside_false[0].size(), 1);
+    KRATOS_EXPECT_FALSE(is_inside_false[0][0]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIndices, KratosCoreFastSuite)
