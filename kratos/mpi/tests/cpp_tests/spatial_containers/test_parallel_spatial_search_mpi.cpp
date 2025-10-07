@@ -214,12 +214,14 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchNearestInRadius()
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
         // Distances are just local
-        const auto distances = results.GetDistances()[0];
-        KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
+        std::vector<std::vector<double>> distances;
+        results.GetDistances(distances);
+        KRATOS_EXPECT_NEAR(distances[0][0], (cube_z - epsilon), tolerance);
 
         // Compute indices
-        auto indices = results.GetResultIndices()[0];
-        const std::size_t id = indices[0];
+        std::vector<std::vector<IndexType>> indices;
+        results.GetResultIndices(indices);
+        const std::size_t id = indices[0][0];
         KRATOS_EXPECT_EQ(id, 3);
     } else {
         KRATOS_ERROR << "Asynchronous spatial search not implemented!" << std::endl;
@@ -271,12 +273,14 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchNearest()
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
         // Distances are just local
-        const auto distances = results.GetDistances()[0];
-        KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
+        std::vector<std::vector<double>> distances;
+        results.GetDistances(distances);
+        KRATOS_EXPECT_NEAR(distances[0][0], (cube_z - epsilon), tolerance);
 
         // Compute indices
-        auto indices = results.GetResultIndices()[0];
-        const std::size_t id = indices[0];
+        std::vector<std::vector<IndexType>> indices;
+        results.GetResultIndices(indices);
+        const std::size_t id = indices[0][0];
         KRATOS_EXPECT_EQ(id, 3);
     } else {
         KRATOS_ERROR << "Asynchronous spatial search not implemented!" << std::endl;
@@ -524,12 +528,14 @@ void TestTreeSearchNearestInRadius()
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
         // Distances
-        auto distances = results.GetDistances()[0];
-        KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
+        std::vector<std::vector<double>> distances;
+        results.GetDistances(distances);
+        KRATOS_EXPECT_NEAR(distances[0][0], (cube_z - 0.08 - epsilon), tolerance);
 
         // Compute indices
-        auto indices = results.GetResultIndices()[0];
-        const std::size_t id = indices[0];
+        std::vector<std::vector<IndexType>> indices;
+        results.GetResultIndices(indices);
+        const std::size_t id = indices[0][0];
         KRATOS_EXPECT_EQ(id, 4);
     } else {
         KRATOS_ERROR << "Asynchronous spatial search not implemented!" << std::endl;
@@ -583,12 +589,14 @@ void TestTreeSearchNearest()
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 
         // Distances
-        auto distances = results.GetDistances()[0];
-        KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
+        std::vector<std::vector<double>> distances;
+        results.GetDistances(distances);
+        KRATOS_EXPECT_NEAR(distances[0][0], (cube_z - 0.08 - epsilon), tolerance);
 
         // Compute indices
-        auto indices = results.GetResultIndices()[0];
-        const std::size_t id = indices[0];
+        std::vector<std::vector<IndexType>> indices;
+        results.GetResultIndices(indices);
+        const std::size_t id = indices[0][0];
         KRATOS_EXPECT_EQ(id, 4);
     } else {
         KRATOS_ERROR << "Asynchronous spatial search not implemented!" << std::endl;

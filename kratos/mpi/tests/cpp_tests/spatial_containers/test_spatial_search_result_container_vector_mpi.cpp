@@ -121,10 +121,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetDi
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), static_cast<std::size_t>(size));
 
     // GetDistances
-    auto r_distances = container_vector.GetDistances();
-    KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), r_distances.size());
-    for (std::size_t i = 0; i < r_distances.size(); ++i) {
-        auto& r_partial_distance = r_distances[i];
+    std::vector<std::vector<double>> distances;
+    container_vector.GetDistances(distances);
+    KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), distances.size());
+    for (std::size_t i = 0; i < distances.size(); ++i) {
+        auto& r_partial_distance = distances[i];
         KRATOS_EXPECT_EQ(r_partial_distance.size(), 1);
         KRATOS_EXPECT_DOUBLE_EQ(r_partial_distance[0], 0.5*(i + 1));
     }
@@ -163,10 +164,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), static_cast<std::size_t>(size));
 
     // GetResultIsLocal
-    auto r_result_is_local = container_vector.GetResultIsLocal(r_data_comm);
-    KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), r_result_is_local.size());
-    for (int i = 0; i < static_cast<int>(r_result_is_local.size()); ++i) {
-        auto& r_partial_result_is_local = r_result_is_local[i];
+    std::vector<std::vector<bool>> result_is_local;
+    container_vector.GetResultIsLocal(result_is_local, r_data_comm);
+    KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), result_is_local.size());
+    for (int i = 0; i < static_cast<int>(result_is_local.size()); ++i) {
+        auto& r_partial_result_is_local = result_is_local[i];
         KRATOS_EXPECT_EQ(r_partial_result_is_local.size(), 1);
         KRATOS_EXPECT_EQ(r_partial_result_is_local[0], i == rank);
     }
@@ -204,7 +206,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), static_cast<std::size_t>(size));
 
     // Compute is active
-    auto is_active = container_vector.GetResultIsActive(r_data_comm);
+    std::vector<std::vector<bool>> is_active;
+    container_vector.GetResultIsActive(is_active, r_data_comm);
 
     // Check is active
     KRATOS_EXPECT_EQ(static_cast<int>(is_active.size()), r_data_comm.Size());
@@ -216,7 +219,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     object.Set(ACTIVE, false);
 
     // Compute is active
-    is_active = container_vector.GetResultIsActive(r_data_comm);
+    container_vector.GetResultIsActive(is_active, r_data_comm);
 
     // Check is active
     KRATOS_EXPECT_EQ(static_cast<int>(is_active.size()), r_data_comm.Size());
@@ -257,7 +260,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     container_vector.SynchronizeAll(r_data_comm);
 
     // Compute indices
-    auto indices = container_vector.GetResultIndices();
+    std::vector<std::vector<IndexType>> indices;
+    container_vector.GetResultIndices(indices);
 
     // Check indices
     KRATOS_EXPECT_EQ(static_cast<int>(indices.size()), r_data_comm.Size());
@@ -300,7 +304,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     container_vector.SynchronizeAll(r_data_comm);
 
     // Compute shape functions
-    auto coordinates = container_vector.GetResultCoordinates();
+    std::vector<std::vector<std::vector<array_1d<double, 3>>>> coordinates;
+    container_vector.GetResultCoordinates(coordinates);
 
     // Check shape functions
     KRATOS_EXPECT_EQ(static_cast<int>(coordinates.size()), r_data_comm.Size());
@@ -344,10 +349,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), static_cast<std::size_t>(size));
 
     // GetResultRank
-    auto r_result_rank = container_vector.GetResultRank(r_data_comm);
-    KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), r_result_rank.size());
-    for (int i = 0; i < static_cast<int>(r_result_rank.size()); ++i) {
-        auto& r_partial_result_rank = r_result_rank[i];
+    std::vector<std::vector<int>> result_rank;
+    container_vector.GetResultRank(result_rank, r_data_comm);
+    KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), result_rank.size());
+    for (int i = 0; i < static_cast<int>(result_rank.size()); ++i) {
+        auto& r_partial_result_rank = result_rank[i];
         KRATOS_EXPECT_EQ(r_partial_result_rank.size(), 1);
         KRATOS_EXPECT_EQ(r_partial_result_rank[0], i);
     }

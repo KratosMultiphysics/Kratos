@@ -295,7 +295,9 @@ template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunica
 void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnlyClosestResult(ResultContainerVectorType& rResults)
 {
     auto distance_lambda = [](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<double>> {
-        return rResultsVector.GetDistances();
+        std::vector<std::vector<double>> results;
+        rResultsVector.GetDistances(results);
+        return results;
     };
     KeepOnlyGivenLambdaResult(rResults, distance_lambda);
 }
@@ -307,7 +309,9 @@ template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunica
 void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
 {
     auto rank_lambda = [this](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<int>> {
-        return rResultsVector.GetResultRank(mrDataCommunicator);
+        std::vector<std::vector<int>> results;
+        rResultsVector.GetResultRank(results, mrDataCommunicator);
+        return results;
     };
     KeepOnlyGivenLambdaResult(rResults, rank_lambda);
 }

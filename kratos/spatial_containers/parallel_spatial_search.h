@@ -679,7 +679,8 @@ private:
             const auto all_values = rLambda(rResults);
 
             // The ranks
-            const std::vector<std::vector<int>> all_ranks = rResults.GetResultRank(mrDataCommunicator);
+            std::vector<std::vector<int>> all_ranks;
+            rResults.GetResultRank(all_ranks, mrDataCommunicator);
 
             // Retrieve the solution
             auto& r_results_vector = rResults.GetContainer();
@@ -690,18 +691,18 @@ private:
                 const std::size_t number_of_global_results = r_partial_result.NumberOfGlobalResults();
                 if (number_of_global_results > 1) {
                     // The values
-                    const auto values = all_values[i];
+                    const auto& r_values = all_values[i];
 
                     // The indexes
                     std::vector<int> ranks = all_ranks[i];
 
                     // Find the index of the minimum value
-                    auto it_min_distance = std::min_element(values.begin(), values.end());
+                    auto it_min_distance = std::min_element(r_values.begin(), r_values.end());
 
                     // Check if the values vector is not empty
-                    if (it_min_distance != values.end()) {
+                    if (it_min_distance != r_values.end()) {
                         // Calculate the position
-                        const IndexType pos = std::distance(values.begin(), it_min_distance);
+                        const IndexType pos = std::distance(r_values.begin(), it_min_distance);
                         if (rank == ranks[pos]) {
                             KRATOS_ERROR_IF(r_partial_result.NumberOfLocalResults() > 1) << "The rank criteria to filter results assumes that one rank only holds one local result. This is not true for " << r_partial_result.GetGlobalIndex() << " in rank " << rank << std::endl;
                         }

@@ -170,16 +170,57 @@ void BindSpatialSearchResultContainerVector(pybind11::module& m, const std::stri
     .def("HasResult",  &ContainerVectorType::HasResult)
     .def("Clear", &ContainerVectorType::Clear)
     .def("SynchronizeAll", &ContainerVectorType::SynchronizeAll)
-    .def("GetDistances", &ContainerVectorType::GetDistances)
-    .def("GetResultIsLocal", &ContainerVectorType::GetResultIsLocal)
-    .def("GetResultRank", &ContainerVectorType::GetResultRank)
-    .def("GetResultIsActive", &ContainerVectorType::GetResultIsActive)
+    .def("GetDistances", [](ContainerVectorType& self) {
+        std::vector<std::vector<double>> results;
+        self.GetDistances(results);
+        return results;
+    })
+    .def("GetResultIsLocal", [](
+        ContainerVectorType& self,
+        const DataCommunicator& rDataCommunicator
+        ) {
+        std::vector<std::vector<bool>> results;
+        self.GetResultIsLocal(results, rDataCommunicator);
+        return results;
+    })
+    .def("GetResultRank", [](
+        ContainerVectorType& self,
+        const DataCommunicator& rDataCommunicator
+        ) {
+        std::vector<std::vector<int>> results;
+        self.GetResultRank(results, rDataCommunicator);
+        return results;
+    })
+    .def("GetResultIsActive", [](
+        ContainerVectorType& self,
+        const DataCommunicator& rDataCommunicator
+        ) {
+        std::vector<std::vector<bool>> results;
+        self.GetResultIsActive(results, rDataCommunicator);
+        return results;
+    })
     .def("GetResultIsInside", &ContainerVectorType::GetResultIsInside)
     .def("GetResultShapeFunctions", &ContainerVectorType::GetResultShapeFunctions)
-    .def("GetResultIndices", &ContainerVectorType::GetResultIndices)
-    .def("GetResultNodeIndices", &ContainerVectorType::GetResultNodeIndices)
-    .def("GetResultPartitionIndices", &ContainerVectorType::GetResultPartitionIndices)
-    .def("GetResultCoordinates", &ContainerVectorType::GetResultCoordinates)
+    .def("GetResultIndices", [](ContainerVectorType& self) {
+        std::vector<std::vector<std::size_t>> results;
+        self.GetResultIndices(results);
+        return results;
+    })
+    .def("GetResultNodeIndices", [](ContainerVectorType& self) {
+        std::vector<std::vector<std::vector<std::size_t>>> results;
+        self.GetResultNodeIndices(results);
+        return results;
+    })
+    .def("GetResultPartitionIndices", [](ContainerVectorType& self) {
+        std::vector<std::vector<std::vector<int>>> results;
+        self.GetResultPartitionIndices(results);
+        return results;
+    })
+    .def("GetResultCoordinates", [](ContainerVectorType& self) {
+        std::vector<std::vector<std::vector<array_1d<double, 3>>>> results;
+        self.GetResultCoordinates(results);
+        return results;
+    })
     .def("GetGlobalPointerCommunicator", &ContainerVectorType::GetGlobalPointerCommunicator)
     .def("GetContainer", &ContainerVectorType::GetContainer)
     .def("__getitem__", [](ContainerVectorType& self, const std::size_t Index) {

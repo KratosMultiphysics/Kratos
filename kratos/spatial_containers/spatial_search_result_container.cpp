@@ -293,7 +293,8 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Rem
     }
 
     // Prepare a map of current indexes for quick lookup
-    const auto ranks = this->GetResultRank(rDataCommunicator);
+    std::vector<int> ranks;
+    GetResultRank(ranks, rDataCommunicator);
     std::vector<IndexType> indexes_to_remove;
     indexes_to_remove.reserve(ranks.size());
     for (IndexType i = 0; i < ranks.size(); ++i) {
@@ -339,7 +340,8 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Rem
     }
 
     // Prepare a map of current indexes for quick lookup
-    const auto current_indexes = this->GetResultIndices();
+    std::vector<IndexType> current_indexes;
+    this->GetResultIndices(current_indexes);
     std::unordered_map<IndexType, IndexType> current_indexes_map;
     for (IndexType i = 0; i < current_indexes.size(); ++i) {
         current_indexes_map[current_indexes[i]] = i;
@@ -392,11 +394,16 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Pri
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultRank(const DataCommunicator& rDataCommunicator)
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultRank(
+    std::vector<int>& rResults,
+    const DataCommunicator& rDataCommunicator
+    )
 {
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<int> ranks(number_of_gp, 0);
+    if (rResults.size() != number_of_gp) {
+        rResults.resize(number_of_gp);
+    }
 
     // Call Apply to get the proxy
     auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> int {
@@ -406,21 +413,21 @@ std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommuni
     // Get the rank
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
-        ranks[i] = rDataCommunicator.MaxAll(proxy.Get(r_gp));
+        rResults[i] = rDataCommunicator.MaxAll(proxy.Get(r_gp));
     }
-
-    return ranks;
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<IndexType> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIndices()
+void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GetResultIndices(std::vector<IndexType>& rResults)
 {
     // Define the indices vector
     const std::size_t number_of_gp = mGlobalResults.size();
-    std::vector<IndexType> indices(number_of_gp);
+    if (rResults.size() != number_of_gp) {
+        rResults.resize(number_of_gp);
+    }
 
     // Call Apply to get the proxy
     auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::size_t {
@@ -431,10 +438,8 @@ std::vector<IndexType> SpatialSearchResultContainer<TObjectType, TSpatialSearchC
     // Get the indices
     for(std::size_t i=0; i<number_of_gp; ++i) {
         auto& r_gp = mGlobalResults(i);
-        indices[i] = proxy.Get(r_gp);
+        rResults[i] = proxy.Get(r_gp);
     }
-
-    return indices;
 }
 
 /***********************************************************************************/

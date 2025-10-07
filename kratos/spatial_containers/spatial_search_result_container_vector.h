@@ -390,31 +390,40 @@ public:
     }
 
     /**
-     * @brief Retrieves the global distances
-     * @return A vector containing all the distances
+     * @brief Retrieves the global distances.
+     * @param rResults The vector containing all the distances.
      */
-    std::vector<std::vector<double>> GetDistances();
+    void GetDistances(std::vector<std::vector<double>>& rResults);
 
     /**
      * @brief Retrieves if is local the entity.
+     * @param rResults The vector containing all the booleans showing is local the entity
      * @param rDataCommunicator The data communicator.
-     * @return A vector containing all the booleans showing is local the entity
      */
-    std::vector<std::vector<bool>> GetResultIsLocal(const DataCommunicator& rDataCommunicator);
+    void GetResultIsLocal(
+        std::vector<std::vector<bool>>& rResults,
+        const DataCommunicator& rDataCommunicator
+        );
 
     /**
      * @brief Retrieves the rank of the entity.
+     * @param rResults The vector containing all the ranks of the entity.
      * @param rDataCommunicator The data communicator.
-     * @return A vector containing all the ranks of the entity.
      */
-    std::vector<std::vector<int>> GetResultRank(const DataCommunicator& rDataCommunicator);
+    void GetResultRank(
+        std::vector<std::vector<int>>& rResults,
+        const DataCommunicator& rDataCommunicator
+        );
 
     /**
      * @brief Retrieves if is active the entity.
+     * @param rResults The vector containing all the booleans showing is active the entity
      * @param rDataCommunicator The data communicator.
-     * @return A vector containing all the booleans showing is active the entity.
      */
-    std::vector<std::vector<bool>> GetResultIsActive(const DataCommunicator& rDataCommunicator);
+    void GetResultIsActive(
+        std::vector<std::vector<bool>>& rResults,
+        const DataCommunicator& rDataCommunicator
+        );
 
     /**
      * @brief Retrieves if inside the geometry.
@@ -437,28 +446,28 @@ public:
     std::vector<std::vector<Vector>> GetResultShapeFunctions(const array_1d<double, 3>& rPoint);
 
     /**
-     * @brief Considers the global pointer communicator to get the indices of the resulting object
-     * @return A vector containing all the indices
+     * @brief Considers the global pointer communicator to get the indices of the resulting object.
+     * @param rResults A vector to store the indices of the resulting object.
      */
-    std::vector<std::vector<IndexType>> GetResultIndices();
+    void GetResultIndices(std::vector<std::vector<IndexType>>& rResults);
 
     /**
-     * @brief Considers the global pointer communicator to get the indices of the nodes of the resulting object
-     * @return A vector containing all the indices
+     * @brief Considers the global pointer communicator to get the indices of the nodes of the resulting object.
+     * @param rResults A vector to store the indices of the nodes of the resulting object.
      */
-    std::vector<std::vector<std::vector<IndexType>>> GetResultNodeIndices();
+    void GetResultNodeIndices(std::vector<std::vector<std::vector<IndexType>>>& rResults);
 
     /**
-     * @brief Considers the global pointer communicator to get the partition indices of the nodes of the resulting object
-     * @return A vector containing all the indices
+     * @brief Considers the global pointer communicator to get the partition indices of the nodes of the resulting object.
+     * @param rResults A vector to store the partition indices of the resulting object.
      */
-    std::vector<std::vector<std::vector<int>>> GetResultPartitionIndices();
+    void GetResultPartitionIndices(std::vector<std::vector<std::vector<int>>>& rResults);
 
     /**
-     * @brief Considers the global pointer communicator to get the coordinates of the resulting object
-     * @return A vector containing all the coordinates
+     * @brief Considers the global pointer communicator to get the coordinates of the resulting object.
+     * @param rResults A vector to store the coordinates of the resulting object.
      */
-    std::vector<std::vector<std::vector<array_1d<double, 3>>>> GetResultCoordinates();
+    void GetResultCoordinates(std::vector<std::vector<std::vector<array_1d<double, 3>>>>& rResults);
 
     ///@}
     ///@name Access

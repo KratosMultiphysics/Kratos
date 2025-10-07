@@ -592,7 +592,8 @@ public:
         const IndexType GlobalIndex = 0
         )
     {
-        const auto result_rank = GetResultRank(rDataCommunicator);
+        std::vector<int> result_rank;
+        GetResultRank(result_rank, rDataCommunicator);
         return result_rank[GlobalIndex] == rDataCommunicator.Rank();
     }
 
@@ -647,16 +648,20 @@ private:
 
     /**
      * @brief Retrieves the rank of the entity.
+     * @param rResults A vector to store the ranks of the entity.
      * @param rDataCommunicator The data communicator.
      * @return A vector containing all the ranks of the entity.
      */
-    std::vector<int> GetResultRank(const DataCommunicator& rDataCommunicator);
+    void GetResultRank(
+        std::vector<int>& rResults,
+        const DataCommunicator& rDataCommunicator
+        );
 
     /**
      * @brief Considers the global pointer communicator to get the indices of the resulting object.
-     * @return A vector containing all the indices.
+     * @param rResults A vector to store the indices of the resulting object.
      */
-    std::vector<IndexType> GetResultIndices();
+    void GetResultIndices(std::vector<IndexType>& rResults);
 
     /**
      * @brief Generates a vector of indexes where the elements in the input vector are greater than zero.

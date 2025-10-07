@@ -174,13 +174,14 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetDistances, Kratos
     container_vector.SynchronizeAll(data_communicator);
 
     // GetDistances
-    auto r_distances = container_vector.GetDistances();
-    KRATOS_EXPECT_EQ(r_distances.size(), 2);
-    KRATOS_EXPECT_EQ(r_distances[0].size(), 2);
-    KRATOS_EXPECT_DOUBLE_EQ(r_distances[0][0], 0.5);
-    KRATOS_EXPECT_DOUBLE_EQ(r_distances[0][1], 0.25);
-    KRATOS_EXPECT_EQ(r_distances[1].size(), 1);
-    KRATOS_EXPECT_DOUBLE_EQ(r_distances[1][0], 0.5);
+    std::vector<std::vector<double>> distances;
+    container_vector.GetDistances(distances);
+    KRATOS_EXPECT_EQ(distances.size(), 2);
+    KRATOS_EXPECT_EQ(distances[0].size(), 2);
+    KRATOS_EXPECT_DOUBLE_EQ(distances[0][0], 0.5);
+    KRATOS_EXPECT_DOUBLE_EQ(distances[0][1], 0.25);
+    KRATOS_EXPECT_EQ(distances[1].size(), 1);
+    KRATOS_EXPECT_DOUBLE_EQ(distances[1][0], 0.5);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsLocal, KratosCoreFastSuite)
@@ -223,13 +224,14 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsLocal, Kr
     container_vector.SynchronizeAll(data_communicator);
 
     // GetResultIsLocal
-    auto r_is_local = container_vector.GetResultIsLocal(data_communicator);
-    KRATOS_EXPECT_EQ(r_is_local.size(), 2);
-    KRATOS_EXPECT_EQ(r_is_local[0].size(), 2);
-    KRATOS_EXPECT_TRUE(r_is_local[0][0]);
-    KRATOS_EXPECT_TRUE(r_is_local[0][1]);
-    KRATOS_EXPECT_EQ(r_is_local[1].size(), 1);
-    KRATOS_EXPECT_TRUE(r_is_local[1][0]);
+    std::vector<std::vector<bool>> is_local;
+    container_vector.GetResultIsLocal(is_local, data_communicator);
+    KRATOS_EXPECT_EQ(is_local.size(), 2);
+    KRATOS_EXPECT_EQ(is_local[0].size(), 2);
+    KRATOS_EXPECT_TRUE(is_local[0][0]);
+    KRATOS_EXPECT_TRUE(is_local[0][1]);
+    KRATOS_EXPECT_EQ(is_local[1].size(), 1);
+    KRATOS_EXPECT_TRUE(is_local[1][0]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsActive, KratosCoreFastSuite)
@@ -256,21 +258,22 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsActive, K
     container_vector.SynchronizeAll(data_communicator);
 
     // Compute is active
-    auto is_active = container_vector.GetResultIsActive(data_communicator)[0];
+    std::vector<std::vector<bool>> is_active;
+    container_vector.GetResultIsActive(is_active, data_communicator);
 
     // Check is active
     KRATOS_EXPECT_EQ(is_active.size(), 1);
-    KRATOS_EXPECT_TRUE(is_active[0]);
+    KRATOS_EXPECT_TRUE(is_active[0][0]);
 
     // Deactivate the object
     object.Set(ACTIVE, false);
 
     // Compute is active
-    is_active = container_vector.GetResultIsActive(data_communicator)[0];
+    container_vector.GetResultIsActive(is_active, data_communicator);
 
     // Check is active
     KRATOS_EXPECT_EQ(is_active.size(), 1);
-    KRATOS_EXPECT_FALSE(is_active[0]);
+    KRATOS_EXPECT_FALSE(is_active[0][0]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIndices, KratosCoreFastSuite)
@@ -297,11 +300,12 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIndices, Kr
     container_vector.SynchronizeAll(data_communicator);
 
     // Compute indices
-    auto indices = container_vector.GetResultIndices()[0];
+    std::vector<std::vector<std::size_t>> indices;
+    container_vector.GetResultIndices(indices);
 
     // Check indices
-    KRATOS_EXPECT_EQ(indices.size(), 1);
-    KRATOS_EXPECT_EQ(indices[0], object.Id());
+    KRATOS_EXPECT_EQ(indices[0].size(), 1);
+    KRATOS_EXPECT_EQ(indices[0][0], object.Id());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultNodeIndices, KratosCoreFastSuite)
@@ -333,12 +337,13 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultNodeIndices
     container_vector.SynchronizeAll(data_communicator);
 
     // Compute indices
-    auto indices = container_vector.GetResultNodeIndices()[0];
+    std::vector<std::vector<std::vector<IndexType>>> indices;
+    container_vector.GetResultNodeIndices(indices);
 
     // Check indices
-    KRATOS_EXPECT_EQ(indices.size(), 1);
-    KRATOS_EXPECT_EQ(indices[0][0], 1);
-    KRATOS_EXPECT_EQ(indices[0][1], 2);
+    KRATOS_EXPECT_EQ(indices[0].size(), 1);
+    KRATOS_EXPECT_EQ(indices[0][0][0], 1);
+    KRATOS_EXPECT_EQ(indices[0][0][1], 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultCoordinates, KratosCoreFastSuite)
@@ -370,13 +375,14 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultCoordinates
     container_vector.SynchronizeAll(data_communicator);
 
     // Compute result coordinates
-    auto coordinates = container_vector.GetResultCoordinates()[0];
+    std::vector<std::vector<std::vector<array_1d<double, 3>>>> coordinates;
+    container_vector.GetResultCoordinates(coordinates);
 
     // Check result coordinates
-    KRATOS_EXPECT_EQ(coordinates.size(), 1);
-    KRATOS_EXPECT_EQ(coordinates[0].size(), 2);
-    KRATOS_EXPECT_VECTOR_NEAR(coordinates[0][0], p_node1->Coordinates(), 1.0e-12);
-    KRATOS_EXPECT_VECTOR_NEAR(coordinates[0][1], p_node2->Coordinates(), 1.0e-12);
+    KRATOS_EXPECT_EQ(coordinates[0].size(), 1);
+    KRATOS_EXPECT_EQ(coordinates[0][0].size(), 2);
+    KRATOS_EXPECT_VECTOR_NEAR(coordinates[0][0][0], p_node1->Coordinates(), 1.0e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(coordinates[0][0][1], p_node2->Coordinates(), 1.0e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultRank, KratosCoreFastSuite)
@@ -419,13 +425,14 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultRank, Krato
     container_vector.SynchronizeAll(data_communicator);
 
     // GetResultRank
-    auto r_rank = container_vector.GetResultRank(data_communicator);
-    KRATOS_EXPECT_EQ(r_rank.size(), 2);
-    KRATOS_EXPECT_EQ(r_rank[0].size(), 2);
-    KRATOS_EXPECT_EQ(r_rank[0][0], 0);
-    KRATOS_EXPECT_EQ(r_rank[0][1], 0);
-    KRATOS_EXPECT_EQ(r_rank[1].size(), 1);
-    KRATOS_EXPECT_EQ(r_rank[1][0], 0);
+    std::vector<std::vector<int>> rank;
+    container_vector.GetResultRank(rank, data_communicator);
+    KRATOS_EXPECT_EQ(rank.size(), 2);
+    KRATOS_EXPECT_EQ(rank[0].size(), 2);
+    KRATOS_EXPECT_EQ(rank[0][0], 0);
+    KRATOS_EXPECT_EQ(rank[0][1], 0);
+    KRATOS_EXPECT_EQ(rank[1].size(), 1);
+    KRATOS_EXPECT_EQ(rank[1][0], 0);
 }
 
 }  // namespace Kratos::Testing
