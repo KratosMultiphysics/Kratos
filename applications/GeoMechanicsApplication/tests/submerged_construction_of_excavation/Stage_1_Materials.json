@@ -7,7 +7,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"              : false,
+                "IGNORE_UNDRAINED"              : true,
                 "DENSITY_SOLID"                 : 2048.66,
                 "DENSITY_WATER"                 : 1000,
                 "POROSITY"                      : 0.203874,
@@ -37,7 +37,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"              : false,
+                "IGNORE_UNDRAINED"              : true,
                 "DENSITY_SOLID"                 : 2048.66,
                 "DENSITY_WATER"                 : 1000,
                 "POROSITY"                      : 0.203874,
@@ -67,7 +67,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"              : false,
+                "IGNORE_UNDRAINED"              : true,
                 "DENSITY_SOLID"                 : 2048.66,
                 "DENSITY_WATER"                 : 1000,
                 "POROSITY"                      : 0.203874,
@@ -97,7 +97,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"              : false,
+                "IGNORE_UNDRAINED"              : true,
                 "DENSITY_SOLID"                 : 2048.66,
                 "DENSITY_WATER"                 : 1000,
                 "POROSITY"                      : 0.203874,
@@ -127,7 +127,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"     : false,
+                "IGNORE_UNDRAINED"     : true,
                 "DENSITY_SOLID"        : 2496.33,
                 "DENSITY_WATER"        : 1000,
                 "POROSITY"             : 0.30581,
@@ -155,7 +155,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"     : false,
+                "IGNORE_UNDRAINED"     : true,
                 "DENSITY_SOLID"        : 2496.33,
                 "DENSITY_WATER"        : 1000,
                 "POROSITY"             : 0.30581,

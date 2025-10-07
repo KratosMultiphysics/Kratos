@@ -24,7 +24,7 @@
   <units/>
   <!-- Fill this fields to automatically active an App without the init window -->
   <hiddenfield n="activeapp" active="0" v="GeoMechanics" state="disabled"/>
-  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="active,selected,close"/>
+  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="close"/>
   <appLink n="ThermicLauncher" public="1" pn="Thermic" active="0" appid="ThermicLauncher" prefix="ThermicLauncher"/>
   <appLink n="ConvectionDiffusion" public="0" pn="Convection-diffusion" active="0" appid="ConvectionDiffusion" prefix="CNVDFF"/>
   <appLink n="Structural" public="1" pn="Structural" active="0" appid="Structural" prefix="ST"/>
@@ -143,7 +143,7 @@
             <value n="echo_level" pn="Echo level" state="[SolverParamState]" v="1" values="[GetSolverParameterValues]" dict="[GetSolverParameterDict]"/>
           </container>
         </container>
-        <container n="Geotechnical Parts" pn="Geotechnical Parts" un="STParts" icon="shells16" update_proc="UpdateParts" tree_state="close">
+        <container n="Geotechnical Parts" pn="Geotechnical Parts" un="STParts" icon="shells16" update_proc="UpdateParts" tree_state="open">
           <condition n="Parts_Soil" pn="Soil" ov="surface" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="open">
             <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" v="UPwSmallStrainElement2D" dict="[GetElements ElementType Soil]" state="normal">
               <dependencies node="../value[@n!='Material']" actualize="1"/>
@@ -320,7 +320,7 @@
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
               <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="open"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
-              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
+              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="true" tree_state="close"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2048.66" tree_state="close"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
               <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.203874" tree_state="close"/>
@@ -474,7 +474,7 @@
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
               <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="open"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
-              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
+              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="true" tree_state="close"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2048.66" tree_state="close"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
               <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.203874" tree_state="close"/>
@@ -628,7 +628,7 @@
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
               <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="open"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
-              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
+              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="true" tree_state="close"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2048.66" tree_state="open"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
               <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.203874" tree_state="close"/>
@@ -782,7 +782,7 @@
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
               <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="close"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
-              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
+              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="true" tree_state="close"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2048.66" tree_state="close"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
               <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.203874" tree_state="close"/>
@@ -795,7 +795,7 @@
               <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="100000.0" tree_state="close"/>
               <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2" tree_state="close"/>
               <value n="BIOT_COEFFICIENT" pn="BIOT_COEFFICIENT" help="BIOT_COEFFICIENT" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
-              <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedBelowPhreaticLevelLaw" tree_state="active,close"/>
+              <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedBelowPhreaticLevelLaw" tree_state="close"/>
               <value n="SATURATED_SATURATION" pn="SATURATED_SATURATION" help="SATURATED_SATURATION" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
               <value n="RESIDUAL_SATURATION" pn="RESIDUAL_SATURATION" help="RESIDUAL_SATURATION" string_is="double" state="normal" show_in_window="1" v="1e-10" tree_state="close"/>
               <value n="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" pn="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" help="VAN_GENUCHTEN_AIR_ENTRY_PRESSURE" string_is="double" state="hidden" show_in_window="1" v=".561"/>
@@ -936,7 +936,7 @@
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="open"/>
               <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="open"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
-              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
+              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="true" tree_state="open"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2496.33" tree_state="close"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
               <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.305810" tree_state="close"/>
@@ -1090,7 +1090,7 @@
               <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" dict="[GetElements ElementType Soil]" state="normal" v="SmallStrainUPwDiffOrderElement2D" tree_state="close"/>
               <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoLinearElasticPlaneStrain2DLaw" tree_state="close"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
-              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false" tree_state="close"/>
+              <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="true" tree_state="active,selected,close"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2496.33" tree_state="close"/>
               <value n="DENSITY_WATER" pn="Density Water" help="Density Water" string_is="double" state="[PartParamState]" show_in_window="1" v="1000" tree_state="close"/>
               <value n="POROSITY" pn="Porosity" help="Porosity" string_is="double" state="[PartParamState]" show_in_window="1" v="0.305810" tree_state="close"/>
