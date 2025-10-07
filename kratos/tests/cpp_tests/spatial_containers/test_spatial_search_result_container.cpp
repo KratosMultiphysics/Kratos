@@ -28,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerAddResult, KratosCoreFastS
 {
     // Create a test object
     DataCommunicator data_communicator;
-    SpatialSearchResultContainer<GeometricalObject> container(data_communicator);
+    SpatialSearchResultContainer<GeometricalObject> container;
 
     // Create a test result
     GeometricalObject object = GeometricalObject(1);
@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerClear, KratosCoreFastSuite
 {
     // Create a test object
     DataCommunicator data_communicator;
-    SpatialSearchResultContainer<GeometricalObject> container(data_communicator);
+    SpatialSearchResultContainer<GeometricalObject> container;
 
     // Create a test result
     GeometricalObject object = GeometricalObject(1);
@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerSynchronizeAll, KratosCore
 {
     // Create a test object
     DataCommunicator data_communicator;
-    SpatialSearchResultContainer<GeometricalObject> container(data_communicator);
+    SpatialSearchResultContainer<GeometricalObject> container;
 
     // Create a test result
     GeometricalObject object = GeometricalObject(1);
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerSynchronizeAll, KratosCore
     container.AddResult(result);
 
     // Synchronize the container between partitions
-    container.SynchronizeAll();
+    container.SynchronizeAll(data_communicator);
 
     // Check that the result was added correctly
     auto& r_local_pointers = container.GetLocalResults();
@@ -108,7 +108,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultShapeFunctions, K
 {
     // Create a test object
     DataCommunicator data_communicator;
-    SpatialSearchResultContainer<GeometricalObject> container(data_communicator);
+    SpatialSearchResultContainer<GeometricalObject> container;
 
     // Generate a geometry
     auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
@@ -123,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultShapeFunctions, K
     container.AddResult(result);
 
     // Synchronize the container between partitions
-    container.SynchronizeAll();
+    container.SynchronizeAll(data_communicator);
 
     // Compute shape functions
     Point point = Point(0.5, 0.0, 0.0);
@@ -135,12 +135,12 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultShapeFunctions, K
     KRATOS_EXPECT_NEAR(shape_functions[0][1], 0.5, 1.0e-12);
 
     // Check is inside
-    auto is_inside_true = container.GetResultIsInside(point, 1.0e-5);
+    auto is_inside_true = container.GetResultIsInside(point, data_communicator, 1.0e-5);
     KRATOS_EXPECT_EQ(is_inside_true.size(), 1);
     KRATOS_EXPECT_TRUE(is_inside_true[0]);
 
     Point point_outside = Point(1.0e6, 1.0e6, 1.0e6);
-    auto is_inside_false = container.GetResultIsInside(point_outside, 1.0e-5);
+    auto is_inside_false = container.GetResultIsInside(point_outside, data_communicator, 1.0e-5);
     KRATOS_EXPECT_EQ(is_inside_false.size(), 1);
     KRATOS_EXPECT_FALSE(is_inside_false[0]);
 }
@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerRemoveResultsFromIndexesLi
 {
     // Create a test object
     DataCommunicator data_communicator;
-    SpatialSearchResultContainer<GeometricalObject> container(data_communicator);
+    SpatialSearchResultContainer<GeometricalObject> container;
 
     // Create a test result
     GeometricalObject object_1 = GeometricalObject(1);
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerRemoveResultsFromIndexesLi
     KRATOS_EXPECT_EQ(container.NumberOfLocalResults(), 3);
 
     // Synchronize the container between partitions
-    container.SynchronizeAll();
+    container.SynchronizeAll(data_communicator);
 
     // Check global pointers
     KRATOS_EXPECT_EQ(container.NumberOfGlobalResults(), 3);
