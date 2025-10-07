@@ -135,6 +135,8 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
 {
+    // TODO: Create the  the GlobalPointerCommunicator here
+
     // Synchronize local results to global results
     if(rDataCommunicator.IsDistributed()) { // MPI code
         // Lambda to generate the indexes of the partitions with results
@@ -155,15 +157,12 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
         // MPI data
         const int world_size = rDataCommunicator.Size();
         const int rank = rDataCommunicator.Rank();
-        std::vector<int> send_rank(1, rank);
-        std::vector<int> ranks(world_size);
-        rDataCommunicator.AllGather(send_rank, ranks);
 
         // Auxiliary definitions
         std::vector<int> recv_buffer(world_size);
 
         // Retrieve first rank
-        const int first_rank = ranks[0];
+        const int first_rank = 0;
 
         // Iterate over all the results
         for (auto p_result : mPointResults) {
@@ -206,7 +205,7 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
 
                 // Send now to all ranks
                 for (int i_rank = 1; i_rank < world_size; ++i_rank) {
-                    rDataCommunicator.Send(global_gp, ranks[i_rank]);
+                    rDataCommunicator.Send(global_gp, i_rank);
                 }
 
                 // Transfer to global pointer

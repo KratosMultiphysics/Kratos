@@ -132,20 +132,22 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Syn
             }
         };
 
+        // Size definitions
         const int local_result_size = mLocalResults.size();
         const int global_result_size = rDataCommunicator.SumAll(local_result_size);
         mGlobalResults.reserve(global_result_size);
+
+        // MPI data
         const int world_size = rDataCommunicator.Size();
         const int rank = rDataCommunicator.Rank();
+
+        // Prepare a vector with all ranks
         std::vector<int> send_buffer(1, local_result_size);
         std::vector<int> recv_buffer(world_size);
         rDataCommunicator.AllGather(send_buffer, recv_buffer);
-        std::vector<int> send_rank(1, rank);
-        std::vector<int> ranks(world_size);
-        rDataCommunicator.AllGather(send_rank, ranks);
 
         // Retrieve first rank
-        const int first_rank = ranks[0];
+        const int first_rank = 0;
 
         // In first rank
         if (rank == first_rank) {
@@ -173,7 +175,7 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Syn
 
             // Send now to all ranks
             for (int i_rank = 1; i_rank < world_size; ++i_rank) {
-                rDataCommunicator.Send(global_gp, ranks[i_rank]);
+                rDataCommunicator.Send(global_gp, i_rank);
             }
 
             // Transfer to global pointer
