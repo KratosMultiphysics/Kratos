@@ -334,16 +334,15 @@ public:
 
     /**
      * @brief Initialize the container
-     * @param rDataCommunicator The data communicator considered
      * @return The result container
      */
-    SpatialSearchResultContainerReferenceType InitializeResult(const DataCommunicator& rDataCommunicator);
+    SpatialSearchResultContainerReferenceType InitializeResult();
 
     /**
      * @brief Initialize the container
-     * @param rDataCommunicators The data communicators
+     * @param NumberOfResults The number of results to be initialized
      */
-    void InitializeResults(const std::vector<const DataCommunicator*>& rDataCommunicators);
+    void InitializeResults(const std::size_t NumberOfResults);
 
     /**
      * @brief Check if coordinates are initialized
@@ -397,31 +396,36 @@ public:
     std::vector<std::vector<double>> GetDistances();
 
     /**
-     * @brief Retrieves if is local the entity
+     * @brief Retrieves if is local the entity.
+     * @param rDataCommunicator The data communicator.
      * @return A vector containing all the booleans showing is local the entity
      */
-    std::vector<std::vector<bool>> GetResultIsLocal();
+    std::vector<std::vector<bool>> GetResultIsLocal(const DataCommunicator& rDataCommunicator);
 
     /**
-     * @brief Retrieves the rank of the entity
-     * @return A vector containing all the ranks of the entity
+     * @brief Retrieves the rank of the entity.
+     * @param rDataCommunicator The data communicator.
+     * @return A vector containing all the ranks of the entity.
      */
-    std::vector<std::vector<int>> GetResultRank();
+    std::vector<std::vector<int>> GetResultRank(const DataCommunicator& rDataCommunicator);
 
     /**
-     * @brief Retrieves if is active the entity
-     * @return A vector containing all the booleans showing is active the entity
+     * @brief Retrieves if is active the entity.
+     * @param rDataCommunicator The data communicator.
+     * @return A vector containing all the booleans showing is active the entity.
      */
-    std::vector<std::vector<bool>> GetResultIsActive();
+    std::vector<std::vector<bool>> GetResultIsActive(const DataCommunicator& rDataCommunicator);
 
     /**
-     * @brief Retrieves if inside the geometry
-     * @param rPoint The point coordinates
-     * @param Tolerance The tolerance considered
-     * @return A vector containing all the booleans showing is inside the geometry
+     * @brief Retrieves if inside the geometry.
+     * @param rPoint The point coordinates.
+     * @param rDataCommunicator The data communicator.
+     * @param Tolerance The tolerance considered.
+     * @return A vector containing all the booleans showing is inside the geometry.
      */
     std::vector<std::vector<bool>> GetResultIsInside(
         const array_1d<double, 3>& rPoint,
+        const DataCommunicator& rDataCommunicator,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         );
 

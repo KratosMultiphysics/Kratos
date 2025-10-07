@@ -48,14 +48,14 @@ std::size_t SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommun
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-typename SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::SpatialSearchResultContainerReferenceType SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::InitializeResult(const DataCommunicator& rDataCommunicator)
+typename SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::SpatialSearchResultContainerReferenceType SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::InitializeResult()
 {
     // Resize vector
     const std::size_t current_size = mPointResults.size();
     mPointResults.resize(current_size + 1);
 
     // Create the result
-    mPointResults[current_size] = new SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>(rDataCommunicator);
+    mPointResults[current_size] = new SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>();
     return *mPointResults[current_size];
 }
 
@@ -63,14 +63,13 @@ typename SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunica
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::InitializeResults(const std::vector<const DataCommunicator*>& rDataCommunicators)
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::InitializeResults(const std::size_t NumberOfResults)
 {
     // Define counter
     std::size_t counter = 0;
     const std::size_t current_size = mPointResults.size();
-    const std::size_t to_be_added = rDataCommunicators.size();
-    const std::size_t new_size = current_size + to_be_added;
-    std::vector<IndexType> values_to_initialize(to_be_added, current_size);
+    const std::size_t new_size = current_size + NumberOfResults;
+    std::vector<IndexType> values_to_initialize(NumberOfResults, current_size);
     for (auto& r_index : values_to_initialize) {
         r_index += counter;
         ++counter;
@@ -79,8 +78,8 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
     mPointResults.resize(new_size);
 
     // Create the results
-    block_for_each(values_to_initialize, [this, &rDataCommunicators](const auto Index) {
-        mPointResults[Index] = new SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>(*rDataCommunicators[Index]);
+    block_for_each(values_to_initialize, [this](const auto Index) {
+        mPointResults[Index] = new SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>();
     });
 }
 
@@ -140,7 +139,7 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
     if(rDataCommunicator.IsDistributed()) { // MPI code
         // For the moment just sync manually
         for (auto p_result : mPointResults) {
-            p_result->SynchronizeAll();
+            p_result->SynchronizeAll(rDataCommunicator);
         }
         // TODO: FIX MPI CODE. Requires coloring and maybe asynchronous communication
     } else { // Serial code
@@ -154,8 +153,8 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
         });
 
         // Generate global pointer communicator
-        block_for_each(mPointResults, [](auto p_result) {
-            p_result->GenerateGlobalPointerCommunicator();
+        block_for_each(mPointResults, [&rDataCommunicator](auto p_result) {
+            p_result->GenerateGlobalPointerCommunicator(rDataCommunicator);
         });
     }
 
@@ -197,7 +196,7 @@ std::vector<std::vector<double>> SpatialSearchResultContainerVector<TObjectType,
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<std::vector<bool>> SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GetResultIsLocal()
+std::vector<std::vector<bool>> SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GetResultIsLocal(const DataCommunicator& rDataCommunicator)
 {
     // Define the coordinates vector
     const std::size_t number_of_global_solutions = mPointResults.size();
@@ -211,14 +210,13 @@ std::vector<std::vector<bool>> SpatialSearchResultContainerVector<TObjectType, T
     // Get the is local
     for(std::size_t i=0; i<number_of_global_solutions; ++i) {
         auto& r_global_results = mPointResults[i]->GetGlobalResults();
-        auto& r_data_communicator = mPointResults[i]->GetDataCommunicator();
-        const int rank = r_data_communicator.Rank();
+        const int rank = rDataCommunicator.Rank();
         const std::size_t number_of_gp = r_global_results.size();
         auto& r_is_local = is_local[i];
         r_is_local.resize(number_of_gp);
         for(std::size_t j=0; j<number_of_gp; ++j) {
             auto& r_gp = r_global_results(j);
-            const int retrieved_rank = r_data_communicator.MaxAll(proxy.Get(r_gp));
+            const int retrieved_rank = rDataCommunicator.MaxAll(proxy.Get(r_gp));
             r_is_local[j] = (rank == retrieved_rank);
         }
     }
@@ -230,7 +228,7 @@ std::vector<std::vector<bool>> SpatialSearchResultContainerVector<TObjectType, T
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<std::vector<int>> SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GetResultRank()
+std::vector<std::vector<int>> SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GetResultRank(const DataCommunicator& rDataCommunicator)
 {
     // Define the coordinates vector
     const std::size_t number_of_global_solutions = mPointResults.size();
@@ -244,13 +242,12 @@ std::vector<std::vector<int>> SpatialSearchResultContainerVector<TObjectType, TS
     // Get the ranks
     for(std::size_t i=0; i<number_of_global_solutions; ++i) {
         auto& r_global_results = mPointResults[i]->GetGlobalResults();
-        auto& r_data_communicator = mPointResults[i]->GetDataCommunicator();
         const std::size_t number_of_gp = r_global_results.size();
         auto& r_ranks = ranks[i];
         r_ranks.resize(number_of_gp);
         for(std::size_t j=0; j<number_of_gp; ++j) {
             auto& r_gp = r_global_results(j);
-            r_ranks[j] = r_data_communicator.MaxAll(proxy.Get(r_gp));
+            r_ranks[j] = rDataCommunicator.MaxAll(proxy.Get(r_gp));
         }
     }
 
@@ -261,7 +258,7 @@ std::vector<std::vector<int>> SpatialSearchResultContainerVector<TObjectType, TS
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<std::vector<bool>> SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GetResultIsActive()
+std::vector<std::vector<bool>> SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GetResultIsActive(const DataCommunicator& rDataCommunicator)
 {
     // Define the coordinates vector
     const std::size_t number_of_global_solutions = mPointResults.size();
@@ -281,13 +278,12 @@ std::vector<std::vector<bool>> SpatialSearchResultContainerVector<TObjectType, T
     // Get the is inside
     for(std::size_t i=0; i<number_of_global_solutions; ++i) {
         auto& r_global_results = mPointResults[i]->GetGlobalResults();
-        auto& r_data_communicator = mPointResults[i]->GetDataCommunicator();
         const std::size_t number_of_gp = r_global_results.size();
         auto& r_is_active = is_active[i];
         r_is_active.resize(number_of_gp);
         for(std::size_t j=0; j<number_of_gp; ++j) {
             auto& r_gp = r_global_results(j);
-            r_is_active[j] = r_data_communicator.MaxAll(proxy.Get(r_gp));
+            r_is_active[j] = rDataCommunicator.MaxAll(proxy.Get(r_gp));
         }
     }
 
@@ -300,6 +296,7 @@ std::vector<std::vector<bool>> SpatialSearchResultContainerVector<TObjectType, T
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::vector<std::vector<bool>> SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GetResultIsInside(
     const array_1d<double, 3>& rPoint,
+    const DataCommunicator& rDataCommunicator,
     const double Tolerance
     )
 {
@@ -326,13 +323,12 @@ std::vector<std::vector<bool>> SpatialSearchResultContainerVector<TObjectType, T
     // Get the is inside
     for(std::size_t i=0; i<number_of_global_solutions; ++i) {
         auto& r_global_results = mPointResults[i]->GetGlobalResults();
-        auto& r_data_communicator = mPointResults[i]->GetDataCommunicator();
         const std::size_t number_of_gp = r_global_results.size();
         auto& r_is_inside = is_inside[i];
         r_is_inside.resize(number_of_gp);
         for(std::size_t j=0; j<number_of_gp; ++j) {
             auto& r_gp = r_global_results(j);
-            r_is_inside[j] = r_data_communicator.MaxAll(proxy.Get(r_gp));
+            r_is_inside[j] = rDataCommunicator.MaxAll(proxy.Get(r_gp));
         }
     }
 
