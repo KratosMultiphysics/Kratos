@@ -24,3 +24,16 @@ given porosity $`n`$, grain density $`\rho_{\mathrm{g}}`$, residual saturation $
 | Retention law type | `RETENTION_LAW` | `SaturatedBelowPhreaticLevelLaw` | `SaturatedLaw` | N/A |
 | Residual saturation $`s_{\mathrm{res}}`$  | `RESIDUAL_SATURATION` | $`1 \cdot 10^{-10}`$ | $`1 \cdot 10^{-10}`$ | $`[-]`$ |
 | Saturated saturation $`s_{\mathrm{sat}}`$ | `SATURATED_SATURATION` | 1.0 | 1.0 | $`[-]`$ |
+
+
+## Staged analysis
+
+This section lists the stages that are taken into account:
+
+1. **Initial stage:**: in this stage, the complete soil domain is active, and the diaphragm wall as well the interfaces at both sides of it are inactive.  Where the soil will later be separated by the diaphragm wall, we will apply master-slave constraints to ensure continuity of the displacement field in this early stage of analysis.  The only load that is being applied is self-weight.  At the end of the stage, a $`K_0`$ procedure is performed to initialize the horizontal stress field.  Note that the $`K_0`$ procedure requires the use of linear elastic materials for all soil parts.
+2. **Null step:** in this stage, we will change the material models from linear elastic to hardening soil (or Mohr-Coulomb if we don't have a working hardening soil model at hand).  By changing the material models, we will trigger a stiffness redistribution, and hence a stress redistribution.
+3. **Diaphragm wall installation and applying the external load:** in this stage, we activate the diaphragm wall and the interfaces that are attached to its left and right sides.  At the same time, we also need to deactivate the master-slave constraints, since we no longer require the displacement field to be continuous across the entire domain.  In addition, a surface load is applied to a part of the top of the soil on the left hand side.
+4. **First excavation stage:** In this stage, the top part of the clay to the right of the diaphragm wall is excavated.  In other words, the corresponding model part is deactivated.  Also, the interface elements that connect the now excavated clay layer to the diaphragm wall need to be deactivated. 
+5. **Installation of a strut:** In this stage, we activate the strut.
+6. **Second excavation stage:** In this stage, the now top-most part of the clay to the right of the diaphragm wall is excavated.  In other words, the corresponding model part is deactivated.  Also, the interface elements that connect the now excavated clay layer to the diaphragm wall need to be deactivated.  In addition, we need to apply a normal contact stress to the "naked" part of the diaphragm wall as well as the bottom of the excavation pit.
+7. **Third excavation stage:** In this final stage, the now top-most part of the clay to the right of the diaphragm wall is excavated.  In other words, the corresponding model part is deactivated.  Also, the interface elements that connect the now excavated clay layer to the diaphragm wall need to be deactivated.  In addition, we need to apply a normal contact stress to the "naked" part of the diaphragm wall as well as the bottom of the excavation pit.
