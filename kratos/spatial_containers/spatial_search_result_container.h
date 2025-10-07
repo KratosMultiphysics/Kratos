@@ -643,15 +643,6 @@ private:
      */
     void GetResultIndices(std::vector<IndexType>& rResults);
 
-    /**
-     * @brief Generates a vector of indexes where the elements in the input vector are greater than zero.
-     * @details This function takes an input vector and iterates through its elements. It adds the indexes of elements that are greater than zero to a new vector and returns that vector.
-     * @param rInputVector The input vector to process.
-     * @return A vector of indexes where elements in the input vector are greater than zero.
-     * @note Static method that can be used without an instance of this class. Will be called in the vector class.
-     */
-    static std::vector<int> GenerateGreaterThanZeroIndexes(const std::vector<int>& rInputVector);
-
     ///@}
     ///@name Serialization
     ///@{

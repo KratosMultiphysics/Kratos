@@ -117,6 +117,21 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Syn
 
     // Synchronize local results to global results
     if(rDataCommunicator.IsDistributed()) { // MPI code
+        // Lambda to generate the indexes of the partitions with results
+        auto generate_greater_than_zero_indexes = [](
+            const std::vector<int>& rInputVector,
+            std::vector<int>& rOutputVector
+            )
+        {
+            rOutputVector.clear();
+            rOutputVector.reserve(rInputVector.size());
+            for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
+                if (rInputVector[i] > 0) {
+                    rOutputVector.push_back(i);
+                }
+            }
+        };
+
         const int local_result_size = mLocalResults.size();
         const int global_result_size = rDataCommunicator.SumAll(local_result_size);
         mGlobalResults.reserve(global_result_size);
@@ -144,7 +159,8 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Syn
             }
 
             // Call the lambda to generate the result vector of partitions with results
-            std::vector<int> result_vector = GenerateGreaterThanZeroIndexes(recv_buffer);
+            std::vector<int> result_vector;
+            generate_greater_than_zero_indexes(recv_buffer, result_vector);
 
             // Iterate over the ranks
             for (int rank_to_recv : result_vector) {
@@ -361,21 +377,6 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Get
         auto& r_gp = mGlobalResults(i);
         rResults[i] = proxy.Get(r_gp);
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GenerateGreaterThanZeroIndexes(const std::vector<int>& rInputVector)
-{
-    std::vector<int> indexes;
-    for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
-        if (rInputVector[i] > 0) {
-            indexes.push_back(i);
-        }
-    }
-    return indexes;
 }
 
 /***********************************************************************************/
