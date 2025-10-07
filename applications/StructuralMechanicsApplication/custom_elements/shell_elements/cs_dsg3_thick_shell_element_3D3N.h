@@ -61,7 +61,7 @@ public:
 
     /// The base element type
     using BaseType = Element;
-    using array_3 = std::array<double, 3>;
+    using array_3 = array_1d<double, 3>;
     using bounded_3_matrix = BoundedMatrix<double, 3, 3>; // rotation matrix
 
     // Counted pointer of BaseSolidElement
@@ -137,12 +137,6 @@ public:
      * @warning Must be called before any calculation is done
      */
     void InitializeMaterial();
-
-    /**
-     * @brief This method initializes the constitutive law vector and the individual constitutive laws too
-     * @warning Must be called before any calculation is done
-     */
-    void InitializeSubtriangles();
 
     /**
      * @brief It creates a new element pointer and clones the previous element data
@@ -223,10 +217,17 @@ public:
         const array_3& r_coord_3 
     );
 
+    /**
+     * @brief This method computes the Strain-Displacement matrix B, used to relate nodal displacements to strains
+     * using the 3 subtriangles of the element
+     */
     void CalculateB(
         MatrixType &rB
     );
 
+    /**
+     * @brief This method computes the are of the triangle defined by the three given coordinates
+     */
     double CalculateArea(
         const array_3 &r_coord_1,
         const array_3 &r_coord_2,

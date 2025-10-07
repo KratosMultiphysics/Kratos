@@ -48,35 +48,7 @@ void CSDSG3ThickShellElement3D3N::Initialize(const ProcessInfo& rCurrentProcessI
         if (mConstitutiveLawVector.size() != r_integration_points.size())
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
-        InitializeSubtriangles();
     }
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void CSDSG3ThickShellElement3D3N::InitializeSubtriangles()
-{
-    KRATOS_TRY
-
-    if (mpSubTriangulationGeometries.size() != 3)
-        mpSubTriangulationGeometries.resize(3);
-
-    const auto &r_geometry = GetGeometry();
-    const auto &r_points = r_geometry.Points();
-
-    // Compute barycenter coordinates
-    const auto &r_center_coords = r_geometry.Center();
-    auto p_barycenter = Kratos::make_intrusive<NodeType>(r_center_coords[0], r_center_coords[1], r_center_coords[2]);
-    auto p_node_1 = Kratos::make_intrusive<NodeType>(r_geometry[0].X(), r_geometry[0].Y(), r_geometry[0].Z());
-    auto p_node_2 = Kratos::make_intrusive<NodeType>(r_geometry[1].X(), r_geometry[1].Y(), r_geometry[1].Z());
-    auto p_node_3 = Kratos::make_intrusive<NodeType>(r_geometry[2].X(), r_geometry[2].Y(), r_geometry[2].Z());
-
-    mpSubTriangulationGeometries[0] = Kratos::make_shared<Triangle3D3<NodeType>>(p_barycenter, p_node_1, p_node_2);
-    mpSubTriangulationGeometries[1] = Kratos::make_shared<Triangle3D3<NodeType>>(p_barycenter, p_node_2, p_node_3);
-    mpSubTriangulationGeometries[2] = Kratos::make_shared<Triangle3D3<NodeType>>(p_barycenter, p_node_3, p_node_1);
-
     KRATOS_CATCH("")
 }
 
@@ -124,9 +96,6 @@ Element::Pointer CSDSG3ThickShellElement3D3N::Clone(
 
     // The vector containing the constitutive laws
     p_new_elem->SetConstitutiveLawVector(mConstitutiveLawVector);
-
-    // The triangulation geometries
-    p_new_elem->SetSubTriangulationGeometries(mpSubTriangulationGeometries);
 
     return p_new_elem;
 
@@ -219,7 +188,7 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
 )
 {
     const IndexType strain_size = GetStrainSize();
-    const IndexType number_of_nodes = GetGeometry()->PointsNumber();
+    const IndexType number_of_nodes = GetGeometry().PointsNumber();
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
 
     if (rB.size1() != strain_size || rB.size2() != system_size)
@@ -242,7 +211,7 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const double x3 = local_coords_3[0];
     const double y3 = local_coords_3[1];
     
-    const double twice_area = CalculateArea(local_coords_1, local_coords_2, local_coords_3) * 2.0;
+    const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
     const double x12 = x1 - x2;
     const double x23 = x2 - x3;
@@ -258,18 +227,18 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const double y13 = -y31;
     const double y21 = -y12;
 
-    const double a = coords_2[0] - coords_1[0];
-    const double b = coords_2[1] - coords_1[1];
-    const double c = coords_3[1] - coords_1[1];
-    const double d = coords_3[0] - coords_1[0];
+    const double a = x21;
+    const double b = y21;
+    const double c = y31;
+    const double d = x31;
 
     const double aux_prod = 0.5 / area;
-    const double N1_x = aux_prod * (coords_2[1] - coords_3[1]);
-    const double N1_y = aux_prod * (coords_3[0] - coords_2[0]);
-    const double N2_x = aux_prod * (coords_3[1] - coords_1[1]);
-    const double N2_y = aux_prod * (coords_1[0] - coords_3[0]);
-    const double N3_x = aux_prod * (coords_1[1] - coords_2[1]);
-    const double N3_y = aux_prod * (coords_2[0] - coords_1[0]);
+    const double N1_x = aux_prod * y23;
+    const double N1_y = aux_prod * x32;
+    const double N2_x = aux_prod * y31;
+    const double N2_y = aux_prod * x13;
+    const double N3_x = aux_prod * y12;
+    const double N3_y = aux_prod * x21;
 
     // Membrane components
     rB(0, 0) = N1_x;
@@ -307,22 +276,22 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     // Bs1
     rB(6, 2) = aux_prod * (b - c);
     rB(6, 4) = 0.5;
-    rB(7, 2) = aux_prod * (d - a);
+    rB(7, 2) = aux_prod * (d - x21);
     rB(7, 3) = -0.5;
     // Bs2
     rB(6, 8) = aux_prod * c;
     rB(6, 9) = aux_prod * (-b * c) * 0.5;
-    rB(6, 10) = aux_prod * (a * c) * 0.5;
+    rB(6, 10) = aux_prod * (x21 * c) * 0.5;
     rB(7, 8) = aux_prod * (-d);
     rB(7, 9) = aux_prod * (b * d) * 0.5;
-    rB(7, 10) = aux_prod * (-a * d) * 0.5;
+    rB(7, 10) = aux_prod * (-x21 * d) * 0.5;
     // Bs3
     rB(6, 14) = aux_prod * (-b);
     rB(6, 15) = aux_prod * (b * c) * 0.5;
     rB(6, 16) = aux_prod * (b * d) * 0.5;
-    rB(7, 14) = aux_prod * a;
-    rB(7, 15) = aux_prod * (-a * c) * 0.5;
-    rB(7, 16) = aux_prod * (a * d) * 0.5;
+    rB(7, 14) = aux_prod * x21;
+    rB(7, 15) = aux_prod * (-x21 * c) * 0.5;
+    rB(7, 16) = aux_prod * (x21 * d) * 0.5;
 }
 
 /***********************************************************************************/
@@ -332,21 +301,21 @@ void CSDSG3ThickShellElement3D3N::CalculateB(
     MatrixType &rB
 )
 {
-    const IndexType strain_size = GetStrainSize();
-    const IndexType number_of_nodes = GetGeometry().PointsNumber();
-    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+    // const IndexType strain_size = GetStrainSize();
+    // const IndexType number_of_nodes = GetGeometry().PointsNumber();
+    // const IndexType system_size = number_of_nodes * GetDoFsPerNode();
 
-    if (rB.size1() != strain_size || rB.size2() != system_size)
-        rB.resize(strain_size, system_size, false);
-    rB.clear();
+    // if (rB.size1() != strain_size || rB.size2() != system_size)
+    //     rB.resize(strain_size, system_size, false);
+    // rB.clear();
 
-    MatrixType B_triangle(strain_size, system_size);
+    // MatrixType B_triangle(strain_size, system_size);
 
-    for (IndexType i = 0; i < 3; ++i) {
-        CalculateBTriangle(B_triangle, mpSubTriangulationGeometries[i]); // clear inside
-        noalias(rB) += mpSubTriangulationGeometries[i]->Area() * B_triangle;
-    }
-    rB /= GetGeometry().Area();
+    // for (IndexType i = 0; i < 3; ++i) {
+    //     CalculateBTriangle(B_triangle, mpSubTriangulationGeometries[i]); // clear inside
+    //     noalias(rB) += mpSubTriangulationGeometries[i]->Area() * B_triangle;
+    // }
+    // rB /= GetGeometry().Area();
 }
 
 /***********************************************************************************/
@@ -411,7 +380,6 @@ void CSDSG3ThickShellElement3D3N::save(Serializer& rSerializer) const
     int IntMethod = int(this->GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
-    rSerializer.save("SubTriangulationGeometries", mpSubTriangulationGeometries);
 }
 
 /***********************************************************************************/
@@ -424,7 +392,6 @@ void CSDSG3ThickShellElement3D3N::load(Serializer& rSerializer)
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
-    rSerializer.load("SubTriangulationGeometries", mpSubTriangulationGeometries);
 }
 
 } // Namespace Kratos
