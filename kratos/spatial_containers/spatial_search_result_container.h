@@ -108,9 +108,8 @@ public:
 
     /**
      * @brief Constructor
-     * @param rDataCommunicator The data communicator
      */
-    SpatialSearchResultContainer(const DataCommunicator& rDataCommunicator);
+    SpatialSearchResultContainer();
 
     /// Destructor.
     virtual ~SpatialSearchResultContainer() = default;
@@ -447,30 +446,34 @@ public:
     void Clear();
 
     /**
-     * @brief Generate the global pointer communicator
+     * @brief Generate the global pointer communicator.
+     * @param rDataCommunicator The data communicator.
      */
-    void GenerateGlobalPointerCommunicator();
+    void GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator);
 
     /**
      * @brief Synchronize the container between partitions
      * @details This method synchronizes the container between partitions
+     * @param rDataCommunicator The data communicator.
      */
-    void SynchronizeAll();
+    void SynchronizeAll(const DataCommunicator& rDataCommunicator);
 
     /**
      * @brief Retrieves if inside the geometry
-     * @param rPoint The point coordinates
-     * @param Tolerance The tolerance considered
+     * @param rPoint The point coordinates.
+     * @param rDataCommunicator The data communicator.
+     * @param Tolerance The tolerance considered.
      * @return A vector containing all the booleans showing is inside the geometry
      */
     std::vector<bool> GetResultIsInside(
         const array_1d<double, 3>& rPoint,
+        const DataCommunicator& rDataCommunicator,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         );
 
     /**
      * @brief Considers the global pointer communicator to get the shape functions of the resulting object
-     * @param rPoint The point coordinates
+     * @param rPoint The point coordinates.
      * @return A vector containing all the shape functions
      */
     std::vector<Vector> GetResultShapeFunctions(const array_1d<double, 3>& rPoint);
@@ -479,8 +482,12 @@ public:
      * @brief Removes elements from the given ranks.
      * @details This function takes a list of ranks and removes the elements at those ranks from the list.
      * @param rRanks A constant reference to a std::vector<int> containing the ranks where no local solution is expected.
+     * @param rDataCommunicator The data communicator.
      */
-    void RemoveResultsFromRanksList(const std::vector<int>& rRanks);
+    void RemoveResultsFromRanksList(
+        const std::vector<int>& rRanks,
+        const DataCommunicator& rDataCommunicator
+        );
 
     /**
      * @brief Removes elements at specified indexes from a list.
@@ -501,16 +508,6 @@ public:
     ///@}
     ///@name Access
     ///@{
-
-    /**
-     * @brief Accessor for mDataCommunicator.
-     * @details This method returns a reference to the DataCommunicator mDataCommunicator.
-     * @return A reference to the DataCommunicator mDataCommunicator.
-     */
-    const DataCommunicator& GetDataCommunicator()
-    {
-        return mrDataCommunicator;
-    }
 
     /**
      * @brief Accessor for mLocalResults.
@@ -595,13 +592,17 @@ public:
 
     /**
      * @brief Check if the search rank is the same as the rank of the data communicator.
+     * @param rDataCommunicator The data communicator.
      * @param GlobalIndex The global index of the search.
      * @return true if the ranks match, false otherwise.
      */
-    bool IsLocalSearch(const IndexType GlobalIndex = 0)
+    bool IsLocalSearch(
+        const DataCommunicator& rDataCommunicator,
+        const IndexType GlobalIndex = 0
+        )
     {
-        const auto result_rank = GetResultRank();
-        return result_rank[GlobalIndex] == mrDataCommunicator.Rank();
+        const auto result_rank = GetResultRank(rDataCommunicator);
+        return result_rank[GlobalIndex] == rDataCommunicator.Rank();
     }
 
     ///@}
@@ -622,7 +623,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    const DataCommunicator& mrDataCommunicator;                                 /// The data communicator
     LocalResultsVector mLocalResults;                                           /// Local results
     GlobalResultsVector mGlobalResults;                                         /// Global results
 
@@ -655,14 +655,15 @@ private:
     }
 
     /**
-     * @brief Retrieves the rank of the entity
-     * @return A vector containing all the ranks of the entity
+     * @brief Retrieves the rank of the entity.
+     * @param rDataCommunicator The data communicator.
+     * @return A vector containing all the ranks of the entity.
      */
-    std::vector<int> GetResultRank();
+    std::vector<int> GetResultRank(const DataCommunicator& rDataCommunicator);
 
     /**
-     * @brief Considers the global pointer communicator to get the indices of the resulting object
-     * @return A vector containing all the indices
+     * @brief Considers the global pointer communicator to get the indices of the resulting object.
+     * @return A vector containing all the indices.
      */
     std::vector<IndexType> GetResultIndices();
 
