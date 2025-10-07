@@ -64,45 +64,45 @@ def CreateSearch(model_part, data_comm, search_type, entity_type = "Conditions")
     """
     if search_type == "Octree":
         if entity_type == "Conditions":
-            search = KM.SearchWrapperOCTreeCondition(model_part.Conditions, data_comm)
+            search = KM.ParallelSpatialSearchOCTreeCondition(model_part.Conditions, data_comm)
         elif entity_type == "Elements":
-            search = KM.SearchWrapperOCTreeElement(model_part.Elements, data_comm)
+            search = KM.ParallelSpatialSearchOCTreeElement(model_part.Elements, data_comm)
         elif entity_type == "Nodes":
-            search = KM.SearchWrapperOCTreeNode(model_part.Nodes, data_comm)
+            search = KM.ParallelSpatialSearchOCTreeNode(model_part.Nodes, data_comm)
         else:
             raise Exception("Invalid entity type: " + entity_type)
     elif search_type == "KDTree":
         if entity_type == "Conditions":
-            search = KM.SearchWrapperKDTreeCondition(model_part.Conditions, data_comm)
+            search = KM.ParallelSpatialSearchKDTreeCondition(model_part.Conditions, data_comm)
         elif entity_type == "Elements":
-            search = KM.SearchWrapperKDTreeElement(model_part.Elements, data_comm)
+            search = KM.ParallelSpatialSearchKDTreeElement(model_part.Elements, data_comm)
         elif entity_type == "Nodes":
-            search = KM.SearchWrapperKDTreeNode(model_part.Nodes, data_comm)
+            search = KM.ParallelSpatialSearchKDTreeNode(model_part.Nodes, data_comm)
         else:
             raise Exception("Invalid entity type: " + entity_type)
     elif search_type == "StaticBinsTree":
         if entity_type == "Conditions":
-            search = KM.SearchWrapperStaticBinsTreeCondition(model_part.Conditions, data_comm)
+            search = KM.ParallelSpatialSearchStaticBinsTreeCondition(model_part.Conditions, data_comm)
         elif entity_type == "Elements":
-            search = KM.SearchWrapperStaticBinsTreeElement(model_part.Elements, data_comm)
+            search = KM.ParallelSpatialSearchStaticBinsTreeElement(model_part.Elements, data_comm)
         elif entity_type == "Nodes":
-            search = KM.SearchWrapperStaticBinsTreeNode(model_part.Nodes, data_comm)
+            search = KM.ParallelSpatialSearchStaticBinsTreeNode(model_part.Nodes, data_comm)
         else:
             raise Exception("Invalid entity type: " + entity_type)
     elif search_type == "DynamicBins":
         if entity_type == "Conditions":
-            search = KM.SearchWrapperDynamicBinsCondition(model_part.Conditions, data_comm)
+            search = KM.ParallelSpatialSearchDynamicBinsCondition(model_part.Conditions, data_comm)
         elif entity_type == "Elements":
-            search = KM.SearchWrapperDynamicBinsElement(model_part.Elements, data_comm)
+            search = KM.ParallelSpatialSearchDynamicBinsElement(model_part.Elements, data_comm)
         elif entity_type == "Nodes":
-            search = KM.SearchWrapperDynamicBinsNode(model_part.Nodes, data_comm)
+            search = KM.ParallelSpatialSearchDynamicBinsNode(model_part.Nodes, data_comm)
         else:
             raise Exception("Invalid entity type: " + entity_type)
     elif search_type == "GeometricalObjectBins":
         if entity_type == "Conditions":
-            search = KM.SearchWrapperGeometricalObjectBins(model_part.Conditions, data_comm)
+            search = KM.ParallelSpatialSearchGeometricalObjectBins(model_part.Conditions, data_comm)
         elif entity_type == "Elements":
-            search = KM.SearchWrapperGeometricalObjectBins(model_part.Elements, data_comm)
+            search = KM.ParallelSpatialSearchGeometricalObjectBins(model_part.Elements, data_comm)
         else:
             raise Exception("Invalid entity type: " + entity_type)
     else:
@@ -110,9 +110,9 @@ def CreateSearch(model_part, data_comm, search_type, entity_type = "Conditions")
 
     return search
 
-class TestSearchWrapper(KratosUnittest.TestCase):
+class TestParallelSpatialSearch(KratosUnittest.TestCase):
     """
-    A test class for the SearchWrapperGeometricalObjectBins class.
+    A test class for the ParallelSpatialSearchGeometricalObjectBins class.
 
     This class is used to test the functionality of the GeometricalObjectBins search wrapper
     for searching and querying geometric objects within a specified radius.
@@ -125,7 +125,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         data_comm (KM.DataCommunicator): The data communicator for parallel execution.
         node_id (int): The ID of the test node.
         node (KM.Node): The test node used for searching.
-        search (KM.SearchWrapperGeometricalObjectBins): The search wrapper instance for testing.
+        search (KM.ParallelSpatialSearchGeometricalObjectBins): The search wrapper instance for testing.
 
     Methods:
         setUpClass(cls):
@@ -137,16 +137,16 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         setUp(self):
             Set up for each individual test.
 
-        test_SearchWrapperGeometricalObjectBins_SearchInRadius(self):
+        test_ParallelSpatialSearchGeometricalObjectBins_SearchInRadius(self):
             Test for the 'SearchInRadius' method of the GeometricalObjectBins search wrapper.
 
-        test_SearchWrapperGeometricalObjectBins_SearchNearestInRadius(self):
+        test_ParallelSpatialSearchGeometricalObjectBins_SearchNearestInRadius(self):
             Test for the 'SearchNearestInRadius' method of the GeometricalObjectBins search wrapper.
 
-        test_SearchWrapperGeometricalObjectBins_SearchNearest(self):
+        test_ParallelSpatialSearchGeometricalObjectBins_SearchNearest(self):
             Test for the 'SearchNearest' method of the GeometricalObjectBins search wrapper.
 
-        test_SearchWrapperGeometricalObjectBins_SearchIsInside(self):
+        test_ParallelSpatialSearchGeometricalObjectBins_SearchIsInside(self):
             Test for the 'SearchIsInside' method of the GeometricalObjectBins search wrapper.
     """
     @classmethod
@@ -289,25 +289,25 @@ class TestSearchWrapper(KratosUnittest.TestCase):
             else:
                 self.assertAlmostEqual(ids[0], 0.106584, 6)
 
-    def test_SearchWrapperGeometricalObjectBins_SearchInRadius(self):
+    def test_ParallelSpatialSearchGeometricalObjectBins_SearchInRadius(self):
         """
         Test for the 'SearchInRadius' method of the GeometricalObjectBins search wrapper.
         """
         self._SearchInRadius("GeometricalObjectBins")
 
-    def test_SearchWrapperGeometricalObjectBins_SearchNearestInRadius(self):
+    def test_ParallelSpatialSearchGeometricalObjectBins_SearchNearestInRadius(self):
         """
         Test for the 'SearchNearestInRadius' method of the GeometricalObjectBins search wrapper.
         """
         self._SearchNearestInRadius("GeometricalObjectBins")
 
-    def test_SearchWrapperGeometricalObjectBins_SearchNearest(self):
+    def test_ParallelSpatialSearchGeometricalObjectBins_SearchNearest(self):
         """
         Test for the 'SearchNearest' method of the GeometricalObjectBins search wrapper.
         """
         self._SearchNearest("GeometricalObjectBins")
 
-    def test_SearchWrapperGeometricalObjectBins_SearchIsInside(self):
+    def test_ParallelSpatialSearchGeometricalObjectBins_SearchIsInside(self):
         """
         Test for the 'SearchIsInside' method of the GeometricalObjectBins search wrapper.
         """
@@ -325,79 +325,79 @@ class TestSearchWrapper(KratosUnittest.TestCase):
             node_results = results[0]
             self.assertFalse(node_results.IsObjectFound())
 
-    def test_SearchWrapperKDTree_SearchInRadius(self):
+    def test_ParallelSpatialSearchKDTree_SearchInRadius(self):
         """
         Test for the 'SearchInRadius' method of the KDTree search wrapper.
         """
         self._SearchInRadius("KDTree")
 
-    def test_SearchWrapperKDTree_SearchNearestInRadius(self):
+    def test_ParallelSpatialSearchKDTree_SearchNearestInRadius(self):
         """
         Test for the 'SearchNearestInRadius' method of the KDTree search wrapper.
         """
         self._SearchNearestInRadius("KDTree")
 
-    def test_SearchWrapperKDTree_SearchNearest(self):
+    def test_ParallelSpatialSearchKDTree_SearchNearest(self):
         """
         Test for the 'SearchNearest' method of the KDTree search wrapper.
         """
         self._SearchNearest("KDTree")
 
-    def test_SearchWrapperOctree_SearchInRadius(self):
+    def test_ParallelSpatialSearchOctree_SearchInRadius(self):
         """
         Test for the 'SearchInRadius' method of the Octree search wrapper.
         """
         self._SearchInRadius("Octree")
 
-    def test_SearchWrapperOctree_SearchNearestInRadius(self):
+    def test_ParallelSpatialSearchOctree_SearchNearestInRadius(self):
         """
         Test for the 'SearchNearestInRadius' method of the Octree search wrapper.
         """
         self._SearchNearestInRadius("Octree")
 
-    def test_SearchWrapperOctree_SearchNearest(self):
+    def test_ParallelSpatialSearchOctree_SearchNearest(self):
         """
         Test for the 'SearchNearest' method of the Octree search wrapper.
         """
         self._SearchNearest("Octree")
 
-    def test_SearchWrapperDynamicBins_SearchInRadius(self):
+    def test_ParallelSpatialSearchDynamicBins_SearchInRadius(self):
         """
         Test for the 'SearchInRadius' method of the DynamicBins search wrapper.
         """
         self._SearchInRadius("DynamicBins")
 
-    def test_SearchWrapperDynamicBins_SearchNearestInRadius(self):
+    def test_ParallelSpatialSearchDynamicBins_SearchNearestInRadius(self):
         """
         Test for the 'SearchNearestInRadius' method of the DynamicBins search wrapper.
         """
         self._SearchNearestInRadius("DynamicBins")
 
-    def test_SearchWrapperDynamicBins_SearchNearest(self):
+    def test_ParallelSpatialSearchDynamicBins_SearchNearest(self):
         """
         Test for the 'SearchNearest' method of the DynamicBins search wrapper.
         """
         self._SearchNearest("DynamicBins")
 
-    def test_SearchWrapperStaticBinsTree_SearchInRadius(self):
+    def test_ParallelSpatialSearchStaticBinsTree_SearchInRadius(self):
         """
         Test for the 'SearchInRadius' method of the StaticBinsTree search wrapper.
         """
         self._SearchInRadius("StaticBinsTree")
 
-    def test_SearchWrapperStaticBinsTree_SearchNearestInRadius(self):
+    def test_ParallelSpatialSearchStaticBinsTree_SearchNearestInRadius(self):
         """
         Test for the 'SearchNearestInRadius' method of the StaticBinsTree search wrapper.
         """
         self._SearchNearestInRadius("StaticBinsTree")
 
-    def test_SearchWrapperStaticBinsTree_SearchNearest(self):
+    def test_ParallelSpatialSearchStaticBinsTree_SearchNearest(self):
         """
         Test for the 'SearchNearest' method of the StaticBinsTree search wrapper.
         """
         self._SearchNearest("StaticBinsTree")
 
-class TestSearchWrapperSmallSquare(KratosUnittest.TestCase):
+class TestParallelSpatialSearchSmallSquare(KratosUnittest.TestCase):
     """
 
     """
@@ -493,13 +493,13 @@ class TestSearchWrapperSmallSquare(KratosUnittest.TestCase):
                     for id in ids:
                         self.assertTrue(id in ref_ids)
 
-    def test_SearchWrapperKDTree_SearchInRadius_Nodes(self):
+    def test_ParallelSpatialSearchKDTree_SearchInRadius_Nodes(self):
         """
         Test for the 'SearchInRadius' method of the KDTree search wrapper for nodes.
         """
         self._SearchInRadius("Nodes")
 
-    def test_SearchWrapperKDTree_SearchInRadius_Elements(self):
+    def test_ParallelSpatialSearchKDTree_SearchInRadius_Elements(self):
         """
         Test for the 'SearchInRadius' method of the KDTree search wrapper for elements.
         """

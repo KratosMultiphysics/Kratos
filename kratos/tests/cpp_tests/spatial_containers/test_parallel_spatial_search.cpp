@@ -17,7 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "spatial_containers/search_wrapper.h"
+#include "spatial_containers/parallel_spatial_search.h"
 #include "includes/data_communicator.h"
 #include "containers/model.h"
 #include "geometries/triangle_3d_3.h"
@@ -27,11 +27,11 @@ namespace Kratos::Testing
 {
 
 // Definition of the geometrical object bins search wrapper
-using SearchWrapperGeometricalObjectsBins = SearchWrapper<GeometricalObjectsBins>;
+using ParallelSpatialSearchGeometricalObjectsBins = ParallelSpatialSearch<GeometricalObjectsBins>;
 
-/** Checks SearchWrapper works for GeometricalObjectBins search in radius
+/** Checks ParallelSpatialSearch works for GeometricalObjectBins search in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchInRadius, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchInRadius, KratosCoreFastSuite)
 {
     Model current_model;
 
@@ -40,14 +40,14 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchInRadius, Kra
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
     auto p_point = r_point_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
+    ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
 
     // 0.29 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
@@ -86,9 +86,9 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchInRadius, Kra
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
 }
 
-/** Checks SearchWrapper works for GeometricalObjectBins search nearest
+/** Checks ParallelSpatialSearch works for GeometricalObjectBins search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearestInRadius, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchNearestInRadius, KratosCoreFastSuite)
 {
     constexpr double tolerance = 1e-12;
 
@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearestInRadi
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
 
     double epsilon = 1.0e-6;
 
@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearestInRadi
     auto p_near_point = r_point_model_part.CreateNewNode(1, epsilon,epsilon,epsilon);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
+    ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -133,9 +133,9 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearestInRadi
     KRATOS_EXPECT_EQ(id, 3);
 }
 
-/** Checks SearchWrapper works for GeometricalObjectBins search nearest
+/** Checks ParallelSpatialSearch works for GeometricalObjectBins search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearest, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchNearest, KratosCoreFastSuite)
 {
     constexpr double tolerance = 1e-12;
 
@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearest, Krat
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
 
     double epsilon = 1.0e-6;
 
@@ -158,7 +158,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearest, Krat
     auto p_near_point = r_point_model_part.CreateNewNode(1, epsilon,epsilon,epsilon);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
+    ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -175,9 +175,9 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearest, Krat
     KRATOS_EXPECT_EQ(id, 3);
 }
 
-/** Checks SearchWrapper works for GeometricalObjectBins empty search nearest
+/** Checks ParallelSpatialSearch works for GeometricalObjectBins empty search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsEmptySearchNearest, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsEmptySearchNearest, KratosCoreFastSuite)
 {
     Model current_model;
 
@@ -186,23 +186,23 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsEmptySearchNearest,
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
     auto p_point = r_point_model_part.CreateNewNode(1, 0.0,0.0,0.0);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
+    ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
 }
 
-/** Checks SearchWrapper works for GeometricalObjectBins search is inside 
+/** Checks ParallelSpatialSearch works for GeometricalObjectBins search is inside 
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsInside, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchIsInside, KratosCoreFastSuite)
 {
     Model current_model;
 
@@ -211,14 +211,14 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsInside, Kra
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
     auto p_inside_point = r_point_model_part.CreateNewNode(1, 0.5,0.5,0.5);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
+    ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
     search_wrapper.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -226,9 +226,9 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsInside, Kra
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
 }
 
-/** Checks SearchWrapper works for GeometricalObjectBins search is inside = not found
+/** Checks ParallelSpatialSearch works for GeometricalObjectBins search is inside = not found
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsNotInside, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchIsNotInside, KratosCoreFastSuite)
 {
     Model current_model;
 
@@ -237,14 +237,14 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsNotInside, 
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
     auto p_outside_point = r_point_model_part.CreateNewNode(1, 100.0,100.0,100.0);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    SearchWrapperGeometricalObjectsBins::ResultContainerVectorType results;
+    ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
     search_wrapper.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -252,17 +252,17 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsNotInside, 
 }
 
 // Definition of the trees search wrapper
-using SearchWrapperKDTreeElement = SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
-using SearchWrapperOCTreeElement = SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
-using SearchWrapperStaticBinsTreeElement = SearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>;
-using SearchWrapperBinsDynamicElement = SearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>;
+using ParallelSpatialSearchKDTreeElement = ParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
+using ParallelSpatialSearchOCTreeElement = ParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
+using ParallelSpatialSearchStaticBinsTreeElement = ParallelSpatialSearch<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>;
+using ParallelSpatialSearchBinsDynamicElement = ParallelSpatialSearch<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>;
 
 /**
  * @brief A function to test tree-based search in a specified radius.
  * @details This function tests the tree-based search algorithm within a specified radius.
- * @tparam TSearchWrapper The type of the search wrapper.
+ * @tparam TParallelSpatialSearch The type of the search wrapper.
  */
-template<class TSearchWrapper>
+template<class TParallelSpatialSearch>
 void TestTreeSearchInRadius()
 {
     Model current_model;
@@ -272,14 +272,14 @@ void TestTreeSearchInRadius()
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    TSearchWrapper search_wrapper(r_skin_part.Elements(), serial_communicator);
+    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
     auto p_point = r_point_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
 
     // 0.3 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
@@ -294,40 +294,40 @@ void TestTreeSearchInRadius()
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
 }
 
-/** Checks SearchWrapper works for KDTreeElement search in radius
+/** Checks ParallelSpatialSearch works for KDTreeElement search in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperKDTreeElementSearchInRadius, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchKDTreeElementSearchInRadius, KratosCoreFastSuite)
 {
-    TestTreeSearchInRadius<SearchWrapperKDTreeElement>();
+    TestTreeSearchInRadius<ParallelSpatialSearchKDTreeElement>();
 }
 
-/** Checks SearchWrapper works for OCTreeElement search in radius
+/** Checks ParallelSpatialSearch works for OCTreeElement search in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperOCTreeElementSearchInRadius, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchOCTreeElementSearchInRadius, KratosCoreFastSuite)
 {
-    TestTreeSearchInRadius<SearchWrapperOCTreeElement>();
+    TestTreeSearchInRadius<ParallelSpatialSearchOCTreeElement>();
 }
 
-/** Checks SearchWrapper works for StaticBinsTree search in radius
+/** Checks ParallelSpatialSearch works for StaticBinsTree search in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperStaticBinsTreeElementSearchInRadius, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchStaticBinsTreeElementSearchInRadius, KratosCoreFastSuite)
 {
-    TestTreeSearchInRadius<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchInRadius<ParallelSpatialSearchStaticBinsTreeElement>();
 }
 
-/** Checks SearchWrapper works for BinsDynamicElement search in radius
+/** Checks ParallelSpatialSearch works for BinsDynamicElement search in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperBinsDynamicElementSearchInRadius, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchBinsDynamicElementSearchInRadius, KratosCoreFastSuite)
 {
-    TestTreeSearchInRadius<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchInRadius<ParallelSpatialSearchBinsDynamicElement>();
 }
 
 /**
  * @brief A function to test tree-based nearest search in a specified radius.
  * @details This function tests the tree-based nearest search algorithm within a specified radius.
- * @tparam TSearchWrapper The type of the search wrapper.
+ * @tparam TParallelSpatialSearch The type of the search wrapper.
  */
-template<class TSearchWrapper>
+template<class TParallelSpatialSearch>
 void TestTreeSearchNearestInRadius()
 {
     constexpr double tolerance = 1e-6;
@@ -342,7 +342,7 @@ void TestTreeSearchNearestInRadius()
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    TSearchWrapper search_wrapper(r_skin_part.Elements(), serial_communicator);
+    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), serial_communicator);
 
     double epsilon = 1.0e-6;
 
@@ -351,7 +351,7 @@ void TestTreeSearchNearestInRadius()
     auto p_near_point = r_point_model_part.CreateNewNode(1, epsilon,epsilon,epsilon);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z, results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -373,40 +373,40 @@ void TestTreeSearchNearestInRadius()
     KRATOS_EXPECT_EQ(id, 4);
 }
 
-/** Checks SearchWrapper works for KDTreeElement search nearest in radius
+/** Checks ParallelSpatialSearch works for KDTreeElement search nearest in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperKDTreeElementSearchNearestInRadius, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchKDTreeElementSearchNearestInRadius, KratosCoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperKDTreeElement>();
+    TestTreeSearchNearestInRadius<ParallelSpatialSearchKDTreeElement>();
 }
 
-/** Checks SearchWrapper works for OCTreeElement search nearest in radius
+/** Checks ParallelSpatialSearch works for OCTreeElement search nearest in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperOCTreeElementSearchNearestInRadius, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchOCTreeElementSearchNearestInRadius, KratosCoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperOCTreeElement>();
+    TestTreeSearchNearestInRadius<ParallelSpatialSearchOCTreeElement>();
 }
 
-/** Checks SearchWrapper works for StaticBinsTree search nearest in radius
+/** Checks ParallelSpatialSearch works for StaticBinsTree search nearest in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperStaticBinsTreeElementSearchNearestInRadius, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchStaticBinsTreeElementSearchNearestInRadius, KratosCoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchNearestInRadius<ParallelSpatialSearchStaticBinsTreeElement>();
 }
 
-/** Checks SearchWrapper works for BinsDynamicElement search nearest in radius
+/** Checks ParallelSpatialSearch works for BinsDynamicElement search nearest in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperBinsDynamicElementSearchNearestInRadius, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchBinsDynamicElementSearchNearestInRadius, KratosCoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchNearestInRadius<ParallelSpatialSearchBinsDynamicElement>();
 }
 
 /**
  * @brief A function to test tree-based nearest search
  * @details This function tests the tree-based nearest search algorithm
- * @tparam TSearchWrapper The type of the search wrapper.
+ * @tparam TParallelSpatialSearch The type of the search wrapper.
  */
-template<class TSearchWrapper>
+template<class TParallelSpatialSearch>
 void TestTreeSearchNearest()
 {
     constexpr double tolerance = 1e-6;
@@ -421,7 +421,7 @@ void TestTreeSearchNearest()
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    TSearchWrapper search_wrapper(r_skin_part.Elements(), serial_communicator);
+    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), serial_communicator);
 
     double epsilon = 1.0e-6;
 
@@ -430,7 +430,7 @@ void TestTreeSearchNearest()
     auto p_near_point = r_point_model_part.CreateNewNode(1, epsilon,epsilon,epsilon);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -447,40 +447,40 @@ void TestTreeSearchNearest()
     KRATOS_EXPECT_EQ(id, 4);
 }
 
-/** Checks SearchWrapper works for KDTreeElement search nearest
+/** Checks ParallelSpatialSearch works for KDTreeElement search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperKDTreeElementSearchNearest, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchKDTreeElementSearchNearest, KratosCoreFastSuite)
 {
-    TestTreeSearchNearest<SearchWrapperKDTreeElement>();
+    TestTreeSearchNearest<ParallelSpatialSearchKDTreeElement>();
 }
 
-/** Checks SearchWrapper works for OCTreeElement search nearest
+/** Checks ParallelSpatialSearch works for OCTreeElement search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperOCTreeElementSearchNearest, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchOCTreeElementSearchNearest, KratosCoreFastSuite)
 {
-    TestTreeSearchNearest<SearchWrapperOCTreeElement>();
+    TestTreeSearchNearest<ParallelSpatialSearchOCTreeElement>();
 }
 
-/** Checks SearchWrapper works for StaticBinsTree search nearest
+/** Checks ParallelSpatialSearch works for StaticBinsTree search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperStaticBinsTreeElementSearchNearest, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchStaticBinsTreeElementSearchNearest, KratosCoreFastSuite)
 {
-    TestTreeSearchNearest<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchNearest<ParallelSpatialSearchStaticBinsTreeElement>();
 }
 
-/** Checks SearchWrapper works for BinsDynamicElement search nearest
+/** Checks ParallelSpatialSearch works for BinsDynamicElement search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperBinsDynamicElementSearchNearest, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchBinsDynamicElementSearchNearest, KratosCoreFastSuite)
 {
-    TestTreeSearchNearest<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchNearest<ParallelSpatialSearchBinsDynamicElement>();
 }
 
 /**
  * @brief A function to test tree-based nearest search (empty)
  * @details This function tests the tree-based nearest search algorithm (empty)
- * @tparam TSearchWrapper The type of the search wrapper.
+ * @tparam TParallelSpatialSearch The type of the search wrapper.
  */
-template<class TSearchWrapper>
+template<class TParallelSpatialSearch>
 void TestTreeSearchNearestEmpty()
 {
     Model current_model;
@@ -490,46 +490,46 @@ void TestTreeSearchNearestEmpty()
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    TSearchWrapper search_wrapper(r_skin_part.Elements(), serial_communicator);
+    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
     auto p_point = r_point_model_part.CreateNewNode(1, 0.0,0.0,0.0);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
 }
 
-/** Checks SearchWrapper works for KDTreeElement search nearest
+/** Checks ParallelSpatialSearch works for KDTreeElement search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperKDTreeElementSearchNearestEmpty, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchKDTreeElementSearchNearestEmpty, KratosCoreFastSuite)
 {
-    TestTreeSearchNearestEmpty<SearchWrapperKDTreeElement>();
+    TestTreeSearchNearestEmpty<ParallelSpatialSearchKDTreeElement>();
 }
 
-/** Checks SearchWrapper works for OCTreeElement search nearest
+/** Checks ParallelSpatialSearch works for OCTreeElement search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperOCTreeElementSearchNearestEmpty, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchOCTreeElementSearchNearestEmpty, KratosCoreFastSuite)
 {
-    TestTreeSearchNearestEmpty<SearchWrapperOCTreeElement>();
+    TestTreeSearchNearestEmpty<ParallelSpatialSearchOCTreeElement>();
 }
 
-/** Checks SearchWrapper works for StaticBinsTree search nearest
+/** Checks ParallelSpatialSearch works for StaticBinsTree search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperStaticBinsTreeElementSearchNearestEmpty, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchStaticBinsTreeElementSearchNearestEmpty, KratosCoreFastSuite)
 {
-    TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchNearestEmpty<ParallelSpatialSearchStaticBinsTreeElement>();
 }
 
-/** Checks SearchWrapper works for BinsDynamicElement search nearest
+/** Checks ParallelSpatialSearch works for BinsDynamicElement search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(SearchWrapperBinsDynamicElementSearchNearestEmpty, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchBinsDynamicElementSearchNearestEmpty, KratosCoreFastSuite)
 {
-    TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchNearestEmpty<ParallelSpatialSearchBinsDynamicElement>();
 }
 
 } // namespace Kratos::Testing.

@@ -38,7 +38,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class SearchWrapper
+ * @class ParallelSpatialSearch
  * @ingroup KratosCore
  * @brief This is a search wrapper ready for MPI searches
  * @details Must be adapted and specialized for every search object
@@ -47,14 +47,14 @@ namespace Kratos
  * @tparam TSpatialSearchCommunication The communication type to be used
  */
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication = SpatialSearchCommunication::SYNCHRONOUS>
-class KRATOS_API(KRATOS_CORE) SearchWrapper
+class KRATOS_API(KRATOS_CORE) ParallelSpatialSearch
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SearchWrapper
-    KRATOS_CLASS_POINTER_DEFINITION(SearchWrapper);
+    /// Pointer definition of ParallelSpatialSearch
+    KRATOS_CLASS_POINTER_DEFINITION(ParallelSpatialSearch);
 
     /// The type of geometrical object to be stored in the bins
     using ObjectType = typename TSearchObject::ObjectType;
@@ -85,7 +85,7 @@ public:
     ///@{
 
     /// Default constructor deleted.
-    SearchWrapper() = delete;
+    ParallelSpatialSearch() = delete;
 
     /**
      * @brief The constructor with all geometries to be stored. Please note that all of them should be available at construction time and cannot be modified after.
@@ -95,7 +95,7 @@ public:
      * @tparam TContainer The container type
      */
     template<typename TContainer>
-    SearchWrapper(
+    ParallelSpatialSearch(
         TContainer& rGeometricalObjectsVector,
         const DataCommunicator& rDataCommunicator,
         Parameters Settings = Parameters(R"({})")
@@ -137,7 +137,7 @@ public:
     }
 
     /// Destructor.
-    ~SearchWrapper();
+    ~ParallelSpatialSearch();
 
     ///@}
     ///@name Operators
@@ -191,18 +191,18 @@ public:
         }
 
         // Prepare MPI search
-        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        Timer::Start("ParallelSpatialSearch::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, bounding_box_threshold, mrDataCommunicator, true);
-        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        Timer::Stop("ParallelSpatialSearch::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
-        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
+        Timer::Start("ParallelSpatialSearch::PrepareResultsInProperRanks");
         PrepareResultsInProperRanks(rResults, search_info);
-        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
+        Timer::Stop("ParallelSpatialSearch::PrepareResultsInProperRanks");
 
         // Perform the corresponding searches
-        Timer::Start("SearchWrapper::Search");
+        Timer::Start("ParallelSpatialSearch::Search");
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
@@ -225,12 +225,12 @@ public:
                 r_point_result.AddResult(r_result);
             }
         });
-        Timer::Stop("SearchWrapper::Search");
+        Timer::Stop("ParallelSpatialSearch::Search");
 
         // Synchronize
-        Timer::Start("SearchWrapper::SynchronizeAll");
+        Timer::Start("ParallelSpatialSearch::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
-        Timer::Stop("SearchWrapper::SynchronizeAll");
+        Timer::Stop("ParallelSpatialSearch::SynchronizeAll");
     }
 
     /**
@@ -273,18 +273,18 @@ public:
         }
 
         // Prepare MPI search
-        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        Timer::Start("ParallelSpatialSearch::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, bounding_box_threshold, mrDataCommunicator, true);
-        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        Timer::Stop("ParallelSpatialSearch::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
-        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
+        Timer::Start("ParallelSpatialSearch::PrepareResultsInProperRanks");
         PrepareResultsInProperRanks(rResults, search_info);
-        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
+        Timer::Stop("ParallelSpatialSearch::PrepareResultsInProperRanks");
 
         // Perform the corresponding searches
-        Timer::Start("SearchWrapper::Search");
+        Timer::Start("ParallelSpatialSearch::Search");
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
@@ -307,17 +307,17 @@ public:
                 r_point_result.AddResult(local_result);
             }
         });
-        Timer::Stop("SearchWrapper::Search");
+        Timer::Stop("ParallelSpatialSearch::Search");
 
         // Synchronize
-        Timer::Start("SearchWrapper::SynchronizeAll");
+        Timer::Start("ParallelSpatialSearch::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
-        Timer::Stop("SearchWrapper::SynchronizeAll");
+        Timer::Stop("ParallelSpatialSearch::SynchronizeAll");
 
         // Remove the non closest results
-        Timer::Start("SearchWrapper::KeepOnlyClosestResult");
+        Timer::Start("ParallelSpatialSearch::KeepOnlyClosestResult");
         KeepOnlyClosestResult(rResults);
-        Timer::Stop("SearchWrapper::KeepOnlyClosestResult");
+        Timer::Stop("ParallelSpatialSearch::KeepOnlyClosestResult");
     }
 
     /**
@@ -359,18 +359,18 @@ public:
         }
 
         // Prepare MPI search
-        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        Timer::Start("ParallelSpatialSearch::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, bounding_box_threshold, mrDataCommunicator, true);
-        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        Timer::Stop("ParallelSpatialSearch::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
-        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
+        Timer::Start("ParallelSpatialSearch::PrepareResultsInProperRanks");
         PrepareResultsInProperRanks(rResults, search_info);
-        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
+        Timer::Stop("ParallelSpatialSearch::PrepareResultsInProperRanks");
 
         // Perform the corresponding searches
-        Timer::Start("SearchWrapper::Search");
+        Timer::Start("ParallelSpatialSearch::Search");
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
@@ -393,17 +393,17 @@ public:
                 r_point_result.AddResult(local_result);
             }
         });
-        Timer::Stop("SearchWrapper::Search");
+        Timer::Stop("ParallelSpatialSearch::Search");
 
         // Synchronize
-        Timer::Start("SearchWrapper::SynchronizeAll");
+        Timer::Start("ParallelSpatialSearch::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
-        Timer::Stop("SearchWrapper::SynchronizeAll");
+        Timer::Stop("ParallelSpatialSearch::SynchronizeAll");
 
         // Remove the non closest results
-        Timer::Start("SearchWrapper::KeepOnlyClosestResult");
+        Timer::Start("ParallelSpatialSearch::KeepOnlyClosestResult");
         KeepOnlyClosestResult(rResults);
-        Timer::Stop("SearchWrapper::KeepOnlyClosestResult");
+        Timer::Stop("ParallelSpatialSearch::KeepOnlyClosestResult");
     }
 
     /**
@@ -441,18 +441,18 @@ public:
         }
 
         // Prepare MPI search
-        Timer::Start("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        Timer::Start("ParallelSpatialSearch::SynchronousPointSynchronizationWithBoundingBox");
         DistributedSearchInformation search_info;
         SearchUtilities::SynchronousPointSynchronizationWithBoundingBox(itPointBegin, itPointEnd, search_info, r_local_bb, bounding_box_threshold, mrDataCommunicator, true);
-        Timer::Stop("SearchWrapper::SynchronousPointSynchronizationWithBoundingBox");
+        Timer::Stop("ParallelSpatialSearch::SynchronousPointSynchronizationWithBoundingBox");
 
         // Initialize results
-        Timer::Start("SearchWrapper::PrepareResultsInProperRanks");
+        Timer::Start("ParallelSpatialSearch::PrepareResultsInProperRanks");
         PrepareResultsInProperRanks(rResults, search_info);
-        Timer::Stop("SearchWrapper::PrepareResultsInProperRanks");
+        Timer::Stop("ParallelSpatialSearch::PrepareResultsInProperRanks");
 
         // Perform the corresponding searches
-        Timer::Start("SearchWrapper::Search");
+        Timer::Start("ParallelSpatialSearch::Search");
         const std::size_t total_number_of_points = search_info.LocalIndices.size();
         struct TLS {
             Point point;
@@ -475,17 +475,17 @@ public:
                 r_point_result.AddResult(local_result);
             }
         });
-        Timer::Stop("SearchWrapper::Search");
+        Timer::Stop("ParallelSpatialSearch::Search");
 
         // Synchronize
-        Timer::Start("SearchWrapper::SynchronizeAll");
+        Timer::Start("ParallelSpatialSearch::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
-        Timer::Stop("SearchWrapper::SynchronizeAll");
+        Timer::Stop("ParallelSpatialSearch::SynchronizeAll");
 
         // Remove the non lowest rank results
-        Timer::Start("SearchWrapper::KeepOnlyLowestRankResult");
+        Timer::Start("ParallelSpatialSearch::KeepOnlyLowestRankResult");
         KeepOnlyLowestRankResult(rResults);
-        Timer::Stop("SearchWrapper::KeepOnlyLowestRankResult");
+        Timer::Stop("ParallelSpatialSearch::KeepOnlyLowestRankResult");
     }
 
     ///@}
@@ -514,14 +514,14 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "SearchWrapper" ;
+        buffer << "ParallelSpatialSearch" ;
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "SearchWrapper";
+        rOStream << "ParallelSpatialSearch";
     }
 
     /// Print object's data.
@@ -785,13 +785,13 @@ private:
     ///@{
 
     /// Assignment operator deleted.
-    SearchWrapper& operator=(SearchWrapper const& rOther) = delete;
+    ParallelSpatialSearch& operator=(ParallelSpatialSearch const& rOther) = delete;
 
     /// Copy constructor deleted.
-    SearchWrapper(SearchWrapper const& rOther) = delete;
+    ParallelSpatialSearch(ParallelSpatialSearch const& rOther) = delete;
 
     ///@}
-}; // Class SearchWrapper
+}; // Class ParallelSpatialSearch
 
 ///@}
 

@@ -17,13 +17,13 @@
 // Project includes
 #include "includes/key_hash.h"
 #include "utilities/search_utilities.h"
-#include "spatial_containers/search_wrapper.h"
+#include "spatial_containers/parallel_spatial_search.h"
 
 namespace Kratos
 {
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-SearchWrapper<TSearchObject, TSpatialSearchCommunication>::~SearchWrapper()
+ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::~ParallelSpatialSearch()
 {
 }
 
@@ -31,7 +31,7 @@ SearchWrapper<TSearchObject, TSpatialSearchCommunication>::~SearchWrapper()
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-BoundingBox<Point> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetGlobalBoundingBox() const
+BoundingBox<Point> ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::GetGlobalBoundingBox() const
 {
     // Generate BB
     BoundingBox<Point> bb;
@@ -62,7 +62,7 @@ BoundingBox<Point> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::Ge
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-int SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetRank() const
+int ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::GetRank() const
 {
     return mrDataCommunicator.Rank();
 }
@@ -71,7 +71,7 @@ int SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetRank() const
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-int SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetWorldSize() const
+int ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::GetWorldSize() const
 {
     return mrDataCommunicator.Size();
 }
@@ -80,7 +80,7 @@ int SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetWorldSize() co
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::InitializeGlobalBoundingBoxes()
+void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::InitializeGlobalBoundingBoxes()
 {
     // We get the world size
     const int world_size = GetWorldSize();
@@ -116,7 +116,7 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::InitializeGlobal
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<int> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::RansksPointIsInsideBoundingBox(const array_1d<double, 3>& rCoords)
+std::vector<int> ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::RansksPointIsInsideBoundingBox(const array_1d<double, 3>& rCoords)
 {
     std::vector<int> ranks;
     const int world_size = GetWorldSize();
@@ -139,7 +139,7 @@ std::vector<int> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::Rans
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<int> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::RansksPointIsInsideBoundingBoxWithTolerance(
+std::vector<int> ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::RansksPointIsInsideBoundingBoxWithTolerance(
     const array_1d<double, 3>& rCoords,
     const double Tolerance
     )
@@ -167,7 +167,7 @@ std::vector<int> SearchWrapper<TSearchObject, TSpatialSearchCommunication>::Rans
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchInRadius(
+void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::LocalSearchInRadius(
     const PointType& rPoint,
     const double Radius,
     std::vector<ResultType>& rResults,
@@ -205,7 +205,7 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchInRad
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchNearestInRadius(
+void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::LocalSearchNearestInRadius(
     const PointType& rPoint,
     const double Radius,
     ResultType& rResult,
@@ -245,7 +245,7 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchNeare
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchNearest(
+void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::LocalSearchNearest(
     const PointType& rPoint,
     ResultType& rResult,
     const int Rank
@@ -273,7 +273,7 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchNeare
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchIsInside(
+void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::LocalSearchIsInside(
     const PointType& rPoint,
     ResultType& rResult,
     const int Rank
@@ -292,7 +292,7 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::LocalSearchIsIns
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::KeepOnlyClosestResult(ResultContainerVectorType& rResults)
+void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnlyClosestResult(ResultContainerVectorType& rResults)
 {
     auto distance_lambda = [](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<double>> {
         return rResultsVector.GetDistances();
@@ -304,7 +304,7 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::KeepOnlyClosestR
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
+void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
 {
     auto rank_lambda = [this](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<int>> {
         return rResultsVector.GetResultRank(mrDataCommunicator);
@@ -316,7 +316,7 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::KeepOnlyLowestRa
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-std::string SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GenerateNameFromRanks(
+std::string ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::GenerateNameFromRanks(
     const std::string& rBaseName,
     const std::vector<int>& rRanks
     )
@@ -347,7 +347,7 @@ struct VectorHash {
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::PrepareResultsInProperRanks(
+void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::PrepareResultsInProperRanks(
     ResultContainerVectorType& rResults,
     const DistributedSearchInformation& rSearchInfo
     )
@@ -371,7 +371,7 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::PrepareResultsIn
 /***********************************************************************************/
 
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-const Parameters SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetDefaultParameters() const
+const Parameters ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::GetDefaultParameters() const
 {
     return Parameters(R"({
         "allocation_size" : 1000,
@@ -383,26 +383,26 @@ const Parameters SearchWrapper<TSearchObject, TSpatialSearchCommunication>::GetD
 /***********************************************************************************/
 
 // GeometricalObjectsBins
-template class SearchWrapper<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS>;
 
 // KDTree
-template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
-template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
-template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
 
 // OCTree
-template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
-template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
-template class SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
 
 // StaticBinsTree
-template class SearchWrapper<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>;
-template class SearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>;
-template class SearchWrapper<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>;
 
 // DynamicBins
-template class SearchWrapper<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>;
-template class SearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>;
-template class SearchWrapper<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>;
+template class ParallelSpatialSearch<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>;
 
 }  // namespace Kratos.

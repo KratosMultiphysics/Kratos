@@ -26,7 +26,7 @@
 #include "spatial_containers/spatial_search_result.h"
 #include "spatial_containers/spatial_search_result_container.h"
 #include "spatial_containers/spatial_search_result_container_vector.h"
-#include "spatial_containers/search_wrapper.h"
+#include "spatial_containers/parallel_spatial_search.h"
 
 namespace Kratos::Python
 {
@@ -252,20 +252,20 @@ void DefineSpecializedSpatialSearch(pybind11::module& m, const std::string& rCla
  * @tparam TSpatialSearchCommunication The type of spatial search communication considered.
  */
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
-void DefineSearchWrapper(pybind11::module& m, const std::string& rClassName)
+void DefineParallelSpatialSearch(pybind11::module& m, const std::string& rClassName)
 {
     using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
     using ObjectType = typename TSearchObject::ObjectType;
     using ResultTypeContainerVector = SpatialSearchResultContainerVector<ObjectType, TSpatialSearchCommunication>;
-    using SearchWrapperType = SearchWrapper<TSearchObject, TSpatialSearchCommunication>;
-    using SearchWrapperPointerType = typename SearchWrapper<TSearchObject, TSpatialSearchCommunication>::Pointer;
+    using ParallelSpatialSearchType = ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>;
+    using ParallelSpatialSearchPointerType = typename ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::Pointer;
 
     /// Some constexpr flags
     static constexpr bool IsGeometricalObjectBins = std::is_same_v<TSearchObject, GeometricalObjectsBins>;
 
-    auto search_wrapper = pybind11::class_<SearchWrapperType, SearchWrapperPointerType>(m, rClassName.c_str());
+    auto search_wrapper = pybind11::class_<ParallelSpatialSearchType, ParallelSpatialSearchPointerType>(m, rClassName.c_str());
     if constexpr (std::is_same<ObjectType, Node>::value) {
         search_wrapper.def(pybind11::init<NodesContainerType&, const DataCommunicator&>());
         search_wrapper.def(pybind11::init<NodesContainerType&, const DataCommunicator&, Parameters>());
@@ -278,27 +278,27 @@ void DefineSearchWrapper(pybind11::module& m, const std::string& rClassName)
         search_wrapper.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>());
         search_wrapper.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&, Parameters>());
     }
-    search_wrapper.def("GetGlobalBoundingBox", &SearchWrapperType::GetGlobalBoundingBox);
-    search_wrapper.def("SearchInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
+    search_wrapper.def("GetGlobalBoundingBox", &ParallelSpatialSearchType::GetGlobalBoundingBox);
+    search_wrapper.def("SearchInRadius", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
         self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, *p_results);
         return p_results;
     });
-    search_wrapper.def("SearchNearestInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
+    search_wrapper.def("SearchNearestInRadius", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
         self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, *p_results);
         return p_results;
     });
-    search_wrapper.def("SearchNearest", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
+    search_wrapper.def("SearchNearest", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
         self.SearchNearest(rNodes.begin(), rNodes.end(), *p_results);
         return p_results;
     });
     if constexpr (IsGeometricalObjectBins) {
-        search_wrapper.def("SearchIsInside", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
+        search_wrapper.def("SearchIsInside", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes) {
             // Perform the search
             auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
             self.SearchIsInside(rNodes.begin(), rNodes.end(), *p_results);
@@ -782,27 +782,27 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
     /* Define the search wrappers */
     // GeometricalObjectsBins
-    DefineSearchWrapper<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperGeometricalObjectBins");
+    DefineParallelSpatialSearch<GeometricalObjectsBins, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchGeometricalObjectBins");
 
     // KDTree
-    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperKDTreeNode");
-    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperKDTreeElement");
-    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperKDTreeCondition");
+    DefineParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchKDTreeNode");
+    DefineParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchKDTreeElement");
+    DefineParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchKDTreeCondition");
 
     // OCTree
-    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperOCTreeNode");
-    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperOCTreeElement");
-    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperOCTreeCondition");
+    DefineParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchOCTreeNode");
+    DefineParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchOCTreeElement");
+    DefineParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchOCTreeCondition");
 
     // StaticBinsTree
-    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperStaticBinsTreeNode");
-    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperStaticBinsTreeElement");
-    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperStaticBinsTreeCondition");
+    DefineParallelSpatialSearch<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchStaticBinsTreeNode");
+    DefineParallelSpatialSearch<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchStaticBinsTreeElement");
+    DefineParallelSpatialSearch<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchStaticBinsTreeCondition");
 
     // DynamicBins
-    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperDynamicBinsNode");
-    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperDynamicBinsElement");
-    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "SearchWrapperDynamicBinsCondition");
+    DefineParallelSpatialSearch<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchDynamicBinsNode");
+    DefineParallelSpatialSearch<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchDynamicBinsElement");
+    DefineParallelSpatialSearch<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>(m, "ParallelSpatialSearchDynamicBinsCondition");
 }
 
 }  // namespace Kratos::Python.

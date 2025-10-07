@@ -18,7 +18,7 @@
 // Project includes
 #include "mpi/testing/mpi_testing.h"
 #include "containers/model.h"
-#include "spatial_containers/search_wrapper.h"
+#include "spatial_containers/parallel_spatial_search.h"
 #include "tests/test_utilities/cpp_tests_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 
@@ -60,14 +60,14 @@ ModelPart& CreateCubeModelPart(Model& rCurrentModel)
 }
 
 // Definition of the geometrical object bins search wrapper
-using SearchWrapperGeometricalObjectsBins = SearchWrapper<GeometricalObjectsBins>;
+using ParallelSpatialSearchGeometricalObjectsBins = ParallelSpatialSearch<GeometricalObjectsBins>;
 
 /**
  * @brief Test function for searching geometrical objects in bins using a given search wrapper
- * @tparam TSearchWrapper The type of search wrapper to be tested
+ * @tparam TParallelSpatialSearch The type of search wrapper to be tested
  */
-template<class TSearchWrapper>
-void TestSearchWrapperGeometricalObjectsBinsSearchInRadius()
+template<class TParallelSpatialSearch>
+void TestParallelSpatialSearchGeometricalObjectsBinsSearchInRadius()
 {
     Model current_model;
 
@@ -75,7 +75,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchInRadius()
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -90,12 +90,12 @@ void TestSearchWrapperGeometricalObjectsBinsSearchInRadius()
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
 
     // 0.29 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 0);
@@ -106,7 +106,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchInRadius()
     // 0.3 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 4);
@@ -117,7 +117,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchInRadius()
     // 0.4 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 4);
@@ -128,7 +128,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchInRadius()
     // 0.6 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 8);
@@ -139,7 +139,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchInRadius()
     // 0.7 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 8);
@@ -150,7 +150,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchInRadius()
     // 0.9 radius
     search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
@@ -161,10 +161,10 @@ void TestSearchWrapperGeometricalObjectsBinsSearchInRadius()
 
 /**
  * @brief Test function for nearest searching geometrical objects in bins using a given search wrapper
- * @tparam TSearchWrapper The type of search wrapper to be tested
+ * @tparam TParallelSpatialSearch The type of search wrapper to be tested
  */
-template<class TSearchWrapper>
-void TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius()
+template<class TParallelSpatialSearch>
+void TestParallelSpatialSearchGeometricalObjectsBinsSearchNearestInRadius()
 {
     constexpr double tolerance = 1e-12;
 
@@ -177,7 +177,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius()
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -194,11 +194,11 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius()
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
 
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     } else {
@@ -208,7 +208,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius()
     search_wrapper_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
 
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
@@ -228,10 +228,10 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius()
 
 /**
  * @brief Test function for nearest searching geometrical objects in bins using a given search wrapper
- * @tparam TSearchWrapper The type of search wrapper to be tested
+ * @tparam TParallelSpatialSearch The type of search wrapper to be tested
  */
-template<class TSearchWrapper>
-void TestSearchWrapperGeometricalObjectsBinsSearchNearest()
+template<class TParallelSpatialSearch>
+void TestParallelSpatialSearchGeometricalObjectsBinsSearchNearest()
 {
     constexpr double tolerance = 1e-12;
 
@@ -244,7 +244,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearest()
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -261,11 +261,11 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearest()
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
@@ -285,10 +285,10 @@ void TestSearchWrapperGeometricalObjectsBinsSearchNearest()
 
 /**
  * @brief Test function for empty nearest searching geometrical objects in bins using a given search wrapper
- * @tparam TSearchWrapper The type of search wrapper to be tested
+ * @tparam TParallelSpatialSearch The type of search wrapper to be tested
  */
-template<class TSearchWrapper>
-void TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest()
+template<class TParallelSpatialSearch>
+void TestParallelSpatialSearchGeometricalObjectsBinsEmptySearchNearest()
 {
     Model current_model;
 
@@ -296,7 +296,7 @@ void TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest()
     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t point_id = 1;
 
@@ -312,11 +312,11 @@ void TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest()
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     } else {
@@ -326,10 +326,10 @@ void TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest()
 
 /**
  * @brief Test function for inside searching geometrical objects in bins using a given search wrapper
- * @tparam TSearchWrapper The type of search wrapper to be tested
+ * @tparam TParallelSpatialSearch The type of search wrapper to be tested
  */
-template<class TSearchWrapper>
-void TestSearchWrapperGeometricalObjectsBinsSearchIsInside()
+template<class TParallelSpatialSearch>
+void TestParallelSpatialSearchGeometricalObjectsBinsSearchIsInside()
 {
     Model current_model;
 
@@ -337,7 +337,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchIsInside()
     ModelPart& r_skin_part = CreateCubeModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t inside_point_id = 1;
 
@@ -353,11 +353,11 @@ void TestSearchWrapperGeometricalObjectsBinsSearchIsInside()
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper_bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
@@ -368,10 +368,10 @@ void TestSearchWrapperGeometricalObjectsBinsSearchIsInside()
 
 /**
  * @brief Test function for non inside searching geometrical objects in bins using a given search wrapper
- * @tparam TSearchWrapper The type of search wrapper to be tested
+ * @tparam TParallelSpatialSearch The type of search wrapper to be tested
  */
-template<class TSearchWrapper>
-void TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside()
+template<class TParallelSpatialSearch>
+void TestParallelSpatialSearchGeometricalObjectsBinsSearchIsNotInside()
 {
     Model current_model;
 
@@ -379,7 +379,7 @@ void TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside()
     ModelPart& r_skin_part = CreateCubeModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TSearchWrapper search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t outside_point_id = 1;
 
@@ -395,11 +395,11 @@ void TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside()
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper_bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only in first rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     } else {
@@ -408,17 +408,17 @@ void TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside()
 }
 
 // Definition of the trees search wrapper
-using SearchWrapperKDTreeElement = SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
-using SearchWrapperOCTreeElement = SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
-using SearchWrapperStaticBinsTreeElement = SearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>;
-using SearchWrapperBinsDynamicElement = SearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>;
+using ParallelSpatialSearchKDTreeElement = ParallelSpatialSearch<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+using ParallelSpatialSearchOCTreeElement = ParallelSpatialSearch<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+using ParallelSpatialSearchStaticBinsTreeElement = ParallelSpatialSearch<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>, SpatialSearchCommunication::SYNCHRONOUS>;
+using ParallelSpatialSearchBinsDynamicElement = ParallelSpatialSearch<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>, SpatialSearchCommunication::SYNCHRONOUS>;
 
 /**
  * @brief A function to test tree-based search in a specified radius.
  * @details This function tests the tree-based search algorithm within a specified radius.
- * @tparam TSearchWrapper The type of the search wrapper.
+ * @tparam TParallelSpatialSearch The type of the search wrapper.
  */
-template<class TSearchWrapper>
+template<class TParallelSpatialSearch>
 void TestTreeSearchInRadius()
 {
     Model current_model;
@@ -428,7 +428,7 @@ void TestTreeSearchInRadius()
 
     // Generate the search wrapper for bins
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    TSearchWrapper search_wrapper(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), r_data_comm);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -443,12 +443,12 @@ void TestTreeSearchInRadius()
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
 
     // 0.3 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 0);
@@ -458,7 +458,7 @@ void TestTreeSearchInRadius()
 
     // 2.0 radius
     search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 2.0, results);
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
@@ -470,9 +470,9 @@ void TestTreeSearchInRadius()
 /**
  * @brief A function to test tree-based nearest search in a specified radius.
  * @details This function tests the tree-based nearest search algorithm within a specified radius.
- * @tparam TSearchWrapper The type of the search wrapper.
+ * @tparam TParallelSpatialSearch The type of the search wrapper.
  */
-template<class TSearchWrapper>
+template<class TParallelSpatialSearch>
 void TestTreeSearchNearestInRadius()
 {
     constexpr double tolerance = 1e-6;
@@ -487,7 +487,7 @@ void TestTreeSearchNearestInRadius()
 
     // Generate the search wrapper for bins
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    TSearchWrapper search_wrapper(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -504,11 +504,11 @@ void TestTreeSearchNearestInRadius()
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z, results);
 
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     } else {
@@ -518,7 +518,7 @@ void TestTreeSearchNearestInRadius()
     search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
 
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
@@ -539,9 +539,9 @@ void TestTreeSearchNearestInRadius()
 /**
  * @brief A function to test tree-based nearest search
  * @details This function tests the tree-based nearest search algorithm
- * @tparam TSearchWrapper The type of the search wrapper.
+ * @tparam TParallelSpatialSearch The type of the search wrapper.
  */
-template<class TSearchWrapper>
+template<class TParallelSpatialSearch>
 void TestTreeSearchNearest()
 {
     constexpr double tolerance = 1e-6;
@@ -556,7 +556,7 @@ void TestTreeSearchNearest()
 
     // Generate the search wrapper for bins
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    TSearchWrapper search_wrapper(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -573,11 +573,11 @@ void TestTreeSearchNearest()
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
         KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 1);
@@ -598,9 +598,9 @@ void TestTreeSearchNearest()
 /**
  * @brief A function to test tree-based nearest search (empty)
  * @details This function tests the tree-based nearest search algorithm (empty)
- * @tparam TSearchWrapper The type of the search wrapper.
+ * @tparam TParallelSpatialSearch The type of the search wrapper.
  */
-template<class TSearchWrapper>
+template<class TParallelSpatialSearch>
 void TestTreeSearchNearestEmpty()
 {
     Model current_model;
@@ -610,7 +610,7 @@ void TestTreeSearchNearestEmpty()
 
     // Generate the search wrapper for bins
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    TSearchWrapper search_wrapper(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t point_id = 1;
 
@@ -626,11 +626,11 @@ void TestTreeSearchNearestEmpty()
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    typename TSearchWrapper::ResultContainerVectorType results;
+    typename TParallelSpatialSearch::ResultContainerVectorType results;
     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // Only in first rank
-    if constexpr (TSearchWrapper::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
+    if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     } else {
@@ -645,156 +645,156 @@ namespace Testing
 
 /** Checks search_wrapper_bins search in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsSearchInRadius, KratosMPICoreFastSuite)
 {
-    TestSearchWrapperGeometricalObjectsBinsSearchInRadius<SearchWrapperGeometricalObjectsBins>();
+    TestParallelSpatialSearchGeometricalObjectsBinsSearchInRadius<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
 /** Checks search_wrapper_bins search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchNearestInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestSearchWrapperGeometricalObjectsBinsSearchNearestInRadius<SearchWrapperGeometricalObjectsBins>();
+    TestParallelSpatialSearchGeometricalObjectsBinsSearchNearestInRadius<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
 /** Checks search_wrapper_bins search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchNearest, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsSearchNearest, KratosMPICoreFastSuite)
 {
-    TestSearchWrapperGeometricalObjectsBinsSearchNearest<SearchWrapperGeometricalObjectsBins>();
+    TestParallelSpatialSearchGeometricalObjectsBinsSearchNearest<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
 /** Checks search_wrapper_bins empty search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmptySearchNearest, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsEmptySearchNearest, KratosMPICoreFastSuite)
 {
-    TestSearchWrapperGeometricalObjectsBinsEmptySearchNearest<SearchWrapperGeometricalObjectsBins>();
+    TestParallelSpatialSearchGeometricalObjectsBinsEmptySearchNearest<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
 /** Checks search_wrapper_bins search is inside
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsInside, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsSearchIsInside, KratosMPICoreFastSuite)
 {
-    TestSearchWrapperGeometricalObjectsBinsSearchIsInside<SearchWrapperGeometricalObjectsBins>();
+    TestParallelSpatialSearchGeometricalObjectsBinsSearchIsInside<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
 /** Checks search_wrapper_bins search is inside = not found
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsNotInside, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsSearchIsNotInside, KratosMPICoreFastSuite)
 {
-    TestSearchWrapperGeometricalObjectsBinsSearchIsNotInside<SearchWrapperGeometricalObjectsBins>();
+    TestParallelSpatialSearchGeometricalObjectsBinsSearchIsNotInside<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
-/** Checks SearchWrapper works for KDTreeElement search in radius
+/** Checks ParallelSpatialSearch works for KDTreeElement search in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchKDTreeElementSearchInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchInRadius<SearchWrapperKDTreeElement>();
+    TestTreeSearchInRadius<ParallelSpatialSearchKDTreeElement>();
 }
 
-/** Checks SearchWrapper works for OCTreeElement search in radius
+/** Checks ParallelSpatialSearch works for OCTreeElement search in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchOCTreeElementSearchInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchInRadius<SearchWrapperOCTreeElement>();
+    TestTreeSearchInRadius<ParallelSpatialSearchOCTreeElement>();
 }
 
-/** Checks SearchWrapper works for StaticBinsTree search in radius
+/** Checks ParallelSpatialSearch works for StaticBinsTree search in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchStaticBinsTreeElementSearchInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchInRadius<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchInRadius<ParallelSpatialSearchStaticBinsTreeElement>();
 }
 
-/** Checks SearchWrapper works for BinsDynamicElement search in radius
+/** Checks ParallelSpatialSearch works for BinsDynamicElement search in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchBinsDynamicElementSearchInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchInRadius<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchInRadius<ParallelSpatialSearchBinsDynamicElement>();
 }
 
-/** Checks SearchWrapper works for KDTreeElement search nearest in radius
+/** Checks ParallelSpatialSearch works for KDTreeElement search nearest in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchKDTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperKDTreeElement>();
+    TestTreeSearchNearestInRadius<ParallelSpatialSearchKDTreeElement>();
 }
 
-/** Checks SearchWrapper works for OCTreeElement search nearest in radius
+/** Checks ParallelSpatialSearch works for OCTreeElement search nearest in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchOCTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperOCTreeElement>();
+    TestTreeSearchNearestInRadius<ParallelSpatialSearchOCTreeElement>();
 }
 
-/** Checks SearchWrapper works for StaticBinsTree search nearest in radius
+/** Checks ParallelSpatialSearch works for StaticBinsTree search nearest in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchStaticBinsTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchNearestInRadius<ParallelSpatialSearchStaticBinsTreeElement>();
 }
 
-/** Checks SearchWrapper works for BinsDynamicElement search nearest in radius
+/** Checks ParallelSpatialSearch works for BinsDynamicElement search nearest in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearestInRadius, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchBinsDynamicElementSearchNearestInRadius, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestInRadius<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchNearestInRadius<ParallelSpatialSearchBinsDynamicElement>();
 }
 
-/** Checks SearchWrapper works for KDTreeElement search nearest
+/** Checks ParallelSpatialSearch works for KDTreeElement search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearest, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchKDTreeElementSearchNearest, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearest<SearchWrapperKDTreeElement>();
+    TestTreeSearchNearest<ParallelSpatialSearchKDTreeElement>();
 }
 
-/** Checks SearchWrapper works for OCTreeElement search nearest
+/** Checks ParallelSpatialSearch works for OCTreeElement search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearest, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchOCTreeElementSearchNearest, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearest<SearchWrapperOCTreeElement>();
+    TestTreeSearchNearest<ParallelSpatialSearchOCTreeElement>();
 }
 
-/** Checks SearchWrapper works for StaticBinsTree search nearest
+/** Checks ParallelSpatialSearch works for StaticBinsTree search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearest, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchStaticBinsTreeElementSearchNearest, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearest<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchNearest<ParallelSpatialSearchStaticBinsTreeElement>();
 }
 
-/** Checks SearchWrapper works for BinsDynamicElement search nearest
+/** Checks ParallelSpatialSearch works for BinsDynamicElement search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearest, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchBinsDynamicElementSearchNearest, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearest<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchNearest<ParallelSpatialSearchBinsDynamicElement>();
 }
 
-/** Checks SearchWrapper works for KDTreeElement search nearest
+/** Checks ParallelSpatialSearch works for KDTreeElement search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchKDTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestEmpty<SearchWrapperKDTreeElement>();
+    TestTreeSearchNearestEmpty<ParallelSpatialSearchKDTreeElement>();
 }
 
-/** Checks SearchWrapper works for OCTreeElement search nearest
+/** Checks ParallelSpatialSearch works for OCTreeElement search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchOCTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestEmpty<SearchWrapperOCTreeElement>();
+    TestTreeSearchNearestEmpty<ParallelSpatialSearchOCTreeElement>();
 }
 
-/** Checks SearchWrapper works for StaticBinsTree search nearest
+/** Checks ParallelSpatialSearch works for StaticBinsTree search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchStaticBinsTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElement>();
+    TestTreeSearchNearestEmpty<ParallelSpatialSearchStaticBinsTreeElement>();
 }
 
-/** Checks SearchWrapper works for BinsDynamicElement search nearest
+/** Checks ParallelSpatialSearch works for BinsDynamicElement search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearestEmpty, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchBinsDynamicElementSearchNearestEmpty, KratosMPICoreFastSuite)
 {
-    TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElement>();
+    TestTreeSearchNearestEmpty<ParallelSpatialSearchBinsDynamicElement>();
 }
 
 } // namespace Testing.
