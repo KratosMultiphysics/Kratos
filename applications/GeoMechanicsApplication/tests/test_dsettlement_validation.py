@@ -927,19 +927,18 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 "expected_total_u_y": -1.75,  # analytical value
                 "delta": 0.06,
             },
-            ## Due to load stepping the time steps are slightly different here, so we can't check these two
-            # {
-            #     "output_data": output_stage_5,
-            #     "time_in_s": 17487361,
-            #     "expected_total_u_y": -3.69,  # regression value
-            #     "delta": 0.02,
-            # },
-            # {
-            #     "output_data": output_stage_5,
-            #     "time_in_s": 79418881,
-            #     "expected_total_u_y": -5.43,  # regression value
-            #     "delta": 0.02,
-            # },
+            {
+                "output_data": output_stage_5,
+                "time_in_s": 17487361,
+                "expected_total_u_y": -3.69,  # regression value
+                "delta": 0.02,
+            },
+            {
+                "output_data": output_stage_5,
+                "time_in_s": 79418881,
+                "expected_total_u_y": -5.43,  # regression value
+                "delta": 0.02,
+            },
             {
                 "output_data": output_stage_5,
                 "time_in_s": unit_conversions.days_to_seconds(10000),
