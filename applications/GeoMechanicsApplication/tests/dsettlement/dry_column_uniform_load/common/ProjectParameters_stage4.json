@@ -18,7 +18,7 @@
             "materials_filename": "../common/MaterialParameters_abc.json"
         },
         "time_stepping": {
-            "time_step": 0.1,
+            "time_step": 1,
             "max_delta_time_factor": 86400000000
         },
         "buffer_size": 2,
@@ -27,7 +27,7 @@
         "reform_dofs_at_each_step": false,
         "block_builder": true,
         "solution_type": "Quasi-Static",
-        "scheme_type": "load_stepping",
+        "scheme_type": "Backward_Euler",
         "reset_displacements": false,
         "strategy_type": "line_search",
         "convergence_criterion": "displacement_criterion",
