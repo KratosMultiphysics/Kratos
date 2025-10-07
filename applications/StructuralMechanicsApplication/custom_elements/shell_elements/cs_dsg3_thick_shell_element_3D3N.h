@@ -61,6 +61,8 @@ public:
 
     /// The base element type
     using BaseType = Element;
+    using array_3 = std::array<double, 3>;
+    using bounded_3_matrix = BoundedMatrix<double, 3, 3>; // rotation matrix
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CSDSG3ThickShellElement3D3N);
@@ -214,13 +216,21 @@ public:
      * @details The B matrix includes the membrane, bending and shear parts. Size of 8x18 since we have 8 generalized strains and 18 dofs (3 nodes with 6 dofs each)
      */
     void CalculateBTriangle(
-        MatrixType &rB,
-        const Geometry<NodeType>::Pointer pTriangleGeometry // the geometry of the sub-triangle
+        MatrixType& rB,
+        const bounded_3_matrix& r_rotation_matrix,
+        const array_3& r_coord_1, 
+        const array_3& r_coord_2, 
+        const array_3& r_coord_3 
     );
 
     void CalculateB(
         MatrixType &rB
     );
+
+    double CalculateArea(
+        const array_3 &r_coord_1,
+        const array_3 &r_coord_2,
+        const array_3 &r_coord_3) const;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -318,8 +328,6 @@ protected:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
-    std::vector<Geometry<NodeType>::Pointer> mpSubTriangulationGeometries; /// the 3 sub-triangles used for the DSG
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -344,15 +352,6 @@ protected:
     void SetConstitutiveLawVector(const std::vector<ConstitutiveLaw::Pointer>& rThisConstitutiveLawVector)
     {
         mConstitutiveLawVector = rThisConstitutiveLawVector;
-    }
-
-    /**
-     * @brief Sets the used SetSubTriangulationGeometries
-     * @param rSubTriangulationGeometries SubTriangulationGeometries used
-     */
-    void SetSubTriangulationGeometries(const std::vector<Geometry<NodeType>::Pointer>& rSubTriangulationGeometries)
-    {
-        mpSubTriangulationGeometries = rSubTriangulationGeometries;
     }
 
 

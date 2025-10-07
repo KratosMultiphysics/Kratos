@@ -194,26 +194,69 @@ void CSDSG3ThickShellElement3D3N::GetDofList(
 
 /***********************************************************************************/
 /***********************************************************************************/
+double CSDSG3ThickShellElement3D3N::CalculateArea(
+    const array_3& r_coord_1, 
+    const array_3& r_coord_2, 
+    const array_3& r_coord_3 
+) const
+{
+    const double x21 = r_coord_2[0] - r_coord_1[0];
+    const double y21 = r_coord_2[1] - r_coord_1[1];
+    const double x31 = r_coord_3[0] - r_coord_1[0];
+    const double y31 = r_coord_3[1] - r_coord_1[1];
+    return 0.5 * (x21 * y31 - y21 * x31);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
-    MatrixType &rB,
-    const Geometry<NodeType>::Pointer pTriangleGeometry // the geometry of the sub-triangle
+    MatrixType& rB,
+    const bounded_3_matrix& r_rotation_matrix,
+    const array_3& r_coord_1, 
+    const array_3& r_coord_2, 
+    const array_3& r_coord_3 
 )
 {
     const IndexType strain_size = GetStrainSize();
-    const IndexType number_of_nodes = pTriangleGeometry->PointsNumber();
+    const IndexType number_of_nodes = GetGeometry()->PointsNumber();
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
-
 
     if (rB.size1() != strain_size || rB.size2() != system_size)
         rB.resize(strain_size, system_size, false);
     rB.clear();
 
-    const double area = pTriangleGeometry->Area();
-    const auto& r_points = pTriangleGeometry->Points();
-    const auto& coords_1 = r_points[0].Coordinates();
-    const auto& coords_2 = r_points[1].Coordinates();
-    const auto& coords_3 = r_points[2].Coordinates();
+    
+    // Here we rotate to local coordinates (z is normal to the element)
+    array_3 local_coords_1;
+    array_3 local_coords_2;
+    array_3 local_coords_3;
+    noalias(local_coords_1) = prod(r_rotation_matrix, r_coord_1);
+    noalias(local_coords_2) = prod(r_rotation_matrix, r_coord_2);
+    noalias(local_coords_3) = prod(r_rotation_matrix, r_coord_3);
+
+    const double x1 = local_coords_1[0];
+    const double y1 = local_coords_1[1];
+    const double x2 = local_coords_2[0];
+    const double y2 = local_coords_2[1];
+    const double x3 = local_coords_3[0];
+    const double y3 = local_coords_3[1];
+    
+    const double twice_area = CalculateArea(local_coords_1, local_coords_2, local_coords_3) * 2.0;
+
+    const double x12 = x1 - x2;
+    const double x23 = x2 - x3;
+    const double x31 = x3 - x1;
+    const double x32 = -x23;
+    const double x13 = -x31;
+    const double x21 = -x12;
+
+    const double y12 = y1 - y2;
+    const double y23 = y2 - y3;
+    const double y31 = y3 - y1;
+    const double y32 = -y23;
+    const double y13 = -y31;
+    const double y21 = -y12;
 
     const double a = coords_2[0] - coords_1[0];
     const double b = coords_2[1] - coords_1[1];
