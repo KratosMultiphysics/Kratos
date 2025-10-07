@@ -149,7 +149,7 @@ protected:
      */
     double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override
     {
-        return rParameters.GetConstitutiveMatrix()(3,3);
+        return rParameters.GetConstitutiveMatrix()(2,2);
     };
 
     ///@}

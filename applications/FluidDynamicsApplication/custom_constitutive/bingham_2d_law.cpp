@@ -86,7 +86,7 @@ void  Bingham2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     double Regularization = 1.0 - std::exp(-m*g);
     const double mu_effective = mu + Regularization * sigma_y / g;
-    const double trS = S[0]+S[1]+S[2];
+    const double trS = S[0]+S[1];
     const double eps_vol = trS/3.0;
 
     //computation of stress

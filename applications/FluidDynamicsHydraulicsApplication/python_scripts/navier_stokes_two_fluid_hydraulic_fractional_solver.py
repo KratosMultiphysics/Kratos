@@ -191,13 +191,13 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self._SetNodalProperties()
 
         # Initialize the distance correction process
-        self._GetDistanceModificationProcess().ExecuteInitialize()
-        self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+        # self._GetDistanceModificationProcess().ExecuteInitialize()
+        # self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
-        self._GetLevelSetConvectionProcess()
+        # self._GetLevelSetConvectionProcess()
         self._GetNSFractionalSplittingProcess()
 
         # Set the flag for the mass loss correction
@@ -217,6 +217,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self._HydraulicBoundaryConditionCheck(KratosMultiphysics.OUTLET,"OUTLET")
 
     def InitializeSolutionStep(self):
+        KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part).Execute()
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
@@ -236,20 +237,20 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.FRACTIONAL_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,KratosCFD.AUXILIAR_VECTOR_VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
 
-        self.__PerformLevelSetConvection()
+        # self.__PerformLevelSetConvection()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
         # After the convection process, the velocity is copied back to the original state.
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.AUXILIAR_VECTOR_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
 
         # Perform distance correction to prevent ill-conditioned cuts
-        self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+        # self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
         # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
         self._SetNodalProperties()
 
-        # Accumulative water volume error ratio due to level set. Adding source term
-        self._ComputeVolumeError()
+        # # Accumulative water volume error ratio due to level set. Adding source term
+        # self._ComputeVolumeError()
 
         # Calculate residual-based artificial viscosity
         if self.artificial_viscosity:
@@ -267,12 +268,12 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
         # Recompute the distance field according to the new level-set position
-        if self._reinitialization_type != "none":
-            self._GetDistanceReinitializationProcess().Execute()
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+        # if self._reinitialization_type != "none":
+        #     self._GetDistanceReinitializationProcess().Execute()
+        #     KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
         # Prepare distance correction for next step
-        self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        # self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
         # FinalizeSolutionStep of Navier-Stokes strategy
         self._GetSolutionStrategy().FinalizeSolutionStep()
