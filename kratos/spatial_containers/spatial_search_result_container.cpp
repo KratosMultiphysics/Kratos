@@ -361,21 +361,6 @@ void SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Rem
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GenerateGreaterThanZeroIndexes(const std::vector<int>& rInputVector)
-{
-    std::vector<int> indexes;
-    for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
-        if (rInputVector[i] > 0) {
-            indexes.push_back(i);
-        }
-    }
-    return indexes;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 std::string SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::Info() const
 {
     std::stringstream buffer;
@@ -450,6 +435,21 @@ std::vector<IndexType> SpatialSearchResultContainer<TObjectType, TSpatialSearchC
     }
 
     return indices;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+std::vector<int> SpatialSearchResultContainer<TObjectType, TSpatialSearchCommunication>::GenerateGreaterThanZeroIndexes(const std::vector<int>& rInputVector)
+{
+    std::vector<int> indexes;
+    for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
+        if (rInputVector[i] > 0) {
+            indexes.push_back(i);
+        }
+    }
+    return indexes;
 }
 
 /***********************************************************************************/
