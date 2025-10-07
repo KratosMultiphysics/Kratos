@@ -137,11 +137,106 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
 {
     // Synchronize local results to global results
     if(rDataCommunicator.IsDistributed()) { // MPI code
-        // For the moment just sync manually
+        // Lambda to generate the indexes of the partitions with results
+        auto generate_greater_than_zero_indexes = [](
+            const std::vector<int>& rInputVector,
+            std::vector<int>& rOutputVector
+            )
+        {
+            rOutputVector.clear();
+            rOutputVector.reserve(rInputVector.size());
+            for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
+                if (rInputVector[i] > 0) {
+                    rOutputVector.push_back(i);
+                }
+            }
+        };
+
+        // MPI data
+        const int world_size = rDataCommunicator.Size();
+        const int rank = rDataCommunicator.Rank();
+        std::vector<int> send_rank(1, rank);
+        std::vector<int> ranks(world_size);
+        rDataCommunicator.AllGather(send_rank, ranks);
+
+        // Auxiliary definitions
+        std::vector<int> recv_buffer(world_size);
+
+        // Retrieve first rank
+        const int first_rank = ranks[0];
+
+        // Iterate over all the results
         for (auto p_result : mPointResults) {
-            p_result->SynchronizeAll(rDataCommunicator);
+            // Get results
+            auto& r_local_results = p_result->GetLocalResults();
+            auto& r_global_results = p_result->GetGlobalResults();
+
+            // Compute sizes
+            const int local_result_size = r_local_results.size();
+            const int global_result_size = rDataCommunicator.SumAll(local_result_size);
+            r_global_results.reserve(global_result_size);
+
+            // Gather sizes
+            std::vector<int> send_buffer(1, local_result_size);
+            rDataCommunicator.AllGather(send_buffer, recv_buffer);
+
+            // In first rank
+            if (rank == first_rank) {
+                // Prepare
+                std::vector<GlobalPointerResultType> global_gp;
+                global_gp.reserve(global_result_size);
+
+                // Fill global vector with local result
+                for (auto& r_value : r_local_results) {
+                    global_gp.push_back(GlobalPointerResultType(&r_value, rank));
+                }
+
+                // Call the lambda to generate the result vector of partitions with results
+                std::vector<int> result_vector;
+                generate_greater_than_zero_indexes(recv_buffer, result_vector);
+
+                // Iterate over the ranks
+                for (int rank_to_recv : result_vector) {
+                    std::vector<GlobalPointerResultType> recv_gps;
+                    rDataCommunicator.Recv(recv_gps, rank_to_recv);
+                    for (auto& r_value : recv_gps) {
+                        global_gp.push_back(r_value);
+                    }
+                }
+
+                // Send now to all ranks
+                for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+                    rDataCommunicator.Send(global_gp, ranks[i_rank]);
+                }
+
+                // Transfer to global pointer
+                for (auto& r_gp : global_gp) {
+                    r_global_results.push_back(r_gp);
+                }
+            } else {
+                // Sending local results if any
+                if (local_result_size > 0) {
+                    std::vector<GlobalPointerResultType> local_gp;
+                    local_gp.reserve(local_result_size);
+                    for (auto& r_value : r_local_results) {
+                        local_gp.push_back(GlobalPointerResultType(&r_value, rank));
+                    }
+                    rDataCommunicator.Send(local_gp, first_rank);
+                }
+
+                // Receiving synced result
+                std::vector<GlobalPointerResultType> global_gp;
+                rDataCommunicator.Recv(global_gp, first_rank);
+
+                // Transfer to global pointer
+                for (auto& r_gp : global_gp) {
+                    r_global_results.push_back(r_gp);
+                }
+            }
+
+            // Generate the communicator
+            p_result->GenerateGlobalPointerCommunicator(rDataCommunicator);
         }
-        // TODO: FIX MPI CODE. Requires coloring and maybe asynchronous communication
     } else { // Serial code
         // Iterate over all the results
         block_for_each(mPointResults, [](auto p_result) {
