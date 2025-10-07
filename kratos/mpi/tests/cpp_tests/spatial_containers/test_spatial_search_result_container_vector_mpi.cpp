@@ -26,15 +26,12 @@ namespace Kratos::Testing
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorInitializeResult, KratosMPICoreFastSuite)
 {
-    // The data communicator
-    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
     // Initialize result
     const std::size_t index = 0;
-    container_vector.InitializeResult(r_data_comm);
+    container_vector.InitializeResult();
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
@@ -44,16 +41,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorIniti
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorInitializeResults, KratosMPICoreFastSuite)
 {
-    // The data communicator
-    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
     // Initialize result
     const std::vector<std::size_t> indexes{0,1,2,3,4,5,6,7,8,9};
-    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &r_data_comm);
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(indexes.size());
 
     // Check that the result was added correctly
     for (auto index : indexes) {
@@ -65,16 +58,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorIniti
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorClear, KratosMPICoreFastSuite)
 {
-    // The data communicator
-    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
     // Initialize result
     Point point = Point(0.5, 0.0, 0.0);
     const std::size_t index = 0;
-    container_vector.InitializeResult(r_data_comm);
+    container_vector.InitializeResult();
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
@@ -84,15 +74,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorClear
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorOperators, KratosMPICoreFastSuite)
 {
-    // The data communicator
-    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
     // Initialize result
     const std::size_t index = 0;
-    container_vector.InitializeResult(r_data_comm);
+    container_vector.InitializeResult();
 
     // Check that the result was added correctly
     auto& r_result = container_vector[index];
@@ -113,11 +100,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetDi
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
-    // Initialize result
-    std::vector<const DataCommunicator*> data_communicators(size, &r_data_comm);
-
     // Initialize results
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(size);
 
     // Create a result
     GeometricalObject object = GeometricalObject(rank + 1);
@@ -158,11 +142,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
-    // Initialize result
-    std::vector<const DataCommunicator*> data_communicators(size, &r_data_comm);
-
     // Initialize results
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(size);
 
     // Create a result
     GeometricalObject object = GeometricalObject(rank + 1);
@@ -182,7 +163,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), static_cast<std::size_t>(size));
 
     // GetResultIsLocal
-    auto r_result_is_local = container_vector.GetResultIsLocal();
+    auto r_result_is_local = container_vector.GetResultIsLocal(r_data_comm);
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), r_result_is_local.size());
     for (int i = 0; i < static_cast<int>(r_result_is_local.size()); ++i) {
         auto& r_partial_result_is_local = r_result_is_local[i];
@@ -203,11 +184,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
-    // Initialize result
-    std::vector<const DataCommunicator*> data_communicators(size, &r_data_comm);
-
     // Initialize results
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(size);
 
     // Add the result to the containers
     auto& r_container = container_vector[rank];
@@ -226,7 +204,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), static_cast<std::size_t>(size));
 
     // Compute is active
-    auto is_active = container_vector.GetResultIsActive();
+    auto is_active = container_vector.GetResultIsActive(r_data_comm);
 
     // Check is active
     KRATOS_EXPECT_EQ(static_cast<int>(is_active.size()), r_data_comm.Size());
@@ -238,7 +216,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     object.Set(ACTIVE, false);
 
     // Compute is active
-    is_active = container_vector.GetResultIsActive();
+    is_active = container_vector.GetResultIsActive(r_data_comm);
 
     // Check is active
     KRATOS_EXPECT_EQ(static_cast<int>(is_active.size()), r_data_comm.Size());
@@ -259,17 +237,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
-    // Initialize result
-    std::vector<const DataCommunicator*> data_communicators(size, &r_data_comm);
-
     // Initialize results
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(size);
 
     // Add the result to the containers
     auto& r_container = container_vector[rank];
 
     // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container(r_data_comm);
+    SpatialSearchResultContainer<GeometricalObject> container;
 
     // Create a test result
     GeometricalObject object = GeometricalObject(r_data_comm.Rank() + 1);
@@ -303,11 +278,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
-    // Initialize result
-    std::vector<const DataCommunicator*> data_communicators(size, &r_data_comm);
-
     // Initialize results
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(size);
 
     // Add the result to the containers
     auto& r_container = container_vector[rank];
@@ -351,11 +323,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     // Create a test object
     SpatialSearchResultContainerVector<GeometricalObject> container_vector;
 
-    // Initialize result
-    std::vector<const DataCommunicator*> data_communicators(size, &r_data_comm);
-
     // Initialize results
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(size);
 
     // Create a result
     GeometricalObject object = GeometricalObject(rank + 1);
@@ -375,7 +344,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), static_cast<std::size_t>(size));
 
     // GetResultRank
-    auto r_result_rank = container_vector.GetResultRank();
+    auto r_result_rank = container_vector.GetResultRank(r_data_comm);
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), r_result_rank.size());
     for (int i = 0; i < static_cast<int>(r_result_rank.size()); ++i) {
         auto& r_partial_result_rank = r_result_rank[i];

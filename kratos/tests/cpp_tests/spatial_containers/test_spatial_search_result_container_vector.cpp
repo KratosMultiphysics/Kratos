@@ -31,8 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResult, Kr
 
     // Initialize result
     const std::size_t index = 0;
-    DataCommunicator data_communicator;
-    container_vector.InitializeResult(data_communicator);
+    container_vector.InitializeResult();
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
@@ -48,8 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResults, K
     // Initialize result
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0,1,2,3,4,5,6,7,8,9};
-    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(indexes.size());
 
     // Check that the result was added correctly
     for (auto index : indexes) {
@@ -66,8 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorClear, KratosCoreFas
 
     // Initialize result
     const std::size_t index = 0;
-    DataCommunicator data_communicator;
-    container_vector.InitializeResult(data_communicator);
+    container_vector.InitializeResult();
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_vector.HasResult(index));
@@ -82,8 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorOperators, KratosCor
 
     // Initialize result
     const std::size_t index = 0;
-    DataCommunicator data_communicator;
-    container_vector.InitializeResult(data_communicator);
+    container_vector.InitializeResult();
 
     // Check that the result was added correctly
     auto& r_result = container_vector[index];
@@ -100,8 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorSynchronizeAll, Krat
     // Initialize result
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0,1};
-    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(indexes.size());
 
     // Container 1
     auto& r_container_1 = container_vector[0];
@@ -147,8 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetDistances, Kratos
     // Initialize result
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0,1};
-    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(indexes.size());
 
     // Container 1
     auto& r_container_1 = container_vector[0];
@@ -197,8 +191,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsLocal, Kr
     // Initialize result
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0,1};
-    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(indexes.size());
 
     // Container 1
     auto& r_container_1 = container_vector[0];
@@ -230,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsLocal, Kr
     container_vector.SynchronizeAll(data_communicator);
 
     // GetResultIsLocal
-    auto r_is_local = container_vector.GetResultIsLocal();
+    auto r_is_local = container_vector.GetResultIsLocal(data_communicator);
     KRATOS_EXPECT_EQ(r_is_local.size(), 2);
     KRATOS_EXPECT_EQ(r_is_local[0].size(), 2);
     KRATOS_EXPECT_TRUE(r_is_local[0][0]);
@@ -247,8 +240,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsActive, K
     // Initialize result
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0};
-    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(indexes.size());
 
     // Container 1
     auto& r_container_1 = container_vector[0];
@@ -264,7 +256,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsActive, K
     container_vector.SynchronizeAll(data_communicator);
 
     // Compute is active
-    auto is_active = container_vector.GetResultIsActive()[0];
+    auto is_active = container_vector.GetResultIsActive(data_communicator)[0];
 
     // Check is active
     KRATOS_EXPECT_EQ(is_active.size(), 1);
@@ -274,7 +266,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIsActive, K
     object.Set(ACTIVE, false);
 
     // Compute is active
-    is_active = container_vector.GetResultIsActive()[0];
+    is_active = container_vector.GetResultIsActive(data_communicator)[0];
 
     // Check is active
     KRATOS_EXPECT_EQ(is_active.size(), 1);
@@ -289,8 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultIndices, Kr
     // Initialize result
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0};
-    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(indexes.size());
 
     // Container
     auto& r_container = container_vector[0];
@@ -321,8 +312,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultNodeIndices
     // Initialize result
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0};
-    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(indexes.size());
 
     // Container
     auto& r_container = container_vector[0];
@@ -359,8 +349,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultCoordinates
     // Initialize result
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0};
-    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(indexes.size());
 
     // Container
     auto& r_container = container_vector[0];
@@ -398,8 +387,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultRank, Krato
     // Initialize result
     DataCommunicator data_communicator;
     const std::vector<std::size_t> indexes{0,1};
-    const std::vector<const DataCommunicator*> data_communicators(indexes.size(), &data_communicator);
-    container_vector.InitializeResults(data_communicators);
+    container_vector.InitializeResults(indexes.size());
 
     // Container 1
     auto& r_container_1 = container_vector[0];
@@ -431,7 +419,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultRank, Krato
     container_vector.SynchronizeAll(data_communicator);
 
     // GetResultRank
-    auto r_rank = container_vector.GetResultRank();
+    auto r_rank = container_vector.GetResultRank(data_communicator);
     KRATOS_EXPECT_EQ(r_rank.size(), 2);
     KRATOS_EXPECT_EQ(r_rank[0].size(), 2);
     KRATOS_EXPECT_EQ(r_rank[0][0], 0);
