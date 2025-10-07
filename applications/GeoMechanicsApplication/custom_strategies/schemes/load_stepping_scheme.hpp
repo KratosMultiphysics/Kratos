@@ -106,7 +106,7 @@ public:
     {
         GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
         KRATOS_INFO("Load stepping")
-            << "Fraction of unbalance: " << CalculateLoadFraction(rModelPart.GetProcessInfo());
+            << "Fraction of unbalance: " << CalculateLoadFraction(rModelPart.GetProcessInfo()) << "\n";
     }
 
 private:
