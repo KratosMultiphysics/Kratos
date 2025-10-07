@@ -191,11 +191,12 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const IndexType number_of_nodes = GetGeometry().PointsNumber();
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
 
+    const double alpha = 1.5;
+
     if (rB.size1() != strain_size || rB.size2() != system_size)
         rB.resize(strain_size, system_size, false);
     rB.clear();
 
-    
     // Here we rotate to local coordinates (z is normal to the element)
     array_3 local_coords_1;
     array_3 local_coords_2;
@@ -227,71 +228,64 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const double y13 = -y31;
     const double y21 = -y12;
 
-    const double a = x21;
-    const double b = y21;
-    const double c = y31;
-    const double d = x31;
-
     const double aux_prod = 0.5 / area;
-    const double N1_x = aux_prod * y23;
-    const double N1_y = aux_prod * x32;
-    const double N2_x = aux_prod * y31;
-    const double N2_y = aux_prod * x13;
-    const double N3_x = aux_prod * y12;
-    const double N3_y = aux_prod * x21;
 
-    // Membrane components
-    rB(0, 0) = N1_x;
-    rB(0, 1) = N1_y;
-    rB(2, 0) = N1_y;
-    rB(2, 1) = N1_x;
+    // Membrane components with drilling rotations (Zhang et al 2011)
+    rB(0, 0) = y23;
+    rB(0, 1) = x32;
+    rB(2, 0) = x32;
+    rB(2, 1) = y23;
 
-    rB(0, 6) = N2_x;
-    rB(0, 7) = N2_y;
-    rB(2, 6) = N2_y;
-    rB(2, 7) = N2_x;
+    rB(0, 6) = y31;
+    rB(0, 7) = x13;
+    rB(2, 6) = x13;
+    rB(2, 7) = y31;
 
-    rB(0, 12) = N3_x;
-    rB(0, 13) = N3_y;
-    rB(2, 12) = N3_y;
-    rB(2, 13) = N3_x;
+    rB(0, 12) = y12;
+    rB(0, 13) = x21;
+    rB(2, 12) = x21;
+    rB(2, 13) = y12;
+
+    // ...
 
     // Bending components
-    rB(3, 4) =  N1_x;
-    rB(4, 3) = -N1_y;
-    rB(5, 3) = -N1_x;
-    rB(5, 4) =  N1_y;
+    rB(3, 4) = y23;
+    rB(4, 3) = x23;
+    rB(5, 3) = y32;
+    rB(5, 4) = x32;
 
-    rB(3, 10) = N2_x;
-    rB(4, 9) = -N2_y;
-    rB(5, 9) = -N2_x;
-    rB(5, 10) = N2_y;
+    rB(3, 10) = y31;
+    rB(4, 9) = x31;
+    rB(5, 9) = y13;
+    rB(5, 10) = x13;
 
-    rB(3, 16) =  N3_x;
-    rB(4, 15) = -N3_y;
-    rB(5, 15) = -N3_x;
-    rB(5, 16) =  N3_y;
+    rB(3, 16) = y12;
+    rB(4, 15) = x12;
+    rB(5, 15) = y21;
+    rB(5, 16) = x21;
 
     // Shear components
     // Bs1
-    rB(6, 2) = aux_prod * (b - c);
+    rB(6, 2) = y21 + y13;
     rB(6, 4) = 0.5;
-    rB(7, 2) = aux_prod * (d - x21);
+    rB(7, 2) = x31 + x12;
     rB(7, 3) = -0.5;
     // Bs2
-    rB(6, 8) = aux_prod * c;
-    rB(6, 9) = aux_prod * (-b * c) * 0.5;
-    rB(6, 10) = aux_prod * (x21 * c) * 0.5;
-    rB(7, 8) = aux_prod * (-d);
-    rB(7, 9) = aux_prod * (b * d) * 0.5;
-    rB(7, 10) = aux_prod * (-x21 * d) * 0.5;
+    rB(6, 8) = y31;
+    rB(6, 9) = y12 * y31 * 0.5;
+    rB(6, 10) = x21 * y31 * 0.5;
+    rB(7, 8) = x13;
+    rB(7, 9) = y21 * x31 * 0.5;
+    rB(7, 10) = x12 * x31 * 0.5;
     // Bs3
-    rB(6, 14) = aux_prod * (-b);
-    rB(6, 15) = aux_prod * (b * c) * 0.5;
-    rB(6, 16) = aux_prod * (b * d) * 0.5;
-    rB(7, 14) = aux_prod * x21;
-    rB(7, 15) = aux_prod * (-x21 * c) * 0.5;
-    rB(7, 16) = aux_prod * (x21 * d) * 0.5;
+    rB(6, 14) = y12;
+    rB(6, 15) = y21 * y31 * 0.5;
+    rB(6, 16) = y21 * x31 * 0.5;
+    rB(7, 14) = x21;
+    rB(7, 15) = x12 * y31 * 0.5;
+    rB(7, 16) = x21 * x31 * 0.5;
+
+    rB *= aux_prod;
 }
 
 /***********************************************************************************/
