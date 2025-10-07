@@ -306,8 +306,8 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::KeepOnlyClosestR
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
 void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
 {
-    auto rank_lambda = [](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<int>> {
-        return rResultsVector.GetResultRank();
+    auto rank_lambda = [this](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<int>> {
+        return rResultsVector.GetResultRank(mrDataCommunicator);
     };
     KeepOnlyGivenLambdaResult(rResults, rank_lambda);
 }
@@ -352,11 +352,8 @@ void SearchWrapper<TSearchObject, TSpatialSearchCommunication>::PrepareResultsIn
     const DistributedSearchInformation& rSearchInfo
     )
 {
-    // Prepare the data communicators
-    std::vector<const DataCommunicator*> data_communicators(rSearchInfo.TotalNumberOfPoints, &mrDataCommunicator);
-
     // Initialize results
-    rResults.InitializeResults(data_communicators);
+    rResults.InitializeResults(rSearchInfo.TotalNumberOfPoints);
 
     // Set some values
     const auto& r_local_indices = rSearchInfo.LocalIndices;

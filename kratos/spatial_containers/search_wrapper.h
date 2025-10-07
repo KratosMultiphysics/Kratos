@@ -219,7 +219,7 @@ public:
 
             // Search
             std::vector<ResultType> results;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : 0;
+            const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
             LocalSearchInRadius(rTLS.point, Radius, results, rank, allocation_size);
             for (auto& r_result : results) {
                 r_point_result.AddResult(r_result);
@@ -301,7 +301,7 @@ public:
 
             // Result of search
             ResultType local_result;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : 0;
+            const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
             LocalSearchNearestInRadius(rTLS.point, Radius, local_result, rank, allocation_size);
             if (local_result.GetIsObjectFound()) {
                 r_point_result.AddResult(local_result);
@@ -387,7 +387,7 @@ public:
 
             // Result of search
             ResultType local_result;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : 0;
+            const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
             LocalSearchNearest(rTLS.point, local_result, rank);
             if (local_result.GetIsObjectFound()) {
                 r_point_result.AddResult(local_result);
@@ -469,7 +469,7 @@ public:
 
             // Result of search
             ResultType local_result;
-            const int rank = is_distributed ? r_point_result.GetDataCommunicator().Rank() : 0;
+            const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
             LocalSearchIsInside(rTLS.point, local_result, rank);
             if (local_result.GetIsObjectFound()) {
                 r_point_result.AddResult(local_result);
@@ -679,7 +679,7 @@ private:
             const auto all_values = rLambda(rResults);
 
             // The ranks
-            const std::vector<std::vector<int>> all_ranks = rResults.GetResultRank();
+            const std::vector<std::vector<int>> all_ranks = rResults.GetResultRank(mrDataCommunicator);
 
             // Retrieve the solution
             auto& r_results_vector = rResults.GetContainer();
@@ -710,7 +710,7 @@ private:
                         ranks.erase(ranks.begin() + pos);
 
                         // Remove all results but the closest one
-                        r_partial_result.RemoveResultsFromRanksList(ranks);
+                        r_partial_result.RemoveResultsFromRanksList(ranks, mrDataCommunicator);
                     } else {
                         KRATOS_ERROR << "Distances vector is empty." << std::endl;
                     }
@@ -724,10 +724,8 @@ private:
                 KRATOS_ERROR_IF(r_partial_result.NumberOfGlobalResults() > 1) << "Cleaning has not been done properly. Number of results: " << r_partial_result.NumberOfGlobalResults() << std::endl;
                 // Check that is not empty locally
                 if (r_partial_result.NumberOfGlobalResults() == 1) {
-                    r_partial_result.Barrier();
                     const unsigned int number_of_local_results = r_partial_result.NumberOfLocalResults();
-                    const auto& r_sub_data_communicator = r_partial_result.GetDataCommunicator();
-                    KRATOS_ERROR_IF(r_sub_data_communicator.SumAll(number_of_local_results) == 0) << "Local results also removed in result " << r_partial_result.GetGlobalIndex() << std::endl;
+                    KRATOS_ERROR_IF(mrDataCommunicator.SumAll(number_of_local_results) == 0) << "Local results also removed in result " << r_partial_result.GetGlobalIndex() << std::endl;
                 }
             }
         }
