@@ -191,11 +191,22 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const IndexType number_of_nodes = GetGeometry().PointsNumber();
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
 
-    const double alpha = 1.5;
-
     if (rB.size1() != strain_size || rB.size2() != system_size)
         rB.resize(strain_size, system_size, false);
     rB.clear();
+
+    const double alpha = 1.5;
+
+    // beta parameters for the membrane part
+    const double b1 = 1.0;
+    const double b2 = 2.0;
+    const double b3 = 1.0;
+    const double b4 = 0.0;
+    const double b5 = 1.0;
+    const double b6 = -1.0;
+    const double b7 = -1.0;
+    const double b8 = -1.0;
+    const double b9 = -2.0;
 
     // Here we rotate to local coordinates (z is normal to the element)
     array_3 local_coords_1;
@@ -211,7 +222,7 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const double y2 = local_coords_2[1];
     const double x3 = local_coords_3[0];
     const double y3 = local_coords_3[1];
-    
+
     const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
     const double x12 = x1 - x2;
