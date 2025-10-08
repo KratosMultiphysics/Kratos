@@ -13,7 +13,9 @@
 //
 
 #include "time_loop_executor.h"
+#include "processes/process.h"
 #include "scoped_output_file_access.h"
+#include "strategy_wrapper.hpp"
 
 namespace Kratos
 {
@@ -69,6 +71,8 @@ std::vector<TimeStepEndState> TimeLoopExecutor::Run(const TimeStepEndState& EndS
 
     return result;
 }
+
+TimeLoopExecutor::~TimeLoopExecutor() = default;
 
 void TimeLoopExecutor::CallExecuteBeforeSolutionLoopOnProcesses() const
 {

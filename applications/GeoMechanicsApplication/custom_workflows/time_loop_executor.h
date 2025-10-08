@@ -17,16 +17,16 @@
 #include <memory>
 #include <vector>
 
-#include "strategy_wrapper.hpp"
-#include "time_incrementor.h"
 #include "time_loop_executor_interface.h"
 #include "time_step_end_state.hpp"
 #include "time_step_executor.h"
+#include "time_incrementor.h"
 
 namespace Kratos
 {
 
 class Process;
+class StrategyWrapper;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TimeLoopExecutor : public TimeLoopExecutorInterface
 {
@@ -37,6 +37,8 @@ public:
     void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) override;
     void SetSolverStrategyWrapper(std::shared_ptr<StrategyWrapper> pStrategyWrapper) override;
     std::vector<TimeStepEndState> Run(const TimeStepEndState& EndState) override;
+
+    ~TimeLoopExecutor() override;
 
 private:
     void CallExecuteBeforeSolutionLoopOnProcesses() const;
