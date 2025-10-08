@@ -167,7 +167,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< Model&, Parameters >())
     ;
 
-    py::class_<CalulateLevelsetConsistentNodalGradientProcess, CalulateLevelsetConsistentNodalGradientProcess::Pointer, Process>(m,"CalulateLevelsetConsistentNodalGradientProcess")
+    py::class_<CalculateLevelsetConsistentNodalGradientProcess, CalculateLevelsetConsistentNodalGradientProcess::Pointer, Process>(m,"CalculateLevelsetConsistentNodalGradientProcess")
     .def(py::init< ModelPart& >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())

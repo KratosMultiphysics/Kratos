@@ -42,14 +42,14 @@ namespace Kratos
 
 /// Utility to calculate the nodal gradient separately for the positive and negative sides of the zero level-set function (interface)
 
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalulateLevelsetConsistentNodalGradientProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateLevelsetConsistentNodalGradientProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of LumpedInterfacePositiveNegativePressureGradient
-    KRATOS_CLASS_POINTER_DEFINITION(CalulateLevelsetConsistentNodalGradientProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(CalculateLevelsetConsistentNodalGradientProcess);
 
     /// Auxiliary container to be used as TLS
     typedef std::tuple<BoundedMatrix<double,3,2>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>, array_1d<double,3>> TLSContainerType2D;
@@ -64,21 +64,21 @@ public:
      *
      * @param rModelPart Complete model part (including boundaries) for the process to operate on
      */
-    CalulateLevelsetConsistentNodalGradientProcess(
+    CalculateLevelsetConsistentNodalGradientProcess(
         ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
-    CalulateLevelsetConsistentNodalGradientProcess(
+    CalculateLevelsetConsistentNodalGradientProcess(
         ModelPart& rModelPart,
         Parameters Parameters);
 
     /// Constructor with Kratos model
-    CalulateLevelsetConsistentNodalGradientProcess(
+    CalculateLevelsetConsistentNodalGradientProcess(
         Model& rModel,
         Parameters Parameters);
 
     /// Destructor.
-    ~CalulateLevelsetConsistentNodalGradientProcess() override {}
+    ~CalculateLevelsetConsistentNodalGradientProcess() override {}
 
     ///@}
     ///@name Operators
@@ -114,12 +114,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "CalulateLevelsetConsistentNodalGradientProcess";
+        buffer << "CalculateLevelsetConsistentNodalGradientProcess";
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "CalulateLevelsetConsistentNodalGradientProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "CalculateLevelsetConsistentNodalGradientProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -183,7 +183,7 @@ private:
 
     ///@}
 
-}; // Class CalulateLevelsetConsistentNodalGradientProcess
+}; // Class CalculateLevelsetConsistentNodalGradientProcess
 
 ///@}
 ///@name Type Definitions

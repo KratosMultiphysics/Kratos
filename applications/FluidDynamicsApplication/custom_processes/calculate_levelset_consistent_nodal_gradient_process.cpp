@@ -25,27 +25,27 @@ namespace Kratos
 /* Public functions *******************************************************/
 
 /// constructor
-CalulateLevelsetConsistentNodalGradientProcess::CalulateLevelsetConsistentNodalGradientProcess(
+CalculateLevelsetConsistentNodalGradientProcess::CalculateLevelsetConsistentNodalGradientProcess(
         ModelPart& rModelPart)
     : Process(), mrModelPart(rModelPart) {}
 
 /// Constructor with Kratos parameters.
-CalulateLevelsetConsistentNodalGradientProcess::CalulateLevelsetConsistentNodalGradientProcess(
+CalculateLevelsetConsistentNodalGradientProcess::CalculateLevelsetConsistentNodalGradientProcess(
     ModelPart& rModelPart,
     Parameters Parameters)
-    : CalulateLevelsetConsistentNodalGradientProcess(
+    : CalculateLevelsetConsistentNodalGradientProcess(
         rModelPart
     ){}
 
 /// Constructor with Kratos model
-CalulateLevelsetConsistentNodalGradientProcess::CalulateLevelsetConsistentNodalGradientProcess(
+CalculateLevelsetConsistentNodalGradientProcess::CalculateLevelsetConsistentNodalGradientProcess(
     Model& rModel,
     Parameters Parameters)
-    : CalulateLevelsetConsistentNodalGradientProcess(
+    : CalculateLevelsetConsistentNodalGradientProcess(
         rModel.GetModelPart(Parameters["model_part_name"].GetString())
     ){}
 
-void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
+void CalculateLevelsetConsistentNodalGradientProcess::Execute(){
 
     KRATOS_TRY;
 
@@ -84,7 +84,7 @@ void CalulateLevelsetConsistentNodalGradientProcess::Execute(){
     KRATOS_CATCH("")
 }
 
-bool CalulateLevelsetConsistentNodalGradientProcess::IsSplit(const Vector& rDistances)
+bool CalculateLevelsetConsistentNodalGradientProcess::IsSplit(const Vector& rDistances)
 {
     bool is_split = false;
 
@@ -104,7 +104,7 @@ bool CalulateLevelsetConsistentNodalGradientProcess::IsSplit(const Vector& rDist
     return is_split;
 }
 
-const Parameters CalulateLevelsetConsistentNodalGradientProcess::GetDefaultParameters() const
+const Parameters CalculateLevelsetConsistentNodalGradientProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
@@ -114,7 +114,7 @@ const Parameters CalulateLevelsetConsistentNodalGradientProcess::GetDefaultParam
     return default_parameters;
 }
 
-CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType2D CalulateLevelsetConsistentNodalGradientProcess::SetTLSContainer2D()
+CalculateLevelsetConsistentNodalGradientProcess::TLSContainerType2D CalculateLevelsetConsistentNodalGradientProcess::SetTLSContainer2D()
 {
     BoundedMatrix<double,3,2> aux_mat;
     array_1d<double,3> aux_vect_1;
@@ -127,7 +127,7 @@ CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType2D CalulateLevel
     return tls_container_2d;
 }
 
-CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType3D CalulateLevelsetConsistentNodalGradientProcess::SetTLSContainer3D()
+CalculateLevelsetConsistentNodalGradientProcess::TLSContainerType3D CalculateLevelsetConsistentNodalGradientProcess::SetTLSContainer3D()
 {
     BoundedMatrix<double,4,3> aux_mat;
     array_1d<double,4> aux_vect_1;
@@ -140,18 +140,18 @@ CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType3D CalulateLevel
     return tls_container_3d;
 }
 
-std::function<void(Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType2D& rTLSContainer)> CalulateLevelsetConsistentNodalGradientProcess::GetScalarNodalGradientElementFunction2D()
+std::function<void(Element& rElement, CalculateLevelsetConsistentNodalGradientProcess::TLSContainerType2D& rTLSContainer)> CalculateLevelsetConsistentNodalGradientProcess::GetScalarNodalGradientElementFunction2D()
 {
-    std::function<void(Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType2D& rTLSContainer)> aux_func = [&, this](Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType2D& rTLSContainer){
+    std::function<void(Element& rElement, CalculateLevelsetConsistentNodalGradientProcess::TLSContainerType2D& rTLSContainer)> aux_func = [&, this](Element& rElement, CalculateLevelsetConsistentNodalGradientProcess::TLSContainerType2D& rTLSContainer){
         this->CalculateScalarNodalGradientElementContribution(rElement, rTLSContainer);
     };
 
     return aux_func;
 }
 
-std::function<void(Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType3D& rTLSContainer)> CalulateLevelsetConsistentNodalGradientProcess::GetScalarNodalGradientElementFunction3D()
+std::function<void(Element& rElement, CalculateLevelsetConsistentNodalGradientProcess::TLSContainerType3D& rTLSContainer)> CalculateLevelsetConsistentNodalGradientProcess::GetScalarNodalGradientElementFunction3D()
 {
-    std::function<void(Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType3D& rTLSContainer)> aux_func = [&, this](Element& rElement, CalulateLevelsetConsistentNodalGradientProcess::TLSContainerType3D& rTLSContainer){
+    std::function<void(Element& rElement, CalculateLevelsetConsistentNodalGradientProcess::TLSContainerType3D& rTLSContainer)> aux_func = [&, this](Element& rElement, CalculateLevelsetConsistentNodalGradientProcess::TLSContainerType3D& rTLSContainer){
         this->CalculateScalarNodalGradientElementContribution(rElement, rTLSContainer);
     };
 
@@ -159,7 +159,7 @@ std::function<void(Element& rElement, CalulateLevelsetConsistentNodalGradientPro
 }
 
 template<class TTLSContainer>
-void CalulateLevelsetConsistentNodalGradientProcess::CalculateScalarNodalGradientElementContribution(
+void CalculateLevelsetConsistentNodalGradientProcess::CalculateScalarNodalGradientElementContribution(
     Element& rElement,
     TTLSContainer& rTLSContainer)
 {
