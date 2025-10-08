@@ -16,7 +16,7 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "calulate_levelset_consistent_nodal_gradient_process.h"
+#include "calculate_levelset_consistent_nodal_gradient_process.h"
 
 
 namespace Kratos
