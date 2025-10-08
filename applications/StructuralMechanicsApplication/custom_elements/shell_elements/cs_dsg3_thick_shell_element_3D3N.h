@@ -246,6 +246,14 @@ public:
     ) const;
 
     /**
+     * @brief This method computes rotates the LHS from local to global coordinates
+     */
+    void RotateLHSToGlobal(
+        bounded_18_matrix& rLeftHandSideMatrix,
+        const bounded_3_matrix& rRotationMatrix
+    ) const;
+
+    /**
      * @brief This function provides a more general interface to the element.
      * @details It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
      * @param rLeftHandSideMatrix container with the output Left Hand Side matrix

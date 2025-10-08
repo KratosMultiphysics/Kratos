@@ -221,6 +221,43 @@ void CSDSG3ThickShellElement3D3N::CalculateRotationMatrixLocalToGlobal(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void CSDSG3ThickShellElement3D3N::RotateLHSToGlobal(
+    bounded_18_matrix& rLeftHandSideMatrix,
+    const bounded_3_matrix& rRotationMatrix // provided
+) const
+{
+    // We will perform the rotation by blocks of 3x3 for efficiency
+    bounded_3_matrix local_LHS_block;
+    bounded_3_matrix temp_matrix;
+    bounded_3_matrix temp_matrix2;
+
+    // Loop over the six blocks in each direction
+    for (IndexType i = 0; i < 6; ++i) {
+        for (IndexType j = 0; j < 6; ++j) {
+            // We extract the 3x3 block
+            for (IndexType k = 0; k < 3; ++k) {
+                for (IndexType l = 0; l < 3; ++l) {
+                    local_LHS_block(k, l) = rLeftHandSideMatrix(i * 3 + k, j * 3 + l);
+                }
+            }
+
+            // We perform the rotation to the block
+            noalias(temp_matrix) = prod(trans(rRotationMatrix), local_LHS_block);
+            noalias(temp_matrix2) = prod(temp_matrix, rRotationMatrix);
+
+            // We store the values back in the LHS
+            for (IndexType k = 0; k < 3; ++k) {
+                for (IndexType l = 0; l < 3; ++l) {
+                    rLeftHandSideMatrix(i * 3 + k, j * 3 + l) = temp_matrix2(k, l);
+                }
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     MatrixType& rB,
     const bounded_3_matrix& r_rotation_matrix,
