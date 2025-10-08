@@ -664,6 +664,14 @@ private:
     ///@}
 }; // Class SpatialSearchResultContainer
 
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name Input and output
+///@{
+
 /// input stream function
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 inline std::istream& operator>>(std::istream& rIStream,
@@ -685,7 +693,5 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 }
 
 ///@}
-
-///@} addtogroup block
 
 }  // namespace Kratos.

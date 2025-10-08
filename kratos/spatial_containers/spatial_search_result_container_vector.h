@@ -247,8 +247,8 @@ public:
 
    /**
      * @brief Operator []
-     * @param Index The index to be retrieved
-     * @return The result container
+     * @param Index The index to be retrieved.
+     * @return The result container.
      */
     SpatialSearchResultContainerReferenceType operator[](const IndexType Index)
     {
@@ -258,8 +258,8 @@ public:
 
     /**
      * @brief Operator []
-     * @param Index The index to be retrieved
-     * @return The result container
+     * @param Index The index to be retrieved.
+     * @return The result container.
      */
     const SpatialSearchResultContainerType& operator[](const IndexType Index) const
     {
@@ -269,8 +269,8 @@ public:
 
     /**
      * @brief Operator ()
-     * @param Index The index to be retrieved
-     * @return The result container pointer
+     * @param Index The index to be retrieved.
+     * @return The result container pointer.
      */
     SpatialSearchResultContainerPointerType operator()(const IndexType Index)
     {
@@ -280,8 +280,8 @@ public:
 
     /**
      * @brief Operator ()
-     * @param Index The index to be retrieved
-     * @return The result container pointer
+     * @param Index The index to be retrieved.
+     * @return The result container pointer.
      */
     const SpatialSearchResultContainerType* operator()(const IndexType Index) const
     {
@@ -330,41 +330,51 @@ public:
     }
 
     /**
-     * @brief Returns the number of points results
-     * @return The number of points results
+     * @brief Returns the number of points results.
+     * @return The number of points results.
      */
     std::size_t NumberOfSearchResults() const;
 
     /**
-     * @brief Initialize the container
-     * @return The result container
+     * @brief Initialize the container.
+     * @return The result container.
      */
     SpatialSearchResultContainerReferenceType InitializeResult();
 
     /**
-     * @brief Initialize the container
-     * @param NumberOfResults The number of results to be initialized
+     * @brief Initialize the container.
+     * @param NumberOfResults The number of results to be initialized.
      */
     void InitializeResults(const std::size_t NumberOfResults);
 
     /**
-     * @brief Check if coordinates are initialized
-     * @param Index The index to be initialized
-     * @return True if hash is initialized, false otherwise
+     * @brief Check if coordinates are initialized.
+     * @param Index The index to be initialized.
+     * @return True if hash is initialized, false otherwise.
     */
     bool HasResult(const IndexType Index) const;
 
     /**
-     * @brief Clear the containers
-     * @details This method clears the containers
+     * @brief Clear the containers.
+     * @details This method clears the containers.
      */
     void Clear();
 
     /**
-     * @brief Generate the global pointer communicator
-     * @param rDataCommunicator The data communicator considered
+     * @brief Generate the global pointer communicator.
+     * @param rDataCommunicator The data communicator considered.
      */
     void GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator);
+
+    /**
+     * @brief Generate the global pointer communicator.
+     * @param rAllGlobalResults The vector containing all the global results.
+     * @param rDataCommunicator The data communicator considered.
+     */
+    void GenerateGlobalPointerCommunicator(
+        const GlobalResultsVector& rAllGlobalResults,
+        const DataCommunicator& rDataCommunicator
+        );
 
     /**
      * @brief Synchronize all container between partitions
@@ -681,6 +691,14 @@ private:
     ///@}
 }; // Class SpatialSearchResultContainerVector
 
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name Input and output
+///@{
+
 /// input stream function
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 inline std::istream& operator>>(std::istream& rIStream,
@@ -702,7 +720,5 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 }
 
 ///@}
-
-///@} addtogroup block
 
 }  // namespace Kratos.

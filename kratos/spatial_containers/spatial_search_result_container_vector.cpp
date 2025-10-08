@@ -126,7 +126,20 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
     }
 
     // Generate the communicator
-    mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicatorType>(rDataCommunicator, all_global_results.ptr_begin(), all_global_results.ptr_end());
+    GenerateGlobalPointerCommunicator(all_global_results, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GenerateGlobalPointerCommunicator(
+    const GlobalResultsVector& rAllGlobalResults,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    // Generate the communicator
+    mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicatorType>(rDataCommunicator, rAllGlobalResults.ptr_begin(), rAllGlobalResults.ptr_end());
 }
 
 /***********************************************************************************/
@@ -135,7 +148,8 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
 void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
 {
-    // TODO: Create the  the GlobalPointerCommunicator here
+    // Prepare the global results
+    GlobalResultsVector all_global_results;
 
     // Synchronize local results to global results
     if(rDataCommunicator.IsDistributed()) { // MPI code
@@ -201,8 +215,13 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
 
             // 6. Populate the final Kratos container from the temporary buffer.
             r_global_results.clear();
+            const std::size_t number_of_gp = global_gp.size();
+            r_global_results.reserve(number_of_gp);
+            const std::size_t current_size = all_global_results.size();
+            all_global_results.reserve(current_size + number_of_gp);
             for (auto& r_gp : global_gp) {
                 r_global_results.push_back(std::move(r_gp));
+                all_global_results.push_back(std::move(r_gp));
             }
 
             // Generate the communicator for the now-synced results.
@@ -210,13 +229,18 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
         }
     } else { // Serial code
         // Iterate over all the results
-        block_for_each(mPointResults, [](auto p_result) {
+        for (auto p_result : mPointResults) {
             // Fill global vector
             auto& r_global_results = p_result->GetGlobalResults();
+            const std::size_t number_of_gp = p_result->NumberOfLocalResults();
+            r_global_results.reserve(number_of_gp);
+            const std::size_t current_size = all_global_results.size();
+            all_global_results.reserve(current_size + number_of_gp);
             for (auto& r_value : p_result->GetLocalResults()) {
                 r_global_results.push_back(&r_value);
+                all_global_results.push_back(&r_value);
             }
-        });
+        }
 
         // Generate global pointer communicator
         block_for_each(mPointResults, [&rDataCommunicator](auto p_result) {
@@ -225,7 +249,7 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
     }
 
     // Generate the communicator
-    GenerateGlobalPointerCommunicator(rDataCommunicator);
+    GenerateGlobalPointerCommunicator(all_global_results, rDataCommunicator);
 }
 
 /***********************************************************************************/
