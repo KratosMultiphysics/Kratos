@@ -56,7 +56,7 @@ public:
     ///@name Type Definitions */
     ///@{
 
-    /** Counted pointer of ClassName */
+    /** Counted pointer of Strategy */
     KRATOS_CLASS_POINTER_DEFINITION(Strategy);
 
     ///@}
@@ -69,7 +69,7 @@ public:
     explicit Strategy() = default;
 
     /**
-     * @brief Default constructor. (with parameters)
+     * @brief ModelPart - Parameters constructor (to keep backward compatibility with old strategies)
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
@@ -77,24 +77,32 @@ public:
         ModelPart& rModelPart,
         Parameters ThisParameters)
         : mpModelPart(&rModelPart)
+        , mParameters(ThisParameters)
     {
-    }
-    /**
-     * @brief Default constructor. (with parameters)
-     * @param rModelPart The model part of the problem
-     */
-    explicit Strategy(
-        ModelPart& rModelPart)
-        : mpModelPart(&rModelPart)
-    {
+        mParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
     }
 
-    /** Copy constructor.
+    /**
+     * @brief Model - Parameters constructor
+     * @param rModel The model container of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit Strategy(
+        Model& rModel,
+        Parameters ThisParameters)
+        : mpModel(&rModel)
+        , mParameters(ThisParameters)
+    {
+        mParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+    }
+
+    /**
+     * @brief Copy constructor
      */
     Strategy(const Strategy &Other) = delete;
 
     /**
-     * @brief Destructor.
+     * @brief Destructor
      */
     virtual ~Strategy() = default;
 
@@ -112,7 +120,7 @@ public:
      * @param ThisParameters The configuration parameters
      */
     virtual typename Strategy::Pointer Create(
-        ModelPart &rModelPart,
+        ModelPart &rModel,
         Parameters ThisParameters) const
     {
         KRATOS_ERROR << "Base \'Strategy\' class does not implement \'Create\' method. Call derived class ones." << std::endl;
@@ -125,18 +133,18 @@ public:
     virtual void Initialize() = 0;
 
     /**
-     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
-     * @details A member variable should be used as a flag to make sure this function is called only once per step.
-     * @todo Boost dependencies should be replaced by std equivalent
-     */
-    virtual void InitializeSolutionStep() = 0;
-
-    /**
      * @brief Operation to predict the solution
      * This provides a prediction for the current solution step solve. If not called a trivial predictor is used
      * in which the values of the solution step of interest are assumed equal to the old values.
      */
     virtual void Predict() = 0;
+
+    /**
+     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     * @todo Boost dependencies should be replaced by std equivalent
+     */
+    virtual void InitializeSolutionStep() = 0;
 
     /**
      * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
@@ -161,17 +169,35 @@ public:
     virtual int Check() = 0;
 
     /**
-     * @brief This operations should be called before printing the results when non trivial results (e.g. stresses)
-    need to be calculated given the solution of the step
-     *@details This operations should be called only when needed, before printing as it can involve a non negligible cost
+     * @brief Function to be called to output information from inside the strategy (e.g., a residual vector).
+     * The behavior of the function can be customized in derived classes according to the given variable
+     * @param rVariable Variable to decide the things to be performed
+     * @return Vector Dense vector containing the information to be output
      */
-    virtual void CalculateOutputData() = 0;
+    virtual Vector CalculateOutputData(Variable<Vector>& rVariable) = 0;
+
+    /**
+     * @brief Function to be called to output information from inside the strategy (e.g., a stack of residual vectors).
+     * The behavior of the function can be customized in derived classes according to the given variable
+     * @param rVariable Variable to decide the things to be performed
+     * @return Matrix Dense matrix containing the information to be output
+     */
+    virtual Matrix CalculateOutputData(Variable<Matrix>& rVariable) = 0;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
      */
-    virtual Parameters GetDefaultParameters() const = 0;
+    virtual Parameters GetDefaultParameters() const
+    {
+        // Current class default parameters
+        Parameters default_parameters = Parameters(R"({
+            "name" : "strategy",
+            "model_part_name" : ""
+        })");
+
+        return default_parameters;
+    }
 
     /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
@@ -192,7 +218,15 @@ public:
      */
     ModelPart& GetModelPart()
     {
-        return *mpModelPart;
+        if (!mpModelPart) {
+            if (mParameters["model_part_name"].GetString() == "") {
+                KRATOS_ERROR << "\'model_part_name\' is not defined." << std::endl;
+            } else {
+                return mpModel->GetModelPart(mParameters["model_part_name"].GetString());
+            }
+        } else {
+            return *mpModelPart;
+        }
     };
 
     /**
@@ -201,7 +235,15 @@ public:
      */
     const ModelPart& GetModelPart() const
     {
-        return *mpModelPart;
+        if (!mpModelPart) {
+            if (mParameters["model_part_name"].GetString() == "") {
+                KRATOS_ERROR << "\'model_part_name\' is not defined." << std::endl;
+            } else {
+                return mpModel->GetModelPart(mParameters["model_part_name"].GetString());
+            }
+        } else {
+            return *mpModelPart;
+        }
     };
 
     ///@}
@@ -243,7 +285,11 @@ private:
     ///@name Member Variables
     ///@{
 
+    Model* mpModel = nullptr;
+
     ModelPart* mpModelPart = nullptr;
+
+    Parameters mParameters;
 
     ///@}
     ///@name Private Operators

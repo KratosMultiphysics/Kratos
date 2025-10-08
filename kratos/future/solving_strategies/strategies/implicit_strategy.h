@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 
 #ifdef KRATOS_USE_FUTURE
 #include "future/linear_solvers/linear_solver.h"
@@ -61,7 +60,7 @@ public:
     ///@name Type Definitions */
     ///@{
 
-    /** Counted pointer of ClassName */
+    /** Counted pointer of ImplicitStrategy */
     KRATOS_CLASS_POINTER_DEFINITION(ImplicitStrategy);
 
     // Scheme pointer type definition
@@ -101,7 +100,7 @@ public:
     explicit ImplicitStrategy() = default;
 
     /**
-     * @brief Default constructor. (with parameters)
+     * @brief ModelPart - Parameters constructor (to keep backward compatibility with old strategies)
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
@@ -117,6 +116,24 @@ public:
         //TODO: In here we should leverage the Registry to construct the scheme and linear solver from the json input settings
     }
 
+    /**
+     * @brief Model - Parameters constructor
+     * @param rModel The model container of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ImplicitStrategy(
+        Model& rModel,
+        Parameters ThisParameters)
+        : Strategy(rModel, ThisParameters)
+    {
+        // Validate and assign defaults
+        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        //TODO: In here we should leverage the Registry to construct the scheme and linear solver from the json input settings
+    }
+
+    //TODO: This is a temporary constructor until we fix the issue with the Registry
     /**
      * @brief Default constructor
      * @param rModelPart The model part of the problem
@@ -135,7 +152,7 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false)
-        : Strategy(rModelPart)
+        : Strategy(rModelPart, Parameters())
         , mpScheme(pScheme)
         , mpLinearSolver(pLinearSolver)
         , mReformDofsAtEachStep(ReformDofSetAtEachStep)
@@ -276,7 +293,12 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateOutputData() override
+    Vector CalculateOutputData(Variable<Vector>& rVariable) override
+    {
+        pGetScheme()->CalculateOutputData(mLinearSystemContainer);
+    }
+
+    Matrix CalculateOutputData(Variable<Matrix>& rVariable) override
     {
         pGetScheme()->CalculateOutputData(mLinearSystemContainer);
     }
@@ -293,6 +315,9 @@ public:
             "linear_solver_settings" : {},
             "scheme_settings" : {}
         })");
+
+        // Add base class default parameters
+        default_parameters.RecursivelyAddMissingParameters(Strategy::GetDefaultParameters());
 
         return default_parameters;
     }
@@ -664,9 +689,9 @@ protected:
         const auto& r_dx = *mLinearSystemContainer.pDx;
 
         if (GetEchoLevel() == 3) { //if it is needed to print the debug info
-            KRATOS_INFO("LHS") << "LHS = " << r_A << std::endl;
-            KRATOS_INFO("RHS") << "RHS = " << r_b << std::endl;
-            KRATOS_INFO("Dx")  << "Solution obtained = " << r_dx << std::endl;
+            KRATOS_INFO("ImplicitStrategy") << "LHS = " << r_A << std::endl;
+            KRATOS_INFO("ImplicitStrategy") << "RHS = " << r_b << std::endl;
+            KRATOS_INFO("ImplicitStrategy")  << "Solution obtained = " << r_dx << std::endl;
         }
 
         if (this->GetEchoLevel() == 4) { //print to matrix market file

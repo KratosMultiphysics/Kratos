@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "utilities/builtin_timer.h"
 
 #ifdef KRATOS_USE_FUTURE
@@ -64,10 +63,10 @@ public:
     ///@name Type Definitions */
     ///@{
 
-    /** Counted pointer of ClassName */
+    /** Counted pointer of LinearStrategy */
     KRATOS_CLASS_POINTER_DEFINITION(LinearStrategy);
 
-    /// The definition of the current class
+    /// The definition of the current class base type
     using BaseType = ImplicitStrategy<TMatrixType, TVectorType, TSparseGraphType>;
 
     // Scheme pointer type definition
