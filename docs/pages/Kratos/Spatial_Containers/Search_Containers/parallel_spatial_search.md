@@ -1,16 +1,16 @@
 ---
-title: SearchWrapper
+title: ParallelSpatialSearch
 keywords: search spatial_container core
 tags: [search spatial_container]
 sidebar: kratos_core_search
-summary: This is a search wrapper ready for MPI searches
+summary: This is a parallel spatial search ready for MPI searches
 ---
 
-# Search Wrapper
+# Parallel Spatial Search
 
 ## Description
 
-This is a search wrapper, which must be adapted and specialized for every search object.The class is designed to efficiently handle searches across different processes in a distributed computing environment using MPI.
+This is a parallel spatial search, which must be adapted and specialized for every search object.The class is designed to efficiently handle searches across different processes in a distributed computing environment using MPI.
 
 Spatial container are used to manage and query spatial data efficiently. Classes like [`GeometricalObjectsBins`](geometrical_object_bins) and various tree-based structures (e.g., [KDTree](kd_tree), [OCTree](octree), [BinsDynamic](bind_dynamic)) are used depending on the application requirements.
 
@@ -18,19 +18,18 @@ See [`SpatialSearchResultContainer`](spatial_search_result_container) and [`Spat
 
 ## Implementation
 
-Can be found in [`search_wrapper.h`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/spatial_containers/search_wrapper.h).
+Can be found in [`parallel_spatial_search.h`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/spatial_containers/parallel_spatial_search.h).
 
 ### Template arguments
 
 - `TSearchObject`: The type of the spatial search object.
 - `TSpatialSearchCommunication`: The communication strategy, which can be synchronous or asynchronous, and homogeneous or heterogeneous. Considers the enum `SpatialSearchCommunication`, see [`SpatialSearchResultContainer`](spatial_search_result_container):
-  - `SYNCHRONOUS_HOMOGENEOUS`: All partitions are fully aware of the entire dataset.
-  - `SYNCHRONOUS_HETEROGENEOUS`: Partitions are aware of sub-sets of the dataset.
-  - `ASYNCHRONOUS`: Asynchronous communication, which is not implemented yet.
+  - `SYNCHRONOUS`: All partitions are fully aware of the entire dataset.
+  - `ASYNCHRONOUS`: Asynchronous communication, **which is not implemented yet**.
 
 ### Result containers
 
-- **[`SpatialSearchResultContainer`](spatial_search_result_container) and [`SpatialSearchResultContainerVector`](spatial_search_result_container_vector)**: These containers store the results of spatial searches, handling different data types and ensuring compatibility with MPI.
+- **[`SpatialSearchResultContainer`](spatial_search_result_container) and [`SpatialSearchResultContainerVector`](spatial_search_result_container_vector)**: These containers store the results of spatial searches, handling different data types and ensuring compatibility with **MPI**.
 
 ### Python exposition
 
@@ -54,7 +53,7 @@ Can be found in [`search_wrapper.h`](https://github.com/KratosMultiphysics/Krato
 #### Instantiation
 
 ##### 1. `SearchWrapperGeometricalObjectBins`
-   - For both `SYNCHRONOUS_HOMOGENEOUS` and `SYNCHRONOUS_HETEROGENEOUS` communication types.
+   - For both `SYNCHRONOUS` and `ASYNCHRONOUS` (**TO BE IMPLEMENTED**) communication types.
    - Exposes constructors for `GeometricalObjectsBins` and the spatial search methods as described above.
 
 ##### 2. KDTree Wrappers
@@ -62,20 +61,17 @@ Can be found in [`search_wrapper.h`](https://github.com/KratosMultiphysics/Krato
      - `SearchWrapperKDTreeNode`
      - `SearchWrapperKDTreeElement`
      - `SearchWrapperKDTreeCondition`
-   - Both `SYNCHRONOUS_HOMOGENEOUS` and `SYNCHRONOUS_HETEROGENEOUS` versions.
 
 ##### 3. OCTree Wrappers
    - Analogous to KDTree wrappers, tailored for OCTree partitions:
      - `SearchWrapperOCTreeNode`
      - `SearchWrapperOCTreeElement`
      - `SearchWrapperOCTreeCondition`
-   - Both `SYNCHRONOUS_HOMOGENEOUS` and `SYNCHRONOUS_HETEROGENEOUS` versions.
 
 ##### 4. Static and Dynamic Bins Wrappers
    - Exposes wrappers for static and dynamic bins structures for `Node`, `Element`, and `Condition`:
      - `SearchWrapperStaticBinsTreeNode`
      - `SearchWrapperDynamicBinsNode`, etc.
-   - Both `SYNCHRONOUS_HOMOGENEOUS` and `SYNCHRONOUS_HETEROGENEOUS` versions.
 
 ## Example usage
 
@@ -86,7 +82,7 @@ Here's an example of how you can utilize the `SearchWrapperGeometricalObjectsBin
 ```cpp
 #include "containers/model.h"
 #include "tests/test_utilities/cpp_tests_utilities.h"
-#include "spatial_containers/search_wrapper.h"
+#include "spatial_containers/parallel_spatial_search.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 
 using namespace Kratos;
@@ -101,11 +97,11 @@ static void Example() {
     const DataCommunicator& data_communicator = Testing::GetDefaultDataCommunicator();
     ParallelFillCommunicator(cube_skin, data_communicator).Execute();
 
-    // Define the type of the search wrapper using homogeneous communication
+    // Define the type of the parallel spatial search using homogeneous communication
     using SearchWrapperType = SearchWrapperGeometricalObjectsBins;
 
-    // Instantiate the search wrapper with the elements of the model part
-    SearchWrapperType search_wrapper(cube_skin.Elements(), data_communicator);
+    // Instantiate the parallel spatial search with the elements of the model part
+    SearchWrapperType parallel_spatial_search(cube_skin.Elements(), data_communicator);
 
     // Create a model part for points to be searched
     ModelPart& point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -119,7 +115,7 @@ static void Example() {
     typename SearchWrapperType::ResultContainerVectorType results;
 
     // Conduct a search in radius of 0.3 units around the newly added node
-    search_wrapper.SearchInRadius(point_model_part.NodesBegin(), point_model_part.NodesEnd(), 0.3, results);
+    parallel_spatial_search.SearchInRadius(point_model_part.NodesBegin(), point_model_part.NodesEnd(), 0.3, results);
 
     // Print out results of the search
     for (auto& result : results) {
@@ -136,7 +132,7 @@ static void Example() {
 
 3. **Search operation**: A search is performed for points in a radius of 0.3 units. The search operation populates the results vector, which is then iterated to output the search findings.
 
-4. **MPI environment**: Depending on your setup, you might need to initialize and finalize the MPI environment to handle parallel computations properly. This is suggested in the comments but commented out for simplicity and context dependency.
+4. **MPI environment**: Depending on your setup, you might need to initialize and finalize the **MPI** environment to handle parallel computations properly. This is suggested in the comments but commented out for simplicity and context dependency.
 
 ### Python
 
