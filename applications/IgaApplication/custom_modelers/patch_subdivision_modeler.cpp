@@ -10,12 +10,7 @@
 //  Main authors:    Nicolò Antonelli
 
 // System includes
-#include <algorithm>
-#include <cctype>
-#include <cmath>
-#include <set>
-#include <sstream>
-#include <unordered_map>
+#include <limits>
 
 // External includes
 
@@ -181,6 +176,19 @@ ModelPart& PatchSubdivisionModeler::InitializeSetup_(
         << "PatchSubdivisionModeler: \"model_part_name\" must be specified." << std::endl;
 
     ModelPart& r_model_part = mpModel->GetModelPart(model_part_name);
+
+    // Ensure DOMAIN_SIZE is set on the root process info (some solvers set it later).
+    // For surface IGA in this modeler, default to 2 if unset/zero.
+    {
+        auto& r_process_info = r_model_part.GetProcessInfo();
+        int current_domain_size = 0;
+        if (r_process_info.Has(DOMAIN_SIZE)) {
+            current_domain_size = static_cast<int>(r_process_info[DOMAIN_SIZE]);
+        }
+        if (current_domain_size == 0) {
+            r_process_info.SetValue(DOMAIN_SIZE, 2);
+        }
+    }
 
     // Echo level
     const int echo_level_input = r_parameters["echo_level"].GetInt();
@@ -355,18 +363,31 @@ void PatchSubdivisionModeler::ProcessPatch_(
         }
     }
 
-    // Refined patch only if a region matched AND skin data is present in geometry_base
+    // SBM is applicable only if a refinement region matched AND skin data is configured
     const bool has_skin_data = geometry_base.Has("skin_model_part_name") &&
-                               geometry_base.Has("skin_model_part_outer_initial_name") &&
-                               geometry_base.Has("skin_model_part_inner_initial_name");
-    bool is_refined_patch = (p_refinement_region != nullptr) && has_skin_data;
+                               (geometry_base.Has("skin_model_part_outer_initial_name") ||
+                                geometry_base.Has("skin_model_part_inner_initial_name"));
+    
+    // Check if the inner skin (if provided) is fully inside this patch
+    bool skin_fully_inside = true;
+    if (geometry_base.Has("skin_model_part_inner_initial_name")) {
+        const std::string inner_skin_name = geometry_base["skin_model_part_inner_initial_name"].GetString();
+        skin_fully_inside = IsSkinFullyInsidePatch_(inner_skin_name, rect, geometry_base);
+        if (mEchoLevel > 2) {
+            KRATOS_INFO("PatchSubdivisionModeler")
+                << "  Skin containment (inner='" << inner_skin_name << "'): "
+                << (skin_fully_inside ? "inside" : "outside") << std::endl;
+        }
+    }
+
+    bool use_sbm_for_this_patch = (p_refinement_region != nullptr) && has_skin_data && skin_fully_inside;
 
     if (mEchoLevel > 2) {
         KRATOS_INFO("PatchSubdivisionModeler")
             << "Creating/Updating patch '" << patch_full_name << "' from subdomain "
             << RectangleToString(rect) << std::endl;
         KRATOS_INFO("PatchSubdivisionModeler")
-            << "  Patch classification ....: " << (is_refined_patch ? "refined" : "body-fitted") << std::endl;
+            << "  Patch classification ....: " << (use_sbm_for_this_patch ? "refined" : "body-fitted") << std::endl;
         if (!has_skin_data && p_refinement_region != nullptr) {
             KRATOS_INFO("PatchSubdivisionModeler")
                 << "  Note: missing skin_model_part definitions -> surrogate workflow disabled." << std::endl;
@@ -420,6 +441,19 @@ void PatchSubdivisionModeler::ProcessPatch_(
 
     patch_geometry["lower_point_xyz"].SetVector(patch_lower_xyz);
     patch_geometry["upper_point_xyz"].SetVector(patch_upper_xyz);
+
+    // If SBM is not applicable to this patch (either no region matched or containment failed),
+    // remove SBM-related keys so NurbsGeometryModelerSbm goes body-fitted for this patch.
+    if (!use_sbm_for_this_patch) {
+        if (patch_geometry.Has("skin_model_part_inner_initial_name")) patch_geometry.RemoveValue("skin_model_part_inner_initial_name");
+        if (patch_geometry.Has("skin_model_part_outer_initial_name")) patch_geometry.RemoveValue("skin_model_part_outer_initial_name");
+        if (patch_geometry.Has("skin_model_part_name")) patch_geometry.RemoveValue("skin_model_part_name");
+        if (mEchoLevel > 1) {
+            KRATOS_INFO("PatchSubdivisionModeler")
+                << "  Disabling SBM for patch '" << patch_full_name << "' ("
+                << (p_refinement_region ? "skin outside" : "not a refinement patch") << ")." << std::endl;
+        }
+    }
 
     // Compute per-patch knot spans proportionally, then apply refinement overrides if present
     Vector patch_spans = patch_geometry["number_of_knot_spans"].GetVector();
@@ -492,21 +526,8 @@ void PatchSubdivisionModeler::ProcessPatch_(
             << "  Divisions (u, v) .......: ["
             << static_cast<int>(patch_spans[0]) << ", "
             << static_cast<int>(patch_spans[1]) << "]"
-            << (is_refined_patch ? " [refined]" : "") << std::endl;
+            << (use_sbm_for_this_patch ? " [refined]" : "") << std::endl;
     }
-
-    // // Suffix names for skin model parts to keep uniqueness
-    // auto update_name = [&](const std::string& key) {
-    //     if (patch_geometry.Has(key)) {
-    //         const std::string base_name = patch_geometry[key].GetString();
-    //         if (!base_name.empty()) {
-    //             patch_geometry[key].SetString(base_name + "_" + patch_suffix);
-    //         }
-    //     }
-    // };
-    // update_name("skin_model_part_name");
-    // update_name("skin_model_part_outer_initial_name");
-    // update_name("skin_model_part_inner_initial_name");
 
     // Generate geometry for this patch
     {
@@ -650,29 +671,74 @@ void PatchSubdivisionModeler::ProcessPatch_(
                 if (!in.Has("geometry_type")) in.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
                 // keep internal template "name" and order (can differ from external)
                 set_brep_ids(in, internal_ids);
-                // optionally normalize:
-                // in["iga_model_part"].SetString("internal_boundaries");
-                // optionally tag as inner:
-                // Parameters sbm = in.AddEmptyValue("sbm_parameters"); sbm.AddEmptyValue("is_inner").SetBool(true);
-                
-                // reduced.Append(in);
             }
 
-            patch_analysis["element_condition_list"] = reduced;
+            
+            if (use_sbm_for_this_patch) {
+                // For SBM patches: start from the computed body-fitted list (reduced)
+                // and append only the original conditions that have sbm_parameters.
+                Parameters reduced_sbm_first_stage("[]");
+                for (IndexType i = 0; i < reduced.size(); ++i) {
+                    reduced_sbm_first_stage.Append(reduced[i]);
+                }
+
+                auto is_cond_1 = [](const Parameters& c)->bool {
+                    return c.Has("type") && c["type"].IsString() && c["type"].GetString() == "condition";
+                };
+
+                // condition_list contains the original per-analysis list from inputs
+                for (IndexType i = 0; i < condition_list.size(); ++i) {
+                    Parameters e = condition_list[i].Clone();
+                    if (!is_cond_1(e)) continue;
+                    if (!e.Has("sbm_parameters")) continue;
+                    if (!e.Has("geometry_type")) e.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
+                    reduced_sbm_first_stage.Append(e);
+                }
+                patch_analysis["element_condition_list"] = reduced_sbm_first_stage;
+                
+                Parameters full_list = reduced_sbm_first_stage;
+
+                // SBM patch: keep elements and only conditions with sbm_parameters or non-empty brep_ids
+                Parameters reduced_sbm("[]");
+
+                auto is_cond = [](const Parameters& c)->bool {
+                    return c.Has("type") && c["type"].IsString() && c["type"].GetString() == "condition";
+                };
+
+                for (IndexType i = 0; i < full_list.size(); ++i) {
+                    Parameters e = full_list[i].Clone();
+                    if (e.Has("type") && e["type"].IsString() && e["type"].GetString() == "element") {
+                        if (!e.Has("geometry_type")) e.AddEmptyValue("geometry_type").SetString("GeometrySurface");
+                        reduced_sbm.Append(e);
+                        continue;
+                    }
+                    if (!is_cond(e)) continue;
+                    const bool has_sbm = e.Has("sbm_parameters");
+                    bool has_brep = false;
+                    if (e.Has("brep_ids") && e["brep_ids"].IsArray()) {
+                        has_brep = (e["brep_ids"].size() > 0);
+                    }
+                    if (has_sbm || has_brep) {
+                        if (!e.Has("geometry_type")) e.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
+                        reduced_sbm.Append(e);
+                    }
+                }
+                patch_analysis["element_condition_list"] = reduced_sbm;
+            } else {
+                // body-fitted patch
+                patch_analysis["element_condition_list"] = reduced;
+            }
+            
         }
 
         // Run IGA modeler for this patch
         {
-            // KRATOS_WATCH(patch_analysis)
-            // KRATOS_WATCH("Running IGA modeler for patch " + patch_full_name)
+            KRATOS_INFO_IF("PatchSubdivisionModeler::  \n", mEchoLevel > 1)
+                << patch_analysis << std::endl;
             IgaModelerSbm iga_modeler(*mpModel, patch_analysis);
             iga_modeler.SetupModelPart();
-            // KRATOS_WATCH("end IGA modeler for patch " + patch_full_name)
         }
         
-        // KRATOS_WATCH(patch_analysis)
-        // exit(0);
-
     } else {
         // Original behavior: analysis parameters missing is an error at this point
         KRATOS_ERROR << "PatchSubdivisionModeler: missing analysis parameters in input." << std::endl;
@@ -821,6 +887,56 @@ void PatchSubdivisionModeler::GenerateSubdivision()
         KRATOS_INFO("PatchSubdivisionModeler")
             << "GenerateSubdivision -> total accepted subdomains: " << mSubdomains.size() << std::endl;
     }
+}
+
+bool PatchSubdivisionModeler::IsSkinFullyInsidePatch_(
+    const std::string& rSkinModelPartName,
+    const RectType& rect,
+    const Parameters& geometry_base) const
+{
+    // physical == parameter space: use (u,v) directly
+    const double patch_min_u = rect[U_MIN];
+    const double patch_max_u = rect[U_MAX];
+    const double patch_min_v = rect[V_MIN];
+    const double patch_max_v = rect[V_MAX];
+
+    const ModelPart& r_skin_mp = mpModel->GetModelPart(rSkinModelPartName);
+    if (r_skin_mp.NumberOfGeometries() == 0) {
+        return false;
+    }
+
+    // Sample each curve geometry to build skin bounds in (u,v)
+    double skin_min_u = std::numeric_limits<double>::max();
+    double skin_max_u = std::numeric_limits<double>::lowest();
+    double skin_min_v = std::numeric_limits<double>::max();
+    double skin_max_v = std::numeric_limits<double>::lowest();
+
+    const int samples_per_curve = 100; // few points are enough
+    for (const auto& rGeom : r_skin_mp.Geometries()) {
+        // Assume curve-like geometry with local dimension 1, parameter t in [0,1]
+        for (int s = 0; s <= samples_per_curve; ++s) {
+            const double t = static_cast<double>(s) / samples_per_curve;
+
+            array_1d<double,3> local;
+            local[0] = t; local[1] = 0.0; local[2] = 0.0;
+            array_1d<double,3> global;
+            rGeom.GlobalCoordinates(global, local); // returns (x,y,*) == (u,v,*)
+
+            const double u = global[0];
+            const double v = global[1];
+
+            if (u < skin_min_u) skin_min_u = u;
+            if (u > skin_max_u) skin_max_u = u;
+            if (v < skin_min_v) skin_min_v = v;
+            if (v > skin_max_v) skin_max_v = v;
+        }
+    }
+    // Tolerance
+    const double tol = 1e-12;
+    const bool inside_u = (skin_min_u >= patch_min_u - tol) && (skin_max_u <= patch_max_u + tol);
+    const bool inside_v = (skin_min_v >= patch_min_v - tol) && (skin_max_v <= patch_max_v + tol);
+
+    return inside_u && inside_v;
 }
 
 void PatchSubdivisionModeler::BuildGlobalSubModelParts(ModelPart& r_parent_model_part, const std::vector<std::string>& rTargetNames) const

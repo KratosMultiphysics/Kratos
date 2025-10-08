@@ -87,6 +87,14 @@ private:
         
     void GenerateSubdivision();
 
+    // Returns true if the skin model part (by name) is fully contained
+    // within the rectangular patch in physical XY space derived from
+    // the given rect (parameter-space) and the base geometry extents.
+    bool IsSkinFullyInsidePatch_(
+        const std::string& rSkinModelPartName,
+        const RectType& rect,
+        const Parameters& geometry_base) const;
+
     std::vector<RectangleType> mSubdomains;
     std::vector<RefinementRegionData> mRefinementRegions;
     Model* mpModel = nullptr;
