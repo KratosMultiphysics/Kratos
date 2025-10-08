@@ -17,14 +17,18 @@
     <group n="Diaphragm_Wall" onoff="1" color="#4dff4d" type=""/>
     <group n="Strut" onoff="1" color="#4d4dff" type=""/>
     <group n="Bottom_Edge" onoff="1" color="#4d804d" type=""/>
-    <group n="Left_and_Right_Sides" onoff="1" color="#ff0000" type=""/>
     <group n="Strut_Support_At_Symmetry_Line" onoff="1" color="#ffff00" type=""/>
     <group n="All_Soil" onoff="1" color="#00ff00" type=""/>
+    <group n="Left_Side" onoff="1" color="#ff0080" type=""/>
+    <group n="Right_Side_Of_Clay_Upper_Right" onoff="1" color="#00ffff" type=""/>
+    <group n="Right_Side_Of_Clay_Middle_Right" onoff="1" color="#ff8000" type=""/>
+    <group n="Right_Side_Of_Clay_Lower_Right" onoff="1" color="#0000ff" type=""/>
+    <group n="Right_Side_Of_Sand_Right" onoff="1" color="#80ff00" type=""/>
   </groups>
   <units/>
   <!-- Fill this fields to automatically active an App without the init window -->
   <hiddenfield n="activeapp" active="0" v="GeoMechanics" state="disabled"/>
-  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="close"/>
+  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="active,selected,close"/>
   <appLink n="ThermicLauncher" public="1" pn="Thermic" active="0" appid="ThermicLauncher" prefix="ThermicLauncher"/>
   <appLink n="ConvectionDiffusion" public="0" pn="Convection-diffusion" active="0" appid="ConvectionDiffusion" prefix="CNVDFF"/>
   <appLink n="Structural" public="1" pn="Structural" active="0" appid="Structural" prefix="ST"/>
@@ -144,7 +148,7 @@
           </container>
         </container>
         <container n="Geotechnical Parts" pn="Geotechnical Parts" un="STParts" icon="shells16" update_proc="UpdateParts" tree_state="open">
-          <condition n="Parts_Soil" pn="Soil" ov="surface" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="open">
+          <condition n="Parts_Soil" pn="Soil" ov="surface" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="close">
             <value n="Element" pn="Element" actualize_tree="1" values="UPwSmallStrainElement2D,SmallStrainUPwDiffOrderElement2D" v="UPwSmallStrainElement2D" dict="[GetElements ElementType Soil]" state="normal">
               <dependencies node="../value[@n!='Material']" actualize="1"/>
             </value>
@@ -1100,7 +1104,7 @@
               <value n="PERMEABILITY_YY" pn="Permeability YY" help="Permeability YY" string_is="double" state="[PartParamState]" show_in_window="1" v="1.157e-15" tree_state="close"/>
               <value n="PERMEABILITY_XY" pn="Permeability XY" help="Permeability XY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.0" tree_state="close"/>
               <value n="DYNAMIC_VISCOSITY" pn="DYNAMIC_VISCOSITY" help="DYNAMIC_VISCOSITY" string_is="double" state="[PartParamState]" show_in_window="1" v="0.001" tree_state="close"/>
-              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="120e6" tree_state="active,selected,close"/>
+              <value n="YOUNG_MODULUS" pn="YOUNGS MODULUS" help="YOUNGS MODULUS" string_is="double" state="[PartParamState]" show_in_window="1" v="120e6" tree_state="close"/>
               <value n="POISSON_RATIO" pn="POISSONS RATIO" help="POISSONS RATIO" string_is="double" state="[PartParamState]" show_in_window="1" v="0.2" tree_state="close"/>
               <value n="BIOT_COEFFICIENT" pn="BIOT_COEFFICIENT" help="BIOT_COEFFICIENT" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0" tree_state="close"/>
               <value n="RETENTION_LAW" pn="RETENTION_LAW" values="SaturatedLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw" dict="SaturatedLaw,SaturatedLaw,SaturatedBelowPhreaticLevelLaw,SaturatedBelowPhreaticLevelLaw,VanGenuchtenLaw,VanGenuchtenLaw" actualize_tree="1" state="[PartParamState]" help="RETENTION_LAW" show_in_window="1" v="SaturatedLaw" tree_state="close"/>
@@ -1241,7 +1245,7 @@
               <value n="AREA_EFFECTIVE_Y" pn="Area Effective Y" help="Area Effective Y" string_is="double" state="[PartParamState]" show_in_window="1" v="0.01"/>
             </group>
           </condition>
-          <condition n="Parts_Interface" pn="Interface" ov="line" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="open">
+          <condition n="Parts_Interface" pn="Interface" ov="line" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="close">
             <value n="Element" pn="Element" actualize_tree="1" values="InterfaceElement" v="InterfaceElement" dict="[GetElements ElementType Interface]" state="normal">
               <dependencies node="../value[@n!='Material']" actualize="1"/>
             </value>
@@ -3530,7 +3534,7 @@
           </blockdata>
         </container>
         <include n="InitialConditions" active="0" path="apps/Structural/xml/InitialConditions.spd"/>
-        <container n="Boundary Conditions" pn="Boundary conditions" un="STNodalConditions,GEOMNodalConditions" icon="nodal" open_window="0" tree_state="close">
+        <container n="Boundary Conditions" pn="Boundary conditions" un="STNodalConditions,GEOMNodalConditions" icon="nodal" open_window="0" tree_state="open">
           <condition n="DISPLACEMENT" pn="Displacement" ov="point,line,surface" ovm="" icon="shells16" help="Displacement" state="[CheckNodalConditionStateGeoMechanical]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="open">
             <value n="activeX" pn="X Active" v="false" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <value n="activeY" pn="Y Active" v="false" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
@@ -3558,7 +3562,21 @@
               <value n="value_table_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
               <value n="value_table_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Table" state="[CheckDimension 3D]" show_in_window="1" v="0"/>
             </group>
-            <group n="Left_and_Right_Sides" ov="line" tree_state="close">
+            <group n="Strut_Support_At_Symmetry_Line" ov="point" tree_state="close">
+              <value n="activeX" pn="X Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="activeZ" pn="Z Active" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
+              <value n="is_fixedX" pn="X Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="is_fixedY" pn="Y Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="active,selected,close"/>
+              <value n="is_fixedZ" pn="Z Fixed" values="true,false" help="Fixed" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
+              <value n="value_value_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_value_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_value_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Value" state="[CheckDimension 3D]" show_in_window="1" v="0.0"/>
+              <value n="value_table_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
+              <value n="value_table_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
+              <value n="value_table_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Table" state="[CheckDimension 3D]" show_in_window="1" v="0"/>
+            </group>
+            <group n="Left_Side" ov="line" tree_state="close">
               <value n="activeX" pn="X Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
               <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
               <value n="activeZ" pn="Z Active" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
@@ -3572,12 +3590,54 @@
               <value n="value_table_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
               <value n="value_table_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Table" state="[CheckDimension 3D]" show_in_window="1" v="0"/>
             </group>
-            <group n="Strut_Support_At_Symmetry_Line" ov="point" tree_state="close">
+            <group n="Right_Side_Of_Clay_Upper_Right" ov="line" tree_state="close">
               <value n="activeX" pn="X Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
-              <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
               <value n="activeZ" pn="Z Active" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
               <value n="is_fixedX" pn="X Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
-              <value n="is_fixedY" pn="Y Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="active,selected,close"/>
+              <value n="is_fixedY" pn="Y Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="is_fixedZ" pn="Z Fixed" values="true,false" help="Fixed" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
+              <value n="value_value_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_value_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_value_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Value" state="[CheckDimension 3D]" show_in_window="1" v="0.0"/>
+              <value n="value_table_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
+              <value n="value_table_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
+              <value n="value_table_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Table" state="[CheckDimension 3D]" show_in_window="1" v="0"/>
+            </group>
+            <group n="Right_Side_Of_Clay_Middle_Right" ov="line" tree_state="close">
+              <value n="activeX" pn="X Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="activeZ" pn="Z Active" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
+              <value n="is_fixedX" pn="X Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="is_fixedY" pn="Y Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="is_fixedZ" pn="Z Fixed" values="true,false" help="Fixed" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
+              <value n="value_value_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_value_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_value_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Value" state="[CheckDimension 3D]" show_in_window="1" v="0.0"/>
+              <value n="value_table_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
+              <value n="value_table_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
+              <value n="value_table_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Table" state="[CheckDimension 3D]" show_in_window="1" v="0"/>
+            </group>
+            <group n="Right_Side_Of_Clay_Lower_Right" ov="line" tree_state="close">
+              <value n="activeX" pn="X Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="activeZ" pn="Z Active" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
+              <value n="is_fixedX" pn="X Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="is_fixedY" pn="Y Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="is_fixedZ" pn="Z Fixed" values="true,false" help="Fixed" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
+              <value n="value_value_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_value_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
+              <value n="value_value_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Value" state="[CheckDimension 3D]" show_in_window="1" v="0.0"/>
+              <value n="value_table_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
+              <value n="value_table_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Table" show_in_window="1" state="" v="0" tree_state="close"/>
+              <value n="value_table_Z" wn="DISPLACEMENT _Z" pn="Value Z" unit_magnitude="" help="Table" state="[CheckDimension 3D]" show_in_window="1" v="0"/>
+            </group>
+            <group n="Right_Side_Of_Sand_Right" ov="line" tree_state="close">
+              <value n="activeX" pn="X Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="activeY" pn="Y Active" values="true,false" help="Active" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
+              <value n="activeZ" pn="Z Active" values="true,false" help="Active" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
+              <value n="is_fixedX" pn="X Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="true" tree_state="close"/>
+              <value n="is_fixedY" pn="Y Fixed" values="true,false" help="Fixed" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="false" tree_state="close"/>
               <value n="is_fixedZ" pn="Z Fixed" values="true,false" help="Fixed" state="[CheckDimension 3D]" show_in_window="1" v="false"/>
               <value n="value_value_X" wn="DISPLACEMENT _X" pn="Value X" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
               <value n="value_value_Y" wn="DISPLACEMENT _Y" pn="Value Y" unit_magnitude="" help="Value" show_in_window="1" state="" v="0.0" tree_state="close"/>
@@ -5684,7 +5744,7 @@
     <value n="lognoter_file" v=""/>
     <value n="spd_file" v="C:/Checkouts/KratosProjects/london/applications/GeoMechanicsApplication/tests/submerged_construction_of_excavation/submerged_excavation_gid_project.gid/submerged_excavation_gid_project.spd"/>
   </blockdata>
-  <display_options frame_width="382" is_frame_open="1" view_conditions_search="0" conditions_search_values=""/>
+  <display_options frame_width="266" is_frame_open="1" view_conditions_search="0" conditions_search_values=""/>
   <global_preferences>
     <units>
       <unit_magnitude_user_sel n="Density" values="kg/m^3"/>
