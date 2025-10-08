@@ -15,7 +15,6 @@
 
 // Project includes
 #include "custom_conditions/laplacian_coupling_condition.h"
-
 #include "includes/variables.h"
 #include "iga_application_variables.h"
 
@@ -57,30 +56,7 @@ void LaplacianCouplingCondition::CalculateLocalSystem(
 {
     CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
-    const SizeType total_size = rLeftHandSideMatrix.size1();
-    KRATOS_ERROR_IF(total_size == 0) << "LaplacianCouplingCondition found empty LHS." << std::endl;
-
-    if (rRightHandSideVector.size() != total_size) {
-        rRightHandSideVector.resize(total_size, false);
-    }
-
-    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
-    const auto& r_unknown_var = p_settings->GetUnknownVariable();
-
-    Vector plus_values;
-    GetSolutionCoefficientVectorA(r_unknown_var, plus_values);
-    Vector minus_values;
-    GetSolutionCoefficientVectorB(r_unknown_var, minus_values);
-
-    Vector values(total_size);
-    for (IndexType i = 0; i < plus_values.size(); ++i) {
-        values[i] = plus_values[i];
-    }
-    for (IndexType i = 0; i < minus_values.size(); ++i) {
-        values[plus_values.size() + i] = minus_values[i];
-    }
-
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, values);
+    CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 void LaplacianCouplingCondition::CalculateLeftHandSide(
@@ -116,8 +92,22 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
     KRATOS_ERROR_IF(rDN_De_A.size() == 0 || rDN_De_B.size() == 0)
         << "Shape function gradients not available for LaplacianCouplingCondition. Configure the modeler with derivative order >= 2." << std::endl;
 
+    KRATOS_ERROR_IF(rDN_De_A[0].size1() != n_patch_A)
+        << "LaplacianCouplingCondition: gradient matrix rows mismatch for patch A. Expected "
+        << n_patch_A << ", obtained " << rDN_De_A[0].size1() << "." << std::endl;
+    KRATOS_ERROR_IF(rDN_De_B[0].size1() != n_patch_B)
+        << "LaplacianCouplingCondition: gradient matrix rows mismatch for patch B. Expected "
+        << n_patch_B << ", obtained " << rDN_De_B[0].size1() << "." << std::endl;
+
     const Matrix& N_patch_A = r_patch_A.ShapeFunctionsValues();
     const Matrix& N_patch_B = r_patch_B.ShapeFunctionsValues();
+
+    KRATOS_ERROR_IF(N_patch_A.size2() != n_patch_A)
+        << "LaplacianCouplingCondition: shape function values columns mismatch for patch A. Expected "
+        << n_patch_A << ", obtained " << N_patch_A.size2() << "." << std::endl;
+    KRATOS_ERROR_IF(N_patch_B.size2() != n_patch_B)
+        << "LaplacianCouplingCondition: shape function values columns mismatch for patch B. Expected "
+        << n_patch_B << ", obtained " << N_patch_B.size2() << "." << std::endl;
 
     const unsigned int dim_patch_A = rDN_De_A[0].size2();
     const unsigned int dim_patch_B = rDN_De_B[0].size2();
@@ -139,16 +129,20 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
     Vector determinant_factor_patch_A = prod(jacobian_patch_A, tangent_patch_A);
     determinant_factor_patch_A[2] = 0.0;
     const double detJ_patch_A = norm_2(determinant_factor_patch_A);
+    KRATOS_ERROR_IF(detJ_patch_A <= std::numeric_limits<double>::epsilon())
+        << "LaplacianCouplingCondition: degenerate Jacobian for patch A (determinant ~ 0)." << std::endl;
     const double weight = integration_points_patch_A[0].Weight() * detJ_patch_A;
+    KRATOS_ERROR_IF(std::abs(weight) <= std::numeric_limits<double>::epsilon())
+        << "LaplacianCouplingCondition: zero integration weight on patch A." << std::endl;
 
     double penalty_factor;
-    double nitsche_penalty_free = -1.0;
+    double nitsche_penalty_free = 1.0;
     if (GetProperties().Has(PENALTY_FACTOR)) {
         penalty_factor = -1.0; // GetProperties()[PENALTY_FACTOR];
         // penalty_factor = 10.0; 
         if (penalty_factor <= 0.0) {
             penalty_factor = 0.0;
-            nitsche_penalty_free = 1.0;
+            nitsche_penalty_free = -1.0; // does not matter this sign
         }
     } else {
         KRATOS_ERROR << "LaplacianCouplingCondition requires PENALTY_FACTOR to be defined in the Properties." << std::endl;
@@ -162,12 +156,14 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
             if (knot_span_sizes.size() > 1) {
                 characteristic_length = std::min(characteristic_length, knot_span_sizes[1]);
             }
+        } else {
+            KRATOS_ERROR << "KNOT_SPAN_SIZES is empty in LaplacianCouplingCondition" << std::endl;
         }
     }
     if (characteristic_length <= 0.0) {
-        characteristic_length = 1.0;
+        KRATOS_ERROR << "KNOT_SPAN_SIZES is < 0 in LaplacianCouplingCondition" << std::endl;
     }
-    const double penalty_over_h = (characteristic_length > 0.0) ? penalty_factor / characteristic_length : 0.0;
+    const double penalty_over_h = penalty_factor / characteristic_length;
 
     Vector DN_dot_n_patch_A = ZeroVector(n_patch_A);
     Vector DN_dot_n_patch_B = ZeroVector(n_patch_B);
@@ -184,20 +180,6 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
             DN_dot_n_patch_B[b] += DN_patch_B(b, d) * mNormalPhysicalSpaceB[d];
         }
     }
-    // Assembling coupling terms 
-    for (IndexType i = 0; i < n_patch_A; ++i) {
-        for (IndexType j = 0; j < n_patch_B; ++j) {
-            rLeftHandSideMatrix(i, n_patch_A + j) += weight * N_patch_A(0, i) * DN_dot_n_patch_B[j];
-        }
-    }
-    for (IndexType i = 0; i < n_patch_B; ++i) {
-        for (IndexType j = 0; j < n_patch_A; ++j) {
-            rLeftHandSideMatrix(n_patch_A + i, j) += weight * N_patch_B(0, i) * DN_dot_n_patch_A[j];
-        }
-    }
-
-
-    // Nitsche stabilization
     Vector DNn_A_nA(n_patch_A, 0.0);
     Vector DNn_A_nB(n_patch_A, 0.0);
     Vector DNn_B_nA(n_patch_B, 0.0);
@@ -217,6 +199,33 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
         }
     }
 
+    // Integration by parts + coupling condition [Scovazzi]
+    // Term: ∫ [[w]] · {{∇u}} = ∫ (v_A n_A + v_B n_B) · 0.5(∇u_A + ∇u_B)
+    const IndexType offB = n_patch_A;
+    // rows: test v_A with n_A
+    for (IndexType i = 0; i < n_patch_A; ++i) {
+        const double vA = N_patch_A(0, i);
+        // cols: u_A via (∇N_A · n_A)
+        for (IndexType j = 0; j < n_patch_A; ++j)
+            rLeftHandSideMatrix(i, j) -= weight * 0.5 * vA * DNn_A_nA[j];
+        // cols: u_B via (∇N_B · n_A)
+        for (IndexType j = 0; j < n_patch_B; ++j)
+            rLeftHandSideMatrix(i, offB + j) -= weight * 0.5 * vA * DNn_B_nA[j];
+    }
+    // rows: test v_B with n_B
+    for (IndexType i = 0; i < n_patch_B; ++i) {
+        const double vB = N_patch_B(0, i);
+        // cols: u_A via (∇N_A · n_B)
+        for (IndexType j = 0; j < n_patch_A; ++j)
+            rLeftHandSideMatrix(offB + i, j) -= weight * 0.5 * vB * DNn_A_nB[j];
+        // cols: u_B via (∇N_B · n_B)
+        for (IndexType j = 0; j < n_patch_B; ++j)
+            rLeftHandSideMatrix(offB + i, offB + j) -= weight * 0.5 * vB * DNn_B_nB[j];
+    }
+
+
+
+    // Nitsche stabilization
     // 0.5*(grad v_A + grad v_B) · (u_A n_A + u_B n_B)
     for (IndexType i = 0; i < n_patch_A; ++i) {
         const double grad_test_A_nA = DNn_A_nA[i];
@@ -228,7 +237,6 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
             rLeftHandSideMatrix(i, n_patch_A + j) += nitsche_penalty_free * 0.5 * weight * grad_test_A_nB * N_patch_B(0, j);
         }
     }
-
     for (IndexType i = 0; i < n_patch_B; ++i) {
         const double grad_test_B_nA = DNn_B_nA[i];
         const double grad_test_B_nB = DNn_B_nB[i];
@@ -240,6 +248,8 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
         }
     }
 
+
+    // Penalty term
     if (penalty_over_h != 0.0) {
         const double dot_nA_nA = MathUtils<double>::Dot(mNormalPhysicalSpaceA, mNormalPhysicalSpaceA);
         const double dot_nA_nB = MathUtils<double>::Dot(mNormalPhysicalSpaceA, mNormalPhysicalSpaceB);
@@ -265,30 +275,6 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
 
     }
 
-    
-    // // Rubén's penalty 
-    // if (penalty_over_h != 0.0) {
-    //     const double penalty_weight = penalty_over_h * weight;
-
-    //     // Penalty contribution: (w_A + w_B) * (u_A - u_B)
-    //     for (IndexType i = 0; i < n_patch_A; ++i) {
-    //         for (IndexType j = 0; j < n_patch_A; ++j) {
-    //             rLeftHandSideMatrix(i, j) += penalty_weight * N_patch_A(0, i) * N_patch_A(0, j);
-    //         }
-    //         for (IndexType j = 0; j < n_patch_B; ++j) {
-    //             rLeftHandSideMatrix(i, n_patch_A + j) -= penalty_weight * N_patch_A(0, i) * N_patch_B(0, j);
-    //         }
-    //     }
-
-    //     for (IndexType i = 0; i < n_patch_B; ++i) {
-    //         for (IndexType j = 0; j < n_patch_A; ++j) {
-    //             rLeftHandSideMatrix(n_patch_A + i, j) += penalty_weight * N_patch_B(0, i) * N_patch_A(0, j);
-    //         }
-    //         for (IndexType j = 0; j < n_patch_B; ++j) {
-    //             rLeftHandSideMatrix(n_patch_A + i, n_patch_A + j) -= penalty_weight * N_patch_B(0, i) * N_patch_B(0, j);
-    //         }
-    //     }
-    // }
 
     KRATOS_CATCH("")
 }
@@ -323,6 +309,68 @@ void LaplacianCouplingCondition::CalculateRightHandSide(
         rRightHandSideVector.resize(size, false);
     }
     noalias(rRightHandSideVector) = -prod(lhs, values);
+
+
+
+    // analytical flux 
+
+    // const auto& r_patch_A = GetGeometry();
+    // const auto& r_patch_B = GetGeometryMirror();
+    // const SizeType n_patch_A = r_patch_A.PointsNumber();
+    // const SizeType n_patch_B = r_patch_B.PointsNumber();
+    // const SizeType total_size = n_patch_A + n_patch_B;
+
+    // if (rRightHandSideVector.size() != total_size) {
+    //     rRightHandSideVector.resize(total_size, false);
+    // }
+    // noalias(rRightHandSideVector) = ZeroVector(total_size);
+
+    // const auto& integration_points_patch_A = r_patch_A.IntegrationPoints();
+    // const auto& integration_points_patch_B = r_patch_B.IntegrationPoints();
+
+    // KRATOS_ERROR_IF(integration_points_patch_A.empty() || integration_points_patch_B.empty())
+    //     << "LaplacianCouplingCondition expects at least one integration point." << std::endl;
+
+    // const Matrix& N_patch_A = r_patch_A.ShapeFunctionsValues();
+    // const Matrix& N_patch_B = r_patch_B.ShapeFunctionsValues();
+
+    // GeometryType::JacobiansType J_patch_A;
+    // r_patch_A.Jacobian(J_patch_A, r_patch_A.GetDefaultIntegrationMethod());
+    // Matrix jacobian_patch_A = ZeroMatrix(3, 3);
+    // jacobian_patch_A(0, 0) = J_patch_A[0](0, 0);
+    // jacobian_patch_A(0, 1) = J_patch_A[0](0, 1);
+    // jacobian_patch_A(1, 0) = J_patch_A[0](1, 0);
+    // jacobian_patch_A(1, 1) = J_patch_A[0](1, 1);
+    // jacobian_patch_A(2, 2) = 1.0;
+    // array_1d<double, 3> tangent_patch_A;
+    // r_patch_A.Calculate(LOCAL_TANGENT, tangent_patch_A);
+    // Vector determinant_factor_patch_A = prod(jacobian_patch_A, tangent_patch_A);
+    // determinant_factor_patch_A[2] = 0.0;
+    // const double detJ_patch_A = norm_2(determinant_factor_patch_A);
+    // const double weight = integration_points_patch_A[0].Weight() * detJ_patch_A;
+
+    // array_1d<double, 3> global_coords_A;
+    // r_patch_A.GlobalCoordinates(global_coords_A, integration_points_patch_A[0].Coordinates());
+    // const double x_A = global_coords_A[0];
+    // const double y_A = global_coords_A[1];
+    // const double gradx_A = std::cos(x_A) * std::sinh(y_A);
+    // const double grady_A = std::sin(x_A) * std::cosh(y_A);
+    // const double flux_A = gradx_A * mNormalPhysicalSpaceA[0] + grady_A * mNormalPhysicalSpaceA[1];
+
+    // array_1d<double, 3> global_coords_B;
+    // r_patch_B.GlobalCoordinates(global_coords_B, integration_points_patch_B[0].Coordinates());
+    // const double x_B = global_coords_B[0];
+    // const double y_B = global_coords_B[1];
+    // const double gradx_B = std::cos(x_B) * std::sinh(y_B);
+    // const double grady_B = std::sin(x_B) * std::cosh(y_B);
+    // const double flux_B = gradx_B * mNormalPhysicalSpaceB[0] + grady_B * mNormalPhysicalSpaceB[1];
+
+    // for (IndexType i = 0; i < n_patch_A; ++i) {
+    //     rRightHandSideVector[i] += weight * flux_A * N_patch_A(0, i);
+    // }
+    // for (IndexType i = 0; i < n_patch_B; ++i) {
+    //     rRightHandSideVector[n_patch_A + i] += weight * flux_B * N_patch_B(0, i);
+    // }
 }
 
 void LaplacianCouplingCondition::EquationIdVector(
