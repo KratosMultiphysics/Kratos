@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Missing required item UMAT_PARAMETERS")
+        "UMAT_PARAMETERS does not exist in the model part property with Id 0.")
 
     Vector umat_parameters(6);
     umat_parameters <<= 10000000, 0.2, 10.0, 25.0, 25.0, 1000;
@@ -121,31 +121,23 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     // checking of Phi
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Missing required item INDEX_OF_UMAT_PHI_PARAMETER")
+        "INDEX_OF_UMAT_PHI_PARAMETER does not exist in the model part property with Id 0.")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Invalid INDEX_OF_UMAT_PHI_PARAMETER: 0 (out-of-bounds index)")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()), "INDEX_OF_UMAT_PHI_PARAMETER in the model part property with Id 0 has an invalid value: 0 is out of the range [1, 6].")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 7);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Invalid INDEX_OF_UMAT_PHI_PARAMETER: 7 (out-of-bounds index)")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()), "INDEX_OF_UMAT_PHI_PARAMETER in the model part property with Id 0 has an invalid value: 7 is out of the range [1, 6].")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 4);
     umat_parameters(3) = -0.0001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Friction angle Phi out of range [0;90] (degrees): -0.0001")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()), "Friction angle Phi in the model part property with Id 0 has an invalid value: -0.0001 is out of range [0,90] (degrees).")
 
-    umat_parameters(3) = 90.00001;
+    umat_parameters(3) = 90.0001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Friction angle Phi out of range [0;90] (degrees): 90")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()), "Friction angle Phi in the model part property with Id 0 has an invalid value: 90.0001 is out of range [0,90] (degrees).")
 
     umat_parameters(3) = 25.0;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
