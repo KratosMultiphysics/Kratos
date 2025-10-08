@@ -21,6 +21,14 @@
 namespace Kratos
 {
 
+// This default destructor is added in the cpp to be able to forward declare member variables in
+// a unique_ptr
+TimeLoopExecutor::~TimeLoopExecutor() = default;
+
+// This default constructor is added in the cpp to make sure the destructor of the forward declared
+// member variables is known when moving a constructed object
+TimeLoopExecutor::TimeLoopExecutor() = default;
+
 void TimeLoopExecutor::SetCancelDelegate(const std::function<bool()>& rCancelDelegate)
 {
     mCancelDelegate = rCancelDelegate;
@@ -117,13 +125,5 @@ void TimeLoopExecutor::UpdateProgress(double Time) const
         mProgressDelegate(Time);
     }
 }
-
-// This default destructor is added in the cpp to be able to forward declaremember variables in
-// a unique_ptr
-TimeLoopExecutor::~TimeLoopExecutor() = default;
-
-// This default constructor is added in the cpp to make sure the destructor of the forward declared
-// member variables is known when moving a constructed object
-TimeLoopExecutor::TimeLoopExecutor() = default;
 
 } // namespace Kratos
