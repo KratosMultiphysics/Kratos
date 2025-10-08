@@ -215,10 +215,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             process->ExecuteInitialize();
         }
 
-        for (const auto& process : processes) {
-            process->ExecuteBeforeSolutionLoop();
-        }
-
         if (mpTimeLoopExecutor) {
             mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
             mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
