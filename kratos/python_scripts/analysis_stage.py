@@ -1,12 +1,10 @@
-# STD Imports
-from typing import Optional
-
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
-from KratosMultiphysics.step_controller import StepController, DefaultStepController, GeometricStepController
+from KratosMultiphysics.step_controller import Factory as StepControllerFactory
+from KratosMultiphysics.step_controller import StepController
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -63,51 +61,21 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-        step_controller_parameters: KratosMultiphysics.Parameters = KratosMultiphysics.Parameters("""{
-            "end_time" : 0,
-            "max_substeps" : 2e1
-        }""")
-        step_controller_parameters["end_time"].SetDouble(self.end_time)
-        step_controller: StepController = GeometricStepController(step_controller_parameters)
 
-        self.time: Optional[float] = 0.0
-        while isinstance(self.time, float):
-            begin: float = self.time
-            last_converged_step: float = begin
-            end: float = self._AdvanceTime()
+        self.step_controller = self._CreateStepController()
 
-            converged: bool = False
-            i_substep: int = 0
-            while not converged and isinstance(self.time, float):
-                self.time = step_controller.GetNextStep(
-                    last_converged_step,
-                    end,
-                    True if i_substep == 0 else converged,
-                    i_substep)
+        is_converged = False
+        while self.KeepAdvancingSolutionLoop():
+            self.step_controller.Initialize(self.time, self._AdvanceTime())
 
-                print(f"{begin} => {self.time}")
-                import KratosMultiphysics.StructuralMechanicsApplication as KratosSA
-
-                ta = KratosMultiphysics.TensorAdaptors.VariableTensorAdaptor(self.model["Structure.PointLoad2D_neumann"].Conditions, KratosSA.POINT_LOAD)
-                if isinstance(self.time, float):
-                    ta.CollectData()
-                    print("t1", ta.data, flush=True)
-                    self._GetSolver().ReduceTime(self.time)
-                    self.InitializeSolutionStep()
-                    #ta.data[0,1] = -5e4
-                    #ta.StoreData()
-                    ta.CollectData()
-                    print("t2", ta.data, flush=True)
-                    #self._GetSolver().Predict()
-                    converged = self._GetSolver().SolveSolutionStep()
-                    ta.CollectData()
-                    print("t3", ta.data, flush=True)
-                    self.FinalizeSolutionStep()
-                    self.OutputSolutionStep()
-
-                    if converged:
-                        last_converged_step = self.time
-                i_substep += 1
+            while not self.step_controller.SubSteppingCompleted(self.time, is_converged):
+                self.time = self.step_controller.GetSubStep(self.time, is_converged)
+                self.InitializeSolutionStep()
+                self._GetSolver().Predict()
+                is_converged = self._GetSolver().SolveSolutionStep()
+                self.FinalizeSolutionStep()
+                self.OutputSolutionStep()
+                print("H")
 
     def Initialize(self):
         """This function initializes the AnalysisStage
@@ -435,6 +403,11 @@ class AnalysisStage(object):
                 msg += "Please, define it as an 'output_processes' in the ProjectParameters."
                 IssueDeprecationWarning("AnalysisStage", msg.format(process.__class__.__name__))
         return deprecated_output_processes
+
+    def _CreateStepController(self) -> StepController:
+        if not self.project_parameters.Has("step_controller_settings"):
+            self.project_parameters.AddEmptyValue("step_controller_settings")
+        return StepControllerFactory(self.project_parameters["step_controller_settings"])
 
     def _GetSimulationName(self):
         """Returns the name of the Simulation
