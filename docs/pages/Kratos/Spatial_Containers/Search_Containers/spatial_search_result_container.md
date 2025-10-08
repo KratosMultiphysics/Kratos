@@ -20,14 +20,13 @@ Can be found in [`spatial_search_result_container.h`](https://github.com/KratosM
 
 Utilizes global pointers to manage data references across different computational nodes, enhancing the robustness and flexibility of distributed data handling.
 
-Methods such as `IsObjectFound`, `Reserve`, and `Clear` provide essential utilities for result management. Additional methods like `GetDistances` and `GetResultIsInside` allow for detailed queries on the search results.
+Methods such as `IsObjectFound`, `Reserve`, and `Clear` provide essential utilities for result management.
 
 ### Enumerations
 
-- **SpatialSearchCommunication**: Defines the mode of communication for spatial search results:
-  - `SYNCHRONOUS_HOMOGENEOUS`: All partitions are fully aware of the entire dataset.
-  - `SYNCHRONOUS_HETEROGENEOUS`: Partitions are aware of sub-sets of the dataset.
-  - `ASYNCHRONOUS`: Asynchronous communication, which is not implemented yet.
+- **`SpatialSearchCommunication`**: Defines the communication mode for spatial search results:
+    - `SYNCHRONOUS`: All partitions gather results from all other partitions to build a complete global list.
+    - `ASYNCHRONOUS`: Asynchronous communication, which is **not implemented yet**.
 
 ### Template arguments
 
@@ -39,8 +38,8 @@ Methods such as `IsObjectFound`, `Reserve`, and `Clear` provide essential utilit
 #### Instantiation
 
 The class is exposed with several template instantiations for different types (`Node`, `GeometricalObject`, `Element`, `Condition`) with two communication types:
-- **SYNCHRONOUS_HOMOGENEOUS**: This mode presumably ensures a consistent, uniform handling of communication across all nodes or elements during spatial searches, regardless of their heterogeneity or distribution.
-- **SYNCHRONOUS_HETEROGENEOUS**: In contrast, this mode might allow for different handling or processing strategies depending on the node or element type or state, providing more flexibility in operations that require acknowledgment of diversity in the dataset or environment.
+- **SYNCHRONOUS**: This mode presumably ensures a consistent, uniform handling of communication across all nodes or elements during spatial searches, regardless of their heterogeneity or distribution.
+- **ASYNCHRONOUS**: Asynchronous communication, which is **not implemented yet**.
 
 Each type and communication mode combination is then bound to the module with a specific class name, such as `SpatialSearchResultContainerNode` for nodes with homogeneous communication, or `SpatialSearchResultContainerNodeHeterogeneous` for nodes with heterogeneous communication.
 
@@ -85,60 +84,10 @@ Retrieves the local index of an object within the container.
 ##### SetLocalIndex
 Sets the local index of an object within the container.
 
-##### GetDistances
-Returns the list of distances associated with the objects in the container.
-
-See [Spatial Search Result Container Vector GetDistances](spatial_search_result_container_vector#GetDistances).
-
 ##### GetResultIsLocal
 Checks if a result is local to the current process or node.
 
 See [Spatial Search Result Container Vector GetResultIsLocal](spatial_search_result_container_vector#GetResultIsLocal).
-
-##### GetResultRank
-Retrieves the rank of the process or node where a result was found.
-
-See [Spatial Search Result Container Vector GetResultRank](spatial_search_result_container_vector#GetResultRank).
-
-##### GetResultIsActive
-Checks if the result is considered active based on the spatial search criteria.
-
-See [Spatial Search Result Container Vector GetResultIsActive](spatial_search_result_container_vector#GetResultIsActive).
-
-##### GetResultIsInside
-Determines whether the result is inside a specified boundary or region.
-
-See [Spatial Search Result Container Vector GetResultIsInside](spatial_search_result_container_vector#GetResultIsInside).
-
-##### GetResultShapeFunctions
-Retrieves the shape functions associated with the results, useful in finite element methods.
-
-See [Spatial Search Result Container Vector GetResultShapeFunctions](spatial_search_result_container_vector#GetResultShapeFunctions).
-
-##### GetResultIndices
-Retrieves indices associated with the results, useful for referencing within larger datasets or arrays.
-
-See [Spatial Search Result Container Vector GetResultIndices](spatial_search_result_container_vector#GetResultIndices).
-
-##### GetResultNodeIndices
-Retrieves the node indices specifically, used in mesh-based applications.
-
-See [Spatial Search Result Container Vector GetResultNodeIndices](spatial_search_result_container_vector#GetResultNodeIndices).
-
-##### GetResultPartitionIndices
-Retrieves indices useful for understanding data partitioning in distributed environments.
-
-See [Spatial Search Result Container Vector GetResultPartitionIndices](spatial_search_result_container_vector#GetResultPartitionIndices).
-
-##### GetResultCoordinates
-Gets the coordinates of the result, useful in spatial applications.
-
-See [Spatial Search Result Container Vector GetResultCoordinates](spatial_search_result_container_vector#GetResultCoordinates).
-
-##### GetDataCommunicator
-Accesses the `DataCommunicator` used for data synchronization and communication.
-
-See [Spatial Search Result Container Vector GetDataCommunicator](spatial_search_result_container_vector#GetDataCommunicator).
 
 ##### GetLocalResults
 Retrieves a list of results that are local to the current node or process.
@@ -153,8 +102,6 @@ Provides access to the global pointer communicator, essential for managing point
 
 The class `SpatialSearchResultContainer` defines the following member variables:
 
-##### `mrDataCommunicator`
-A reference to the `DataCommunicator` used for communication between different data processors.
 ##### `mLocalResults`
 A vector (`std::vector`) of local search results, which stores instances of `SpatialSearchResultType` (templated by `TObjectType`). There are only the local results, until `SynchronizeAll` is invoked.
 ##### `mGlobalResults`
@@ -173,17 +120,22 @@ A pointer to a `GlobalPointerCommunicator` of `SpatialSearchResultType`, used to
 To help you use the `SpatialSearchResultContainer`, here's a simple example that demonstrates how you might use this class in your code:
 
 ```cpp
+#include <iostream>
+#include "includes/data_communicator.h"
+#include "includes/node.h"
 #include "spatial_containers/spatial_search_result_container.h"
 
 int main() {
     // Create a data communicator
-    DataCommunicator& r_data_comm = DataCommunicator::GetDefault();
+    const DataCommunicator& r_data_comm = DataCommunicator::GetDefault();
+    const int rank = r_data_comm.Rank();
 
-    // Create a container for storing search results
-    SpatialSearchResultContainer<GeometricalObject> search_results(r_data_comm);
+    // Create a container for storing search results using the default constructor
+    SpatialSearchResultContainer<GeometricalObject> search_results;
 
-    // Create a geometric object and a search result
-    GeometricalObject test_object = GeometricalObject(r_data_comm.Rank() + 1); // Unique ID per rank
+    // Create a geometric object and a search result in a more complete way
+    Node::Pointer p_node = Kratos::make_intrusive<Node>(rank + 1, 0.0, 0.0, 0.0); // Unique ID per rank
+    GeometricalObject test_object(Kratos::Point(p_node));
     SpatialSearchResult<GeometricalObject> test_result(&test_object);
     test_result.SetDistance(0.5); // Set some arbitrary distance
 
@@ -192,18 +144,18 @@ int main() {
 
     // Optionally, check local results before synchronization
     auto& local_results = search_results.GetLocalResults();
-    std::cout << "Local results count: " << local_results.size() << std::endl;
+    std::cout << "[Rank " << rank << "] Local results count: " << local_results.size() << std::endl;
 
-    // Synchronize results across all MPI nodes
-    search_results.SynchronizeAll();
+    // Synchronize results across all MPI nodes, passing the communicator
+    search_results.SynchronizeAll(r_data_comm);
 
     // Access synchronized results
     auto& global_results = search_results.GetGlobalResults();
-    std::cout << "Global results count: " << global_results.size() << std::endl;
+    std::cout << "[Rank " << rank << "] Global results count: " << global_results.size() << std::endl;
 
     // Clear the results in the container
     search_results.Clear();
-    std::cout << "Results cleared. Local results count: " << search_results.NumberOfLocalResults() << std::endl;
+    std::cout << "[Rank " << rank << "] Results cleared. Local results count: " << search_results.NumberOfLocalResults() << std::endl;
 
     return 0;
 }
@@ -212,7 +164,7 @@ int main() {
 ### Key operations explained:
 
 1. **Initialization and data communication**:
-    - Start by initializing MPI and retrieving the default data communicator, which handles data transfer between different computational nodes.
+    - Start by initializing **MPI** and retrieving the default data communicator, which handles data transfer between different computational nodes.
 
 2. **Creating the container**:
     - The `SpatialSearchResultContainer` is initialized using the data communicator to handle the synchronization of data across different processes.
@@ -230,3 +182,73 @@ int main() {
     - The `Clear` method resets the container, removing all stored results, both locally and globally, if synchronized.
 
 This example code illustrates a typical usage scenario for managing spatial search results in a distributed system using the `SpatialSearchResultContainer`.
+
+### Python
+
+Similar to the previous C++ example, here you have a python example:
+
+```python
+import KratosMultiphysics as Kratos
+
+def run_python_example():
+    """Demonstrates the SpatialSearchResultContainer workflow in Python."""
+    data_comm = Kratos.Testing.GetDefaultDataCommunicator()
+    rank = data_comm.Rank()
+    world_size = data_comm.Size()
+
+    # In a real case, the ModelPart would be part of a larger analysis
+    model = Kratos.Model()
+    model_part = model.CreateModelPart("Main")
+
+    # 1. Create the container
+    container = Kratos.SpatialSearchResultContainerGeometricalObject()
+    if rank == 0:
+        print("1. Containers created on all ranks.")
+
+    # 2. Add a unique result on each rank
+    node_id = rank + 1
+    new_node = model_part.CreateNewNode(node_id, 0.0, 0.0, 0.0)
+    test_object = Kratos.GeometricalObject(Kratos.Point2D(new_node))
+    container.AddResult(test_object)
+
+    print(f"[Rank {rank}] Local results before sync: {container.NumberOfLocalResults()}")
+
+    # 3. Synchronize results across all ranks
+    # Note: No explicit barrier is needed; the collective call handles synchronization.
+    if rank == 0:
+        print("\n2. Synchronizing all containers...")
+    container.SynchronizeAll(data_comm)
+
+    # 4. Access the global results (output from rank 0 for clarity)
+    if rank == 0:
+        print("\n3. Synchronization Complete.")
+        num_global = container.NumberOfGlobalResults()
+        print(f"   Total global results: {num_global}")
+
+        # In a test, we would assert this
+        assert num_global == world_size
+
+        for result_ptr in container: # Iterating over global results
+            print(f"     - Found result from Rank {result_ptr.Rank()}" \
+                  f" (Object ID: {result_ptr.Get().Id})")
+
+# To run this example, you would execute it within a Kratos MPI environment.
+# run_python_example()
+```
+
+### Key Python Operations Explained
+
+1.  **Initialization and Setup**
+    * First, we retrieve the default `DataCommunicator` and create a `ModelPart` to hold the geometric entities. The `SpatialSearchResultContainer` is then initialized with its default constructor.
+
+2.  **Creating and Adding Local Results**
+    * A unique `Node` and a corresponding `GeometricalObject` are created on each **MPI** rank. This object is then added to the container using the `AddResult` method. At this stage, each container only knows about the result created on its own rank.
+
+3.  **Synchronization**
+    * The `SynchronizeAll` method is called, passing the `DataCommunicator`. This is the key step where the container communicates with all other ranks, gathering all the individual local results into one globally consistent list.
+
+4.  **Accessing Global Results**
+    * After synchronization, the container can be iterated over directly (e.g., `for result in container:`). This provides access to the complete list of results from **all** ranks, enabling global operations or analysis.
+
+5.  **Clearing the Container**
+    * The `Clear` method can be called to empty the container of both its local and global results, preparing it for a new search operation.
