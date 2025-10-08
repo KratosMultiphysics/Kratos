@@ -62,6 +62,7 @@ public:
     /// The base element type
     using BaseType = Element;
     using array_3 = array_1d<double, 3>;
+    using bounded_18_vector = array_1d<double, 18>;
     using bounded_3_matrix = BoundedMatrix<double, 3, 3>; // rotation matrix
     using bounded_18_matrix = BoundedMatrix<double, 18, 18>; // stiffness matrix
 
@@ -215,7 +216,10 @@ public:
         const bounded_3_matrix& r_rotation_matrix,
         const array_3& r_coord_1, 
         const array_3& r_coord_2, 
-        const array_3& r_coord_3 
+        const array_3& r_coord_3,
+        const double local_coord_1,
+        const double local_coord_2,
+        const double local_coord_3
     );
 
     /**
@@ -260,6 +264,11 @@ public:
         VectorType& rRHS,
         const bounded_3_matrix& rRotationMatrix
     ) const;
+
+    /**
+     * @brief This method builds the nodal values vector in the order: [u1, v1, w1, theta_x1, theta_y1, theta_z1, ...]
+     */
+    void GetNodalValuesVector(bounded_18_vector &rNodalValues) const;
 
     /**
      * @brief This function provides a more general interface to the element.
