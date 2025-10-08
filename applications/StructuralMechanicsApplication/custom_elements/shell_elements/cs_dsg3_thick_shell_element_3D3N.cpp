@@ -179,6 +179,48 @@ double CSDSG3ThickShellElement3D3N::CalculateArea(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void CSDSG3ThickShellElement3D3N::CalculateRotationMatrixLocalToGlobal(
+    bounded_3_matrix& rRotationMatrix
+) const
+{
+    const auto& r_geometry = GetGeometry();
+    array_3 v1, v2, v3; // basis vectors
+
+    if (this->Has(LOCAL_AXIS_1)) {
+        noalias(v1) = this->GetValue(LOCAL_AXIS_1); // We assume that the user has set a unit vector
+        noalias(v2) = r_geometry[2] - r_geometry[0];
+        v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
+        const double norm_v2 = norm_2(v2);
+        if (norm_v2 <= 1.0e-8) { // colineal
+            noalias(v2) = r_geometry[1] - r_geometry[0];
+            v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
+        }
+        v2 /= norm_2(v2);
+    } else {
+        noalias(v1) = r_geometry[1] - r_geometry[0];
+        const double norm_v1 = norm_2(v1);
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_v1 > 0.0) << "Zero length local axis 1 for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
+        v1 /= norm_v1;
+        noalias(v2) = r_geometry[2] - r_geometry[0];
+        v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
+        const double norm_v2 = norm_2(v2);
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_v2 > 0.0) << "Zero length local axis 2 for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
+        v2 /= norm_v2; 
+    }
+    noalias(v3) = MathUtils<double>::CrossProduct(v1, v2);
+
+    // Assemble the basis vectors in the rotation matrix
+    for (IndexType i = 0; i < 3; ++i) { // in rows, global to local
+        rRotationMatrix(0, i) = v1[i];
+        rRotationMatrix(1, i) = v2[i];
+        rRotationMatrix(2, i) = v3[i];
+    }
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     MatrixType& rB,
     const bounded_3_matrix& r_rotation_matrix,

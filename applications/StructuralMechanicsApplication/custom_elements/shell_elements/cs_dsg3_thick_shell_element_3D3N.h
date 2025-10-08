@@ -63,6 +63,7 @@ public:
     using BaseType = Element;
     using array_3 = array_1d<double, 3>;
     using bounded_3_matrix = BoundedMatrix<double, 3, 3>; // rotation matrix
+    using bounded_18_matrix = BoundedMatrix<double, 18, 18>; // stiffness matrix
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CSDSG3ThickShellElement3D3N);
@@ -232,6 +233,17 @@ public:
         const array_3 &r_coord_1,
         const array_3 &r_coord_2,
         const array_3 &r_coord_3) const;
+
+    /**
+     * @brief This method computes the rotation matrix from global to local coordinates
+     * The ortonormal basis vectors are stored in the rows of the rotation matrix
+     * T = [e1
+     *      e2
+     *      e3]
+     */
+    void CalculateRotationMatrixLocalToGlobal(
+        bounded_3_matrix& rRotationMatrix
+    ) const;
 
     /**
      * @brief This function provides a more general interface to the element.
