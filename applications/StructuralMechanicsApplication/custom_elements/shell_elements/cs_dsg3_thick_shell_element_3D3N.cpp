@@ -222,7 +222,7 @@ void CSDSG3ThickShellElement3D3N::CalculateRotationMatrixLocalToGlobal(
 /***********************************************************************************/
 
 void CSDSG3ThickShellElement3D3N::RotateLHSToGlobal(
-    bounded_18_matrix& rLeftHandSideMatrix,
+    MatrixType& rLHS,
     const bounded_3_matrix& rRotationMatrix // provided
 ) const
 {
@@ -237,7 +237,7 @@ void CSDSG3ThickShellElement3D3N::RotateLHSToGlobal(
             // We extract the 3x3 block
             for (IndexType k = 0; k < 3; ++k) {
                 for (IndexType l = 0; l < 3; ++l) {
-                    local_LHS_block(k, l) = rLeftHandSideMatrix(i * 3 + k, j * 3 + l);
+                    local_LHS_block(k, l) = rLHS(i * 3 + k, j * 3 + l);
                 }
             }
 
@@ -248,9 +248,35 @@ void CSDSG3ThickShellElement3D3N::RotateLHSToGlobal(
             // We store the values back in the LHS
             for (IndexType k = 0; k < 3; ++k) {
                 for (IndexType l = 0; l < 3; ++l) {
-                    rLeftHandSideMatrix(i * 3 + k, j * 3 + l) = temp_matrix2(k, l);
+                    rLHS(i * 3 + k, j * 3 + l) = temp_matrix2(k, l);
                 }
             }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void CSDSG3ThickShellElement3D3N::RotateRHSToGlobal(
+    VectorType& rRHS,
+    const bounded_3_matrix& rRotationMatrix // provided
+) const
+{
+    // We will perform the rotation by blocks of 3 for efficiency
+    array_3 local_RHS_block;
+    array_3 temp_vector;
+
+    for (IndexType i = 0; i < 6; ++i) {
+        // We extract the 3 components of the block
+        for (IndexType k = 0; k < 3; ++k) {
+            local_RHS_block[k] = rRHS(i * 3 + k);
+        }
+        // We perform the rotation to the block
+        noalias(temp_vector) = prod(trans(rRotationMatrix), local_RHS_block);
+        // We store the values back in the RHS
+        for (IndexType k = 0; k < 3; ++k) {
+            rRHS(i * 3 + k) = temp_vector[k];
         }
     }
 }
@@ -277,15 +303,15 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const double alpha = 1.5;
 
     // beta parameters for the membrane part
-    const double b1 = 1.0;
-    const double b2 = 2.0;
-    const double b3 = 1.0;
-    const double b4 = 0.0;
-    const double b5 = 1.0;
-    const double b6 = -1.0;
-    const double b7 = -1.0;
-    const double b8 = -1.0;
-    const double b9 = -2.0;
+    // const double b1 = 1.0;
+    // const double b2 = 2.0;
+    // const double b3 = 1.0;
+    // const double b4 = 0.0;
+    // const double b5 = 1.0;
+    // const double b6 = -1.0;
+    // const double b7 = -1.0;
+    // const double b8 = -1.0;
+    // const double b9 = -2.0;
 
     // Here we rotate to local coordinates (z is normal to the element)
     array_3 local_coords_1;
@@ -352,7 +378,11 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     rB(1, 17) = temp * x21 * (x23 + x13);
     rB(2, 17) = temp2 * (x23 * y32 + x13 * y13);
 
-    // SECOND ORDER MISSING!!!! todo
+    // SECOND ORDER MISSING!!!! 
+    // TODO
+
+
+
     // ...
 
     // Bending components

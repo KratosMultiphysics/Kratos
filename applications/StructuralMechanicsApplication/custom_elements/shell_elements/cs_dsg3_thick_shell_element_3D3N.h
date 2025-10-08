@@ -249,7 +249,15 @@ public:
      * @brief This method computes rotates the LHS from local to global coordinates
      */
     void RotateLHSToGlobal(
-        bounded_18_matrix& rLeftHandSideMatrix,
+        MatrixType& rLeftHandSideMatrix,
+        const bounded_3_matrix& rRotationMatrix
+    ) const;
+
+    /**
+     * @brief This method computes rotates the LHS from local to global coordinates
+     */
+    void RotateRHSToGlobal(
+        VectorType& rRHS,
         const bounded_3_matrix& rRotationMatrix
     ) const;
 
