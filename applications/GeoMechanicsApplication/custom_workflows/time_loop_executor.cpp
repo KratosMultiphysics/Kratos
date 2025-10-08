@@ -16,6 +16,7 @@
 #include "processes/process.h"
 #include "scoped_output_file_access.h"
 #include "strategy_wrapper.hpp"
+#include "time_incrementor.h"
 
 namespace Kratos
 {
@@ -72,8 +73,6 @@ std::vector<TimeStepEndState> TimeLoopExecutor::Run(const TimeStepEndState& EndS
     return result;
 }
 
-TimeLoopExecutor::~TimeLoopExecutor() = default;
-
 void TimeLoopExecutor::CallExecuteBeforeSolutionLoopOnProcesses() const
 {
     for (const auto& r_process_observable : mProcessObservables) {
@@ -118,5 +117,13 @@ void TimeLoopExecutor::UpdateProgress(double Time) const
         mProgressDelegate(Time);
     }
 }
+
+// This default destructor is added in the cpp to be able to forward declaremember variables in
+// a unique_ptr
+TimeLoopExecutor::~TimeLoopExecutor() = default;
+
+// This default constructor is added in the cpp to make sure the destructor of the forward declared
+// member variables is known when moving a constructed object
+TimeLoopExecutor::TimeLoopExecutor() = default;
 
 } // namespace Kratos

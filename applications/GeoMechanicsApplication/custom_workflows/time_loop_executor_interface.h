@@ -18,7 +18,6 @@
 #include <memory>
 #include <vector>
 
-#include "time_incrementor.h"
 #include "time_step_end_state.hpp"
 
 namespace Kratos
@@ -26,6 +25,7 @@ namespace Kratos
 
 class Process;
 class StrategyWrapper;
+class TimeIncrementor;
 
 class TimeLoopExecutorInterface
 {
