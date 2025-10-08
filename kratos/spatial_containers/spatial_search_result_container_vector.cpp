@@ -139,101 +139,73 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
 
     // Synchronize local results to global results
     if(rDataCommunicator.IsDistributed()) { // MPI code
-        // Lambda to generate the indexes of the partitions with results
-        auto generate_greater_than_zero_indexes = [](
-            const std::vector<int>& rInputVector,
-            std::vector<int>& rOutputVector
-            )
-        {
-            rOutputVector.clear();
-            rOutputVector.reserve(rInputVector.size());
-            for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
-                if (rInputVector[i] > 0) {
-                    rOutputVector.push_back(i);
-                }
-            }
-        };
-
-        // MPI data
+        // Get MPI info once before the loop
         const int world_size = rDataCommunicator.Size();
         const int rank = rDataCommunicator.Rank();
+        const int root_rank = 0;
 
-        // Auxiliary definitions
-        std::vector<int> recv_buffer(world_size);
-
-        // Retrieve first rank
-        const int first_rank = 0;
+        // Declare reusable buffers outside the loop to avoid repeated memory allocations
+        std::vector<int> result_counts(world_size);
+        std::vector<GlobalPointerResultType> global_gp;
 
         // Iterate over all the results
         for (auto p_result : mPointResults) {
-            // Get results
             auto& r_local_results = p_result->GetLocalResults();
             auto& r_global_results = p_result->GetGlobalResults();
 
-            // Compute sizes
+            // 1. All ranks determine their local result size for the current iteration.
             const int local_result_size = r_local_results.size();
-            const int global_result_size = rDataCommunicator.SumAll(local_result_size);
+
+            // 2. Gather result counts from every rank.
+            // This is more efficient than calling SumAll and then AllGather.
+            rDataCommunicator.AllGather({local_result_size}, result_counts);
+
+            // 3. Calculate total size locally from the gathered counts.
+            const int global_result_size = std::accumulate(result_counts.begin(), result_counts.end(), 0);
             r_global_results.reserve(global_result_size);
 
-            // Gather sizes
-            std::vector<int> send_buffer(1, local_result_size);
-            rDataCommunicator.AllGather(send_buffer, recv_buffer);
-
-            // In first rank
-            if (rank == first_rank) {
-                // Prepare
-                std::vector<GlobalPointerResultType> global_gp;
+            // 4. The "gather-to-root, then broadcast" pattern begins.
+            global_gp.clear(); // Clear the temporary buffer for this iteration
+            if (rank == root_rank) {
+                // --- ROOT PROCESS (GATHER & PREPARE BROADCAST) ---
                 global_gp.reserve(global_result_size);
 
-                // Fill global vector with local result
+                // Add its own local results.
                 for (auto& r_value : r_local_results) {
-                    global_gp.push_back(GlobalPointerResultType(&r_value, rank));
+                    global_gp.emplace_back(&r_value, rank);
                 }
 
-                // Call the lambda to generate the result vector of partitions with results
-                std::vector<int> result_vector;
-                generate_greater_than_zero_indexes(recv_buffer, result_vector);
-
-                // Iterate over the ranks
-                for (int rank_to_recv : result_vector) {
-                    std::vector<GlobalPointerResultType> recv_gps;
-                    rDataCommunicator.Recv(recv_gps, rank_to_recv);
-                    for (auto& r_value : recv_gps) {
-                        global_gp.push_back(r_value);
+                // Receive results from all other ranks that have data.
+                for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                    if (i_rank != root_rank && result_counts[i_rank] > 0) {
+                        std::vector<GlobalPointerResultType> received_gps;
+                        rDataCommunicator.Recv(received_gps, i_rank);
+                        global_gp.insert(global_gp.end(), std::make_move_iterator(received_gps.begin()), std::make_move_iterator(received_gps.end()));
                     }
                 }
-
-                // Send now to all ranks
-                for (int i_rank = 1; i_rank < world_size; ++i_rank) {
-                    rDataCommunicator.Send(global_gp, i_rank);
-                }
-
-                // Transfer to global pointer
-                for (auto& r_gp : global_gp) {
-                    r_global_results.push_back(r_gp);
-                }
             } else {
-                // Sending local results if any
+                // --- WORKER PROCESSES (SEND TO ROOT) ---
                 if (local_result_size > 0) {
                     std::vector<GlobalPointerResultType> local_gp;
                     local_gp.reserve(local_result_size);
                     for (auto& r_value : r_local_results) {
-                        local_gp.push_back(GlobalPointerResultType(&r_value, rank));
+                        local_gp.emplace_back(&r_value, rank);
                     }
-                    rDataCommunicator.Send(local_gp, first_rank);
-                }
-
-                // Receiving synced result
-                std::vector<GlobalPointerResultType> global_gp;
-                rDataCommunicator.Recv(global_gp, first_rank);
-
-                // Transfer to global pointer
-                for (auto& r_gp : global_gp) {
-                    r_global_results.push_back(r_gp);
+                    rDataCommunicator.Send(local_gp, root_rank);
                 }
             }
 
-            // Generate the communicator
+            // 5. Broadcast the complete data from the root to ALL ranks (including itself).
+            // This single collective call is more efficient and robust than a loop of Sends/Recvs.
+            rDataCommunicator.Broadcast(global_gp, root_rank);
+
+            // 6. Populate the final Kratos container from the temporary buffer.
+            r_global_results.clear();
+            for (auto& r_gp : global_gp) {
+                r_global_results.push_back(std::move(r_gp));
+            }
+
+            // Generate the communicator for the now-synced results.
             p_result->GenerateGlobalPointerCommunicator(rDataCommunicator);
         }
     } else { // Serial code
