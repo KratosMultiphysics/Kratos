@@ -59,11 +59,10 @@ public:
             }
         }
 
-        if (rSolverSettings["scheme_type"].GetString() == "load_stepping") {
-            return std::make_shared<LoadSteppingScheme<TSparseSpace, TDenseSpace>>();
-        }
-
         if (rSolverSettings["solution_type"].GetString() == "static") {
+            if (rSolverSettings["scheme_type"].GetString() == "load_stepping") {
+                return std::make_shared<LoadSteppingScheme<TSparseSpace, TDenseSpace>>();
+            }
             return std::make_shared<GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>>();
         }
 
