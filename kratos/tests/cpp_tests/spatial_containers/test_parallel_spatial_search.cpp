@@ -40,7 +40,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchInRad
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins parallel_spatial_search(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -50,37 +50,37 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchInRad
     ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
 
     // 0.29 radius
-    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
+    parallel_spatial_search.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 0);
 
     // 0.3 radius
-    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
+    parallel_spatial_search.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 4);
 
     // 0.4 radius
-    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
+    parallel_spatial_search.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 4);
 
     // 0.6 radius
-    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
+    parallel_spatial_search.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 8);
 
     // 0.7 radius
-    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
+    parallel_spatial_search.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 8);
 
     // 0.9 radius
-    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
+    parallel_spatial_search.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchNeare
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins parallel_spatial_search(r_skin_part.Elements(), serial_communicator);
 
     double epsilon = 1.0e-6;
 
@@ -112,12 +112,12 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchNeare
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
-    search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
+    parallel_spatial_search.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
 
-    search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
+    parallel_spatial_search.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
@@ -151,7 +151,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchNeare
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins parallel_spatial_search(r_skin_part.Elements(), serial_communicator);
 
     double epsilon = 1.0e-6;
 
@@ -161,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchNeare
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
-    search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
@@ -190,7 +190,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsEmptySearch
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins parallel_spatial_search(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -198,7 +198,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsEmptySearch
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
-    search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
@@ -215,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchIsIns
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins parallel_spatial_search(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -223,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchIsIns
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
-    search_wrapper.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
@@ -241,7 +241,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchIsNot
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    ParallelSpatialSearchGeometricalObjectsBins search_wrapper(r_skin_part.Elements(), serial_communicator);
+    ParallelSpatialSearchGeometricalObjectsBins parallel_spatial_search(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -249,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelSpatialSearchGeometricalObjectsBinsSearchIsNot
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     ParallelSpatialSearchGeometricalObjectsBins::ResultContainerVectorType results;
-    search_wrapper.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
@@ -276,7 +276,7 @@ void TestTreeSearchInRadius()
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), serial_communicator);
+    TParallelSpatialSearch parallel_spatial_search(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -286,13 +286,13 @@ void TestTreeSearchInRadius()
     typename TParallelSpatialSearch::ResultContainerVectorType results;
 
     // 0.3 radius
-    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
+    parallel_spatial_search.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 0);
 
     // 2.0 radius
-    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 2.0, results);
+    parallel_spatial_search.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 2.0, results);
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
     KRATOS_EXPECT_EQ(results[0].NumberOfGlobalResults(), 12);
@@ -346,7 +346,7 @@ void TestTreeSearchNearestInRadius()
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), serial_communicator);
+    TParallelSpatialSearch parallel_spatial_search(r_skin_part.Elements(), serial_communicator);
 
     double epsilon = 1.0e-6;
 
@@ -356,12 +356,12 @@ void TestTreeSearchNearestInRadius()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z, results);
+    parallel_spatial_search.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z, results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_FALSE(results[0].IsObjectFound());
 
-    search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
+    parallel_spatial_search.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
@@ -427,7 +427,7 @@ void TestTreeSearchNearest()
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), serial_communicator);
+    TParallelSpatialSearch parallel_spatial_search(r_skin_part.Elements(), serial_communicator);
 
     double epsilon = 1.0e-6;
 
@@ -437,7 +437,7 @@ void TestTreeSearchNearest()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
@@ -498,7 +498,7 @@ void TestTreeSearchNearestEmpty()
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), serial_communicator);
+    TParallelSpatialSearch parallel_spatial_search(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -506,7 +506,7 @@ void TestTreeSearchNearestEmpty()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
     KRATOS_EXPECT_FALSE(results[0].IsObjectFound());

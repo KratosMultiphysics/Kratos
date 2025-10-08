@@ -75,7 +75,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchInRadius()
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch parallel_spatial_search_bins(r_skin_part.Elements(), r_data_comm);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -93,7 +93,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchInRadius()
     typename TParallelSpatialSearch::ResultContainerVectorType results;
 
     // 0.29 radius
-    search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
+    parallel_spatial_search_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -104,7 +104,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchInRadius()
     }
 
     // 0.3 radius
-    search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
+    parallel_spatial_search_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -115,7 +115,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchInRadius()
     }
 
     // 0.4 radius
-    search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
+    parallel_spatial_search_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -126,7 +126,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchInRadius()
     }
 
     // 0.6 radius
-    search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
+    parallel_spatial_search_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -137,7 +137,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchInRadius()
     }
 
     // 0.7 radius
-    search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
+    parallel_spatial_search_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -148,7 +148,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchInRadius()
     }
 
     // 0.9 radius
-    search_wrapper_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
+    parallel_spatial_search_bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -177,7 +177,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchNearestInRadius()
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch parallel_spatial_search_bins(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -195,7 +195,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchNearestInRadius()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
+    parallel_spatial_search_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
 
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
@@ -205,7 +205,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchNearestInRadius()
         KRATOS_ERROR << "Asynchronous spatial search not implemented!" << std::endl;
     }
 
-    search_wrapper_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
+    parallel_spatial_search_bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
 
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
@@ -246,7 +246,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchNearest()
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch parallel_spatial_search_bins(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -264,7 +264,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchNearest()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
@@ -300,7 +300,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsEmptySearchNearest()
     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch parallel_spatial_search_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t point_id = 1;
 
@@ -317,7 +317,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsEmptySearchNearest()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search_bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
@@ -341,7 +341,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchIsInside()
     ModelPart& r_skin_part = CreateCubeModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch parallel_spatial_search_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t inside_point_id = 1;
 
@@ -358,7 +358,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchIsInside()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper_bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search_bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
@@ -383,7 +383,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchIsNotInside()
     ModelPart& r_skin_part = CreateCubeModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    TParallelSpatialSearch search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch parallel_spatial_search_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t outside_point_id = 1;
 
@@ -400,7 +400,7 @@ void TestParallelSpatialSearchGeometricalObjectsBinsSearchIsNotInside()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper_bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search_bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only in first rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
@@ -432,7 +432,7 @@ void TestTreeSearchInRadius()
 
     // Generate the search wrapper for bins
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch parallel_spatial_search(r_skin_part.Elements(), r_data_comm);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -450,7 +450,7 @@ void TestTreeSearchInRadius()
     typename TParallelSpatialSearch::ResultContainerVectorType results;
 
     // 0.3 radius
-    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
+    parallel_spatial_search.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
@@ -461,7 +461,7 @@ void TestTreeSearchInRadius()
     }
 
     // 2.0 radius
-    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 2.0, results);
+    parallel_spatial_search.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 2.0, results);
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
         KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
         KRATOS_EXPECT_TRUE(results[0].IsObjectFound());
@@ -491,7 +491,7 @@ void TestTreeSearchNearestInRadius()
 
     // Generate the search wrapper for bins
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch parallel_spatial_search(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -509,7 +509,7 @@ void TestTreeSearchNearestInRadius()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z, results);
+    parallel_spatial_search.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z, results);
 
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
@@ -519,7 +519,7 @@ void TestTreeSearchNearestInRadius()
         KRATOS_ERROR << "Asynchronous spatial search not implemented!" << std::endl;
     }
 
-    search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
+    parallel_spatial_search.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
 
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
@@ -562,7 +562,7 @@ void TestTreeSearchNearest()
 
     // Generate the search wrapper for bins
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch parallel_spatial_search(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -580,7 +580,7 @@ void TestTreeSearchNearest()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // We expect only one result in first and second rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
@@ -618,7 +618,7 @@ void TestTreeSearchNearestEmpty()
 
     // Generate the search wrapper for bins
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    TParallelSpatialSearch search_wrapper(r_skin_part.Elements(), r_data_comm);
+    TParallelSpatialSearch parallel_spatial_search(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t point_id = 1;
 
@@ -635,7 +635,7 @@ void TestTreeSearchNearestEmpty()
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     typename TParallelSpatialSearch::ResultContainerVectorType results;
-    search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+    parallel_spatial_search.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     // Only in first rank
     if constexpr (TParallelSpatialSearch::GetSpatialSearchCommunication() == SpatialSearchCommunication::SYNCHRONOUS) {
@@ -651,42 +651,42 @@ void TestTreeSearchNearestEmpty()
 namespace Testing
 {
 
-/** Checks search_wrapper_bins search in radius
+/** Checks parallel_spatial_search_bins search in radius
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsSearchInRadius, KratosMPICoreFastSuite)
 {
     TestParallelSpatialSearchGeometricalObjectsBinsSearchInRadius<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
-/** Checks search_wrapper_bins search nearest
+/** Checks parallel_spatial_search_bins search nearest
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsSearchNearestInRadius, KratosMPICoreFastSuite)
 {
     TestParallelSpatialSearchGeometricalObjectsBinsSearchNearestInRadius<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
-/** Checks search_wrapper_bins search nearest
+/** Checks parallel_spatial_search_bins search nearest
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsSearchNearest, KratosMPICoreFastSuite)
 {
     TestParallelSpatialSearchGeometricalObjectsBinsSearchNearest<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
-/** Checks search_wrapper_bins empty search nearest
+/** Checks parallel_spatial_search_bins empty search nearest
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsEmptySearchNearest, KratosMPICoreFastSuite)
 {
     TestParallelSpatialSearchGeometricalObjectsBinsEmptySearchNearest<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
-/** Checks search_wrapper_bins search is inside
+/** Checks parallel_spatial_search_bins search is inside
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsSearchIsInside, KratosMPICoreFastSuite)
 {
     TestParallelSpatialSearchGeometricalObjectsBinsSearchIsInside<ParallelSpatialSearchGeometricalObjectsBins>();
 }
 
-/** Checks search_wrapper_bins search is inside = not found
+/** Checks parallel_spatial_search_bins search is inside = not found
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIParallelSpatialSearchGeometricalObjectsBinsSearchIsNotInside, KratosMPICoreFastSuite)
 {

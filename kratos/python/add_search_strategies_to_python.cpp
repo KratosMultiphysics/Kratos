@@ -321,40 +321,40 @@ void DefineParallelSpatialSearch(pybind11::module& m, const std::string& rClassN
     /// Some constexpr flags
     static constexpr bool IsGeometricalObjectBins = std::is_same_v<TSearchObject, GeometricalObjectsBins>;
 
-    auto search_wrapper = pybind11::class_<ParallelSpatialSearchType, ParallelSpatialSearchPointerType>(m, rClassName.c_str());
+    auto parallel_spatial_search = pybind11::class_<ParallelSpatialSearchType, ParallelSpatialSearchPointerType>(m, rClassName.c_str());
     if constexpr (std::is_same<ObjectType, Node>::value) {
-        search_wrapper.def(pybind11::init<NodesContainerType&, const DataCommunicator&>());
-        search_wrapper.def(pybind11::init<NodesContainerType&, const DataCommunicator&, Parameters>());
+        parallel_spatial_search.def(pybind11::init<NodesContainerType&, const DataCommunicator&>());
+        parallel_spatial_search.def(pybind11::init<NodesContainerType&, const DataCommunicator&, Parameters>());
     }
     if constexpr (std::is_same<ObjectType, Element>::value || std::is_same<ObjectType, GeometricalObject>::value) {
-        search_wrapper.def(pybind11::init<ElementsContainerType&, const DataCommunicator&>());
-        search_wrapper.def(pybind11::init<ElementsContainerType&, const DataCommunicator&, Parameters>());
+        parallel_spatial_search.def(pybind11::init<ElementsContainerType&, const DataCommunicator&>());
+        parallel_spatial_search.def(pybind11::init<ElementsContainerType&, const DataCommunicator&, Parameters>());
     }
     if constexpr (std::is_same<ObjectType, Condition>::value || std::is_same<ObjectType, GeometricalObject>::value) {
-        search_wrapper.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>());
-        search_wrapper.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&, Parameters>());
+        parallel_spatial_search.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>());
+        parallel_spatial_search.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&, Parameters>());
     }
-    search_wrapper.def("GetGlobalBoundingBox", &ParallelSpatialSearchType::GetGlobalBoundingBox);
-    search_wrapper.def("SearchInRadius", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes, const double Radius) {
+    parallel_spatial_search.def("GetGlobalBoundingBox", &ParallelSpatialSearchType::GetGlobalBoundingBox);
+    parallel_spatial_search.def("SearchInRadius", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
         self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, *p_results);
         return p_results;
     });
-    search_wrapper.def("SearchNearestInRadius", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes, const double Radius) {
+    parallel_spatial_search.def("SearchNearestInRadius", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
         self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, *p_results);
         return p_results;
     });
-    search_wrapper.def("SearchNearest", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes) {
+    parallel_spatial_search.def("SearchNearest", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
         self.SearchNearest(rNodes.begin(), rNodes.end(), *p_results);
         return p_results;
     });
     if constexpr (IsGeometricalObjectBins) {
-        search_wrapper.def("SearchIsInside", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes) {
+        parallel_spatial_search.def("SearchIsInside", [&](ParallelSpatialSearchType& self, const NodesContainerType& rNodes) {
             // Perform the search
             auto p_results = Kratos::make_shared<ResultTypeContainerVector>();
             self.SearchIsInside(rNodes.begin(), rNodes.end(), *p_results);
