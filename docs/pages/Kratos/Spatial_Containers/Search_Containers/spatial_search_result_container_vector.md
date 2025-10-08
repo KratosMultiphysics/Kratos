@@ -30,8 +30,8 @@ Can be found in [`spatial_search_result_container_vector.h`](https://github.com/
 #### Instantiation
 
 The class is exposed with several template instantiations for different types (`Node`, `GeometricalObject`, `Element`, `Condition`) with two communication types:
-- **SYNCHRONOUS_HOMOGENEOUS**: This mode presumably ensures a consistent, uniform handling of communication across all nodes or elements during spatial searches, regardless of their heterogeneity or distribution.
-- **SYNCHRONOUS_HETEROGENEOUS**: In contrast, this mode might allow for different handling or processing strategies depending on the node or element type or state, providing more flexibility in operations that require acknowledgment of diversity in the dataset or environment.
+- **SYNCHRONOUS**: This mode presumably ensures a consistent, uniform handling of communication across all nodes or elements during spatial searches, regardless of their heterogeneity or distribution.
+- **ASYNCHRONOUS**: Asynchronous communication, which is **not implemented yet**.
 
 Each type and communication mode combination is then bound to the module with a specific class name, such as `SpatialSearchResultContainerVectorNode` for nodes with homogeneous communication, or `SpatialSearchResultContainerVectorNodeHeterogeneous` for nodes with heterogeneous communication.
 
@@ -146,10 +146,9 @@ int main() {
 
     // Assume 'indexes' are the indices for which you want to initialize results
     std::vector<std::size_t> indexes = {0, 1, 2};  // Example indexes
-    std::vector<const DataCommunicator*> data_comms(indexes.size(), &r_data_comm);
 
     // Initialize the results for these indexes
-    container.InitializeResults(data_comms);
+    container.InitializeResults(indexes.size());
 
     // Now you can add results to these initialized positions
     for (std::size_t idx : indexes) {
@@ -196,9 +195,6 @@ Here a code example that primarily focuses on performing spatial searches to ide
 
 ```cpp
 // Auxiliary stuff
-Vector shape_function; // Stores shape functions used in finite element analysis.
-Point::CoordinatesArrayType aux_coords; // Auxiliary coordinates for internal computations.
-array_1d<double, 3> point; // Represents a 3D point in space.
 bool is_local = true; // Flag to determine if the current operation is local to this processor (in parallel environments).
 SpatialSearchResultContainer<GeometricalObject>* p_container = nullptr; // Pointer to a container for storing search results.
 
@@ -206,7 +202,12 @@ SpatialSearchResultContainer<GeometricalObject>* p_container = nullptr; // Point
 SpatialSearchResultContainerVector<GeometricalObject> geometrical_object_results;
 
 // Perform search, for example SearchNearest
-... // Here the SearchNearest is performed, look at search_wrapper
+... // Here the SearchNearest is performed, look at parallel_spatial_search
+
+// Data communicator
+ModelPart& r_root_model_part = rModelPart.GetRootModelPart();
+const Communicator& r_communicator = r_root_model_part.GetCommunicator();
+const DataCommunicator& r_data_communicator = r_communicator.GetDataCommunicator();
 
 // Nodes array
 auto& r_array_nodes = rModelPart.Nodes();
@@ -215,13 +216,22 @@ const auto it_node_begin = r_array_nodes.begin();
 // Getting the number of results
 const std::size_t number_of_search_results = geometrical_object_results.NumberOfSearchResults();
 
+// Get all indices
+std::vector<std::vector<std::vector<IndexType>>> all_indices;
+geometrical_object_results.GetResultNodeIndices(all_indices);
+
+// Get all is inside flags
+std::vector<std::vector<bool>> all_is_inside;
+geometrical_object_results.GetResultIsInside(all_is_inside, r_array_nodes, r_data_communicator, IsInsideTolerance);
+
+// Get all shape functions
+std::vector<std::vector<Vector>> all_shape_functions;
+geometrical_object_results.GetResultShapeFunctions(all_shape_functions, r_array_nodes, r_data_communicator);
+
 // Iterate overs solutions
 for (unsigned int Index = 0; Index < number_of_search_results; ++Index) {
     // Get container
     p_container = &geometrical_object_results[Index];
-
-    // Using barrier method to avoid communication issues
-    p_container->Barrier();
 
     // If local point
     const bool is_local_point = p_container->IsLocalPoint();
@@ -234,12 +244,9 @@ for (unsigned int Index = 0; Index < number_of_search_results; ++Index) {
         // If local search
         const bool is_local_search = p_container->IsLocalSearch(0);
 
-        // Get data communicator
-        const auto& r_sub_data_communicator = p_container->GetDataCommunicator();
-
         // Getting if it is local
         is_local = is_local_search && is_local_point;
-        is_local = r_sub_data_communicator.MaxAll(is_local); // At least active in one partition
+        is_local = r_data_communicator.MaxAll(is_local); // At least active in one partition
         if (is_local) {
             if (is_local_point) {
                 // Get the node
@@ -252,7 +259,7 @@ for (unsigned int Index = 0; Index < number_of_search_results; ++Index) {
                 const auto& r_local_result = p_container->GetLocalResults()[0];
                 const GeometricalObject* p_geometrical_object = r_local_result.Get().get(); // Intrussive_ptr?
                 const auto& r_geometry = p_geometrical_object->GetGeometry();
-                const bool is_found = r_geometry.IsInside(r_node.Coordinates(), aux_coords, IsInsideTolerance);
+                const bool is_found = all_is_inside[Index];
 
                 // If found
                 if (is_found) {
@@ -262,34 +269,22 @@ for (unsigned int Index = 0; Index < number_of_search_results; ++Index) {
                     partial_constraints_pairs.reserve(vector_size);
 
                     // Compute shape function
-                    shape_function = r_geometry.ShapeFunctionsValues(shape_function, aux_coords);
+                    const Vector& r_shape_function = all_shape_functions[Index][0];
                     for (unsigned int i = 0; i < r_geometry.size(); i++) {
-                        if (std::abs(shape_function[i]) > ZeroTolerance) {
+                        if (std::abs(r_shape_function[i]) > ZeroTolerance) {
                             // Do something with the shape function
                         }
                     }
                 }
             }
         } else {
-            if (is_local_point) {
-                auto it_node = it_node_begin + p_container->GetLocalIndex();
-                noalias(point) = it_node->Coordinates();
-            } else {
-                for (unsigned int i = 0; i < 3; i++) {
-                    point[i] = -MaxValue;
-                }
-            }
-            for (unsigned int i = 0; i < 3; i++) {
-                point[i] = r_sub_data_communicator.MaxAll(point[i]);
-            }
-
             // Check if is inside
-            const bool is_found = p_container->GetResultIsInside(point, IsInsideTolerance)[0];
+            const bool is_found = all_is_inside[Index];
 
             if (is_found) {
                 // Getting the shape function and indices of the nodes, and parent index to be used linked to the results
-                const auto shape_function = p_container->GetResultShapeFunctions(point)[0];
-                const auto indices = p_container->GetResultNodeIndices()[0];
+                const Vector& r_shape_function = all_shape_functions[Index][0];
+                const auto& r_indices = all_indices[Index][0];
 
                 if (is_local_point) {
                     // Get the node
@@ -297,9 +292,9 @@ for (unsigned int Index = 0; Index < number_of_search_results; ++Index) {
                     auto p_node = *(it_node.base());
 
                     // Now that all nodes exist we can then generate the MPC
-                    for (unsigned int i = 0; i < indices.size(); i++) {
-                        const std::size_t index = indices[i];
-                        if (std::abs(shape_function[i]) > ZeroTolerance) {
+                    for (unsigned int i = 0; i < r_indices.size(); i++) {
+                        const std::size_t index = r_indices[i];
+                        if (std::abs(r_shape_function[i]) > ZeroTolerance) {
                             KRATOS_DEBUG_ERROR_IF_NOT(rPrimaryModelPart.HasNode(index)) << "Node " << index << " has not being bring to the modelpart" << std::endl;
                             auto& r_node_linked = rPrimaryModelPart.GetNode(index);
                             // Do something with the shape function
@@ -318,10 +313,7 @@ for (unsigned int Index = 0; Index < number_of_search_results; ++Index) {
    - The number of search results is obtained using `geometrical_object_results.NumberOfSearchResults()`. This number defines the loop bounds for processing each search result.
 
 2. **Access individual results**:
-   - Depending on the type of search communication (`SYNCHRONOUS_HOMOGENEOUS` or `SYNCHRONOUS_HETEROGENEOUS`), the appropriate search results container is accessed within the distributed computation loop.
-
-3. **Barrier synchronization**:
-   - A barrier method is called (`rTLS.p_container->Barrier()`) to synchronize across processes, ensuring all necessary data is ready before proceeding, thus preventing premature access to partial data. This method is only actually used for `SYNCHRONOUS_HETEROGENEOUS`, but if you want your code to work in both `SYNCHRONOUS_HOMOGENEOUS` and `SYNCHRONOUS_HETEROGENEOUS` then should be called in all cases.
+   - The appropriate search results container is accessed within the distributed computation loop.
 
 ##### Detecting Local Results
 
@@ -332,13 +324,87 @@ for (unsigned int Index = 0; Index < number_of_search_results; ++Index) {
    - Local flags (`is_local_point`, `is_local_search`) are used to determine the execution flow and locality of data. This involves verifying node existence, geometry inclusion, and constraint application based on local data without needing further synchronization with other ranks.
 
 3. **Using MPI**:
-   - For results that might influence or be influenced by other ranks, MPI operations are used to synchronize and aggregate data (`r_sub_data_communicator.MaxAll()` for coordinate comparison and aggregation).
+   - For results that might influence or be influenced by other ranks, MPI operations are used to synchronize and aggregate data (`r_data_communicator.MaxAll()` for coordinate comparison and aggregation).
 
 4. **Distinction between local and remote data**:
    - Decisions based on local vs. remote data (e.g., whether a node should be considered isolated or constraints applied) hinge on the outcome of these local/global checks and MPI communications.
 
 ##### Practical steps for developers:
 
-- **Initial setup**: Configure your environment to handle both types of searches (`SYNCHRONOUS_HOMOGENEOUS` and `SYNCHRONOUS_HETEROGENEOUS`), ensuring that the infrastructure for MPI communication is correctly set up.
+- **Initial setup**: Configure your environment, ensuring that the infrastructure for MPI communication is correctly set up.
 - **Debugging and error checking**: Use assertions (like `KRATOS_DEBUG_ERROR_IF`) to ensure that results and operations make sense (e.g., no more than one result when expected, nodes are present in the model part).
 - **Optimization**: Be mindful of performance implications, especially with MPI operations, data synchronization, and memory management (e.g., `shrink_to_fit`).
+
+### Python
+
+Similar to the previous C++ example, here you have a python example:
+
+```python
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+class TestSpatialSearchResultContainerVector(KratosUnittest):
+    def test_vector_workflow(self):
+        data_comm = Kratos.Testing.GetDefaultDataCommunicator()
+        rank = data_comm.Rank()
+        world_size = data_comm.Size()
+        num_searches_per_rank = 2
+
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("Main")
+
+        # 1. Create the container vector
+        results_vector = Kratos.SpatialSearchResultContainerVectorGeometricalObject()
+
+        # 2. Initialize containers for all local search points
+        results_vector.InitializeResults(num_searches_per_rank)
+        self.assertEqual(results_vector.NumberOfSearchResults(), num_searches_per_rank)
+
+        # 3. Simulate a search and add results to each container
+        # In a real case, these objects would be in a ModelPart
+        for i in range(num_searches_per_rank):
+            # Create a unique object ID based on rank and search index
+            object_id = rank * num_searches_per_rank + i + 1
+            node = model_part.CreateNewNode(object_id, 0, 0, 0)
+            found_object = Kratos.GeometricalObject(Kratos.Point2D(node))
+
+            # Add the found object to the i-th search result container
+            results_vector[i].AddResult(found_object, 0.1 * object_id)
+
+        # 4. Synchronize ALL results across all ranks in one operation
+        results_vector.SynchronizeAll(data_comm)
+
+        # 5. Use a bulk operation to get all distances efficiently
+        all_distances = results_vector.GetDistances()
+
+        # 6. Validate the results
+        total_searches = num_searches_per_rank * world_size
+        self.assertEqual(len(all_distances), total_searches)
+
+        # Each search on each rank found one object, so each sub-list has 1 distance
+        for i in range(total_searches):
+            self.assertEqual(len(all_distances[i]), 1)
+
+        # Optional: Print from rank 0 for inspection
+        if rank == 0:
+            print(f"\nTotal number of synchronized search points: {len(all_distances)}")
+            for i, dist_list in enumerate(all_distances):
+                print(f"  - Search {i} found results with distances: {dist_list}")
+
+if __name__ == '__main__':
+    KratosUnittest.main()
+```
+
+#### Key Python Operations Explained
+
+1.  **Initialization**
+    * A `SpatialSearchResultContainerVector` is created. Using `InitializeResults(N)`, it's pre-sized to hold `N` empty `SpatialSearchResultContainer` instances, one for each search point this rank is responsible for.
+
+2.  **Populating Local Results**
+    * The script loops through the initialized containers. For each one, it simulates a search by creating a sample `GeometricalObject` and adding it to the corresponding container using `results_vector[i].AddResult(...)`. At this point, all data is still local to its rank.
+
+3.  **Bulk Synchronization**
+    * A single call to `SynchronizeAll(data_comm)` performs the main communication step. It efficiently gathers all results from all sub-containers across all MPI ranks and distributes the complete global picture back to everyone.
+
+4.  **Bulk Data Retrieval**
+    * After synchronization, a method like `GetDistances()` is called. This is the key advantage of the vector class: it fetches the distances for **all** search points and **all** their results in one optimized operation, returning a list of lists.

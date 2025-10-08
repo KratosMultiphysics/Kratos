@@ -236,7 +236,7 @@ def run_python_example():
 # run_python_example()
 ```
 
-### Key Python Operations Explained
+#### Key Python Operations Explained
 
 1.  **Initialization and Setup**
     * First, we retrieve the default `DataCommunicator` and create a `ModelPart` to hold the geometric entities. The `SpatialSearchResultContainer` is then initialized with its default constructor.
