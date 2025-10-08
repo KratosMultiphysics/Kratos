@@ -268,7 +268,7 @@ public:
     /**
      * @brief This method builds the nodal values vector in the order: [u1, v1, w1, theta_x1, theta_y1, theta_z1, ...]
      */
-    void GetNodalValuesVector(bounded_18_vector &rNodalValues) const;
+    void GetNodalValuesVector(VectorType &rNodalValues) const;
 
     /**
      * @brief This function provides a more general interface to the element.

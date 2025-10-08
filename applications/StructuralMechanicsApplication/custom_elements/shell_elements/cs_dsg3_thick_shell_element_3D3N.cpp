@@ -431,14 +431,12 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::GetNodalValuesVector(bounded_18_vector& rNodalValues) const
+void CSDSG3ThickShellElement3D3N::GetNodalValuesVector(VectorType& rNodalValues) const
 {
     const auto& r_geometry = GetGeometry();
-    const IndexType number_of_nodes = r_geometry.PointsNumber();
-    const IndexType dofs_per_node = GetDoFsPerNode(); // u, v, w, theta_x, theta_y, theta_z
 
     IndexType index = 0;
-    for (IndexType i = 0; i < number_of_nodes; ++i) {
+    for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
         rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_X);
         rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
         rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
@@ -485,6 +483,13 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     rRHS.clear();
 
     const double thickness = GetProperties()[THICKNESS];
+
+    VectorType nodal_values(system_size);
+    GetNodalValuesVector(nodal_values);
+    // We rotate the nodal values to the local system
+    RotateRHSToGlobal(nodal_values, rotation_matrix);
+
+
 
 
 
