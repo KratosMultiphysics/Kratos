@@ -129,13 +129,12 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("SetLocalIndex", &ContainerType::SetLocalIndex)
     .def("GetLocalResults", &ContainerType::GetLocalResults)
     .def("GetGlobalResults", &ContainerType::GetGlobalResults)
-    .def("GetGlobalPointerCommunicator", &ContainerType::GetGlobalPointerCommunicator)
     .def("__getitem__", [](ContainerType& self, const std::size_t Index) {
         return self.GetLocalResults()[Index];
     })
     .def("__call__", [](ContainerType& self, const std::size_t Index) {
         // Check if the communicator has been created
-        KRATOS_ERROR_IF(self.GetGlobalPointerCommunicator() == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
+        KRATOS_ERROR_IF_NOT(self.IsSynchronized()) << "The data has not been synchronized" << std::endl;
         return *(self.GetGlobalResults().GetContainer().begin() + Index);
     })
     .def("__str__", PrintObject<ContainerType>)

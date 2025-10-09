@@ -695,6 +695,7 @@ private:
 
                     // The indexes
                     std::vector<int> ranks = all_ranks[i];
+                    std::vector<int>& r_ranks = all_ranks[i];
 
                     // Find the index of the minimum value
                     auto it_min_distance = std::min_element(r_values.begin(), r_values.end());
@@ -711,7 +712,7 @@ private:
                         ranks.erase(ranks.begin() + pos);
 
                         // Remove all results but the closest one
-                        r_partial_result.RemoveResultsFromRanksList(ranks, mrDataCommunicator);
+                        r_partial_result.RemoveResultsFromRanksList(ranks, r_ranks, mrDataCommunicator);
                     } else {
                         KRATOS_ERROR << "Distances vector is empty." << std::endl;
                     }

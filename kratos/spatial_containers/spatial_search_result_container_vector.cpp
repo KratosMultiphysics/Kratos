@@ -223,9 +223,6 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
                 r_global_results.push_back(std::move(r_gp));
                 all_global_results.push_back(std::move(r_gp));
             }
-
-            // Generate the communicator for the now-synced results.
-            p_result->GenerateGlobalPointerCommunicator(rDataCommunicator);
         }
     } else { // Serial code
         // Iterate over all the results
@@ -241,11 +238,6 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
                 all_global_results.push_back(&r_value);
             }
         }
-
-        // Generate global pointer communicator
-        block_for_each(mPointResults, [&rDataCommunicator](auto p_result) {
-            p_result->GenerateGlobalPointerCommunicator(rDataCommunicator);
-        });
     }
 
     // Generate the communicator

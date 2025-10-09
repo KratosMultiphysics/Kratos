@@ -90,7 +90,6 @@ public:
     /// Assignment operator.
     SpatialSearchResult& operator=(SpatialSearchResult const& /*Other*/) = default;
 
-
     ///@}
     ///@name Operations
     ///@{

@@ -157,7 +157,7 @@ public:
     SpatialSearchResultReferenceType operator()(const std::size_t Index)
     {
         // Check if the communicator has been created
-        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
+        KRATOS_ERROR_IF_NOT(mIsSynchronized) << "The data has not been synchronized" << std::endl;
         return mGlobalResults[Index];
     }
 
@@ -168,8 +168,8 @@ public:
      */
     SpatialSearchResultConstReferenceType operator()(const std::size_t Index) const
     {
-        // Check if the communicator has been created
-        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
+        // Check if data is synchronized
+        KRATOS_ERROR_IF_NOT(mIsSynchronized) << "The data has not been synchronized" << std::endl;
         return mGlobalResults[Index];
     }
 
@@ -446,12 +446,6 @@ public:
     void Clear();
 
     /**
-     * @brief Generate the global pointer communicator.
-     * @param rDataCommunicator The data communicator.
-     */
-    void GenerateGlobalPointerCommunicator(const DataCommunicator& rDataCommunicator);
-
-    /**
      * @brief Synchronize the container between partitions
      * @details This method synchronizes the container between partitions
      * @param rDataCommunicator The data communicator.
@@ -462,19 +456,14 @@ public:
      * @brief Removes elements from the given ranks.
      * @details This function takes a list of ranks and removes the elements at those ranks from the list.
      * @param rRanks A constant reference to a std::vector<int> containing the ranks where no local solution is expected.
+     * @param rAllRanks A constant reference to a std::vector<int> containing all ranks.
      * @param rDataCommunicator The data communicator.
      */
     void RemoveResultsFromRanksList(
         const std::vector<int>& rRanks,
+        const std::vector<int>& rAllRanks,
         const DataCommunicator& rDataCommunicator
         );
-
-    /**
-     * @brief Removes elements at specified indexes from a list.
-     * @details This function takes a list of indexes and removes the elements at those indexes from the list.
-     * @param rIndexes A constant reference to a std::vector<IndexType> containing the indexes of elements to be removed.
-     */
-    void RemoveResultsFromIndexesList(const std::vector<IndexType>& rIndexes);
 
     ///@}
     ///@name Access
@@ -498,16 +487,6 @@ public:
     GlobalResultsVector& GetGlobalResults()
     {
         return mGlobalResults;
-    }
-
-    /**
-     * @brief Accessor for mpGlobalPointerCommunicator.
-     * @details This method returns the GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
-     * @return The GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
-     */
-    GlobalPointerCommunicatorPointerType GetGlobalPointerCommunicator()
-    {
-        return mpGlobalPointerCommunicator;
     }
 
     /**
@@ -548,6 +527,15 @@ public:
         mLocalIndex = LocalIndex;
     }
 
+    /**
+     * @brief Check if the data is synchronized
+     * @return true if the data is synchronized, false otherwise
+     */
+    bool IsSynchronized() const
+    {
+        return mIsSynchronized;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -564,17 +552,31 @@ public:
     /**
      * @brief Check if the search rank is the same as the rank of the data communicator.
      * @param rDataCommunicator The data communicator.
-     * @param GlobalIndex The global index of the search.
+     * @param rResultsRank The ranks of the results.
+     * @param GlobalIndex The global index of the search. Default is 0.
      * @return true if the ranks match, false otherwise.
      */
     bool IsLocalSearch(
         const DataCommunicator& rDataCommunicator,
+        const std::vector<int>& rResultsRank,
         const IndexType GlobalIndex = 0
         )
     {
-        std::vector<int> result_rank;
-        GetResultRank(result_rank, rDataCommunicator);
-        return result_rank[GlobalIndex] == rDataCommunicator.Rank();
+        return rResultsRank[GlobalIndex] == rDataCommunicator.Rank();
+    }
+
+    /**
+     * @brief Check if the search rank is the same as the rank of the data communicator.
+     * @param rDataCommunicator The data communicator.
+     * @param rResultRank The rank of the result.
+     * @return true if the ranks match, false otherwise.
+     */
+    bool IsLocalSearch(
+        const DataCommunicator& rDataCommunicator,
+        const int ResultRank
+        )
+    {
+        return ResultRank == rDataCommunicator.Rank();
     }
 
     ///@}
@@ -601,47 +603,11 @@ private:
     SignedIndexType mLocalIndex = -1;                                           /// Some index considered for identification (local)
     IndexType mGlobalIndex = 0;                                                 /// Some index considered for identification (global)
 
-    GlobalPointerCommunicatorPointerType mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator
+    bool mIsSynchronized = false;                                               /// If the container is synchronized
 
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
-     * @tparam TFunctorType Functor type.
-     * @param UserFunctor The user-provided function.
-     * @return A proxy to the results.
-     */
-    template<class TFunctorType>
-    ResultsProxy<
-    SpatialSearchResultType,
-    TFunctorType // TODO: Unfortunately this is deprecated in c++17, so we will have to change this call in the future
-    > Apply(TFunctorType&& UserFunctor)
-    {
-        // Check if the communicator has been created
-        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-
-        // Apply the user-provided function
-        return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
-    }
-
-    /**
-     * @brief Retrieves the rank of the entity.
-     * @param rResults A vector to store the ranks of the entity.
-     * @param rDataCommunicator The data communicator.
-     * @return A vector containing all the ranks of the entity.
-     */
-    void GetResultRank(
-        std::vector<int>& rResults,
-        const DataCommunicator& rDataCommunicator
-        );
-
-    /**
-     * @brief Considers the global pointer communicator to get the indices of the resulting object.
-     * @param rResults A vector to store the indices of the resulting object.
-     */
-    void GetResultIndices(std::vector<IndexType>& rResults);
 
     ///@}
     ///@name Serialization

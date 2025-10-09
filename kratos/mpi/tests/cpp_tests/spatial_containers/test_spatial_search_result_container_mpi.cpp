@@ -108,48 +108,4 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronize
     KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults());
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerRemoveResultsFromIndexesList, KratosMPICoreFastSuite)
-{
-    // The data communicator
-    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-    const int rank = r_data_comm.Rank();
-    const int world_size = r_data_comm.Size();
-
-    // Create a test object
-    SpatialSearchResultContainer<GeometricalObject> container;
-
-    // Create a test result
-    GeometricalObject object_1 = GeometricalObject(3 * rank + 1);
-    SpatialSearchResult<GeometricalObject> result_1(&object_1);
-    container.AddResult(result_1);
-    GeometricalObject object_2 = GeometricalObject(3 * rank + 2);
-    SpatialSearchResult<GeometricalObject> result_2(&object_2);
-    container.AddResult(result_2);
-    GeometricalObject object_3 = GeometricalObject(3 * rank + 3);
-    SpatialSearchResult<GeometricalObject> result_3(&object_3);
-    container.AddResult(result_3);
-
-    // Check that the result was added correctly
-    KRATOS_EXPECT_EQ(container.NumberOfLocalResults(), 3);
-
-    // Synchronize the container between partitions
-    container.SynchronizeAll(r_data_comm);
-
-    // Check global pointers
-    KRATOS_EXPECT_EQ(container.NumberOfGlobalResults(), static_cast<std::size_t>(3 * world_size));
-
-    // Remove indexes
-    std::vector<std::size_t> index_to_remove;
-    index_to_remove.reserve(2 * world_size);
-    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-        index_to_remove.push_back(3 * i_rank + 2);
-        index_to_remove.push_back(3 * i_rank + 3);
-    }
-    container.RemoveResultsFromIndexesList(index_to_remove);
-
-    // Check that the result was removed correctly
-    KRATOS_EXPECT_EQ(container.NumberOfLocalResults(), 1);
-    KRATOS_EXPECT_EQ(container.NumberOfGlobalResults(), static_cast<std::size_t>(world_size));
-}
-
 }  // namespace Kratos::Testing
