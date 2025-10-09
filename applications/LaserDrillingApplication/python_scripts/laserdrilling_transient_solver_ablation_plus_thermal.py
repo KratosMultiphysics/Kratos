@@ -245,17 +245,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         """
         self.RemoveElementsUsingEnergyPerVolumeThreshold()
 
-        if self.print_debug_info:
-            decomp_vol = self.MonitorDecomposedVolume()
-            print("Actual volume loss due to laser:", decomp_vol, "mm3")
-            self.analytical_ablated_volume_in_n_pulses += self.ComputePulseVolume()
-            print("Expected volume loss due to laser:", self.analytical_ablated_volume_in_n_pulses, "mm3\n")
-            relative_error = (
-                100.0
-                * (decomp_vol - self.analytical_ablated_volume_in_n_pulses)
-                / self.analytical_ablated_volume_in_n_pulses
-            )
-            print("Relative error in volume (%):", relative_error, "\n\n")
+
 
     def ResidualHeatStage(self):
         """
