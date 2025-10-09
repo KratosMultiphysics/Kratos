@@ -110,8 +110,6 @@ See [Spatial Search Result Container GetResultCoordinates](spatial_search_result
 ##### GetGlobalPointerCommunicator
 Obtains the communicator used for global pointer operations across computational entities.
 
-See [Spatial Search Result Container GetGlobalPointerCommunicator](spatial_search_result_container#GetGlobalPointerCommunicator).
-
 ##### GetContainer
 Accesses the underlying container (`mPointResults`) holding the search results.
 

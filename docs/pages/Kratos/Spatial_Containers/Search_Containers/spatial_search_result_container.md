@@ -95,9 +95,6 @@ Retrieves a list of results that are local to the current node or process.
 ##### GetGlobalResults
 Retrieves a list of results that are global, spanning all nodes or processes.
 
-##### GetGlobalPointerCommunicator
-Provides access to the global pointer communicator, essential for managing pointers in a distributed system.
-
 #### Member variables
 
 The class `SpatialSearchResultContainer` defines the following member variables:
@@ -110,8 +107,6 @@ A `GlobalPointersVector` of global search results, which stores global pointers 
 A signed index type (`std::ptrdiff_t`), used to identify local indices. Negative means that is not even a local point. This variable is added because once you pass a set of iterators to perform the search you need this information in order to identify the input point from the iterators sets from the result. This could be avoided if instead of `std::vector` we consider a map with a  certain hash, but then you need to define a hash, which could be problematic for a point which only information provided is a set of three floats with the potential issues of rounding errors. This could be avoiding using ids for nodes and hash of coordinates for the rest, but potential issues may still arise for the later.
 ##### `mGlobalIndex`
 An unsigned index type (`std::size_t`), used for global identification purposes. At the end all the results will be globally ordered and this index helps the identifications of global results. If not defined (non existing in current rank) the value will be `0`.
-##### `mpGlobalPointerCommunicator`
-A pointer to a `GlobalPointerCommunicator` of `SpatialSearchResultType`, used to manage global data communication.
 
 ## Example usage
 
