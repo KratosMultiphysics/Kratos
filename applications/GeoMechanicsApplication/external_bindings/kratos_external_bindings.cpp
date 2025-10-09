@@ -1,3 +1,5 @@
+#include "includes/define.h"
+
 #if defined(KRATOS_COMPILED_IN_WINDOWS)
 #define EXPORT __declspec(dllexport)
 #define CALL_CONV __stdcall
