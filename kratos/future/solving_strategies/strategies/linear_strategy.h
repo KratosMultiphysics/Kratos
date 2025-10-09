@@ -84,8 +84,6 @@ public:
      */
     explicit LinearStrategy() = default;
 
-    //TODO: Create a Model - Parameters constructor
-
     /**
      * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
@@ -103,6 +101,24 @@ public:
         //TODO: In here we should leverage the Registry to construct the scheme and linear solver from the json input settings
     }
 
+    /**
+     * @brief Model - Parameters constructor
+     * @param rModel The model container of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit LinearStrategy(
+        Model &rModel,
+        Parameters ThisParameters)
+        : BaseType(rModel, ThisParameters)
+    {
+        // Validate and assign defaults
+        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        //TODO: In here we should leverage the Registry to construct the scheme and linear solver from the json input settings
+    }
+
+    //TODO: Temporary constructor to be used until we fix the registry stuff
     /**
      * @brief Default constructor
      * @param rModelPart The model part of the problem
