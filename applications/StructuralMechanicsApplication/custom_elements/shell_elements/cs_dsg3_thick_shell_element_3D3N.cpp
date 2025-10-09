@@ -502,13 +502,6 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     bounded_3_matrix rotation_matrix;
     CalculateRotationMatrixLocalToGlobal(rotation_matrix);
 
-    // remove
-    // rotation_matrix.clear();
-    // rotation_matrix(0, 0) = 1.0;
-    // rotation_matrix(1, 1) = 1.0;
-    // rotation_matrix(2, 2) = 1.0;
-    //
-
     if (rLHS.size1() != system_size || rLHS.size2() != system_size)
         rLHS.resize(system_size, system_size, false);
     rLHS.clear();
@@ -661,14 +654,6 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
     
     bounded_3_matrix rotation_matrix;
     CalculateRotationMatrixLocalToGlobal(rotation_matrix);
-
-    // remove
-    // rotation_matrix.clear();
-    // rotation_matrix(0, 0) = 1.0;
-    // rotation_matrix(1, 1) = 1.0;
-    // rotation_matrix(2, 2) = 1.0;
-    //
-
 
     if (rRHS.size() != system_size)
         rRHS.resize(system_size, false);
