@@ -394,17 +394,17 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const double temp = alpha / 6.0;
     const double temp2 = 2.0 * temp;
     // Drilling rotation membrane components
-    rB(0, 5) = temp * y23 * (y13 + y12);
-    rB(1, 5) = temp * x32 * (x31 + x21);
-    rB(2, 5) = temp2 * (x31 * y13 + x21 * y21);
+    // rB(0, 5) = temp * y23 * (y13 + y12);
+    // rB(1, 5) = temp * x32 * (x31 + x21);
+    // rB(2, 5) = temp2 * (x31 * y13 + x21 * y21);
 
-    rB(0, 11) = temp * y31 * (y21 + y23);
-    rB(1, 11) = temp * x13 * (x12 + x32);
-    rB(2, 11) = temp2 * (x12 * y21 + x32 * y32);
+    // rB(0, 11) = temp * y31 * (y21 + y23);
+    // rB(1, 11) = temp * x13 * (x12 + x32);
+    // rB(2, 11) = temp2 * (x12 * y21 + x32 * y32);
 
-    rB(0, 17) = temp * y12 * (y32 + y31);
-    rB(1, 17) = temp * x21 * (x23 + x13);
-    rB(2, 17) = temp2 * (x23 * y32 + x13 * y13);
+    // rB(0, 17) = temp * y12 * (y32 + y31);
+    // rB(1, 17) = temp * x21 * (x23 + x13);
+    // rB(2, 17) = temp2 * (x23 * y32 + x13 * y13);
 
     // SECOND ORDER MISSING!!!! 
     // TODO
@@ -500,13 +500,13 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
     
     bounded_3_matrix rotation_matrix;
-    // CalculateRotationMatrixLocalToGlobal(rotation_matrix);
+    CalculateRotationMatrixLocalToGlobal(rotation_matrix);
 
     // remove
-    rotation_matrix.clear();
-    rotation_matrix(0, 0) = 1.0;
-    rotation_matrix(1, 1) = 1.0;
-    rotation_matrix(2, 2) = 1.0;
+    // rotation_matrix.clear();
+    // rotation_matrix(0, 0) = 1.0;
+    // rotation_matrix(1, 1) = 1.0;
+    // rotation_matrix(2, 2) = 1.0;
     //
 
     if (rLHS.size1() != system_size || rLHS.size2() != system_size)
@@ -660,13 +660,13 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
     
     bounded_3_matrix rotation_matrix;
-    // CalculateRotationMatrixLocalToGlobal(rotation_matrix);
+    CalculateRotationMatrixLocalToGlobal(rotation_matrix);
 
     // remove
-    rotation_matrix.clear();
-    rotation_matrix(0, 0) = 1.0;
-    rotation_matrix(1, 1) = 1.0;
-    rotation_matrix(2, 2) = 1.0;
+    // rotation_matrix.clear();
+    // rotation_matrix(0, 0) = 1.0;
+    // rotation_matrix(1, 1) = 1.0;
+    // rotation_matrix(2, 2) = 1.0;
     //
 
 
