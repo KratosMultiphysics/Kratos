@@ -23,7 +23,7 @@
             "input_filename": "submerged_excavation_gid_project"
         },
         "material_import_settings": {
-            "materials_filename": "Stage_1_Materials.json"
+            "materials_filename": "Linear_Elastic_Materials.json"
         },
         "buffer_size": 2,
         "clear_storage": false,
