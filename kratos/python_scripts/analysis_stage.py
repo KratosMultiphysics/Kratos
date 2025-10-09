@@ -80,7 +80,7 @@ class AnalysisStage(object):
             # store the positions of the nodes first, because Predict may move the mesh as well, therefore, we
             # need to collect node positions before moving
             # this will add a cost for the existing behavior, hence this is guarded by the following if block to
-            # not to have additional cost of collecting data if no load stepping is used.
+            # not to have additional cost of collecting data if no stepping is used.
             if not isinstance(self.step_controller, DefaultStepController):
                 ta_position = KratosMultiphysics.TensorAdaptors.NodePositionTensorAdaptor(computing_mp.Nodes, KratosMultiphysics.Configuration.Current)
                 ta_position.CollectData()
@@ -94,9 +94,9 @@ class AnalysisStage(object):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Did not converge for time = {self.time}.")
 
             current_step_controller_time = time_begin
-            while not self.step_controller.IsLoadSteppingCompleted(current_step_controller_time, is_converged):
+            while not self.step_controller.IsCompleted(current_step_controller_time, is_converged):
                 if is_converged:
-                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Load step at time = [{time_begin}, {self.time}] converged.")
+                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Step at time = [{time_begin}, {self.time}] converged.")
                     # so the sub-step converged.
 
                     # first finalize the success full step
@@ -109,17 +109,17 @@ class AnalysisStage(object):
                     # here we will correctly set TIME and DELTA_TIME
                     # and put current values in the previous time step
                     time_begin = self.time
-                    self.time = self.step_controller.GetNextLoadStep(self.time, is_converged)
+                    self.time = self.step_controller.GetNextStep(self.time, is_converged)
                     computing_mp.CloneTimeStep(self.time)
 
                     # now collect the nodes positions, which may have moved
                     # can be used at a later time to reset the nodal positions.
                     ta_position.CollectData()
                 else:
-                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Load step at time = {self.time} did not converge.")
+                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Step at time = {self.time} did not converge.")
                     # sub_step did not converge
                     # do not advance in step. get a new sub-step
-                    self.time = self.step_controller.GetNextLoadStep(time_begin, is_converged)
+                    self.time = self.step_controller.GetNextStep(time_begin, is_converged)
                     computing_mp.ProcessInfo[KratosMultiphysics.TIME] = self.time
                     computing_mp.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.time - time_begin
 
@@ -128,7 +128,7 @@ class AnalysisStage(object):
                     ta_position.StoreData()
 
                     # here we reset the solution step data of each node to the previous time step values
-                    # so the Predict can does a better prediction again with the new load step
+                    # so the Predict can does a better prediction again with the new step
                     computing_mp.OverwriteSolutionStepData(1, 0)
 
                 self.InitializeSolutionStep()
@@ -138,7 +138,7 @@ class AnalysisStage(object):
                 current_step_controller_time = self.time
 
             # we need the last finalize solution step, because once the Solver solves, and converges, and
-            # [t_begin, t_end] is reached, it will no longer go in to the load stepping while loop.
+            # [t_begin, t_end] is reached, it will no longer go in to the stepping while loop.
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
