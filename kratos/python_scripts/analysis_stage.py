@@ -94,7 +94,7 @@ class AnalysisStage(object):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Did not converge for time = {self.time}.")
 
             current_step_controller_time = time_begin
-            while not self.step_controller.LoadSteppingCompleted(current_step_controller_time, is_converged):
+            while not self.step_controller.IsLoadSteppingCompleted(current_step_controller_time, is_converged):
                 if is_converged:
                     KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Load step at time = [{time_begin}, {self.time}] converged.")
                     # so the sub-step converged.

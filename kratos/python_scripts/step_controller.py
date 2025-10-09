@@ -2,19 +2,80 @@ from abc import ABC, abstractmethod
 import KratosMultiphysics as Kratos
 
 class StepController(ABC):
+    """
+    Abstract base class for controlling the progression of load steps in a simulation.
+
+    Methods
+    -------
+    Initialize(time_begin: float, time_end: float) -> None
+        Prepare the controller for stepping, given the initial and final times.
+
+    GetNextLoadStep(current_time: float, is_converged: bool) -> float
+        Determine the next load step size based on the current time and convergence status of the current load step.
+
+    IsLoadSteppingCompleted(current_time: float, is_converged: bool) -> bool
+        Check if the load stepping process has been completed.
+    """
     @abstractmethod
     def Initialize(self, time_begin: float, time_end: float) -> None:
+        """
+        Initializes the step controller with the specified start and end times for current time step from the solver.
+
+        Args:
+            time_begin (float): The starting time of the current time step from the solver.
+            time_end (float): The ending time of the current time step from the solver.
+
+        Returns:
+            None
+        """
         pass
 
     @abstractmethod
     def GetNextLoadStep(self, current_time: float, is_converged: bool) -> float:
+        """
+        Determines and returns the next load step based on the current simulation time and convergence status.
+
+        Args:
+            current_time (float): The current time in the simulation.
+            is_converged (bool): Flag indicating whether the previous step has converged.
+
+        Returns:
+            float: The time for the next load step.
+        """
         pass
 
     @abstractmethod
-    def LoadSteppingCompleted(self, current_time: float, is_converged: bool) -> bool:
+    def IsLoadSteppingCompleted(self, current_time: float, is_converged: bool) -> bool:
+        """
+        Called to check if the load stepping process is completed.
+
+        Args:
+            current_time (float): The current simulation time.
+            is_converged (bool): Indicates whether the solution has converged at the current step.
+
+        Returns:
+            bool: True if the load stepping is completed, otherwise false.
+        """
         pass
 
 class DefaultStepController(StepController):
+    """
+    DefaultStepController is a step controller implementation for Kratos that always returns the final time as the next load step,
+    effectively disabling intermediate load stepping.
+
+    Args:
+        parameters (Kratos.Parameters): Configuration parameters for the step controller.
+
+    Methods:
+        Initialize(start_time: float, time_end: float) -> None:
+            Initializes the controller with the end time of the simulation.
+
+        GetNextLoadStep(current_time: float, is_converged: bool) -> float:
+            Returns the end time as the next load step, regardless of the current time or convergence status.
+
+        IsLoadSteppingCompleted(current_time: float, is_converged: bool) -> bool:
+            Always returns True, indicating that load stepping is completed.
+    """
     def __init__(self, parameters: Kratos.Parameters) -> None:
         default_parameters = Kratos.Parameters("""{
             "type": "default_step_controller"
@@ -27,10 +88,56 @@ class DefaultStepController(StepController):
     def GetNextLoadStep(self, _: float, __: bool) -> float:
         return self.__time_end
 
-    def LoadSteppingCompleted(self, _: float, __: bool) -> bool:
+    def IsLoadSteppingCompleted(self, _: float, __: bool) -> bool:
         return True
 
 class GeometricStepController(StepController):
+    """
+    GeometricStepController implements an adaptive time-stepping controller based on geometric progression for load stepping in simulations.
+
+    This controller adjusts the time increment (`delta_time`) dynamically based on the convergence or divergence of the solution at each step. It increases the time step after a specified number of successful convergences and decreases it after a failed attempt, within user-defined bounds.
+
+    Class Methods:
+        GetDefaultParameters() -> Kratos.Parameters:
+            Returns the default parameters for the controller, including factors for convergence/divergence, initial/min/max time steps, and thresholds for incrementing or terminating the step size.
+
+    Constructor:
+        __init__(settings: Kratos.Parameters):
+            Initializes the controller with user-provided or default settings, validating and storing parameters for each interval.
+
+    Methods:
+        Initialize(time_begin: float, time_end: float) -> None:
+            Prepares the controller for a new load stepping process, resetting counters and setting initial parameters.
+
+        GetNextLoadStep(current_time: float, is_converged: bool) -> float:
+            Determines the next time step based on the convergence status of the current time step. Increments or decrements the time step according to the configured factors and thresholds.
+
+        IsLoadSteppingCompleted(current_time: float, is_converged: bool) -> bool:
+            Checks if the load stepping process is completed, i.e., the solution has converged and the end time is reached.
+
+        __SetSubSteppingParameters() -> None:
+            Selects and sets the appropriate sub-stepping parameters based on the current interval.
+
+    Attributes:
+        __list_of_step_controllers: List of tuples containing interval utilities and their corresponding parameters.
+        __divergence_factor: Factor by which the time step is reduced after a failed attempt.
+        __convergence_factor: Factor by which the time step is increased after successful attempts.
+        __delta_t_init: Initial time step size.
+        __delta_t_min: Minimum allowed time step size.
+        __delta_t_max: Maximum allowed time step size.
+        __max_number_of_sub_steps: Maximum number of sub-steps allowed.
+        __number_of_successful_attempts_for_increment: Number of successful steps required to increase the time step.
+        __number_of_failed_attempts_for_termination: Number of failed steps allowed before termination.
+        __sub_stepping_iteration: Counter for the current sub-step iteration.
+        __success_full_attempts_count: Counter for successful attempts.
+        __failed_attempts_count: Counter for failed attempts.
+        __delta_time: Current time step size.
+        __time_begin: Start time of the load stepping process.
+        __time_end: End time of the load stepping process.
+
+    Raises:
+        RuntimeError: If the maximum number of sub-steps or failed attempts is exceeded, or if the minimum allowed time step is reached.
+    """
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
@@ -106,7 +213,7 @@ class GeometricStepController(StepController):
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Solving Load step {self.__sub_stepping_iteration} for time = {new_time:0.6e}")
             return new_time
 
-    def LoadSteppingCompleted(self, current_time: float, is_converged: bool) -> bool:
+    def IsLoadSteppingCompleted(self, current_time: float, is_converged: bool) -> bool:
         return is_converged and abs(current_time - self.__time_end) <= (self.__time_end - self.__time_begin) * 1e-9
 
     def __SetSubSteppingParameters(self) -> None:
