@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "containers/nd_data.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
@@ -171,18 +172,26 @@ public:
     /**
      * @brief Function to be called to output information from inside the strategy (e.g., a residual vector).
      * The behavior of the function can be customized in derived classes according to the given variable
+     * @warning Must be defined in derived classes
      * @param rVariable Variable to decide the things to be performed
-     * @return Vector Dense vector containing the information to be output
+     * @return NDData<double> Flat array containing the information to be output
      */
-    virtual Vector CalculateOutputData(Variable<Vector>& rVariable) = 0;
+    virtual NDData<double> CalculateOutputData(const Variable<Vector>& rVariable) const
+    {
+        return NDData<double>(DenseVector<unsigned int>(0));
+    }
 
     /**
      * @brief Function to be called to output information from inside the strategy (e.g., a stack of residual vectors).
      * The behavior of the function can be customized in derived classes according to the given variable
+     * @warning Must be defined in derived classes
      * @param rVariable Variable to decide the things to be performed
-     * @return Matrix Dense matrix containing the information to be output
+     * @return NDData<double> Flat array containing the information to be output
      */
-    virtual Matrix CalculateOutputData(Variable<Matrix>& rVariable) = 0;
+    virtual NDData<double> CalculateOutputData(const Variable<Matrix>& rVariable) const
+    {
+        return NDData<double>(DenseVector<unsigned int>(0));
+    }
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors

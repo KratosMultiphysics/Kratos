@@ -293,16 +293,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    Vector CalculateOutputData(Variable<Vector>& rVariable) override
-    {
-        pGetScheme()->CalculateOutputData(mLinearSystemContainer);
-    }
-
-    Matrix CalculateOutputData(Variable<Matrix>& rVariable) override
-    {
-        pGetScheme()->CalculateOutputData(mLinearSystemContainer);
-    }
-
     Parameters GetDefaultParameters() const override
     {
         // Current class default parameters
