@@ -331,7 +331,6 @@ public:
 
         const double w = Area / 3.0;
 
-        // Note: IntegrationPoint takes (xi, eta, weight)
         integration_points[0] = IntegrationPoint<3>(0.5, 0.5, 0.0, w);
         integration_points[1] = IntegrationPoint<3>(0.0, 0.5, 0.5, w);
         integration_points[2] = IntegrationPoint<3>(0.5, 0.0, 0.5, w);

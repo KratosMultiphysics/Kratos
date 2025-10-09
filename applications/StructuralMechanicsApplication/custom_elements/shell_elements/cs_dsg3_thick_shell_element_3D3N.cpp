@@ -485,6 +485,7 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     rRHS.clear();
 
     const double thickness = r_props[THICKNESS];
+    const double area = r_geometry.Area();
 
     VectorType nodal_values(system_size);
     GetNodalValuesVector(nodal_values);
@@ -496,9 +497,37 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    
+    // Let's initialize the constitutive law's values
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
 
+    const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
+    double zeta1, zeta2, zeta3, weight;
+    MatrixType B(strain_size, system_size);
+    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+        zeta1 = r_integration_points[IP].X();
+        zeta2 = r_integration_points[IP].Y();
+        zeta3 = r_integration_points[IP].Z();
+        weight = r_integration_points[IP].Weight();
 
+        CalculateBTriangle(B, rotation_matrix, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates(), zeta1, zeta2, zeta3);
+
+        // We compute the strain at the integration point
+        noalias(strain_vector) = prod(B, nodal_values);
+
+        // We call the constitutive law to compute the stress
+        cl_values.SetStrainVector(strain_vector);
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        noalias(stress_vector) = cl_values.GetStressVector();
+        noalias(constitutive_matrix) = cl_values.GetConstitutiveMatrix();
+
+        // We integrate the LHS and RHS
+        noalias(rLHS) += weight * prod(trans(B), Matrix(prod(constitutive_matrix, B)));
+        noalias(rRHS) -= weight * prod(trans(B), stress_vector);
+    }
     KRATOS_CATCH("");
 }
 
