@@ -7,11 +7,11 @@ class StepController(ABC):
         pass
 
     @abstractmethod
-    def GetSubStep(self, current_time: float, is_converged: bool) -> float:
+    def GetNextLoadStep(self, current_time: float, is_converged: bool) -> float:
         pass
 
     @abstractmethod
-    def SubSteppingCompleted(self, current_time: float, is_converged: bool) -> bool:
+    def LoadSteppingCompleted(self, current_time: float, is_converged: bool) -> bool:
         pass
 
 class DefaultStepController(StepController):
@@ -24,10 +24,10 @@ class DefaultStepController(StepController):
     def Initialize(self, _: float, time_end: float) -> None:
         self.__time_end = time_end
 
-    def GetSubStep(self, _: float, __: bool) -> float:
+    def GetNextLoadStep(self, _: float, __: bool) -> float:
         return self.__time_end
 
-    def SubSteppingCompleted(self, _: float, __: bool) -> bool:
+    def LoadSteppingCompleted(self, _: float, __: bool) -> bool:
         return True
 
 class GeometricStepController(StepController):
@@ -72,14 +72,14 @@ class GeometricStepController(StepController):
         self.__failed_attempts_count = 0
         self.__delta_time = self.__delta_t_init
 
-    def GetSubStep(self, current_time: float, is_converged: bool) -> float:
+    def GetNextLoadStep(self, current_time: float, is_converged: bool) -> float:
 
         self.__sub_stepping_iteration += 1
         if self.__sub_stepping_iteration >= self.__max_number_of_sub_steps:
-            raise RuntimeError(f"{self.__class__.__name__}: Reached maximum number of sub steps [ max number of sub steps = {self.__max_number_of_sub_steps} ].")
+            raise RuntimeError(f"{self.__class__.__name__}: Reached maximum number of Load steps [ max number of Load steps = {self.__max_number_of_sub_steps} ].")
 
         if is_converged:
-            # the sub-step is converged. So try the next sub step
+            # the sub-step is converged. So try the next Load step
             self.__failed_attempts_count = 0
             self.__success_full_attempts_count += 1
 
@@ -103,10 +103,10 @@ class GeometricStepController(StepController):
                     raise RuntimeError(f"Reached the minimum allowed delta time [ delta_time = {self.__delta_time}, allowed minimum delta_time = {self.__delta_t_min} ]")
 
             new_time = current_time + self.__delta_time
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Solving sub step {self.__sub_stepping_iteration} for time = {new_time:0.6e}")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Solving Load step {self.__sub_stepping_iteration} for time = {new_time:0.6e}")
             return new_time
 
-    def SubSteppingCompleted(self, current_time: float, is_converged: bool) -> bool:
+    def LoadSteppingCompleted(self, current_time: float, is_converged: bool) -> bool:
         return is_converged and abs(current_time - self.__time_end) <= (self.__time_end - self.__time_begin) * 1e-9
 
     def __SetSubSteppingParameters(self) -> None:

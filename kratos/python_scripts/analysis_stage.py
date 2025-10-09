@@ -94,9 +94,9 @@ class AnalysisStage(object):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Did not converge for time = {self.time}.")
 
             current_step_controller_time = time_begin
-            while not self.step_controller.SubSteppingCompleted(current_step_controller_time, is_converged):
+            while not self.step_controller.LoadSteppingCompleted(current_step_controller_time, is_converged):
                 if is_converged:
-                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Sub step at time = [{time_begin}, {self.time}] converged.")
+                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Load step at time = [{time_begin}, {self.time}] converged.")
                     # so the sub-step converged.
 
                     # first finalize the success full step
@@ -109,22 +109,26 @@ class AnalysisStage(object):
                     # here we will correctly set TIME and DELTA_TIME
                     # and put current values in the previous time step
                     time_begin = self.time
-                    self.time = self.step_controller.GetSubStep(self.time, is_converged)
+                    self.time = self.step_controller.GetNextLoadStep(self.time, is_converged)
                     computing_mp.CloneTimeStep(self.time)
 
                     # now collect the nodes positions, which may have moved
+                    # can be used at a later time to reset the nodal positions.
                     ta_position.CollectData()
                 else:
-                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Sub step at time = {self.time} did not converge.")
+                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Load step at time = {self.time} did not converge.")
                     # sub_step did not converge
                     # do not advance in step. get a new sub-step
-                    self.time = self.step_controller.GetSubStep(time_begin, is_converged)
+                    self.time = self.step_controller.GetNextLoadStep(time_begin, is_converged)
                     computing_mp.ProcessInfo[KratosMultiphysics.TIME] = self.time
                     computing_mp.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.time - time_begin
 
                     # here we need to reset the coordinates of the mesh, if someone has used the move_mesh_flag = true
                     # reset the mesh coordinates
                     ta_position.StoreData()
+
+                    # here we reset the solution step data of each node to the previous time step values
+                    # so the Predict can does a better prediction again with the new load step
                     computing_mp.OverwriteSolutionStepData(1, 0)
 
                 self.InitializeSolutionStep()
@@ -133,6 +137,8 @@ class AnalysisStage(object):
 
                 current_step_controller_time = self.time
 
+            # we need the last finalize solution step, because once the Solver solves, and converges, and
+            # [t_begin, t_end] is reached, it will no longer go in to the load stepping while loop.
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
