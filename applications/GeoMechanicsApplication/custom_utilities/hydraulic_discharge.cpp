@@ -10,7 +10,10 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include "custom_utilities/hydraulic_discharge.h"
+#include "hydraulic_discharge.h"
+#include "custom_utilities/node_utilities.h"
+#include "geo_mechanics_application_variables.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -30,7 +33,7 @@ void HydraulicDischarge::CalculateHydraulicDischarge(const std::vector<array_1d<
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         noalias(grad_Np_T) = rdNDxContainer[integration_point];
 
-        auto integration_coefficient = rIntegrationCoefficients[integration_point];
+        const auto integration_coefficient = rIntegrationCoefficients[integration_point];
 
         for (unsigned int node = 0; node < number_of_points; ++node) {
             double hydraulic_discharge = 0;
