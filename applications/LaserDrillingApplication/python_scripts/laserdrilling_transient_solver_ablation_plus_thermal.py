@@ -35,8 +35,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
         Y = self.list_of_decomposed_nodes_coords_Y
         print("\nPulse number", self.pulse_number, "\n")
 
-        self.hole_profile_in_Y_zero_file = open("hole_profile_in_Y_zero.txt", "w")
-
         # Equation of the approximated hole shape (as a parabola)
         # x(y) = A * y^2 + C
         a = Y[-1]
@@ -69,8 +67,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
                 KratosMultiphysics.TEMPERATURE, 1, new_temp
             )  # TODO: why override the previous time step?
 
-            if y0 < 1e-8:
-                self.hole_profile_in_Y_zero_file.write(str(node.X) + " " + str(new_temp) + "\n")
 
             delta_pen = self.delta_pen
             F_p = self.F_p
@@ -93,7 +89,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             enthalpy_energy_per_volume = self.rho * (self.H_ev + self.cp * delta_temp)
             node.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume)
 
-        self.hole_profile_in_Y_zero_file.close()
 
         for elem in self.main_model_part.Elements:
             q_energy_per_volume = elem.CalculateOnIntegrationPoints(
@@ -114,8 +109,7 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             "\nPulse number", self.pulse_number, "\n"
         )  # TODO: Move into InitializeSolutionStep when it checks if a new pulse is added?
 
-        # TODO: change 'open's to 'with open as xx' if possible
-        self.hole_profile_in_Y_zero_file = open("hole_profile_in_Y_zero.txt", "w")
+
 
         # Function that returns the hole depth (x coord) as a function of the radius coord (y coord)
         F = interp1d(Y, X, bounds_error=False, fill_value=0.0)  # TODO: legacy function, update
@@ -141,8 +135,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, new_temp)
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 1, new_temp)
 
-            if radius < 1e-8:  # TODO: why this value? Make it into a variable or even a simulation parameter?
-                self.hole_profile_in_Y_zero_file.write(str(node.X) + " " + str(new_temp) + "\n")
 
             delta_pen = self.delta_pen
             F_p = self.F_p
@@ -162,8 +154,6 @@ class LaserDrillingTransientSolverAblationPlusThermal(laserdrilling_transient_so
             delta_temp = self.T_e - old_temp
             enthalpy_energy_per_volume = self.rho * (self.H_ev + self.cp * delta_temp)
             node.SetValue(LaserDrillingApplication.ENTHALPY_ENERGY_PER_VOLUME, enthalpy_energy_per_volume)
-
-        self.hole_profile_in_Y_zero_file.close()
 
         for elem in self.main_model_part.Elements:
             q_energy_per_volume_elemental = elem.CalculateOnIntegrationPoints(
