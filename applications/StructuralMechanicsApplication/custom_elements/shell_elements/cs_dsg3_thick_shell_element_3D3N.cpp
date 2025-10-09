@@ -468,7 +468,9 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     KRATOS_TRY;
 
     const IndexType strain_size = GetStrainSize();
-    const IndexType number_of_nodes = GetGeometry().PointsNumber();
+    const auto& r_geometry = GetGeometry();
+    const auto& r_props = GetProperties();
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
     
     bounded_3_matrix rotation_matrix;
@@ -482,16 +484,19 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
         rRHS.resize(system_size, false);
     rRHS.clear();
 
-    const double thickness = GetProperties()[THICKNESS];
+    const double thickness = r_props[THICKNESS];
 
     VectorType nodal_values(system_size);
     GetNodalValuesVector(nodal_values);
-    // We rotate the nodal values to the local system
+    // We rotate the nodal values to the local system of the shell
     RotateRHSToGlobal(nodal_values, rotation_matrix);
 
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-
-
+    
 
 
     KRATOS_CATCH("");

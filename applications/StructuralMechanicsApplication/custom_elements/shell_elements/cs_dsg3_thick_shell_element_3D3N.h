@@ -322,6 +322,22 @@ public:
         return mConstitutiveLawVector[0]->GetStrainSize();
     }
 
+    /**
+     * @brief Returns a custom 3-point Gauss quadrature in area coordinates for a triangle.
+     */
+    GeometryType::IntegrationPointsArrayType CustomTriangleAreaCoordinatesQuadrature(const double Area) const
+    {
+        GeometryType::IntegrationPointsArrayType integration_points(3);
+
+        const double w = Area / 3.0;
+
+        // Note: IntegrationPoint takes (xi, eta, weight)
+        integration_points[0] = IntegrationPoint<3>(0.5, 0.5, 0.0, w);
+        integration_points[1] = IntegrationPoint<3>(0.0, 0.5, 0.5, w);
+        integration_points[2] = IntegrationPoint<3>(0.5, 0.0, 0.5, w);
+
+        return integration_points;
+    }
 
     ///@}
     ///@name Access
