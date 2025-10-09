@@ -835,35 +835,37 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables&
                                                                const std::vector<double>& rBishopCoefficients) const
 {
     Vector result(this->GetNumberOfDOF(), 0.0);
-    for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-        rVariables.B                      = rBMatrices[GPoint];
-        rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
+    for (unsigned int integration_point = 0; integration_point < rIntegrationCoefficients.size(); ++integration_point) {
+        rVariables.B                      = rBMatrices[integration_point];
+        rVariables.IntegrationCoefficient = rIntegrationCoefficients[integration_point];
 
-        this->CalculateAndAddStiffnessForce(result, rVariables, GPoint);
+        this->CalculateAndAddStiffnessForce(result, rVariables, integration_point);
     }
 
-    for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-        rVariables.B                      = rBMatrices[GPoint];
-        rVariables.BishopCoefficient      = rBishopCoefficients[GPoint];
-        rVariables.BiotCoefficient        = rBiotCoefficients[GPoint];
-        rVariables.DegreeOfSaturation     = rDegreesOfSaturation[GPoint];
-        rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
-        noalias(rVariables.Np)            = row(rVariables.NpContainer, GPoint);
+    for (unsigned int integration_point = 0; integration_point < rIntegrationCoefficients.size(); ++integration_point) {
+        rVariables.B                      = rBMatrices[integration_point];
+        rVariables.BishopCoefficient      = rBishopCoefficients[integration_point];
+        rVariables.BiotCoefficient        = rBiotCoefficients[integration_point];
+        rVariables.DegreeOfSaturation     = rDegreesOfSaturation[integration_point];
+        rVariables.IntegrationCoefficient = rIntegrationCoefficients[integration_point];
+        noalias(rVariables.Np)            = row(rVariables.NpContainer, integration_point);
 
         this->CalculateAndAddCouplingTerms(result, rVariables);
     }
     if (!rVariables.IgnoreUndrained) {
-        for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-            noalias(rVariables.Np)            = row(rVariables.NpContainer, GPoint);
-            rVariables.BiotModulusInverse     = rBiotModuliInverse[GPoint];
-            rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
+        for (unsigned int integration_point = 0;
+             integration_point < rIntegrationCoefficients.size(); ++integration_point) {
+            noalias(rVariables.Np)            = row(rVariables.NpContainer, integration_point);
+            rVariables.BiotModulusInverse     = rBiotModuliInverse[integration_point];
+            rVariables.IntegrationCoefficient = rIntegrationCoefficients[integration_point];
 
             this->CalculateAndAddCompressibilityFlow(result, rVariables);
         }
-        for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-            noalias(rVariables.DNp_DX)        = rVariables.DNp_DXContainer[GPoint];
-            rVariables.RelativePermeability   = rRelativePermeabilityValues[GPoint];
-            rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
+        for (unsigned int integration_point = 0;
+             integration_point < rIntegrationCoefficients.size(); ++integration_point) {
+            noalias(rVariables.DNp_DX)        = rVariables.DNp_DXContainer[integration_point];
+            rVariables.RelativePermeability   = rRelativePermeabilityValues[integration_point];
+            rVariables.IntegrationCoefficient = rIntegrationCoefficients[integration_point];
 
             this->CalculateAndAddPermeabilityFlow(result, rVariables);
         }
@@ -881,20 +883,21 @@ Vector SmallStrainUPwDiffOrderElement::CalculateExternalForces(
     const std::vector<double>& rBishopCoefficients) const
 {
     Vector result = ZeroVector(this->GetNumberOfDOF());
-    for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-        noalias(rVariables.Nu)        = row(rVariables.NuContainer, GPoint);
-        rVariables.DegreeOfSaturation = rDegreesOfSaturation[GPoint];
+    for (unsigned int integration_point = 0; integration_point < rIntegrationCoefficients.size(); ++integration_point) {
+        noalias(rVariables.Nu)        = row(rVariables.NuContainer, integration_point);
+        rVariables.DegreeOfSaturation = rDegreesOfSaturation[integration_point];
         rVariables.IntegrationCoefficientInitialConfiguration =
-            rIntegrationCoefficientsOnInitialConfiguration[GPoint];
+            rIntegrationCoefficientsOnInitialConfiguration[integration_point];
         this->CalculateAndAddMixBodyForce(result, rVariables);
     }
     if (!rVariables.IgnoreUndrained) {
-        for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
-            noalias(rVariables.Nu)            = row(rVariables.NuContainer, GPoint);
-            noalias(rVariables.DNp_DX)        = rVariables.DNp_DXContainer[GPoint];
-            rVariables.RelativePermeability   = rRelativePermeabilityValues[GPoint];
-            rVariables.BishopCoefficient      = rBishopCoefficients[GPoint];
-            rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
+        for (unsigned int integration_point = 0;
+             integration_point < rIntegrationCoefficients.size(); ++integration_point) {
+            noalias(rVariables.Nu)            = row(rVariables.NuContainer, integration_point);
+            noalias(rVariables.DNp_DX)        = rVariables.DNp_DXContainer[integration_point];
+            rVariables.RelativePermeability   = rRelativePermeabilityValues[integration_point];
+            rVariables.BishopCoefficient      = rBishopCoefficients[integration_point];
+            rVariables.IntegrationCoefficient = rIntegrationCoefficients[integration_point];
 
             this->CalculateAndAddFluidBodyFlow(result, rVariables);
         }
