@@ -34,15 +34,8 @@ void CSDSG3ThickShellElement3D3N::Initialize(const ProcessInfo& rCurrentProcessI
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        if (UseGeometryIntegrationMethod()) {
-            if (GetProperties().Has(INTEGRATION_ORDER) ) {
-                mThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(GetProperties()[INTEGRATION_ORDER] - 1);
-            } else {
-                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-            }
-        }
 
-        const auto& r_integration_points = this->IntegrationPoints(mThisIntegrationMethod);
+        const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(GetGeometry().Area());
 
         // Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size())
@@ -490,7 +483,7 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     VectorType nodal_values(system_size);
     GetNodalValuesVector(nodal_values);
     // We rotate the nodal values to the local system of the shell
-    RotateRHSToGlobal(nodal_values, rotation_matrix);
+    RotateRHSToGlobal(nodal_values, trans(rotation_matrix)); // rotate to local
 
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
@@ -507,20 +500,21 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
     double zeta1, zeta2, zeta3, weight;
     MatrixType B(strain_size, system_size);
-    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
-        zeta1 = r_integration_points[IP].X();
-        zeta2 = r_integration_points[IP].Y();
-        zeta3 = r_integration_points[IP].Z();
-        weight = r_integration_points[IP].Weight();
+    for (SizeType i_point = 0; i_point < r_integration_points.size(); ++i_point) {
+        zeta1 = r_integration_points[i_point].X();
+        zeta2 = r_integration_points[i_point].Y();
+        zeta3 = r_integration_points[i_point].Z();
+        weight = r_integration_points[i_point].Weight();
 
-        CalculateBTriangle(B, rotation_matrix, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates(), zeta1, zeta2, zeta3);
+        CalculateBTriangle(B, rotation_matrix, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(),
+                           r_geometry[2].Coordinates(), zeta1, zeta2, zeta3);
 
         // We compute the strain at the integration point
         noalias(strain_vector) = prod(B, nodal_values);
 
         // We call the constitutive law to compute the stress
         cl_values.SetStrainVector(strain_vector);
-        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+        mConstitutiveLawVector[i_point]->CalculateMaterialResponseCauchy(cl_values);
         noalias(stress_vector) = cl_values.GetStressVector();
         noalias(constitutive_matrix) = cl_values.GetConstitutiveMatrix();
 
