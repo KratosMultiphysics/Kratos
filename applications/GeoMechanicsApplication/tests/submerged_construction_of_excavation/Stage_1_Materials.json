@@ -174,15 +174,11 @@
         "properties_id"   : 7,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "GeoInterfaceCoulombWithTensionCutOff"
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 30000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 15000000,
-                "GEO_COHESION"               : 10,
-                "GEO_FRICTION_ANGLE"         : 35,
-                "GEO_TENSILE_STRENGTH"       : 10,
-                "GEO_DILATANCY_ANGLE"        : 0.0
+                "INTERFACE_SHEAR_STIFFNESS"  : 15000000
             }
         }
     },{
@@ -190,15 +186,11 @@
         "properties_id"   : 8,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "GeoInterfaceCoulombWithTensionCutOff"
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 30000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 15000000,
-                "GEO_COHESION"               : 10,
-                "GEO_FRICTION_ANGLE"         : 35,
-                "GEO_TENSILE_STRENGTH"       : 10,
-                "GEO_DILATANCY_ANGLE"        : 0.0
+                "INTERFACE_SHEAR_STIFFNESS"  : 15000000
             }
         }
     },{
@@ -206,15 +198,11 @@
         "properties_id"   : 9,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "GeoInterfaceCoulombWithTensionCutOff"
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 30000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 15000000,
-                "GEO_COHESION"               : 10,
-                "GEO_FRICTION_ANGLE"         : 35,
-                "GEO_TENSILE_STRENGTH"       : 10,
-                "GEO_DILATANCY_ANGLE"        : 0.0
+                "INTERFACE_SHEAR_STIFFNESS"  : 15000000
             }
         }
     },{
@@ -222,15 +210,11 @@
         "properties_id"   : 10,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "GeoInterfaceCoulombWithTensionCutOff"
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 30000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 15000000,
-                "GEO_COHESION"               : 10,
-                "GEO_FRICTION_ANGLE"         : 35,
-                "GEO_TENSILE_STRENGTH"       : 10,
-                "GEO_DILATANCY_ANGLE"        : 0.0
+                "INTERFACE_SHEAR_STIFFNESS"  : 15000000
             }
         }
     },{
@@ -238,15 +222,11 @@
         "properties_id"   : 11,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "GeoInterfaceCoulombWithTensionCutOff"
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 30000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 15000000,
-                "GEO_COHESION"               : 10,
-                "GEO_FRICTION_ANGLE"         : 35,
-                "GEO_TENSILE_STRENGTH"       : 10,
-                "GEO_DILATANCY_ANGLE"        : 0.0
+                "INTERFACE_SHEAR_STIFFNESS"  : 15000000
             }
         }
     },{
@@ -254,15 +234,11 @@
         "properties_id"   : 12,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "GeoInterfaceCoulombWithTensionCutOff"
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 30000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 15000000,
-                "GEO_COHESION"               : 10,
-                "GEO_FRICTION_ANGLE"         : 35,
-                "GEO_TENSILE_STRENGTH"       : 10,
-                "GEO_DILATANCY_ANGLE"        : 0.0
+                "INTERFACE_SHEAR_STIFFNESS"  : 15000000
             }
         }
     },{

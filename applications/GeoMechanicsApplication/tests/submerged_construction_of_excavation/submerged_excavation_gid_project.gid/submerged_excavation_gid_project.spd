@@ -29,7 +29,7 @@
   <units/>
   <!-- Fill this fields to automatically active an App without the init window -->
   <hiddenfield n="activeapp" active="0" v="GeoMechanics" state="disabled"/>
-  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="close"/>
+  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="active,selected,close"/>
   <appLink n="ThermicLauncher" public="1" pn="Thermic" active="0" appid="ThermicLauncher" prefix="ThermicLauncher"/>
   <appLink n="ConvectionDiffusion" public="0" pn="Convection-diffusion" active="0" appid="ConvectionDiffusion" prefix="CNVDFF"/>
   <appLink n="Structural" public="1" pn="Structural" active="0" appid="Structural" prefix="ST"/>
@@ -1246,7 +1246,7 @@
               <value n="AREA_EFFECTIVE_Y" pn="Area Effective Y" help="Area Effective Y" string_is="double" state="[PartParamState]" show_in_window="1" v="0.01"/>
             </group>
           </condition>
-          <condition n="Parts_Interface" pn="Interface" ov="line" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="close">
+          <condition n="Parts_Interface" pn="Interface" ov="line" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="open">
             <value n="Element" pn="Element" actualize_tree="1" values="InterfaceElement" v="InterfaceElement" dict="[GetElements ElementType Interface]" state="normal">
               <dependencies node="../value[@n!='Material']" actualize="1"/>
             </value>
@@ -1420,7 +1420,7 @@
             <value n="AREA_EFFECTIVE_Y" pn="Area Effective Y" v="0.01" help="Area Effective Y" string_is="double" state="[PartParamState]" show_in_window="1"/>
             <group n="Wall_Clay_Interface_Left" ov="line" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="InterfaceElement" dict="[GetElements ElementType Interface]" state="normal" v="InterfaceElement" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoInterfaceCoulombWithTensionCutOff" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoIncrementalLinearElasticInterfaceLaw" tree_state="close"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650"/>
@@ -1446,7 +1446,7 @@
               <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -1574,7 +1574,7 @@
             </group>
             <group n="Wall_Clay_Interface_Upper_Right" ov="line" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="InterfaceElement" dict="[GetElements ElementType Interface]" state="normal" v="InterfaceElement" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoInterfaceCoulombWithTensionCutOff" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoIncrementalLinearElasticInterfaceLaw" tree_state="close"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650"/>
@@ -1600,7 +1600,7 @@
               <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -1728,7 +1728,7 @@
             </group>
             <group n="Wall_Clay_Interface_Middle_Right" ov="line" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="InterfaceElement" dict="[GetElements ElementType Interface]" state="normal" v="InterfaceElement" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoInterfaceCoulombWithTensionCutOff" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoIncrementalLinearElasticInterfaceLaw" tree_state="close"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650"/>
@@ -1754,7 +1754,7 @@
               <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -1882,7 +1882,7 @@
             </group>
             <group n="Wall_Clay_Interface_Lower_Right" ov="line" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="InterfaceElement" dict="[GetElements ElementType Interface]" state="normal" v="InterfaceElement" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoInterfaceCoulombWithTensionCutOff" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoIncrementalLinearElasticInterfaceLaw" tree_state="close"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650"/>
@@ -1908,7 +1908,7 @@
               <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -2036,7 +2036,7 @@
             </group>
             <group n="Wall_Sand_Interface_Left" ov="line" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="InterfaceElement" dict="[GetElements ElementType Interface]" state="normal" v="InterfaceElement" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoInterfaceCoulombWithTensionCutOff" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoIncrementalLinearElasticInterfaceLaw" tree_state="close"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650"/>
@@ -2062,7 +2062,7 @@
               <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -2190,7 +2190,7 @@
             </group>
             <group n="Wall_Sand_Interface_Right" ov="line" tree_state="close">
               <value n="Element" pn="Element" actualize_tree="1" values="InterfaceElement" dict="[GetElements ElementType Interface]" state="normal" v="InterfaceElement" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoInterfaceCoulombWithTensionCutOff" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="GeoIncrementalLinearElasticInterfaceLaw" tree_state="active,close"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650"/>
@@ -2216,7 +2216,7 @@
               <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -2518,7 +2518,7 @@
           </condition>
           <dynamicnode command="::GeoMechanics::xml::ProcUpdatePartsState" args="initial"/>
         </container>
-        <container n="Structural Parts" pn="Structural Parts" un="STParts,GEOMParts" icon="shells16" update_proc="UpdateParts" tree_state="close">
+        <container n="Structural Parts" pn="Structural Parts" un="STParts,GEOMParts" icon="shells16" update_proc="UpdateParts" tree_state="open">
           <condition n="Parts_Solid" pn="Solid" ov="surface" ovm="node,element" icon="shells16" help="Select your group" update_proc="UpdateParts" state="normal" tree_state="close">
             <value n="Element" pn="Element" actualize_tree="1" values="" v="" dict="[GetElements ElementType Solid]" state="normal">
               <dependencies node="../value[@n!='Material']" actualize="1"/>
@@ -2864,9 +2864,9 @@
             <value n="FRACTURE_ENERGY" pn="Fracture energy" v="100" units="J/m^2" unit_magnitude="Energy/L^2" help="Fracture energy" string_is="double" state="[PartParamState]" show_in_window="1"/>
             <value n="SOFTENING_TYPE" pn="Softening type" v="0" help="Defines the softening type (linear softening=0, exponential softening=1)" string_is="double" state="[PartParamState]" show_in_window="1"/>
             <value n="AREA_EFFECTIVE_Y" pn="Area Effective Y" v="0.01" help="Area Effective Y" string_is="double" state="[PartParamState]" show_in_window="1"/>
-            <group n="Diaphragm_Wall" ov="line" tree_state="close">
+            <group n="Diaphragm_Wall" ov="line" tree_state="open">
               <value n="Element" pn="Element" actualize_tree="1" values="LinearBeamElement2D,BeamElement2D,LinearTimoshenkoCurvedBeamElement2D,LinearTimoshenkoBeamElement2D" dict="[GetElements ElementType Beam]" state="normal" v="LinearTimoshenkoCurvedBeamElement2D" tree_state="close"/>
-              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="TimoshenkoBeamElasticConstitutiveLaw" tree_state="close"/>
+              <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" values="[GetConstitutiveLaws]" dict="[GetAllConstitutiveLaws]" state="normal" v="TimoshenkoBeamElasticConstitutiveLaw" tree_state="open"/>
               <value n="Material" pn="Material" editable="0" help="Choose a material from the database" values="[GetMaterialsList]" state="disabled" v="Default Barcelona Basic Model" tree_state="close"/>
               <value n="IGNORE_UNDRAINED" pn="Ignore undrained" values="true,false" help="Ignore undrained" state="[PartParamState]" show_in_window="1" v="false"/>
               <value n="DENSITY_SOLID" pn="Density Solid" help="Density Solid" string_is="double" state="[PartParamState]" show_in_window="1" v="2650"/>
@@ -2892,7 +2892,7 @@
               <value n="K0_NC" pn="K0_NC" help="K0_NC" string_is="double" state="[PartParamState]" show_in_window="1" v="0.5"/>
               <value n="PIPE_ETA" pn="Pipe Eta" help="Pipe Eta" string_is="double" state="[PartParamState]" show_in_window="1" v="0.25"/>
               <value n="PIPE_THETA" pn="Pipe Theta" help="Pipe Theta" string_is="double" state="[PartParamState]" show_in_window="1" v="37"/>
-              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="No Piping Elements"/>
+              <value n="PIPE_START_ELEMENT" pn="Pipe Starting Element" values="[ProcUpdatePipeElementsComboList]" help="Pipe Starting Element" state="[PartParamState]" type="combo" show_in_window="1" v="Wrong Element Type"/>
               <value n="PIPE_MODIFIED_D" pn="Pipe Modified D" values="true,false" help="Pipe Modified D" state="[PartParamState]" show_in_window="1" v="true"/>
               <value n="PIPE_MODEL_FACTOR" pn="Pipe Model Factor" help="Pipe Model Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
               <value n="PIPE_WIDTH_FACTOR" pn="Pipe Width Factor" help="Pipe Width Factor" string_is="double" state="[PartParamState]" show_in_window="1" v="1.0"/>
@@ -3818,7 +3818,7 @@
             <value n="value_direction_Y" wn="SurfaceLoad3D _Y" pn="Value Y" v="0.0" help="Direction" show_in_window="1"/>
             <value n="value_direction_Z" wn="SurfaceLoad3D _Z" pn="Value Z" v="0.0" help="Direction" state="[CheckDimension 3D]" show_in_window="1"/>
           </condition>
-          <condition n="LinePressure2D" pn="Pressure on lines" ov="line" ovm="" icon="shells16" help="Normal pressure on lines, oriented pointing against the line outer normal" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="active,open,selected">
+          <condition n="LinePressure2D" pn="Pressure on lines" ov="line" ovm="" icon="shells16" help="Normal pressure on lines, oriented pointing against the line outer normal" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="open">
             <value n="value" pn="Value" v="0.0" units="Pa" unit_magnitude="P" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <group n="Loaded_Edge" ov="line" tree_state="close">
               <value n="value" pn="Value" unit_magnitude="P" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="-5000" units="Pa" tree_state="close"/>
@@ -5748,7 +5748,7 @@
     <value n="lognoter_file" v=""/>
     <value n="spd_file" v="C:/Checkouts/KratosProjects/london/applications/GeoMechanicsApplication/tests/submerged_construction_of_excavation/submerged_excavation_gid_project.gid/submerged_excavation_gid_project.spd"/>
   </blockdata>
-  <display_options frame_width="266" is_frame_open="1" view_conditions_search="0" conditions_search_values=""/>
+  <display_options frame_width="332" is_frame_open="1" view_conditions_search="0" conditions_search_values=""/>
   <global_preferences>
     <units>
       <unit_magnitude_user_sel n="Density" values="kg/m^3"/>
