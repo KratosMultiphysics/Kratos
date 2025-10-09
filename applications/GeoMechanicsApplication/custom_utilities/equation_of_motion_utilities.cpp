@@ -121,11 +121,23 @@ Matrix GeoEquationOfMotionUtilities::CalculateDampingMatrix(double        Raylei
     return RayleighAlpha * rMassMatrix + RayleighBeta * rStiffnessMatrix;
 }
 
-Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(const Matrix& rB,
-                                                                    const Matrix& rConstitutiveMatrix,
-                                                                    double IntegrationCoefficient)
+void GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(Matrix&       rStiffness,
+                                                                  const Matrix& rB,
+                                                                  const Matrix& rConstitutiveMatrix,
+                                                                  double IntegrationCoefficient)
 {
-    return prod(trans(rB), Matrix(prod(rConstitutiveMatrix, rB))) * IntegrationCoefficient;
+    const std::size_t strain_size1   = rConstitutiveMatrix.size1(); // rows
+    const std::size_t number_of_dofs = rB.size2();
+
+    Matrix CB(strain_size1, number_of_dofs);
+    noalias(CB) = prod(rConstitutiveMatrix, rB);
+
+    Matrix transposed_B(number_of_dofs, strain_size1);
+    noalias(transposed_B) = trans(rB);
+
+    noalias(rStiffness) = prod(transposed_B, CB);
+
+    rStiffness *= IntegrationCoefficient;
 }
 
 Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(const std::vector<Matrix>& rBs,
@@ -133,9 +145,11 @@ Matrix GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(const std::vector<
                                                               const std::vector<double>& rIntegrationCoefficients)
 {
     Matrix result = ZeroMatrix(rBs[0].size2(), rBs[0].size2());
+    Matrix stiffness_matrix(rBs[0].size2(), rBs[0].size2());
     for (unsigned int GPoint = 0; GPoint < rBs.size(); ++GPoint) {
-        result += CalculateStiffnessMatrixGPoint(rBs[GPoint], rConstitutiveMatrices[GPoint],
-                                                 rIntegrationCoefficients[GPoint]);
+        CalculateStiffnessMatrixGPoint(stiffness_matrix, rBs[GPoint], rConstitutiveMatrices[GPoint],
+                                       rIntegrationCoefficients[GPoint]);
+        noalias(result) += stiffness_matrix;
     }
     return result;
 }
