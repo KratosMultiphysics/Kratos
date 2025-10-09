@@ -47,7 +47,7 @@ The following table lists the material properties of the soil layers that have b
 | Grain density $`\rho_{\mathrm{g}}`$       | `DENSITY_SOLID` | 2048.66 | 2496.33 | $`\mathrm{kg} / \mathrm{m}^3`$ |
 | Water density $`\rho_{\mathrm{w}}`$       | `DENSITY_WATER` | 1000.0 | 1000.0 | $`\mathrm{kg} / \mathrm{m}^3`$ |
 | Porosity $`n`$                            | `POROSITY` | 0.203874 | 0.305810 | $`[-]`$                        |
-| Retention law type                        | `RETENTION_LAW` | `SaturatedBelowPhreaticLevelLaw` | `SaturatedLaw` | N/A                            |
+| Retention law type                        | `RETENTION_LAW` | `SaturatedBelowPhreaticLevelLaw` | `SaturatedBelowPhreaticLevelLaw` | N/A                            |
 | Residual saturation $`S_{\mathrm{res}}`$  | `RESIDUAL_SATURATION` | $`1 \cdot 10^{-10}`$ | $`1 \cdot 10^{-10}`$ | $`[-]`$                        |
 | Saturated saturation $`S_{\mathrm{sat}}`$ | `SATURATED_SATURATION` | 1.0 | 1.0 | $`[-]`$                        |
 | Young's modulus $`E`$ | `YOUNG_MODULUS` | $`12 \cdot 10^3`$ | $`120 \cdot 10^3`$ | $`\mathrm{kN} / \mathrm{m}^2`$ |
