@@ -136,8 +136,9 @@
                 "YOUNG_MODULUS"        : 120000000.0,
                 "POISSON_RATIO"        : 0.2,
                 "BIOT_COEFFICIENT"     : 1.0,
-                "RETENTION_LAW"        : "SaturatedLaw",
+                "RETENTION_LAW"        : "SaturatedBelowPhreaticLevelLaw",
                 "SATURATED_SATURATION" : 1.0,
+                "RESIDUAL_SATURATION"  : 1e-10,
                 "K0_MAIN_DIRECTION"    : 1,
                 "K0_NC"                : 0.5
             }
@@ -163,8 +164,9 @@
                 "YOUNG_MODULUS"        : 120000000.0,
                 "POISSON_RATIO"        : 0.2,
                 "BIOT_COEFFICIENT"     : 1.0,
-                "RETENTION_LAW"        : "SaturatedLaw",
+                "RETENTION_LAW"        : "SaturatedBelowPhreaticLevelLaw",
                 "SATURATED_SATURATION" : 1.0,
+                "RESIDUAL_SATURATION"  : 1e-10,
                 "K0_MAIN_DIRECTION"    : 1,
                 "K0_NC"                : 0.5
             }
