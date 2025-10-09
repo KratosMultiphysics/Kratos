@@ -528,6 +528,10 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
         noalias(rLHS) += weight * prod(trans(B), Matrix(prod(constitutive_matrix, B)));
         noalias(rRHS) -= weight * prod(trans(B), stress_vector);
     }
+
+    RotateLHSToGlobal(rLHS, rotation_matrix);
+    RotateRHSToGlobal(rRHS, rotation_matrix);
+
     KRATOS_CATCH("");
 }
 
