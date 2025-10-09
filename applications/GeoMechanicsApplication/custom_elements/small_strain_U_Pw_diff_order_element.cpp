@@ -1313,7 +1313,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
 {
     KRATOS_TRY
 
-    Matrix coupling_matrix(this->GetGeometry().WorkingSpaceDimension() * this->GetGeometry().PointsNumber(), mpPressureGeometry->PointsNumber(), 0.0);
+    Matrix coupling_matrix(this->GetGeometry().WorkingSpaceDimension() * this->GetGeometry().PointsNumber(),
+                           mpPressureGeometry->PointsNumber(), 0.0);
     GeoTransportEquationUtilities::CalculateCouplingMatrix(
         coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
@@ -1394,7 +1395,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
 {
     KRATOS_TRY
 
-    Matrix coupling_matrix(this->GetGeometry().WorkingSpaceDimension() * this->GetGeometry().PointsNumber(), mpPressureGeometry->PointsNumber(), 0.0);
+    Matrix coupling_matrix(this->GetGeometry().WorkingSpaceDimension() * this->GetGeometry().PointsNumber(),
+                           mpPressureGeometry->PointsNumber(), 0.0);
     GeoTransportEquationUtilities::CalculateCouplingMatrix(
         coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
