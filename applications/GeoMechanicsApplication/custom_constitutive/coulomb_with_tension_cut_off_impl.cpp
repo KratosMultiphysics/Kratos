@@ -136,21 +136,6 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
 
     double tolerance = 1.0;
     while (tolerance > 1.0e-6) {
-        double lambda = CalculatePlasticMultiplier(rTrialSigmaTau,
-            mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
-            mCoulombYieldSurface.GetDilatationAngleInRadians(),
-            mCoulombYieldSurface.GetCohesion());
-
-        double     delta_kappa              = CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
-        mEquivalentPlasticStrain += delta_kappa;
-        double     kappa = mEquivalentPlasticStrain;
-        double     updated_friction_angle   = UpdateFrictionAngle(rProperties, kappa) * 3.14159265358979323846 / 180;
-        double     updated_cohesion         = UpdateCohesion(rProperties, kappa);
-        double     update_dilatancy_angle   = UpdateDilatancyAngle(rProperties, kappa) * 3.14159265358979323846 / 180;
-        mCoulombYieldSurface.SetFrictionAngleInRadians(updated_friction_angle);
-        mCoulombYieldSurface.SetCohesion(updated_cohesion);
-        mCoulombYieldSurface.SetDilatationAngleInRadians(update_dilatancy_angle);
-
         const auto apex =
             CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
 
@@ -177,6 +162,22 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
                 rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
                 mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
         }
+
+        double lambda = CalculatePlasticMultiplier(rTrialSigmaTau,
+            mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
+            mCoulombYieldSurface.GetDilatationAngleInRadians(),
+            mCoulombYieldSurface.GetCohesion());
+
+        double     delta_kappa              = CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
+        mEquivalentPlasticStrain += delta_kappa;
+        double     kappa = mEquivalentPlasticStrain;
+        double     updated_friction_angle   = UpdateFrictionAngle(rProperties, kappa) * 3.14159265358979323846 / 180;
+        double     updated_cohesion         = UpdateCohesion(rProperties, kappa);
+        double     update_dilatancy_angle   = UpdateDilatancyAngle(rProperties, kappa) * 3.14159265358979323846 / 180;
+        mCoulombYieldSurface.SetFrictionAngleInRadians(updated_friction_angle);
+        mCoulombYieldSurface.SetCohesion(updated_cohesion);
+        mCoulombYieldSurface.SetDilatationAngleInRadians(update_dilatancy_angle);
+
         tolerance = delta_kappa; //std::abs(mCoulombYieldSurface.YieldFunctionValue(rTrialSigmaTau));
     }
     return result;
