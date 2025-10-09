@@ -30,8 +30,10 @@ GeoMechanicsApplication expects a slightly different set of material properties 
 In Plaxis, the user needs to provide the unsaturated unit weight $`\gamma_{\mathrm{unsat}}`$ and saturated unit weight $`\gamma_{\mathrm{sat}}`$ of the clay layer as well as the sand layer.  GeoMechanicsApplication, however, expects to receive solid densities and porosity values.  The following formulas show how to calculate the unsaturated unit weight as well as the saturated unit weight:
 
 ```math
+\begin{matrix}
 \gamma_{\mathrm{unsat}} = (1 - n) \cdot \rho_{\mathrm{g}} \cdot g + S_{\mathrm{res}} \cdot n \cdot \rho_{\mathrm{w}} \cdot g \\
 \gamma_{\mathrm{sat}}   = (1 - n) \cdot \rho_{\mathrm{g}} \cdot g + S_{\mathrm{sat}} \cdot n \cdot \rho_{\mathrm{w}} \cdot g
+\end{matrix}
 ```
 
 given porosity $`n`$, grain density $`\rho_{\mathrm{g}}`$, residual saturation $`S_{\mathrm{res}}`$, "saturated" saturation $`S_{\mathrm{sat}}`$, water density $`\gamma_{\mathrm{w}}`$, and gravity acceleration $`g`$.
