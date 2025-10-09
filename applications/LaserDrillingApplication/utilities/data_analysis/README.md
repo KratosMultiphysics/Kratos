@@ -1,0 +1,1 @@
+This folder contains scripts to manage and analyse experimental data.
