@@ -825,48 +825,47 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
     }
 }
 
-Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(
-    ElementVariables&          Variables,
-    const std::vector<Matrix>& b_matrices,
-    const std::vector<double>& integration_coefficients,
-    const std::vector<double>& biot_coefficients,
-    const std::vector<double>& degrees_of_saturation,
-    const std::vector<double>& biot_moduli_inverse,
-    const std::vector<double>& relative_permeability_values,
-    const std::vector<double>& bishop_coefficients) const
+Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables& rVariables,
+                                                               const std::vector<Matrix>& rBMatrices,
+                                                               const std::vector<double>& rIntegrationCoefficients,
+                                                               const std::vector<double>& rBiotCoefficients,
+                                                               const std::vector<double>& rDegreesOfSaturation,
+                                                               const std::vector<double>& rBiotModuliInverse,
+                                                               const std::vector<double>& rRelativePermeabilityValues,
+                                                               const std::vector<double>& rBishopCoefficients) const
 {
     Vector result(this->GetNumberOfDOF(), 0.0);
-    for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-        Variables.B                      = b_matrices[GPoint];
-        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+    for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
+        rVariables.B                      = rBMatrices[GPoint];
+        rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
 
-        this->CalculateAndAddStiffnessForce(result, Variables, GPoint);
+        this->CalculateAndAddStiffnessForce(result, rVariables, GPoint);
     }
 
-    for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-        Variables.B                      = b_matrices[GPoint];
-        Variables.BishopCoefficient      = bishop_coefficients[GPoint];
-        Variables.BiotCoefficient        = biot_coefficients[GPoint];
-        Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
-        Variables.IntegrationCoefficient = integration_coefficients[GPoint];
-        noalias(Variables.Np)            = row(Variables.NpContainer, GPoint);
+    for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
+        rVariables.B                      = rBMatrices[GPoint];
+        rVariables.BishopCoefficient      = rBishopCoefficients[GPoint];
+        rVariables.BiotCoefficient        = rBiotCoefficients[GPoint];
+        rVariables.DegreeOfSaturation     = rDegreesOfSaturation[GPoint];
+        rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
+        noalias(rVariables.Np)            = row(rVariables.NpContainer, GPoint);
 
-        this->CalculateAndAddCouplingTerms(result, Variables);
+        this->CalculateAndAddCouplingTerms(result, rVariables);
     }
-    if (!Variables.IgnoreUndrained) {
-        for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-            noalias(Variables.Np)            = row(Variables.NpContainer, GPoint);
-            Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
-            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+    if (!rVariables.IgnoreUndrained) {
+        for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
+            noalias(rVariables.Np)            = row(rVariables.NpContainer, GPoint);
+            rVariables.BiotModulusInverse     = rBiotModuliInverse[GPoint];
+            rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
 
-            this->CalculateAndAddCompressibilityFlow(result, Variables);
+            this->CalculateAndAddCompressibilityFlow(result, rVariables);
         }
-        for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-            noalias(Variables.DNp_DX)        = Variables.DNp_DXContainer[GPoint];
-            Variables.RelativePermeability   = relative_permeability_values[GPoint];
-            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+        for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
+            noalias(rVariables.DNp_DX)        = rVariables.DNp_DXContainer[GPoint];
+            rVariables.RelativePermeability   = rRelativePermeabilityValues[GPoint];
+            rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
 
-            this->CalculateAndAddPermeabilityFlow(result, Variables);
+            this->CalculateAndAddPermeabilityFlow(result, rVariables);
         }
     }
 
@@ -874,30 +873,30 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(
 }
 
 Vector SmallStrainUPwDiffOrderElement::CalculateExternalForces(
-    ElementVariables&          Variables,
-    const std::vector<double>& integration_coefficients,
-    const std::vector<double>& integration_coefficients_on_initial_configuration,
-    const std::vector<double>& degrees_of_saturation,
-    const std::vector<double>& relative_permeability_values,
-    const std::vector<double>& bishop_coefficients) const
+    ElementVariables&          rVariables,
+    const std::vector<double>& rIntegrationCoefficients,
+    const std::vector<double>& rIntegrationCoefficientsOnInitialConfiguration,
+    const std::vector<double>& rDegreesOfSaturation,
+    const std::vector<double>& rRelativePermeabilityValues,
+    const std::vector<double>& rBishopCoefficients) const
 {
     Vector result = ZeroVector(this->GetNumberOfDOF());
-    for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-        noalias(Variables.Nu)        = row(Variables.NuContainer, GPoint);
-        Variables.DegreeOfSaturation = degrees_of_saturation[GPoint];
-        Variables.IntegrationCoefficientInitialConfiguration =
-            integration_coefficients_on_initial_configuration[GPoint];
-        this->CalculateAndAddMixBodyForce(result, Variables);
+    for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
+        noalias(rVariables.Nu)        = row(rVariables.NuContainer, GPoint);
+        rVariables.DegreeOfSaturation = rDegreesOfSaturation[GPoint];
+        rVariables.IntegrationCoefficientInitialConfiguration =
+            rIntegrationCoefficientsOnInitialConfiguration[GPoint];
+        this->CalculateAndAddMixBodyForce(result, rVariables);
     }
-    if (!Variables.IgnoreUndrained) {
-        for (unsigned int GPoint = 0; GPoint < integration_coefficients.size(); ++GPoint) {
-            noalias(Variables.Nu)            = row(Variables.NuContainer, GPoint);
-            noalias(Variables.DNp_DX)        = Variables.DNp_DXContainer[GPoint];
-            Variables.RelativePermeability   = relative_permeability_values[GPoint];
-            Variables.BishopCoefficient      = bishop_coefficients[GPoint];
-            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+    if (!rVariables.IgnoreUndrained) {
+        for (unsigned int GPoint = 0; GPoint < rIntegrationCoefficients.size(); ++GPoint) {
+            noalias(rVariables.Nu)            = row(rVariables.NuContainer, GPoint);
+            noalias(rVariables.DNp_DX)        = rVariables.DNp_DXContainer[GPoint];
+            rVariables.RelativePermeability   = rRelativePermeabilityValues[GPoint];
+            rVariables.BishopCoefficient      = rBishopCoefficients[GPoint];
+            rVariables.IntegrationCoefficient = rIntegrationCoefficients[GPoint];
 
-            this->CalculateAndAddFluidBodyFlow(result, Variables);
+            this->CalculateAndAddFluidBodyFlow(result, rVariables);
         }
     }
 
