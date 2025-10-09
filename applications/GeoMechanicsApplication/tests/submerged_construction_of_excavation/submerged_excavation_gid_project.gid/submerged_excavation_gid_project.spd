@@ -24,11 +24,12 @@
     <group n="Right_Side_Of_Clay_Middle_Right" onoff="1" color="#ff8000" type=""/>
     <group n="Right_Side_Of_Clay_Lower_Right" onoff="1" color="#0000ff" type=""/>
     <group n="Right_Side_Of_Sand_Right" onoff="1" color="#80ff00" type=""/>
+    <group n="Loaded_Edge" onoff="1" color="#ff00ff" type=""/>
   </groups>
   <units/>
   <!-- Fill this fields to automatically active an App without the init window -->
   <hiddenfield n="activeapp" active="0" v="GeoMechanics" state="disabled"/>
-  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="active,selected,close"/>
+  <value n="nDim" pn="Dimension" un="nDim" v="2D" state="disabled" values="undefined,2D,2Da,3D" dict="undefined,Undefined,2D,2D,2Da,2D axisymmetric,3D,3D" tree_state="close"/>
   <appLink n="ThermicLauncher" public="1" pn="Thermic" active="0" appid="ThermicLauncher" prefix="ThermicLauncher"/>
   <appLink n="ConvectionDiffusion" public="0" pn="Convection-diffusion" active="0" appid="ConvectionDiffusion" prefix="CNVDFF"/>
   <appLink n="Structural" public="1" pn="Structural" active="0" appid="Structural" prefix="ST"/>
@@ -3674,7 +3675,7 @@
             <value n="table" pn="Table" v="0" help="Table" state="hidden" string_is="integer" show_in_window="1"/>
           </condition>
         </container>
-        <container n="Loads" pn="Loads" un="STLoads,GEOMLoads" icon="loads" open_window="0" state="[HideIfUniqueName STSoluType eigen_value]" tree_state="close">
+        <container n="Loads" pn="Loads" un="STLoads,GEOMLoads" icon="loads" open_window="0" state="[HideIfUniqueName STSoluType eigen_value]" tree_state="open">
           <condition n="SelfWeight3D" pn="Self weight" ov="line,surface,volume" ovm="" icon="shells16" help="Self weight application by means of the AssignVectorByDirectionProcess in the core" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction">
             <value n="constrained" pn="Constrained" v="false" values="true,false" help="Constrained" state="[ConditionParameterState]" show_in_window="1"/>
             <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
@@ -3778,7 +3779,7 @@
             <value n="value_direction_Y" wn="PointMoment3D _Y" pn="Value Y" v="0.0" help="Direction" show_in_window="1"/>
             <value n="value_direction_Z" wn="PointMoment3D _Z" pn="Value Z" v="0.0" help="Direction" state="[CheckDimension 3D]" show_in_window="1"/>
           </condition>
-          <condition n="LineLoad2D" pn="Load on lines" ov="line" ovm="" icon="shells16" help="Load on lines, load vector referred to global axes" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction" tree_state="close">
+          <condition n="LineLoad2D" pn="Load on lines" ov="line" ovm="" icon="shells16" help="Load on lines, load vector referred to global axes" state="[ConditionState]" update_proc="[OkNewCondition]" check="DirectorVectorNonZero direction" tree_state="open">
             <value n="ByFunction" pn="by function -&gt; f(x,y,z,t)" v="No" values="Yes,No" actualize_tree="1" state="[ConditionParameterState]" show_in_window="1" cal_state="normal">
               <dependencies value="No" node="../value[@n='modulus']" att1="state" v1="normal"/>
               <dependencies value="Yes" node="../value[@n='modulus']" att1="state" v1="hidden"/>
@@ -3817,8 +3818,11 @@
             <value n="value_direction_Y" wn="SurfaceLoad3D _Y" pn="Value Y" v="0.0" help="Direction" show_in_window="1"/>
             <value n="value_direction_Z" wn="SurfaceLoad3D _Z" pn="Value Z" v="0.0" help="Direction" state="[CheckDimension 3D]" show_in_window="1"/>
           </condition>
-          <condition n="LinePressure2D" pn="Pressure on lines" ov="line" ovm="" icon="shells16" help="Normal pressure on lines, oriented pointing against the line outer normal" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="close">
-            <value n="value" pn="Value" v="0.0" units="Pa" unit_magnitude="P" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1"/>
+          <condition n="LinePressure2D" pn="Pressure on lines" ov="line" ovm="" icon="shells16" help="Normal pressure on lines, oriented pointing against the line outer normal" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="active,open,selected">
+            <value n="value" pn="Value" v="0.0" units="Pa" unit_magnitude="P" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
+            <group n="Loaded_Edge" ov="line" tree_state="close">
+              <value n="value" pn="Value" unit_magnitude="P" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="-5000" units="Pa" tree_state="close"/>
+            </group>
           </condition>
           <condition n="LinePressure2DAxisym" pn="Pressure on lines" ov="line" ovm="" icon="shells16" help="Normal pressure on lines, oriented pointing against the line outer normal" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree">
             <value n="value" pn="Value" v="0.0" units="Pa" unit_magnitude="P" help="Value" string_is="double" state="[ConditionParameterState]" show_in_window="1"/>
