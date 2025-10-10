@@ -119,7 +119,6 @@ class GeometricStepController(StepController):
             Selects and sets the appropriate sub-stepping parameters based on the current interval.
 
     Attributes:
-        __list_of_step_controllers: List of tuples containing interval utilities and their corresponding parameters.
         __divergence_factor: Factor by which the time step is reduced after a failed attempt.
         __convergence_factor: Factor by which the time step is increased after successful attempts.
         __delta_t_init: Initial time step size.
@@ -141,21 +140,15 @@ class GeometricStepController(StepController):
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
-            "type"               : "geometric_step_controller",
-            "list_of_controllers": [
-                {
-                    "interval"                                   : [0.0, "End"],
-                    "divergence_factor"                          : 0.25,
-                    "convergence_factor"                         : 1.5,
-                    "delta_t_init"                               : 1.0,
-                    "delta_t_min"                                : 1.0,
-                    "delta_t_max"                                : 1.0,
-                    "max_number_of_sub_steps"                    : 100,
-                    "number_of_successful_attempts_for_increment": 2,
-                    "number_of_failed_attempts_for_termination"  : 5
-
-                }
-            ]
+            "type"                                       : "geometric_step_controller",
+            "divergence_factor"                          : 0.25,
+            "convergence_factor"                         : 1.5,
+            "delta_t_init"                               : 1.0,
+            "delta_t_min"                                : 1.0,
+            "delta_t_max"                                : 1.0,
+            "max_number_of_sub_steps"                    : 100,
+            "number_of_successful_attempts_for_increment": 2,
+            "number_of_failed_attempts_for_termination"  : 5
         }""")
 
     def __init__(self, settings: Kratos.Parameters) -> None:
@@ -163,16 +156,18 @@ class GeometricStepController(StepController):
 
         settings.ValidateAndAssignDefaults(default_parameters)
 
-        self.__list_of_step_controllers: 'list[tuple[Kratos.IntervalUtility, Kratos.Parameters]]' = []
-        for controller_settings in settings["list_of_controllers"].values():
-            controller_settings.ValidateAndAssignDefaults(default_parameters["list_of_controllers"].values()[0])
-            self.__list_of_step_controllers.append((Kratos.IntervalUtility(controller_settings), controller_settings.Clone()))
+        self.__divergence_factor = settings["divergence_factor"].GetDouble()
+        self.__convergence_factor = settings["convergence_factor"].GetDouble()
+        self.__delta_t_init = settings["delta_t_init"].GetDouble()
+        self.__delta_t_min = settings["delta_t_min"].GetDouble()
+        self.__delta_t_max = settings["delta_t_max"].GetDouble()
+        self.__max_number_of_sub_steps = settings["max_number_of_sub_steps"].GetInt()
+        self.__number_of_successful_attempts_for_increment = settings["number_of_successful_attempts_for_increment"].GetInt()
+        self.__number_of_failed_attempts_for_termination = settings["number_of_failed_attempts_for_termination"].GetInt()
 
     def Initialize(self, time_begin: float, time_end: float) -> None:
         self.__time_begin = time_begin
         self.__time_end = time_end
-
-        self.__SetSubSteppingParameters()
 
         self.__sub_stepping_iteration = 0
         self.__success_full_attempts_count = 0
@@ -215,21 +210,6 @@ class GeometricStepController(StepController):
 
     def IsCompleted(self, current_time: float, is_converged: bool) -> bool:
         return is_converged and abs(current_time - self.__time_end) <= (self.__time_end - self.__time_begin) * 1e-9
-
-    def __SetSubSteppingParameters(self) -> None:
-        for interval_utility, controller_settings in self.__list_of_step_controllers:
-            if interval_utility.IsInInterval(self.__time_end):
-                    self.__divergence_factor = controller_settings["divergence_factor"].GetDouble()
-                    self.__convergence_factor = controller_settings["convergence_factor"].GetDouble()
-                    self.__delta_t_init = controller_settings["delta_t_init"].GetDouble()
-                    self.__delta_t_min = controller_settings["delta_t_min"].GetDouble()
-                    self.__delta_t_max = controller_settings["delta_t_max"].GetDouble()
-                    self.__max_number_of_sub_steps = controller_settings["max_number_of_sub_steps"].GetInt()
-                    self.__number_of_successful_attempts_for_increment = controller_settings["number_of_successful_attempts_for_increment"].GetInt()
-                    self.__number_of_failed_attempts_for_termination = controller_settings["number_of_failed_attempts_for_termination"].GetInt()
-                    return None
-
-        raise RuntimeError(f"")
 
 def Factory(parameters: Kratos.Parameters) -> StepController:
     if not parameters.Has("type"):
