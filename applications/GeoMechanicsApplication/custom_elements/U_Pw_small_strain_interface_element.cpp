@@ -1617,10 +1617,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 
     const Matrix b_matrix = prod(rVariables.RotationMatrix, rVariables.Nu);
 
-    BoundedMatrix<double, TNumNodes * TDim, TNumNodes> coupling_matrix;
-    GeoTransportEquationUtilities::CalculateCouplingMatrix(
-        coupling_matrix, b_matrix, rVariables.VoigtVector, rVariables.Np,
-        rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
+    const auto coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<TDim, TNumNodes>(
+        b_matrix, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
+        rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 

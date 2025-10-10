@@ -121,6 +121,27 @@ public:
         noalias(rCouplingMatrix) = multiplier * outer_prod(temp_vector, rNp);
     }
 
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static BoundedMatrix<double, TNumNodes * TDim, TNumNodes> CalculateCouplingMatrix(const Matrix& rB,
+                                                                                      const Vector& rVoigtVector,
+                                                                                      const Vector& rNp,
+                                                                                      double BiotCoefficient,
+                                                                                      double BishopCoefficient,
+                                                                                      double IntegrationCoefficient)
+    {
+        const double multiplier =
+            PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient * BishopCoefficient * IntegrationCoefficient;
+
+        Vector temp_vector(rB.size2());
+        noalias(temp_vector) = prod(trans(rB), rVoigtVector);
+        KRATOS_ERROR_IF(TNumNodes * TDim != rB.size2())
+            << " Inconsistent sizes: rCouplingMatrix.size1(): " << TNumNodes * TDim
+            << " rB.size2(): " << rB.size2() << std::endl;
+        BoundedMatrix<double, TNumNodes * TDim, TNumNodes> result;
+        noalias(result) = multiplier * outer_prod(temp_vector, rNp);
+        return result;
+    }
+
     template <unsigned int TNumNodes>
     static inline BoundedMatrix<double, TNumNodes, TNumNodes> CalculateCompressibilityMatrix(
         const Vector& rNp, double BiotModulusInverse, double IntegrationCoefficient)
