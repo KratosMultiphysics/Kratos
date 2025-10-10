@@ -139,7 +139,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
     while (tolerance > 1.0e-6) {
         double lambda = CalculatePlasticMultiplier(rTrialSigmaTau,
                 mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
-                mCoulombYieldSurface.GetDilatationAngleInRadians(),
+                mCoulombYieldSurface.GetFrictionAngleInRadians(),
                 mCoulombYieldSurface.GetCohesion());
         double delta_kappa = CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
         kappa += delta_kappa;
