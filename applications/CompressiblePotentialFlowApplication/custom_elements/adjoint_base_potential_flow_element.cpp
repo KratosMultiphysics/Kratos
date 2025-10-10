@@ -13,6 +13,7 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
 #include "incompressible_perturbation_potential_flow_element.h"
+#include "compressible_perturbation_potential_flow_element.h"
 #include "compressible_potential_flow_element.h"
 #include "embedded_incompressible_potential_flow_element.h"
 #include "embedded_compressible_potential_flow_element.h"
@@ -370,6 +371,8 @@ namespace Kratos
 
     template class AdjointBasePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<CompressiblePerturbationPotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<CompressiblePerturbationPotentialFlowElement<3,4>>;
     template class AdjointBasePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<3,4>>;
     template class AdjointBasePotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
