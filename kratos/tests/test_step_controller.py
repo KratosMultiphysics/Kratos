@@ -3,7 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.step_controller import DefaultStepController, GeometricStepController
 
-class TestVariableUtils(KratosUnittest.TestCase):
+class TestStepControllers(KratosUnittest.TestCase):
     def test_DefaultStepController(self):
         params = KratosMultiphysics.Parameters("""{}""")
         step_controller = DefaultStepController(params)
