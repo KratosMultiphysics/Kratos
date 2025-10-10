@@ -17,10 +17,10 @@
         "scheme_type": "newmark",
         "model_part_name": "PorousDomain",
         "domain_size": 2,
-        "echo_level": 0,
+        "echo_level": 1,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "submerged_excavation_gid_project"
+            "input_filename": "submerged_excavation_gid_project_with_interfaces"
         },
         "material_import_settings": {
             "materials_filename": "Linear_Elastic_Materials.json"
@@ -30,33 +30,17 @@
         "compute_reactions": true,
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
-        "nodal_smoothing": false,
         "block_builder": true,
         "reset_displacements": false,
-        "rayleigh_m": 0.0,
-        "rayleigh_k": 0.0,
         "convergence_criterion": "residual_criterion",
-        "displacement_relative_tolerance": 0.0001,
-        "displacement_absolute_tolerance": 1e-09,
         "residual_relative_tolerance": 0.0001,
         "residual_absolute_tolerance": 1e-09,
-        "water_pressure_relative_tolerance": 0.0001,
-        "water_pressure_absolute_tolerance": 1e-09,
         "min_iterations": 6,
         "max_iterations": 15,
-        "number_cycles": 100,
+        "number_cycles": 5,
         "reduction_factor": 0.5,
         "increase_factor": 2.0,
-        "desired_iterations": 4,
-        "max_radius_factor": 10.0,
-        "min_radius_factor": 0.1,
         "calculate_reactions": true,
-        "max_line_search_iterations": 5,
-        "first_alpha_value": 0.5,
-        "second_alpha_value": 1.0,
-        "min_alpha": 0.1,
-        "max_alpha": 2.0,
-        "line_search_tolerance": 0.5,
         "rotation_dofs": true,
         "newmark_beta": 0.25,
         "newmark_gamma": 0.5,
@@ -67,26 +51,15 @@
             "Clay_Middle_Right",
             "Clay_Lower_Right",
             "Sand_Left",
-            "Sand_Right",
-            "Wall_Clay_Interface_Left",
-            "Wall_Clay_Interface_Upper_Right",
-            "Wall_Clay_Interface_Middle_Right",
-            "Wall_Clay_Interface_Lower_Right",
-            "Wall_Sand_Interface_Left",
-            "Wall_Sand_Interface_Right",
-            "Diaphragm_Wall",
-            "Strut"
+            "Sand_Right"
         ],
         "processes_sub_model_part_list": [
             "Bottom_Edge",
-            "Strut_Support_At_Symmetry_Line",
             "Left_Side",
             "Right_Side_Of_Clay_Upper_Right",
             "Right_Side_Of_Clay_Middle_Right",
             "Right_Side_Of_Clay_Lower_Right",
             "Right_Side_Of_Sand_Right",
-            "All_Soil",
-            "Loaded_Edge",
             "Master_side_1",
             "Slave_side_1"
         ],
@@ -96,15 +69,7 @@
             "Clay_Middle_Right",
             "Clay_Lower_Right",
             "Sand_Left",
-            "Sand_Right",
-            "Wall_Clay_Interface_Left",
-            "Wall_Clay_Interface_Upper_Right",
-            "Wall_Clay_Interface_Middle_Right",
-            "Wall_Clay_Interface_Lower_Right",
-            "Wall_Sand_Interface_Left",
-            "Wall_Sand_Interface_Right",
-            "Diaphragm_Wall",
-            "Strut"
+            "Sand_Right"
         ],
         "linear_solver_settings": {
             "solver_type": "skyline_lu_factorization",
@@ -119,35 +84,6 @@
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.Bottom_Edge",
-                    "variable_name": "DISPLACEMENT",
-                    "active": [
-                        true,
-                        true,
-                        false
-                    ],
-                    "is_fixed": [
-                        true,
-                        true,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
-                }
-            },
-            {
-                "python_module": "apply_vector_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyVectorConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.Strut_Support_At_Symmetry_Line",
                     "variable_name": "DISPLACEMENT",
                     "active": [
                         true,
@@ -371,7 +307,7 @@
                 "check": "DirectorVectorNonZero direction",
                 "process_name": "AssignVectorByDirectionProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.All_Soil",
+                    "model_part_name": "PorousDomain.porous_computational_model_part",
                     "variable_name": "VOLUME_ACCELERATION",
                     "constrained": false,
                     "modulus": 9.81,
@@ -383,21 +319,11 @@
                 }
             },
             {
-                "python_module": "assign_scalar_variable_to_conditions_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignLinearPressureProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.Loaded_Edge",
-                    "variable_name": "POSITIVE_FACE_PRESSURE",
-                    "value": -5000.0
-                }
-            },
-            {
                 "python_module": "apply_k0_procedure_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "apply_k0_procedure_process",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.All_Soil",
+                    "model_part_name": "PorousDomain.porous_computational_model_part",
                     "variable_name": "CAUCHY_STRESS_TENSOR",
                     "use_standard_procedure": true
                 }
@@ -428,11 +354,12 @@
                             "skin_output": false,
                             "nodal_results": [
                                 "DISPLACEMENT",
-                                "WATER_PRESSURE"
+                                "WATER_PRESSURE",
+                                "REACTION"
                             ],
                             "gauss_point_results": [
-                                "VON_MISES_STRESS",
-                                "HYDRAULIC_HEAD"
+                                "CAUCHY_STRESS_TENSOR",
+                                "TOTAL_STRESS_TENSOR"
                             ]
                         }
                     },

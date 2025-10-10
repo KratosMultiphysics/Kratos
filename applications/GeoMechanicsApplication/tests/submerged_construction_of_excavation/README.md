@@ -7,12 +7,14 @@ This document describes the changes that have been made to the Kratos model comp
 
 The model's geometry follows the one specified by the Plaxis tutorial.
 
-After generating the mesh in GiD, we need to convert the line elements that represent the soil-structure interfaces to actual line interface elements.  To this end, we have written a small Python script (`insert_interfaces_in_excavation_model.py`) that uses the in-house developed interface element inserter.  To convert the line elements to line interface elements, run the following command:
+After generating the mesh in GiD, we first have to make the element IDs of the interface elements unique.  The way we have done that here is to prepend the element IDs of the interface elements on the left hand side with 1, and by prepending the element IDs of the interface elements on the right hand side by a 2.  Don't forget to also update the element IDs of the sub-model parts!
+
+Subsequently, we need to convert the line elements that represent the soil-structure interfaces to actual line interface elements.  To this end, we have written a small Python script (`insert_interfaces_in_excavation_model.py`) that uses the in-house developed interface element inserter.  To convert the line elements to line interface elements, run the following command:
 ```shell
 # Run the following commands in the directory containing the `.mdpa` file
 python insert_interfaces_in_excavation_model.py  
 ```
-This script produces a new `.mdpa` file (i.e., it doesn't overwrite the existing one): `submerged_excavation_gid_project_with_interfaces.mdpa`.
+This script produces a new `.mdpa` file (i.e., it doesn't overwrite the existing one): `submerged_excavation_gid_project_with_interfaces.mdpa`.  Please, be aware that node IDs in sub-model parts that were **not** given to the interface inserter, won't be updated.  This typically occurs for "overarching" sub-model parts that put other sub-model parts together.
 
 The next step is to create master-slave constraints using yet another Python script from the `FEA-Tools` repository:
 ```shell
