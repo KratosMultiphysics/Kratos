@@ -402,8 +402,7 @@
                     "use_standard_procedure": true
                 }
             }
-        ],
-        "list_other_processes": []
+        ]
     },
     "output_processes": {
         "gid_output": [
@@ -427,24 +426,19 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "plane_output": [],
                             "nodal_results": [
                                 "DISPLACEMENT",
                                 "WATER_PRESSURE"
                             ],
-                            "nodal_nonhistorical_results": [],
                             "gauss_point_results": [
                                 "VON_MISES_STRESS",
                                 "HYDRAULIC_HEAD"
                             ]
-                        },
-                        "point_data_configuration": []
+                        }
                     },
                     "output_name": "1_Initial_stage"
                 }
             }
-        ],
-        "vtk_output": []
-    },
-    "analysis_stage": "KratosMultiphysics.GeoMechanicsApplication.staged_geo_mechanics_analysis"
+        ]
+    }
 }
