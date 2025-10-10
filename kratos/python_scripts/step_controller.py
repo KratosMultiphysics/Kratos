@@ -185,7 +185,7 @@ class GeometricStepController(StepController):
             self.__failed_attempts_count = 0
             self.__success_full_attempts_count += 1
 
-            if self.__success_full_attempts_count >= self.__number_of_successful_attempts_for_increment:
+            if self.__success_full_attempts_count > self.__number_of_successful_attempts_for_increment:
                 # now we increment the step
                 self.__delta_time = min(self.__convergence_factor * self.__delta_time, self.__delta_t_max)
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"Incrementing the delta time to {self.__delta_time}")
@@ -196,7 +196,7 @@ class GeometricStepController(StepController):
             self.__failed_attempts_count += 1
             self.__success_full_attempts_count = 0
 
-            if (self.__failed_attempts_count >= self.__number_of_failed_attempts_for_termination):
+            if (self.__failed_attempts_count > self.__number_of_failed_attempts_for_termination):
                 raise RuntimeError(f"Reached maximum number of failed attempts [ {self.__failed_attempts_count} / {self.__number_of_failed_attempts_for_termination} ]")
             else:
                 self.__delta_time = self.__divergence_factor * self.__delta_time
