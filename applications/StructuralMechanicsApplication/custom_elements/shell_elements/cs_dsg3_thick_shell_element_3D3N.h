@@ -214,6 +214,7 @@ public:
      */
     void CalculateBTriangle(
         MatrixType& rB,
+        const double Area,
         const array_3& r_coord_1, 
         const array_3& r_coord_2, 
         const array_3& r_coord_3,

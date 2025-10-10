@@ -318,8 +318,9 @@ void CSDSG3ThickShellElement3D3N::RotateRHSToLocal(
 
 void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     MatrixType& rB,
-    const array_3& r_local_coord_1, 
-    const array_3& r_local_coord_2, 
+    const double Area,
+    const array_3& r_local_coord_1,
+    const array_3& r_local_coord_2,
     const array_3& r_local_coord_3,
     const double area_coords_1,
     const double area_coords_2,
@@ -335,7 +336,6 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
         rB.resize(strain_size, system_size, false);
     rB.clear();
 
-    const double alpha = 1.5;
 
     // beta parameters for the membrane part
     // const double b1 = 1.0;
@@ -356,7 +356,6 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const double x3 = r_local_coord_3[0];
     const double y3 = r_local_coord_3[1];
 
-    const double area = CalculateArea(r_local_coord_1, r_local_coord_2, r_local_coord_3);
 
     const double x12 = x1 - x2;
     const double x23 = x2 - x3;
@@ -372,7 +371,7 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const double y13 = -y31;
     const double y21 = -y12;
 
-    const double aux_prod = 0.5 / area;
+    const double aux_prod = 0.5 / Area;
 
     // Membrane components with drilling rotations (Zhang et al 2011)
     // CST membrane part
@@ -391,8 +390,9 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     rB(2, 12) = x21;
     rB(2, 13) = y12;
 
-    const double temp = alpha / 6.0;
-    const double temp2 = 2.0 * temp;
+    // const double alpha = 1.5;
+    // const double temp = alpha / 6.0;
+    // const double temp2 = 2.0 * temp;
     // Drilling rotation membrane components
     // rB(0, 5) = temp * y23 * (y13 + y12);
     // rB(1, 5) = temp * x32 * (x31 + x21);
@@ -432,9 +432,9 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     // Shear components
     // Bs1
     rB(6, 2) = y21 + y13;
-    rB(6, 4) = area;
+    rB(6, 4) = Area;
     rB(7, 2) = x31 + x12;
-    rB(7, 3) = -area;
+    rB(7, 3) = -Area;
     // Bs2
     rB(6, 8) = y31;
     rB(6, 9) = y12 * y31 * 0.5;
@@ -451,6 +451,7 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     rB(7, 16) = x21 * x31 * 0.5;
 
     rB *= aux_prod;
+
     KRATOS_CATCH("")
 }
 
@@ -542,7 +543,7 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
         zeta3 = r_integration_points[i_point].Z();
         weight = r_integration_points[i_point].Weight();
 
-        CalculateBTriangle(B, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
+        CalculateBTriangle(B, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
 
         // We compute the strain at the integration point
         noalias(strain_vector) = prod(B, nodal_values);
@@ -651,7 +652,7 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
     const auto& r_props = GetProperties();
     const IndexType number_of_nodes = r_geometry.PointsNumber();
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
-    
+
     bounded_3_matrix rotation_matrix;
     CalculateRotationMatrixLocalToGlobal(rotation_matrix);
 
@@ -691,7 +692,7 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
         zeta3 = r_integration_points[i_point].Z();
         weight = r_integration_points[i_point].Weight();
 
-        CalculateBTriangle(B, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
+        CalculateBTriangle(B, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
 
         // We compute the strain at the integration point
         noalias(strain_vector) = prod(B, nodal_values);
