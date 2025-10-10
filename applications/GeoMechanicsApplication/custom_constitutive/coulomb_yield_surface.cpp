@@ -68,7 +68,7 @@ void CoulombYieldSurface::UpdateSurfaceProperties(double InitialFrictionAngle, d
 {
     mFrictionAngle = this->UpdateFrictionAngle(InitialFrictionAngle, FrictionAngleStrengthFactor, kappa) * 3.14159265358979323846 / 180;
     mCohesion = this->UpdateCohesion(InitialCohesion, CohesionStrengthFactor, kappa);
-    mDilatationAngle = this->UpdateDilatancyAngle(InitialDilatancyAngle, CohesionStrengthFactor, kappa) * 3.14159265358979323846 / 180;
+    mDilatationAngle = this->UpdateDilatancyAngle(InitialDilatancyAngle, DilatancyAngleStrengthFactor, kappa) * 3.14159265358979323846 / 180;
 }
 
 double CoulombYieldSurface::UpdateFrictionAngle(double InitialFrictionAngle, double StrengthFactor, double kappa) const
