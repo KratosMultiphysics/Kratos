@@ -142,8 +142,8 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
                 mCoulombYieldSurface.GetDilatationAngleInRadians(),
                 mCoulombYieldSurface.GetCohesion());
         double delta_kappa = CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
-        mEquivalentPlasticStrain += delta_kappa;
-        kappa = mEquivalentPlasticStrain;
+        kappa += delta_kappa;
+        mEquivalentPlasticStrain = kappa;
 
         const auto apex =
             CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
@@ -180,7 +180,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
                                                      rProperties[GEO_DILATANCY_ANGLE_STRENGTH_FACTOR],
                                                      kappa);
 
-        tolerance = delta_kappa; //std::abs(mCoulombYieldSurface.YieldFunctionValue(rTrialSigmaTau));
+        tolerance = std::abs(mCoulombYieldSurface.YieldFunctionValue(result));
     }
     return result;
 }
@@ -201,17 +201,11 @@ double CoulombWithTensionCutOffImpl::CalculateEquivalentPlasticStrain(const Vect
     CoulombYieldSurface::CoulombAveragingType AveragingType, double lambda) const
 {
     Vector dGdsigma =  mCoulombYieldSurface.DerivativeOfFlowFunction(rSigmaTau, AveragingType);
-    double g1 = (dGdsigma[0] + dGdsigma[2]) / 2;
-    double g3 = (dGdsigma[0] - dGdsigma[2]) / 2;
-    double g2 = 0.0;
+    double g1 = (dGdsigma[0] + dGdsigma[1]) * 0.5;
+    double g3 = (dGdsigma[0] - dGdsigma[1]) * 0.5;
 
-    Matrix m_principal = ZeroMatrix(3, 3);
-    m_principal(0,0) = g1;
-    m_principal(1,1) = g2;
-    m_principal(2,2) = g3;
-
-    double m_mean = (g1 + g2 + g3) / 3.0;
-    double m_deviatoric = std::sqrt(std::pow(g1-m_mean, 2) + std::pow(g2-m_mean, 2) + std::pow(g3-m_mean, 2));
+    double m_mean = (g1 + g3) / 3.0;
+    double m_deviatoric = std::sqrt(std::pow(g1-m_mean, 2) + std::pow(g3-m_mean, 2));
     double alpha = std::sqrt(2.0/3.0) * m_deviatoric;
     double delta_kappa = alpha * lambda;
 
