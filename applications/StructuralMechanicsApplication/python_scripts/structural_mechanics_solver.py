@@ -291,9 +291,6 @@ class MechanicalSolver(PythonSolver):
 
         return new_time
 
-    def ReduceTime(self, current_time: float) -> None:
-        self.main_model_part.ReduceTimeStep(self.main_model_part, current_time)
-
     def ComputeDeltaTime(self):
         if self.settings["time_stepping"].Has("time_step"):
             return self.settings["time_stepping"]["time_step"].GetDouble()

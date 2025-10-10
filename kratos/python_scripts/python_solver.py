@@ -1,12 +1,9 @@
-# STD Imports
-from abc import ABC, abstractmethod
-
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.restart_utility import RestartUtility
 
 
-class PythonSolver(ABC):
+class PythonSolver:
     """The base class for the Python Solvers in the applications
     Changes to this BaseClass have to be discussed first!
     """
@@ -96,10 +93,6 @@ class PythonSolver(ABC):
         """This function advances the PythonSolver in time
         Usage: It is designed to be called once per solution step, before performing the solution
         """
-        pass
-
-    @abstractmethod
-    def ReduceTime(self, current_time: float) -> None:
         pass
 
     def Initialize(self):
