@@ -64,6 +64,16 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
         self.element_name = "AdjointIncompressiblePerturbationPotentialFlowElement"
         self.condition_name = "AdjointPotentialWallCondition"
 
+    def _SetUpCompressiblePerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "",
+            "gradient_mode": ""
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "AdjointCompressiblePerturbationPotentialFlowElement"
+        self.condition_name = "AdjointPotentialWallCondition"
+
 def CreateSolver(model, custom_settings):
     return PotentialFlowAdjointSolver(model, custom_settings)
 
