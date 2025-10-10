@@ -528,11 +528,11 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     
     // Let's initialize the constitutive law's values
-    VectorType strain_vector(strain_size), stress_vector(strain_size);
-    MatrixType constitutive_matrix(strain_size, strain_size);
-    cl_values.SetStrainVector(strain_vector);
-    cl_values.SetStressVector(stress_vector);
-    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
+    MatrixType gen_constitutive_matrix(strain_size, strain_size);
+    cl_values.SetStrainVector(gen_strain_vector);
+    cl_values.SetStressVector(gen_stress_vector);
+    cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
 
     const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
     double zeta1, zeta2, zeta3, weight;
@@ -546,17 +546,17 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
         CalculateBTriangle(B, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
 
         // We compute the strain at the integration point
-        noalias(strain_vector) = prod(B, nodal_values);
+        noalias(gen_strain_vector) = prod(B, nodal_values);
 
         // We call the constitutive law to compute the stress
-        cl_values.SetStrainVector(strain_vector);
+        cl_values.SetStrainVector(gen_strain_vector);
         mConstitutiveLawVector[i_point]->CalculateMaterialResponseCauchy(cl_values);
-        noalias(stress_vector) = cl_values.GetStressVector();
-        noalias(constitutive_matrix) = cl_values.GetConstitutiveMatrix();
+        noalias(gen_stress_vector) = cl_values.GetStressVector();
+        noalias(gen_constitutive_matrix) = cl_values.GetConstitutiveMatrix();
 
         // We integrate the LHS and RHS
-        noalias(rLHS) += weight * prod(trans(B), Matrix(prod(constitutive_matrix, B)));
-        noalias(rRHS) -= weight * prod(trans(B), stress_vector);
+        noalias(rLHS) += weight * prod(trans(B), Matrix(prod(gen_constitutive_matrix, B)));
+        noalias(rRHS) -= weight * prod(trans(B), gen_stress_vector);
 
     }
     RotateLHSToGlobal(rLHS, rotation_matrix);
@@ -602,11 +602,11 @@ void CSDSG3ThickShellElement3D3N::CalculateLeftHandSide(
     // r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     
     // // Let's initialize the constitutive law's values
-    // VectorType strain_vector(strain_size), stress_vector(strain_size);
-    // MatrixType constitutive_matrix(strain_size, strain_size);
-    // cl_values.SetStrainVector(strain_vector);
-    // cl_values.SetStressVector(stress_vector);
-    // cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    // VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size);
+    // MatrixType gen_constitutive_matrix(strain_size, strain_size);
+    // cl_values.SetStrainVector(gen_strain_vector);
+    // cl_values.SetStressVector(gen_stress_vector);
+    // cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
     
     // const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
     // double zeta1, zeta2, zeta3, weight;
@@ -621,16 +621,16 @@ void CSDSG3ThickShellElement3D3N::CalculateLeftHandSide(
     //     r_geometry[2].Coordinates(), zeta1, zeta2, zeta3);
 
     //     // We compute the strain at the integration point
-    //     noalias(strain_vector) = prod(B, nodal_values);
+    //     noalias(gen_strain_vector) = prod(B, nodal_values);
 
     //     // We call the constitutive law to compute the stress
-    //     cl_values.SetStrainVector(strain_vector);
+    //     cl_values.SetStrainVector(gen_strain_vector);
     //     mConstitutiveLawVector[i_point]->CalculateMaterialResponseCauchy(cl_values);
-    //     noalias(stress_vector) = cl_values.GetStressVector();
-    //     noalias(constitutive_matrix) = cl_values.GetConstitutiveMatrix();
+    //     noalias(gen_stress_vector) = cl_values.GetStressVector();
+    //     noalias(gen_constitutive_matrix) = cl_values.GetConstitutiveMatrix();
 
     //     // We integrate the LHS and RHS
-    //     noalias(rLHS) += weight * prod(trans(B), Matrix(prod(constitutive_matrix, B)));
+    //     noalias(rLHS) += weight * prod(trans(B), Matrix(prod(gen_constitutive_matrix, B)));
     // }
     // RotateLHSToGlobal(rLHS, rotation_matrix);
 
@@ -677,11 +677,11 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     
     // Let's initialize the constitutive law's values
-    VectorType strain_vector(strain_size), stress_vector(strain_size);
-    MatrixType constitutive_matrix(strain_size, strain_size);
-    cl_values.SetStrainVector(strain_vector);
-    cl_values.SetStressVector(stress_vector);
-    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size);
+    MatrixType gen_constitutive_matrix(strain_size, strain_size);
+    cl_values.SetStrainVector(gen_strain_vector);
+    cl_values.SetStressVector(gen_stress_vector);
+    cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
 
     const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
     double zeta1, zeta2, zeta3, weight;
@@ -695,15 +695,15 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
         CalculateBTriangle(B, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
 
         // We compute the strain at the integration point
-        noalias(strain_vector) = prod(B, nodal_values);
+        noalias(gen_strain_vector) = prod(B, nodal_values);
 
         // We call the constitutive law to compute the stress
-        cl_values.SetStrainVector(strain_vector);
+        cl_values.SetStrainVector(gen_strain_vector);
         mConstitutiveLawVector[i_point]->CalculateMaterialResponseCauchy(cl_values);
-        noalias(stress_vector) = cl_values.GetStressVector();
+        noalias(gen_stress_vector) = cl_values.GetStressVector();
 
         // We integrate the LHS and RHS
-        noalias(rRHS) -= weight * prod(trans(B), stress_vector);
+        noalias(rRHS) -= weight * prod(trans(B), gen_stress_vector);
 
     }
     RotateRHSToGlobal(rRHS, rotation_matrix);
