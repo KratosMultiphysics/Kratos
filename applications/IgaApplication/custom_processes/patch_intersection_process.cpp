@@ -81,13 +81,15 @@ PatchIntersectionProcess::PatchIntersectionProcess(
     double tolerance,
     std::string patch_prefix,
     std::string internal_sub,
-    std::string external_sub)
+    std::string external_sub,
+    std::string coupling_condition_name)
     : mrModelPart(rModelPart)
     , mEchoLevel(echo_level)
     , mTol(tolerance)
     , mPatchPrefix(std::move(patch_prefix))
     , mInternalSubName(std::move(internal_sub))
     , mExternalSubName(std::move(external_sub))
+    , mCouplingConditionName(std::move(coupling_condition_name))
 {
     if (mEchoLevel > 2) {
         std::cout << "[PatchIntersectionProcess] ctor\n"
@@ -95,12 +97,12 @@ PatchIntersectionProcess::PatchIntersectionProcess(
                   << "  internal_sub     : " << mInternalSubName << "\n"
                   << "  external_sub     : " << mExternalSubName << "\n"
                   << "  tol              : " << mTol             << "\n"
-                  << "  echo_level       : " << mEchoLevel       << std::endl;
+                  << "  echo_level       : " << mEchoLevel       << "\n"
+                  << "  coupling_cond    : " << mCouplingConditionName << std::endl;
     }
 }
 
 void PatchIntersectionProcess::Execute() {
-    mEchoLevel = 1;
     if (mEchoLevel > 2) std::cout << "[PatchIntersectionProcess] Execute()" << std::endl;
     ComputeIntersections();
 }
@@ -188,8 +190,8 @@ void PatchIntersectionProcess::ComputeIntersections()
 
 
 
-    // 2) For every adjacent pair, create body-fitted conditions
-    const std::string cond_name_bodyfitted = "LaplacianCouplingCondition"; // <- change if needed // TODO:
+    // 2) For every adjacent pair, create coupling conditions
+    const std::string coupling_condition_name = mCouplingConditionName;
 
     for (std::size_t i = 0; i < patches.size(); ++i) {
         const auto& A = patches[i];
@@ -302,7 +304,7 @@ void PatchIntersectionProcess::ComputeIntersections()
                 CreateConditionsFromBrepCurvesWithMirroredNeighbours(
                     breps_A, breps_B,
                     coupling_sub_model_part,      // target sub-model part
-                    cond_name_bodyfitted,         // condition name
+                    coupling_condition_name,      // condition name
                     ip_per_span,                  // identical IP layout on both sides
                     deriv_order,                  // shape func derivative order
                     effective_span_sizes
@@ -416,7 +418,7 @@ void PatchIntersectionProcess::ComputeIntersections()
                 CreateConditionsFromBrepCurvesWithMirroredNeighbours(
                     breps_A, breps_B,
                     coupling_sub_model_part,      // target sub-model part
-                    cond_name_bodyfitted,         // condition name
+                    coupling_condition_name,      // condition name
                     ip_per_span,                  // identical IP layout on both sides
                     deriv_order,                  // shape func derivative order
                     effective_span_sizes

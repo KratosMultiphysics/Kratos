@@ -81,6 +81,7 @@ const Parameters PatchSubdivisionModeler::GetDefaultParameters() const
         "child_patch_prefix" : "Patch",
         "geometry_parameters" : {},
         "analysis_parameters" : {},
+        "coupling_conditions_name": "",
         "echo_level" : 0
     })");
 }
@@ -134,9 +135,22 @@ void PatchSubdivisionModeler::SetupModelPart()
             prefix);
     }
 
-    // Call the intersection process
-    PatchIntersectionProcess intersection_process(r_parent_model_part);
-    intersection_process.Execute(); // HEREEEEE
+    // Call the intersection process with matching echo level and requested coupling condition
+    std::string coupling_condition_name = "";
+    if (mParameters.Has("coupling_conditions_name") && mParameters["coupling_conditions_name"].IsString()) {
+        coupling_condition_name = mParameters["coupling_conditions_name"].GetString();
+    } else {
+        KRATOS_ERROR << "PatchSubdivisionModeler: no coupling_conditions_name defined" << std::endl;
+    }
+    PatchIntersectionProcess intersection_process(
+        r_parent_model_part,
+        static_cast<int>(mEchoLevel),
+        1e-12,
+        prefix,
+        "internal_boundaries",
+        "external_boundaries",
+        coupling_condition_name);
+    intersection_process.Execute();
 
 
     // Collect analysis targets from parameters and build global submodel parts
@@ -1029,91 +1043,7 @@ void PatchSubdivisionModeler::BuildGlobalSubModelParts(ModelPart& r_parent_model
             << added_elems << " elems, ~" << added_conds << " conds, ~"
             << added_nodes << " nodes).\n";
 
-        // // Now detach entities from each Patch.* target submodelpart (membership only).
-        // for (auto& rPatch : r_root.SubModelParts()) {
-        //     const std::string& patch_name = rPatch.Name();
-        //     if (patch_name.rfind("Patch", 0) != 0) continue;
-        //     if (!rPatch.HasSubModelPart(target_name)) continue;
-
-        //     ModelPart& r_src = rPatch.GetSubModelPart(target_name);
-
-        //     // Drop memberships (does NOT delete from the root model part).
-        //     r_src.Elements().clear();
-        //     r_src.Conditions().clear();
-        //     r_src.Nodes().clear();
-
-        //     // Also clear any geometry memberships (if any)
-        //     r_src.Geometries().clear();
-        //     // Remove the now-empty child submodel part from this Patch
-        //     rPatch.RemoveSubModelPart(target_name);
-        // }
     }
-
-
-
-    // // ---- Remove all Patch* submodel parts from the root ----
-    // std::vector<std::string> patches_to_delete;
-    // // Phase 1: clear contents (and children) of each Patch*
-    // for (auto& rPatch : r_root.SubModelParts()) {
-    //     const std::string& patch_name = rPatch.Name();
-    //     if (patch_name.rfind("Patch", 0) != 0) continue; // only Patch*
-    //     // Clear child submodel parts first
-    //     std::vector<std::string> child_names;
-    //     child_names.reserve(rPatch.NumberOfSubModelParts());
-    //     for (auto& rChild : rPatch.SubModelParts()) {
-    //         rChild.Elements().clear();
-    //         rChild.Conditions().clear();
-    //         rChild.Nodes().clear();
-    //         rChild.Geometries().clear();
-    //         child_names.push_back(rChild.Name());
-    //     }
-    //     for (const auto& child_name : child_names) {
-    //         rPatch.RemoveSubModelPart(child_name);
-    //     }
-    //     // Clear the Patch itself
-    //     rPatch.Elements().clear();
-    //     rPatch.Conditions().clear();
-    //     rPatch.Nodes().clear();
-    //     rPatch.Geometries().clear();
-    //     patches_to_delete.push_back(patch_name);
-    // }
-
-
-
-    // // Print info for all nodes in the root model part
-    // int count = 0;
-    // int count_dof = 0;
-    // for (auto& r_node : r_root.Nodes()) {
-    //     KRATOS_WATCH(r_node.Id())
-    //     KRATOS_WATCH(r_node.Coordinates())
-    //     KRATOS_WATCH(r_node)
-    //     count++;
-    //     // Print DoFs info
-    //     for (auto it_dof = r_node.GetDofs().begin(); it_dof != r_node.GetDofs().end(); ++it_dof) {
-    //         KRATOS_WATCH((*it_dof)->GetVariable().Name())
-    //         KRATOS_WATCH((*it_dof)->GetSolutionStepValue())
-    //         count_dof++;
-    //     }
-    // }
-    // KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 0)
-    //     << "Root model part '" << r_root.FullName() << "' has "
-    //     << r_root.NumberOfNodes() << " nodes (printed " << count << "), "
-    //     << count_dof << " DoFs." << std::endl;
-    // exit(0);
-
-
-
-
-
-    // // Phase 2: actually remove Patch* submodel parts from the root
-    // for (const auto& name : patches_to_delete) {
-    //     if (r_root.HasSubModelPart(name)) {
-    //         r_root.RemoveSubModelPart(name);
-    //     }
-    // }
-
-    // KRATOS_WATCH(r_parent_model_part)
-    // exit(0);
 
 }
 
