@@ -379,6 +379,10 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 )
 
             left_side_corner_node_ids = [3] + list(range(1023, 2021)) + [4]
+
+            # Taking every 10th node, to improve clarity of the plots for this model with a finer mesh.
+            left_side_corner_node_ids = left_side_corner_node_ids[0::10]
+
             ref_y_coordinates = get_ref_y_coordinates(
                 project_path / "stage1.post.msh", left_side_corner_node_ids
             )
