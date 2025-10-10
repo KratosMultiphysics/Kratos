@@ -134,8 +134,17 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
 {
     Vector result = ZeroVector(2);
 
+    double     kappa = mEquivalentPlasticStrain;
     double tolerance = 1.0;
     while (tolerance > 1.0e-6) {
+        double lambda = CalculatePlasticMultiplier(rTrialSigmaTau,
+                mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
+                mCoulombYieldSurface.GetDilatationAngleInRadians(),
+                mCoulombYieldSurface.GetCohesion());
+        double delta_kappa = CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
+        mEquivalentPlasticStrain += delta_kappa;
+        kappa = mEquivalentPlasticStrain;
+
         const auto apex =
             CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
 
@@ -163,20 +172,13 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
                 mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
         }
 
-        double lambda = CalculatePlasticMultiplier(rTrialSigmaTau,
-            mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
-            mCoulombYieldSurface.GetDilatationAngleInRadians(),
-            mCoulombYieldSurface.GetCohesion());
-
-        double     delta_kappa              = CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
-        mEquivalentPlasticStrain += delta_kappa;
-        double     kappa = mEquivalentPlasticStrain;
-        double     updated_friction_angle   = UpdateFrictionAngle(rProperties, kappa) * 3.14159265358979323846 / 180;
-        double     updated_cohesion         = UpdateCohesion(rProperties, kappa);
-        double     update_dilatancy_angle   = UpdateDilatancyAngle(rProperties, kappa) * 3.14159265358979323846 / 180;
-        mCoulombYieldSurface.SetFrictionAngleInRadians(updated_friction_angle);
-        mCoulombYieldSurface.SetCohesion(updated_cohesion);
-        mCoulombYieldSurface.SetDilatationAngleInRadians(update_dilatancy_angle);
+        mCoulombYieldSurface.UpdateSurfaceProperties(rProperties[GEO_FRICTION_ANGLE],
+                                                     rProperties[GEO_FRICTION_ANGLE_STRENGTH_FACTOR],
+                                                     rProperties[GEO_COHESION],
+                                                     rProperties[GEO_COHESION_STRENGTH_FACTOR],
+                                                     rProperties[GEO_DILATANCY_ANGLE],
+                                                     rProperties[GEO_DILATANCY_ANGLE_STRENGTH_FACTOR],
+                                                     kappa);
 
         tolerance = delta_kappa; //std::abs(mCoulombYieldSurface.YieldFunctionValue(rTrialSigmaTau));
     }
@@ -193,23 +195,6 @@ void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
 {
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
-}
-double CoulombWithTensionCutOffImpl::UpdateFrictionAngle(const Properties& rProperties, double kappa) const
-{
-    double STRENGTH_MODULUS = 1.0;
-    return rProperties[GEO_FRICTION_ANGLE] + STRENGTH_MODULUS * kappa;
-}
-
-double CoulombWithTensionCutOffImpl::UpdateCohesion(const Properties& rProperties, double kappa) const
-{
-    double STRENGTH_MODULUS = 1.0;
-    return rProperties[GEO_COHESION] + STRENGTH_MODULUS * kappa;
-}
-
-double CoulombWithTensionCutOffImpl::UpdateDilatancyAngle(const Properties& rProperties, double kappa) const
-{
-    double STRENGTH_MODULUS = 1.0;
-    return rProperties[GEO_DILATANCY_ANGLE] + STRENGTH_MODULUS * kappa;
 }
 
 double CoulombWithTensionCutOffImpl::CalculateEquivalentPlasticStrain(const Vector& rSigmaTau,
