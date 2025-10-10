@@ -62,7 +62,8 @@ public:
         double tolerance = 1e-12,
         std::string patch_prefix = "Patch",
         std::string internal_sub = "internal_boundaries",
-        std::string external_sub = "external_boundaries");
+        std::string external_sub = "external_boundaries",
+        std::string coupling_condition_name = "LaplacianCouplingCondition");
 
     void Execute() override;
 
@@ -75,6 +76,7 @@ private:
     std::string  mPatchPrefix{"Patch"};
     std::string  mInternalSubName{"internal_boundaries"};
     std::string  mExternalSubName{"external_boundaries"};
+    std::string  mCouplingConditionName{"LaplacianCouplingCondition"};
 
     void ComputeIntersections();
 
