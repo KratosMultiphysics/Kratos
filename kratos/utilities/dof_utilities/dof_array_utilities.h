@@ -58,9 +58,6 @@ public:
     /// Auxilary DOF set type definition
     using AuxiliaryDofsSetType = std::unordered_set<Node::DofType::Pointer, DofPointerHasher>;
 
-    /// Auxiliary slave to master(s) map for slave DOFs
-    using SlaveToMasterDofsMap = std::unordered_map<typename Node::DofType::Pointer, DofsVectorType>;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -92,14 +89,12 @@ public:
      * @param rModelPart The model part containing the constraints
      * @param rDofArray The already filled and sorted DOF array
      * @param rEffectiveDofArray The effective DOF array to be filled
-     * @param rSlaveToMasterDofsMap The slave to master DOFs map to be filled
      * @param EchoLevel The echo level (i.e., verbosity level)
      */
     static void SetUpEffectiveDofArray(
         const ModelPart& rModelPart,
         const DofsArrayType& rDofArray,
         DofsArrayType& rEffectiveDofArray,
-        SlaveToMasterDofsMap& rSlaveToMasterDofsMap,
         const unsigned int EchoLevel = 0);
 
     /**
@@ -112,7 +107,9 @@ public:
     /**
      * @brief Set the Effective Dof Equation Ids
      * This function sets the effective equation ids in the effective DOF array
-     * If the effective DOF array matches the DOF array the effective equation ids are set as the equation ids
+     * If the effective DOF array matches the DOF array (i.e., all DOFs are effective), the effective equation ids are set as the equation ids.
+     * If there are non-effective DOFs, the effective equation id of the non-effective DOFs is initialized to the maximum value.
+     * This effectively makes possible to distinguish a non-effective DOF by checking its effective equation id
      * @param rDofArray The already filled and sorted DOF array
      * @param rEffectiveDofArray The effective DOFs array in which the effective DOF id are set
      */

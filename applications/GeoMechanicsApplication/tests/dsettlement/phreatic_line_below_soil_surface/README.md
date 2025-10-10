@@ -32,7 +32,12 @@ Settlement over time, where nodes 2, 3, and 104 are located at the top edge of t
 
 ![Settlement](test_case_3_settlement_plot.svg)
 
-The following plots show the water pressure distribution ($`p_{\mathrm{w}}`$) as well as the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$) along the left edge of the soil column at certain times.
+The following plots show the water pressure distribution ($`p_{\mathrm{w}}`$), the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$), and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times.
+
+At the start of the analysis (after 0 days):
+
+![Stress plot after 0 days](test_case_3_stress_plot_after_0_days.svg)
+
 After 100 days of settlement under self weight:
 
 ![Stress plot after 100 days](test_case_3_stress_plot_after_100_days.svg)
@@ -41,7 +46,7 @@ At 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ a
 
 ![Stress plot after 100.1 days](test_case_3_stress_plot_after_100.1_days.svg)
 
-After 10000 days of settlement:
+After 10,000 days of settlement:
 
 ![Stress plot after 10000 days](test_case_3_stress_plot_after_10000_days.svg)
 
