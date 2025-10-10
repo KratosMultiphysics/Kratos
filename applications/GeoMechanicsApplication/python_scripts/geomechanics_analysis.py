@@ -91,6 +91,9 @@ class GeoMechanicsAnalysis(AnalysisStage):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
+        self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.START_TIME] = self.start_time
+        self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.END_TIME]   = self.end_time
+
         self._GetSolver().solving_strategy.SetRebuildLevel(self.rebuild_level)
 
         while self.KeepAdvancingSolutionLoop():
