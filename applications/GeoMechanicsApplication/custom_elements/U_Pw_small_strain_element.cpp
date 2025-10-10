@@ -937,7 +937,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(Matr
 {
     KRATOS_TRY
 
-    Matrix stiffness_matrix(TDim * TNumNodes, TDim * TNumNodes);
+    BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes> stiffness_matrix;
 
     GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
         stiffness_matrix, rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
