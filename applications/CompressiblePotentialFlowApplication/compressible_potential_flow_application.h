@@ -117,6 +117,8 @@ private:
     const TransonicPerturbationPotentialFlowElement<3, 4> mTransonicPerturbationPotentialFlowElement3D4N;
     const AdjointAnalyticalIncompressiblePotentialFlowElement<IncompressiblePotentialFlowElement<2, 3>> mAdjointAnalyticalIncompressiblePotentialFlowElement2D3N;
     const AdjointFiniteDifferencePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointIncompressiblePotentialFlowElement2D3N;
+    const AdjointFiniteDifferencePotentialFlowElement<CompressiblePerturbationPotentialFlowElement<2,3>> mAdjointCompressiblePerturbationPotentialFlowElement2D3N;
+    const AdjointFiniteDifferencePotentialFlowElement<CompressiblePerturbationPotentialFlowElement<3,4>> mAdjointCompressiblePerturbationPotentialFlowElement3D4N;
     const AdjointFiniteDifferencePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<2,3>> mAdjointIncompressiblePerturbationPotentialFlowElement2D3N;
     const AdjointFiniteDifferencePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<3,4>> mAdjointIncompressiblePerturbationPotentialFlowElement3D4N;
     const AdjointFiniteDifferencePotentialFlowElement<CompressiblePotentialFlowElement<2,3>> mAdjointCompressiblePotentialFlowElement2D3N;
