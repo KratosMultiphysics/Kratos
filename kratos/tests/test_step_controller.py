@@ -3,8 +3,6 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.step_controller import DefaultStepController, GeometricStepController
 
-import os
-
 class TestVariableUtils(KratosUnittest.TestCase):
     def test_DefaultStepController(self):
         params = KratosMultiphysics.Parameters("""{}""")
@@ -21,7 +19,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         self.assertEqual(step_controller.GetNextStep(14, False), 15)
         self.assertEqual(step_controller.GetNextStep(14, True), 15)
 
-    def test_GeometricStepController(self):
+    def test_GeometricStepController1(self):
         params = KratosMultiphysics.Parameters("""{
             "type"                                       : "geometric_step_controller",
             "divergence_factor"                          : 0.25,
@@ -69,6 +67,26 @@ class TestVariableUtils(KratosUnittest.TestCase):
         self.assertAlmostEqual(step_controller.GetNextStep(0.3, True), 0.3 + 3.1 * 0.25 * 0.25 * 0.25 * 1.5 * 1.5 * 1.5 * 1.5 * 1.5 * 1.5 * 1.5 * 1.5 * 1.5 * 1.5)
         self.assertAlmostEqual(step_controller.GetNextStep(0.3, True), 0.3 + 3.1)
 
+    def test_GeometricStepController2(self):
+        params = KratosMultiphysics.Parameters("""{
+            "type"                                       : "geometric_step_controller",
+            "divergence_factor"                          : 0.25,
+            "convergence_factor"                         : 1.5,
+            "delta_t_init"                               : 1.1,
+            "delta_t_min"                                : 0.001,
+            "delta_t_max"                                : 3.1,
+            "max_number_of_sub_steps"                    : 25,
+            "number_of_successful_attempts_for_increment": 2,
+            "number_of_failed_attempts_for_termination"  : 2
+        }""")
+
+        step_controller = GeometricStepController(params)
+        step_controller.Initialize(0.2, 10.0)
+
+        step_controller.GetNextStep(0.3, False)
+        step_controller.GetNextStep(0.3, False)
+        with self.assertRaises(RuntimeError):
+            step_controller.GetNextStep(0.3, False)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
