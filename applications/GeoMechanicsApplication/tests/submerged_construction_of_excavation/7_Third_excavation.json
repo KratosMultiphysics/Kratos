@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "submerged_excavation_gid_project",
+        "problem_name"  : "7_Third_excavation",
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
@@ -206,7 +206,7 @@
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"               : {
-                            "GiDPostMode"           : "GiD_PostBinary",
+                            "GiDPostMode"           : "GiD_PostAscii",
                             "WriteDeformedMeshFlag" : "WriteDeformed",
                             "WriteConditionsFlag"   : "WriteConditions",
                             "MultiFileFlag"         : "SingleFile"
@@ -224,7 +224,7 @@
                     },
                     "point_data_configuration"  : []
                 },
-                "output_name"            : "gid_output/submerged_excavation_gid_project_Stage_1"
+                "output_name"            : "7_Third_excavation"
             }
         }],
         "vtk_output" : []
