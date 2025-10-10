@@ -55,6 +55,7 @@ template <int Dim, int NumNodes>
 void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     FindUpwindElement(rCurrentProcessInfo);
+    this->GetValue(UPWIND_CONTRIBUTION) = ZeroMatrix(NumNodes, NumNodes);
 }
 
 template <int Dim, int NumNodes>
@@ -86,10 +87,30 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     const CompressiblePerturbationPotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
 
-    if (wake == 0) // Normal element (non-wake) - eventually an embedded
+    KRATOS_INFO("Compressible Element") << "inicio \n";
+    if (wake == 0){ // Normal element (non-wake) - eventually an embedded
+        KRATOS_INFO("Compressible Element") << "normal \n";
         CalculateLeftHandSideNormalElement(rLeftHandSideMatrix, rCurrentProcessInfo);
-    else // Wake element
+    }else{ // Wake element
+        KRATOS_INFO("Compressible Element") << "wake \n";
         CalculateLeftHandSideWakeElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+    }
+    KRATOS_INFO("Compressible Element") << "pre apuntar puntero \n";
+    MatrixType lhs;
+    // VectorType rhs;
+    // pGetDownwindElement()->CalculateLocalSystem(lhs, rhs, rCurrentProcessInfo);
+    pGetDownwindElement()->CalculateLeftHandSide(lhs, rCurrentProcessInfo);
+    auto upwind_contribution = pGetDownwindElement()->GetValue(UPWIND_CONTRIBUTION);
+
+    KRATOS_WATCH(pGetDownwindElement()->GetValue(UPWIND_CONTRIBUTION));
+
+    for (int i = 0; i < TNumNodes; i++)
+    {
+        for (int j = 0; j < TNumNodes; j++)
+        {
+            rLeftHandSideMatrix(i, j) += upwind_contribution(i, j);
+        }
+    }
 }
 
 template <int Dim, int NumNodes>
@@ -454,10 +475,13 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
     const double local_mach_number_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<Dim, NumNodes>(velocity, rCurrentProcessInfo);
     const double critical_mach_sq = std::pow(rCurrentProcessInfo[CRITICAL_MACH], 2.0);
 
-    if (local_mach_number_squared < critical_mach_sq) // subsonic
+    if (local_mach_number_squared < critical_mach_sq){ // subsonic
+        KRATOS_INFO("Compressible Element") << "subsonic \n";
         CalculateLeftHandSideSubsonicElement(rLeftHandSideMatrix, rCurrentProcessInfo);
-    else // supersonic
+    }else {// supersonic
+        KRATOS_INFO("Compressible Element") << "supersonic \n";
         CalculateLeftHandSideSupersonicElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+    }
 }
 
 template <int Dim, int NumNodes>
@@ -537,40 +561,40 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssembleSupers
     pGetUpwindElement()->GetValue(UPWIND_ELEMENT) = true;
     this->GetValue(DOWNWIND_ELEMENT) = true;
 
-    BoundedVector<double, NumNodes + 1> DNV_assembly = AssembleDensityDerivativeAndShapeFunctions(
-        densityDerivativeWRTVelocity, densityDerivativeWRTUpwindVelocity, velocity, upwindVelocity, rCurrentProcessInfo);
+    // Current element data
+    ElementalData current_data{GetGeometry()};
+    const double density = PotentialFlowUtilities::ComputeUpwindedDensity<Dim, NumNodes>( velocity, upwindVelocity, rCurrentProcessInfo);
 
-    // Calculate shape functions
-    ElementalData data{GetGeometry()};
+    // ====== LOCAL ======
+    const BoundedVector<double, NumNodes> DNV_local = prod(current_data.DN_DX, velocity);
+    const BoundedMatrix<double, NumNodes, NumNodes> linear_term = current_data.vol * density * prod(current_data.DN_DX, trans(current_data.DN_DX));
 
-    const double density = PotentialFlowUtilities::ComputeUpwindedDensity<Dim, NumNodes>(velocity, upwindVelocity, rCurrentProcessInfo);
+    const BoundedVector<double, NumNodes> density_derivative_local = densityDerivativeWRTVelocity * DNV_local;
 
-    const BoundedVector<double, NumNodes> DNV = prod(data.DN_DX, velocity);
-    BoundedVector<double, NumNodes + 1> DNV_extended;
-    DNV_extended.clear();
-    for (int i = 0; i < NumNodes; i++) {
-        DNV_extended[i] = DNV[i];
-    }
+    rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
+    rLeftHandSideMatrix.clear();
 
-    BoundedMatrix<double, NumNodes, NumNodes> linear_term = data.vol * density * prod(data.DN_DX, trans(data.DN_DX));
+    // local-local
+    for (int i = 0; i < NumNodes; ++i)
+        for (int j = 0; j < NumNodes; ++j)
+            rLeftHandSideMatrix(i, j) = 2.0 * current_data.vol * DNV_local[i] * density_derivative_local[j] + linear_term(i, j);
 
-    BoundedMatrix<double, NumNodes, NumNodes> aux_lhs = data.vol * 2.0 * outer_prod(DNV_extended, trans(DNV_assembly));
+    // ====== UPWIND ======
+    const GeometryType& r_upwind_geom = pGetUpwindElement()->GetGeometry();
+    ElementalData upwind_data{r_upwind_geom};
 
-    for (int i = 0; i < NumNodes; i++)
-    {
-        for (int j = 0; j < NumNodes; j++)
-        {
-            aux_lhs(i, j) += linear_term(i, j);
-        }
-    }
+    const BoundedVector<double, NumNodes> DNV_upwind = prod(upwind_data.DN_DX, upwindVelocity);
+    const BoundedVector<double, NumNodes> density_derivative_upwind =
+        densityDerivativeWRTUpwindVelocity * DNV_upwind;
 
-    for (int i = 0; i < NumNodes; i++)
-    {
-        for (int j = 0; j < NumNodes; j++)
-        {
-            rLeftHandSideMatrix(i, j) = aux_lhs(i, j);
-        }
-    }
+    // local × upwind
+    BoundedMatrix<double, NumNodes, NumNodes> upwind_coupling_matrix = ZeroMatrix(NumNodes, NumNodes);
+
+    for (int i = 0; i < NumNodes; ++i)
+        for (int j = 0; j < NumNodes; ++j)
+            upwind_coupling_matrix(i, j) = 2.0 * current_data.vol * DNV_local[i] * density_derivative_upwind[j];
+
+    this->SetValue(UPWIND_CONTRIBUTION, upwind_coupling_matrix);
 }
 
 template <int Dim, int NumNodes>
@@ -1214,33 +1238,6 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::SelectUpwindEl
         this->pSetUpwindElement(this);
         this->SetFlags(INLET);
     }
-}
-
-template<int Dim, int NumNodes>
-int CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetAdditionalUpwindNodeIndex() const
-{
-    // current and upwind element geometry
-    const GeometryType& r_geom = this->GetGeometry();
-    const GeometryType& r_upwind_geom = pGetUpwindElement()->GetGeometry();
-    std::vector<size_t> element_nodes_ids;
-    PotentialFlowUtilities::GetSortedIds<Dim, NumNodes>(element_nodes_ids, r_geom);
-
-    // Search for the Id of the upwind element node that
-    // is not contained in the current element
-    bool upstream_element_id_found = false;
-    // loop over upwind element nodes
-    for (unsigned int i = 0; i < NumNodes; i++) {
-        if( std::find(element_nodes_ids.begin(), element_nodes_ids.end(),
-            r_upwind_geom[i].Id()) == element_nodes_ids.end() )  {
-                upstream_element_id_found = true;
-                return i;
-            }
-    }
-
-    KRATOS_ERROR_IF(!upstream_element_id_found) << "No upstream element id found for element #"
-            << this->Id() << std::endl;
-
-    return -1;
 }
 
 // serializer

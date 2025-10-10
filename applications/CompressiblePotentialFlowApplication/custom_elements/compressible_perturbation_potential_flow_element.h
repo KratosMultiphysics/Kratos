@@ -336,8 +336,6 @@ private:
     void SelectUpwindElement(std::vector<IndexType>& rUpwindElementNodesIds,
                              GlobalPointersVector<Element>& rUpwindElementCandidates);
 
-    int GetAdditionalUpwindNodeIndex() const;
-
     ///@}
     ///@name Private Operations
     ///@{
