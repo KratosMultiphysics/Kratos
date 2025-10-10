@@ -42,16 +42,43 @@ For the initial stage (which uses a $`K_0`$ procedure), we need to assign linear
 
 The following table lists the material properties of the soil layers that have been adopted by the Kratos model.
 
-| Property                                  | Kratos input parameter | Clay | Sand    | Unit                           |
-|-------------------------------------------|------------------------|------|---------|--------------------------------|
-| Grain density $`\rho_{\mathrm{g}}`$       | `DENSITY_SOLID` | 2048.66 | 2496.33 | $`\mathrm{kg} / \mathrm{m}^3`$ |
-| Water density $`\rho_{\mathrm{w}}`$       | `DENSITY_WATER` | 1000.0 | 1000.0 | $`\mathrm{kg} / \mathrm{m}^3`$ |
-| Porosity $`n`$                            | `POROSITY` | 0.203874 | 0.305810 | $`[-]`$                        |
-| Retention law type                        | `RETENTION_LAW` | `SaturatedBelowPhreaticLevelLaw` | `SaturatedBelowPhreaticLevelLaw` | N/A                            |
-| Residual saturation $`S_{\mathrm{res}}`$  | `RESIDUAL_SATURATION` | $`1 \cdot 10^{-10}`$ | $`1 \cdot 10^{-10}`$ | $`[-]`$                        |
-| Saturated saturation $`S_{\mathrm{sat}}`$ | `SATURATED_SATURATION` | 1.0 | 1.0 | $`[-]`$                        |
-| Young's modulus $`E`$ | `YOUNG_MODULUS` | $`12 \cdot 10^3`$ | $`120 \cdot 10^3`$ | $`\mathrm{kN} / \mathrm{m}^2`$ |
-| Poisson's ratio $`\nu`$ | `POISSON_RATIO` | 0.15 | 0.20 | $`[-]`$ |
+| Property                                  | Kratos input parameter | Clay                             | Sand                             | Unit                           |
+|-------------------------------------------|------------------------|----------------------------------|----------------------------------|--------------------------------|
+| Grain density $`\rho_{\mathrm{g}}`$       | `DENSITY_SOLID`        | 2009.73                          | 2448.9                           | $`\mathrm{kg} / \mathrm{m}^3`$ |
+| Water density $`\rho_{\mathrm{w}}`$       | `DENSITY_WATER`        | 1019.368                         | 1019.368                         | $`\mathrm{kg} / \mathrm{m}^3`$ |
+| Porosity $`n`$                            | `POROSITY`             | 0.20771                          | 0.30982                          | $`[-]`$                        |
+| Retention law type                        | `RETENTION_LAW`        | `SaturatedBelowPhreaticLevelLaw` | `SaturatedBelowPhreaticLevelLaw` | N/A                            |
+| Residual saturation $`S_{\mathrm{res}}`$  | `RESIDUAL_SATURATION`  | $`1 \cdot 10^{-10}`$             | $`1 \cdot 10^{-10}`$             | $`[-]`$                        |
+| Saturated saturation $`S_{\mathrm{sat}}`$ | `SATURATED_SATURATION` | 1.0                              | 1.0                              | $`[-]`$                        |
+| Young's modulus $`E`$                     | `YOUNG_MODULUS`        | $`12 \cdot 10^3`$                | $`120 \cdot 10^3`$               | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| Poisson's ratio $`\nu`$                   | `POISSON_RATIO`        | 0.15                             | 0.20                             | $`[-]`$                        |
+
+The following table lists the material properties of the interfaces that have been adopted by the Kratos model.
+
+| Property                            | Kratos input parameter | Clay      | Sand   | Unit                           |
+|-------------------------------------|------------------------|-----------|--------|--------------------------------|
+| Normal stiffness $`k_{\mathrm{n}}`$ | `NORMAL_STIFFNESS`     | 48000     | 480000 | $`\mathrm{kN} / \mathrm{m}^3`$ |
+| Shear stiffness $`k_{\mathrm{s}}`$  | `SHEAR_STIFFNESS`      | 20869.565 | 200000 | $`\mathrm{kN} / \mathrm{m}^3`$ |
+
+
+The following table lists the material properties of the diaphragm wall that have been adopted by the Kratos model.
+
+| Property                | Kratos input parameter | Diaphragm wall      | Unit                           |
+|-------------------------|------------------------|---------------------|--------------------------------|
+| Young's modulus $`E`$   | `YOUNG_MODULUS`        | $`5.93 \cdot 10^6`$ | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| Poisson's ratio $`\nu`$ | `POISSON_RATIO`        | 0.0                 | $`[-]`$                        |
+| Thickness $`t`$         | `THICKNESS`            | 1.265               | $`[m]`$                        |
+| Density $`\rho}`$       | `DENSITY`              | 1019.368            | $`\mathrm{kg} / \mathrm{m}^3`$ |
+
+
+The following table lists the material properties of the strut that have been adopted by the Kratos model.
+
+| Property                  | Kratos input parameter | Strut               | Unit                           |
+|---------------------------|------------------------|---------------------|--------------------------------|
+| Young's modulus $`E`$     | `YOUNG_MODULUS`        | $`2.1 \cdot 10^8`$  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| Density $`\rho}`$         | `DENSITY`              |  7850.0             | $`\mathrm{kg} / \mathrm{m}^3`$ |
+| Cross-sectional area $`A` | `CROSS_SECTIONAL_AREA` | $`1.9 \cdot 10^-3`$ | $`[m^2]`$                      |
+| Truss pre-stress PK2      | `TRUSS_PRESTRESS_PK2`  | 0.0                 | $`\mathrm{kN} / \mathrm{m}^3`$ |
 
 
 ## Staged analysis
