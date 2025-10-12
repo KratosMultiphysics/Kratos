@@ -1,7 +1,5 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from KratosMultiphysics import FindGlobalNodalNeighboursProcess
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from pathlib import Path
 
@@ -46,13 +44,7 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
         model = Kratos.Model()
         mp = model.CreateModelPart("Interface")
         mp.CreateNewProperties(2)
-        self.FindIntersectionPointsAndSurfaces2(mp)
-        # mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        # mp.CreateNewNode(2, 1.0, 1.0, 0.0)
-        # mp.CreateNewNode(3, 0.5, 0.5, 0.0)
-
-        # mp.CreateNewCondition("LineCondition3D2N", 1, [1, 2], prop)
-        # mp.CreateNewCondition("LineCondition3D2N", 2, [2, 3], prop)
+        self.FindIntersectionPointsAndSurfaces_Hexa3D8N(mp)
 
         if self.save_output_files_in_folder:
             self.output_path = Path(self.output_path)
@@ -72,90 +64,39 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
         vtu_output = Kratos.VtuOutput(mp)
         vtu_output.PrintOutput(str(self.output_path /output_file_name))
 
-# with neighbours but gives more nodes than I expected
-    def FindIntersectionPointsAndSurfaces(self, mp_interface: Kratos.ModelPart) -> None:
-        control_field = Kratos.Expression.NodalExpression(self.model_part)
+
+    def FindIntersectionPointsAndSurfaces_Hexa3D8N(self, mp_interface: Kratos.ModelPart) -> None:
         control_field = self.control_field.Evaluate()
 
-        # get a dict of neighbouring nodes
-        find_neighbours = FindGlobalNodalNeighboursProcess(self.model_part)
-        find_neighbours.Execute()
-        node_neighbours = find_neighbours.GetNeighbourIds(self.model_part.Nodes)
+        # Local edges of Hexahedra3D8N
+        edge_pairs = [
+            (0, 1), (1, 2), (2, 3), (3, 0),
+            (4, 5), (5, 6), (6, 7), (7, 4),
+            (0, 4), (1, 5), (2, 6), (3, 7)]
 
         element: Kratos.Element
         for element in self.model_part.Elements:
+            geom = element.GetGeometry()
             zero_level_set = []
-            node: Kratos.Node
-            element_nodes = element.GetNodes()
-            for node in element.GetNodes():
-                # check if it is already a point of level set. 
-                # Add an error delta please.
-                if control_field[node.Id - 1] == 0:
-                    intersection_point = (node.X0, node.Y0, node.Z0)
-                    zero_level_set.append(intersection_point)
-                    # remove from list so we don't check again
-                    element_nodes.remove(node)
-                    continue
-                # check line segments of current node
-                neighbours = node_neighbours[node.Id]
-                for node2 in element_nodes:
-                    print(f"Current element node: {node.Id}, Checked node: {node2.Id}, Neighbours of current: {neighbours}")
-                    if node2.Id in neighbours:
-                        print("In neighbours")
-                        if control_field[node.Id - 1] * control_field[node2.Id - 1] < 0:
-                            zero_level_set.append(self.FindIntersectionPoints(node, node2))
-                    else:
-                        print("Not in neighbours")
-                # remove from list so we don't check again 
-                # (we already checked all of the line segments in this element that include current node)
-                element_nodes.remove(node)
+
+            for (i1, i2) in edge_pairs:
+                n1 = geom[i1]
+                n2 = geom[i2]
+                phi1 = control_field[n1.Id - 1]
+                phi2 = control_field[n2.Id - 1]
+
+                # Sign change -> zero-crossing
+                if phi1 * phi2 < 0.0:
+                    p_int = self.InterpolateZeroCrossing(n1, n2, phi1, phi2)
+                    zero_level_set.append(p_int)
+
                 # go to next node of this element
             # now we have a list of level set points of current element and can create a surface inbetween the points
             # print(f"Intersection points: {len(zero_level_set)}")
             if len(zero_level_set) > 0:
                 self.FindSurfaces(mp_interface, zero_level_set)
 
-    def FindIntersectionPointsAndSurfaces2(self, mp_interface: Kratos.ModelPart) -> None:
-        control_field = Kratos.Expression.NodalExpression(self.model_part)
-        control_field = self.control_field.Evaluate()
-
-        # get a dict of neighbouring nodes
-        find_neighbours = FindGlobalNodalNeighboursProcess(self.model_part)
-        find_neighbours.Execute()
-        node_neighbours = find_neighbours.GetNeighbourIds(self.model_part.Nodes)
-
-        element: Kratos.Element
-        for element in self.model_part.Elements:
-            zero_level_set = []
-            node: Kratos.Node
-            element_nodes = element.GetNodes()
-            for node in element.GetNodes():
-                # check if it is already a point of level set. 
-                # Add an error delta please.
-                if control_field[node.Id - 1] == 0:
-                    intersection_point = (node.X0, node.Y0, node.Z0)
-                    zero_level_set.append(intersection_point)
-                    # remove from list so we don't check again
-                    element_nodes.remove(node)
-                    continue
-                # check line segments of current node
-                for node2 in element_nodes:
-                    if ((node.X0 == node2.X0 and node.Y0 == node2.Y0) or \
-                        (node.X0 == node2.X0 and node.Z0 == node2.Z0) or \
-                        (node.Z0 == node2.Z0 and node.Y0 == node2.Y0)) and \
-                        (node != node2):
-                        if control_field[node.Id - 1] * control_field[node2.Id - 1] < 0:
-                            zero_level_set.append(self.FindIntersectionPoints(node, node2))
-                # remove from list so we don't check again 
-                # (we already checked all of the line segments in this element that include current node)
-                element_nodes.remove(node)
-                # go to next node of this element
-            # now we have a list of level set points of current element and can create a surface inbetween the points
-            # print(f"Intersection points: {len(zero_level_set)}")
-            if len(zero_level_set) > 0:
-                self.FindSurfaces(mp_interface, zero_level_set)
-
-    def FindIntersectionPoints(self, node1: Kratos.Node, node2: Kratos.Node) -> tuple:
+    def FindIntersectionPoints_old(self, node1: Kratos.Node, node2: Kratos.Node) -> tuple:
         control_field = Kratos.Expression.NodalExpression(self.model_part)
         control_field = self.control_field.Evaluate()
         d_phi = abs(control_field[node1.Id - 1] - control_field[node2.Id - 1])
@@ -164,6 +105,14 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
         d_z = abs(node1.Z0 - node2.Z0) / d_phi * abs(control_field[node1.Id - 1])
         intersection_point = (node1.X0 + d_x, node1.Y0 + d_y, node1.Z0 + d_z)
         return intersection_point
+    
+    
+    def InterpolateZeroCrossing(self, node1: Kratos.Node, node2: Kratos.Node, phi1: float, phi2: float):
+        lmbd = phi1 / (phi1 - phi2)
+        x = node1.X0 - lmbd * (node1.X0 - node2.X0)
+        y = node1.Y0 - lmbd * (node1.Y0 - node2.Y0)
+        z = node1.Z0 - lmbd * (node1.Z0 - node2.Z0)
+        return (x, y, z)
 
     def FindSurfaces(self, mp_interface: Kratos.ModelPart, zero_level_set: list) -> None:
         prop = mp_interface.GetProperties(2)
@@ -176,13 +125,34 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
 
         for k in range(len(zero_level_set)):
             mp_interface.CreateNewNode(i + k + 1, zero_level_set[k][0], zero_level_set[k][1], zero_level_set[k][2])
-            print(mp_interface.GetNode(i+k+1))
 
         if len(zero_level_set) == 2:
             mp_interface.CreateNewCondition("LineCondition3D2N", j + 1, [i + 1, i + 2], prop)
         elif len(zero_level_set) == 3:
             mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 1, [i + 1, i + 2, i + 3], prop)
         elif len(zero_level_set) == 4:
-            mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [i + 1, i + 2, i + 3, i + 4], prop)
+            # Find triangulation
+            distances = {}
+            for l in range(3):
+                for k in range(l + 1, 4):
+                    node1 = zero_level_set[l]
+                    node2 = zero_level_set[k]
+                    distance = (node1[0] - node2[0])**2 + (node1[1] - node2[1])**2 +(node1[2] - node2[2])**2
+                    distances[distance] = (i + l + 1, i + k + 1)
+            furthest = max(distances)
+            a, b = distances[furthest]
+
+            # Collect all node indices
+            all_nodes = {i+1, i+2, i+3, i+4}
+
+            # Remaining two nodes (not in the longest diagonal)
+            remaining = list(all_nodes - {a, b})
+            c, d = remaining[0], remaining[1]
+
+            # Create two triangle conditions sharing the shorter diagonal (c,d)
+            mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 1, [a, c, d], prop)
+            mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 2, [b, c, d], prop)
+
+            # mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [i + 1, i + 2, i + 3, i + 4], prop)
         else:
             raise RuntimeError(f"More than 4 intersection points in one element ({len(zero_level_set)} points). No implementation yet.")
