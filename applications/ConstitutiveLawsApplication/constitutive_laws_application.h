@@ -680,6 +680,10 @@ private:
     const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressSimoJu;
     const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressMohrCoulomb;
 
+
+    // Structural elements CLs
+    const ThicknessIntegratedIsotropicConstitutiveLaw mThicknessIntegratedIsotropicConstitutiveLaw;
+
     ///@}
     ///@name Private Operators
     ///@{
