@@ -92,11 +92,11 @@ void KratosMappingApplication::Register()
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(NearestElementMapper,  "nearest_element");
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(BarycentricMapper,     "barycentric");
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(Projection3D2DMapper,  "projection_3D_2D");
-    KRATOS_REGISTER_MAPPER_WITH_BACKEND(BeamMapper,  "beam_mapper");
 
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(NearestNeighborMapperIGA, "nearest_neighbor_iga");
 
     KRATOS_REGISTER_MAPPER(CouplingGeometryMapper,  "coupling_geometry");
+    KRATOS_REGISTER_MAPPER(BeamMapper,  "beam_mapper");
 
     KRATOS_REGISTER_MODELER("MappingGeometriesModeler", mMappingGeometriesModeler);
     KRATOS_REGISTER_MODELER("IgaFEMMappingGeometriesModeler", mIgaFEMMappingGeometriesModeler);
