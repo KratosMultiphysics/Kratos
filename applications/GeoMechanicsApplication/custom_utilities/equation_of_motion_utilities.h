@@ -65,20 +65,7 @@ public:
     static BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes> CalculateStiffnessMatrixGPoint(
         const Matrix& rB, const Matrix& rConstitutiveMatrix, double IntegrationCoefficient)
     {
-        const std::size_t strain_size1   = rConstitutiveMatrix.size1(); // rows
-        const std::size_t number_of_dofs = rB.size2();
-
-        Matrix CB(strain_size1, number_of_dofs);
-        noalias(CB) = prod(rConstitutiveMatrix, rB);
-
-        Matrix transposed_B(number_of_dofs, strain_size1);
-        noalias(transposed_B) = trans(rB);
-
-        BoundedMatrix<double, TDim * TNumNodes, TDim * TNumNodes> rStiffness;
-        noalias(rStiffness) = prod(transposed_B, CB);
-
-        rStiffness *= IntegrationCoefficient;
-        return rStiffness;
+        return prod(Matrix(trans(rB)), Matrix(prod(rConstitutiveMatrix, rB))) * IntegrationCoefficient;
     }
 
     static Matrix CalculateStiffnessMatrix(const std::vector<Matrix>& rBs,
