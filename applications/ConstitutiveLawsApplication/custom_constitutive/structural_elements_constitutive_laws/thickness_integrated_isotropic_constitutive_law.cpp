@@ -248,20 +248,24 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterial(
     const Vector& rShapeFunctionsValues
     )
 {
-    // // Resizing first
-    // mConstitutiveLaws.resize(mCombinationFactors.size());
+    KRATOS_TRY
 
-    // // We create the inner constitutive laws
-    // const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     Properties& r_prop = *(it_cl_begin + i_layer);
+    // Resizing first
+    mConstitutiveLaws.resize(mThicknessIntegrationPoints);
 
-    //     KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
-    //     mConstitutiveLaws[i_layer] = r_prop[CONSTITUTIVE_LAW]->Clone();
-    //     mConstitutiveLaws[i_layer]->InitializeMaterial(r_prop, rElementGeometry, rShapeFunctionsValues);
-    // }
+    // We create the inner constitutive laws
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+    auto& r_sub_prop = *(it_cl_begin);
 
-    // KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "ThicknessIntegratedIsotropicConstitutiveLaw: No CL defined" << std::endl;
+    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        KRATOS_ERROR_IF_NOT(r_sub_prop.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
+        mConstitutiveLaws[i_layer] = r_sub_prop[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLaws[i_layer]->InitializeMaterial(r_sub_prop, rElementGeometry, rShapeFunctionsValues);
+    }
+
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "ThicknessIntegratedIsotropicConstitutiveLaw: No CL defined" << std::endl;
+
+    KRATOS_CATCH("InitializeMaterial")
 }
 
 /***********************************************************************************/
