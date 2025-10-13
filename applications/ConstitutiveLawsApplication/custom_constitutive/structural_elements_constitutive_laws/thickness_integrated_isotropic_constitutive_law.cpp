@@ -97,19 +97,20 @@ ThicknessIntegratedIsotropicConstitutiveLaw::~ThicknessIntegratedIsotropicConsti
 
 std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::WorkingSpaceDimension()
 {
-    // IndexType counter = 0;
     SizeType dimension = 2; // Dimension of the 2D plane stress CLs
-    // if (mConstitutiveLaws.size() == 0) return dimension; // In case of not initialized CL
-    // // We perform the check in each layer
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (counter == 0) {
-    //         dimension = p_law->WorkingSpaceDimension();
-    //     } else {
-    //         KRATOS_ERROR_IF_NOT(dimension == p_law->WorkingSpaceDimension()) << "Combining different size laws" << std::endl;
-    //     }
-
-    //     ++counter;
-    // }
+    if (mConstitutiveLaws.size() == 0)
+    return dimension; // In case of not initialized CL
+    
+    // We perform the check in each layer
+    IndexType counter = 0;
+    for (auto& p_law : mConstitutiveLaws) {
+        if (counter == 0) {
+            dimension = p_law->WorkingSpaceDimension();
+        } else {
+            KRATOS_ERROR_IF_NOT(dimension == p_law->WorkingSpaceDimension()) << "Combining different size laws" << std::endl;
+        }
+        ++counter;
+    }
 
     return dimension;
 }
@@ -119,20 +120,22 @@ std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::WorkingSpaceDimension()
 
 std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::GetStrainSize() const
 {
-    IndexType counter = 0;
     SizeType strain_size = 3; // strain size of the 2D plane stress CLs
+    
+    IndexType counter = 0;
+    if (mConstitutiveLaws.size() == 0)
+        return strain_size; // In case of not initialized CL
 
-    // if (mConstitutiveLaws.size() == 0) return strain_size; // In case of not initialized CL
-    // // We perform the check in each layer
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (counter == 0) {
-    //         strain_size = p_law->GetStrainSize();
-    //     } else {
-    //         KRATOS_ERROR_IF_NOT(strain_size == p_law->GetStrainSize()) << "Combining different dimension/voigt size constitutive laws..." << std::endl;
-    //     }
+    // We perform the check in each layer
+    for (auto& p_law : mConstitutiveLaws) {
+        if (counter == 0) {
+            strain_size = p_law->GetStrainSize();
+        } else {
+            KRATOS_ERROR_IF_NOT(strain_size == p_law->GetStrainSize()) << "Combining different dimension/voigt size constitutive laws..." << std::endl;
+        }
 
-    //     ++counter;
-    // }
+        ++counter;
+    }
 
     return strain_size;
 }
