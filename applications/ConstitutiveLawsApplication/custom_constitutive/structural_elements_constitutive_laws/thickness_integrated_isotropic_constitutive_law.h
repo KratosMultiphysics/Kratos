@@ -195,15 +195,31 @@ public:
         }
         return rValue;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("Generic GetValue")
     }
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (boolean)
+     * @brief Returns whether this constitutive Law has specified variable (generic)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<bool>& rThisVariable) override;
+    template<class TDataType>
+    void SetValue(
+        const Variable<TDataType>& rThisVariable,
+        const TDataType& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        KRATOS_TRY
+
+        if (mConstitutiveLaws[0]->Has(rThisVariable)) {
+            for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
+                mConstitutiveLaws[i]->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+            }
+        }
+
+        KRATOS_CATCH("Generic SetValue")
+    }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (integer)
@@ -225,40 +241,6 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector>& rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Matrix)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Matrix>& rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (array of 3 components)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     * @note Fixed size array of 3 doubles (e.g. for 2D stresses, plastic strains, ...)
-     */
-    bool Has(const Variable<array_1d<double, 3 > >& rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (array of 6 components)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     * @note Fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
-     */
-    bool Has(const Variable<array_1d<double, 6 > >& rThisVariable) override;
-
-    /**
-     * @brief Returns the value of a specified variable (boolean)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    bool& GetValue(
-        const Variable<bool>& rThisVariable,
-        bool& rValue
-        ) override;
 
     /**
      * @briefReturns the value of a specified variable (integer)
@@ -294,50 +276,6 @@ public:
         ) override;
 
     /**
-     * @brief Returns the value of a specified variable (Matrix)
-     * @param rThisVariable the variable to be returned
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (array of 3 components)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    array_1d<double, 3 > & GetValue(
-        const Variable<array_1d<double, 3 > >& rThisVariable,
-        array_1d<double, 3 > & rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (array of 6 components)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return the value of the specified variable
-     */
-    array_1d<double, 6 > & GetValue(
-        const Variable<array_1d<double, 6 > >& rThisVariable,
-        array_1d<double, 6 > & rValue
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (boolean)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<bool>& rThisVariable,
-        const bool& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * @brief Sets the value of a specified variable (integer)
      * @param rThisVariable the variable to be returned
      * @param rValue new value of the specified variable
@@ -368,44 +306,8 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<Vector >& rThisVariable,
+        const Variable<Vector>& rThisVariable,
         const Vector& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (Matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<Matrix >& rThisVariable,
-        const Matrix& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (array of 3 components)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<array_1d<double, 3 > >& rThisVariable,
-        const array_1d<double, 3 > & rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (array of 6 components)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<array_1d<double, 6 > >& rThisVariable,
-        const array_1d<double, 6 > & rValue,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 

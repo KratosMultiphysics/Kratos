@@ -112,14 +112,6 @@ std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::GetStrainSize() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<bool>& rThisVariable)
-{
-    return Has<bool>(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<int>& rThisVariable)
 {
     return Has<int>(rThisVariable);
@@ -139,41 +131,6 @@ bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<double>& rT
 bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<Vector>& rThisVariable)
 {
     return Has<Vector>(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<Matrix>& rThisVariable)
-{
-    return Has<Matrix>(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<array_1d<double, 3>> &rThisVariable)
-{
-    return Has<array_1d<double, 3>>(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<array_1d<double, 6>> &rThisVariable)
-{
-    return Has<array_1d<double, 6>>(rThisVariable);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    return GetValue<bool>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -212,65 +169,13 @@ Vector& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
-    )
-{
-    return GetValue<Matrix>(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-array_1d<double, 3 >& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
-    const Variable<array_1d<double, 3 >>& rThisVariable,
-    array_1d<double, 3 >& rValue
-    )
-{
-    return GetValue<array_1d<double, 3>>(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-array_1d<double, 6 >& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
-    const Variable<array_1d<double, 6 >>& rThisVariable,
-    array_1d<double, 6 >& rValue
-    )
-{
-    return GetValue<array_1d<double, 6>>(rThisVariable, rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
-    const Variable<bool>& rThisVariable,
-    const bool& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // We set the value in all layers
-
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    // }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
     const Variable<int>& rThisVariable,
     const int& rValue,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // We set the value in all layers
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    // }
+    SetValue<int>(rThisVariable, rValue, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -282,10 +187,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // We set the value in all layers
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    // }
+    SetValue<double>(rThisVariable, rValue, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -297,57 +199,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // We set the value in all layers
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    // }
+    SetValue<Vector>(rThisVariable, rValue, rCurrentProcessInfo);
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
-    const Variable<Matrix>& rThisVariable,
-    const Matrix& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // We set the value in all layers
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    // }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
-    const Variable<array_1d<double, 3 >>& rThisVariable,
-    const array_1d<double, 3 >& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // We set the value in all layers
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    // }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
-    const Variable<array_1d<double, 6 >>& rThisVariable,
-    const array_1d<double, 6 >& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // We set the value in all layers
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    // }
-}
-
 
 /***********************************************************************************/
 /***********************************************************************************/
