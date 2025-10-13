@@ -73,11 +73,10 @@ public:
     /// The definition of the index type
     using IndexType = std::size_t;
 
-
-    /// The define the working dimension size, already defined in the integrator
+    /// The define the working dimension size, generalized strains/stresses size
     static constexpr SizeType VoigtSize = 8;
 
-    /// The define the Voigt size, already defined in the  integrator
+    /// The Dimension of the CL
     static constexpr SizeType Dimension = 3;
 
     /// Definition of the machine precision tolerance
@@ -96,14 +95,14 @@ public:
 
     /**
      * @brief Constructor with values
-     * @param rCombinationFactors The list of subproperties combination factors
+     * @param rThicknessIntegrationPoints The amount of thickness integration points
      */
-    ThicknessIntegratedIsotropicConstitutiveLaw(const std::vector<double>& rCombinationFactors);
+    ThicknessIntegratedIsotropicConstitutiveLaw(const IndexType rThicknessIntegrationPoints);
 
     /**
      * @brief Copy constructor.
      */
-    ThicknessIntegratedIsotropicConstitutiveLaw (const ThicknessIntegratedIsotropicConstitutiveLaw& rOther);
+    ThicknessIntegratedIsotropicConstitutiveLaw(const ThicknessIntegratedIsotropicConstitutiveLaw &rOther);
 
     /**
      * @brief Destructor.
@@ -453,7 +452,7 @@ public:
         return mConstitutiveLaws;
     }
 
-    std::vector<double>& GetNumberOfThicknessIntegrationPoints()
+    IndexType& GetNumberOfThicknessIntegrationPoints()
     {
         return mThicknessIntegrationPoints;
     }
@@ -473,67 +472,67 @@ public:
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters& rValues) override;
+    void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters& rValues) override;
+    void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK1 (Parameters& rValues) override;
+    void InitializeMaterialResponsePK1(Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2 (Parameters& rValues) override;
+    void InitializeMaterialResponsePK2(Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponseKirchhoff (Parameters& rValues) override;
+    void InitializeMaterialResponseKirchhoff(Parameters& rValues) override;
 
     /**
      * @brief Initialize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void InitializeMaterialResponseCauchy (Parameters& rValues) override;
+    void InitializeMaterialResponseCauchy(Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK1 (Parameters& rValues) override;
+    void FinalizeMaterialResponsePK1(Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponsePK2 (Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff (Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void FinalizeMaterialResponseCauchy (Parameters& rValues) override;
+    void FinalizeMaterialResponseCauchy(Parameters& rValues) override;
 
     /**
      * @brief This can be used in order to reset all internal variables of the
@@ -600,7 +599,7 @@ private:
     ///@{
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
-    Indextype mThicknessIntegrationPoints = 5;               /// The number of thickness integration points
+    IndexType mThicknessIntegrationPoints = 5;               /// The number of thickness integration points
 
     ///@}
     ///@name Private Operators
