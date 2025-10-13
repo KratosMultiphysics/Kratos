@@ -72,13 +72,22 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
         edge_pairs = [
             (0, 1), (1, 2), (2, 3), (3, 0),
             (4, 5), (5, 6), (6, 7), (7, 4),
-            (0, 4), (1, 5), (2, 6), (3, 7)]
+            (0, 4), (1, 5), (2, 6), (3, 7)
+        ]
+
+        # Precompute node neighbours to detect boundary nodes
+        find_neighbours = Kratos.FindGlobalNodalNeighboursProcess(self.model_part)
+        find_neighbours.Execute()
+        node_neighbours = find_neighbours.GetNeighbourIds(self.model_part.Nodes)
+        expected_valence = 17  # internal node in 2D Hexa3D8 structured mesh
 
         element: Kratos.Element
         for element in self.model_part.Elements:
             geom = element.GetGeometry()
             zero_level_set = []
+            corners = []
 
+            # usual zero-crossing along edges
             for (i1, i2) in edge_pairs:
                 n1 = geom[i1]
                 n2 = geom[i2]
@@ -90,22 +99,19 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                     p_int = self.InterpolateZeroCrossing(n1, n2, phi1, phi2)
                     zero_level_set.append(p_int)
 
-                # go to next node of this element
-            # now we have a list of level set points of current element and can create a surface inbetween the points
-            # print(f"Intersection points: {len(zero_level_set)}")
-            if len(zero_level_set) > 0:
-                self.FindSurfaces(mp_interface, zero_level_set)
+            # include boundary nodes that are part of material
+            for node in geom:
+                phi = control_field[node.Id - 1]
+                num_neigh = len(node_neighbours[node.Id])
+                # print(f"NEIGHBOURS: {num_neigh}")
+                if num_neigh == 11 and phi >= 0.0:
+                    zero_level_set.append((node.X0, node.Y0, node.Z0))
+                elif num_neigh == 7 and phi >= 0.0:
+                    corners.append((node.X0, node.Y0, node.Z0))
 
-    def FindIntersectionPoints_old(self, node1: Kratos.Node, node2: Kratos.Node) -> tuple:
-        control_field = Kratos.Expression.NodalExpression(self.model_part)
-        control_field = self.control_field.Evaluate()
-        d_phi = abs(control_field[node1.Id - 1] - control_field[node2.Id - 1])
-        d_x = abs(node1.X0 - node2.X0) / d_phi * abs(control_field[node1.Id - 1])
-        d_y = abs(node1.Y0 - node2.Y0) / d_phi * abs(control_field[node1.Id - 1])
-        d_z = abs(node1.Z0 - node2.Z0) / d_phi * abs(control_field[node1.Id - 1])
-        intersection_point = (node1.X0 + d_x, node1.Y0 + d_y, node1.Z0 + d_z)
-        return intersection_point
-    
+            # create surfaces if any intersection points exist
+            if len(zero_level_set) > 0:
+                self.FindSurfaces(mp_interface, zero_level_set, corners)
     
     def InterpolateZeroCrossing(self, node1: Kratos.Node, node2: Kratos.Node, phi1: float, phi2: float):
         lmbd = phi1 / (phi1 - phi2)
@@ -114,45 +120,70 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
         z = node1.Z0 - lmbd * (node1.Z0 - node2.Z0)
         return (x, y, z)
 
-    def FindSurfaces(self, mp_interface: Kratos.ModelPart, zero_level_set: list) -> None:
+    def FindSurfaces(self, mp_interface: Kratos.ModelPart, zero_level_set: list, corners: list = []) -> None:
         prop = mp_interface.GetProperties(2)
         i = mp_interface.NumberOfNodes()
         j = mp_interface.NumberOfConditions()
+        n = len(zero_level_set)
 
-        if len(zero_level_set) == 8:
-            # all values are 0, first step 
-            return 0
+        node_ids = []
+        for k in range(n):
+            i += 1
+            mp_interface.CreateNewNode(i, zero_level_set[k][0], zero_level_set[k][1], zero_level_set[k][2])
+            node_ids.append(i)
+        if corners == []:
+            if n == 2:
+                mp_interface.CreateNewCondition("LineCondition3D2N", j + 1, node_ids, prop)
+            elif n == 3:
+                mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 1, node_ids, prop)
+            elif n == 4:
+                # Find triangulation
+                distances = {}
+                for l in range(3):
+                    for k in range(l + 1, 4):
+                        node1 = zero_level_set[l]
+                        node2 = zero_level_set[k]
+                        distance = sum((node1[dim] - node2[dim])**2 for dim in range(3))
+                        distances[distance] = (node_ids[l], node_ids[k])
+                furthest = max(distances)
+                a, b = distances[furthest]
 
-        for k in range(len(zero_level_set)):
-            mp_interface.CreateNewNode(i + k + 1, zero_level_set[k][0], zero_level_set[k][1], zero_level_set[k][2])
+                # Collect all node indices
+                all_nodes = set(node_ids)
 
-        if len(zero_level_set) == 2:
-            mp_interface.CreateNewCondition("LineCondition3D2N", j + 1, [i + 1, i + 2], prop)
-        elif len(zero_level_set) == 3:
-            mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 1, [i + 1, i + 2, i + 3], prop)
-        elif len(zero_level_set) == 4:
-            # Find triangulation
-            distances = {}
-            for l in range(3):
-                for k in range(l + 1, 4):
-                    node1 = zero_level_set[l]
-                    node2 = zero_level_set[k]
-                    distance = (node1[0] - node2[0])**2 + (node1[1] - node2[1])**2 +(node1[2] - node2[2])**2
-                    distances[distance] = (i + l + 1, i + k + 1)
-            furthest = max(distances)
-            a, b = distances[furthest]
+                # Remaining two nodes (not in the longest diagonal)
+                remaining = list(all_nodes - {a, b})
+                c, d = remaining[0], remaining[1]
 
-            # Collect all node indices
-            all_nodes = {i+1, i+2, i+3, i+4}
-
-            # Remaining two nodes (not in the longest diagonal)
-            remaining = list(all_nodes - {a, b})
-            c, d = remaining[0], remaining[1]
-
-            # Create two triangle conditions sharing the shorter diagonal (c,d)
-            mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 1, [a, c, d], prop)
-            mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 2, [b, c, d], prop)
-
-            # mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [i + 1, i + 2, i + 3, i + 4], prop)
+                mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [a, c, b, d], prop)
+                # # Create two triangle conditions sharing the shorter diagonal (c,d)
+                # mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 1, [a, c, d], prop)
+                # mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 2, [b, c, d], prop)
+            else:
+                Kratos.Logger.PrintWarning("InterfaceOutputProcess", f"Element produced {n} intersections — not handled.")
         else:
-            raise RuntimeError(f"More than 4 intersection points in one element ({len(zero_level_set)} points). No implementation yet.")
+            if len(corners) != 2:
+                raise RuntimeError("Expected exactly 2 corner nodes for corner elements.")
+            corner_node_ids = []
+            for k in range(2):
+                i += 1
+                mp_interface.CreateNewNode(i, corners[k][0], corners[k][1], corners[k][2])
+                corner_node_ids.append(i)
+            # corner case: split 6 nodes into 2 quads -> 4 triangles
+            # raise RuntimeError(f"Essa: {coords}\n {node_ids}")
+            distances = {}
+            for k in range(1,4):
+                node1 = 0
+                node2 = k
+                d = sum((zero_level_set[node1][dim] - zero_level_set[node2][dim]) ** 2 for dim in range(3))
+                #save distance from node 0 to all other non corner nodes by id
+                distances[d] = node_ids[node2]
+            # 2 highest distances belong to another face, c is with checked node
+            a = distances.pop(max(distances))
+            b = distances.pop(max(distances))
+            c = distances[max(distances)]
+            d = node_ids[0]
+
+            # Order each quad along longest diagonal
+            mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [a, b, corner_node_ids[0], corner_node_ids[1]], prop)
+            mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, [c, d, corner_node_ids[0], corner_node_ids[1]], prop)
