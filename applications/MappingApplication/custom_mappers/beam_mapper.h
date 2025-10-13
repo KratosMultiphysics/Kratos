@@ -7,20 +7,26 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher, Jordi Cotela
+//  Main authors:    Philipp Bucher, Juan Ignacio Camarotti
 //
-// See Master-Thesis P.Bucher
-// "Development and Implementation of a Parallel
-//  Framework for Non-Matching Grid Mapping"
+// See PhD Thesis Tianyang Wang Chapter 5
 
-#pragma once
+#if !defined(KRATOS_BEAM_MAPPER_H_INCLUDED )
+#define  KRATOS_BEAM_MAPPER_H_INCLUDED
 
 // System includes
 
 // External includes
+#include "utilities/math_utils.h"
 
 // Project includes
-#include "interpolative_mapper_base.h"
+#include "mappers/mapper.h"
+#include "custom_searching/interface_communicator.h"
+#include "custom_utilities/interface_vector_container.h"
+#include "custom_utilities/mapper_local_system.h"
+
+#include "custom_utilities/projection_utilities.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -30,14 +36,18 @@ namespace Kratos
 class KRATOS_API(MAPPING_APPLICATION) BeamMapperInterfaceInfo : public MapperInterfaceInfo
 {
 public:
+    typedef Kratos::shared_ptr<InterfaceObject> InterfaceObjectPointerType;
+    typedef Matrix MatrixType;
+    typedef Vector VectorType;
 
     /// Default constructor.
-    BeamMapperInterfaceInfo() {}
+    explicit BeamMapperInterfaceInfo(const double LocalCoordTol=0.0) : mLocalCoordTol(LocalCoordTol) {}
 
     explicit BeamMapperInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                  const IndexType SourceLocalSystemIndex,
-                                 const IndexType SourceRank)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
+                                 const IndexType SourceRank,
+                                 const double LocalCoordTol=0.0)
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank), mLocalCoordTol(LocalCoordTol) {}
 
     MapperInterfaceInfo::Pointer Create() const override
     {
@@ -51,12 +61,13 @@ public:
         return Kratos::make_shared<BeamMapperInterfaceInfo>(
             rCoordinates,
             SourceLocalSystemIndex,
-            SourceRank);
+            SourceRank,
+            mLocalCoordTol);
     }
 
     InterfaceObject::ConstructionType GetInterfaceObjectType() const override
     {
-        return InterfaceObject::ConstructionType::Node_Coords;
+        return InterfaceObject::ConstructionType::Geometry_Center;
     }
 
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
@@ -64,7 +75,7 @@ public:
     void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
     {
-        rValue = mBeamMapperId;
+        rValue = mNodeIds;
     }
 
     void GetValue(double& rValue,
@@ -73,33 +84,126 @@ public:
         rValue = mBeamMapperDistance;
     }
 
+    void GetValue(std::vector<double>& rValue,
+                  const InfoType ValueType) const override
+    {
+        std::vector<double> vector = mLinearShapeFunctionValues;
+        vector.insert(vector.end(), mHermitianShapeFunctionValues.begin(), mHermitianShapeFunctionValues.end());
+        vector.insert(vector.end(), mHermitianShapeFunctionValuesDerivatives.begin(), mHermitianShapeFunctionValuesDerivatives.end());
+
+        rValue = vector;
+    }
+
+    void GetValue(int& rValue,
+                  const InfoType ValueType) const override
+    {   
+        rValue = (int)mPairingIndex;
+    }
+
+    // void GetValue(double& rValue,
+    //               const InfoType ValueType) const override
+    // {   
+    //     rValue = mClosestProjectionDistance;
+    // }
+
+    void GetValue(GeometryType& rValue,
+                  const InfoType ValueType) const override
+    {
+        rValue = *(mpInterfaceObject->pGetBaseGeometry());
+    }
+
+    void GetValue(MatrixType& rotMatrixValue, 
+                  VectorType& transVectorValue,
+                  VectorType& linearValue, 
+                  VectorType& hermitianValue, 
+                  VectorType& hermitanDerValue) const override 
+    {
+        rotMatrixValue = mRotationMatrixOfBeam;
+
+        transVectorValue(0) = mProjectionOfPoint[0];
+        transVectorValue(1) = mProjectionOfPoint[1];
+        transVectorValue(2) = mProjectionOfPoint[2];
+        
+        linearValue(0) = mLinearShapeFunctionValues[0];
+        linearValue(1) = mLinearShapeFunctionValues[1];
+
+        for (size_t i = 0; i < 4; i++){
+            hermitianValue(i) = mHermitianShapeFunctionValues[i];
+            hermitanDerValue(i) = mHermitianShapeFunctionValuesDerivatives[i];
+        }
+    }
+
+    void ComputeRotationMatrixInterfaceObject() override
+    {
+        //ComputeRotationMatrix();
+    }
+
+
 private:
+
+    double mLocalCoordTol; 
+    std::vector<int> mNodeIds;
+
+    std::vector<double> mLinearShapeFunctionValues;
+    std::vector<double> mHermitianShapeFunctionValues;
+    std::vector<double> mHermitianShapeFunctionValuesDerivatives;
+
+    Point mProjectionOfPoint; // Point that results form the projection of the surface node on the beam
+
+    double mClosestProjectionDistance = std::numeric_limits<double>::max(); // Distance between the surface node and the beam
+    ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
+
+    InterfaceObjectPointerType mpInterfaceObject;
+
+    MatrixType mRotationMatrixOfBeam;
+
 
     std::vector<int> mBeamMapperId = {};
     double mBeamMapperDistance = std::numeric_limits<double>::max();
+
+    void SaveSearchResult(const InterfaceObject& rInterfaceObject,
+                          const bool ComputeApproximation);
+
+    // This computes the rotation matrix of the beam pointed by mpInterfaceObject
+    void ComputeRotationMatrix(); 
 
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
-        rSerializer.save("BeamMapperId", mBeamMapperId);
-        rSerializer.save("BeamMapperDistance", mBeamMapperDistance);
+        rSerializer.save("NodeIds", mNodeIds);
+        rSerializer.save("LSFValues", mLinearShapeFunctionValues);
+        rSerializer.save("HSFValues", mHermitianShapeFunctionValues);
+        rSerializer.save("HSFDValues", mHermitianShapeFunctionValuesDerivatives);
+        rSerializer.save("ClosestProjectionDistance", mClosestProjectionDistance);
+        rSerializer.save("PairingIndex", (int)mPairingIndex);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
-        rSerializer.load("BeamMapperId", mBeamMapperId);
-        rSerializer.load("BeamMapperDistance", mBeamMapperDistance);
+        rSerializer.load("NodeIds", mNodeIds);
+        rSerializer.load("LSFValues", mLinearShapeFunctionValues);
+        rSerializer.load("HSFValues", mHermitianShapeFunctionValues);
+        rSerializer.load("HSFDValues", mHermitianShapeFunctionValuesDerivatives);
+        rSerializer.load("ClosestProjectionDistance", mClosestProjectionDistance);
+        int temp;
+        rSerializer.load("PairingIndex", temp);
+        mPairingIndex = (ProjectionUtilities::PairingIndex)temp;
     }
 };
 
 class KRATOS_API(MAPPING_APPLICATION) BeamMapperLocalSystem : public MapperLocalSystem
 {
 public:
+    typedef Vector VectorType;
+    typedef Kratos::shared_ptr<BeamMapperInterfaceInfo> BeamMapperInterfaceInfoPointerType;
 
-    explicit BeamMapperLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
+    explicit BeamMapperLocalSystem(NodePointerType pNode) : mpNode(pNode) {
+        VectorType zeroVector(3, 0.0);
+        mRotationVectorOfSection = zeroVector;
+    }
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
                       EquationIdVectorType& rOriginIds,
@@ -108,8 +212,41 @@ public:
 
     CoordinatesArrayType& Coordinates() const override
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         return mpNode->Coordinates();
+    }
+
+    void CalculateRotationMatrixInterfaceInfos(MatrixType& rRotationMatrix_G_B,
+                                               VectorType& rTranslationVector_B_P,
+                                               VectorType& rLinearShapeValues,
+                                               VectorType& rHermitianShapeValues,
+                                               VectorType& rHermitianDerShapeValues,
+                                               GeometryType& rGeom,
+                                               NodePointerType& pNode) override
+    {
+        for( auto& r_interface_info : mInterfaceInfos ){ // I think this mInterfaceInfos is size 1
+            pNode = mpNode;
+            r_interface_info->ComputeRotationMatrixInterfaceObject();
+            r_interface_info->GetValue(rRotationMatrix_G_B, rTranslationVector_B_P, rLinearShapeValues, rHermitianShapeValues, rHermitianDerShapeValues);
+            r_interface_info->GetValue(rGeom,  MapperInterfaceInfo::InfoType::Dummy);
+            
+            const Point point_to_proj(mpNode->Coordinates());
+            Point projection_point;
+            GeometricalProjectionUtilities::FastProjectOnLine(rGeom, point_to_proj, projection_point);
+            rTranslationVector_B_P = projection_point;
+        }
+    }
+
+    void SaveRotationVectorValue(const VectorType& rotationVector) override
+    {
+        mRotationVectorOfSection = rotationVector;
+    }
+
+    void GetValue(VectorType& rotVectorValue) override
+    {
+        rotVectorValue(0) = mRotationVectorOfSection(0);
+        rotVectorValue(1) = mRotationVectorOfSection(1);
+        rotVectorValue(2) = mRotationVectorOfSection(2);
     }
 
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
@@ -123,19 +260,28 @@ public:
 
 private:
     NodePointerType mpNode;
-
+    VectorType mRotationVectorOfSection;
+    mutable ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
+    double mTheta;
 };
 
-/// Nearest Neighbor Mapper
-/** This class implements the Nearest Neighbor Mapping technique.
-* Each node on the destination side gets assigned is's closest neighbor on the other side of the interface.
-* In the mapping phase every node gets assigned the value of it's neighbor
-* For information abt the available echo_levels and the JSON default-parameters
-* look into the class description of the MapperCommunicator
+/// Beam Mapper
+/** This class implements the Beam Mapping technique.
+ * It is based on the work of T. Wang (PhD Thesis, Chapter 5)
+ * and allows to map from a surface mesh to a beam mesh and vice versa.
+ * The mapping is performed in a way that displacement and rotation
+ * variables are mapped from the beam to the surface mesh and force
+ * and moment variables are mapped from the surface mesh to the beam.
+ * The mapping is consistent in a way that mechanical work is conserved.
+ * This mapper can be used for example to couple a 3D continuum
+ * structure with a 1D beam structure.
+ * This mapper currently only works for linear beams (2-noded elements).
+ * The implementation is done in a way that it could be extended to
+ * higher order beams in the future.
 */
-template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
+template<class TSparseSpace, class TDenseSpace>
 class KRATOS_API(MAPPING_APPLICATION) BeamMapper
-    : public InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>
+    : public Mapper<TSparseSpace, TDenseSpace>
 {
 public:
 
@@ -147,38 +293,69 @@ public:
     /// Pointer definition of BeamMapper
     KRATOS_CLASS_POINTER_DEFINITION(BeamMapper);
 
-    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
-    typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
+    typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
 
+    typedef Kratos::unique_ptr<InterfaceCommunicator> InterfaceCommunicatorPointerType;
+    typedef typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
+
+    typedef InterfaceVectorContainer<TSparseSpace, TDenseSpace> InterfaceVectorContainerType;
+    typedef Kratos::unique_ptr<InterfaceVectorContainerType> InterfaceVectorContainerPointerType;
+
+    typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
+    typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
+
+    typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
+    typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
+    typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
+
+    // my typedefs
+    typedef typename TDenseSpace::MatrixType MatrixType;
+    typedef std::vector<MatrixType> RotationMatrixVector;
+    typedef typename TDenseSpace::VectorType VectorType; 
+
+    typedef Variable<double> ComponentVariableType;
+    typedef InterfaceObject::GeometryType GeometryType;
+    typedef InterfaceObject::GeometryPointerType GeometryPointerType;
+
+    typedef InterfaceObject::NodeType NodeType;
+    typedef InterfaceObject::NodePointerType NodePointerType;
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Default constructor, needed for registration
     BeamMapper(ModelPart& rModelPartOrigin,
-                          ModelPart& rModelPartDestination)
-                          : BaseType(rModelPartOrigin, rModelPartDestination) {}
+               ModelPart& rModelPartDestination):
+               mrModelPartOrigin(rModelPartOrigin),
+               mrModelPartDestination(rModelPartDestination) {}
 
     BeamMapper(ModelPart& rModelPartOrigin,
-                          ModelPart& rModelPartDestination,
-                          Parameters JsonParameters)
-                          : BaseType(rModelPartOrigin,
-                                     rModelPartDestination,
-                                     JsonParameters)
+               ModelPart& rModelPartDestination,
+               Parameters JsonParameters):
+               mrModelPartOrigin(rModelPartOrigin),
+               mrModelPartDestination(rModelPartDestination),
+               mMapperSettings(JsonParameters)
+                          
     {
         KRATOS_TRY;
 
-        auto check_has_nodes = [](const ModelPart& rModelPart){
-            if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
-                KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfNodes() == 0) << "No nodes exist in ModelPart \"" << rModelPart.FullName() << "\"" << std::endl;
-            }
-        };
-        check_has_nodes(rModelPartOrigin);
-        check_has_nodes(rModelPartDestination);
+        mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin);
+        mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination);
 
-        this->ValidateInput();
-        this->Initialize();
+        // ValidateInput();
+        
+        // Not so sure for what it is, but I'll leave it here
+        mLocalCoordTol = JsonParameters["local_coord_tolerance"].GetDouble();
+        KRATOS_ERROR_IF(mLocalCoordTol < 0.0) << "The local_coord_tolerance cannot be negative" << std::endl;
+        
+        //  In this function the search task is done, and the parameters for the local systems are stored
+        // MapperInterfaceInfo has:
+        // 1. A beam id to relate
+        // 2. a t_B_P
+        // 3. linear and hermitean interpolation values
+        // 4. its own position in GCS space
+
+        // Initialize();
 
         KRATOS_CATCH("");
     }
@@ -190,13 +367,72 @@ public:
     ///@name Operations
     ///@{
 
+    void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius) override
+    {
+        // // Set the Flags according to the type of remeshing
+        // if (MappingOptions.Is(MapperFlags::REMESHED)) {
+        //     InitializeInterface(MappingOptions);
+        // }
+        // else {
+        //     BuildProblem(MappingOptions); // in interpolative_mapper_base this is BuildMappingMatrix
+        // }
+    }
+
+    void Map( const Variable< array_1d<double, 3> >& rOriginVariablesDisplacements, 
+              const Variable< array_1d<double, 3> >& rOriginVariablesRotations,
+              const Variable< array_1d<double, 3> >& rDestinationVariable, 
+              Kratos::Flags MappingOptions)
+    {
+        // if (mMapperSettings["use_corotation"].GetBool() == false)
+        // {
+        //     MapInternal( rOriginVariablesDisplacements, rOriginVariablesRotations, rDestinationVariable, MappingOptions );
+        // }
+        // else
+        // {
+        //     MapInternalCorotation ( rOriginVariablesDisplacements, rOriginVariablesRotations, rDestinationVariable, MappingOptions );
+        // }        
+    }
+
+    void Map( const Variable<double>& rOriginVariable, const Variable<double>& rDestinationVariable,
+              Kratos::Flags MappingOptions) override
+    {
+        KRATOS_ERROR << "This function is not supported for the Beam-Mapper!" << std::endl;
+    }
+
+    void Map( const Variable< array_1d<double, 3> >& rOriginVariable, const Variable< array_1d<double, 3> >& rDestinationVariable,
+              Kratos::Flags MappingOptions) override
+    {
+        KRATOS_ERROR << "This function is not supported for the Beam-Mapper!" << std::endl;
+    }
+
+    void InverseMap( const Variable<double>& rOriginVariable, const Variable<double>& rDestinationVariable, 
+                     Kratos::Flags MappingOptions) override
+    {
+        KRATOS_ERROR << "This function is not supported for the Beam-Mapper!" << std::endl;
+    }
+
+    void InverseMap( const Variable< array_1d<double, 3> >& rOriginVariable, const Variable< array_1d<double, 3> >& rDestinationVariable,
+                     Kratos::Flags MappingOptions) override
+    {
+        KRATOS_ERROR << "This function is not supported for the Beam-Mapper!" << std::endl;
+    }
+
+    void InverseMap( const Variable< array_1d<double, 3> >& rOriginVariablesForces, 
+                     const Variable< array_1d<double, 3> >& rOriginVariablesMoments,
+                     const Variable< array_1d<double, 3> >& rDestinationVaribleForces,
+                     Kratos::Flags MappingOptions)
+    {
+        // InitializeOriginForcesAndMoments(rOriginVariablesForces, rOriginVariablesMoments);
+        // InitializeInformationBeamsInverse(rOriginVariablesForces, rOriginVariablesMoments, rDestinationVaribleForces, MappingOptions);
+    }
+
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
     {
         KRATOS_TRY;
 
-        return Kratos::make_unique<BeamMapper<TSparseSpace, TDenseSpace, TMapperBackend>>(
+        return Kratos::make_unique<BeamMapper<TSparseSpace, TDenseSpace>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);
@@ -205,14 +441,24 @@ public:
     }
 
     ///@}
+    ///@name Access
+    ///@{
+
+    // TMappingMatrixType* pGetMappingMatrix() override
+    // {
+    //     KRATOS_ERROR << "This function is not supported by beam-mapper" << std::endl;
+    //     //return mpMappingMatrix.get();
+    // }
+
+    ///@}
     ///@name Inquiry
     ///@{
 
-    int AreMeshesConforming() const override
-    {
-        KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
-        return BaseType::mMeshesAreConforming;
-    }
+    // int AreMeshesConforming() const override
+    // {
+    //     KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
+    //     return BaseType::mMeshesAreConforming;
+    // }
 
     ///@}
     ///@name Input and output
@@ -236,34 +482,96 @@ public:
         BaseType::PrintData(rOStream);
     }
 
+    void ValidateInput();
+
+    void Initialize();
+
 private:
+    ///@name Member Variables
+    ///@{
+    ModelPart& mrModelPartOrigin;
+    ModelPart& mrModelPartDestination;
+
+    Parameters mMapperSettings;
+
+    MapperLocalSystemPointerVector mMapperLocalSystems;
+
+    InterfaceCommunicatorPointerType mpIntefaceCommunicator;
+
+    RotationMatrixVector mRotationMatrixOfBeams;
+
+    double mLocalCoordTol;
+
+    InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
+    InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
 
     ///@name Private Operations
     ///@{
+    void InitializeInterfaceCommunicator();
+
+    void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
+
+    void InitializeInformationBeams(const Variable<array_1d<double, 3>>& rOriginVariablesDisplacements,
+                                    const Variable<array_1d<double, 3>>& rOriginVariablesRotations,
+                                    const Variable<array_1d<double, 3>>& rDestinationVariableDisplacement);
+    
+    void InitializeInformationBeamsCorotation(const Variable<array_1d<double, 3>>& rOriginVariablesDisplacements,
+                                    const Variable<array_1d<double, 3>>& rOriginVariablesRotations,
+                                    const Variable<array_1d<double, 3>>& rDestinationVariableDisplacement);
+
+    void InitializeInformationBeamsInverse(const Variable< array_1d<double, 3> >& rOriginVariablesForces,
+                                    const Variable<array_1d<double, 3>>& rOriginVariablesMoments,
+                                    const Variable<array_1d<double, 3>>& rDestinationVariableForces,
+                                    const Kratos::Flags& rMappingOptions);
+
+    void InitializeOriginForcesAndMoments(const Variable<array_1d<double, 3>>& rOriginVariablesForces,
+                                    const Variable<array_1d<double, 3>>& rOriginVariablesMoments);
+
+    void BuildProblem(Kratos::Flags MappingOptions = Kratos::Flags()); // in interpolative_mapper_base this is BuildMappingMatrix
 
     void CreateMapperLocalSystems(
         const Communicator& rModelPartCommunicator,
-        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
+        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
     {
-        MapperUtilities::CreateMapperLocalSystemsFromNodes(
+       MapperUtilities::CreateMapperLocalSystemsFromNodes(
             BeamMapperLocalSystem(nullptr),
             rModelPartCommunicator,
             rLocalSystems);
     }
 
-    MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
+    void MapInternal(const Variable< array_1d<double, 3> >& rOriginVariablesDisplacements,
+                     const Variable< array_1d<double, 3> >& rOriginVariablesRotations,
+                     const Variable< array_1d<double, 3> >& rDestinationVariableDisplacement,
+                     Kratos::Flags MappingOptions)
+    {   
+        InitializeInformationBeams(rOriginVariablesDisplacements, rOriginVariablesRotations, rDestinationVariableDisplacement);
+    }
+
+    void MapInternalCorotation(const Variable< array_1d<double, 3> >& rOriginVariablesDisplacements,
+                               const Variable< array_1d<double, 3> >& rOriginVariablesRotations,
+                               const Variable< array_1d<double, 3> >& rDestinationVariableDisplacement,
+                               Kratos::Flags MappingOptions)
+    {
+        InitializeInformationBeamsCorotation(rOriginVariablesDisplacements, rOriginVariablesRotations, rDestinationVariableDisplacement);
+    }
+    
+    void CalculateRotationMatrixWithAngle( VectorType& rAxis, double& rAngle , MatrixType& rRotationMatrix);
+
+    void getRotationVector(const MatrixType& rotationMatrix, VectorType& rotationVector);
+
+    MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const 
     {
         return Kratos::make_unique<BeamMapperInterfaceInfo>();
     }
 
-    Parameters GetMapperDefaultSettings() const override
+    Parameters GetMapperDefaultSettings() const 
     {
         return Parameters( R"({
-            "search_settings"              : {},
-            "use_initial_configuration"    : false,
-            "echo_level"                   : 0,
-            "print_pairing_status_to_file" : false,
-            "pairing_status_file_path"     : ""
+            "search_radius"            : -1.0,
+            "search_iterations"        : 3,
+            "local_coord_tolerance"    : 0.25,
+            "echo_level"               : 0,
+            "use_corotation"           : true
         })");
     }
 
@@ -273,3 +581,5 @@ private:
 
 ///@} addtogroup block
 }  // namespace Kratos.
+
+#endif // KRATOS_BEAM_MAPPER_H_INCLUDED  defined
