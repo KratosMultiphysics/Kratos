@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "thickness_integrated_constitutive_law.h"
+#include "thickness_integrated_isotropic_constitutive_law.h"
 // #include "constitutive_laws_application_variables.h"
 // #include "custom_utilities/tangent_operator_calculator_utility.h"
 // #include "custom_utilities/advanced_constitutive_law_utilities.h"
@@ -29,7 +29,6 @@ namespace Kratos
 /******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
 ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::ThicknessIntegratedIsotropicConstitutiveLaw()
     : ConstitutiveLaw()
 {
@@ -38,42 +37,32 @@ ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::ThicknessIntegratedIsotropicC
 /******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::ThicknessIntegratedIsotropicConstitutiveLaw(const std::vector<double>& rCombinationFactors) : ConstitutiveLaw()
+ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::ThicknessIntegratedIsotropicConstitutiveLaw(
+    const IndexType& rThicknessIntegrationPoints
+    ) :
+    ConstitutiveLaw()
 {
-    // We compute the proportion of the factors (must be over 1)
-    double aux_factor = 0.0;
-    for (IndexType i_layer = 0; i_layer < rCombinationFactors.size(); ++i_layer) {
-        aux_factor += rCombinationFactors[i_layer];
-    }
+    KRATOS_ERROR_IF(rThicknessIntegrationPoints <= 0) << "Wrong number of integration points through the thickness... " << std::endl;
 
-    KRATOS_ERROR_IF(aux_factor < std::numeric_limits<double>::epsilon()) << "Wrong factors in ThicknessIntegratedIsotropicConstitutiveLaw" << std::endl;
-
-    // Resize
-    mCombinationFactors.resize(rCombinationFactors.size());
-
-    // We fill the maps
-    for (IndexType i_layer = 0; i_layer < rCombinationFactors.size(); ++i_layer) {
-        mCombinationFactors[i_layer] = rCombinationFactors[i_layer]/aux_factor;
-    }
+    if (rThicknessIntegrationPoints != 5) // 5 is the default
+        mThicknessIntegrationPoints = rThicknessIntegrationPoints;
 }
 
 /******************************COPY CONSTRUCTOR*************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::ThicknessIntegratedIsotropicConstitutiveLaw(const ThicknessIntegratedIsotropicConstitutiveLaw<TDim>& rOther)
+ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::ThicknessIntegratedIsotropicConstitutiveLaw(
+    const ThicknessIntegratedIsotropicConstitutiveLaw &rOther)
     : ConstitutiveLaw(rOther),
       mConstitutiveLaws(rOther.mConstitutiveLaws),
-      mCombinationFactors(rOther.mCombinationFactors)
+      mThicknessIntegrationPoints(rOther.mThicknessIntegrationPoints)
 {
 }
 
 /********************************CLONE**********************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-ConstitutiveLaw::Pointer ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::Clone() const
+ConstitutiveLaw::Pointer ThicknessIntegratedIsotropicConstitutiveLaw::Clone() const
 {
     return Kratos::make_shared<ThicknessIntegratedIsotropicConstitutiveLaw>(*this);
 }
@@ -81,22 +70,16 @@ ConstitutiveLaw::Pointer ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::Clon
 /*******************************CONSTRUCTOR*****************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-ConstitutiveLaw::Pointer ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::Create(Kratos::Parameters NewParameters) const
+ConstitutiveLaw::Pointer ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::Create(
+    Kratos::Parameters NewParameters
+) const
 {
-    // We do some checks
-    KRATOS_ERROR_IF_NOT(NewParameters.Has("combination_factors")) << "ThicknessIntegratedIsotropicConstitutiveLaw: Please define combination_factors" << std::endl;
 
-    const SizeType number_of_factors = NewParameters["combination_factors"].size();
-
-    // We create the vectors
-    std::vector<double> combination_factors(number_of_factors);
-
-    for (IndexType i_layer = 0; i_layer < number_of_factors; ++i_layer) {
-        combination_factors[i_layer] = NewParameters["combination_factors"][i_layer].GetDouble();
+    if (NewParameters.Has("thickness_integration_points")) {
+        const IndexType thickness_integration_points = NewParameters["thickness_integration_points"].GetInt();
+        KRATOS_ERROR_IF(thickness_integration_points <= 0) << "Wrong number of integration points through the thickness... " << std::endl;
+        mThicknessIntegrationPoints = thickness_integration_points;
     }
-
-    KRATOS_ERROR_IF(number_of_factors == 0) << "Please define the combination factors" << std::endl;
 
     // We create the law
     return Kratos::make_shared<ThicknessIntegratedIsotropicConstitutiveLaw>(combination_factors);
@@ -105,16 +88,14 @@ ConstitutiveLaw::Pointer ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::Crea
 //*******************************DESTRUCTOR*******************************************
 /***********************************************************************************/
 
-template<unsigned int TDim>
-ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::~ThicknessIntegratedIsotropicConstitutiveLaw()
+ThicknessIntegratedIsotropicConstitutiveLaw::~ThicknessIntegratedIsotropicConstitutiveLaw()
 {
-};
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-std::size_t ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::WorkingSpaceDimension()
+std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::WorkingSpaceDimension()
 {
     IndexType counter = 0;
     SizeType dimension = 3;
@@ -136,8 +117,7 @@ std::size_t ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::WorkingSpaceDimen
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim>
-std::size_t ThicknessIntegratedIsotropicConstitutiveLaw<TDim>::GetStrainSize() const
+std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::GetStrainSize() const
 {
     IndexType counter = 0;
     SizeType strain_size = 6;
