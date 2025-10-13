@@ -169,6 +169,36 @@ public:
     }
 
     /**
+     * @brief Returns whether this constitutive Law has specified variable (generic)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    template<class TDataType>
+    TDataType& GetValue(
+        const Variable<TDataType>& rThisVariable,
+        TDataType& rValue
+        )
+    {
+        KRATOS_TRY
+
+        IndexType number_of_laws = mConstitutiveLaws.size();
+        KRATOS_ERROR_IF(number_of_laws == 0) << "No constitutive laws defined for thickness integration" << std::endl;
+        TDataType ip_value;
+        if (mConstitutiveLaws[0]->Has(rThisVariable)) {
+            mConstitutiveLaws[0]->GetValue(rThisVariable, rValue);
+
+            for (IndexType i = 1; i < number_of_laws; ++i) {
+                mConstitutiveLaws[i]->GetValue(rThisVariable, ip_value);
+                rValue += ip_value;
+            }
+            rValue /= static_cast<double>(number_of_laws);
+        }
+        return rValue;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Returns whether this constitutive Law has specified variable (boolean)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law

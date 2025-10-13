@@ -152,37 +152,17 @@ bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<Matrix>& rT
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
+bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<array_1d<double, 3>> &rThisVariable)
 {
-    // At least one layer should have the value
-    bool has = false;
-
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (p_law->Has(rThisVariable)) {
-    //         has = true;
-    //         break;
-    //     }
-    // }
-
-    return has;
+    return Has<array_1d<double, 3>>(rThisVariable);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
+bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<array_1d<double, 6>> &rThisVariable)
 {
-    // At least one layer should have the value
-    bool has = false;
-
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (p_law->Has(rThisVariable)) {
-    //         has = true;
-    //         break;
-    //     }
-    // }
-
-    return has;
+    return Has<array_1d<double, 6>>(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -193,15 +173,7 @@ bool& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     bool& rValue
     )
 {
-    // At least one layer should have the value
-    rValue = false;
-
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (p_law->GetValue(rThisVariable, rValue))
-    //         break;
-    // }
-
-    return rValue;
+    return GetValue<bool>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -212,17 +184,7 @@ int& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     int& rValue
     )
 {
-    // At least one layer should have the value
-    rValue = 0;
-
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (p_law->Has(rThisVariable)) {
-    //         p_law->GetValue(rThisVariable, rValue);
-    //         break;
-    //     }
-    // }
-
-    return rValue;
+    return GetValue<int>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -233,20 +195,7 @@ double& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     double& rValue
     )
 {
-    // We combine the values of the layers
-    // rValue = 0.0;
-    // double aux_value;
-    // for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //     const double factor = mCombinationFactors[i_layer];
-
-    //     // we average over the layers
-    //     if (p_law->Has(rThisVariable)) {
-    //         p_law->GetValue(rThisVariable, aux_value);
-    //         rValue += aux_value * factor;
-    //     }
-    // }
-    return rValue;
+    return GetValue<double>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -257,21 +206,7 @@ Vector& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     Vector& rValue
     )
 {
-    // We combine the values of the layers
-    // rValue.resize(VoigtSize, false);
-    // rValue.clear();
-    // Vector aux_value;
-    // for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-    //     const double factor = mCombinationFactors[i_layer];
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-    //     if (p_law->Has(rThisVariable)) {
-    //         p_law->GetValue(rThisVariable, aux_value);
-    //         rValue += aux_value * factor;
-    //     }
-    // }
-
-    return rValue;
+    return GetValue<Vector>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -282,18 +217,7 @@ Matrix& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     Matrix& rValue
     )
 {
-    // We combine the values of the layers
-    // rValue.clear();
-    // for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-    //     const double factor = mCombinationFactors[i_layer];
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-    //     Matrix aux_value;
-    //     p_law->GetValue(rThisVariable, aux_value);
-    //     rValue += aux_value * factor;
-    // }
-
-    return rValue;
+    return GetValue<Matrix>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -304,18 +228,7 @@ array_1d<double, 3 >& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     array_1d<double, 3 >& rValue
     )
 {
-    // We combine the values of the layers
-    // rValue = ZeroVector(3);
-    // for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-    //     const double factor = mCombinationFactors[i_layer];
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-    //     array_1d<double, 3 > aux_value;
-    //     p_law->GetValue(rThisVariable, aux_value);
-    //     rValue += aux_value * factor;
-    // }
-
-    return rValue;
+    return GetValue<array_1d<double, 3>>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -326,18 +239,7 @@ array_1d<double, 6 >& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     array_1d<double, 6 >& rValue
     )
 {
-    // We combine the values of the layers
-    // rValue = ZeroVector(6);
-    // for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-    //     const double factor = mCombinationFactors[i_layer];
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-    //     array_1d<double, 6 > aux_value;
-    //     p_law->GetValue(rThisVariable, aux_value);
-    //     rValue += aux_value * factor;
-    // }
-
-    return rValue;
+    return GetValue<array_1d<double, 6>>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
