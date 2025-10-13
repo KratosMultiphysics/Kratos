@@ -17,30 +17,29 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/cut_sbm_load_solid_condition.h"
+#include "custom_conditions/gap_sbm_solid_condition.h"
 
 namespace Kratos
 {
 
-void CutSbmLoadSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void GapSbmSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
+    InitializeMaterial();
     InitializeMemberVariables();
     InitializeSbmMemberVariables();
-    InitializeMaterial();
 }
 
 
-void CutSbmLoadSolidCondition::InitializeMaterial()
+void GapSbmSolidCondition::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-        const GeometryType& r_geometry = GetSurrogateGeometry();
+        const GeometryType& r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
-        const SizeType number_of_control_points = r_geometry.size();
-        Vector N_sum_vec = ZeroVector(number_of_control_points);
-        ComputeTaylorExpansionContribution(N_sum_vec);
+        const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
         mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-        mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, N_sum_vec);
+        mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 
@@ -48,18 +47,23 @@ void CutSbmLoadSolidCondition::InitializeMaterial()
 
 }
 
-void CutSbmLoadSolidCondition::InitializeMemberVariables()
+void GapSbmSolidCondition::InitializeMemberVariables()
 {
     // // Compute class memeber variables
     const auto& r_geometry = GetGeometry();
 
-    const auto& r_projected_geometry = GetSurrogateGeometry();
+    const auto& r_projected_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
     const auto& r_DN_De = r_projected_geometry.ShapeFunctionsLocalGradients(r_projected_geometry.GetDefaultIntegrationMethod());
     
     // Initialize DN_DX
     mDim = r_DN_De[0].size2();
 
-    KRATOS_ERROR_IF(mDim != 2) << "CutSbmLoadSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2) << "GapSbmSolidCondition momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
+    
+    Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
+    double h = std::min(mesh_size_uv[0], mesh_size_uv[1]);
+
+    if (mDim == 3) {h = std::min(h,  mesh_size_uv[2]);}
     
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (mDim == 3) {
@@ -70,6 +74,20 @@ void CutSbmLoadSolidCondition::InitializeMemberVariables()
 
     mBasisFunctionsOrder *= 2; 
 
+    double penalty = GetProperties()[PENALTY_FACTOR];
+
+    // https://doi.org/10.1016/j.cma.2023.116301 (A penalty-free Shifted Boundary Method of arbitrary order)
+    mNitschePenalty = 1.0;   // = 1.0 -> Penalty approach
+                                    // = -1.0 -> Free-penalty approach
+    if (penalty == -1.0) {
+        mPenalty = 0.0;
+        mNitschePenalty = -1.0;
+    } 
+    else 
+    {
+        // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
+        mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
+    }
     // Compute the normals
     mNormalParameterSpace = r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
@@ -90,13 +108,18 @@ void CutSbmLoadSolidCondition::InitializeMemberVariables()
     SetValue(INTEGRATION_WEIGHT, integration_weight);
 }
 
-void CutSbmLoadSolidCondition::InitializeSbmMemberVariables()
+void GapSbmSolidCondition::InitializeSbmMemberVariables()
 {
-    const auto& r_geometry = this->GetGeometry();
-    const auto& r_surrogate_geometry = GetSurrogateGeometry();
+    auto& r_geometry = this->GetGeometry();
+    const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = r_geometry.Center().Coordinates() - r_surrogate_geometry.Center().Coordinates();
+
+    mpSkinProjectionNode = &(r_geometry.GetValue(NEIGHBOUR_NODES)[0]);
+
+    mDistanceVectorSkin.resize(3);
+    noalias(mDistanceVectorSkin) = mpSkinProjectionNode->Coordinates() - r_surrogate_geometry.Center().Coordinates();
 
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
@@ -107,14 +130,14 @@ void CutSbmLoadSolidCondition::InitializeSbmMemberVariables()
         << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
-void CutSbmLoadSolidCondition::CalculateLocalSystem(
+void GapSbmSolidCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    const SizeType mat_size = GetSurrogateGeometry().size() * 2;
+    const SizeType mat_size = GetValue(NEIGHBOUR_GEOMETRIES)[0]->size() * 2;
 
     if (rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size);
@@ -130,23 +153,112 @@ void CutSbmLoadSolidCondition::CalculateLocalSystem(
     KRATOS_CATCH("")
 }
 
-void CutSbmLoadSolidCondition::CalculateLeftHandSide(
+void GapSbmSolidCondition::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
     KRATOS_TRY
+    const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const auto& r_true_geometry = GetGeometry();
+    const unsigned int number_of_control_points = r_surrogate_geometry.size();
+
+    // reading integration points and local gradients
+    const SizeType mat_size = number_of_control_points * mDim;
+    const double integration_weight = GetValue(INTEGRATION_WEIGHT);
+
+    //resizing as needed the LHS
+    if(rLeftHandSideMatrix.size1() != mat_size)
+        rLeftHandSideMatrix.resize(mat_size,mat_size,false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size,mat_size); //resetting LHS
+
+    // compute Taylor expansion contribution on surrogate boundary
+    Vector N_gap_sum_vec = ZeroVector(number_of_control_points);
+    ComputeTaylorExpansionContribution(N_gap_sum_vec, mDistanceVector);
+
+    // compute Taylor expansion contribution on true boundary
+    Vector N_true_sum_vec = ZeroVector(number_of_control_points);
+    ComputeTaylorExpansionContribution(N_true_sum_vec, mDistanceVectorSkin);
+
+    // compute Taylor expansion contribution: grad_H_sum
+    Matrix grad_N_gap_sum_transposed = ZeroMatrix(3, number_of_control_points);
+    ComputeGradientTaylorExpansionContribution(grad_N_gap_sum_transposed, mDistanceVector);
+    Matrix grad_N_gap_sum = trans(grad_N_gap_sum_transposed);
+
+    Matrix grad_N_true_sum_transposed = ZeroMatrix(3, number_of_control_points);
+    ComputeGradientTaylorExpansionContribution(grad_N_true_sum_transposed, mDistanceVectorSkin);
+    Matrix grad_N_true_sum = trans(grad_N_true_sum_transposed);
+
+    Matrix B_gap_sum = ZeroMatrix(mDim,mat_size);
+    CalculateB(B_gap_sum, grad_N_gap_sum);
+
+    Matrix B_true_sum = ZeroMatrix(mDim,mat_size);
+    CalculateB(B_true_sum, grad_N_true_sum);
+
+    // obtain the tangent constitutive matrix at the true position
+    
+    ConstitutiveLaw::Parameters values_true(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+
+    Vector old_displacement_coefficient_vector(mat_size);
+    GetSolutionCoefficientVector(old_displacement_coefficient_vector);
+    Vector old_strain_on_true = prod(B_true_sum, old_displacement_coefficient_vector);
+
+    const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
+    ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+
+    const Matrix& r_D_on_true = values_true.GetConstitutiveMatrix();
+
+    Matrix DB_true_sum = prod(r_D_on_true, B_true_sum);
+
+    // Differential area
+    double penalty_integration = mPenalty * integration_weight;
+
+    // ASSEMBLE
+    //-----------------------------------------------------
+    for (IndexType i = 0; i < number_of_control_points; i++) {
+        for (IndexType j = 0; j < number_of_control_points; j++) {
+            
+            for (IndexType idim = 0; idim < 2; idim++) {
+                const int id1 = 2*idim;
+                const int iglob = 2*i+idim;
+
+                // PENALTY TERM
+                rLeftHandSideMatrix(iglob, 2*j+idim) += N_gap_sum_vec(i)*N_true_sum_vec(j)* penalty_integration;
+
+                Vector Cut_sigma_w_n = ZeroVector(3);
+                Cut_sigma_w_n[0] = (DB_true_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_true_sum(2, iglob)* mNormalPhysicalSpace[1]);
+                Cut_sigma_w_n[1] = (DB_true_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_true_sum(1, iglob)* mNormalPhysicalSpace[1]);
+
+                for (IndexType jdim = 0; jdim < 2; jdim++) {
+                    const int id2 = (id1+2)%3;
+                    const int jglob = 2*j+jdim;
+
+                    // FLUX 
+                    // [sigma(u) \dot n] \dot n * (-w \dot n)
+                    //*********************************************** */
+                    rLeftHandSideMatrix(iglob, jglob) -= N_gap_sum_vec(i)*(DB_true_sum(id1, jglob)* mNormalPhysicalSpace[0] + DB_true_sum(id2, jglob)* mNormalPhysicalSpace[1]) * integration_weight;
+
+                    // // PENALTY FREE g_n = 0
+                    // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+                    // //*********************************************** */
+                    rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty*N_true_sum_vec(j)*Cut_sigma_w_n[jdim] * integration_weight;
+                }
+
+            }
+        }
+    }
 
     KRATOS_CATCH("")
 }
 
-void CutSbmLoadSolidCondition::CalculateRightHandSide(
+void GapSbmSolidCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
     KRATOS_TRY
-    const auto& r_surrogate_geometry = GetSurrogateGeometry();
+    const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
     const auto& r_true_geometry = GetGeometry();
     const unsigned int number_of_control_points = r_surrogate_geometry.size();
 
@@ -159,47 +271,99 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
         rRightHandSideVector.resize(mat_size,false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
 
-    // compute Taylor expansion contribution: H_sum_vec
-    Vector N_sum_vec = ZeroVector(number_of_control_points);
-    ComputeTaylorExpansionContribution(N_sum_vec);
+    // compute Taylor expansion contribution on surrogate boundary
+    Vector N_gap_sum_vec = ZeroVector(number_of_control_points);
+    ComputeTaylorExpansionContribution(N_gap_sum_vec, mDistanceVector);
 
-    // Vector g_N = this->GetValue(FORCE); 
+    // compute Taylor expansion contribution on true boundary
+    Vector N_true_sum_vec = ZeroVector(number_of_control_points);
+    ComputeTaylorExpansionContribution(N_true_sum_vec, mDistanceVectorSkin);
 
-    Vector g_N = ZeroVector(3); 
+    // compute Taylor expansion contribution: grad_H_sum
+    Matrix grad_N_gap_sum_transposed = ZeroMatrix(3, number_of_control_points);
+    ComputeGradientTaylorExpansionContribution(grad_N_gap_sum_transposed, mDistanceVector);
+    Matrix grad_N_gap_sum = trans(grad_N_gap_sum_transposed);
 
-    double nu = this->GetProperties().GetValue(POISSON_RATIO);
-    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+    Matrix grad_N_true_sum_transposed = ZeroMatrix(3, number_of_control_points);
+    ComputeGradientTaylorExpansionContribution(grad_N_true_sum_transposed, mDistanceVectorSkin);
+    Matrix grad_N_true_sum = trans(grad_N_true_sum_transposed);
 
-    const double x = r_true_geometry.Center().X();
-    const double y = r_true_geometry.Center().Y();
+    Matrix B_true_sum = ZeroMatrix(mDim,mat_size);
+    CalculateB(B_true_sum, grad_N_true_sum);
 
-    // // // cosinusoidal
-    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
-    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
+    // obtain the tangent constitutive matrix at the true positio
+    ConstitutiveLaw::Parameters values_true(r_true_geometry, GetProperties(), rCurrentProcessInfo);
 
-    // // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
-    // // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
+    Vector old_displacement_coefficient_vector(mat_size);
+    GetSolutionCoefficientVector(old_displacement_coefficient_vector);
+    Vector old_strain_on_true = prod(B_true_sum, old_displacement_coefficient_vector);
 
+    const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
+    ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+
+    const Matrix& r_D_on_true = values_true.GetConstitutiveMatrix();
+    const Vector& r_stress_vector_on_true = values_true.GetStressVector();
+
+    // compute the old_displacement solution on the true boundary
+    Vector old_displacement = ZeroVector(3);
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        old_displacement[0] += N_true_sum_vec(i) * old_displacement_coefficient_vector[2*i];
+        old_displacement[1] += N_true_sum_vec(i) * old_displacement_coefficient_vector[2*i + 1];
+    }
+
+    Matrix DB_true_sum = prod(r_D_on_true, B_true_sum);
+
+    // Differential area
+    double penalty_integration = mPenalty * integration_weight;
+
+    // ASSEMBLE
+    //-----------------------------------------------------
+    Vector u_D = mpSkinProjectionNode->GetValue(DISPLACEMENT);
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
-        for (IndexType zdim = 0; zdim < 2; zdim++) {
             
-            rRightHandSideVector[2*i+zdim] += N_sum_vec(i)*g_N[zdim] * integration_weight;
+        for (IndexType idim = 0; idim < 2; idim++) {
+            const int id1 = 2*idim;
+            const int iglob = 2*i+idim;
+
+            // PENALTY TERM
+            rRightHandSideVector[iglob] += N_gap_sum_vec(i)*(u_D - old_displacement)[idim]* penalty_integration;
+
+            Vector Cut_sigma_w_n = ZeroVector(3);
+            Cut_sigma_w_n[0] = (DB_true_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_true_sum(2, iglob)* mNormalPhysicalSpace[1]);
+            Cut_sigma_w_n[1] = (DB_true_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_true_sum(1, iglob)* mNormalPhysicalSpace[1]);
+
+            for (IndexType jdim = 0; jdim < 2; jdim++) {
+                rRightHandSideVector(iglob) -= mNitschePenalty*(u_D[jdim]-old_displacement[jdim])*Cut_sigma_w_n[jdim] * integration_weight;
+            }
+
+            // residual terms
+            // FLUX
+            Vector old_stress_normal = ZeroVector(3);
+            old_stress_normal[0] = r_stress_vector_on_true[0]*mNormalPhysicalSpace[0] + r_stress_vector_on_true[2]*mNormalPhysicalSpace[1];
+            old_stress_normal[1] = r_stress_vector_on_true[2]*mNormalPhysicalSpace[0] + r_stress_vector_on_true[1]*mNormalPhysicalSpace[1];
+
+            rRightHandSideVector(iglob) += N_gap_sum_vec(i) * old_stress_normal[idim] * integration_weight;
 
         }
     }
-
-    
     KRATOS_CATCH("")
 }
 
+    int GapSbmSolidCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
+    {
+        KRATOS_ERROR_IF_NOT(GetProperties().Has(PENALTY_FACTOR))
+            << "No penalty factor (PENALTY_FACTOR) defined in property of SupportPenaltyLaplacianCondition" << std::endl;
+        return 0;
+    }
 
-    void CutSbmLoadSolidCondition::EquationIdVector(
+    void GapSbmSolidCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
     {
-        const auto& r_geometry = GetSurrogateGeometry();
+        const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
         const SizeType number_of_control_points = r_geometry.size();
 
         if (rResult.size() != 2 * number_of_control_points)
@@ -213,12 +377,12 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
         }
     }
 
-    void CutSbmLoadSolidCondition::GetDofList(
+    void GapSbmSolidCondition::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
     {
-        const auto& r_geometry = GetSurrogateGeometry();
+        const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
         const SizeType number_of_control_points = r_geometry.size();
 
         rElementalDofList.resize(0);
@@ -232,10 +396,10 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
     };
 
 
-    void CutSbmLoadSolidCondition::GetSolutionCoefficientVector(
+    void GapSbmSolidCondition::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
-        const auto& r_geometry = GetSurrogateGeometry();
+        const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
         const SizeType number_of_control_points = r_geometry.size();
         const SizeType mat_size = number_of_control_points * 2;
 
@@ -252,11 +416,11 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
         }
     }
 
-    void CutSbmLoadSolidCondition::CalculateB(
+    void GapSbmSolidCondition::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
     {
-        const auto& r_geometry = GetSurrogateGeometry();
+        const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
         const SizeType number_of_control_points = r_geometry.size();
         const SizeType mat_size = number_of_control_points * 2;
 
@@ -276,7 +440,7 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
         }
     }
 
-    void CutSbmLoadSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+    void GapSbmSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                         ConstitutiveVariables& rConstitutiVariables)
     {
         // Set constitutive law flags:
@@ -294,17 +458,17 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
     }
 
 
-    void CutSbmLoadSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    void GapSbmSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
         ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
         mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
         //--------------------------------------------------------------------------------------------
-        const auto& r_surrogate_geometry = GetSurrogateGeometry();
+        const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
         const SizeType number_of_control_points = r_surrogate_geometry.size();
         const SizeType mat_size = number_of_control_points * 2;
 
@@ -313,7 +477,7 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
 
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         Matrix grad_N_sum_transposed = ZeroMatrix(3, number_of_control_points);
-        ComputeGradientTaylorExpansionContribution(grad_N_sum_transposed);
+        ComputeGradientTaylorExpansionContribution(grad_N_sum_transposed, mDistanceVector);
         Matrix grad_N_sum = trans(grad_N_sum_transposed);
 
         Matrix B_sum = ZeroMatrix(mDim,mat_size);
@@ -331,7 +495,7 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
         const Vector sigma = values_true.GetStressVector();
-        Vector sigma_n = ZeroVector(3);
+        Vector sigma_n(2);
 
         sigma_n[0] = sigma[0]*mNormalPhysicalSpace[0] + sigma[2]*mNormalPhysicalSpace[1];
         sigma_n[1] = sigma[2]*mNormalPhysicalSpace[0] + sigma[1]*mNormalPhysicalSpace[1];
@@ -344,32 +508,23 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
         // //---------------------
     }
 
-void CutSbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+void GapSbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
     //--------------------------------------------------------------------------------------------
     // calculate the constitutive law response
     ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
+        GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
-    for (unsigned int i = 0; i < GetSurrogateGeometry().size(); i++) {
-            // if (r_geometry[i].GetId() == 420) 
-            // {
-            //     KRATOS_WATCH(r_geometry[i].Coordinates())
-            //     KRATOS_WATCH(DN_DX(i,0))
-            //     KRATOS_WATCH(DN_DX(i,1))
-            // }
-        
-            std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-            outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-            outputFile.close();
-        }
-
 }
 
-void CutSbmLoadSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
+void GapSbmSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
 {
-    const auto& r_geometry = GetSurrogateGeometry();
+    ComputeTaylorExpansionContribution(H_sum_vec, mDistanceVector);
+}
+
+void GapSbmSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_vec, const Vector& rDistanceVector)
+{
+    const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
     const SizeType number_of_control_points = r_geometry.PointsNumber();
     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
@@ -397,7 +552,7 @@ void CutSbmLoadSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_
                     IndexType n_k = n - k;
                     double derivative = r_shape_function_derivatives(i,k); 
                     // Compute the Taylor term for this derivative
-                    H_taylor_term += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                    H_taylor_term += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
                 }
             }
         } else {
@@ -415,7 +570,7 @@ void CutSbmLoadSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_
                         IndexType k_z = n - k_x - k_y;
                         double derivative = r_shape_function_derivatives(i,countDerivativeId); 
 
-                        H_taylor_term += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
+                        H_taylor_term += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y, rDistanceVector[2], k_z);
                         countDerivativeId++;
                     }
                 }
@@ -425,9 +580,14 @@ void CutSbmLoadSolidCondition::ComputeTaylorExpansionContribution(Vector& H_sum_
     }
 }
 
-void CutSbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
+void GapSbmSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
 {
-    const auto& r_geometry = GetSurrogateGeometry();
+    ComputeGradientTaylorExpansionContribution(grad_H_sum, mDistanceVector);
+}
+
+void GapSbmSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum, const Vector& rDistanceVector)
+{
+    const auto& r_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
     const SizeType number_of_control_points = r_geometry.PointsNumber();
     const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
 
@@ -458,13 +618,13 @@ void CutSbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix
                     IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k); 
                     // Compute the Taylor term for this derivative
-                    H_taylor_term_X += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                    H_taylor_term_X += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
                 }
                 for (IndexType k = 0; k <= n-1; k++) {
                     IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k+1); 
                     // Compute the Taylor term for this derivative
-                    H_taylor_term_Y += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                    H_taylor_term_Y += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
                 }
             }
         } else {
@@ -483,13 +643,13 @@ void CutSbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix
                         double derivative = shapeFunctionDerivatives(i,countDerivativeId); 
                         
                         if (k_x >= 1) {
-                            H_taylor_term_X += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x-1, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
+                            H_taylor_term_X += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x-1, rDistanceVector[1], k_y, rDistanceVector[2], k_z);
                         }
                         if (k_y >= 1) {
-                            H_taylor_term_Y += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y-1, mDistanceVector[2], k_z);
+                            H_taylor_term_Y += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y-1, rDistanceVector[2], k_z);
                         }
                         if (k_z >= 1) {
-                            H_taylor_term_Z += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z-1);
+                            H_taylor_term_Z += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y, rDistanceVector[2], k_z-1);
                         }     
                         countDerivativeId++;
                     }
@@ -506,7 +666,7 @@ void CutSbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix
 }
 
 // Function to compute a single term in the Taylor expansion
-double CutSbmLoadSolidCondition::ComputeTaylorTerm(
+double GapSbmSolidCondition::ComputeTaylorTerm(
     const double derivative, 
     const double dx, 
     const IndexType n_k, 
@@ -516,7 +676,7 @@ double CutSbmLoadSolidCondition::ComputeTaylorTerm(
     return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));    
 }
 
-double CutSbmLoadSolidCondition::ComputeTaylorTerm3D(
+double GapSbmSolidCondition::ComputeTaylorTerm3D(
     const double derivative, 
     const double dx, 
     const IndexType k_x, 

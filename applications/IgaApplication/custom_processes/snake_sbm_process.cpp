@@ -486,8 +486,12 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         }
 
         //FIXME:
+
+        // KRATOS_WATCH(knot_spans_available)
         auto& plane = knot_spans_available[i]; 
         KeepLargestZeroIsland<TIsInnerLoop>(plane);
+        // KRATOS_WATCH(knot_spans_available)
+        // exit(0);
         
         
         if (is_inner) {

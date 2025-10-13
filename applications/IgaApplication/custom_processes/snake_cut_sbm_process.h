@@ -13,6 +13,10 @@
 
 #pragma once
 
+// System includes
+#include <utility>
+#include <vector>
+
 // Project includes
 #include "containers/model.h"
 #include "includes/model_part.h"
@@ -21,6 +25,7 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "snake_sbm_process.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -48,11 +53,14 @@ public:
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType   IntegrationPointsArrayType;
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename Properties::Pointer PropertiesPointerType;
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
     
     using NurbsCurveGeometryType = NurbsCurveGeometry<3, PointerVector<Node>>;
     typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceType;
+    using ProjectionSegment = std::pair<CoordinatesArrayType, CoordinatesArrayType>;
+    using NodePointerVector = GlobalPointersVector<NodeType>;
 
     ///@name Type Definitions
     ///@{
@@ -1175,6 +1183,18 @@ inline bool SegmentsIntersect(
     return false;
 }
 
+IndexType FindClosestNodeInLayer(
+    const DynamicBinsPointerType& rStartPoint,
+    BinSearchParameters& rSearchParameters,
+    const std::string& rLayer,
+    const ModelPart& rSkinSubModelPart);
+
+IndexType FindClosestNodeInLayerWithDirection(
+    const DynamicBinsPointerType& rStartPoint,
+    BinSearchParameters& rSearchParameters,
+    const std::string& rLayer,
+    const ModelPart& rSkinSubModelPart,
+    const Vector& rTangentDirection);
 
         
 }; // Class SnakeCutSbmProcess
