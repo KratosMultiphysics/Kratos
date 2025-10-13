@@ -418,7 +418,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
                 generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
             }
-            
+
             if (flag_compute_constitutive_tensor) {
 
                 // membrane part
@@ -471,7 +471,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
         }
         rValues.SetMaterialProperties(r_material_properties);
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CalculateMaterialResponseCauchy")
 }
 
 /***********************************************************************************/
