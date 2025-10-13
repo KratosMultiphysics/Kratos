@@ -146,7 +146,7 @@ public:
      */
     bool RequiresInitializeMaterialResponse() override
     {
-        return true;
+        return mConstitutiveLaws[0]->RequiresInitializeMaterialResponse(); // All the same;
     }
 
     /**
@@ -154,7 +154,18 @@ public:
      */
     bool RequiresFinalizeMaterialResponse() override
     {
-        return true;
+        return mConstitutiveLaws[0]->RequiresFinalizeMaterialResponse(); // All the same;
+    }
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (generic)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    template<class TDataType>
+    bool Has(const Variable<TDataType>& rThisVariable)
+    {
+        return mConstitutiveLaws[0]->Has(rThisVariable); // All the same
     }
 
     /**

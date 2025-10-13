@@ -97,22 +97,8 @@ ThicknessIntegratedIsotropicConstitutiveLaw::~ThicknessIntegratedIsotropicConsti
 
 std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::WorkingSpaceDimension()
 {
-    SizeType dimension = 2; // Dimension of the 2D plane stress CLs
-    if (mConstitutiveLaws.size() == 0)
-    return dimension; // In case of not initialized CL
-    
-    // We perform the check in each layer
-    IndexType counter = 0;
-    for (auto& p_law : mConstitutiveLaws) {
-        if (counter == 0) {
-            dimension = p_law->WorkingSpaceDimension();
-        } else {
-            KRATOS_ERROR_IF_NOT(dimension == p_law->WorkingSpaceDimension()) << "Combining different size laws" << std::endl;
-        }
-        ++counter;
-    }
 
-    return dimension;
+    return Dimension; // 3
 }
 
 /***********************************************************************************/
@@ -120,24 +106,7 @@ std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::WorkingSpaceDimension()
 
 std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::GetStrainSize() const
 {
-    SizeType strain_size = 3; // strain size of the 2D plane stress CLs
-    
-    IndexType counter = 0;
-    if (mConstitutiveLaws.size() == 0)
-        return strain_size; // In case of not initialized CL
-
-    // We perform the check in each layer
-    for (auto& p_law : mConstitutiveLaws) {
-        if (counter == 0) {
-            strain_size = p_law->GetStrainSize();
-        } else {
-            KRATOS_ERROR_IF_NOT(strain_size == p_law->GetStrainSize()) << "Combining different dimension/voigt size constitutive laws..." << std::endl;
-        }
-
-        ++counter;
-    }
-
-    return strain_size;
+    return VoigtSize; // 8
 }
 
 /***********************************************************************************/
@@ -145,17 +114,7 @@ std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::GetStrainSize() const
 
 bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<bool>& rThisVariable)
 {
-    // At least one layer should have the value
-    bool has = false;
-
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (p_law->Has(rThisVariable)) {
-    //         has = true;
-    //         break;
-    //     }
-    // }
-
-    return has;
+    return Has<bool>(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -163,17 +122,7 @@ bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<bool>& rThi
 
 bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<int>& rThisVariable)
 {
-    // At least one layer should have the value
-    bool has = false;
-
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (p_law->Has(rThisVariable)) {
-    //         has = true;
-    //         break;
-    //     }
-    // }
-
-    return has;
+    return Has<int>(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -181,16 +130,7 @@ bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<int>& rThis
 
 bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<double>& rThisVariable)
 {
-    // At least one layer should have the value
-    bool has = false;
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (p_law->Has(rThisVariable)) {
-    //         has = true;
-    //         break;
-    //     }
-    // }
-
-    return has;
+    return Has<double>(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -198,17 +138,7 @@ bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<double>& rT
 
 bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<Vector>& rThisVariable)
 {
-    // At least one layer should have the value
-    bool has = false;
-
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (p_law->Has(rThisVariable)) {
-    //         has = true;
-    //         break;
-    //     }
-    // }
-
-    return has;
+    return Has<Vector>(rThisVariable);
 }
 
 /***********************************************************************************/
@@ -216,17 +146,7 @@ bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<Vector>& rT
 
 bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<Matrix>& rThisVariable)
 {
-    // At least one layer should have the value
-    bool has = false;
-
-    // for (auto& p_law : mConstitutiveLaws) {
-    //     if (p_law->Has(rThisVariable)) {
-    //         has = true;
-    //         break;
-    //     }
-    // }
-
-    return has;
+    return Has<Matrix>(rThisVariable);
 }
 
 /***********************************************************************************/
