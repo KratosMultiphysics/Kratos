@@ -46,9 +46,9 @@ The following table lists the material properties of the soil layers that have b
 
 | Property                                  | Kratos input parameter | Clay                             | Sand                             | Unit                           |
 |-------------------------------------------|------------------------|----------------------------------|----------------------------------|--------------------------------|
-| Grain density $`\rho_{\mathrm{g}}`$       | `DENSITY_SOLID`        | 2009.73                          | 2448.9                           | $`\mathrm{kg} / \mathrm{m}^3`$ |
-| Water density $`\rho_{\mathrm{w}}`$       | `DENSITY_WATER`        | 1019.368                         | 1019.368                         | $`\mathrm{kg} / \mathrm{m}^3`$ |
-| Porosity $`n`$                            | `POROSITY`             | 0.20771                          | 0.30982                          | $`[-]`$                        |
+| Grain density $`\rho_{\mathrm{g}}`$       | `DENSITY_SOLID`        | 2038.74                          | 2475.61                          | $`\mathrm{kg} / \mathrm{m}^3`$ |
+| Water density $`\rho_{\mathrm{w}}`$       | `DENSITY_WATER`        | 1019.37                          | 1019.37                          | $`\mathrm{kg} / \mathrm{m}^3`$ |
+| Porosity $`n`$                            | `POROSITY`             | 0.20                             | 0.30                             | $`[-]`$                        |
 | Retention law type                        | `RETENTION_LAW`        | `SaturatedBelowPhreaticLevelLaw` | `SaturatedBelowPhreaticLevelLaw` | N/A                            |
 | Residual saturation $`S_{\mathrm{res}}`$  | `RESIDUAL_SATURATION`  | $`1 \cdot 10^{-10}`$             | $`1 \cdot 10^{-10}`$             | $`[-]`$                        |
 | Saturated saturation $`S_{\mathrm{sat}}`$ | `SATURATED_SATURATION` | 1.0                              | 1.0                              | $`[-]`$                        |
@@ -70,7 +70,7 @@ The following table lists the material properties of the diaphragm wall that hav
 | Young's modulus $`E`$   | `YOUNG_MODULUS`        | $`5.93 \cdot 10^6`$ | $`\mathrm{kN} / \mathrm{m}^2`$ |
 | Poisson's ratio $`\nu`$ | `POISSON_RATIO`        | 0.0                 | $`[-]`$                        |
 | Thickness $`t`$         | `THICKNESS`            | 1.265               | $`[m]`$                        |
-| Density $`\rho}`$       | `DENSITY`              | 1019.368            | $`\mathrm{kg} / \mathrm{m}^3`$ |
+| Density $`\rho`$        | `DENSITY`              | 1019.368            | $`\mathrm{kg} / \mathrm{m}^3`$ |
 
 
 The following table lists the material properties of the strut that have been adopted by the Kratos model.
@@ -78,7 +78,7 @@ The following table lists the material properties of the strut that have been ad
 | Property                  | Kratos input parameter | Strut               | Unit                           |
 |---------------------------|------------------------|---------------------|--------------------------------|
 | Young's modulus $`E`$     | `YOUNG_MODULUS`        | $`2.1 \cdot 10^8`$  | $`\mathrm{kN} / \mathrm{m}^2`$ |
-| Density $`\rho}`$         | `DENSITY`              |  7850.0             | $`\mathrm{kg} / \mathrm{m}^3`$ |
+| Density $`\rho`$          | `DENSITY`              |  7850.0             | $`\mathrm{kg} / \mathrm{m}^3`$ |
 | Cross-sectional area $`A` | `CROSS_SECTIONAL_AREA` | $`1.9 \cdot 10^-3`$ | $`[m^2]`$                      |
 | Truss pre-stress PK2      | `TRUSS_PRESTRESS_PK2`  | 0.0                 | $`\mathrm{kN} / \mathrm{m}^3`$ |
 

@@ -12,7 +12,7 @@
             "max_delta_time_factor": 1000.0
         },
         "solver_type": "U_Pw",
-        "solution_type": "Quasi-static",
+        "solution_type": "static",
         "strategy_type": "newton_raphson",
         "scheme_type": "newmark",
         "model_part_name": "PorousDomain",
@@ -72,41 +72,12 @@
             "Sand_Right"
         ],
         "linear_solver_settings": {
-            "solver_type": "skyline_lu_factorization",
+            "solver_type": "LinearSolversApplication.sparse_lu",
             "scaling": true
         }
     },
     "processes": {
         "constraints_process_list": [
-            {
-                "python_module": "apply_vector_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyVectorConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.Bottom_Edge",
-                    "variable_name": "DISPLACEMENT",
-                    "active": [
-                        true,
-                        true,
-                        false
-                    ],
-                    "is_fixed": [
-                        true,
-                        true,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
-                }
-            },
             {
                 "python_module": "apply_vector_constraint_table_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
@@ -253,6 +224,35 @@
                 }
             },
             {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Bottom_Edge",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "is_fixed": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "table": [
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            },
+            {
                 "python_module": "apply_scalar_constraint_table_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyScalarConstraintTableProcess",
@@ -302,20 +302,15 @@
         ],
         "loads_process_list": [
             {
-                "python_module": "assign_vector_by_direction_process",
-                "kratos_module": "KratosMultiphysics",
-                "check": "DirectorVectorNonZero direction",
-                "process_name": "AssignVectorByDirectionProcess",
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
                     "variable_name": "VOLUME_ACCELERATION",
-                    "constrained": false,
-                    "modulus": 9.81,
-                    "direction": [
-                        0.0,
-                        -1.0,
-                        0.0
-                    ]
+                    "active": [false, true, false],
+                    "value": [0.0, -9.81, 0.0],
+                    "table": [0, 0, 0]
                 }
             },
             {
@@ -354,6 +349,7 @@
                             "skin_output": false,
                             "nodal_results": [
                                 "DISPLACEMENT",
+                                "TOTAL_DISPLACEMENT",
                                 "WATER_PRESSURE",
                                 "REACTION"
                             ],

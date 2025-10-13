@@ -419,7 +419,9 @@ public:
             // Initialize the vector
             TSparseSpace::SetToZero(Dxmodified);
 
+            KRATOS_INFO("SystemSolveWithPhysics") << "[Before solve] Norm of rb: " << TSparseSpace::TwoNorm(rb) << std::endl;
             InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
+            KRATOS_INFO("SystemSolveWithPhysics") << "[After solve]  Norm of rb: " << TSparseSpace::TwoNorm(rb) << std::endl;
 
             //recover solution of the original problem
             TSparseSpace::Mult(mT, Dxmodified, rDx);
