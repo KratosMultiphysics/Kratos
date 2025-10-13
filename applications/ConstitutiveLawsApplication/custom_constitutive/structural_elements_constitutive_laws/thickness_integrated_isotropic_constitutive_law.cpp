@@ -466,7 +466,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_constitutive_matrix(5, 2) += aux_weight * r_constitutive_matrix(2, 2);
 
                 generalized_constitutive_matrix(6, 6) += weight * stenberg_stabilization * Gyz;
-                generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gyz;
+                generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gxz;
             }
         }
         rValues.SetMaterialProperties(r_material_properties);
