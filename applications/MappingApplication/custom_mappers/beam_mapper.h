@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher, Juan Ignacio Camarotti
+//  Main authors:    Juan Ignacio Camarotti, Philipp Bucher
 //
 // See PhD Thesis Tianyang Wang Chapter 5
 
@@ -71,6 +71,8 @@ public:
     }
 
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
+
+    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject) override;
 
     void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
