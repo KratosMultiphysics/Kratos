@@ -18,9 +18,8 @@
 
 // Application includes
 #include "cs_dsg3_thick_shell_element_3D3N.h"
-// #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
-#include "geometries/triangle_3d_3.h"
+// #include "geometries/triangle_3d_3.h"
 
 namespace Kratos
 {
