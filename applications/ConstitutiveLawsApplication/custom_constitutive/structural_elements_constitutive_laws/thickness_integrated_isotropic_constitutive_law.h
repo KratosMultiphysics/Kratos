@@ -411,6 +411,12 @@ public:
         mThicknessIntegrationPoints = NumberOfPoints;
     }
 
+    void CalculateCoordinatesAndWeights(
+        std::vector<double> &rCoordinates,
+        std::vector<double> &rWeights,
+        const IndexType NumberOfPoints,
+        const Properties& rMaterialProperties);
+
     /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters

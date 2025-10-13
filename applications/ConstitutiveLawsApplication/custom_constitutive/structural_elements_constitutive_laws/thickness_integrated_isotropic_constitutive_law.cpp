@@ -266,10 +266,40 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterial(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateCoordinatesAndWeights(
+    std::vector<double> &rCoordinates,
+    std::vector<double> &rWeights,
+    const IndexType NumberOfPoints,
+    const Properties& rMaterialProperties
+)
+{
+    rCoordinates.resize(NumberOfPoints);
+    rWeights.resize(NumberOfPoints);
+    const double thickness = rMaterialProperties[THICKNESS];
+
+    const double half_thickness = 0.5 * thickness;
+    const double delta_z = thickness / static_cast<double>(NumberOfPoints - 1);
+
+    for (IndexType i = 0; i < NumberOfPoints; ++i) {
+        rCoordinates[i] = -half_thickness + static_cast<double>(i) * delta_z;
+        rWeights[i] = delta_z;
+    }
+
+    // We modify the weights of the extreme points
+    rWeights[0] *= 0.5;
+    rWeights[NumberOfPoints - 1] *= 0.5;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
+    KRATOS_TRY
 
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -301,7 +331,10 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseKirch
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    KRATOS_TRY
 
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
