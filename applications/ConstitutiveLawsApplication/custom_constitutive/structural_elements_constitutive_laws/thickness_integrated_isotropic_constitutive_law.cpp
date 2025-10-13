@@ -354,6 +354,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
     // The generalized strain vector, constant
     const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
     Vector generalized_stress_vector(VoigtSize); // size 8
+    Matrix generalized_constitutive_matrix(VoigtSize, VoigtSize); // 8x8
+    generalized_constitutive_matrix.clear();
     generalized_stress_vector.clear();
 
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
@@ -362,78 +364,110 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
     if (flag_compute_stress || flag_compute_constitutive_tensor) {
 
         // Auxiliary stress vector
-        Vector& r_stress_vector = rValues.GetStressVector(); // size 8
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 8x8
+        Vector& r_stress_vector = rValues.GetStressVector(); // size 3
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
         r_stress_vector.clear();
         r_constitutive_matrix.clear();
 
-        Vector strain(strain_size), stress(strain_size); // 3
-        Matrix constitutive_matrix(strain_size, strain_size); // 3x3
+        Vector strain(strain_size); // 3
         Matrix F(Dimension, Dimension); // 2x2
-        double weight, z_coord, detF;
+        double weight, z_coord, z_coord2, aux_weight, aux_weight2, detF;
 
         const double h_max = rValues.GetElementGeometry().MaxEdgeLength();
         const double alpha = 0.1;
         const double thickness = r_material_properties[THICKNESS];
         const double t_square = thickness * thickness;
         const double stenberg_stabilization = (5.0 / 6.0) * t_square / (t_square + alpha * h_max * h_max);
+        rValues.SetMaterialProperties(r_subprop);
 
         // We perform the integration through the thickness
         for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-            rValues.SetMaterialProperties(r_subprop);
 
             weight = weights[i_layer];
             z_coord = coordinates[i_layer];
+            z_coord2 = z_coord * z_coord;
+            aux_weight = weight * z_coord;
+            aux_weight2 = weight * z_coord2;
 
             strain[0] = generalized_strain_vector[0] + z_coord * generalized_strain_vector[3]; // xx
             strain[1] = generalized_strain_vector[1] + z_coord * generalized_strain_vector[4]; // yy
             strain[2] = generalized_strain_vector[2] + z_coord * generalized_strain_vector[5]; // xy
 
             rValues.SetStrainVector(strain);
+            // In case the 2D Cls work in finite strain
             noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(strain);
-            detF = MathUtils<double>::Det(F);
+            detF = MathUtils<double>::Det2(F);
             rValues.SetDeterminantF(detF);
             rValues.SetDeformationGradientF(F);
 
             p_law->CalculateMaterialResponseCauchy(rValues);
 
             if (flag_compute_stress) {
-                noalias(stress) = rValues.GetStressVector();
-                generalized_stress_vector[0] += stress[0] * weight; // membrane xx
-                generalized_stress_vector[1] += stress[1] * weight; // membrane yy
-                generalized_stress_vector[2] += stress[2] * weight; // membrane xy
-                generalized_stress_vector[3] += stress[0] * z_coord * weight; // bending xx
-                generalized_stress_vector[4] += stress[1] * z_coord * weight; // bending yy
-                generalized_stress_vector[5] += stress[2] * z_coord * weight; // bending xy
+                generalized_stress_vector[0] += r_stress_vector[0] * weight; // membrane xx
+                generalized_stress_vector[1] += r_stress_vector[1] * weight; // membrane yy
+                generalized_stress_vector[2] += r_stress_vector[2] * weight; // membrane xy
+                generalized_stress_vector[3] += r_stress_vector[0] * aux_weight; // bending xx
+                generalized_stress_vector[4] += r_stress_vector[1] * aux_weight; // bending yy
+                generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
 
                 const double Gyz = r_subprop.Has(SHEAR_MODULUS_YZ) ? r_subprop[SHEAR_MODULUS_YZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
                 const double Gxz = r_subprop.Has(SHEAR_MODULUS_XZ) ? r_subprop[SHEAR_MODULUS_XZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
 
+                // Elastic behaviour in shear
                 generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
                 generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
             }
+            
+            if (flag_compute_constitutive_tensor) {
 
+                // membrane part
+                generalized_constitutive_matrix(0, 0) += weight * r_constitutive_matrix(0, 0);
+                generalized_constitutive_matrix(0, 1) += weight * r_constitutive_matrix(0, 1);
+                generalized_constitutive_matrix(0, 2) += weight * r_constitutive_matrix(0, 2);
+                generalized_constitutive_matrix(1, 0) += weight * r_constitutive_matrix(1, 0);
+                generalized_constitutive_matrix(1, 1) += weight * r_constitutive_matrix(1, 1);
+                generalized_constitutive_matrix(1, 2) += weight * r_constitutive_matrix(1, 2);
+                generalized_constitutive_matrix(2, 0) += weight * r_constitutive_matrix(2, 0);
+                generalized_constitutive_matrix(2, 1) += weight * r_constitutive_matrix(2, 1);
+                generalized_constitutive_matrix(2, 2) += weight * r_constitutive_matrix(2, 2);
+
+                // bending part
+                generalized_constitutive_matrix(3, 3) += aux_weight2 * r_constitutive_matrix(0, 0);
+                generalized_constitutive_matrix(3, 4) += aux_weight2 * r_constitutive_matrix(0, 1);
+                generalized_constitutive_matrix(3, 5) += aux_weight2 * r_constitutive_matrix(0, 2);
+                generalized_constitutive_matrix(4, 3) += aux_weight2 * r_constitutive_matrix(1, 0);
+                generalized_constitutive_matrix(4, 4) += aux_weight2 * r_constitutive_matrix(1, 1);
+                generalized_constitutive_matrix(4, 5) += aux_weight2 * r_constitutive_matrix(1, 2);
+                generalized_constitutive_matrix(5, 3) += aux_weight2 * r_constitutive_matrix(2, 0);
+                generalized_constitutive_matrix(5, 4) += aux_weight2 * r_constitutive_matrix(2, 1);
+                generalized_constitutive_matrix(5, 5) += aux_weight2 * r_constitutive_matrix(2, 2);
+
+                // membrane-bending part
+                generalized_constitutive_matrix(0, 3) += aux_weight * r_constitutive_matrix(0, 0);
+                generalized_constitutive_matrix(0, 4) += aux_weight * r_constitutive_matrix(0, 1);
+                generalized_constitutive_matrix(0, 5) += aux_weight * r_constitutive_matrix(0, 2);
+                generalized_constitutive_matrix(1, 3) += aux_weight * r_constitutive_matrix(1, 0);
+                generalized_constitutive_matrix(1, 4) += aux_weight * r_constitutive_matrix(1, 1);
+                generalized_constitutive_matrix(1, 5) += aux_weight * r_constitutive_matrix(1, 2);
+                generalized_constitutive_matrix(2, 3) += aux_weight * r_constitutive_matrix(2, 0);
+                generalized_constitutive_matrix(2, 4) += aux_weight * r_constitutive_matrix(2, 1);
+                generalized_constitutive_matrix(2, 5) += aux_weight * r_constitutive_matrix(2, 2);
+
+                // bending-membrane part
+                generalized_constitutive_matrix(3, 0) += aux_weight * r_constitutive_matrix(0, 0);
+                generalized_constitutive_matrix(3, 1) += aux_weight * r_constitutive_matrix(0, 1);
+                generalized_constitutive_matrix(3, 2) += aux_weight * r_constitutive_matrix(0, 2);
+                generalized_constitutive_matrix(4, 0) += aux_weight * r_constitutive_matrix(1, 0);
+                generalized_constitutive_matrix(4, 1) += aux_weight * r_constitutive_matrix(1, 1);
+                generalized_constitutive_matrix(4, 2) += aux_weight * r_constitutive_matrix(1, 2);
+                generalized_constitutive_matrix(5, 0) += aux_weight * r_constitutive_matrix(2, 0);
+                generalized_constitutive_matrix(5, 1) += aux_weight * r_constitutive_matrix(2, 1);
+                generalized_constitutive_matrix(5, 2) += aux_weight * r_constitutive_matrix(2, 2);
+            }
         }
-
-
-
+        rValues.SetMaterialProperties(r_material_properties);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     KRATOS_CATCH("")
 }
 
