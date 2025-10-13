@@ -42,7 +42,7 @@ void CSDSG3ThickShellElement3D3N::Initialize(const ProcessInfo& rCurrentProcessI
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::Initialize")
 }
 
 /***********************************************************************************/
@@ -66,7 +66,7 @@ void CSDSG3ThickShellElement3D3N::InitializeMaterial()
         KRATOS_ERROR << "A constitutive law needs to be specified for the CS-DSG3 shell element with ID " << this->Id() << std::endl;
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::InitializeMaterial")
 }
 
 /***********************************************************************************/
@@ -92,7 +92,7 @@ Element::Pointer CSDSG3ThickShellElement3D3N::Clone(
 
     return p_new_elem;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::Clone")
 }
 
 /***********************************************************************************/
@@ -124,7 +124,7 @@ void CSDSG3ThickShellElement3D3N::EquationIdVector(
         rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y, rot_pos + 1 ).EquationId();
         rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z, rot_pos + 2 ).EquationId();
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::EquationIdVector")
 }
 
 /***********************************************************************************/
@@ -135,7 +135,7 @@ void CSDSG3ThickShellElement3D3N::GetDofList(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const auto& r_geom = GetGeometry();
     const SizeType number_of_nodes = r_geom.size();
@@ -151,7 +151,7 @@ void CSDSG3ThickShellElement3D3N::GetDofList(
         rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Y);
         rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Z);
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::GetDofList")
 }
 
 /***********************************************************************************/
@@ -168,7 +168,7 @@ double CSDSG3ThickShellElement3D3N::CalculateArea(
     const double x31 = r_coord_3[0] - r_coord_1[0];
     const double y31 = r_coord_3[1] - r_coord_1[1];
     return 0.5 * (x21 * y31 - y21 * x31);
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateArea")
 }
 
 /***********************************************************************************/
@@ -211,7 +211,7 @@ void CSDSG3ThickShellElement3D3N::CalculateRotationMatrixLocalToGlobal(
         rRotationMatrix(1, i) = v2[i];
         rRotationMatrix(2, i) = v3[i];
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateRotationMatrixLocalToGlobal")
 }
 
 /***********************************************************************************/
@@ -252,7 +252,7 @@ void CSDSG3ThickShellElement3D3N::RotateLHSToGlobal(
         }
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::RotateLHSToGlobal")
 }
 
 /***********************************************************************************/
@@ -281,7 +281,7 @@ void CSDSG3ThickShellElement3D3N::RotateRHSToGlobal(
             rRHS[i * 3 + k] = temp_vector[k];
         }
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::RotateRHSToGlobal")
 }
 
 /***********************************************************************************/
@@ -310,7 +310,7 @@ void CSDSG3ThickShellElement3D3N::RotateRHSToLocal(
             rRHS[i * 3 + k] = temp_vector[k];
         }
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::RotateRHSToLocal")
 }
 
 /***********************************************************************************/
@@ -452,7 +452,7 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
 
     rB *= aux_prod;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateBTriangle")
 }
 
 /***********************************************************************************/
@@ -460,6 +460,7 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
 
 void CSDSG3ThickShellElement3D3N::GetNodalValuesVector(VectorType& rNodalValues) const
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
 
     IndexType index = 0;
@@ -471,6 +472,7 @@ void CSDSG3ThickShellElement3D3N::GetNodalValuesVector(VectorType& rNodalValues)
         rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(ROTATION_Y);
         rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(ROTATION_Z);
     }
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::GetNodalValuesVector")
 }
 
 /***********************************************************************************/
@@ -492,7 +494,7 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     const ProcessInfo& rProcessInfo
     )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const IndexType strain_size = GetStrainSize();
     const auto& r_geometry = GetGeometry();
@@ -562,7 +564,7 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     RotateLHSToGlobal(rLHS, rotation_matrix);
     RotateRHSToGlobal(rRHS, rotation_matrix);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateLocalSystem")
 }
 
 /***********************************************************************************/
@@ -573,68 +575,11 @@ void CSDSG3ThickShellElement3D3N::CalculateLeftHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    // const IndexType strain_size = GetStrainSize();
-    // const auto& r_geometry = GetGeometry();
-    // const auto& r_props = GetProperties();
-    // const IndexType number_of_nodes = r_geometry.PointsNumber();
-    // const IndexType system_size = number_of_nodes * GetDoFsPerNode();
-    
-    // bounded_3_matrix rotation_matrix;
-    // CalculateRotationMatrixLocalToGlobal(rotation_matrix);
+// TODO
 
-    // if (rLHS.size1() != system_size || rLHS.size2() != system_size)
-    //     rLHS.resize(system_size, system_size, false);
-    // rLHS.clear();
-
-    // const double thickness = r_props[THICKNESS];
-    // const double area = r_geometry.Area();
-
-    // VectorType nodal_values(system_size);
-    // GetNodalValuesVector(nodal_values);
-    // // We rotate the nodal values to the local system of the shell
-    // RotateRHSToGlobal(nodal_values, trans(rotation_matrix)); // rotate to local
-
-    // ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-    // auto &r_cl_options = cl_values.GetOptions();
-    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    
-    // // Let's initialize the constitutive law's values
-    // VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size);
-    // MatrixType gen_constitutive_matrix(strain_size, strain_size);
-    // cl_values.SetStrainVector(gen_strain_vector);
-    // cl_values.SetStressVector(gen_stress_vector);
-    // cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
-    
-    // const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
-    // double zeta1, zeta2, zeta3, weight;
-    // MatrixType B(strain_size, system_size);
-    // for (SizeType i_point = 0; i_point < r_integration_points.size(); ++i_point) {
-    //     zeta1 = r_integration_points[i_point].X();
-    //     zeta2 = r_integration_points[i_point].Y();
-    //     zeta3 = r_integration_points[i_point].Z();
-    //     weight = r_integration_points[i_point].Weight();
-
-    //     CalculateBTriangle(B, rotation_matrix, r_geometry[0].Coordinates(), r_geometry[1].Coordinates(),
-    //     r_geometry[2].Coordinates(), zeta1, zeta2, zeta3);
-
-    //     // We compute the strain at the integration point
-    //     noalias(gen_strain_vector) = prod(B, nodal_values);
-
-    //     // We call the constitutive law to compute the stress
-    //     cl_values.SetStrainVector(gen_strain_vector);
-    //     mConstitutiveLawVector[i_point]->CalculateMaterialResponseCauchy(cl_values);
-    //     noalias(gen_stress_vector) = cl_values.GetStressVector();
-    //     noalias(gen_constitutive_matrix) = cl_values.GetConstitutiveMatrix();
-
-    //     // We integrate the LHS and RHS
-    //     noalias(rLHS) += weight * prod(trans(B), Matrix(prod(gen_constitutive_matrix, B)));
-    // }
-    // RotateLHSToGlobal(rLHS, rotation_matrix);
-
-    KRATOS_CATCH("");
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateLeftHandSide")
 }
 
 /***********************************************************************************/
@@ -645,7 +590,7 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
     const ProcessInfo& rProcessInfo
     )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const IndexType strain_size = GetStrainSize();
     const auto& r_geometry = GetGeometry();
@@ -708,7 +653,7 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
     }
     RotateRHSToGlobal(rRHS, rotation_matrix);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateRightHandSide")
 }
 
 
@@ -717,14 +662,14 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
 
 int CSDSG3ThickShellElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const auto& r_properties = GetProperties();
     KRATOS_ERROR_IF_NOT(r_properties.Has(THICKNESS)) << "THICKNESS not provided for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
     KRATOS_ERROR_IF_NOT(r_properties.GetValue(THICKNESS) > 0.0) << "Wrong value for THICKNESS in the  CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
     return mConstitutiveLawVector[0]->Check(r_properties, GetGeometry(), rCurrentProcessInfo);
 
-    KRATOS_CATCH( "" );
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::Check")
 }
 
 /***********************************************************************************/
