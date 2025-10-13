@@ -182,7 +182,6 @@ public:
         KRATOS_TRY
 
         IndexType number_of_laws = mConstitutiveLaws.size();
-        KRATOS_ERROR_IF(number_of_laws == 0) << "No constitutive laws defined for thickness integration" << std::endl;
         TDataType ip_value;
         if (mConstitutiveLaws[0]->Has(rThisVariable)) {
             mConstitutiveLaws[0]->GetValue(rThisVariable, rValue);
@@ -199,9 +198,8 @@ public:
     }
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (generic)
+     * @brief Sets the value of a specified variable (generic)
      * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
      */
     template<class TDataType>
     void SetValue(
@@ -220,6 +218,40 @@ public:
 
         KRATOS_CATCH("Generic SetValue")
     }
+
+    /**
+     * @brief CalculateValue of a specified variable (generic)
+     * @param rThisVariable the variable to be checked for
+     */
+    template<class TDataType>
+    TDataType& CalculateValue(
+        Parameters& rParameterValues,
+        const Variable<TDataType>& rThisVariable,
+        TDataType& rValue)
+        {
+            KRATOS_TRY
+
+            const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
+            const auto sub_property = r_material_properties.GetSubProperties().begin();
+            IndexType number_of_laws = mConstitutiveLaws.size();
+
+            TDataType aux_value;
+
+            rParameterValues.SetMaterialProperties(*(sub_property));
+            mConstitutiveLaws[0]->CalculateValue(rParameterValues, rThisVariable, rValue);
+
+            for (IndexType i = 1; i < number_of_laws; ++i) {
+                mConstitutiveLaws[i]->CalculateValue(rParameterValues, rThisVariable, aux_value);
+                rValue += aux_value;
+            }
+            rValue /= static_cast<double>(number_of_laws);
+
+            rParameterValues.SetMaterialProperties(r_material_properties);
+            
+            return rValue;
+
+            KRATOS_CATCH("Generic CalculateValue")
+        }
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (integer)
@@ -349,32 +381,6 @@ public:
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
-
-    /**
-     * @brief Calculates the value of a specified variable (array of 3 components)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    array_1d<double, 3 > & CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<array_1d<double, 3 > >& rVariable,
-        array_1d<double, 3 > & rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (array of 6 components)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return The value of the specified variable
-     */
-    array_1d<double, 6 > & CalculateValue(
-        Parameters& rParameterValues,
-        const Variable<array_1d<double, 6 > >& rVariable,
-        array_1d<double, 6 > & rValue
-        ) override;
-
 
     /**
      * @brief This is to be called at the very beginning of the calculation
