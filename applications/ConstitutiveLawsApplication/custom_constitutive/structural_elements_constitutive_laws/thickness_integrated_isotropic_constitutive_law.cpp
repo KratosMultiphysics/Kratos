@@ -18,6 +18,8 @@
 
 // Project includes
 #include "thickness_integrated_isotropic_constitutive_law.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "includes/mat_variables.h"
 
 namespace Kratos
 {
@@ -332,6 +334,104 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseKirch
 void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
+
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    const auto r_material_properties = rValues.GetMaterialProperties();
+    const IndexType number_of_laws = mConstitutiveLaws.size();
+    const auto strain_size = GetStrainSize(); // 3
+
+    // Previous flags saved
+    const bool flag_compute_constitutive_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_compute_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_computed_strain = true;
+
+    std::vector<double> coordinates;
+    std::vector<double> weights;
+
+    CalculateCoordinatesAndWeights(coordinates, weights, mThicknessIntegrationPoints, r_material_properties);
+
+    // The generalized strain vector, constant
+    const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
+    Vector generalized_stress_vector(VoigtSize); // size 8
+    generalized_stress_vector.clear();
+
+    const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+    Properties &r_subprop = *(it_prop_begin);
+
+    if (flag_compute_stress || flag_compute_constitutive_tensor) {
+
+        // Auxiliary stress vector
+        Vector& r_stress_vector = rValues.GetStressVector(); // size 8
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 8x8
+        r_stress_vector.clear();
+        r_constitutive_matrix.clear();
+
+        Vector strain(strain_size), stress(strain_size); // 3
+        Matrix constitutive_matrix(strain_size, strain_size); // 3x3
+        Matrix F(Dimension, Dimension); // 2x2
+        double weight, z_coord, detF;
+
+        const double h_max = rValues.GetElementGeometry().MaxEdgeLength();
+        const double alpha = 0.1;
+        const double thickness = r_material_properties[THICKNESS];
+        const double t_square = thickness * thickness;
+        const double stenberg_stabilization = (5.0 / 6.0) * t_square / (t_square + alpha * h_max * h_max);
+
+        // We perform the integration through the thickness
+        for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+            rValues.SetMaterialProperties(r_subprop);
+
+            weight = weights[i_layer];
+            z_coord = coordinates[i_layer];
+
+            strain[0] = generalized_strain_vector[0] + z_coord * generalized_strain_vector[3]; // xx
+            strain[1] = generalized_strain_vector[1] + z_coord * generalized_strain_vector[4]; // yy
+            strain[2] = generalized_strain_vector[2] + z_coord * generalized_strain_vector[5]; // xy
+
+            rValues.SetStrainVector(strain);
+            noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(strain);
+            detF = MathUtils<double>::Det(F);
+            rValues.SetDeterminantF(detF);
+            rValues.SetDeformationGradientF(F);
+
+            p_law->CalculateMaterialResponseCauchy(rValues);
+
+            if (flag_compute_stress) {
+                noalias(stress) = rValues.GetStressVector();
+                generalized_stress_vector[0] += stress[0] * weight; // membrane xx
+                generalized_stress_vector[1] += stress[1] * weight; // membrane yy
+                generalized_stress_vector[2] += stress[2] * weight; // membrane xy
+                generalized_stress_vector[3] += stress[0] * z_coord * weight; // bending xx
+                generalized_stress_vector[4] += stress[1] * z_coord * weight; // bending yy
+                generalized_stress_vector[5] += stress[2] * z_coord * weight; // bending xy
+
+                const double Gyz = r_subprop.Has(SHEAR_MODULUS_YZ) ? r_subprop[SHEAR_MODULUS_YZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
+                const double Gxz = r_subprop.Has(SHEAR_MODULUS_XZ) ? r_subprop[SHEAR_MODULUS_XZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
+
+                generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
+                generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
+            }
+
+        }
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     KRATOS_CATCH("")
