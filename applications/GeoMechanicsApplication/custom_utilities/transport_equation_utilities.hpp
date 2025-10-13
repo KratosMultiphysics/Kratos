@@ -129,17 +129,8 @@ public:
                                                                                       double BishopCoefficient,
                                                                                       double IntegrationCoefficient)
     {
-        const double multiplier =
-            PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient * BishopCoefficient * IntegrationCoefficient;
-
-        Vector temp_vector(rB.size2());
-        noalias(temp_vector) = prod(trans(rB), rVoigtVector);
-        KRATOS_ERROR_IF(TNumNodes * TDim != rB.size2())
-            << " Inconsistent sizes: rCouplingMatrix.size1(): " << TNumNodes * TDim
-            << " rB.size2(): " << rB.size2() << std::endl;
-        BoundedMatrix<double, TNumNodes * TDim, TNumNodes> result;
-        noalias(result) = multiplier * outer_prod(temp_vector, rNp);
-        return result;
+        return PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient * BishopCoefficient * IntegrationCoefficient *
+                       outer_prod(Vector(prod(trans(rB), rVoigtVector)), rNp);
     }
 
     template <unsigned int TNumNodes>
