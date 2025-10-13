@@ -80,6 +80,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCutSbmSolidInterfaceCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmSolidCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -128,7 +132,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("CutSbmSolidCondition", mCutSbmSolidCondition)
     KRATOS_REGISTER_CONDITION("CutSbmLoadSolidCondition", mCutSbmLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("CutSbmSolidInterfaceCondition", mCutSbmSolidInterfaceCondition)
-
+    KRATOS_REGISTER_CONDITION("GapSbmSolidCondition", mGapSbmSolidCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmLoadSolidCondition", mGapSbmLoadSolidCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
     KRATOS_REGISTER_MODELER("IgaModelerSbm", mIgaModelerSbm);
@@ -181,6 +186,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DEAD_LOAD)
     KRATOS_REGISTER_VARIABLE(PRESSURE_FOLLOWER_LOAD)
+    KRATOS_REGISTER_VARIABLE(CURVATURE)
 
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(PK2_STRESS)
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(CAUCHY_STRESS)
@@ -217,10 +223,12 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_ID)
     KRATOS_REGISTER_VARIABLE(CONNECTED_LAYERS)
     KRATOS_REGISTER_VARIABLE(CONNECTED_CONDITIONS)
+    KRATOS_REGISTER_VARIABLE(INTERPOLATION_NODES_ID)
 
     KRATOS_REGISTER_VARIABLE(RESULTS_ON_TRUE_BOUNDARY)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
+
 }
 
 }  // namespace Kratos

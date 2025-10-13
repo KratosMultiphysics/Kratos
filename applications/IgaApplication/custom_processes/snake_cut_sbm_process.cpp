@@ -257,7 +257,37 @@ void SnakeCutSbmProcess::CreateSbmExtendedGeometries(
         //------------------------------------------------------------------
         Node::Pointer p_first_node = p_surrogate_node_1;
         Node::Pointer p_second_node = nullptr;
-        for (SizeType d = 0; d < mInternalDivision; ++d)
+
+        // FIXME:
+        auto connected_layers_1 = p_surrogate_node_1->GetValue(CONNECTED_LAYERS);
+        auto connected_layers_2 = p_surrogate_node_2->GetValue(CONNECTED_LAYERS);
+        const auto projection_id_1 = p_surrogate_node_1->GetValue(PROJECTION_NODE_ID);
+        const auto projection_id_2 = p_surrogate_node_2->GetValue(PROJECTION_NODE_ID);
+        SizeType n_skin_nodes = rSkinSubModelPart.NumberOfNodes();
+        IndexType first_node_id = rSkinSubModelPart.NodesBegin()->Id();
+        std::string common_layer_name = "";
+        std::string common_condition_name = "";
+        IndexType condition_count = 0;
+        bool layer_found = false;
+        // Find the common layer between the two surrogate nodes
+        for (auto& layer : connected_layers_1) {
+            for (auto& layer_2 : connected_layers_2) {
+                if (layer == layer_2) {
+                    common_layer_name = layer;
+                    common_condition_name = p_surrogate_node_1->GetValue(CONNECTED_CONDITIONS)[condition_count];
+                    layer_found = true;
+                    break;                  
+                }
+            }
+            condition_count++;
+        }
+
+        SizeType current_internal_divisions = mInternalDivision;
+
+        if (abs(projection_id_2 - projection_id_1) < mInternalDivision*10)
+            current_internal_divisions = 1;
+
+        for (SizeType d = 0; d < current_internal_divisions; ++d)
         {
             //---------------- 3.1 Current sub-interval --------------------
             const double sub_t0 = t0 +  d      * dt;
@@ -270,9 +300,32 @@ void SnakeCutSbmProcess::CreateSbmExtendedGeometries(
             p_brep_curve_on_surface_surrogate1_surrogate2->GlobalCoordinates(surrogate_vertex_1, surrogate_vertex_1_local_coords);
             p_brep_curve_on_surface_surrogate1_surrogate2->GlobalCoordinates(surrogate_vertex_2, surrogate_vertex_2_local_coords);
 
-            if (d != mInternalDivision - 1) {
+            if (d != current_internal_divisions - 1) {
                 // create the new node 
                 p_second_node = Node::Pointer(new Node(0, surrogate_vertex_2));
+
+                auto second_node_connected_layers = p_second_node->GetValue(CONNECTED_LAYERS);
+                second_node_connected_layers.push_back(common_layer_name);
+                p_second_node->SetValue(CONNECTED_LAYERS, second_node_connected_layers);
+
+                auto second_node_connected_conditions = p_second_node->GetValue(CONNECTED_CONDITIONS);
+                second_node_connected_conditions.push_back(common_condition_name);
+                p_second_node->SetValue(CONNECTED_CONDITIONS, second_node_connected_conditions);
+
+                IndexType projection_node_id = (projection_id_1 * (current_internal_divisions -1 - d) + projection_id_2 * (d+1)) / (current_internal_divisions);
+
+                projection_node_id -= first_node_id;
+                if (abs(projection_id_2-projection_id_1) > n_skin_nodes/2) 
+                    if (projection_id_2 > projection_id_1) 
+                        projection_node_id = ((projection_id_1 + n_skin_nodes - first_node_id) * (current_internal_divisions -1 - d) + (projection_id_2-first_node_id) * (d+1)) / (current_internal_divisions);
+                    else
+                        projection_node_id = ((projection_id_1-first_node_id) * (current_internal_divisions -1 - d) + (projection_id_2 + n_skin_nodes - first_node_id) * (d+1)) / (current_internal_divisions);
+
+                if (projection_node_id > n_skin_nodes) projection_node_id -= n_skin_nodes;
+                
+                projection_node_id += first_node_id;
+
+                p_second_node->SetValue(PROJECTION_NODE_ID, projection_node_id);
             }
             else {
                 // last division -> use the second surrogate node
@@ -469,14 +522,12 @@ void SnakeCutSbmProcess::CreateCutAndSkinQuadraturePoints(
 {
     const IndexType id_closest_true_node = pSurrogateNode1->GetValue(PROJECTION_NODE_ID);
 
-    const auto p_skin_node_1 = rSkinSubModelPart.pGetNode(id_closest_true_node);
+    const auto& p_skin_node_1 = rSkinSubModelPart.pGetNode(id_closest_true_node);
     
     // search the projection of the second vertex
-    DynamicBinsPointerType p_surrogate_vertex_2 = DynamicBinsPointerType(new PointType(1, pSurrogateNode2->X(), pSurrogateNode2->Y(), pSurrogateNode2->Z()));
-
     const IndexType id_closest_true_node_2 = pSurrogateNode2->GetValue(PROJECTION_NODE_ID);
 
-    const auto p_skin_node_2 = rSkinSubModelPart.pGetNode(id_closest_true_node_2);
+    const auto& p_skin_node_2 = rSkinSubModelPart.pGetNode(id_closest_true_node_2);
 
     // retrieve condition name for the skin condition
     auto connected_layers_1 = pSurrogateNode1->GetValue(CONNECTED_LAYERS);
@@ -533,39 +584,113 @@ void SnakeCutSbmProcess::CreateCutAndSkinQuadraturePoints(
 
     // skin_1 - skin_2
     // auto p_nurbs_curve_skin1_skin2 = FitQuadraticBezierBetween<TIsInnerLoop>(
-    //     rSkinSubModelPart, id_closest_true_condition, id_closest_true_condition_2,
+    //     rSkinSubModelPart, id_closest_true_node, id_closest_true_node_2,
     //     p_skin1_brep_point, p_skin2_brep_point);
     
 
-    const int p = mCutApproximationOrder;
+    int p = 1;
+    p = mCutApproximationOrder;
+
+    std::vector<IndexType> interpolation_nodes_id(p+1);
+    interpolation_nodes_id[0] = id_closest_true_node;
+
+    // // if (p > 1) p=1;
     auto p_nurbs_curve_skin1_skin2 = this->CreateBrepCurve(p_skin1_brep_point, p_skin2_brep_point, active_range_knot_vector);
 
-    if (norm_2(skin_2 - skin_1) > rBinSearchParameters.SearchRadius/10.0 && abs(id_closest_true_node-id_closest_true_node_2)> (2*p+1) && p>1)
+    // std::vector<array_1d<double,3>> interpolation_points(0);
+
+    // interpolation_points.push_back(p_skin_node_1->Coordinates());
+    // const SizeType number_interpolation_points = 20;//*(p-1);
+    // const double ridge = 1e-12;
+
+    // for (IndexType i = 0; i < number_interpolation_points; i++)
+    // {
+    //     CoordinatesArrayType surrogate_coords = (p_skin_node_1->Coordinates()*(number_interpolation_points-i) +
+    //                                              p_skin_node_2->Coordinates()*(i+1)) 
+    //                                              / (number_interpolation_points+1);
+
+        
+    //     Vector mean_tangent_vector = p_skin_node_2->Coordinates() - p_skin_node_1->Coordinates();
+    //     mean_tangent_vector /= norm_2(mean_tangent_vector);
+
+
+    //     DynamicBinsPointerType p_surrogate_point = DynamicBinsPointerType(new PointType(1, surrogate_coords[0], surrogate_coords[1], surrogate_coords[2]));
+        
+    //     // IndexType id_skin_node = FindClosestNodeInLayer(p_surrogate_point, rBinSearchParameters, layer_name, rSkinSubModelPart);
+
+    //     IndexType id_skin_node = FindClosestNodeInLayerWithDirection(p_surrogate_point, rBinSearchParameters, layer_name, rSkinSubModelPart, mean_tangent_vector);
+
+    //     interpolation_points.push_back(rSkinSubModelPart.pGetNode(id_skin_node)->Coordinates());
+
+    //     if (i < p-1)
+    //         interpolation_nodes_id[1+i] = id_skin_node;
+    // }
+
+    // interpolation_points.push_back(p_skin_node_2->Coordinates());
+    // interpolation_nodes_id[p] = id_closest_true_node_2;
+
+    // if (norm_2(skin_2 - skin_1) > rBinSearchParameters.SearchRadius/100.0 && p>1)
+    //     p_nurbs_curve_skin1_skin2 = FitBezierUV_LS_Generic(interpolation_points, p, ridge);
+
+    if (norm_2(skin_2 - skin_1) > rBinSearchParameters.SearchRadius/100.0 && abs(id_closest_true_node-id_closest_true_node_2)> (2*p+1) && p>1)
         p_nurbs_curve_skin1_skin2 = FitUV_BetweenSkinNodes_Generic<TIsInnerLoop>(
             rSkinSubModelPart, *pNurbsSurface, id_closest_true_node, id_closest_true_node_2, p, /*ridge=*/1e-14);
 
 
-    auto p_brep_curve_skin1_skin2 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_skin1_skin2);      
-
+    auto p_brep_curve_skin1_skin2 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_skin1_skin2);    
+    
     IntegrationPointsArrayType brep_integration_points_list_skin1_skin2;
     GeometriesArrayType brep_quadrature_point_list_skin1_skin2;
+    rIntegrationParameters.CurveIntegrationInfo.SetNumberOfIntegrationPointsPerSpan(0, ((mCutApproximationOrder+1)*(mCutApproximationOrder+1)));
 
     p_brep_curve_skin1_skin2->CreateIntegrationPoints(brep_integration_points_list_skin1_skin2, rIntegrationParameters.CurveIntegrationInfo);
 
     const double p_brep_curve_skin1_skin2_length = (p_brep_curve_skin1_skin2->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX))->Length();
+
+    // FIXME: fix the value of the weights
     for (auto& integration_point : brep_integration_points_list_skin1_skin2) {
-        integration_point.SetWeight(integration_point.Weight() * p_brep_curve_skin1_skin2_length);
+        std::vector<CoordinatesArrayType> ders;
+        p_brep_curve_skin1_skin2->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)->GlobalSpaceDerivatives(ders, integration_point.Coordinates(), 1);
+        const double weight_correcting_factor = std::sqrt(ders[1][0]*ders[1][0] +ders[1][1]*ders[1][1]);
+
+        integration_point.SetWeight(integration_point.Weight() * weight_correcting_factor);
     }
 
-    p_brep_curve_skin1_skin2->CreateQuadraturePointGeometries(brep_quadrature_point_list_skin1_skin2, rIntegrationParameters.NumberOfShapeFunctionsDerivatives, 
-                                                            brep_integration_points_list_skin1_skin2, rIntegrationParameters.CurveIntegrationInfo);
+    if (norm_2(skin_2 - skin_1) > 1e-14)
+        p_brep_curve_skin1_skin2->CreateQuadraturePointGeometries(brep_quadrature_point_list_skin1_skin2, rIntegrationParameters.NumberOfShapeFunctionsDerivatives, 
+                                                                  brep_integration_points_list_skin1_skin2, rIntegrationParameters.CurveIntegrationInfo);
     
+    
+    for (auto& quad_geom : brep_quadrature_point_list_skin1_skin2)
+    {
+        quad_geom.SetValue(INTERPOLATION_NODES_ID, interpolation_nodes_id);
+
+    }
+
     SizeType id = 1;
     if (mpIgaModelPart->GetRootModelPart().Conditions().size() > 0)
         id = mpIgaModelPart->GetRootModelPart().Conditions().back().Id() + 1;
     
     std::vector<Geometry<Node>::Pointer> neighbour_geometries_skin1_skin2;
     neighbour_geometries_skin1_skin2.push_back(rSurrogateBrepMiddleGeometry);
+
+    // Find the closest point on the true boundary for each of the quadrature geometries
+    for (auto& quad_geom: brep_quadrature_point_list_skin1_skin2)
+    {
+        CoordinatesArrayType quadrature_point_coords = quad_geom.Center().Coordinates();
+        DynamicBinsPointerType p_quadrature_point = DynamicBinsPointerType(new PointType(1, quadrature_point_coords[0], quadrature_point_coords[1], quadrature_point_coords[2]));
+        
+        IndexType id_skin_node = FindClosestNodeInLayer(p_quadrature_point, rBinSearchParameters, layer_name, rSkinSubModelPart);
+        NodeType::Pointer p_skin_node = rSkinSubModelPart.pGetNode(id_skin_node);
+        NodePointerVector empty_vector;
+
+        if constexpr(TIsInnerLoop)
+            p_skin_node->SetValue(IDENTIFIER, "inner");
+        else 
+            p_skin_node->SetValue(IDENTIFIER, "outer");
+        empty_vector.push_back(p_skin_node); // Just it_node-plane neighbours
+        quad_geom.SetValue(NEIGHBOUR_NODES, empty_vector);
+    }
     
     this->CreateConditions(
         brep_quadrature_point_list_skin1_skin2.ptr_begin(), brep_quadrature_point_list_skin1_skin2.ptr_end(),
@@ -593,59 +718,49 @@ void SnakeCutSbmProcess::CreateCutAndSkinQuadraturePoints(
     if constexpr (TIsInnerLoop)  
     {
 
-        // Bottom B0: surrogate_1 — surrogate_2  (you already have the Brep curve)
-        auto p_uv_B0 = MakeUV_From3DEdge(*p_brep_curve_surrogate1_surrogate2, *pNurbsSurface /*, n_samples=9..13*/);
+        array_1d<double,3> surrogate_1 = pSurrogateNode1->Coordinates();
+        array_1d<double,3> surrogate_2 = pSurrogateNode2->Coordinates();
+        array_1d<double,3> skin_1 = p_skin_node_1->Coordinates();
+        array_1d<double,3> skin_2 = p_skin_node_2->Coordinates();
 
-        // Left  L0: surrogate_1 — skin_1
-        auto p_uv_L0 = MakeUV_From3DEdge(*p_brep_curve_surrogate1_skin1, *pNurbsSurface);
+        IntegrationPointsArrayType surface_integration_points = CreateCoonsPatchGaussPoints(
+            (mCutApproximationOrder+1)*2, /*Order*/
+            *p_brep_curve_surrogate1_surrogate2,   // B0
+            *p_brep_curve_surrogate1_skin1,       // L0
+            *p_brep_curve_surrogate2_skin2,       // L1
+            *p_brep_curve_skin1_skin2,            // B1
+            surrogate_1,  // P00
+            skin_1,       // P01
+            surrogate_2,  // P10
+            skin_2);      // P11
 
-        // Right L1: surrogate_2 — skin_2
-        auto p_uv_L1 = MakeUV_From3DEdge(*p_brep_curve_surrogate2_skin2, *pNurbsSurface);
-
-        // auto p_uv_B1 = FitUV_BetweenSkinConditions_Generic<TIsInnerLoop>(
-        //     rSkinSubModelPart, *pNurbsSurface, id_closest_true_condition, id_closest_true_condition_2, p, /*ridge=*/1e-14);
-
-        // auto p_uv_B1 = FitQuadraticBezierBetween<TIsInnerLoop>(rSkinSubModelPart,
-        //     id_closest_true_condition, id_closest_true_condition_2, p_skin1_brep_point, p_skin2_brep_poin
-
-        auto p_uv_B1 = MakeUV_From3DEdge(*p_brep_curve_skin1_skin2, *pNurbsSurface);
-
-        // 2) UV-Coons Gauss points (increase Order as needed, e.g. 5–7)
-        IntegrationPointsArrayType surface_integration_points =
-            CreateCoonsPatchGaussPointsUV(/*Order=*/(mCutApproximationOrder+1), *p_uv_B0, *p_uv_L0, *p_uv_L1, *p_uv_B1);
-
+        
         pNurbsSurface->CreateQuadraturePointGeometries(surface_quadrature_point_list, rIntegrationParameters.NumberOfShapeFunctionsDerivatives, 
-                                                        surface_integration_points, surface_integration_info);
+            surface_integration_points, surface_integration_info);
     }
     else
     {
         auto p_nurbs_curve_skin2_skin1 = ReverseBezierUV_Generic(p_nurbs_curve_skin1_skin2);
         auto p_brep_curve_skin2_skin1 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_skin2_skin1);  
-        
-        // // // surrogate_2 - surrogate_1
-        auto p_nurbs_curve_surrogate2_surrogate1 = this->CreateBrepCurve(pSurrogateNode2, pSurrogateNode1, active_range_knot_vector);
-        auto p_brep_curve_surrogate2_surrogate1 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_surrogate2_surrogate1);   
 
-        auto p_uv_B0 = MakeUV_From3DEdge(*p_brep_curve_surrogate2_surrogate1, *pNurbsSurface /*, n_samples=9..13*/);
+        auto p_nurbs_curve_surrogate2_surrogate1 = ReverseBezierUV_Generic(p_nurbs_curve_surrogate1_surrogate2);
+        auto p_brep_curve_surrogate2_surrogate1 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_surrogate2_surrogate1);  
 
-        // Left  L0: surrogate_1 — skin_1
-        // auto p_brep_curve_surrogate1_skin1 = /* as in your code */;
-        auto p_uv_L0 = MakeUV_From3DEdge(*p_brep_curve_surrogate1_skin1, *pNurbsSurface);
+        array_1d<double,3> surrogate_1 = pSurrogateNode1->Coordinates();
+        array_1d<double,3> surrogate_2 = pSurrogateNode2->Coordinates();
+        array_1d<double,3> skin_1 = p_skin_node_1->Coordinates();
+        array_1d<double,3> skin_2 = p_skin_node_2->Coordinates();
 
-        // Right L1: surrogate_2 — skin_2
-        // auto p_brep_curve_surrogate2_skin2 = /* as in your code */;
-        auto p_uv_L1 = MakeUV_From3DEdge(*p_brep_curve_surrogate2_skin2, *pNurbsSurface);
-
-        // // Top   B1: skin_1 — skin_2  (use all real skin points between the two conditions)
-        // auto p_uv_B1 = FitUV_BetweenSkinConditions<TIsInnerLoop>(rSkinSubModelPart, *pNurbsSurface,
-        //     id_closest_true_condition, id_closest_true_condition_2);
-
-        auto p_uv_B1 = MakeUV_From3DEdge(*p_brep_curve_skin2_skin1, *pNurbsSurface);
-
-        // 2) UV-Coons Gauss points (increase Order as needed, e.g. 5–7)
-        IntegrationPointsArrayType surface_integration_points =
-            CreateCoonsPatchGaussPointsUV(/*Order=*/(mCutApproximationOrder+1), *p_uv_B0, *p_uv_L1, *p_uv_L0, *p_uv_B1);
-                                                        
+        IntegrationPointsArrayType surface_integration_points = CreateCoonsPatchGaussPoints(
+            (mCutApproximationOrder+1)*2, /*Order*/
+            *p_brep_curve_surrogate2_surrogate1,   // B0
+            *p_brep_curve_surrogate2_skin2,       // L0
+            *p_brep_curve_surrogate1_skin1,       // L1
+            *p_brep_curve_skin2_skin1,            // B1
+            surrogate_2,  // P00
+            skin_2,       // P01
+            surrogate_1,  // P10
+            skin_1);      // P11
 
         pNurbsSurface->CreateQuadraturePointGeometries(surface_quadrature_point_list, rIntegrationParameters.NumberOfShapeFunctionsDerivatives, 
                                                         surface_integration_points, surface_integration_info);
@@ -1123,19 +1238,6 @@ void SnakeCutSbmProcess::SetSurrogateToSkinProjections(
                 }
             }
             if (have_common_layer) {
-                // go to the next surrogate condition
-                if (p_surrogate_node_1->GetValue(PROJECTION_NODE_ID) == p_surrogate_node_2->GetValue(PROJECTION_NODE_ID)) {
-                    IndexType id_node = p_surrogate_node_1->GetValue(PROJECTION_NODE_ID);
-                    if constexpr (TIsInnerLoop) {
-                        const IndexType wrap_prev =
-                            ( (id_node - 1 - first_node_id + size_node_loop) % size_node_loop ) + first_node_id;
-                        p_surrogate_node_2->SetValue(PROJECTION_NODE_ID, wrap_prev);
-                    } else {
-                        const IndexType wrap_next =
-                            ( (id_node + 1 - first_node_id + size_node_loop) % size_node_loop ) + first_node_id;
-                        p_surrogate_node_2->SetValue(PROJECTION_NODE_ID, wrap_next);
-                    }
-                } 
                 continue;
             }
             else
@@ -1166,52 +1268,69 @@ void SnakeCutSbmProcess::SetSurrogateToSkinProjections(
                                                         rBinSearchParameters.Results.begin(), 
                                                         rBinSearchParameters.ListOfDistances.begin(), 
                                                         rBinSearchParameters.NumberOfResults);
-            double minimum_distance = 1e14;
             // Find the nearest node
-            IndexType nearest_node_id;
-            for (IndexType k = 0; k < obtained_results; k++) {
-                double current_distance = rBinSearchParameters.ListOfDistances[k];   
-                if (current_distance < minimum_distance) { 
-                    IndexType current_id = rBinSearchParameters.Results[k]->Id();
-                    // check orientation
-                    if (skin_node_id_2 != -1)
-                    {                  
-                        if (is_entering)
-                        {
-                            if constexpr (TIsInnerLoop) {
-                                if ((current_id > skin_node_id_2 && double(abs(skin_node_id_2-current_id)) < size_node_loop/2)
-                                    || current_id == skin_node_id_2) {
-                                    continue;
-                                }
-                            }
-                            else {
-                                if ((current_id < skin_node_id_2 && double(abs(skin_node_id_2-current_id)) < size_node_loop/2 )
-                                    || current_id == skin_node_id_2) {
-                                    continue;
-                                }
+            IndexType nearest_node_id = -1;
+
+            //FIXME:
+            bool intersect_domain = true; 
+            SizeType check_iteration = 0;
+            SizeType max_check_iterations = 100000;
+            std::vector<IndexType> id_to_avoid(0);
+            while (intersect_domain && check_iteration < max_check_iterations)
+            {
+                double minimum_distance = 1e14;
+                check_iteration++;
+                for (IndexType k = 0; k < obtained_results; k++) {
+                    double current_distance = rBinSearchParameters.ListOfDistances[k];   
+                    if (current_distance < minimum_distance) { 
+                        IndexType current_id = rBinSearchParameters.Results[k]->Id();
+
+                        bool avoid_id = false;
+                        for (IndexType k : id_to_avoid) {
+                            if (current_id == k) {
+                                avoid_id = true;
+                                break;
                             }
                         }
-                        else 
+
+                        if (avoid_id) {
+                            continue;
+                        }
+
+                        minimum_distance = current_distance;
+                        nearest_node_id = current_id;
+                    }
+                }
+                
+                // check projection feasibility
+                auto p_first_node = p_surrogate_node_1;
+                auto p_second_node = rSkinSubModelPart.pGetNode(nearest_node_id);
+                intersect_domain = false;
+                {
+                    for (auto i_cond : rSurrogateSubModelPart.Conditions())
+                    { 
+                        Node::Pointer temp_p_surrogate_node_1 = i_cond.pGetGeometry()->pGetPoint(0);
+                        Node::Pointer temp_p_surrogate_node_2 = i_cond.pGetGeometry()->pGetPoint(1);  
+
+                        if (temp_p_surrogate_node_1->Id() == p_first_node->Id() || 
+                            temp_p_surrogate_node_1->Id() == p_second_node->Id() ||
+                            temp_p_surrogate_node_2->Id() == p_first_node->Id() || 
+                            temp_p_surrogate_node_2->Id() == p_second_node->Id())
+                            continue;
+                        if (SegmentsIntersect(*p_first_node, *p_second_node,
+                            *temp_p_surrogate_node_1, *temp_p_surrogate_node_2)) 
                         {
-                            if constexpr (TIsInnerLoop) {
-                                if ((current_id < skin_node_id_2 && double(abs(skin_node_id_2-current_id)) < size_node_loop/2)
-                                    || current_id == skin_node_id_2) {
-                                    continue;
-                                }
-                            }
-                            else {
-                                if ((current_id > skin_node_id_2 && double(abs(skin_node_id_2-current_id)) < size_node_loop/2 )
-                                    || current_id == skin_node_id_2) {
-                                    continue;
-                                }
-                            }
+                            id_to_avoid.push_back(nearest_node_id);
+                            intersect_domain = true;
+                            break; 
                         }
                     }
-
-                    minimum_distance = current_distance;
-                    nearest_node_id = current_id;
                 }
             }
+
+            KRATOS_ERROR_IF(check_iteration >= max_check_iterations) << "::[SnakeSbmProcess]:: Maximum number of iterations reached while searching for projection of point: " <<
+                p_surrogate_vertex_1 << std::endl;
+
             KRATOS_ERROR_IF(obtained_results == 0) << "::[SnakeSbmProcess]:: Zero points found in serch for projection of point: " <<
                 p_surrogate_vertex_1 << std::endl;
 
@@ -1260,52 +1379,72 @@ void SnakeCutSbmProcess::SetSurrogateToSkinProjections(
                                                         rBinSearchParameters.Results.begin(), 
                                                         rBinSearchParameters.ListOfDistances.begin(), 
                                                         rBinSearchParameters.NumberOfResults);                                     
-            double minimum_distance = 1e14;
             IndexType nearest_node_id = -1;
 
             KRATOS_ERROR_IF(obtained_results == 0) << ":::[SnakeCutSbmProcess]::: No condition found in the skin model part for the surrogate node "
                                             << p_surrogate_node_2->Id() << " at coordinates " << p_surrogate_node_2->Coordinates() << std::endl;
+            
 
-            for (IndexType k = 0; k < obtained_results; k++) {
-                double current_distance = rBinSearchParameters.ListOfDistances[k];   
-               
-                if (current_distance < minimum_distance) { 
+            // check projection feasibility
+            bool intersect_domain = true;
+            SizeType check_iteration = 0;
+            SizeType max_check_iterations = 100000;
+            std::vector<IndexType> id_to_avoid(0);
 
-                    IndexType current_id = rBinSearchParameters.Results[k]->Id();
-                    if (is_entering)
-                    {
-                        if constexpr (TIsInnerLoop) {
-                            if ((current_id < skin_node_id_1 && double(abs(skin_node_id_1-current_id)) < size_node_loop/2)
-                                || current_id == skin_node_id_1) {
-                                continue;
+            while (intersect_domain && check_iteration < max_check_iterations)
+            {
+                check_iteration++;
+                double minimum_distance = 1e14;
+                for (IndexType k = 0; k < obtained_results; k++) {
+                    double current_distance = rBinSearchParameters.ListOfDistances[k];   
+                
+                    if (current_distance < minimum_distance) { 
+
+                        IndexType current_id = rBinSearchParameters.Results[k]->Id();
+                        bool avoid_id = false;
+                        for (IndexType k : id_to_avoid) {
+                            if (current_id == k) {
+                                avoid_id = true;
+                                break;
                             }
                         }
-                        else {
-                            if ((current_id > skin_node_id_1 && double(abs(skin_node_id_1-current_id)) < size_node_loop/2 )
-                                || current_id == skin_node_id_1) {
-                                continue;
-                            }
+
+                        if (avoid_id) {
+                            continue;
                         }
+
+                        minimum_distance = current_distance;
+                        nearest_node_id = current_id;
                     }
-                    else 
+                }
+
+                auto p_first_node = p_surrogate_node_2;
+                auto p_second_node = rSkinSubModelPart.pGetNode(nearest_node_id);
+                intersect_domain = false;
+                for (auto i_cond : rSurrogateSubModelPart.Conditions())
+                { 
+                    Node::Pointer temp_p_surrogate_node_1 = i_cond.pGetGeometry()->pGetPoint(0);
+                    Node::Pointer temp_p_surrogate_node_2 = i_cond.pGetGeometry()->pGetPoint(1);  
+                    
+                    if (temp_p_surrogate_node_1->Id() == p_first_node->Id() || 
+                        temp_p_surrogate_node_1->Id() == p_second_node->Id() ||
+                        temp_p_surrogate_node_2->Id() == p_first_node->Id() || 
+                        temp_p_surrogate_node_2->Id() == p_second_node->Id())
+                        continue;
+
+                    if (SegmentsIntersect(*p_first_node, *p_second_node,
+                        *temp_p_surrogate_node_1, *temp_p_surrogate_node_2)) 
                     {
-                        if constexpr (TIsInnerLoop) {
-                            if ((current_id > skin_node_id_1 && double(abs(skin_node_id_1-current_id)) < size_node_loop/2)
-                                || current_id == skin_node_id_1) {
-                                continue;
-                            }
-                        }
-                        else {
-                            if ((current_id < skin_node_id_1 && double(abs(skin_node_id_1-current_id)) < size_node_loop/2 )
-                                || current_id == skin_node_id_1) {
-                                continue;
-                            }
-                        }
+                        id_to_avoid.push_back(nearest_node_id);
+                        intersect_domain = true;
+                        break; 
                     }
-                    minimum_distance = current_distance;
-                    nearest_node_id = current_id;
                 }
             }
+
+            KRATOS_ERROR_IF(check_iteration >= max_check_iterations) << "::[SnakeSbmProcess]:: Maximum number of iterations reached while searching for projection of point: " <<
+                p_surrogate_vertex_2 << std::endl;
+
 
             KRATOS_ERROR_IF(nearest_node_id == -1) << "::[SnakeSbmProcess]:: No suitable second node found in search for projection of point: " <<
                 p_surrogate_vertex_2 << " with first node id: " << skin_node_id_1 << std::endl;
@@ -1342,6 +1481,72 @@ void SnakeCutSbmProcess::SetSurrogateToSkinProjections(
                 AssestProjectionsFeasibility(rSkinSubModelPart, p_surrogate_node_1, p_surrogate_node_2, rBinSearchInterfaceParameters);
         }
     }
+    
+    // correct the projections
+    SizeType count_intersections = 1;
+    IndexType iter_check = 0;
+    while (count_intersections > 0 && iter_check < 5)
+    {
+        iter_check +=1;
+        count_intersections = 0;
+        for (auto& r_surrogate_condition : rSurrogateSubModelPart.Conditions())
+        {
+            Node::Pointer p_surrogate_node_1 = r_surrogate_condition.pGetGeometry()->pGetPoint(0);
+            Node::Pointer p_surrogate_node_2 = r_surrogate_condition.pGetGeometry()->pGetPoint(1);
+
+            IndexType projection_node_id_1 = p_surrogate_node_1->GetValue(PROJECTION_NODE_ID);
+            IndexType projection_node_id_2 = p_surrogate_node_2->GetValue(PROJECTION_NODE_ID);
+
+            Node::Pointer p_projection_node_1 = rSkinSubModelPart.pGetNode(projection_node_id_1);
+            Node::Pointer p_projection_node_2 = rSkinSubModelPart.pGetNode(projection_node_id_2);
+
+            if (projection_node_id_1 == projection_node_id_2) continue;
+
+            bool intersects_another_projection = false;
+            
+            if (SegmentsIntersect(*p_surrogate_node_1, *p_projection_node_1,
+                *p_surrogate_node_2, *p_projection_node_2)) 
+            {
+                p_surrogate_node_1->SetValue(PROJECTION_NODE_ID, projection_node_id_2); 
+                p_surrogate_node_2->SetValue(PROJECTION_NODE_ID, projection_node_id_1);
+
+                KRATOS_WATCH(p_surrogate_node_1->Coordinates())
+                KRATOS_WATCH(p_surrogate_node_2->Coordinates())
+                KRATOS_WATCH("-------------------------")
+
+                count_intersections += 1;
+            }
+        }
+    }
+
+    KRATOS_ERROR_IF(iter_check == 5) << "::[SnakeSbmProcess]:: Maximum iteration reached when checking intersections between projections. Please check the input data." << std::endl;
+
+    // //FIXME:
+    // int count = 0;
+
+    // const IndexType size_surrogate_loop = rSurrogateSubModelPart.NumberOfConditions();
+    // for (auto& r_surrogate_condition : rSurrogateSubModelPart.Conditions())
+    // {
+    //     // Search the closest condition in the skin model part
+    //     is_entering = !is_entering;
+
+    //     Node::Pointer p_surrogate_node_1 = r_surrogate_condition.pGetGeometry()->pGetPoint(0);
+    //     Node::Pointer p_surrogate_node_2 = r_surrogate_condition.pGetGeometry()->pGetPoint(1);
+    //     // if (count % (size_surrogate_loop-1)/10 == 0)
+    //     if (count % 20 == 0)
+    //     {
+
+    //         KRATOS_WATCH(p_surrogate_node_1->Coordinates())
+    //         KRATOS_WATCH(p_surrogate_node_2->Coordinates())
+    //         KRATOS_WATCH("-------------------------")
+    //         // add error
+    //         auto temp_node_id = p_surrogate_node_1->GetValue(PROJECTION_NODE_ID);
+    //         auto temp_node_id_2 = p_surrogate_node_2->GetValue(PROJECTION_NODE_ID);
+    //         p_surrogate_node_1->SetValue(PROJECTION_NODE_ID, temp_node_id_2);
+    //         p_surrogate_node_2->SetValue(PROJECTION_NODE_ID, temp_node_id);
+    //     }
+    //     count += 1;
+    // }
 }
 
 void SnakeCutSbmProcess::AssestProjectionsFeasibility(
@@ -1424,6 +1629,127 @@ void SnakeCutSbmProcess::AssestProjectionsFeasibility(
         pSurrogateNode2->SetValue(CONNECTED_CONDITIONS, connected_conditions);
     }
     return;
+}
+
+IndexType SnakeCutSbmProcess::FindClosestNodeInLayer(
+    const DynamicBinsPointerType& rStartPoint,
+    BinSearchParameters& rSearchParameters,
+    const std::string& rLayer,
+    const ModelPart& rSkinSubModelPart)
+{
+    // Reset search parameters
+    rSearchParameters.reset();
+
+    // Perform the search
+    SizeType obtained_results = rSearchParameters.TestBins.SearchInRadius(
+        *rStartPoint,
+        rSearchParameters.SearchRadius,
+        rSearchParameters.Results.begin(),
+        rSearchParameters.ListOfDistances.begin(),
+        rSearchParameters.NumberOfResults);
+
+    KRATOS_ERROR_IF(obtained_results == 0) 
+        << "::[FindClosestNodeInLayer]:: No points found for projection of point: "
+        << rStartPoint << std::endl;
+
+    // Find nearest node id that matches the given layer
+    IndexType nearest_node_id = -1;
+    double minimum_distance = 1e14;
+
+    for (IndexType k = 0; k < obtained_results; ++k) {
+        double current_distance = rSearchParameters.ListOfDistances[k];
+        IndexType current_id = rSearchParameters.Results[k]->Id();
+
+        const auto& connected_layers = rSkinSubModelPart.GetNode(current_id).GetValue(CONNECTED_LAYERS);
+        bool layer_match = std::find(connected_layers.begin(), connected_layers.end(), rLayer) != connected_layers.end();
+
+        if (layer_match && current_distance < minimum_distance) {
+            minimum_distance = current_distance;
+            nearest_node_id = current_id;
+        }
+    }
+
+    KRATOS_ERROR_IF(nearest_node_id == -1) 
+        << "::[FindClosestNodeInLayer]:: No node found matching layer: " << rLayer << std::endl;
+
+    return nearest_node_id;
+}
+
+IndexType SnakeCutSbmProcess::FindClosestNodeInLayerWithDirection(
+    const DynamicBinsPointerType& rStartPoint,
+    BinSearchParameters& rSearchParameters,
+    const std::string& rLayer,
+    const ModelPart& rSkinSubModelPart,
+    const Vector& rTangentDirection)
+{
+    // Reset search parameters
+    rSearchParameters.reset();
+
+    // Perform the search
+    SizeType obtained_results = rSearchParameters.TestBins.SearchInRadius(
+        *rStartPoint,
+        rSearchParameters.SearchRadius,
+        rSearchParameters.Results.begin(),
+        rSearchParameters.ListOfDistances.begin(),
+        rSearchParameters.NumberOfResults);
+
+    KRATOS_ERROR_IF(obtained_results == 0) 
+        << "::[FindClosestNodeInLayer]:: No points found for projection of point: "
+        << rStartPoint << std::endl;
+
+    // Find nearest node id that matches the given layer
+    IndexType nearest_node_id = -1;
+    double minimum_distance = 1e14;
+
+    IndexType nearest_node_id_perpendicular = -1;
+    double minimum_distance_perpendicular = 1e14;
+
+    for (IndexType k = 0; k < obtained_results; ++k) {
+        double current_distance = rSearchParameters.ListOfDistances[k];
+        IndexType current_id = rSearchParameters.Results[k]->Id();
+
+        auto& p_current_node = rSkinSubModelPart.pGetNode(current_id);
+        Vector current_projection = p_current_node->Coordinates() - rStartPoint->Coordinates();
+        if (norm_2(current_projection) > 1)
+            current_projection /= norm_2(current_projection);
+
+        const auto& connected_layers = rSkinSubModelPart.GetNode(current_id).GetValue(CONNECTED_LAYERS);
+        bool layer_match = std::find(connected_layers.begin(), connected_layers.end(), rLayer) != connected_layers.end();
+
+        if (std::abs(inner_prod(rTangentDirection, current_projection)) < 1e-3)
+        {
+            if (layer_match && current_distance < minimum_distance_perpendicular)
+            {
+                minimum_distance_perpendicular = current_distance;
+                nearest_node_id_perpendicular = current_id;
+            }
+        }
+
+        if (layer_match && current_distance < minimum_distance) {
+            minimum_distance = current_distance;
+            nearest_node_id = current_id;
+        }
+    }
+
+    KRATOS_ERROR_IF(nearest_node_id == -1) 
+        << "::[FindClosestNodeInLayer]:: No node found matching layer: " << rLayer << std::endl;
+
+    if (nearest_node_id_perpendicular != -1)
+    {
+        // auto& p_current_node = rSkinSubModelPart.pGetNode(nearest_node_id_perpendicular);
+        // KRATOS_WATCH(rStartPoint->Coordinates())
+        // KRATOS_WATCH(p_current_node->Coordinates())
+        // Vector current_projection = p_current_node->Coordinates() - rStartPoint->Coordinates();
+        // current_projection /= norm_2(current_projection);
+        // KRATOS_WATCH(current_projection)
+        // KRATOS_WATCH(rTangentDirection)
+
+        // KRATOS_WATCH("------------")
+
+        return nearest_node_id_perpendicular;
+    }
+    else
+        return nearest_node_id;
 }
 
 void SnakeCutSbmProcess::FindClosestTruePointToSurrogateVertexByNurbs()

@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_conditions/sbm_load_solid_condition.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -117,7 +118,27 @@ void SbmLoadSolidCondition::InitializeMemberVariables()
 
 void SbmLoadSolidCondition::InitializeSbmMemberVariables()
 {
-    const auto& r_geometry = this->GetGeometry();
+    auto& r_geometry = this->GetGeometry();
+    std::string loopIdentifier = this->GetValue(IDENTIFIER);
+
+    // NURBS case
+    if (this->GetValue(NEIGHBOUR_NODES).size() != 0) 
+    {
+        mpProjectionNode = &r_geometry.GetValue(NEIGHBOUR_NODES)[0];
+
+        mTrueNormal = mpProjectionNode->GetValue(NORMAL);
+
+        if (loopIdentifier == "inner")
+            mTrueNormal = -mTrueNormal;
+            
+        mDistanceVector.resize(3);
+        noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+        this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
+        // dot product n dot n_tilde
+        mTrueDotSurrogateNormal = inner_prod(mNormalParameterSpace, mTrueNormal);
+
+        return;
+    }
 
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
@@ -141,7 +162,6 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
 
     // calculate the integration weight
     // loopIdentifier is inner or outer
-    std::string loopIdentifier = this->GetValue(IDENTIFIER);
     if (mDim == 2) {
         // Need also the second closest condition in 2D
         Condition candidate_closest_skin_segment_2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1] ;
@@ -407,15 +427,15 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
     double nu = this->GetProperties().GetValue(POISSON_RATIO);
     double E = this->GetProperties().GetValue(YOUNG_MODULUS);
     Vector g_N = ZeroVector(3);
-    const double x = mpProjectionNode->X();
-    const double y = mpProjectionNode->Y();
+    // const double x = mpProjectionNode->X();
+    // const double y = mpProjectionNode->Y();
 
     // // // cosinusoidal
-    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
-    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
+    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
+    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
 
 
-    // g_N = mpProjectionNode->GetValue(FORCE);
+    g_N = mpProjectionNode->GetValue(FORCE);
     Vector normal_stress_old = ZeroVector(3);
     normal_stress_old[0] = (r_stress_vector[0] * mNormalPhysicalSpace[0] + r_stress_vector[2] * mNormalPhysicalSpace[1]);
     normal_stress_old[1] = (r_stress_vector[2] * mNormalPhysicalSpace[0] + r_stress_vector[1] * mNormalPhysicalSpace[1]);

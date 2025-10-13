@@ -13,6 +13,10 @@
 
 #pragma once
 
+// System includes
+#include <utility>
+#include <vector>
+
 // Project includes
 #include "containers/model.h"
 #include "includes/model_part.h"
@@ -21,6 +25,7 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "snake_sbm_process.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -48,11 +53,14 @@ public:
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
     typedef typename GeometryType::IntegrationPointsArrayType   IntegrationPointsArrayType;
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename Properties::Pointer PropertiesPointerType;
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
     
     using NurbsCurveGeometryType = NurbsCurveGeometry<3, PointerVector<Node>>;
     typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceType;
+    using ProjectionSegment = std::pair<CoordinatesArrayType, CoordinatesArrayType>;
+    using NodePointerVector = GlobalPointersVector<NodeType>;
 
     ///@name Type Definitions
     ///@{
@@ -1138,6 +1146,55 @@ typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
 
     return FitBezierUV_LS_Generic(UV, p, ridge);
 }
+
+
+inline double Orientation(
+    const Node& p, const Node& q, const Node& r)
+{
+    return (q.X() - p.X()) * (r.Y() - p.Y()) -
+           (q.Y() - p.Y()) * (r.X() - p.X());
+}
+
+inline bool OnSegment(
+    const Node& p, const Node& q, const Node& r)
+{
+    return (std::min(p.X(), r.X()) <= q.X() && q.X() <= std::max(p.X(), r.X()) &&
+            std::min(p.Y(), r.Y()) <= q.Y() && q.Y() <= std::max(p.Y(), r.Y()));
+}
+
+inline bool SegmentsIntersect(
+    const Node& A, const Node& B, const Node& C, const Node& D)
+{
+    double o1 = Orientation(A, B, C);
+    double o2 = Orientation(A, B, D);
+    double o3 = Orientation(C, D, A);
+    double o4 = Orientation(C, D, B);
+
+    // Caso generale
+    if (o1 * o2 < 0.0 && o3 * o4 < 0.0)
+        return true;
+
+    // Collinearità (con bounding box)
+    if (std::abs(o1) < 1e-14 && OnSegment(A, C, B)) return true;
+    if (std::abs(o2) < 1e-14 && OnSegment(A, D, B)) return true;
+    if (std::abs(o3) < 1e-14 && OnSegment(C, A, D)) return true;
+    if (std::abs(o4) < 1e-14 && OnSegment(C, B, D)) return true;
+
+    return false;
+}
+
+IndexType FindClosestNodeInLayer(
+    const DynamicBinsPointerType& rStartPoint,
+    BinSearchParameters& rSearchParameters,
+    const std::string& rLayer,
+    const ModelPart& rSkinSubModelPart);
+
+IndexType FindClosestNodeInLayerWithDirection(
+    const DynamicBinsPointerType& rStartPoint,
+    BinSearchParameters& rSearchParameters,
+    const std::string& rLayer,
+    const ModelPart& rSkinSubModelPart,
+    const Vector& rTangentDirection);
 
         
 }; // Class SnakeCutSbmProcess

@@ -238,6 +238,11 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         ordered_indices.reserve(n_boundary_curves);
         std::vector<bool> used(n_boundary_curves, false);
 
+        //FIXME: vertices sub model part
+        std::string interface_sub_model_part_name = "interface_vertices";
+        ModelPart& r_skin_interface_sub_model_part = r_skin_sub_model_part.HasSubModelPart(interface_sub_model_part_name) ? 
+                                                    r_skin_sub_model_part.GetSubModelPart(interface_sub_model_part_name) : r_skin_sub_model_part.CreateSubModelPart(interface_sub_model_part_name);
+
         // Precompute start/end coordinates for each curve (local t=0 and t=1)
         std::vector<CoordinatesArrayType> starts(n_boundary_curves), ends(n_boundary_curves);
         for (IndexType i = 0; i < n_boundary_curves; ++i) {
