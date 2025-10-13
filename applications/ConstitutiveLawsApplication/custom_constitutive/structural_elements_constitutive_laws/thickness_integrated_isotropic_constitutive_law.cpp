@@ -380,6 +380,9 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
         const double stenberg_stabilization = (5.0 / 6.0) * t_square / (t_square + alpha * h_max * h_max);
         rValues.SetMaterialProperties(r_subprop);
 
+        const double Gyz = r_subprop.Has(SHEAR_MODULUS_YZ) ? r_subprop[SHEAR_MODULUS_YZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
+        const double Gxz = r_subprop.Has(SHEAR_MODULUS_XZ) ? r_subprop[SHEAR_MODULUS_XZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
+
         // We perform the integration through the thickness
         for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
@@ -410,9 +413,6 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_stress_vector[3] += r_stress_vector[0] * aux_weight; // bending xx
                 generalized_stress_vector[4] += r_stress_vector[1] * aux_weight; // bending yy
                 generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
-
-                const double Gyz = r_subprop.Has(SHEAR_MODULUS_YZ) ? r_subprop[SHEAR_MODULUS_YZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
-                const double Gxz = r_subprop.Has(SHEAR_MODULUS_XZ) ? r_subprop[SHEAR_MODULUS_XZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
 
                 // Elastic behaviour in shear
                 generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
@@ -464,6 +464,9 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_constitutive_matrix(5, 0) += aux_weight * r_constitutive_matrix(2, 0);
                 generalized_constitutive_matrix(5, 1) += aux_weight * r_constitutive_matrix(2, 1);
                 generalized_constitutive_matrix(5, 2) += aux_weight * r_constitutive_matrix(2, 2);
+
+                generalized_constitutive_matrix(6, 6) += weight * stenberg_stabilization * Gyz;
+                generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gyz;
             }
         }
         rValues.SetMaterialProperties(r_material_properties);
