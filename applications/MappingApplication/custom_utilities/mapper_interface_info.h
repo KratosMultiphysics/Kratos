@@ -54,6 +54,9 @@ public:
     typedef InterfaceObject::NodeType NodeType;
     typedef InterfaceObject::GeometryType GeometryType;
 
+    typedef Matrix MatrixType;
+    typedef Vector VectorType;
+
     ///@}
     ///@name  Enum's
     ///@{
@@ -156,6 +159,8 @@ public:
     virtual void GetValue(std::vector<double>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
     virtual void GetValue(std::vector<bool>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
     virtual void GetValue(std::vector<GeometryType>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(MatrixType& rotMatrixValue, VectorType& transVectorValue, VectorType& linearValue, VectorType& hermitianValue, VectorType& hermitanDerValue) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+
 
     ///@}
     ///@name Input and output
@@ -174,6 +179,7 @@ public:
     virtual void PrintData(std::ostream& rOStream) const {}
 
     ///@}
+    virtual void ComputeRotationMatrixInterfaceObject() { KRATOS_ERROR << "Base class function called! This is used only in Beam Mapper InterfaceInfo." << std::endl;  }
 
 protected:
     ///@name Protected member Variables
