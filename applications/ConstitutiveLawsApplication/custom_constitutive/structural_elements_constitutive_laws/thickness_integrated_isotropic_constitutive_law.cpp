@@ -298,10 +298,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateCoordinatesAndWeights
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY
-
-
-    KRATOS_CATCH("")
+    CalculateMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -310,10 +307,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK1(C
 
 void  ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY
-
-
-    KRATOS_CATCH("")
+    CalculateMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -322,9 +316,7 @@ void  ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK2(
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY
-
-    KRATOS_CATCH("")
+    CalculateMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -457,15 +449,15 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_constitutive_matrix(2, 5) += aux_weight * r_constitutive_matrix(2, 2);
 
                 // bending-membrane part (transposed)
-                generalized_constitutive_matrix(3, 0) = r_constitutive_matrix(0, 3);
-                generalized_constitutive_matrix(3, 1) = r_constitutive_matrix(1, 3);
-                generalized_constitutive_matrix(3, 2) = r_constitutive_matrix(2, 3);
-                generalized_constitutive_matrix(4, 0) = r_constitutive_matrix(0, 4);
-                generalized_constitutive_matrix(4, 1) = r_constitutive_matrix(1, 4);
-                generalized_constitutive_matrix(4, 2) = r_constitutive_matrix(2, 4);
-                generalized_constitutive_matrix(5, 0) = r_constitutive_matrix(0, 5);
-                generalized_constitutive_matrix(5, 1) = r_constitutive_matrix(1, 5);
-                generalized_constitutive_matrix(5, 2) = r_constitutive_matrix(2, 5);
+                generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
+                generalized_constitutive_matrix(4, 0) = generalized_constitutive_matrix(0, 4);
+                generalized_constitutive_matrix(5, 0) = generalized_constitutive_matrix(0, 5);
+                generalized_constitutive_matrix(3, 1) = generalized_constitutive_matrix(1, 3);
+                generalized_constitutive_matrix(4, 1) = generalized_constitutive_matrix(1, 4);
+                generalized_constitutive_matrix(5, 1) = generalized_constitutive_matrix(1, 5);
+                generalized_constitutive_matrix(3, 2) = generalized_constitutive_matrix(2, 3);
+                generalized_constitutive_matrix(4, 2) = generalized_constitutive_matrix(2, 4);
+                generalized_constitutive_matrix(5, 2) = generalized_constitutive_matrix(2, 5);
 
                 generalized_constitutive_matrix(6, 6) += weight * stenberg_stabilization * Gyz;
                 generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gxz;
@@ -610,34 +602,6 @@ int ThicknessIntegratedIsotropicConstitutiveLaw::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
-
-// void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateRotationMatrix(
-//         const Properties& rMaterialProperties,
-//         BoundedMatrix<double, VoigtSize, VoigtSize>& rRotationMatrix,
-//         const IndexType Layer
-//     )
-// {
-    // if (rRotationMatrix.size1() != VoigtSize)
-    //     rRotationMatrix.resize(VoigtSize, VoigtSize, false);
-
-    // if (rMaterialProperties.Has(LAYER_EULER_ANGLES)) {
-    //     const Vector layers_euler_angles = rMaterialProperties[LAYER_EULER_ANGLES];
-    //     const double euler_angle_phi     = layers_euler_angles[3*Layer];
-    //     const double euler_angle_theta   = layers_euler_angles[3*Layer + 1];
-    //     const double euler_angle_hi      = layers_euler_angles[3*Layer + 2];
-
-    //     BoundedMatrix<double, Dimension, Dimension>  rotation_matrix;
-
-    //     if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
-    //         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi, euler_angle_theta, euler_angle_hi, rotation_matrix);
-    //         ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
-    //     } else {
-    //         noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
-    //     }
-    // } else {
-    //     noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
-    // }
-// }
 
 /***********************************************************************************/
 /***********************************************************************************/
