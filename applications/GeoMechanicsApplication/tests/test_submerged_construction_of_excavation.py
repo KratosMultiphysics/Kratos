@@ -44,7 +44,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
     def test_run_simulation(self):
         project_path = test_helper.get_file_path("submerged_construction_of_excavation")
-        project_parameters_filenames = ["1_Initial_stage.json", "2_Null_step.json", "3_Wall_installation.json", "4_First_excavation.json"]
+        project_parameters_filenames = ["1_Initial_stage.json", "2_Null_step.json", "3_Wall_installation.json", "4_First_excavation.json", "5_Strut_installation.json"]
 
         with context_managers.set_cwd_to(project_path):
             model = Kratos.Model()
@@ -82,6 +82,12 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         time = 2.0
         expected_total_weight -= self.calculate_weight_of_excavated_clay_upper_right()
         expected_total_vertical_reaction = expected_total_weight + self.calculate_total_vertical_surface_load()
+        self.assertAlmostEqual(self.total_reaction_y_from_output_data(output_data, time, bottom_node_ids),
+                               expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
+
+        # Check vertical reaction forces after strut installation (no changes with respect to the previous stage)
+        output_data = output_reader.read_output_from(os.path.join(project_path, "5_Strut_installation.post.res"))
+        time = 3.0
         self.assertAlmostEqual(self.total_reaction_y_from_output_data(output_data, time, bottom_node_ids),
                                expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
 

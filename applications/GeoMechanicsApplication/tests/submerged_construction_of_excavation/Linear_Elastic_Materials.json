@@ -268,9 +268,9 @@
                 "name" : "TrussConstitutiveLaw"
             },
             "Variables"        : {
-                "YOUNG_MODULUS"       : 2.1e11,
-                "DENSITY"             : 7850.0,
-                "CROSS_AREA"          : 1.9e-03,
+                "YOUNG_MODULUS"       : 2.0e9,
+                "DENSITY"             : 0.0,
+                "CROSS_AREA"          : 0.2,
                 "TRUSS_PRESTRESS_PK2" : 0.0
             }
         }
