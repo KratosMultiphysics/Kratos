@@ -80,10 +80,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SteadyStatePwElement3D20N", mSteadyStatePwElement3D20N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwElement3D27N", mSteadyStatePwElement3D27N)
 
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwInterfaceElement2D4N", mSteadyStatePwInterfaceElement2D4N)
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwInterfaceElement3D6N", mSteadyStatePwInterfaceElement3D6N)
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwInterfaceElement3D8N", mSteadyStatePwInterfaceElement3D8N)
-
     KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement2D2N", mGeoSteadyStatePwPipingElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement3D2N", mGeoSteadyStatePwPipingElement3D2N)
 
