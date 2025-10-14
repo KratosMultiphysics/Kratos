@@ -15,6 +15,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.saturated_unit_weight_of_clay = 18.0e3  # N/m3
         self.saturated_unit_weight_of_sand = 20.0e3  # N/m3
         self.model_width = 65.0  # m
+        self.excavation_width = 15.0  # m
         self.unsaturated_clay_layer_thickness = 2.0  # m
         self.saturated_clay_layer_thickness = 18.0  # m
         self.saturated_sand_layer_thickness = 30.0  # m
@@ -32,6 +33,9 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                                    self.saturated_clay_layer_thickness * self.saturated_unit_weight_of_clay +
                                    self.saturated_sand_layer_thickness * self.saturated_unit_weight_of_sand)
 
+    def calculate_weight_of_excavated_clay_upper_right(self):
+        return self.unsaturated_clay_layer_thickness * self.excavation_width * self.unsaturated_unit_weight_of_clay
+
     def calculate_weight_of_diaphragm_wall(self):
         return self.weight_of_diaphragm_wall * self.length_of_diaphragm_wall
 
@@ -40,7 +44,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
     def test_run_simulation(self):
         project_path = test_helper.get_file_path("submerged_construction_of_excavation")
-        project_parameters_filenames = ["1_Initial_stage.json", "2_Null_step.json", "3_Wall_installation.json"]
+        project_parameters_filenames = ["1_Initial_stage.json", "2_Null_step.json", "3_Wall_installation.json", "4_First_excavation.json"]
 
         with context_managers.set_cwd_to(project_path):
             model = Kratos.Model()
@@ -69,6 +73,14 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         output_data = output_reader.read_output_from(os.path.join(project_path, "3_Wall_installation.post.res"))
         time = 1.0
         expected_total_weight += self.calculate_weight_of_diaphragm_wall()
+        expected_total_vertical_reaction = expected_total_weight + self.calculate_total_vertical_surface_load()
+        self.assertAlmostEqual(self.total_reaction_y_from_output_data(output_data, time, bottom_node_ids),
+                               expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
+
+        # Check vertical reaction forces after the first excavation
+        output_data = output_reader.read_output_from(os.path.join(project_path, "4_First_excavation.post.res"))
+        time = 2.0
+        expected_total_weight -= self.calculate_weight_of_excavated_clay_upper_right()
         expected_total_vertical_reaction = expected_total_weight + self.calculate_total_vertical_surface_load()
         self.assertAlmostEqual(self.total_reaction_y_from_output_data(output_data, time, bottom_node_ids),
                                expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
