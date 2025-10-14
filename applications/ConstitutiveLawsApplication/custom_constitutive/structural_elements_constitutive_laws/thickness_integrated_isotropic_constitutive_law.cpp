@@ -716,45 +716,4 @@ int ThicknessIntegratedIsotropicConstitutiveLaw::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-// void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
-// {
-//     // Some auxiliary values
-//     const SizeType dimension = WorkingSpaceDimension();
-//     Vector& r_strain_vector = rValues.GetStrainVector();
-
-//     Matrix F(dimension, dimension);
-//     noalias(F) = rValues.GetDeformationGradientF();
-//     Matrix B_tensor;
-//     B_tensor.resize(dimension, dimension, false);
-//     noalias(B_tensor) = prod(F, trans(F));
-
-//     AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
-// }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-
-// void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateGreenLagrangeStrain(ConstitutiveLaw::Parameters& rValues)
-// {
-//     // Some auxiliary values
-//     const SizeType dimension = WorkingSpaceDimension();
-//     Vector& r_strain_vector = rValues.GetStrainVector();
-
-//     Matrix F(dimension, dimension);
-//     noalias(F) = rValues.GetDeformationGradientF();
-//     Matrix C_tensor;
-//     C_tensor.resize(dimension, dimension, false);
-//     noalias(C_tensor) = prod(trans(F),F);
-
-//     ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
-// }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 } // Namespace Kratos
