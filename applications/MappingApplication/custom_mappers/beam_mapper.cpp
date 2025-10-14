@@ -297,13 +297,4 @@ void BeamMapperLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoLe
     }
 }
 
-void BeamMapperLocalSystem::SetPairingStatusForPrinting()
-{
-    if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-        mpNode->SetValue(PAIRING_STATUS, 0);
-    } else {
-        mpNode->SetValue(PAIRING_STATUS, -1);
-    }
-}
-
 }  // namespace Kratos.
