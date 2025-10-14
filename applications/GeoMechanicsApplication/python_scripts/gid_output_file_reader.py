@@ -124,18 +124,6 @@ class GiDOutputFileReader:
         return quoted_string[1:-1]
 
     @staticmethod
-    def get_values_at_time(time, property_results):
-        for time_results in property_results:
-            if math.isclose(time_results["time"], time):
-                return time_results["values"]
-
-    @staticmethod
-    def get_value_at_node(node, time_results):
-        for node_results in time_results:
-            if node_results["node"] == node:
-                return node_results["value"]
-
-    @staticmethod
     def nodal_values_at_time(result_item_name, time, output_data, node_ids=None):
         matching_item = None
         for item in output_data["results"][result_item_name]:
