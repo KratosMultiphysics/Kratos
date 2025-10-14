@@ -59,13 +59,13 @@ class KratosGeoMechanicsCompressibilityTests(KratosUnittest.TestCase):
     @staticmethod
     def get_water_pressures(output_data):
         top_node_nbrs = [5, 6, 7, 8]
-        water_pressures_at_top = GiDOutputFileReader.nodal_values_at_time("WATER_PRESSURE", 1.0,
-                                                                                      output_data,
-                                                                                      node_ids=top_node_nbrs)
+        water_pressures_at_top = GiDOutputFileReader.nodal_values_at_time(
+            "WATER_PRESSURE", 1.0, output_data, node_ids=top_node_nbrs
+        )
         bottom_node_nbrs = [1, 2, 3, 4]
-        water_pressures_at_bottom = GiDOutputFileReader.nodal_values_at_time("WATER_PRESSURE", 1.0,
-                                                                                         output_data,
-                                                                                         node_ids=bottom_node_nbrs)
+        water_pressures_at_bottom = GiDOutputFileReader.nodal_values_at_time(
+            "WATER_PRESSURE", 1.0, output_data, node_ids=bottom_node_nbrs
+        )
         return water_pressures_at_bottom, water_pressures_at_top
 
 

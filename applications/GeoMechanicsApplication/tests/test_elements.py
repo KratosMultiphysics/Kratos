@@ -169,7 +169,6 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         n_dim = 3
         self.assert_linear_elastic_block(simulation, output_data, top_node_nbrs, n_dim)
 
-
     def assert_linear_elastic_block(self, simulation, output_data, top_node_nbrs, n_dim):
         """
         Assert results of a linear elastic block. The sides of the block can move freely in vertical direction and are
@@ -249,7 +248,9 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
 
     def assertVerticalStressAtBottomNodes(self, output_data, bottom_node_ids):
         end_time = 1.0
-        nodal_stress_tensors = GiDOutputFileReader.nodal_values_at_time("CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
+        nodal_stress_tensors = GiDOutputFileReader.nodal_values_at_time(
+            "CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids
+        )
         expected_stress_yy = -1e4
         self.assertEqual(len(bottom_node_ids), len(nodal_stress_tensors))
         for stress_tensor in nodal_stress_tensors:
