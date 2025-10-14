@@ -595,14 +595,14 @@ int ThicknessIntegratedIsotropicConstitutiveLaw::Check(
     int aux_out = 0;
 
     KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "ThicknessIntegratedIsotropicConstitutiveLaw: No constitutive laws defined" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THICKNESS)) << "The THICKNESS is not defined in the Material Properties..." << std::endl;
 
+    Properties& r_subprop = *(rMaterialProperties.GetSubProperties().begin());
     // We perform the check in each layer
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-    //     aux_out += p_law->Check(r_prop, rElementGeometry, rCurrentProcessInfo);
-    // }
+    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+        aux_out += p_law->Check(r_subprop, rElementGeometry, rCurrentProcessInfo);
+    }
 
     return aux_out;
 }
