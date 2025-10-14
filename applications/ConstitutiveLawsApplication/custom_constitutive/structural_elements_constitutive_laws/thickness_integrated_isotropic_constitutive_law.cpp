@@ -405,6 +405,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
             rValues.SetDeterminantF(detF);
             rValues.SetDeformationGradientF(F);
 
+            // This fills stress and D
             p_law->CalculateMaterialResponseCauchy(rValues);
 
             if (flag_compute_stress) {
@@ -483,29 +484,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK1(Parameters& rValues)
 {
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-    // // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    // if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     CalculateGreenLagrangeStrain(rValues);
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // }
-    // // The rotation matrix
-    // BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    // const Vector strain_vector = rValues.GetStrainVector();
-    // // We perform the reset in each layer
-    // const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-    //     Properties& r_prop             = *(it_prop_begin + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //     rValues.SetMaterialProperties(r_prop);
-    //     // We rotate to local axes the strain
-    //     noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-    //     p_law->InitializeMaterialResponsePK1(rValues);
-    // }
-    // rValues.SetMaterialProperties(r_material_properties);
+
 }
 
 /***********************************************************************************/
@@ -514,29 +493,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK1(
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 {
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-    // // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    // if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     CalculateGreenLagrangeStrain(rValues);
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // }
-    // // The rotation matrix
-    // BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    // const Vector strain_vector = rValues.GetStrainVector();
-    // // We perform the reset in each layer
-    // const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-    //     Properties& r_prop             = *(it_prop_begin + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //     rValues.SetMaterialProperties(r_prop);
-    //     // We rotate to local axes the strain
-    //     noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-    //     p_law->InitializeMaterialResponsePK2(rValues);
-    // }
-    // rValues.SetMaterialProperties(r_material_properties);
+
 }
 
 /***********************************************************************************/
@@ -545,29 +502,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK2(
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseKirchhoff(Parameters& rValues)
 {
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-    // // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    // if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     CalculateGreenLagrangeStrain(rValues);
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // }
-    // // The rotation matrix
-    // BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    // const Vector strain_vector = rValues.GetStrainVector();
-    // // We perform the reset in each layer
-    // const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-    //     Properties& r_prop             = *(it_prop_begin + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //     rValues.SetMaterialProperties(r_prop);
-    //     // We rotate to local axes the strain
-    //     noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-    //     p_law->InitializeMaterialResponsePK2(rValues);
-    // }
-    // rValues.SetMaterialProperties(r_material_properties);
+
 }
 
 /***********************************************************************************/
@@ -576,29 +511,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseKirc
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
 {
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-    // // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    // if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     CalculateGreenLagrangeStrain(rValues);
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // }
-    // // The rotation matrix
-    // BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    // const Vector strain_vector = rValues.GetStrainVector();
-    // // We perform the reset in each layer
-    // const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-    //     Properties& r_prop             = *(it_prop_begin + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //     rValues.SetMaterialProperties(r_prop);
-    //     // We rotate to local axes the strain
-    //     noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-    //     p_law->InitializeMaterialResponsePK2(rValues);
-    // }
-    // rValues.SetMaterialProperties(r_material_properties);
+
 }
 
 /***********************************************************************************/
@@ -607,37 +520,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseCauc
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-    // // Previous flags saved
-    // const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    // const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
-    // const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    // // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    // if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     CalculateGreenLagrangeStrain(rValues);
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // }
-    // // The rotation matrix
-    // BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    // const Vector strain_vector = rValues.GetStrainVector();
-    // // We perform the reset in each layer
-    // const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-    //     Properties& r_prop             = *(it_prop_begin + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //     rValues.SetMaterialProperties(r_prop);
-    //     // We rotate to local axes the strain
-    //     noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-    //     p_law->FinalizeMaterialResponsePK1(rValues);
-    // }
-    // rValues.SetMaterialProperties(r_material_properties);
-    // // Previous flags restored
-    // r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    // r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-    // r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+
 }
 
 
@@ -647,37 +530,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK1(Pa
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-    // // Previous flags saved
-    // const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    // const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
-    // const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    // // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    // if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     CalculateGreenLagrangeStrain(rValues);
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // }
-    // // The rotation matrix
-    // BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    // const Vector strain_vector = rValues.GetStrainVector();
-    // // We perform the reset in each layer
-    // const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-    //     Properties& r_prop             = *(it_prop_begin + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //     rValues.SetMaterialProperties(r_prop);
-    //     // We rotate to local axes the strain
-    //     noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-    //     p_law->FinalizeMaterialResponsePK2(rValues);
-    // }
-    // rValues.SetMaterialProperties(r_material_properties);
-    // // Previous flags restored
-    // r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    // r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-    // r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+
 }
 
 /***********************************************************************************/
@@ -686,37 +539,6 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK2(Pa
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-    // // Previous flags saved
-    // const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    // const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
-    // const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    // // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    // if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     CalculateGreenLagrangeStrain(rValues);
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // }
-    // // The rotation matrix
-    // BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    // const Vector strain_vector = rValues.GetStrainVector();
-    // // We perform the reset in each layer
-    // const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-    //     Properties& r_prop             = *(it_prop_begin + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //     rValues.SetMaterialProperties(r_prop);
-    //     // We rotate to local axes the strain
-    //     noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-    //     p_law->FinalizeMaterialResponsePK2(rValues);
-    // }
-    // rValues.SetMaterialProperties(r_material_properties);
-    // // Previous flags restored
-    // r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    // r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-    // r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
@@ -725,37 +547,6 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseKirchh
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-    // // Previous flags saved
-    // const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    // const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
-    // const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    // // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    // if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     CalculateGreenLagrangeStrain(rValues);
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // }
-    // // The rotation matrix
-    // BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-    // const Vector strain_vector = rValues.GetStrainVector();
-    // // We perform the reset in each layer
-    // const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-    //     Properties& r_prop             = *(it_prop_begin + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //     rValues.SetMaterialProperties(r_prop);
-    //     // We rotate to local axes the strain
-    //     noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-    //     p_law->FinalizeMaterialResponsePK2(rValues);
-    // }
-    // rValues.SetMaterialProperties(r_material_properties);
-    // // Previous flags restored
-    // r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    // r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-    // r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
@@ -769,12 +560,12 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::ResetMaterial(
     )
 {
     // We perform the reset in each layer
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i_layer);
-    //     ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+    const auto& r_sub_prop = *(rMaterialProperties.GetSubProperties().begin());
+    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-    //     p_law->ResetMaterial(r_prop, rElementGeometry, rShapeFunctionsValues);
-    // }
+        p_law->ResetMaterial(r_sub_prop, rElementGeometry, rShapeFunctionsValues);
+    }
 }
 
 /**************************CONSTITUTIVE LAW GENERAL FEATURES ***********************/
