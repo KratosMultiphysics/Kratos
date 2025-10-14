@@ -329,7 +329,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
 
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
-    const auto r_material_properties = rValues.GetMaterialProperties();
+    const auto& r_material_properties = rValues.GetMaterialProperties();
     const IndexType number_of_laws = mConstitutiveLaws.size();
     const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
     const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
@@ -359,8 +359,10 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
         // Auxiliary stress vector
         Vector& r_stress_vector = rValues.GetStressVector(); // size 3
         Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
-        r_stress_vector.resize(subprop_strain_size, false);
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
+        r_strain_vector.resize(subprop_strain_size, false);
+        r_stress_vector.resize(subprop_strain_size, false);
+        r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
         r_strain_vector.clear();
         r_stress_vector.clear();
         r_constitutive_matrix.clear();
@@ -466,13 +468,13 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
         }
         // Reset some values
         rValues.SetMaterialProperties(r_material_properties);
-        Matrix &r_gen_constitutive_matrix = rValues.GetConstitutiveMatrix();
         r_strain_vector.resize(VoigtSize, false);
         r_stress_vector.resize(VoigtSize, false);
         r_constitutive_matrix.resize(VoigtSize, VoigtSize, false);
         noalias(r_strain_vector) = generalized_strain_vector;
         noalias(r_stress_vector) = generalized_stress_vector;
         noalias(r_constitutive_matrix) = generalized_constitutive_matrix;
+
     }
     KRATOS_CATCH("CalculateMaterialResponseCauchy")
 }
