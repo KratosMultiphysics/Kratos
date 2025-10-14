@@ -476,7 +476,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK1(Parameters& rValues)
 {
-
+    InitializeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -485,7 +485,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK1(
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK2(Parameters& rValues)
 {
-
+    InitializeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -494,7 +494,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK2(
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseKirchhoff(Parameters& rValues)
 {
-
+    InitializeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -569,7 +569,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseCauc
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
-
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 
@@ -579,7 +579,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK1(Pa
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
-
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -588,11 +588,11 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK2(Pa
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-
 
 void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
