@@ -2,10 +2,39 @@ import math
 
 
 class GiDOutputFileReader:
+    """
+    A class to read and parse GiD output files containing simulation results.
+    It extracts data blocks such as GaussPoints and Results, organizing them
+    into a structured dictionary for further analysis.
+
+    Public Methods:
+    ----------------
+    read_output_from(gid_output_file_path):
+        Parses the GiD output file at the given path and returns structured result data.
+
+    nodal_values_at_time(result_item_name, time, output_data, node_ids=None):
+        Retrieves nodal result values for a specific result item at a given time.
+        Optionally filters by node IDs.
+
+    element_integration_point_values_at_time(result_item_name, time, output_data,
+                                             element_ids=None, integration_point_indices=None):
+        Retrieves integration point values for elements at a specific time.
+        Optionally filters by element IDs and integration point indices.
+    """
+
     def __init__(self):
         self._reset_internal_state()
 
     def read_output_from(self, gid_output_file_path):
+        """
+        Reads and parses a GiD output file from the specified path.
+
+        Args:
+            gid_output_file_path: Path to the GiD output file.
+
+        Returns:
+            output_data: A dictionary containing parsed output data.
+        """
         self._reset_internal_state()
 
         with open(gid_output_file_path, "r") as result_file:
@@ -125,6 +154,21 @@ class GiDOutputFileReader:
 
     @staticmethod
     def nodal_values_at_time(result_item_name, time, output_data, node_ids=None):
+        """
+        Retrieves nodal result values at a specific time.
+
+        Args:
+            result_item_name (str): Name of the result item (e.g. "WATER_PRESSURE").
+            time (float): Time at which to retrieve the results.
+            output_data (dict): Parsed output data from the GiD file.
+            node_ids (list[int], optional): List of node IDs to filter. If None, returns all.
+
+        Returns:
+            list: List of values corresponding to the specified node IDs.
+
+        Raises:
+            RuntimeError: If the result is not found or is not a nodal result.
+        """
         matching_item = None
         for item in output_data["results"][result_item_name]:
             if math.isclose(item["time"], time):
@@ -155,6 +199,23 @@ class GiDOutputFileReader:
         element_ids=None,
         integration_point_indices=None,
     ):
+        """
+        Retrieves integration point values for elements at a specific time.
+
+        Args:
+            result_item_name (str): Name of the result item (e.g. "CAUCHY_STRESS_VECTOR").
+            time (float): Time at which to retrieve the results.
+            output_data (dict): Parsed output data from the GiD file.
+            element_ids (list[int], optional): List of element IDs to filter. Must be sorted.
+            integration_point_indices (list[int], optional): Indices of integration points to filter.
+
+        Returns:
+            list: List of values per element, optionally filtered by integration point indices.
+
+        Raises:
+            RuntimeError: If the result is not found, not an integration point result,
+                          or if element IDs are not sorted.
+        """
         if element_ids and element_ids != sorted(element_ids):
             raise RuntimeError("Element IDs must be sorted")
 
