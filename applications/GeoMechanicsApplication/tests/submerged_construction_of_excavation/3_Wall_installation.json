@@ -72,7 +72,8 @@
             "Wall_Clay_Interface_Lower_Right",
             "Wall_Sand_Interface_Left",
             "Wall_Sand_Interface_Right",
-            "Diaphragm_Wall"
+            "Diaphragm_Wall",
+            "Loaded_Edge"
         ],
         "body_domain_sub_model_part_list": [
             "Clay_Left",
@@ -312,6 +313,18 @@
                     "active": [false, true, false],
                     "value": [0.0, -9.81, 0.0],
                     "table": [0, 0, 0]
+                }
+            },
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name":  "ApplyVectorConstraintTableProcess",
+                "Parameters":    {
+                    "model_part_name": "PorousDomain.Loaded_Edge",
+                    "variable_name":   "LINE_LOAD",
+                    "active":          [false,true,false],
+                    "value":           [0.0,-5000.0,0.0],
+                    "table":           [0,0,0]
                 }
             }
         ]

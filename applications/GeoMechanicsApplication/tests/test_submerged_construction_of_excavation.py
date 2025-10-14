@@ -20,6 +20,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.saturated_sand_layer_thickness = 30.0  # m
         self.weight_of_diaphragm_wall = 10.0e3  # N / m
         self.length_of_diaphragm_wall = 30.0  # m
+        self.distributed_surface_load = 5.0e3  # N / m / m
+        self.load_edge_length = 5.0  # m
 
     def total_reaction_y_from_output_data(self, output_data, time, node_ids):
         reactions = test_helper.GiDOutputFileReader.nodal_values_at_time("REACTION", time, output_data, node_ids=node_ids)
@@ -32,6 +34,9 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
     def calculate_weight_of_diaphragm_wall(self):
         return self.weight_of_diaphragm_wall * self.length_of_diaphragm_wall
+
+    def calculate_total_vertical_surface_load(self):
+        return self.distributed_surface_load * self.load_edge_length
 
     def test_run_simulation(self):
         project_path = test_helper.get_file_path("submerged_construction_of_excavation")
@@ -64,8 +69,9 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         output_data = output_reader.read_output_from(os.path.join(project_path, "3_Wall_installation.post.res"))
         time = 1.0
         expected_total_weight += self.calculate_weight_of_diaphragm_wall()
+        expected_total_vertical_reaction = expected_total_weight + self.calculate_total_vertical_surface_load()
         self.assertAlmostEqual(self.total_reaction_y_from_output_data(output_data, time, bottom_node_ids),
-                               expected_total_weight, places=None, delta=rel_tolerance*expected_total_weight)
+                               expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
 
 
 if __name__ == "__main__":

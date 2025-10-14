@@ -73,6 +73,9 @@ public:
     /// Pointer definition of Line2D3
     KRATOS_CLASS_POINTER_DEFINITION( Line2D3 );
 
+    /// Type of edge geometry
+    typedef Line2D3<TPointType> EdgeType;
+
     /** Integration methods implemented in geometry.
     */
     typedef GeometryData::IntegrationMethod IntegrationMethod;
@@ -726,7 +729,14 @@ public:
     */
     SizeType EdgesNumber() const override
     {
-        return 2;
+        return 1;
+    }
+
+    GeometriesArrayType GenerateEdges() const override
+    {
+        GeometriesArrayType edges = GeometriesArrayType();
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        return edges;
     }
 
 
