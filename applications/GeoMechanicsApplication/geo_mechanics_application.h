@@ -94,7 +94,6 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/steady_state_Pw_element.hpp"
 #include "custom_elements/transient_Pw_element.hpp"
-#include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_elements/transient_thermal_element.h"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 
@@ -324,16 +323,6 @@ private:
     const PwElement<3, 4> PwElement3D4N{
         0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-
-    const TransientPwInterfaceElement<2, 4> mTransientPwInterfaceElement2D4N{
-        0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const TransientPwInterfaceElement<3, 6> mTransientPwInterfaceElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const TransientPwInterfaceElement<3, 8> mTransientPwInterfaceElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
 
     // Steady-State one-phase flow elements:
     const SteadyStatePwElement<2, 3> mSteadyStatePwElement2D3N{

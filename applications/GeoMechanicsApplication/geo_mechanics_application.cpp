@@ -61,10 +61,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("TransientPwLineElement3D3N", mTransientPwLineElement3D3N)
     KRATOS_REGISTER_ELEMENT("PwElement3D4N", PwElement3D4N)
 
-    KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement2D4N", mTransientPwInterfaceElement2D4N)
-    KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement3D6N", mTransientPwInterfaceElement3D6N)
-    KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement3D8N", mTransientPwInterfaceElement3D8N)
-
     // Steady-State one-phase flow elements:
     KRATOS_REGISTER_ELEMENT("SteadyStatePwElement2D3N", mSteadyStatePwElement2D3N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwElement2D4N", mSteadyStatePwElement2D4N)

@@ -14,7 +14,6 @@ class UPwUpdatedLagrangianFICElement
 class UPwUpdatedLagrangianElement
 
 class UPwSmallStrainInterfaceElement
-class TransientPwInterfaceElement
 
 Element <|-- UPwBaseElement
 UPwBaseElement <|-- UPwSmallStrainElement
@@ -35,7 +34,6 @@ UPwBaseElement <|-- SmallStrainUPwDiffOrderElement
 SmallStrainUPwDiffOrderElement <|-- UpdatedLagrangianUPwDiffOrderElement
 
 UPwBaseElement <|-- UPwSmallStrainInterfaceElement
-UPwSmallStrainInterfaceElement <|-- TransientPwInterfaceElement
 
 class InterfaceElement
 Element <|-- InterfaceElement
