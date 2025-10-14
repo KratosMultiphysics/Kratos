@@ -37,7 +37,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FreesDoFAfterFinali
 
     GeoApplyConstantScalarValueProcess process(r_model_part, parameters);
     process.ExecuteInitialize();
+    KRATOS_EXPECT_TRUE(std::all_of(r_model_part.NodesBegin(), r_model_part.NodesEnd(), [](const auto& rNode) {
+        return rNode.IsFixed(DISPLACEMENT_X) && rNode.FastGetSolutionStepValue(DISPLACEMENT_X) == 0.0;
+    }))
 
+    process.ExecuteInitializeSolutionStep();
     KRATOS_EXPECT_TRUE(std::all_of(r_model_part.NodesBegin(), r_model_part.NodesEnd(), [](const auto& rNode) {
         return rNode.IsFixed(DISPLACEMENT_X) && rNode.FastGetSolutionStepValue(DISPLACEMENT_X) == 1.0;
     }))
@@ -69,7 +73,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoApplyConstantScalarValueProcess_FinalizeDoesNothing
 
     GeoApplyConstantScalarValueProcess process(r_model_part, parameters);
     process.ExecuteInitialize();
+    KRATOS_EXPECT_TRUE(std::all_of(r_model_part.NodesBegin(), r_model_part.NodesEnd(), [](const auto& rNode) {
+        return rNode.FastGetSolutionStepValue(TIME_STEPS) == 0;
+    }))
 
+    process.ExecuteInitializeSolutionStep();
     KRATOS_EXPECT_TRUE(std::all_of(r_model_part.NodesBegin(), r_model_part.NodesEnd(), [](const auto& rNode) {
         return rNode.FastGetSolutionStepValue(TIME_STEPS) == 1;
     }))

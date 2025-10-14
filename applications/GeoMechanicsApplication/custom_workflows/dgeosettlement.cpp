@@ -215,10 +215,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             process->ExecuteInitialize();
         }
 
-        for (const auto& process : processes) {
-            process->ExecuteBeforeSolutionLoop();
-        }
-
         if (mpTimeLoopExecutor) {
             mpTimeLoopExecutor->SetCancelDelegate(rShouldCancel);
             mpTimeLoopExecutor->SetProgressDelegate(rProgressDelegate);
@@ -372,6 +368,9 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     FindNeighbourElementsOfConditionsProcess{GetComputationalModelPart()}.Execute();
     DeactivateConditionsOnInactiveElements{GetComputationalModelPart()}.Execute();
 
+    GetComputationalModelPart().GetProcessInfo()[START_TIME] = GetStartTimeFrom(rProjectParameters);
+    GetComputationalModelPart().GetProcessInfo()[END_TIME]   = GetEndTimeFrom(rProjectParameters);
+
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
     return std::make_shared<SolvingStrategyWrapperType>(std::move(solving_strategy),
@@ -386,11 +385,6 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
 
     if (!main_model_part.HasSubModelPart(mComputationalSubModelPartName)) {
         main_model_part.CreateSubModelPart(mComputationalSubModelPartName);
-    }
-
-    if (rSolverSettings.Has("nodal_smoothing")) {
-        main_model_part.GetProcessInfo().SetValue(NODAL_SMOOTHING,
-                                                  rSolverSettings["nodal_smoothing"].GetBool());
     }
 
     // Note that the computing part and the main model part _share_ their process info and properties
