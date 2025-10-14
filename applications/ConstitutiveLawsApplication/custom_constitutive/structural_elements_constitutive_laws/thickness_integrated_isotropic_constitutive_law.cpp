@@ -94,7 +94,6 @@ ThicknessIntegratedIsotropicConstitutiveLaw::~ThicknessIntegratedIsotropicConsti
 
 std::size_t ThicknessIntegratedIsotropicConstitutiveLaw::WorkingSpaceDimension()
 {
-
     return Dimension; // 3
 }
 
