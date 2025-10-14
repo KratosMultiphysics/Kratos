@@ -20,7 +20,7 @@
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 0.0013,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
-                    "RESIDUAL_SATURATION": 0.06203,
+                    "RESIDUAL_SATURATION": 0.0,
                     "SATURATED_SATURATION": 1.0,
                     "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
                     "K0_MAIN_DIRECTION": 1,

@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
@@ -85,19 +86,16 @@ double ApplyCPhiReductionProcess::GetAndCheckPhi(const Element::PropertiesType& 
     // properties objects are not linked to the original ones.
     const auto& part_properties = mrModelPart.GetProperties(rProp.Id());
 
-    KRATOS_ERROR_IF_NOT(part_properties.Has(UMAT_PARAMETERS))
-        << "Missing required item UMAT_PARAMETERS" << std::endl;
-    KRATOS_ERROR_IF_NOT(part_properties.Has(INDEX_OF_UMAT_PHI_PARAMETER))
-        << "Missing required item INDEX_OF_UMAT_PHI_PARAMETER" << std::endl;
+    const CheckProperties check_properties(part_properties, "model part property",
+                                           CheckProperties::Bounds::AllInclusive);
+    check_properties.CheckAvailability(UMAT_PARAMETERS);
+    check_properties.Check(INDEX_OF_UMAT_PHI_PARAMETER, 1,
+                           static_cast<int>(part_properties[UMAT_PARAMETERS].size()));
 
-    KRATOS_ERROR_IF(part_properties[INDEX_OF_UMAT_PHI_PARAMETER] < 1 ||
-                    part_properties[INDEX_OF_UMAT_PHI_PARAMETER] >
-                        static_cast<int>(part_properties[UMAT_PARAMETERS].size()))
-        << "Invalid INDEX_OF_UMAT_PHI_PARAMETER: " << part_properties[INDEX_OF_UMAT_PHI_PARAMETER]
-        << " (out-of-bounds index)" << std::endl;
     const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(part_properties);
     KRATOS_ERROR_IF(phi < 0. || phi > 90.)
-        << "Friction angle Phi out of range [0;90] (degrees): " << phi << std::endl;
+        << "Friction angle Phi in the model part property with Id " << rProp.Id()
+        << " has an invalid value: " << phi << " is out of range [0,90] (degrees)." << std::endl;
     return phi;
 }
 
