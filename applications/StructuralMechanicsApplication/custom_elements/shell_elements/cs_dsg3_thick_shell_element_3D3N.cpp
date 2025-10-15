@@ -597,9 +597,10 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     rRHS.clear();
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
-    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].Coordinates());
-    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].Coordinates());
-    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].Coordinates());
+    const array_3 center = r_geometry.Center();
+    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].Coordinates() - center);
+    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].Coordinates() - center);
+    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].Coordinates() - center);
     const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
     VectorType nodal_values(system_size);
@@ -674,9 +675,10 @@ void CSDSG3ThickShellElement3D3N::CalculateLeftHandSide(
     rLHS.clear();
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
-    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].Coordinates());
-    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].Coordinates());
-    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].Coordinates());
+    const array_3 center = r_geometry.Center();
+    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].Coordinates() - center);
+    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].Coordinates() - center);
+    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].Coordinates() - center);
     const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
     VectorType nodal_values(system_size);
@@ -749,9 +751,10 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
     rRHS.clear();
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
-    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].Coordinates());
-    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].Coordinates());
-    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].Coordinates());
+    const array_3 center = r_geometry.Center();
+    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].Coordinates() - center);
+    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].Coordinates() - center);
+    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].Coordinates() - center);
     const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
     VectorType nodal_values(system_size);
