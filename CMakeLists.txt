@@ -170,6 +170,11 @@ ELSE(CMAKE_VERSION VERSION_LESS "3.16.0")
     ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 ENDIF(CMAKE_VERSION VERSION_LESS "3.16.0")
 
+# Add /utf-8 as a source file encoding flag for MSVC
+if(MSVC)
+    add_compile_options("/utf-8")
+endif()
+
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
 
