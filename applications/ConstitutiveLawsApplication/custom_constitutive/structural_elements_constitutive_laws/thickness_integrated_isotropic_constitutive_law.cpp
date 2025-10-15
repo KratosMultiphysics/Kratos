@@ -274,21 +274,43 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateCoordinatesAndWeights
     const Properties& rMaterialProperties
 )
 {
+    KRATOS_TRY
+
     rCoordinates.resize(NumberOfPoints);
     rWeights.resize(NumberOfPoints);
+
     const double thickness = rMaterialProperties[THICKNESS];
-
     const double half_thickness = 0.5 * thickness;
-    const double delta_z = thickness / static_cast<double>(NumberOfPoints - 1);
 
-    for (IndexType i = 0; i < NumberOfPoints; ++i) {
-        rCoordinates[i] = -half_thickness + static_cast<double>(i) * delta_z;
-        rWeights[i] = delta_z;
+    // Composite Simpson rule weights
+    std::vector<double> simpson_weights(NumberOfPoints, 1.0);
+
+    if (NumberOfPoints >= 3) {
+        for (IndexType i = 1; i < NumberOfPoints - 1; ++i) {
+            simpson_weights[i] = (i % 2 == 0) ? 2.0 : 4.0;
+        }
+
+        // Normalize to sum = 1.0
+        double total_weight = std::accumulate(simpson_weights.begin(), simpson_weights.end(), 0.0);
+        for (auto &w : simpson_weights) {
+            w /= total_weight;
+        }
     }
 
-    // We modify the weights of the extreme points
-    rWeights[0] *= 0.5;
-    rWeights[NumberOfPoints - 1] *= 0.5;
+    // Generate locations (from top to bottom: +t/2 -> -t/2)
+    const double delta_z = thickness / static_cast<double>(NumberOfPoints - 1);
+    double z = +half_thickness;
+    for (IndexType i = 0; i < NumberOfPoints; ++i) {
+        rCoordinates[i] = z;
+        z -= delta_z;
+    }
+
+    // Assign final physical weights (scaled by thickness)
+    for (IndexType i = 0; i < NumberOfPoints; ++i) {
+        rWeights[i] = simpson_weights[i] * thickness;
+    }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
