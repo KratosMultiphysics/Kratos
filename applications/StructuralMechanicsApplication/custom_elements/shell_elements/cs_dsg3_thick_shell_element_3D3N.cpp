@@ -721,6 +721,8 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
 
 void CSDSG3ThickShellElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
     bool required = false;
     for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
         if (mConstitutiveLawVector[point_number]->RequiresFinalizeMaterialResponse()) {
@@ -780,7 +782,7 @@ void CSDSG3ThickShellElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurre
             mConstitutiveLawVector[i_point]->FinalizeMaterialResponse(cl_values, ConstitutiveLaw::StressMeasure_Cauchy);
         }
     }
-
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::FinalizeSolutionStep")
 }
 
 
@@ -789,7 +791,68 @@ void CSDSG3ThickShellElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurre
 
 void CSDSG3ThickShellElement3D3N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
 
+    bool required = false;
+    for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+        if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
+            required = true;
+            break;
+        }
+    }
+    if (required) {
+        const IndexType strain_size = GetStrainSize();
+        const auto& r_geometry = GetGeometry();
+        const auto& r_props = GetProperties();
+        const IndexType number_of_nodes = r_geometry.PointsNumber();
+        const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+        bounded_3_matrix rotation_matrix;
+        CalculateRotationMatrixLocalToGlobal(rotation_matrix);
+
+        array_3 local_coords_1, local_coords_2, local_coords_3;
+        noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].Coordinates());
+        noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].Coordinates());
+        noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].Coordinates());
+        const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
+
+        VectorType nodal_values(system_size);
+        GetNodalValuesVector(nodal_values);
+        // We rotate the nodal values to the local system of the shell
+        RotateRHSToLocal(nodal_values, rotation_matrix); // rotate to local
+
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rCurrentProcessInfo);
+        auto &r_cl_options = cl_values.GetOptions();
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        
+        // Let's initialize the constitutive law's values
+        VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size);
+        MatrixType gen_constitutive_matrix(strain_size, strain_size);
+        cl_values.SetStrainVector(gen_strain_vector);
+        cl_values.SetStressVector(gen_stress_vector);
+        cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
+
+        const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
+        double zeta1, zeta2, zeta3, weight;
+        MatrixType B(strain_size, system_size);
+        for (SizeType i_point = 0; i_point < r_integration_points.size(); ++i_point) {
+            zeta1 = r_integration_points[i_point].X();
+            zeta2 = r_integration_points[i_point].Y();
+            zeta3 = r_integration_points[i_point].Z();
+            weight = r_integration_points[i_point].Weight();
+
+            CalculateBTriangle(B, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
+
+            // We compute the strain at the integration point
+            noalias(gen_strain_vector) = prod(B, nodal_values);
+
+            // We call the constitutive law to compute the stress
+            cl_values.SetStrainVector(gen_strain_vector);
+            mConstitutiveLawVector[i_point]->InitializeMaterialResponse(cl_values, ConstitutiveLaw::StressMeasure_Cauchy);
+        }
+    }
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::InitializeSolutionStep")
 }
 
 /***********************************************************************************/
