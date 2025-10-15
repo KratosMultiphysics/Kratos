@@ -1711,16 +1711,16 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
 // template instantiations
 #ifndef KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION
 #define KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(...)                                                             \
-    template void VtuOutput::AddVariable<__VA_ARGS__>(const Variable<__VA_ARGS__>&, const Globals::DataLocation&);                   \
-    template void VtuOutput::AddIntegrationPointVariable<__VA_ARGS__>(const Variable<__VA_ARGS__>&, const Globals::DataLocation&);   \
+    template KRATOS_API(KRATOS_CORE) void VtuOutput::AddVariable<__VA_ARGS__>(const Variable<__VA_ARGS__>&, const Globals::DataLocation&);                   \
+    template KRATOS_API(KRATOS_CORE) void VtuOutput::AddIntegrationPointVariable<__VA_ARGS__>(const Variable<__VA_ARGS__>&, const Globals::DataLocation&);   \
 
 #endif
 
 #ifndef KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION
 #define KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(DATA_TYPE)                                            \
-    template void VtuOutput::AddTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);       \
-    template void VtuOutput::ReplaceTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
-    template void VtuOutput::EmplaceTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
+    template KRATOS_API(KRATOS_CORE) void VtuOutput::AddTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);       \
+    template KRATOS_API(KRATOS_CORE) void VtuOutput::ReplaceTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
+    template KRATOS_API(KRATOS_CORE) void VtuOutput::EmplaceTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
 
 #endif
 
