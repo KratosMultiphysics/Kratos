@@ -405,14 +405,15 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     const double b9 = -2.0;
 
     bounded_3_matrix Q, Q1, Q2, Q3, Te, aux3_by_3;
-    BoundedMatrix<double, 9, 3> TTu, B_m_high_order;
+    BoundedMatrix<double, 9, 3> TTu;
+    BoundedMatrix<double, 3, 9> B_m_high_order;
     TTu.clear();
 
     const double LL21 = x21*x21 + y21*y21;
     const double LL32 = x32*x32 + y32*y32;
     const double LL13 = x13*x13 + y13*y13;
-    const double A2 = 2.00 * Area;
-    const double A4 = 4.00 * Area;
+    const double A2 = 2.0 * Area;
+    const double A4 = 4.0 * Area;
     Te(0, 0) = y23 * y13 * LL21;
     Te(0, 1) = y31 * y21 * LL32;
     Te(0, 2) = y12 * y32 * LL13;
@@ -424,41 +425,41 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     Te(2, 2) = (y12 * x23 + x21 * y32) * LL13;
     Te /= (Area * A4);
 
-    Q1(0, 0) = b1 * A2 / (LL21 * 3.00);
-    Q1(0, 1) = b2 * A2 / (LL21 * 3.00);
-    Q1(0, 2) = b3 * A2 / (LL21 * 3.00);
-    Q1(1, 0) = b4 * A2 / (LL32 * 3.00);
-    Q1(1, 1) = b5 * A2 / (LL32 * 3.00);
-    Q1(1, 2) = b6 * A2 / (LL32 * 3.00);
-    Q1(2, 0) = b7 * A2 / (LL13 * 3.00);
-    Q1(2, 1) = b8 * A2 / (LL13 * 3.00);
-    Q1(2, 2) = b9 * A2 / (LL13 * 3.00);
+    Q1(0, 0) = b1 * A2 / (LL21 * 3.0);
+    Q1(0, 1) = b2 * A2 / (LL21 * 3.0);
+    Q1(0, 2) = b3 * A2 / (LL21 * 3.0);
+    Q1(1, 0) = b4 * A2 / (LL32 * 3.0);
+    Q1(1, 1) = b5 * A2 / (LL32 * 3.0);
+    Q1(1, 2) = b6 * A2 / (LL32 * 3.0);
+    Q1(2, 0) = b7 * A2 / (LL13 * 3.0);
+    Q1(2, 1) = b8 * A2 / (LL13 * 3.0);
+    Q1(2, 2) = b9 * A2 / (LL13 * 3.0);
 
-    Q2(0, 0) = b9 * A2 / (LL21 * 3.00);
-    Q2(0, 1) = b7 * A2 / (LL21 * 3.00);
-    Q2(0, 2) = b8 * A2 / (LL21 * 3.00);
-    Q2(1, 0) = b3 * A2 / (LL32 * 3.00);
-    Q2(1, 1) = b1 * A2 / (LL32 * 3.00);
-    Q2(1, 2) = b2 * A2 / (LL32 * 3.00);
-    Q2(2, 0) = b6 * A2 / (LL13 * 3.00);
-    Q2(2, 1) = b4 * A2 / (LL13 * 3.00);
-    Q2(2, 2) = b5 * A2 / (LL13 * 3.00);
+    Q2(0, 0) = b9 * A2 / (LL21 * 3.0);
+    Q2(0, 1) = b7 * A2 / (LL21 * 3.0);
+    Q2(0, 2) = b8 * A2 / (LL21 * 3.0);
+    Q2(1, 0) = b3 * A2 / (LL32 * 3.0);
+    Q2(1, 1) = b1 * A2 / (LL32 * 3.0);
+    Q2(1, 2) = b2 * A2 / (LL32 * 3.0);
+    Q2(2, 0) = b6 * A2 / (LL13 * 3.0);
+    Q2(2, 1) = b4 * A2 / (LL13 * 3.0);
+    Q2(2, 2) = b5 * A2 / (LL13 * 3.0);
 
-    Q3(0, 0) = b5 * A2 / (LL21 * 3.00);
-    Q3(0, 1) = b6 * A2 / (LL21 * 3.00);
-    Q3(0, 2) = b4 * A2 / (LL21 * 3.00);
-    Q3(1, 0) = b8 * A2 / (LL32 * 3.00);
-    Q3(1, 1) = b9 * A2 / (LL32 * 3.00);
-    Q3(1, 2) = b7 * A2 / (LL32 * 3.00);
-    Q3(2, 0) = b2 * A2 / (LL13 * 3.00);
-    Q3(2, 1) = b3 * A2 / (LL13 * 3.00);
-    Q3(2, 2) = b1 * A2 / (LL13 * 3.00);
+    Q3(0, 0) = b5 * A2 / (LL21 * 3.0);
+    Q3(0, 1) = b6 * A2 / (LL21 * 3.0);
+    Q3(0, 2) = b4 * A2 / (LL21 * 3.0);
+    Q3(1, 0) = b8 * A2 / (LL32 * 3.0);
+    Q3(1, 1) = b9 * A2 / (LL32 * 3.0);
+    Q3(1, 2) = b7 * A2 / (LL32 * 3.0);
+    Q3(2, 0) = b2 * A2 / (LL13 * 3.0);
+    Q3(2, 1) = b3 * A2 / (LL13 * 3.0);
+    Q3(2, 2) = b1 * A2 / (LL13 * 3.0);
 
     noalias(Q) = area_coords_1 * Q1;
     noalias(Q) += area_coords_2 * Q2;
     noalias(Q) += area_coords_3 * Q3;
 
-    for (IndexType i = 0; i < 3; i++) {
+    for (IndexType i = 0; i < 3; ++i) {
         TTu(0, i) = x32;
         TTu(1, i) = y32;
 
@@ -475,9 +476,25 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
 
     const double beta0 = 0.5 * (1.0 - 4.0 * std::pow(GetMaterialProperty<double>(POISSON_RATIO, GetProperties()), 2));
     noalias(aux3_by_3) = (1.5 * sqrt(beta0)) * prod(trans(Q), trans(Te));
-    noalias(B_m_high_order) += prod(TTu, aux3_by_3);
+    noalias(B_m_high_order) = trans(prod(TTu, aux3_by_3));
 
-    // ...
+    // We assemble into the global one
+    BoundedVector<IndexType, 9> local_indices; // u,v,theta_z to global size
+    local_indices[0] = 0;
+    local_indices[1] = 1;
+    local_indices[2] = 5;
+    local_indices[3] = 6;
+    local_indices[4] = 7;
+    local_indices[5] = 11;
+    local_indices[6] = 12;
+    local_indices[7] = 13;
+    local_indices[8] = 17;
+
+    for (IndexType row = 0; row < 3; ++row) {
+        for (IndexType col = 0; col < 9; ++col) {
+            rB(row, local_indices[col]) += B_m_high_order(row, col);
+        }
+    }
 
     // Bending components
     rB(3, 4) = y23;
