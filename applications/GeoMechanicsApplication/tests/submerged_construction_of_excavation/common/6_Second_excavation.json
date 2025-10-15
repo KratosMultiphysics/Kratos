@@ -1,10 +1,10 @@
 {
     "problem_data": {
-        "problem_name": "7_Third_excavation",
+        "problem_name": "6_Second_excavation",
         "parallel_type": "OpenMP",
         "echo_level": 1,
-        "start_time": 4.0,
-        "end_time": 5.0
+        "start_time": 3.0,
+        "end_time": 4.0
     },
     "solver_settings": {
         "time_stepping": {
@@ -22,7 +22,7 @@
             "input_type": "use_input_model_part"
         },
         "material_import_settings": {
-            "materials_filename": "Linear_Elastic_Materials.json"
+            "materials_filename": "MaterialParameters.json"
         },
         "buffer_size": 2,
         "clear_storage": false,
@@ -76,7 +76,7 @@
             "Diaphragm_Wall",
             "Loaded_Edge",
             "Strut_Support_At_Symmetry_Line",
-            "Water_Pressure_Boundary_After_Third_Excavation"
+            "Water_Pressure_Boundary_After_Second_Excavation"
         ],
         "body_domain_sub_model_part_list": [
             "Clay_Left",
@@ -334,7 +334,7 @@
                 "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name"  : "apply_normal_load_table_process",
                 "Parameters"    : {
-                    "model_part_name"      : "PorousDomain.Water_Pressure_Boundary_After_Third_Excavation",
+                    "model_part_name"      : "PorousDomain.Water_Pressure_Boundary_After_Second_Excavation",
                     "variable_name"        : "NORMAL_CONTACT_STRESS",
                     "active"               : [true,false],
                     "value"                : [0.0,0.0],
@@ -384,24 +384,6 @@
                 }
             },
             {
-                "python_module": "apply_excavation_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name":  "ApplyExcavationProcess",
-                "Parameters":    {
-                    "model_part_name":      "PorousDomain.Clay_Lower_Right",
-                    "deactivate_soil_part":             true
-                }
-            },
-            {
-                "python_module": "apply_excavation_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name":  "ApplyExcavationProcess",
-                "Parameters":    {
-                    "model_part_name":      "PorousDomain.Wall_Clay_Interface_Lower_Right",
-                    "deactivate_soil_part":             true
-                }
-            },
-            {
                 "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
                 "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
@@ -423,6 +405,14 @@
                 "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
                 "Parameters"    : {
                     "model_part_name": "PorousDomain.Wall_Sand_Interface_Left"
+                }
+            },
+            {
+                "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
+                "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
+                "Parameters"    : {
+                    "model_part_name": "PorousDomain.Wall_Clay_Interface_Lower_Right"
                 }
             },
             {
@@ -473,7 +463,7 @@
                             ]
                         }
                     },
-                    "output_name": "7_Third_excavation"
+                    "output_name": "6_Second_excavation"
                 }
             }
         ]

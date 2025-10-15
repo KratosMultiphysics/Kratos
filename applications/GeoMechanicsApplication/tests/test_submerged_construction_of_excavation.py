@@ -58,13 +58,13 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         return self.distributed_surface_load * self.load_edge_length
 
     def test_run_simulation(self):
-        project_path = test_helper.get_file_path("submerged_construction_of_excavation")
+        project_path = test_helper.get_file_path(os.path.join("submerged_construction_of_excavation", "linear_elastic"))
         project_parameters_filenames = ["1_Initial_stage.json", "2_Null_step.json", "3_Wall_installation.json", "4_First_excavation.json", "5_Strut_installation.json", "6_Second_excavation.json", "7_Third_excavation.json"]
 
         with context_managers.set_cwd_to(project_path):
             model = Kratos.Model()
             for filename in project_parameters_filenames:
-                with open(filename, "r") as f:
+                with open(os.path.join("..", "common", filename), "r") as f:
                     stage_parameters = Kratos.Parameters(f.read())
                 analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
 

@@ -1,10 +1,10 @@
 {
     "problem_data": {
-        "problem_name": "1_Initial_stage",
+        "problem_name": "2_Null_step",
         "parallel_type": "OpenMP",
         "echo_level": 1,
-        "start_time": -2.0,
-        "end_time": -1.0
+        "start_time": -1.0,
+        "end_time": 0.0
     },
     "solver_settings": {
         "time_stepping": {
@@ -19,11 +19,10 @@
         "domain_size": 2,
         "echo_level": 1,
         "model_import_settings": {
-            "input_type": "mdpa",
-            "input_filename": "submerged_excavation_gid_project_with_interfaces"
+            "input_type": "use_input_model_part"
         },
         "material_import_settings": {
-            "materials_filename": "Linear_Elastic_Materials.json"
+            "materials_filename": "MaterialParameters.json"
         },
         "buffer_size": 2,
         "clear_storage": false,
@@ -297,16 +296,6 @@
                     "value": [0.0, -9.81, 0.0],
                     "table": [0, 0, 0]
                 }
-            },
-            {
-                "python_module": "apply_k0_procedure_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "apply_k0_procedure_process",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "variable_name": "CAUCHY_STRESS_TENSOR",
-                    "use_standard_procedure": true
-                }
             }
         ]
     },
@@ -344,7 +333,7 @@
                             ]
                         }
                     },
-                    "output_name": "1_Initial_stage"
+                    "output_name": "2_Null_step"
                 }
             }
         ]

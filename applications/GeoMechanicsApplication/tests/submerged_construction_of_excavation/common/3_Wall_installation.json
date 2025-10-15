@@ -1,10 +1,10 @@
 {
     "problem_data": {
-        "problem_name": "2_Null_step",
+        "problem_name": "3_Wall_installation",
         "parallel_type": "OpenMP",
         "echo_level": 1,
-        "start_time": -1.0,
-        "end_time": 0.0
+        "start_time": 0.0,
+        "end_time": 1.0
     },
     "solver_settings": {
         "time_stepping": {
@@ -22,7 +22,7 @@
             "input_type": "use_input_model_part"
         },
         "material_import_settings": {
-            "materials_filename": "Linear_Elastic_Materials.json"
+            "materials_filename": "MaterialParameters.json"
         },
         "buffer_size": 2,
         "clear_storage": false,
@@ -30,7 +30,7 @@
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
         "block_builder": true,
-        "reset_displacements": false,
+        "reset_displacements": true,
         "convergence_criterion": "residual_criterion",
         "residual_relative_tolerance": 0.0001,
         "residual_absolute_tolerance": 1e-09,
@@ -50,7 +50,14 @@
             "Clay_Middle_Right",
             "Clay_Lower_Right",
             "Sand_Left",
-            "Sand_Right"
+            "Sand_Right",
+            "Wall_Clay_Interface_Left",
+            "Wall_Clay_Interface_Upper_Right",
+            "Wall_Clay_Interface_Middle_Right",
+            "Wall_Clay_Interface_Lower_Right",
+            "Wall_Sand_Interface_Left",
+            "Wall_Sand_Interface_Right",
+            "Diaphragm_Wall"
         ],
         "processes_sub_model_part_list": [
             "Bottom_Edge",
@@ -59,8 +66,14 @@
             "Right_Side_Of_Clay_Middle_Right",
             "Right_Side_Of_Clay_Lower_Right",
             "Right_Side_Of_Sand_Right",
-            "Master_side_1",
-            "Slave_side_1"
+            "Wall_Clay_Interface_Left",
+            "Wall_Clay_Interface_Upper_Right",
+            "Wall_Clay_Interface_Middle_Right",
+            "Wall_Clay_Interface_Lower_Right",
+            "Wall_Sand_Interface_Left",
+            "Wall_Sand_Interface_Right",
+            "Diaphragm_Wall",
+            "Loaded_Edge"
         ],
         "body_domain_sub_model_part_list": [
             "Clay_Left",
@@ -68,7 +81,14 @@
             "Clay_Middle_Right",
             "Clay_Lower_Right",
             "Sand_Left",
-            "Sand_Right"
+            "Sand_Right",
+            "Wall_Clay_Interface_Left",
+            "Wall_Clay_Interface_Upper_Right",
+            "Wall_Clay_Interface_Middle_Right",
+            "Wall_Clay_Interface_Lower_Right",
+            "Wall_Sand_Interface_Left",
+            "Wall_Sand_Interface_Right",
+            "Diaphragm_Wall"
         ],
         "linear_solver_settings": {
             "solver_type": "LinearSolversApplication.sparse_lu",
@@ -265,23 +285,6 @@
                     "reference_coordinate" : 18.0,
                     "specific_weight": 10000.0
                 }
-            },
-            {
-                "python_module": "assign_master_slave_constraints_to_neighbours_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignMasterSlaveConstraintsToNeighboursUtility",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "variable_names": [
-                        "DISPLACEMENT",
-                        "WATER_PRESSURE"
-                    ],
-                    "minimum_number_of_neighbouring_nodes": 2,
-                    "reform_constraints_at_each_step": true,
-                    "master_model_part_name": "PorousDomain.Master_side_1",
-                    "slave_model_part_name": "PorousDomain.Slave_side_1",
-                    "search_radius": 0.01
-                }
             }
         ],
         "loads_process_list": [
@@ -295,6 +298,18 @@
                     "active": [false, true, false],
                     "value": [0.0, -9.81, 0.0],
                     "table": [0, 0, 0]
+                }
+            },
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name":  "ApplyVectorConstraintTableProcess",
+                "Parameters":    {
+                    "model_part_name": "PorousDomain.Loaded_Edge",
+                    "variable_name":   "LINE_LOAD",
+                    "active":          [false,true,false],
+                    "value":           [0.0,-5000.0,0.0],
+                    "table":           [0,0,0]
                 }
             }
         ]
@@ -324,16 +339,20 @@
                             "nodal_results": [
                                 "DISPLACEMENT",
                                 "TOTAL_DISPLACEMENT",
+                                "ROTATION",
                                 "WATER_PRESSURE",
                                 "REACTION"
                             ],
                             "gauss_point_results": [
                                 "CAUCHY_STRESS_TENSOR",
-                                "TOTAL_STRESS_TENSOR"
+                                "TOTAL_STRESS_TENSOR",
+                                "AXIAL_FORCE",
+                                "BENDING_MOMENT",
+                                "SHEAR_FORCE"
                             ]
                         }
                     },
-                    "output_name": "2_Null_step"
+                    "output_name": "3_Wall_installation"
                 }
             }
         ]
