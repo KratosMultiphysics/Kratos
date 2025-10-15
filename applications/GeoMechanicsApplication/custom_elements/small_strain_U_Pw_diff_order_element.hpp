@@ -270,21 +270,21 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-    Vector CalculateInternalForces(ElementVariables&          Variables,
-                                   const std::vector<Matrix>& b_matrices,
-                                   const std::vector<double>& integration_coefficients,
-                                   const std::vector<double>& biot_coefficients,
-                                   const std::vector<double>& degrees_of_saturation,
-                                   const std::vector<double>& biot_moduli_inverse,
-                                   const std::vector<double>& relative_permeability_values,
-                                   const std::vector<double>& bishop_coefficients) const;
+    Vector CalculateInternalForces(ElementVariables&          rVariables,
+                                   const std::vector<Matrix>& rBMatrices,
+                                   const std::vector<double>& rIntegrationCoefficients,
+                                   const std::vector<double>& rBiotCoefficients,
+                                   const std::vector<double>& rDegreesOfSaturation,
+                                   const std::vector<double>& rBiotModuliInverse,
+                                   const std::vector<double>& rRelativePermeabilityValues,
+                                   const std::vector<double>& rBishopCoefficients) const;
 
-    Vector CalculateExternalForces(ElementVariables&          Variables,
-                                   const std::vector<double>& integration_coefficients,
-                                   const std::vector<double>& integration_coefficients_on_initial_configuration,
-                                   const std::vector<double>& degrees_of_saturation,
-                                   const std::vector<double>& relative_permeability_values,
-                                   const std::vector<double>& bishop_coefficients) const;
+    Vector CalculateExternalForces(ElementVariables&          rVariables,
+                                   const std::vector<double>& rIntegrationCoefficients,
+                                   const std::vector<double>& rIntegrationCoefficientsOnInitialConfiguration,
+                                   const std::vector<double>& rDegreesOfSaturation,
+                                   const std::vector<double>& rRelativePermeabilityValues,
+                                   const std::vector<double>& rBishopCoefficients) const;
 }; // Class SmallStrainUPwDiffOrderElement
 
 } // namespace Kratos
