@@ -1718,9 +1718,9 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
 
 #ifndef KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION
 #define KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(DATA_TYPE)                                            \
-    template void VtuOutput::AddTensorAdaptor<DATA_TYPE>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);       \
-    template void VtuOutput::ReplaceTensorAdaptor<DATA_TYPE>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
-    template void VtuOutput::EmplaceTensorAdaptor<DATA_TYPE>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
+    template void VtuOutput::AddTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);       \
+    template void VtuOutput::ReplaceTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
+    template void VtuOutput::EmplaceTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
 
 #endif
 
