@@ -86,8 +86,8 @@ private:
     /**
      * @brief Checks and adjusts the number of threads used by the MKL library for consistency.
      * @details This method compares the maximum number of threads configured in MKL (Intel Math Kernel Library) with the number of threads currently being used by the application (obtained via `ParallelUtilities::GetNumThreads()`).
-     * If MKL's thread count is greater than the application's thread count, a warning is issued, and MKL's thread count is reduced to match the application's thread count via `mkl_set_num_threads()`.
-     * This ensures that MKL operations (potentially used by the solver) do not utilize more threads than allowed by the overall parallel configuration, preventing potential oversubscription or inconsistency.
+     * If MKL's thread count is greater than the application's thread count, a warning is issued, and MKL's thread count is reduced to match the application's thread count via `mkl_set_num_threads()`. This ensures that MKL operations do not utilize more threads than allowed by the overall parallel configuration.
+     * On the other hand, if the number is smaller than the number of threads considered, the number of NMKL threads is not modified, as this could lead to potential race conditions and memory crashes.
      */
     static void CheckThreadConsistency()
     {
