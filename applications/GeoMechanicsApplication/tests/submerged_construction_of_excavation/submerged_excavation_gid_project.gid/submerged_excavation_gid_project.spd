@@ -25,6 +25,8 @@
     <group n="Right_Side_Of_Clay_Lower_Right" onoff="1" color="#0000ff" type=""/>
     <group n="Right_Side_Of_Sand_Right" onoff="1" color="#80ff00" type=""/>
     <group n="Loaded_Edge" onoff="1" color="#ff00ff" type=""/>
+    <group n="Water_Pressure_Boundary_After_Second_Excavation" onoff="1" color="#00ff80" type=""/>
+    <group n="Water_Pressure_Boundary_After_Third_Excavation" onoff="1" color="#ff0000" type=""/>
   </groups>
   <units/>
   <!-- Fill this fields to automatically active an App without the init window -->
@@ -3840,7 +3842,7 @@
           <condition n="Excavation" pn="Excavation" ov="surface" ovm="" icon="shells16" help="Apply this over the excavated surface" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="close">
             <value n="deactivate_soil_part" pn="Deactivate soil part" v="true" values="true,false" help="Deactivate soil part" state="[ConditionParameterState]" show_in_window="1"/>
           </condition>
-          <condition n="Normal Load" pn="Normal Load" ov="line" ovm="" icon="shells16" help="Apply Normal Load" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="open">
+          <condition n="Normal Load" pn="Normal Load" ov="line" ovm="" icon="shells16" help="Apply Normal Load" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="active,open,selected">
             <value n="active" pn="Active (Normal / Tangential)" v="True, False" fieldtype="vector" dimensions="2" help="Active (Normal / Tangential)" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <value n="value" pn="Pressure" v="0.0,0.0,0.0" fieldtype="vector" dimensions="2" help="Pressure" state="[ConditionParameterState]" show_in_window="1" cal_state="hidden"/>
             <value n="fluid_pressure_type" pn="Pressure type" v="Hydrostatic" values="Uniform,Hydrostatic" dict="Uniform,Uniform,Hydrostatic,Hydrostatic" actualize_tree="1" state="[ConditionParameterState]" help="Pressure type" show_in_window="1" cal_state="normal">
@@ -3853,10 +3855,28 @@
               <dependencies condition="@v='Hydrostatic'" node="../value[@n='specific_weight']" att1="state" v1="normal"/>
               <dependencies condition="@v!='Hydrostatic'" node="../value[@n='specific_weight']" att1="state" v1="hidden"/>
             </value>
-            <value n="gravity_direction" pn="Gravity direction" v="1" units="" unit_magnitude="" help="Gravity direction" state="[ConditionParameterState]" string_is="integer" show_in_window="1" cal_state="normal"/>
-            <value n="reference_coordinate" pn="Reference coordinate" v="0.0" units="" unit_magnitude="" help="Reference coordinate" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
-            <value n="specific_weight" pn="Specific weight" v="10000" units="" unit_magnitude="" help="Specific weight" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
+            <value n="gravity_direction" pn="Gravity direction" v="1" unit_magnitude="" help="Gravity direction" state="[ConditionParameterState]" string_is="integer" show_in_window="1" cal_state="normal"/>
+            <value n="reference_coordinate" pn="Reference coordinate" v="0.0" unit_magnitude="" help="Reference coordinate" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
+            <value n="specific_weight" pn="Specific weight" v="10000" unit_magnitude="" help="Specific weight" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
             <value n="table" pn="Table" v="0, 0" fieldtype="vector" dimensions="2" help="Table" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
+            <group n="Water_Pressure_Boundary_After_Second_Excavation" ov="line" tree_state="close">
+              <value n="active" pn="Active (Normal / Tangential)" fieldtype="vector" dimensions="2" help="Active (Normal / Tangential)" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="True, False" tree_state="close"/>
+              <value n="value" pn="Pressure" fieldtype="vector" dimensions="2" help="Pressure" state="[ConditionParameterState]" show_in_window="1" cal_state="hidden" v="0.0,0.0"/>
+              <value n="fluid_pressure_type" pn="Pressure type" values="Uniform,Hydrostatic" dict="Uniform,Uniform,Hydrostatic,Hydrostatic" actualize_tree="1" state="[ConditionParameterState]" help="Pressure type" show_in_window="1" cal_state="normal" v="Hydrostatic" tree_state="close"/>
+              <value n="gravity_direction" pn="Gravity direction" unit_magnitude="" help="Gravity direction" state="[ConditionParameterState]" string_is="integer" show_in_window="1" cal_state="normal" v="1" tree_state="close"/>
+              <value n="reference_coordinate" pn="Reference coordinate" unit_magnitude="" help="Reference coordinate" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="18" tree_state="close"/>
+              <value n="specific_weight" pn="Specific weight" unit_magnitude="" help="Specific weight" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="10000" tree_state="close"/>
+              <value n="table" pn="Table" fieldtype="vector" dimensions="2" help="Table" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="0, 0" tree_state="close"/>
+            </group>
+            <group n="Water_Pressure_Boundary_After_Third_Excavation" ov="line" tree_state="close">
+              <value n="active" pn="Active (Normal / Tangential)" fieldtype="vector" dimensions="2" help="Active (Normal / Tangential)" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="True, False" tree_state="close"/>
+              <value n="value" pn="Pressure" fieldtype="vector" dimensions="2" help="Pressure" state="[ConditionParameterState]" show_in_window="1" cal_state="hidden" v="0.0,0.0"/>
+              <value n="fluid_pressure_type" pn="Pressure type" values="Uniform,Hydrostatic" dict="Uniform,Uniform,Hydrostatic,Hydrostatic" actualize_tree="1" state="[ConditionParameterState]" help="Pressure type" show_in_window="1" cal_state="normal" v="Hydrostatic" tree_state="close"/>
+              <value n="gravity_direction" pn="Gravity direction" unit_magnitude="" help="Gravity direction" state="[ConditionParameterState]" string_is="integer" show_in_window="1" cal_state="normal" v="1" tree_state="close"/>
+              <value n="reference_coordinate" pn="Reference coordinate" unit_magnitude="" help="Reference coordinate" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="18" tree_state="close"/>
+              <value n="specific_weight" pn="Specific weight" unit_magnitude="" help="Specific weight" string_is="double" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="10000" tree_state="close"/>
+              <value n="table" pn="Table" fieldtype="vector" dimensions="2" help="Table" state="[ConditionParameterState]" show_in_window="1" cal_state="normal" v="0, 0" tree_state="close"/>
+            </group>
           </condition>
           <condition n="K0 procedure" pn="K0 procedure" ov="surface" ovm="" icon="shells16" help="Apply the K0 procedure to an area" state="[ConditionState]" update_proc="[OkNewCondition]" check="UpdateTree" tree_state="open">
             <value n="use_standard_procedure" pn="Use Standard Procedure" v="true" values="true,false" help="Use Standard Procedure" state="[ConditionParameterState]" show_in_window="1" cal_state="normal"/>
