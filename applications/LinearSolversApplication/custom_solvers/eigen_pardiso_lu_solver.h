@@ -7,20 +7,19 @@
 //  Author: Thomas Oberbichler
 */
 
-#if !defined(KRATOS_EIGEN_PARDISO_LU_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_PARDISO_LU_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/Sparse>
 #include <Eigen/PardisoSupport>
 
 // Project includes
-#include "includes/define.h"
 #include "linear_solvers_define.h"
 #include "linear_solvers/direct_solver.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
@@ -47,6 +46,10 @@ public:
 
     bool Compute(Eigen::Map<const SparseMatrix> a)
     {
+        // Ensure the number of threads in  MKL is the same considered for other operations
+        CheckThreadConsistency();
+
+        // Actually compute
         m_solver.compute(a);
 
         const bool success = m_solver.info() == Eigen::Success;
@@ -56,6 +59,10 @@ public:
 
     bool Solve(Eigen::Ref<const Vector> b, Eigen::Ref<Vector> x) const
     {
+        // Ensure the number of threads in  MKL is the same considered for other operations
+        CheckThreadConsistency();
+        
+        // Actually solve
         x = m_solver.solve(b);
 
         const bool success = m_solver.info() == Eigen::Success;
@@ -72,8 +79,24 @@ public:
     {
         return "No additional information";
     }
+
+private:
+
+    /**
+     * @brief Checks and adjusts the number of threads used by the MKL library for consistency.
+     * @details This method compares the maximum number of threads configured in MKL (Intel Math Kernel Library) with the number of threads currently being used by the application (obtained via `ParallelUtilities::GetNumThreads()`).
+     * If MKL's thread count is greater than the application's thread count, a warning is issued, and MKL's thread count is reduced to match the application's thread count via `mkl_set_num_threads()`.
+     * This ensures that MKL operations (potentially used by the solver) do not utilize more threads than allowed by the overall parallel configuration, preventing potential oversubscription or inconsistency.
+     */
+    void CheckThreadConsistency()
+    {
+        const int number_of_threads_mkl = mkl_get_max_threads();
+        const int number_of_threads_used = ParallelUtilities::GetNumThreads();
+        if (number_of_threads_mkl > number_of_threads_used) {
+            KRATOS_WARNING("EigenPardisoLUSolver") << "Setting the number of threads in MKL to adapt to ParallelUtilities::GetNumThreads(): " << number_of_threads_used << " instead of " << number_of_threads_mkl << std::endl;
+            mkl_set_num_threads(number_of_threads_used);
+        }
+    }
 };
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_EIGEN_PARDISO_LU_SOLVER_H_INCLUDED)
