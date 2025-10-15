@@ -1,10 +1,10 @@
-FROM quay.io/pypa/manylinux2014_x86_64
+FROM quay.io/pypa/manylinux_2_28_x86_64
 
 ENV MMG_ROOT=/external_libraries/mmg/mmg_5_5_1
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
 
 # Prepare package dependencies
-RUN yum install -y git wget zip mpich mpich-devel mpich-autoload metis metis-devel
+RUN yum install -y git wget zip mpich mpich-devel metis metis-devel
 
 # Prepare Shared Volumes
 RUN mkdir -p /data_swap_guest
