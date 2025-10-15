@@ -447,8 +447,7 @@
                                 "TOTAL_STRESS_TENSOR",
                                 "AXIAL_FORCE",
                                 "BENDING_MOMENT",
-                                "SHEAR_FORCE",
-                                "FORCE"
+                                "SHEAR_FORCE"
                             ]
                         }
                     },
