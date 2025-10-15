@@ -317,7 +317,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateCoordinatesAndWeights
 /***********************************************************************************/
 
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -326,7 +327,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK1(C
 /***********************************************************************************/
 
 
-void  ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void  ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -335,7 +337,8 @@ void  ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponsePK2(
 /***********************************************************************************/
 
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
@@ -344,7 +347,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseKirch
 /***********************************************************************************/
 
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -504,7 +508,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
 /***********************************************************************************/
 
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK1(Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK1(
+    Parameters& rValues)
 {
     InitializeMaterialResponseCauchy(rValues);
 }
@@ -513,7 +518,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK1(
 /***********************************************************************************/
 
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK2(Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK2(
+    Parameters& rValues)
 {
     InitializeMaterialResponseCauchy(rValues);
 }
@@ -522,7 +528,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponsePK2(
 /***********************************************************************************/
 
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseKirchhoff(Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseKirchhoff(
+    Parameters& rValues)
 {
     InitializeMaterialResponseCauchy(rValues);
 }
@@ -531,7 +538,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseKirc
 /***********************************************************************************/
 
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseCauchy(
+    Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -597,7 +605,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseCauc
 /***********************************************************************************/
 
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK1(
+    Parameters& rValues)
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
@@ -607,7 +616,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK1(Pa
 /***********************************************************************************/
 
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK2(
+    Parameters& rValues)
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
@@ -616,7 +626,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponsePK2(Pa
 /***********************************************************************************/
 
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseKirchhoff(
+    Parameters& rValues)
 {
     FinalizeMaterialResponseCauchy(rValues);
 }
@@ -624,7 +635,8 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseKirchh
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseCauchy(
+    Parameters& rValues)
 {
     KRATOS_TRY
 
