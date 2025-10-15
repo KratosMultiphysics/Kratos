@@ -136,15 +136,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
 
     double     kappa = mEquivalentPlasticStrain;
     double tolerance = 1.0;
-    while (tolerance > 1.0e-6) {
-        double lambda = CalculatePlasticMultiplier(rTrialSigmaTau,
-                mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
-                mCoulombYieldSurface.GetFrictionAngleInRadians(),
-                mCoulombYieldSurface.GetCohesion());
-        double delta_kappa = CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
-        kappa += delta_kappa;
-        mEquivalentPlasticStrain = kappa;
-
+    while (tolerance > 1.0e-8) {
         const auto apex =
             CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
 
@@ -171,6 +163,14 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
                 rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
                 mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
         }
+
+        double lambda = CalculatePlasticMultiplier(rTrialSigmaTau,
+                mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
+                mCoulombYieldSurface.GetFrictionAngleInRadians(),
+                mCoulombYieldSurface.GetCohesion());
+        double delta_kappa = CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
+        kappa += delta_kappa;
+        mEquivalentPlasticStrain = kappa;
 
         mCoulombYieldSurface.UpdateSurfaceProperties(rProperties[GEO_FRICTION_ANGLE],
                                                      rProperties[GEO_FRICTION_ANGLE_STRENGTH_FACTOR],
@@ -207,7 +207,7 @@ double CoulombWithTensionCutOffImpl::CalculateEquivalentPlasticStrain(const Vect
     double m_mean = (g1 + g3) / 3.0;
     double m_deviatoric = std::sqrt(std::pow(g1-m_mean, 2) + std::pow(g3-m_mean, 2));
     double alpha = std::sqrt(2.0/3.0) * m_deviatoric;
-    double delta_kappa = alpha * lambda;
+    double delta_kappa = - alpha * lambda;
 
     return delta_kappa;
 }

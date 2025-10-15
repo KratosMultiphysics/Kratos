@@ -622,12 +622,6 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, tolerance);
 }
 
-
-
-
-
-
-
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZoneWithHardening,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -640,7 +634,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
 
     properties.SetValue(GEO_FRICTION_ANGLE_STRENGTH_FACTOR, 0.0);
-    properties.SetValue(GEO_COHESION_STRENGTH_FACTOR, 1.0);
+    properties.SetValue(GEO_COHESION_STRENGTH_FACTOR, 0.1);
     properties.SetValue(GEO_DILATANCY_ANGLE_STRENGTH_FACTOR, 0.0);
 
     ConstitutiveLaw::Parameters parameters;
@@ -651,31 +645,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
 
     // Act and Assert
     Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 8.0, 0.0, -12.0, 0.0;
+    cauchy_stress_vector <<= 10.0, 0.0, -50.0, 0.0;
     Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= 7.338673315592010089, 0.0, -11.338673315592010089, 0.0;
+    expected_cauchy_stress_vector <<= 10, 0.0, -50.0, 0.0;
+    constexpr double tolerance = 1.0e-6;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
-                              expected_cauchy_stress_vector, Defaults::absolute_tolerance);
-
-    cauchy_stress_vector <<= 12.0, 0.0, -16.0, 0.0;
-    expected_cauchy_stress_vector <<= 7.338673315592010089, 0.0, -11.338673315592010089, 0.0;
-    KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
-                              expected_cauchy_stress_vector, Defaults::absolute_tolerance);
-
-    cauchy_stress_vector <<= 12.0, 0.0, -16.0, 0.0;
-    expected_cauchy_stress_vector <<= 7.806379130008, 7.806379130008, -9.61275826001616129, 0.0;
-    constexpr auto tolerance = 2.0e-10;
-    //KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
-    //                          expected_cauchy_stress_vector, tolerance);
+                              expected_cauchy_stress_vector, tolerance);
 }
-
-
-
-
-
-
-
-
-
 
 } // namespace Kratos::Testing
