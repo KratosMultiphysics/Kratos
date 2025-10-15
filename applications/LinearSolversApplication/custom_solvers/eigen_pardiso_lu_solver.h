@@ -42,7 +42,7 @@ public:
 
     void Initialize(Parameters settings)
     {
-        // Ensure the number of threads in  MKL is the same considered for other operations
+        // Ensure the number of threads in MKL is the same considered for other operations
         EnsureMKLThreadConsistency();
     }
 

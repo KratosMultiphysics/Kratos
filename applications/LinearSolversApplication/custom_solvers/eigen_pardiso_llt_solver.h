@@ -43,7 +43,7 @@ public:
 
     void Initialize(Parameters settings)
     {
-        // Ensure the number of threads in  MKL is the same considered for other operations
+        // Ensure the number of threads in MKL is the same considered for other operations
         EnsureMKLThreadConsistency();
     }
 
@@ -98,7 +98,7 @@ private:
         const int number_of_threads_mkl = mkl_get_max_threads();
         const int number_of_threads_used = ParallelUtilities::GetNumThreads();
         if (number_of_threads_mkl > number_of_threads_used) {
-            KRATOS_WARNING("EigenPardisoLUSolver") << "Setting the number of threads in MKL to adapt to ParallelUtilities::GetNumThreads(): " << number_of_threads_used << " instead of " << number_of_threads_mkl << std::endl;
+            KRATOS_WARNING("EigenPardisoLLTSolver") << "Setting the number of threads in MKL to adapt to ParallelUtilities::GetNumThreads(): " << number_of_threads_used << " instead of " << number_of_threads_mkl << std::endl;
             return false;
         }
         return true;
