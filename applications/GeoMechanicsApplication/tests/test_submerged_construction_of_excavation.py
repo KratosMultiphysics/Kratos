@@ -21,6 +21,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.saturated_clay_layer_thickness = 18.0  # m
         self.saturated_sand_layer_thickness = 30.0  # m
         self.excavated_middle_clay_layer_thickness = 8.0  # m
+        self.excavated_lower_clay_layer_thickness = 10.0  # m
         self.weight_of_diaphragm_wall = 10.0e3  # N / m
         self.length_of_diaphragm_wall = 30.0  # m
         self.distributed_surface_load = 5.0e3  # N / m / m
@@ -41,8 +42,14 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
     def calculate_weight_of_excavated_clay_middle_right(self):
         return self.excavated_middle_clay_layer_thickness * self.excavation_width * self.saturated_unit_weight_of_clay
 
+    def calculate_weight_of_excavated_clay_lower_right(self):
+        return self.excavated_lower_clay_layer_thickness * self.excavation_width * self.saturated_unit_weight_of_clay
+
     def calculate_weight_of_water_after_second_excavation(self):
         return self.excavated_middle_clay_layer_thickness * self.excavation_width * self.unit_weight_of_water
+
+    def calculate_weight_of_water_after_third_excavation(self):
+        return (self.excavated_middle_clay_layer_thickness + self.excavated_lower_clay_layer_thickness) * self.excavation_width * self.unit_weight_of_water
 
     def calculate_weight_of_diaphragm_wall(self):
         return self.weight_of_diaphragm_wall * self.length_of_diaphragm_wall
@@ -52,7 +59,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
     def test_run_simulation(self):
         project_path = test_helper.get_file_path("submerged_construction_of_excavation")
-        project_parameters_filenames = ["1_Initial_stage.json", "2_Null_step.json", "3_Wall_installation.json", "4_First_excavation.json", "5_Strut_installation.json", "6_Second_excavation.json"]
+        project_parameters_filenames = ["1_Initial_stage.json", "2_Null_step.json", "3_Wall_installation.json", "4_First_excavation.json", "5_Strut_installation.json", "6_Second_excavation.json", "7_Third_excavation.json"]
 
         with context_managers.set_cwd_to(project_path):
             model = Kratos.Model()
@@ -104,6 +111,14 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         time = 4.0
         expected_total_weight -= self.calculate_weight_of_excavated_clay_middle_right()
         expected_total_vertical_reaction = expected_total_weight + self.calculate_total_vertical_surface_load() + self.calculate_weight_of_water_after_second_excavation()
+        self.assertAlmostEqual(self.total_reaction_y_from_output_data(output_data, time, bottom_node_ids),
+                               expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
+
+        # Check vertical reaction forces after the third excavation
+        output_data = output_reader.read_output_from(os.path.join(project_path, "7_Third_excavation.post.res"))
+        time = 5.0
+        expected_total_weight -= self.calculate_weight_of_excavated_clay_lower_right()
+        expected_total_vertical_reaction = expected_total_weight + self.calculate_total_vertical_surface_load() + self.calculate_weight_of_water_after_third_excavation()
         self.assertAlmostEqual(self.total_reaction_y_from_output_data(output_data, time, bottom_node_ids),
                                expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
 
