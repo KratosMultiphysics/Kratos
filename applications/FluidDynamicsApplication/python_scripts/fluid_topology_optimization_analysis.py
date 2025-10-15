@@ -563,6 +563,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._ComputeDesignParameterProjectiveFilterUtilities()
 
     def _InitializeOptimizationDomainSettings(self):
+        """
+        Reads and initializes the settings related to the optimization domain.
+        It retrieves:
+        - The model part names and initial values for both the optimization and non-optimization domains,
+        ensuring that the initial values remain within [0.0, 1.0].
+        - The configuration for a possible custom initial design, activated through `use_custom_initial_design`.
+        """
         optimization_domain_settings = self.optimization_settings["optimization_domain_settings"]
         self.optimization_domain_name = optimization_domain_settings["optimization_domain"]["model_part_name"].GetString()
         self.optimization_domain_initial_value = max(0.0, min(1.0, optimization_domain_settings["optimization_domain"]["initial_value"].GetDouble()))
@@ -576,13 +583,32 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.nodal_optimization_domain_sizes[self.symmetry_nodes_mask] *= 2.0
 
     def _GetModelPartNodesSubset(self, model_part, node_ids):
+        """
+        Returns a list of nodes from the given model part corresponding to the specified node IDs.
+        Each node is retrieved via `model_part.GetNode(node_id)`.
+        The input `node_ids` must be global node IDs (Kratos uses global IDs also in MPI runs).
+        In non-MPI runs, global and local IDs coincide.
+        """
         return [model_part.GetNode(node_id) for node_id in node_ids]
     
     def _GetModelPartNodesIds(self, model_part):
+        """
+        Returns the list of global node IDs belonging to the given model part.
+        The nodes are obtained from `_GetLocalMeshNodes(model_part)`, which handles both
+        MPI and non-MPI cases by returning the locally owned nodes in parallel runs
+        or all nodes in serial runs.
+        """
         model_part_nodes = self._GetLocalMeshNodes(model_part)
         return [node.Id for node in model_part_nodes]
             
     def _ExtractListOfNodesFromNodesDictionary(self, model_part):
+        """
+        Returns the list of local node indices corresponding to the nodes in the given model part.
+        Global node IDs from the model part are converted to local indices using the
+        `nodes_ids_global_to_local_partition_dictionary` created in `_CreateNodesIdsDictionary`.
+        If the simulation is not running in MPI, the returned list simply matches the global node IDs,
+        since the mapping is one-to-one.
+        """
         model_part_nodes_ids = self._GetModelPartNodesIds(model_part)
         nodes_list = [self.nodes_ids_global_to_local_partition_dictionary[node_id] for node_id in model_part_nodes_ids]
         return nodes_list
@@ -1831,6 +1857,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._GetAdjointSolver().AddDofs()
 
     def _CreateNodesIdsDictionary(self):
+        """
+        Creates dictionaries mapping between global and local node IDs for the current MPI partition.
+        The dictionary `nodes_ids_global_to_local_partition_dictionary` maps global node IDs to local indices,
+        while `nodes_ids_local_partition_to_global_dictionary` provides the reverse mapping.
+        These mappings are used to ensure consistent node indexing across MPI partitions.
+        If the simulation is not running in MPI, the global and local IDs coincide,
+        and the dictionaries define an identity mapping.
+        """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Creates Nodes Ids Dictionary")
         self.nodes_ids_global_to_local_partition_dictionary = {}
         self.nodes_ids_local_partition_to_global_dictionary = {}
@@ -1982,7 +2016,16 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _ComputeOptimizationDomainNodesMask(self):
         """
-        This method build the mmask to pass from the optimization domain nodes to the total domain nodes
+        Builds the mapping (mask) between the total set of domain nodes and the subset of nodes
+        belonging to the optimization domain.
+        The method creates two arrays:
+        - `global_to_opt_mask_nodes`: an array of size `n_nodes` that maps each node index
+        to its position in the optimization-domain mask, or to -1 if the node belongs to the
+        non-optimization domain.
+        - `optimization_domain_nodes_mask`: an array containing the indices of the nodes
+        that belong to the optimization domain only.
+        This mask is used to transfer quantities between the full computational domain and
+        the optimization domain.
         """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Compute Optimization Domain Nodes Mask")
         non_opt_mp= self._GetNonOptimizationDomain()
@@ -2013,18 +2056,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _UpdateFunctionalDerivativesVariable(self):
         for node in self._GetLocalMeshNodes():
             node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[self.nodes_ids_global_to_local_partition_dictionary[node.Id]][0])
-        
-    def MpiSynchronizeLocalFunctionalValues(self):
-        local_values = self.functionals
-        # Sum the values across all ranks
-        total_values = self.data_communicator.SumAll(local_values)
-        self.functionals = total_values
-        if (self.MpiRunOnlyRank(0)):
-            self.weighted_functionals  = self.functional_weights * self.functionals
-            self.functional  = np.dot(self.functional_weights, self.functionals)
 
     def MpiSumLocalValues(self, local_value):
-        # Sum the values across all ranks
+        """
+        Performs a global sum reduction of the provided local value across all MPI ranks.
+        The method uses `data_communicator.SumAll()` to compute the sum of `local_value`
+        over all partitions and returns the total value.
+        It is used to pass to every rank the total value of the functional.
+        """
         total_value = self.data_communicator.SumAll(local_value)
         return total_value
 
@@ -2036,6 +2075,33 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.RESISTANCE)
 
     def _SolveMMA(self, design_parameter, n_opt_variables, n_opt_constraints, min_value, max_value, max_outer_it, kkt_tolerance):
+        """
+        Solves the MMA (Method of Moving Asymptotes) subproblem in parallel.
+        
+        Algorithm:
+        - Initializes MMA parameters and variable bounds (xmin/xmax, low/upp, move, a0, a, c, d).
+        - Iterates the MMA outer loop until the KKT norm is below `kkt_tolerance` or the maximum number of iterations
+        (`max_outer_it`) is reached:
+            * Solves the MMA subproblem using `MMA.mmasub(...)` to update `xval`.
+            * Re-evaluates the objective and constraints and their gradients.
+            * Checks the KKT residuals with `MMA.kktcheck(...)`.
+        - Extracts the portion of `xval` corresponding to the current rank and maps it back to the local design parameter
+        vector using `_InsertDesignParameterFromOptimizationDomain(...)`, then updates the model and physical parameters
+        through `_UpdateDesignParameterAndPhysicsParameters(...)`.
+
+        MPI logic:
+        - Gathers per-rank sizes with `AllGatherInts([n_opt_variables])` to obtain the global number of design variables
+        and the rank offsets.
+        - Gathers the per-rank design vectors with `AllGathervDoubles(design_parameter)` and concatenates them into the
+        global design vector `xval` of size N = sum(n_opt_variables_in_rank).
+        - Each rank operates on its own slice `xval[offset[rank]:offset[rank+1]]` when evaluating the objective and
+        constraint functions via `_UpdateOptimizationProblem`, while the corresponding gradients are assembled globally
+        with `CreateFunctionalAndConstraintsDerivativesCompleteArrays(...)`.
+        As a result, all ranks hold identical global arrays for `f0val`, `df0dx`, `fval`, and `dfdx`.
+
+        - In serial execution, the gather operations are trivial: `N == n_opt_variables` and the offsets are [0, N].
+        - `min_value` and `max_value` define the global bounds applied to all design variables.
+        """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| SOLVE MMA")
         # MMA PARAMETERS INITIALIZATION
         rank = self.data_communicator.Rank()
@@ -2105,6 +2171,17 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._UpdateDesignParameterAndPhysicsParameters(new_design_parameter)
 
     def CreateFunctionalDerivativesCompleteArrays(self, local_value, n_ranks, n_opt_variables_in_rank):
+        """
+        Gathers and concatenates the objective function derivatives (df0/dx) from all MPI ranks
+        into a single global array.
+
+        Each rank provides its local gradient `local_value`, which is gathered using
+        `AllGathervDoubles`. The gathered arrays are then reshaped according to the number
+        of optimization variables per rank (`n_opt_variables_in_rank`) and concatenated
+        along the first axis to form the complete global derivative vector.
+
+        In serial execution, this simply returns `local_value` as a column vector.
+        """
         local_value = local_value.flatten().tolist()
         gather_local_value = self.data_communicator.AllGathervDoubles(local_value)
         for irank in range(n_ranks):
@@ -2113,6 +2190,18 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return result
     
     def CreateConstraintsDerivativesCompleteArrays(self, local_value, n_ranks, n_opt_variables_in_rank, n_opt_constraints):
+        """
+        Gathers and concatenates the constraint function derivatives (df/dx) from all MPI ranks
+        into a single global array.
+
+        Each rank provides its local derivative matrix `local_value`, which is gathered using
+        `AllGathervDoubles`. The gathered matrices are reshaped to size
+        (`n_opt_constraints`, `n_opt_variables_in_rank[irank]`) and concatenated along the
+        second axis to form the complete global constraint Jacobian.
+
+        In serial execution, this simply returns `local_value` reshaped to
+        (`n_opt_constraints`, `n_opt_variables_in_rank[0]`).
+        """
         local_value = local_value.flatten().tolist()
         gather_local_value = self.data_communicator.AllGathervDoubles(local_value)
         for irank in range(n_ranks):
@@ -2121,20 +2210,41 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return result
     
     def CreateFunctionalAndConstraintsDerivativesCompleteArrays(self, temp_df0dx, temp_dfdx, n_ranks, n_opt_variables_in_rank, n_opt_constraints):
-        # self.MpiBarrier()
+        """
+        Builds the complete global derivative arrays for both the objective function and
+        the constraints by combining the contributions from all MPI ranks.
+        - Calls `CreateFunctionalDerivativesCompleteArrays` to assemble the global objective
+        gradient `df0dx`.
+        - Calls `CreateConstraintsDerivativesCompleteArrays` to assemble the global constraint
+        Jacobian `dfdx`.
+        Returns:
+            df0dx (np.ndarray): Global gradient of the objective function (shape: [N, 1]).
+            dfdx (np.ndarray): Global derivatives of the constraints (shape: [M, N]).
+        In serial execution, the returned arrays coincide with the local derivatives.
+        """
         df0dx = self.CreateFunctionalDerivativesCompleteArrays(temp_df0dx, n_ranks, n_opt_variables_in_rank)
-        # self.MpiBarrier()
         dfdx = self.CreateConstraintsDerivativesCompleteArrays(temp_dfdx, n_ranks, n_opt_variables_in_rank, n_opt_constraints)
-        # self.MpiBarrier()
         return df0dx, dfdx
     
     def _GetViscosity(self):
+        """
+        Returns the dynamic viscosity of the fluid from the main model part.
+        The method accesses the first element in the local mesh and retrieves the value
+        of `DYNAMIC_VISCOSITY` from its properties, assuming a uniform viscosity across
+        all elements.
+        """
         for elem in self._GetMainModelPart().GetCommunicator().LocalMesh().Elements:
             mu = elem.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
             break
         return mu
     
     def _GetDensity(self):
+        """
+        Returns the density of the fluid from the main model part.
+
+        The method accesses the first element in the local mesh and retrieves the value
+        of `DENSITY` from its properties, assuming a uniform density across all elements.
+        """
         for elem in self._GetMainModelPart().GetCommunicator().LocalMesh().Elements:
             rho = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
             break
@@ -2156,6 +2266,17 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return self.physics_solver.distributed_model_part_importer
 
     def _CorrectPvtuFilesInVtuOutput(self):
+        """
+        Corrects the relative paths in the .pvtu files generated during VTU output.
+        This method should be executed only on rank 0. It checks the `vtu_output`
+        settings in `project_parameters` and identifies the `.pvtu` file corresponding
+        to the current optimization iteration (`self.opt_it`).
+        If the file exists, it reads its content and removes redundant folder path
+        prefixes (e.g., "output_path/") from the internal VTU file references, ensuring
+        that the `.pvtu` file correctly links to the corresponding `.vtu` pieces.
+        This fix is necessary because the default Kratos VTU output may include
+        incorrect relative paths when writing parallel `.pvtu` files.
+        """
         if (self.MpiRunOnlyRank(0)):
             if (self.project_parameters.Has("output_processes")):
                 if (self.project_parameters["output_processes"].Has("vtu_output")):

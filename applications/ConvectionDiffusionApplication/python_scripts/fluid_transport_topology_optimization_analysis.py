@@ -287,15 +287,6 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         if (self.first_iteration):
             self.initial_functional = self.functional
 
-    def MpiSynchronizeLocalFunctionalValues(self):
-        local_values = self.functionals
-        # Sum the values across all ranks
-        total_values = self.data_communicator.SumAll(local_values)
-        self.functionals = total_values
-        if (self.MpiRunOnlyRank(0)):
-            self.weighted_functionals  = self.functional_weights * self.functionals
-            self.functional  = np.sum(self.weighted_functionals)
-
     def _EvaluateResistanceFunctional(self, print_functional=False):
         """
         This method computes the resistance functional: int_{\Omega}{\\alpha||u||^2}
