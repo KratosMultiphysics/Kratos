@@ -59,6 +59,7 @@ echo %KRATOS_BUILD%\%KRATOS_BUILD_TYPE%
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
 -DCMAKE_INSTALL_PREFIX=%3                                                                   ^
 -DCMAKE_POLICY_VERSION_MINIMUM=3.5                                                          ^
+-DKRATOS_USE_FUTURE=ON                                                                      ^
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                                               ^
 -DCMAKE_C_FLAGS="/MP24 /Gm- /Zm10"                                                          ^
 -DCMAKE_CXX_FLAGS="/MP24 /Gm- /Zm10"                                                        ^
