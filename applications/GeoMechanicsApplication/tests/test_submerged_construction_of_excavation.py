@@ -57,8 +57,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
     def calculate_total_vertical_surface_load(self):
         return self.distributed_surface_load * self.load_edge_length
 
-    def test_run_simulation(self):
-        project_path = test_helper.get_file_path(os.path.join("submerged_construction_of_excavation", "linear_elastic"))
+    def run_simulation(self, sub_directory_name):
+        project_path = test_helper.get_file_path(os.path.join("submerged_construction_of_excavation", sub_directory_name))
         project_parameters_filenames = ["1_Initial_stage.json", "2_Null_step.json", "3_Wall_installation.json", "4_First_excavation.json", "5_Strut_installation.json", "6_Second_excavation.json", "7_Third_excavation.json"]
 
         with context_managers.set_cwd_to(project_path):
@@ -121,6 +121,12 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         expected_total_vertical_reaction = expected_total_weight + self.calculate_total_vertical_surface_load() + self.calculate_weight_of_water_after_third_excavation()
         self.assertAlmostEqual(self.total_reaction_y_from_output_data(output_data, time, bottom_node_ids),
                                expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
+
+    def test_simulation_with_linear_elastic_materials(self):
+        self.run_simulation("linear_elastic")
+
+    def test_simulation_with_Mohr_Coulomb(self):
+        self.run_simulation("Mohr_Coulomb")
 
 
 if __name__ == "__main__":
