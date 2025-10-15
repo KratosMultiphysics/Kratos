@@ -321,6 +321,18 @@ public:
      */
     int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
+    /**
+     * @brief Called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
 
     /**
     * @brief This function returns the size of the strain vector

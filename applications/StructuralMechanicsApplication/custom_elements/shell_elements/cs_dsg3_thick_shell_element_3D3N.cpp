@@ -719,6 +719,23 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void CSDSG3ThickShellElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void CSDSG3ThickShellElement3D3N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 int CSDSG3ThickShellElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
