@@ -523,7 +523,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, distance)
 
     def _SetDesignParameterCustomInitialDesign(self):
-        pass
+        if self.use_custom_initial_design:
+            custom_initial_designs_list = self.custom_initial_design_settings["custom_initial_design"]
+            for custom_initial_design in custom_initial_designs_list:
+                model_part_nodes_ids = self._ExtractListOfNodesFromNodesDictionary(self._GetSubModelPart(self._GetMainModelPart(), custom_initial_design["model_part_name"].GetString()))
+                initial_design_value = custom_initial_design["initial_value"].GetDouble()
+                self.design_parameter[model_part_nodes_ids] = initial_design_value
+        else:
+            pass
 
     def _InitializeDomainSymmetry(self):
         self.symmetry_settings = self.optimization_settings["symmetry_settings"]
@@ -561,6 +568,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.optimization_domain_initial_value = max(0.0, min(1.0, optimization_domain_settings["optimization_domain"]["initial_value"].GetDouble()))
         self.non_optimization_domain_name = optimization_domain_settings["non_optimization_domain"]["model_part_name"].GetString()
         self.non_optimization_domain_initial_value = max(0.0, min(1.0, optimization_domain_settings["non_optimization_domain"]["initial_value"].GetDouble()))
+        self.custom_initial_design_settings = optimization_domain_settings["custom_initial_design_settings"]
+        self.use_custom_initial_design = self.custom_initial_design_settings["use_custom_initial_design"].GetBool()
 
     def _CorrectNodalOptimizationDomainSizeWithSymmetry(self):
         if (self.symmetry_enabled):
@@ -1671,6 +1680,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 "non_optimization_domain": {
                     "model_part_name": "GENERIC_domain-non_optimization_domain",
                     "initial_value": 0.0
+                },
+                "custom_initial_design_settings": { 
+                    "use_custom_initial_design": false,
+                    "custom_initial_design": [{
+                        "model_part_name": "",
+                        "initial_value": "0.0"
+                    }]
                 }
             },
             "optimization_problem_settings": {
@@ -1738,13 +1754,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                             "min_WSS" : 0.5
                         }
                     }
-                },
-                "use_custom_initial_design": false,
-                "custom_initial_design_settings": { 
-                    "custom_initial_design": [{
-                        "model_part_name": "",
-                        "initial_value": "0.0"
-                    }]
                 }
             }
         }""")
