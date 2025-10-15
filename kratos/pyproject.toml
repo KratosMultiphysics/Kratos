@@ -20,6 +20,11 @@ dependencies = [
 
 [tool.hatch.build.targets.wheel.force-include]
 "KratosMultiphysics" = "KratosMultiphysics"
+
+[tool.hatch.build.targets.sdist]
+
+[tool.hatch.build.targets.sdist.force-include]
+"KratosMultiphysics" = "KratosMultiphysics"
 "libs" = "KratosMultiphysics/.libs"
 
 [tool.hatch.build.targets.editable]
