@@ -470,7 +470,7 @@ void AddFields(
             // all the ranks should have the same number of dimensions, because number of dimensions should not depend
             // on whether the rank is empty or not.
             const auto& ta_shape = pTensorAdaptor->Shape();
-            const auto max_number_of_dimensions = rDataCommunicator.MaxAll(ta_shape.size());
+            const auto max_number_of_dimensions = rDataCommunicator.MaxAll(static_cast<unsigned int>(ta_shape.size()));
 
             KRATOS_ERROR_IF_NOT(max_number_of_dimensions == ta_shape.size())
                 << "The number of dimensions represented by \"" << r_pair.first << "\" tensor adaptor is different in different ranks [ max number of dimensions from all ranks = "
