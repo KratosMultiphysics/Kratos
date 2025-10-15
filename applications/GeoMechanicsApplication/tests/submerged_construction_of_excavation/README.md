@@ -58,6 +58,9 @@ The following table lists the material properties of the soil layers that have b
 | Saturated saturation $`S_{\mathrm{sat}}`$ | `SATURATED_SATURATION` | 1.0                              | 1.0                              | $`[-]`$                        |
 | Young's modulus $`E`$                     | `YOUNG_MODULUS`        | $`12 \cdot 10^3`$                | $`120 \cdot 10^3`$               | $`\mathrm{kN} / \mathrm{m}^2`$ |
 | Poisson's ratio $`\nu`$                   | `POISSON_RATIO`        | 0.15                             | 0.20                             | $`[-]`$                        |
+| Cohesion $`c`$                            | `GEO_COHESION`         | 1000.0                           | 0.0                              | $`\mathrm{N} / \mathrm{m}^2`$  |
+| Friction angle $`\phi`$                   | `GEO_FRICTION_ANGLE`   | 25.0                             | 32.0                             | $`^{\circ}`$                   |
+| Dilatancy angle $`\psi`$                  | `GEO_DILATANCY_ANGLE`  | 0.0                              | 2.0                              | $`^{\circ}`$                   |
 
 The following table lists the material properties of the interfaces that have been adopted by the Kratos model.
 
@@ -65,6 +68,9 @@ The following table lists the material properties of the interfaces that have be
 |-------------------------------------|------------------------|-----------|--------|--------------------------------|
 | Normal stiffness $`k_{\mathrm{n}}`$ | `NORMAL_STIFFNESS`     | 48000     | 480000 | $`\mathrm{kN} / \mathrm{m}^3`$ |
 | Shear stiffness $`k_{\mathrm{s}}`$  | `SHEAR_STIFFNESS`      | 20869.565 | 200000 | $`\mathrm{kN} / \mathrm{m}^3`$ |
+| Cohesion $`c`$                      | `GEO_COHESION`         | 1000.0    | 0.0    | $`\mathrm{N} / \mathrm{m}^2`$  |
+| Friction angle $`\phi`$             | `GEO_FRICTION_ANGLE`   | 25.0      | 32.0   | $`^{\circ}`$                   |
+| Dilatancy angle $`\psi`$            | `GEO_DILATANCY_ANGLE`  | 0.0       | 2.0    | $`^{\circ}`$                   |
 
 
 The following table lists the material properties of the diaphragm wall that have been adopted by the Kratos model.
