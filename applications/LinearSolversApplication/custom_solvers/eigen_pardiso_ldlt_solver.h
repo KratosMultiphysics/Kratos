@@ -89,7 +89,7 @@ private:
      * If MKL's thread count is greater than the application's thread count, a warning is issued, and MKL's thread count is reduced to match the application's thread count via `mkl_set_num_threads()`.
      * This ensures that MKL operations (potentially used by the solver) do not utilize more threads than allowed by the overall parallel configuration, preventing potential oversubscription or inconsistency.
      */
-    void CheckThreadConsistency()
+    static void CheckThreadConsistency()
     {
         const int number_of_threads_mkl = mkl_get_max_threads();
         const int number_of_threads_used = ParallelUtilities::GetNumThreads();
