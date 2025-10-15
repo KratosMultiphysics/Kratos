@@ -724,6 +724,7 @@ int CSDSG3ThickShellElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo) c
     KRATOS_TRY
 
     const auto& r_properties = GetProperties();
+    KRATOS_ERROR_IF_NOT(mConstitutiveLawVector[0]->GetStrainSize() == 8) << "The constitutive law used is not suitable for shell calculations, the StrainSize is NOT 8..." << std::endl;
     KRATOS_ERROR_IF_NOT(r_properties.Has(THICKNESS)) << "THICKNESS not provided for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
     KRATOS_ERROR_IF_NOT(r_properties.GetValue(THICKNESS) > 0.0) << "Wrong value for THICKNESS in the  CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
     return mConstitutiveLawVector[0]->Check(r_properties, GetGeometry(), rCurrentProcessInfo);
