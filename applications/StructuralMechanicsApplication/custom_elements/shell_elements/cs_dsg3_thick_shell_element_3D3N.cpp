@@ -335,19 +335,6 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
         rB.resize(strain_size, system_size, false);
     rB.clear();
 
-
-    // beta parameters for the membrane part
-    // const double b1 = 1.0;
-    // const double b2 = 2.0;
-    // const double b3 = 1.0;
-    // const double b4 = 0.0;
-    // const double b5 = 1.0;
-    // const double b6 = -1.0;
-    // const double b7 = -1.0;
-    // const double b8 = -1.0;
-    // const double b9 = -2.0;
-
-
     const double x1 = r_local_coord_1[0];
     const double y1 = r_local_coord_1[1];
     const double x2 = r_local_coord_2[0];
@@ -389,26 +376,106 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
     rB(2, 12) = x21;
     rB(2, 13) = y12;
 
-    // const double alpha = 1.5;
-    // const double temp = alpha / 6.0;
-    // const double temp2 = 2.0 * temp;
+    const double alpha = 1.5;
+    const double temp = alpha / 6.0;
+    const double temp2 = 2.0 * temp;
+
     // Drilling rotation membrane components
-    // rB(0, 5) = temp * y23 * (y13 + y12);
-    // rB(1, 5) = temp * x32 * (x31 + x21);
-    // rB(2, 5) = temp2 * (x31 * y13 + x21 * y21);
+    rB(0, 5) = temp * y23 * (y13 + y12);
+    rB(1, 5) = temp * x32 * (x31 + x21);
+    rB(2, 5) = temp2 * (x31 * y13 + x21 * y21);
 
-    // rB(0, 11) = temp * y31 * (y21 + y23);
-    // rB(1, 11) = temp * x13 * (x12 + x32);
-    // rB(2, 11) = temp2 * (x12 * y21 + x32 * y32);
+    rB(0, 11) = temp * y31 * (y21 + y23);
+    rB(1, 11) = temp * x13 * (x12 + x32);
+    rB(2, 11) = temp2 * (x12 * y21 + x32 * y32);
 
-    // rB(0, 17) = temp * y12 * (y32 + y31);
-    // rB(1, 17) = temp * x21 * (x23 + x13);
-    // rB(2, 17) = temp2 * (x23 * y32 + x13 * y13);
+    rB(0, 17) = temp * y12 * (y32 + y31);
+    rB(1, 17) = temp * x21 * (x23 + x13);
+    rB(2, 17) = temp2 * (x23 * y32 + x13 * y13);
 
-    // SECOND ORDER MISSING!!!! 
-    // TODO
+    // Beta parameters for the higher order  membrane part
+    const double b1 = 1.0;
+    const double b2 = 2.0;
+    const double b3 = 1.0;
+    const double b4 = 0.0;
+    const double b5 = 1.0;
+    const double b6 = -1.0;
+    const double b7 = -1.0;
+    const double b8 = -1.0;
+    const double b9 = -2.0;
 
+    bounded_3_matrix Q, Q1, Q2, Q3, Te, aux3_by_3;
+    BoundedMatrix<double, 9, 3> TTu, B_m_high_order;
+    TTu.clear();
 
+    const double LL21 = x21*x21 + y21*y21;
+    const double LL32 = x32*x32 + y32*y32;
+    const double LL13 = x13*x13 + y13*y13;
+    const double A2 = 2.00 * Area;
+    const double A4 = 4.00 * Area;
+    Te(0, 0) = y23 * y13 * LL21;
+    Te(0, 1) = y31 * y21 * LL32;
+    Te(0, 2) = y12 * y32 * LL13;
+    Te(1, 0) = x23 * x13 * LL21;
+    Te(1, 1) = x31 * x21 * LL32;
+    Te(1, 2) = x12 * x32 * LL13;
+    Te(2, 0) = (y23 * x31 + x32 * y13) * LL21;
+    Te(2, 1) = (y31 * x12 + x13 * y21) * LL32;
+    Te(2, 2) = (y12 * x23 + x21 * y32) * LL13;
+    Te /= (Area * A4);
+
+    Q1(0, 0) = b1 * A2 / (LL21 * 3.00);
+    Q1(0, 1) = b2 * A2 / (LL21 * 3.00);
+    Q1(0, 2) = b3 * A2 / (LL21 * 3.00);
+    Q1(1, 0) = b4 * A2 / (LL32 * 3.00);
+    Q1(1, 1) = b5 * A2 / (LL32 * 3.00);
+    Q1(1, 2) = b6 * A2 / (LL32 * 3.00);
+    Q1(2, 0) = b7 * A2 / (LL13 * 3.00);
+    Q1(2, 1) = b8 * A2 / (LL13 * 3.00);
+    Q1(2, 2) = b9 * A2 / (LL13 * 3.00);
+
+    Q2(0, 0) = b9 * A2 / (LL21 * 3.00);
+    Q2(0, 1) = b7 * A2 / (LL21 * 3.00);
+    Q2(0, 2) = b8 * A2 / (LL21 * 3.00);
+    Q2(1, 0) = b3 * A2 / (LL32 * 3.00);
+    Q2(1, 1) = b1 * A2 / (LL32 * 3.00);
+    Q2(1, 2) = b2 * A2 / (LL32 * 3.00);
+    Q2(2, 0) = b6 * A2 / (LL13 * 3.00);
+    Q2(2, 1) = b4 * A2 / (LL13 * 3.00);
+    Q2(2, 2) = b5 * A2 / (LL13 * 3.00);
+
+    Q3(0, 0) = b5 * A2 / (LL21 * 3.00);
+    Q3(0, 1) = b6 * A2 / (LL21 * 3.00);
+    Q3(0, 2) = b4 * A2 / (LL21 * 3.00);
+    Q3(1, 0) = b8 * A2 / (LL32 * 3.00);
+    Q3(1, 1) = b9 * A2 / (LL32 * 3.00);
+    Q3(1, 2) = b7 * A2 / (LL32 * 3.00);
+    Q3(2, 0) = b2 * A2 / (LL13 * 3.00);
+    Q3(2, 1) = b3 * A2 / (LL13 * 3.00);
+    Q3(2, 2) = b1 * A2 / (LL13 * 3.00);
+
+    noalias(Q) = area_coords_1 * Q1;
+    noalias(Q) += area_coords_2 * Q2;
+    noalias(Q) += area_coords_3 * Q3;
+
+    for (IndexType i = 0; i < 3; i++) {
+        TTu(0, i) = x32;
+        TTu(1, i) = y32;
+
+        TTu(3, i) = x13;
+        TTu(4, i) = y13;
+
+        TTu(6, i) = x21;
+        TTu(7, i) = y21;
+    }
+    TTu(2, 0) = A4;
+    TTu(5, 1) = A4;
+    TTu(8, 2) = A4;
+    TTu *= (1.0 / A4);
+
+    const double beta0 = 0.5 * (1.0 - 4.0 * std::pow(GetMaterialProperty<double>(POISSON_RATIO, GetProperties()), 2));
+    noalias(aux3_by_3) = (1.5 * sqrt(beta0)) * prod(trans(Q), trans(Te));
+    noalias(B_m_high_order) += prod(TTu, aux3_by_3);
 
     // ...
 

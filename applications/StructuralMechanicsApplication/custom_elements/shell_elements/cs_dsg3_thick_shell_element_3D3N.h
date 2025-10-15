@@ -359,6 +359,28 @@ public:
         return integration_points;
     }
 
+    /**
+     * @brief This method returns a material property (e.g. Poisson ratio) without assuming that this property is
+     * in the main property. It looks into the subproperties to find the property.
+     */
+    template <class TDataType> 
+    TDataType GetMaterialProperty(const Variable<TDataType>& rVariable, const Properties& rProps)
+    {
+        if (rProps.Has(rVariable)) {
+            return rProps.GetValue(rVariable);
+        } else {
+            const IndexType number_subprops = rProps.NumberOfSubproperties();
+            const auto &r_sub_props_list = rProps.GetSubProperties();
+            for (auto& r_subprop : r_sub_props_list) {
+                if (r_subprop.Has(rVariable)) {
+                    return r_subprop.GetValue(rVariable);
+                }
+            }
+        }
+        KRATOS_WARNING("CSDSG3ThickShellElement3D3N") << "The variable requested is not present in ANY subproperty..." << std::endl;
+        return 0.0;
+    }
+
     ///@}
     ///@name Access
     ///@{
