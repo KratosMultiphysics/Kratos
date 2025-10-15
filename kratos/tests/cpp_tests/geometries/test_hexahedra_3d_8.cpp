@@ -279,8 +279,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8PointLocalCoordinates, KratosCoreGeometrie
 }
 
 
-/* Checks that a 
-*/
+/* Checks that the local coordinates are not converged for a point very far from the hexahedron */
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8PointLocalCoordinatesNotConverged, KratosCoreGeometriesFastSuite) 
 {
     auto p_geom = HexaGeometryPtrType(new HexaGeometryType(
