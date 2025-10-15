@@ -26,7 +26,7 @@
 #include "custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.h"
 #include "custom_processes/Boundary_Windkessel_model.h"
 #include "custom_processes/boussinesq_force_process.h"
-#include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
+#include "custom_processes/calculate_levelset_consistent_nodal_gradient_process.h"
 #include "custom_processes/compute_pressure_coefficient_process.h"
 #include "custom_processes/distance_modification_process.h"
 #include "custom_processes/distance_smoothing_process.h"
@@ -167,7 +167,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< Model&, Parameters >())
     ;
 
-    py::class_<CalulateLevelsetConsistentNodalGradientProcess, CalulateLevelsetConsistentNodalGradientProcess::Pointer, Process>(m,"CalulateLevelsetConsistentNodalGradientProcess")
+    py::class_<CalculateLevelsetConsistentNodalGradientProcess, CalculateLevelsetConsistentNodalGradientProcess::Pointer, Process>(m,"CalculateLevelsetConsistentNodalGradientProcess")
     .def(py::init< ModelPart& >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())

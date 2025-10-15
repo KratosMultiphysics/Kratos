@@ -118,8 +118,8 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
                                                      const Vector&     rTrialSigmaTau,
                                                      CoulombYieldSurface::CoulombAveragingType AveragingType) const
 {
-    const auto apex =
-        CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
+    const auto apex = CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(),
+                                    mCoulombYieldSurface.GetCohesion());
 
     if (IsStressAtTensionApexReturnZone(rTrialSigmaTau, mTensionCutOff.GetTensileStrength(), apex)) {
         return ReturnStressAtTensionApexReturnZone(mTensionCutOff.GetTensileStrength());
