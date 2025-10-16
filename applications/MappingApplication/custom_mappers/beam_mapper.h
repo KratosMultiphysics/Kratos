@@ -371,7 +371,7 @@ public:
         }
     }
 
-    void Map( const Variable<array_1d<double, 3>>& rOriginVariablesDisplacements, 
+    void Map(const Variable<array_1d<double, 3>>& rOriginVariablesDisplacements, 
               const Variable<array_1d<double, 3>>& rOriginVariablesRotations,
               const Variable<array_1d<double, 3>>& rDestinationVariable, 
               Kratos::Flags MappingOptions)
