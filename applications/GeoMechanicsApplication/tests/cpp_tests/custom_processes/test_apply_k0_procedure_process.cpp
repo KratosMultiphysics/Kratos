@@ -70,8 +70,9 @@ Vector ApplyK0ProcedureOnStubElement(const Properties::Pointer& rProperties, con
     p_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, {rInitialStressVector},
                                             r_model_part.GetProcessInfo());
 
-    const auto              k0_settings = Parameters{};
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    auto k0_settings = Parameters{};
+    k0_settings.AddString("model_part_name", "main");
+    ApplyK0ProcedureProcess process{model, k0_settings};
 
     // Act
     process.ExecuteFinalizeSolutionStep();
@@ -165,8 +166,9 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUs
     auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings; // 'use_standard_procedure' is not defined, assume it to be true
+    k0_settings.AddString("model_part_name", "dummy");
 
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    ApplyK0ProcedureProcess process{model, k0_settings};
     process.ExecuteInitialize();
 
     KRATOS_EXPECT_TRUE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
@@ -179,8 +181,9 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUs
     auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings{R"({"use_standard_procedure": true})"};
+    k0_settings.AddString("model_part_name", "dummy");
 
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    ApplyK0ProcedureProcess process{model, k0_settings};
     process.ExecuteInitialize();
 
     KRATOS_EXPECT_TRUE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
@@ -193,8 +196,9 @@ KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhe
     auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings{R"({"use_standard_procedure": false})"};
+    k0_settings.AddString("model_part_name", "dummy");
 
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    ApplyK0ProcedureProcess process{model, k0_settings};
     process.ExecuteInitialize();
 
     KRATOS_EXPECT_FALSE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
@@ -207,8 +211,9 @@ KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecuti
     auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings{R"({"use_standard_procedure": true})"};
+    k0_settings.AddString("model_part_name", "dummy");
 
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    ApplyK0ProcedureProcess process{model, k0_settings};
     process.ExecuteInitialize(); // start considering diagonal entries only and no shear
     process.ExecuteFinalize();   // stop considering diagonal entries only and no shear
 
@@ -480,8 +485,9 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     p_element->SetProperties(std::make_shared<Properties>());
     r_model_part.AddElement(p_element);
 
-    const auto              k0_settings = Parameters{};
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    auto k0_settings = Parameters{};
+    k0_settings.AddString("model_part_name", "main");
+    ApplyK0ProcedureProcess process{model, k0_settings};
 
     auto mock_constitutive_law = std::make_shared<MockIncrementalLinearElasticLaw>();
     p_element->GetProperties().SetValue(CONSTITUTIVE_LAW, mock_constitutive_law);
@@ -576,8 +582,12 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfModelPartHasElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_modelpart = model.CreateModelPart("dummy");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{r_modelpart, {}}.Check()),
+    model.CreateModelPart("dummy");
+
+    auto k0_settings = Parameters{};
+    k0_settings.AddString("model_part_name", "dummy");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{model, k0_settings}.Check()),
                                       "ApplyK0ProcedureProces has no elements in modelpart dummy")
 }
 

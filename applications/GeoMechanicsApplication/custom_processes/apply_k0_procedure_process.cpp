@@ -55,17 +55,6 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Set
     }
 }
 
-ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, Parameters K0Settings)
-    : Process(Flags()), mrModelParts{std::ref(model_part)}, mSettings(std::move(K0Settings))
-{
-}
-
-ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(const std::vector<std::reference_wrapper<ModelPart>>& model_part,
-                                                 Parameters K0Settings)
-    : mrModelParts{{model_part}}, mSettings(std::move(K0Settings))
-{
-}
-
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
     if (UseStandardProcedure())

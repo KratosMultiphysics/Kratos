@@ -29,8 +29,6 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyK0ProcedureProcess);
 
     ApplyK0ProcedureProcess(Model& rModel, Parameters K0Settings);
-    ApplyK0ProcedureProcess(ModelPart& model_part, Parameters rK0Settings);
-    ApplyK0ProcedureProcess(const std::vector<std::reference_wrapper<ModelPart>>& model_part, Parameters K0Settings);
     ~ApplyK0ProcedureProcess() override = default;
 
     void ExecuteInitialize() override;
