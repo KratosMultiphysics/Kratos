@@ -256,3 +256,11 @@ class GiDOutputFileReader:
             return result
         else:
             return element_results
+
+    @staticmethod
+    def get_time_steps_from_first_valid_result(output_data):
+        results = output_data.get("results", {})
+        for items in results.values():
+            if items and all("time" in item and item.get("values") for item in items):
+                return [item["time"] for item in items]
+        return []
