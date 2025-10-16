@@ -702,9 +702,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsCorotation
 }
 
 template<class TSparseSpace, class TDenseSpace>
-void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsInverse(const Variable< array_1d<double, 3> >& rOriginVariablesForces,
-                                                                              const Variable< array_1d<double, 3> >& rOriginVariablesMoments,
-                                                                              const Variable< array_1d<double, 3> >& rDestinationVariableForces,
+void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsInverse(const Variable<array_1d<double, 3>>& rOriginVariablesForces,
+                                                                              const Variable<array_1d<double, 3>>& rOriginVariablesMoments,
+                                                                              const Variable<array_1d<double, 3>>& rDestinationVariableForces,
                                                                               const Kratos::Flags& rMappingOptions)
 {   
     const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
@@ -901,8 +901,8 @@ void BeamMapper<TSparseSpace, TDenseSpace>::getRotationVector(const MatrixType& 
 }
 
 template<class TSparseSpace, class TDenseSpace>
-void BeamMapper<TSparseSpace, TDenseSpace>::InitializeOriginForcesAndMoments(const Variable< array_1d<double, 3> >& rOriginVariablesForces,
-                                    const Variable< array_1d<double, 3> >& rOriginVariablesMoments)                                    
+void BeamMapper<TSparseSpace, TDenseSpace>::InitializeOriginForcesAndMoments(const Variable<array_1d<double, 3>>& rOriginVariablesForces,
+                                    const Variable<array_1d<double, 3>>& rOriginVariablesMoments)                                    
 {   
     for( auto& r_local_sys : mMapperLocalSystems )
     {   
