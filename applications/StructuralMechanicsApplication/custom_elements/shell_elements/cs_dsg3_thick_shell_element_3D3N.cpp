@@ -647,6 +647,7 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
     }
     RotateLHSToGlobal(rLHS, rotation_matrix);
     RotateRHSToGlobal(rRHS, rotation_matrix);
+    AddBodyForces(area, rRHS);
 
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateLocalSystem")
 }
@@ -798,8 +799,48 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
 
     }
     RotateRHSToGlobal(rRHS, rotation_matrix);
+    AddBodyForces(area, rRHS);
 
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateRightHandSide")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void CSDSG3ThickShellElement3D3N::AddBodyForces(const double Area,
+    VectorType &rRightHandSideVector)
+{
+    KRATOS_TRY
+    const auto& r_geometry = GetGeometry();
+    const auto& r_props = GetProperties();
+
+    array_3 body_forces = ZeroVector(3);
+    const double one_third = 1.0 / 3.0;
+
+    double density = 0.0;
+    if (r_props.Has(DENSITY)) {
+        density = r_props[DENSITY];
+    } else {
+        // In composite shells the density is to be retrieved from the CL
+        mConstitutiveLawVector[0]->GetValue(DENSITY, density);
+        KRATOS_ERROR_IF(density <= 0.0) << "DENSITY is null as far as the shell CL is concerned... Please implement the GetValue(DENSITY) " <<  std::endl;
+    }
+
+    // We interpolate the volume acceleration at the center of the element
+    for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+        noalias(body_forces) += r_geometry[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    }
+    body_forces *= density * one_third * Area; // total weight of the element
+    body_forces * one_third; // we distribute it equally to the 3 nodes
+
+    for (IndexType inode = 0; inode < r_geometry.size(); ++inode) {
+        IndexType index = inode * 6;
+        rRightHandSideVector[index + 0] += body_forces[0];
+        rRightHandSideVector[index + 1] += body_forces[1];
+        rRightHandSideVector[index + 2] += body_forces[2];
+    }
+
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::AddBodyForces")
 }
 
 
