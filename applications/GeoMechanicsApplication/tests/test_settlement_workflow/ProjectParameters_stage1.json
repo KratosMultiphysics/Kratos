@@ -171,7 +171,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name": "ApplyK0ProcedureProcess",
         "Parameters": {
-          "model_part_name": "PorousDomain.K0_model_part"
+          "model_part_name_list": ["PorousDomain.Clay_after_excavation", "PorousDomain.Excavated_clay"]
         }
       }
     ]    
