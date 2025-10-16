@@ -2,6 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 import os
@@ -28,7 +29,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.load_edge_length = 5.0  # m
 
     def total_reaction_y_from_output_data(self, output_data, time, node_ids):
-        reactions = test_helper.GiDOutputFileReader.nodal_values_at_time("REACTION", time, output_data, node_ids=node_ids)
+        reactions = GiDOutputFileReader.nodal_values_at_time("REACTION", time, output_data, node_ids=node_ids)
         return sum([reaction[1] for reaction in reactions])
 
     def calculate_weight_of_all_soil(self):
@@ -69,7 +70,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
 
         # Check vertical reaction forces in the initial stage
-        output_reader = test_helper.GiDOutputFileReader()
+        output_reader = GiDOutputFileReader()
         output_data = output_reader.read_output_from(os.path.join(project_path, "1_Initial_stage.post.res"))
         time = -1.0
         bottom_node_ids = [1, 3, 10, 25, 44, 68, 96, 132, 175, 218, 268, 318, 378, 434, 499, 573, 649, 732, 819, 909, 999, 1102, 1206, 1315, 1434, 1560, 1695, 1828, 1966, 2111, 2259, 2406, 2558, 2725, 2896, 3059, 3239, 3422, 3621, 3818, 4023, 4233, 4455, 4739, 5151, 5563, 5959, 6281, 6607, 6924, 7237, 7541, 7831]
