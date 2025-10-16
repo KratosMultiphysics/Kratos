@@ -103,8 +103,9 @@ Vector ApplyK0ProcedureOnStubElementsInMultipleModelParts(const Properties::Poin
     p_element_2->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, {rInitialStressVector},
                                               r_model_part_2.GetProcessInfo());
 
-    const auto              k0_settings = Parameters{};
-    ApplyK0ProcedureProcess process{{r_model_part, r_model_part_2}, k0_settings};
+    auto k0_settings = Parameters{};
+    k0_settings.AddStringArray("model_part_name_list", {"model_part_1", "model_part_2"});
+    ApplyK0ProcedureProcess process{model, k0_settings};
 
     // Act
     process.ExecuteFinalizeSolutionStep();
@@ -242,7 +243,8 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC_MultipleModelPa
     initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
 
     // Act
-    const auto actual_stress_vector = ApplyK0ProcedureOnStubElementsInMultipleModelParts(p_properties, initial_stress_vector);
+    const auto actual_stress_vector =
+        ApplyK0ProcedureOnStubElementsInMultipleModelParts(p_properties, initial_stress_vector);
 
     // Assert
     Vector expected_stress_vector{4};
