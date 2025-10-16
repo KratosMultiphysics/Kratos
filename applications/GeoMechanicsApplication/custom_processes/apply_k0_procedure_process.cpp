@@ -44,36 +44,45 @@ namespace Kratos
 {
 
 ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, Parameters K0Settings)
-    : Process(Flags()), mrModelPart(model_part), mSettings(std::move(K0Settings))
+    : Process(Flags()), mrModelParts{std::ref(model_part)}, mSettings(std::move(K0Settings))
 {
 }
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
     if (UseStandardProcedure())
-        SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), true);
+        for (auto& rModelPart : mrModelParts) {
+            SetConsiderDiagonalEntriesOnlyAndNoShear(rModelPart.get().Elements(), true);
+        }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
     if (UseStandardProcedure())
-        SetConsiderDiagonalEntriesOnlyAndNoShear(mrModelPart.Elements(), false);
+        for (auto& rModelPart : mrModelParts) {
+            SetConsiderDiagonalEntriesOnlyAndNoShear(rModelPart.get().Elements(), false);
+        }
 }
 
 int ApplyK0ProcedureProcess::Check()
 {
-    KRATOS_ERROR_IF(mrModelPart.Elements().empty())
-        << "ApplyK0ProcedureProces has no elements in modelpart " << mrModelPart.Name() << std::endl;
+    for (auto& rModelPart : mrModelParts) {
+        KRATOS_ERROR_IF(rModelPart.get().Elements().empty())
+            << "ApplyK0ProcedureProces has no elements in modelpart " << rModelPart.get().Name()
+            << std::endl;
+    }
 
-    block_for_each(mrModelPart.Elements(), [](Element& rElement) {
-        const auto& r_properties = rElement.GetProperties();
-        CheckK0MainDirection(r_properties, rElement.Id());
-        CheckSufficientMaterialParameters(r_properties, rElement.Id());
-        CheckOCRorPOP(r_properties, rElement.Id());
-        CheckPoissonUnloadingReloading(r_properties, rElement.Id());
-        CheckPhi(r_properties, rElement.Id());
-        CheckK0(r_properties, rElement.Id());
-    });
+    for (auto& rModelPart : mrModelParts) {
+        block_for_each(rModelPart.get().Elements(), [](Element& rElement) {
+            const auto& r_properties = rElement.GetProperties();
+            CheckK0MainDirection(r_properties, rElement.Id());
+            CheckSufficientMaterialParameters(r_properties, rElement.Id());
+            CheckOCRorPOP(r_properties, rElement.Id());
+            CheckPoissonUnloadingReloading(r_properties, rElement.Id());
+            CheckPhi(r_properties, rElement.Id());
+            CheckK0(r_properties, rElement.Id());
+        });
+    }
 
     return 0;
 }
@@ -177,9 +186,11 @@ void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
     KRATOS_TRY
 
     // K0 procedure for the model part:
-    block_for_each(mrModelPart.Elements(),
-                   [this](Element& rElement) { CalculateK0Stresses(rElement); });
-
+    for (auto& rModelPart : mrModelParts) {
+        block_for_each(rModelPart.get().Elements(), [&rModelPart, this](Element& rElement) {
+            CalculateK0Stresses(rElement, rModelPart.get().GetProcessInfo());
+        });
+    }
     KRATOS_CATCH("")
 }
 
@@ -209,7 +220,7 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
     return k0_vector;
 }
 
-void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement) const
+void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement, const ProcessInfo& rProcessInfo) const
 {
     // Get K0 material parameters of this element ( probably there is something more efficient )
     const Element::PropertiesType& rProp             = rElement.GetProperties();
@@ -234,9 +245,8 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement) const
         }
     }
     // Get element stress vectors
-    const ProcessInfo& rCurrentProcessInfo = this->mrModelPart.GetProcessInfo();
     std::vector<ConstitutiveLaw::StressVectorType> rStressVectors;
-    rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rCurrentProcessInfo);
+    rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rProcessInfo);
 
     // Loop over integration point stress vectors
     for (auto& rStressVector : rStressVectors) {
@@ -251,7 +261,7 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement) const
         std::fill(rStressVector.begin() + 3, rStressVector.end(), 0.0);
     }
     // Set element integration point stress tensors
-    rElement.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rCurrentProcessInfo);
+    rElement.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rProcessInfo);
 }
 
 } // namespace Kratos
