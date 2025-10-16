@@ -20,6 +20,8 @@ class GiDOutputFileReader:
                                              element_ids=None, integration_point_indices=None):
         Retrieves integration point values for elements at a specific time.
         Optionally filters by element IDs and integration point indices.
+
+    get_time_steps_from_first_valid_result(output_data):
     """
 
     def __init__(self):
@@ -259,8 +261,17 @@ class GiDOutputFileReader:
 
     @staticmethod
     def get_time_steps_from_first_valid_result(output_data):
-        results = output_data.get("results", {})
-        for items in results.values():
+        """
+        Retrieves times at which results are written based on the first valid result.
+
+        Args:
+            output_data (dict): Parsed output data from the GiD file.
+
+        Returns:
+            result: list[float] containing time steps.
+        """
+        result = output_data.get("results", {})
+        for items in result.values():
             if items and all("time" in item and item.get("values") for item in items):
                 return [item["time"] for item in items]
         return []
