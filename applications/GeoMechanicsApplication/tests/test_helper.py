@@ -10,6 +10,8 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
+from KratosMultiphysics.GeoMechanicsApplication import unit_conversions
+
 
 def get_file_path(filename):
     import os
@@ -44,76 +46,6 @@ def run_kratos(file_path, model=None):
 
     os.chdir(cwd)
     return simulation
-
-def run_stages(project_path,n_stages):
-    """
-    Run all construction stages
-
-    :param project_path:
-    :param n_stages:
-    :return:
-    """
-    cwd = os.getcwd()
-    stages = get_stages(project_path,n_stages)
-    [stage.Run() for stage in stages]
-    os.chdir(cwd)
-    return stages
-
-def get_stages(project_path,n_stages):
-    """
-    Gets all construction stages
-
-    :param project_path:
-    :param n_stages:
-    :return:
-    """
-
-    parameter_file_names = [os.path.join(project_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
-                            range(n_stages)]
-
-    # set stage parameters
-    parameters_stages = [None] * n_stages
-    os.chdir(project_path)
-    for idx, parameter_file_name in enumerate(parameter_file_names):
-        with open(parameter_file_name, 'r') as parameter_file:
-            parameters_stages[idx] = Kratos.Parameters(parameter_file.read())
-
-    model = Kratos.Model()
-    stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
-    return stages
-
-def get_separated_directory_names(project_path, n_stages):
-    """
-    Gets directory names for all construction stages in seperated directories as Stage_0, Stage_1, ...
-
-    :param project_path:
-    :param n_stages:
-    :return:
-    """
-    directory_names = [os.path.join(project_path, 'Stage_' +  str(i + 1)) for i in range(n_stages)]
-
-    return directory_names
-
-def get_separated_stages(directory_names):
-    """
-    Gets all construction stages in seperated directories as Stage_0, Stage_1, ...
-
-    :param project_path:
-    :param n_stages:
-    :return:
-    """
-    n_stages = len(directory_names)
-    # set stage parameters
-    parameters_stages = [None] * n_stages
-    for idx, directory_name in enumerate(directory_names):
-        parameter_file_name = directory_name + '/ProjectParameters.json'
-        with open(parameter_file_name, 'r') as parameter_file:
-            parameters_stages[idx] = Kratos.Parameters(parameter_file.read())
-
-    model = Kratos.Model()
-    stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
-
-    return stages
 
 
 def get_displacement(simulation):
@@ -508,6 +440,23 @@ def are_dictionaries_almost_equal(expected: Dict[Any, Any],
     return True
 
 
+def want_test_plots() -> bool:
+    return os.environ.get("KRATOS_GEO_MAKE_TEST_PLOTS", "off").lower() == "on"
+
+
+def get_data_points_from_file(file_path, data_point_extractor):
+    result = []
+    with open(file_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+
+            result.append(data_point_extractor(line))
+
+    return result
+
+
 class GiDOutputFileReader:
     def __init__(self):
         self._reset_internal_state()
@@ -639,9 +588,6 @@ class GiDOutputFileReader:
 
     @staticmethod
     def nodal_values_at_time(result_item_name, time, output_data, node_ids=None):
-        if node_ids and node_ids != sorted(node_ids):
-            raise RuntimeError("Node IDs must be sorted")
-
         matching_item = None
         for item in output_data["results"][result_item_name]:
             if math.isclose(item["time"], time):
@@ -653,10 +599,13 @@ class GiDOutputFileReader:
         if matching_item["location"] != "OnNodes":
             raise RuntimeError(f"'{result_item_name}' is not a nodal result")
 
-        if not node_ids: # return all values
-            return [item["value"] for item in matching_item["values"]]
+        node_id_to_value_map = {item["node"] : item["value"] for item in matching_item["values"]}
 
-        return [item["value"] for item in matching_item["values"] if item["node"] in node_ids]
+        if node_ids is None: # return all values
+            node_ids = [item["node"] for item in matching_item["values"]]
+
+        return [node_id_to_value_map[node_id] for node_id in node_ids]
+
 
     @staticmethod
     def element_integration_point_values_at_time(result_item_name, time, output_data, element_ids=None, integration_point_indices=None):
@@ -686,3 +635,30 @@ class GiDOutputFileReader:
             return result
         else:
             return element_results
+
+
+def read_coordinates_from_post_msh_file(file_path, node_ids=None):
+    node_map = {}
+
+    with open(file_path, "r") as post_msh_file:
+        reading_coordinates = False
+        for line in post_msh_file:
+            line = line.strip()
+            if line == "Coordinates":
+                reading_coordinates = True
+                continue
+
+            if line == "End Coordinates":
+                reading_coordinates = False
+
+            if reading_coordinates:
+                numbers = line.split()  # [node ID, x, y, z]
+                node_map[int(numbers[0])] = tuple([float(number) for number in numbers[1:]])
+
+    if node_ids is None:
+        return list(node_map.values())
+
+    result = []
+    for id in node_ids:
+        result.append(node_map[id])
+    return result

@@ -13,8 +13,10 @@
 
 // Application includes
 #include "custom_elements/U_Pw_base_element.hpp"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos
@@ -27,66 +29,26 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     // Base class checks for positive area and Id > 0
     if (int ierr = Element::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
-    const PropertiesType& rProp = this->GetProperties();
-    const GeometryType&   rGeom = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
-    // verify nodal variables and dofs
-    for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
-        if (!rGeom[i].SolutionStepsDataHas(DISPLACEMENT))
-            KRATOS_ERROR << "missing variable DISPLACEMENT on node " << rGeom[i].Id() << std::endl;
+    CheckUtilities::CheckHasNodalSolutionStepData(
+        r_geometry, {std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION),
+                     std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+    CheckUtilities::CheckHasDofs(
+        r_geometry, {std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y), std::cref(WATER_PRESSURE)});
+    if (this->GetGeometry().WorkingSpaceDimension() > 2)
+        CheckUtilities::CheckHasDofs(r_geometry, {std::cref(DISPLACEMENT_Z)});
 
-        if (!rGeom[i].SolutionStepsDataHas(VELOCITY))
-            KRATOS_ERROR << "missing variable VELOCITY on node " << rGeom[i].Id() << std::endl;
+    const CheckProperties check_properties(this->GetProperties(), "material properties", this->Id(),
+                                           CheckProperties::Bounds::AllInclusive);
+    check_properties.Check(DENSITY_SOLID);
+    check_properties.Check(DENSITY_WATER);
+    check_properties.Check(BULK_MODULUS_SOLID);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
 
-        if (!rGeom[i].SolutionStepsDataHas(ACCELERATION))
-            KRATOS_ERROR << "missing variable ACCELERATION on node " << rGeom[i].Id() << std::endl;
-
-        if (!rGeom[i].SolutionStepsDataHas(WATER_PRESSURE))
-            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
-
-        if (!rGeom[i].SolutionStepsDataHas(DT_WATER_PRESSURE))
-            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << rGeom[i].Id() << std::endl;
-
-        if (!rGeom[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << rGeom[i].Id() << std::endl;
-
-        if (!rGeom[i].HasDofFor(DISPLACEMENT_X) || !rGeom[i].HasDofFor(DISPLACEMENT_Y) ||
-            (this->GetGeometry().WorkingSpaceDimension() > 2 && !rGeom[i].HasDofFor(DISPLACEMENT_Z)))
-            KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node "
-                         << rGeom[i].Id() << std::endl;
-
-        if (!rGeom[i].HasDofFor(WATER_PRESSURE))
-            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE on node "
-                         << rGeom[i].Id() << std::endl;
-    }
-
-    // Verify properties
-    if (!rProp.Has(DENSITY_SOLID) || rProp[DENSITY_SOLID] < 0.0)
-        KRATOS_ERROR << "DENSITY_SOLID has Key zero, is not defined or has an "
-                        "invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!rProp.Has(DENSITY_WATER) || rProp[DENSITY_WATER] < 0.0)
-        KRATOS_ERROR << "DENSITY_WATER has Key zero, is not defined or has an "
-                        "invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!rProp.Has(BULK_MODULUS_SOLID) || rProp[BULK_MODULUS_SOLID] < 0.0)
-        KRATOS_ERROR
-            << "BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element"
-            << this->Id() << std::endl;
-
-    if (!rProp.Has(POROSITY) || rProp[POROSITY] < 0.0 || rProp[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY has Key zero, is not defined or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (this->GetGeometry().WorkingSpaceDimension() == 2) {
-        // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) {
-            if (rGeom[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << rGeom[i].Id() << std::endl;
-        }
-    }
+    if (this->GetGeometry().WorkingSpaceDimension() == 2)
+        CheckUtilities::CheckForNonZeroZCoordinateIn2D(this->GetGeometry());
 
     return 0;
 
@@ -163,12 +125,14 @@ void UPwBaseElement::GetDofList(DofsVectorType& rElementalDofList, const Process
 GeometryData::IntegrationMethod UPwBaseElement::GetIntegrationMethod() const
 {
     switch (this->GetGeometry().GetGeometryOrderType()) {
-    case GeometryData::Kratos_Cubic_Order:
-        return GeometryData::IntegrationMethod::GI_GAUSS_4;
-    case GeometryData::Kratos_Quartic_Order:
-        return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        using enum GeometryData::KratosGeometryOrderType;
+        using enum GeometryData::IntegrationMethod;
+    case Kratos_Cubic_Order:
+        return GI_GAUSS_4;
+    case Kratos_Quartic_Order:
+        return GI_GAUSS_5;
     default:
-        return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        return GI_GAUSS_2;
     }
 }
 
@@ -439,6 +403,32 @@ Element::DofsVectorType UPwBaseElement::GetDofs() const
 {
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(this->GetGeometry(),
                                                       this->GetGeometry().WorkingSpaceDimension());
+}
+
+void UPwBaseElement::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("StressStatePolicy", mpStressStatePolicy);
+    rSerializer.save("RetentionLawVector", mRetentionLawVector);
+    rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
+    rSerializer.save("StressVector", mStressVector);
+    rSerializer.save("ThisIntegrationMethod", static_cast<int>(mThisIntegrationMethod));
+    rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
+}
+
+void UPwBaseElement::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("StressStatePolicy", mpStressStatePolicy);
+    rSerializer.load("RetentionLawVector", mRetentionLawVector);
+    rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
+    rSerializer.load("StressVector", mStressVector);
+    int integration_method;
+    rSerializer.load("ThisIntegrationMethod", integration_method);
+    mThisIntegrationMethod = static_cast<IntegrationMethod>(integration_method);
+    rSerializer.load("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
 }
 
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }

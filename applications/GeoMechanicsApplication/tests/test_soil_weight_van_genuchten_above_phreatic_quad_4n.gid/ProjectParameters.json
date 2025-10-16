@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           true,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "quasi_static",
         "scheme_type":                        "Backward_Euler",

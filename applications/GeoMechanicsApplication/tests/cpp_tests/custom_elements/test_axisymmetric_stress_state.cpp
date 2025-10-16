@@ -18,9 +18,9 @@
 #include "geometries/geometry.h"
 #include "includes/checks.h"
 #include "includes/stream_serializer.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
@@ -122,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CanBeSavedAndLoadedThroughInte
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{"AxisymmetricStressState"s, AxisymmetricStressState{}};
+        ScopedSerializerRegistration{std::make_pair("AxisymmetricStressState"s, AxisymmetricStressState{})};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<AxisymmetricStressState>()};
     auto serializer = StreamSerializer{};
 

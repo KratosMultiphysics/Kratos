@@ -60,7 +60,7 @@ namespace Kratos
  * @tparam TNormalVariation If we are consider normal variation
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, std::size_t TNumNodesMaster = TNumNodes>
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) MortarExplicitContributionUtilities
 {
 public:
@@ -75,6 +75,9 @@ public:
 
     /// Point definition
     using PointType = Point;
+
+    /// Geometry point type definition
+    using GeometryPointType = Geometry<PointType>;
 
     /// Geometry type definition
     using GeometryType = Geometry<Node>;
@@ -130,8 +133,13 @@ public:
     /// Type definition for the derivatives utilities
     using DerivativesUtilitiesType = DerivativesUtilities<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster>;
 
+    /// Type definition for the integration method
+    using IntegrationMethod = GeometryData::IntegrationMethod;
+
     // The threshold coefficient considered for checking
     static constexpr double CheckThresholdCoefficient = 1.0e-12;
+
+
 
     ///@}
     ///@name Operators
