@@ -320,6 +320,13 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
                 node->SetValue(NORMAL, normal_vector);
                 node->SetValue(LOCAL_TANGENT, tangent_vector);
+
+                // FIXME: compute the curvature
+                CoordinatesArrayType curve_first_derivative_vector = global_space_derivatives[1];
+                CoordinatesArrayType curve_second_derivative_vector = global_space_derivatives[2];
+
+                double curvature = norm_2(MathUtils<double>::CrossProduct(curve_first_derivative_vector, curve_second_derivative_vector)) / pow(norm_2(curve_first_derivative_vector), 3);
+                node->SetValue(CURVATURE, curvature);
         
                 r_skin_layer_sub_model_part.AddNode(node);
                 
@@ -736,6 +743,13 @@ void SnakeSbmProcess::SnakeStepNurbs(
         normal_vector[1] = -tangent_vector[0];
         node->SetValue(NORMAL, normal_vector);
         node->SetValue(LOCAL_TANGENT, tangent_vector);
+
+        // FIXME: compute the curvature
+        CoordinatesArrayType curve_first_derivative_vector = global_space_derivatives[1];
+        CoordinatesArrayType curve_second_derivative_vector = global_space_derivatives[2];
+
+        double curvature = norm_2(MathUtils<double>::CrossProduct(curve_first_derivative_vector, curve_second_derivative_vector)) / pow(norm_2(curve_first_derivative_vector), 3);
+        node->SetValue(CURVATURE, curvature);
 
         //cut sbm modifications
         auto connected_layers = node->GetValue(CONNECTED_LAYERS);

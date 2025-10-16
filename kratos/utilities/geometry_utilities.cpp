@@ -107,6 +107,8 @@ std::string GeometryUtils::GetGeometryName(const GeometryData::KratosGeometryTyp
             return "Brep_Surface";
         case GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface:
             return "Brep_Curve_On_Surface";
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Coupling_Geometry_2d:
+            return "Nurbs_Coupling_Geometry_2d";
         case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry:
             return "Quadrature_Point_Geometry";
         case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:

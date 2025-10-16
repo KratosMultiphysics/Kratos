@@ -925,6 +925,37 @@ void IgaModelerSbm::CreateConditions(
     KRATOS_ERROR_IF(!KratosComponents<Condition>::Has(max_condition_name))
             << max_condition_name << " not registered." << std::endl;
 
+    if (max_condition_name == "SbmContact2DCondition") {
+        ModelPart& analysis_model_part = rModelPart.GetParentModelPart();
+        // KRATOS_WATCH(analysis_model_part)
+        count_list_closest_condition = 0;
+        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+            int condId = rListIdClosestCondition[count_list_closest_condition];
+            Condition::Pointer cond = rSkinModelPart.pGetCondition(condId);
+
+
+            NodePointerVector empty_vector;
+            empty_vector.push_back(cond->GetGeometry()(0)); // Just it_node-plane neighbours
+            (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
+
+            count_list_closest_condition++;
+        }
+        
+        ModelPart& layerModelPart = analysis_model_part.HasSubModelPart(layer_name) ? 
+                        analysis_model_part.GetSubModelPart(layer_name) : 
+                        analysis_model_part.CreateSubModelPart(layer_name);
+
+        // retrieve the id of the brep
+        IndexType id = (*rGeometriesBegin)->GetGeometryParent(0).Id();
+
+        // add the brep to the SubModelPart
+        layerModelPart.AddGeometry(analysis_model_part.pGetGeometry(id));
+
+        return;
+    }
+
+    //--------------------------
+
     const Condition& rReferenceCondition = KratosComponents<Condition>::Get(max_condition_name);
     count_list_closest_condition = 0;
 

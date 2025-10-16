@@ -126,6 +126,9 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
     {
         mpProjectionNode = &r_geometry.GetValue(NEIGHBOUR_NODES)[0];
 
+        //FIXME: debug contact
+        this->SetValue(PROJECTION_NODE_ID, mpProjectionNode->Id());
+
         mTrueNormal = mpProjectionNode->GetValue(NORMAL);
 
         if (loopIdentifier == "inner")

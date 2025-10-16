@@ -28,14 +28,14 @@ namespace Kratos
 /**
  * @class QuadraturePointGeometry
  * @ingroup KratosCore
- * @brief A single quadrature point, that can be used for geometries without
+ * @brief A sinlge quadrature point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single quadrature point.
  *        This point defines a line segment described on a underlying surface.
  *        Shape functions and integration types have to be precomputed and are set from
  *        from outside.
- *        The parent pointer can provide the address to the owner of this quadrature point.
+ *        The parent pointer can provide the adress to the owner of this quadrature point.
  */
 template<class TPointType>
 class QuadraturePointCurveOnSurfaceGeometry
@@ -154,6 +154,14 @@ public:
             rOutput[0] = mLocalTangentsU;
             rOutput[1] = mLocalTangentsV;
             rOutput[2] = 0.0;
+        } else if (rVariable == NORMAL) {
+            array_1d<double, 3> tangent_parameter_space;
+            Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
+            double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
+            
+            rOutput[0] = + tangent_parameter_space[1] / magnitude;
+            rOutput[1] = - tangent_parameter_space[0] / magnitude; 
+            rOutput[2] = 0;
         }
     }
 

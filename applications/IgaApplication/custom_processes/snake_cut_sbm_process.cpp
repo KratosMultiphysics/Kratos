@@ -91,7 +91,6 @@ void SnakeCutSbmProcess::CreateSbmExtendedGeometries(
         KRATOS_ERROR << "This method is only implemented for 2D (DOMAIN_SIZE == 2). "
                     << "Current DOMAIN_SIZE: " << domain_size << std::endl;
     }
-º
     DynamicBins testBins(points.begin(), points.end());
 
     //FIXME: create the test Bins for the interface nodes
