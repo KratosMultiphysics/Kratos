@@ -62,8 +62,10 @@ namespace Kratos
             double flux = 0.0;
             // const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
 
-            block_for_each(mrModelPart.Conditions(), [&](Condition &rCond){
-                GeometryType& r_geometry = rCond.GetGeometry();
+            // block_for_each(mrModelPart.Conditions(), [&](Condition &rCond){
+            for(ModelPart::ConditionsContainerType::iterator i_cond =mrModelPart.ConditionsBegin(); i_cond!= mrModelPart.ConditionsEnd(); ++i_cond)
+            {
+                GeometryType& r_geometry = i_cond->GetGeometry();
                 const size_t dim = r_geometry.WorkingSpaceDimension();
 
                 const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
@@ -99,6 +101,7 @@ namespace Kratos
                     
                     // Unit normal
                     Vector unit_normal = r_geometry.UnitNormal(i_gauss);
+                    // Vector unit_normal = r_geometry.Normal(i_gauss);
                     
                     // Sum the contribution of the flux of each gauss point for each space component
                     // detJ0mean += detJ0[i_gauss];
@@ -111,9 +114,8 @@ namespace Kratos
                         flux += gauss_value_component_j * gauss_point_volume * unit_normal[j];
                         element_flux += gauss_value_component_j * gauss_point_volume * unit_normal[j];
                     }
-                } }
-            );
-
+                }
+            }
             return flux;
         }
 
