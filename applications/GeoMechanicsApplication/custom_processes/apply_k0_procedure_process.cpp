@@ -48,6 +48,12 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, Paramete
 {
 }
 
+ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(const std::vector<std::reference_wrapper<ModelPart>>& model_part,
+                                                 Parameters K0Settings) : mrModelParts{{model_part}}, mSettings(std::move(K0Settings))
+{
+
+}
+
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
     if (UseStandardProcedure())

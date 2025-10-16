@@ -84,6 +84,46 @@ Vector ApplyK0ProcedureOnStubElement(const Properties::Pointer& rProperties, con
     return actual_stress_vector[0];
 }
 
+Vector ApplyK0ProcedureOnStubElementsInMultipleModelParts(const Properties::Pointer& rProperties,
+                                                          const Vector& rInitialStressVector)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("model_part_1");
+    auto  p_element    = make_intrusive<StubElementForK0ProcedureTest>();
+    p_element->SetProperties(rProperties);
+    r_model_part.AddElement(p_element);
+
+    auto& r_model_part_2 = model.CreateModelPart("model_part_2");
+    auto  p_element_2    = make_intrusive<StubElementForK0ProcedureTest>();
+    p_element_2->SetProperties(rProperties);
+    r_model_part_2.AddElement(p_element_2);
+
+    p_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, {rInitialStressVector},
+                                            r_model_part.GetProcessInfo());
+    p_element_2->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, {rInitialStressVector},
+                                              r_model_part_2.GetProcessInfo());
+
+    const auto              k0_settings = Parameters{};
+    ApplyK0ProcedureProcess process{{r_model_part, r_model_part_2}, k0_settings};
+
+    // Act
+    process.ExecuteFinalizeSolutionStep();
+
+    // Assert
+    std::vector<Vector> actual_stress_vector;
+    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stress_vector,
+                                            r_model_part.GetProcessInfo());
+
+    std::vector<Vector> actual_stress_vector_2;
+    p_element_2->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stress_vector_2,
+                                              r_model_part.GetProcessInfo());
+
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_stress_vector[0], actual_stress_vector_2[0],
+                                       Testing::Defaults::relative_tolerance);
+
+    return actual_stress_vector[0];
+}
+
 } // namespace
 
 using namespace Kratos;
@@ -185,6 +225,24 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC, KratosGeoMecha
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    Vector expected_stress_vector{4};
+    expected_stress_vector <<= -5.0, -10.0, -5.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC_MultipleModelParts, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_NC, 0.5);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    Vector initial_stress_vector{4};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElementsInMultipleModelParts(p_properties, initial_stress_vector);
 
     // Assert
     Vector expected_stress_vector{4};
