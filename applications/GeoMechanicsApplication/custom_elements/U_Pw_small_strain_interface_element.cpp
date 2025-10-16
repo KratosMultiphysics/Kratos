@@ -1617,7 +1617,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 
     const Matrix b_matrix = prod(rVariables.RotationMatrix, rVariables.Nu);
 
-    const auto coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix(
+    const auto coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<TDim, TNumNodes>(
         b_matrix, rVariables.VoigtVector, rVariables.Np, rVariables.BiotCoefficient,
         rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
 
