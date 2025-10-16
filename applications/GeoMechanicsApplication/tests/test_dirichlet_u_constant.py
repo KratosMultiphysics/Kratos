@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
@@ -26,7 +27,7 @@ class KratosGeoMechanicsDirichletUConstantTests(KratosUnittest.TestCase):
         run_multiple_stages.run_stages(project_path, n_stages)
 
         output_data = []
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         for i in range(n_stages):
             output_data.append(
                 reader.read_output_from(
@@ -58,25 +59,25 @@ class KratosGeoMechanicsDirichletUConstantTests(KratosUnittest.TestCase):
         ) in expected_results:
             # displacement of top node 3
             total_displacements_3 = (
-                test_helper.GiDOutputFileReader.nodal_values_at_time(
+                GiDOutputFileReader.nodal_values_at_time(
                     "TOTAL_DISPLACEMENT", time, output_data[stage_index], [3])[0]
             )
             self.assertAlmostEqual(expected_total_uy, total_displacements_3[1], 2)
-            displacements_3 = test_helper.GiDOutputFileReader.nodal_values_at_time(
+            displacements_3 = GiDOutputFileReader.nodal_values_at_time(
                 "DISPLACEMENT", time, output_data[stage_index], [3])[0]
             self.assertAlmostEqual(expected_stage_uy, displacements_3[1], 2)
             incremental_displacements_3 = (
-                test_helper.GiDOutputFileReader.nodal_values_at_time(
+                GiDOutputFileReader.nodal_values_at_time(
                     "INCREMENTAL_DISPLACEMENT", time, output_data[stage_index], [3])[0]
             )
             self.assertAlmostEqual(expected_incremental_uy, incremental_displacements_3[1], 2)
 
             # integration point check in element 1, integration point 4 ( uniform stress and strain so an arbitrary choice )
-            green_lagrange_strains_1_4 = test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
+            green_lagrange_strains_1_4 = GiDOutputFileReader.element_integration_point_values_at_time(
                 "GREEN_LAGRANGE_STRAIN_TENSOR", time, output_data[stage_index], [1], [3]
             )[0][0]
             self.assertAlmostEqual(expected_stage_eps_yy, green_lagrange_strains_1_4[1], 2)
-            cauchy_stresses_1_4 = test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
+            cauchy_stresses_1_4 = GiDOutputFileReader.element_integration_point_values_at_time(
                 "CAUCHY_STRESS_TENSOR", time, output_data[stage_index], [1], [3]
             )[0][0]
             self.assertAlmostEqual(expected_stage_sig_yy, cauchy_stresses_1_4[1], 2)
