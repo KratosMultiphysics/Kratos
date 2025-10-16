@@ -43,14 +43,14 @@ void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& 
 namespace Kratos
 {
 
-ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Settings) : mSettings(std::move(K0Settings))
+ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Settings)
+    : mSettings(std::move(K0Settings))
 {
     if (mSettings.Has("model_part_name_list")) {
         for (const auto& r_model_part_name : mSettings["model_part_name_list"].GetStringArray()) {
             mrModelParts.push_back(rModel.GetModelPart(r_model_part_name));
         }
-    }
-    else {
+    } else {
         mrModelParts = {rModel.GetModelPart(mSettings["model_part_name"].GetString())};
     }
 }
@@ -61,9 +61,9 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, Paramete
 }
 
 ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(const std::vector<std::reference_wrapper<ModelPart>>& model_part,
-                                                 Parameters K0Settings) : mrModelParts{{model_part}}, mSettings(std::move(K0Settings))
+                                                 Parameters K0Settings)
+    : mrModelParts{{model_part}}, mSettings(std::move(K0Settings))
 {
-
 }
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()
