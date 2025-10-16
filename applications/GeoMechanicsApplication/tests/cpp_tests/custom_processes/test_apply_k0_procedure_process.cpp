@@ -159,6 +159,18 @@ bool ElementConsidersDiagonalEntriesOnlyAndNoShear(const Element& rElement)
 namespace Kratos::Testing
 {
 
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrowsWhenNoModelPartIsDefined, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    model.CreateModelPart("dummy");
+
+    auto k0_settings = Parameters{};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{model, k0_settings}.Check()),
+                                      "Please specify a 'model_part_name' or "
+                                      "'model_part_name_list' for ApplyK0ProcedureProcess")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUseStandardProcedureFlagIsNotDefined,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
