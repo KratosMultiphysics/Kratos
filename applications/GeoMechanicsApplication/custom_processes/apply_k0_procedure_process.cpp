@@ -50,10 +50,15 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Set
         << "Please specify 'model_part_name' or 'model_part_name_list' for " << Info();
 
     KRATOS_ERROR_IF(mSettings.Has("model_part_name") && mSettings.Has("model_part_name_list"))
-     << "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for " << Info();
+        << "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for "
+        << Info();
 
     if (mSettings.Has("model_part_name_list")) {
-        for (const auto& r_model_part_name : mSettings["model_part_name_list"].GetStringArray()) {
+        const auto model_part_names = mSettings["model_part_name_list"].GetStringArray();
+        KRATOS_ERROR_IF(model_part_names.empty()) << "The parameters 'model_part_name_list' needs "
+                                                     "to contain at least one model part name for "
+                                                  << Info();
+        for (const auto& r_model_part_name : model_part_names) {
             mrModelParts.push_back(rModel.GetModelPart(r_model_part_name));
         }
     } else {
