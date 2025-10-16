@@ -12,7 +12,9 @@
 
 #include "apply_k0_procedure_process.h"
 
+#include <algorithm>
 #include <cmath>
+#include <iterator>
 #include <ostream>
 
 #include "containers/flags.h"
@@ -58,9 +60,9 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Set
         KRATOS_ERROR_IF(model_part_names.empty()) << "The parameters 'model_part_name_list' needs "
                                                      "to contain at least one model part name for "
                                                   << Info();
-        for (const auto& r_model_part_name : model_part_names) {
-            mrModelParts.push_back(rModel.GetModelPart(r_model_part_name));
-        }
+        std::ranges::transform(
+            model_part_names, std::back_inserter(mrModelParts),
+            [&rModel](const auto& rName) -> ModelPart& { return rModel.GetModelPart(rName); });
     } else {
         mrModelParts = {rModel.GetModelPart(mSettings["model_part_name"].GetString())};
     }
