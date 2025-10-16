@@ -187,7 +187,12 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         const double CharacteristicLength,
         Vector& rBackStressVector,
         const Vector& rPreviousStressVector,
-        double NonVariablePlasticDissipation = 0
+        double NonVariablePlasticDissipation = 0,
+        double UniaxialStressThreshold = 0,
+        double UniaxialPlasticStrain = 0,
+        double UniaxialStrainThreshold = 0,
+        Vector PreviousPlasticStrain = ZeroVector(VoigtSize),
+        double PreviouspDot = 0
         )
     {
         // Material properties
@@ -210,7 +215,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
             noalias(rPredictiveStressVector) -= delta_sigma;
-            CalculateBackStress(rPredictiveStressVector, rValues, rPreviousStressVector, rPlasticStrainIncrement, rBackStressVector,NonVariablePlasticDissipation);
+            CalculateBackStress(rPredictiveStressVector, rValues, rPreviousStressVector, rPlasticStrainIncrement, rBackStressVector, rUniaxialStress, NonVariablePlasticDissipation, UniaxialStressThreshold, UniaxialPlasticStrain, UniaxialStrainThreshold, rPlasticStrain, PreviousPlasticStrain, PreviouspDot);
             noalias(kin_hard_stress_vector) = rPredictiveStressVector - rBackStressVector;
             threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
 
@@ -336,15 +341,46 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         const Vector& rPreviousStressVector,
         const Vector& rPlasticStrainIncrement,
         Vector& rBackStressVector,
-        double Kappa_p
+        double rUniaxialStress,
+        double Kappa_p,
+        double S_0,
+        double UniaxialPlasticStrain,
+        double UniaxialStrainThreshold,
+        Vector PlasticStrain,
+        Vector PreviousPlasticStrain,
+        double PreviouspDot
         )
     {
         const Vector& r_kinematic_parameters = rValues.GetMaterialProperties()[KINEMATIC_PLASTICITY_PARAMETERS];
         const unsigned int kinematic_hardening_type = rValues.GetMaterialProperties()[KINEMATIC_HARDENING_TYPE];
-        double alpha_1 = 20.0;  // steepness
-        double beta_1 = 0.7;    // inflection point
-        double kappa_weight = 1.0 / (1.0 + std::exp(alpha_1 * (Kappa_p - beta_1)));
-        KRATOS_WATCH(Kappa_p)
+        // double coefff = rValues.GetMaterialProperties()[VISCOUS_PARAMETER];
+        double AA = rValues.GetMaterialProperties()[VISCOUS_PARAMETER];
+        double eps_ref = rValues.GetMaterialProperties()[INTERFACIAL_NORMAL_STRENGTH];
+        double nn = rValues.GetMaterialProperties()[INTERFACIAL_SHEAR_STRENGTH];
+        double coefff = AA * std::pow(UniaxialPlasticStrain / eps_ref, nn);
+        coefff = std::min(coefff, AA);
+        double alpha_1 = 2;  // steepness
+        // double beta_1 = 0.7;    // inflection point
+        // double kappa_weight = 1.0 / (1.0 + std::exp(alpha_1 * (Kappa_p - beta_1)));
+        // KRATOS_WATCH(Kappa_p)
+        // KRATOS_WATCH(PreviousPlasticStrain)
+        // KRATOS_WATCH(PlasticStrain)
+        // KRATOS_WATCH(PreviouspDot)
+
+        // The latest implementation here
+        double kappa_weight = 1;
+        if (UniaxialStrainThreshold == 0.0) {
+            kappa_weight = 1;
+        } else {
+            kappa_weight = std::exp(alpha_1 * (UniaxialPlasticStrain - UniaxialStrainThreshold) / UniaxialStrainThreshold);
+        }
+        // The latest implementation here
+
+        // double aux_coeff = (S_0 == 0.0) ? 0.0 : (rUniaxialStress / S_0);
+        // KRATOS_WATCH(aux_coeff)
+        // KRATOS_WATCH(UniaxialPlasticStrain)
+        // KRATOS_WATCH(UniaxialStrainThreshold)
+
 
         switch (static_cast<KinematicHardeningType>(kinematic_hardening_type))
         {
@@ -362,9 +398,24 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 }
                 pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
                 denominator = 1.0 + (r_kinematic_parameters[1] * pDot);
+                // denominator = 1.0 + (r_kinematic_parameters[1] * pDot) + (coefff * UniaxialPlasticStrain);
+                // denominator = 1.0 + (r_kinematic_parameters[1] * pDot * kappa_weight);
+                // KRATOS_WATCH(denominator)
 
-                rBackStressVector = kappa_weight * ((rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator);
+                // rBackStressVector = ((rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator) - (coefff * PlasticStrain);
+                // rBackStressVector = ((rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement) - (coefff * PlasticStrain)) / denominator);
+                //
+                // rBackStressVector = rBackStressVector + ((coefff * PreviousPlasticStrain) / (1 + r_kinematic_parameters[1] * PreviouspDot));
+                // rBackStressVector = ((rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement) - (coefff * PlasticStrain)) / denominator);
+                //
 
+                /// Original Formulation 
+                // rBackStressVector = ((rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator);
+                /// Original Formulation 
+
+                rBackStressVector = ((rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator) - coefff * rBackStressVector * pDot;
+                // rBackStressVector = (((rBackStressVector * (1-coefff)) + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator);
+                // KRATOS_WATCH(rBackStressVector)
                 // Kappa_p = (Kappa_p >= 0.98) ? 0.98 : Kappa_p;
                 // rBackStressVector = (1 - std::pow(Kappa_p,30)) * ((rBackStressVector + ((2.0 / 3.0 * r_kinematic_parameters[0]) * rPlasticStrainIncrement)) / denominator);
                 break;

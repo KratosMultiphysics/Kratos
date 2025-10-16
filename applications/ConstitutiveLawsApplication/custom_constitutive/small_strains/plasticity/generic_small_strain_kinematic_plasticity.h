@@ -412,7 +412,13 @@ protected:
     // Converged values
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
+    double mPreviouspDot = 0.0;
+    Vector mPreviousPlasticStrain = ZeroVector(VoigtSize);
     Vector mPlasticStrain = ZeroVector(VoigtSize);
+    double mUniaxialStressThreshold = 0.0;
+    bool mUniaxialStressIndicator = false;
+    double mUniaxialStrainThreshold = 0.0;
+    bool mUniaxialStrainIndicator = false;
 
     // Kinematic variables
     Vector mPreviousStressVector = ZeroVector(VoigtSize);

@@ -136,6 +136,18 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
             Vector plastic_strain      = this->GetPlasticStrain();
             Vector back_stress_vector  = this->GetBackStressVector();
             const Vector previous_stress_vector = this->GetPreviousStressVector();
+            double uniaxial_stress_threshold = mUniaxialStressThreshold;
+            bool uniaxial_stress_indicator = mUniaxialStressIndicator;
+            double uniaxial_strain_threshold = mUniaxialStrainThreshold;
+            bool uniaxial_strain_indicator = mUniaxialStrainIndicator;
+            double dot_product_ps = 0.0;
+            double uniaxial_plastic_strain = 0.0;
+            for (IndexType i = 0; i < plastic_strain.size(); ++i) {
+                dot_product_ps += plastic_strain[i] * plastic_strain[i];
+            }
+            uniaxial_plastic_strain = std::sqrt(2.0 / 3.0 * dot_product_ps); 
+            Vector previous_plastic_strain = mPreviousPlasticStrain;
+            double previousp_dot = mPreviouspDot;  
 
             array_1d<double, VoigtSize> predictive_stress_vector, kin_hard_stress_vector;
             if (r_constitutive_law_options.Is(ConstitutiveLaw::U_P_LAW)) {
@@ -175,7 +187,8 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
                     plastic_dissipation, plastic_strain_increment,
                     r_constitutive_matrix, plastic_strain, rValues,
                     characteristic_length, back_stress_vector,
-                    previous_stress_vector, non_variable_plastic_dissipation);
+                    previous_stress_vector, non_variable_plastic_dissipation, uniaxial_stress_threshold,
+                    uniaxial_plastic_strain, uniaxial_strain_threshold, previous_plastic_strain, previousp_dot);
 
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
@@ -307,6 +320,18 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
     Vector plastic_strain      = this->GetPlasticStrain();
     Vector back_stress_vector  = this->GetBackStressVector();
     const Vector previous_stress_vector = this->GetPreviousStressVector();
+    double uniaxial_stress_threshold = mUniaxialStressThreshold;
+    bool uniaxial_stress_indicator = mUniaxialStressIndicator;
+    double uniaxial_strain_threshold = mUniaxialStrainThreshold;
+    bool uniaxial_strain_indicator = mUniaxialStrainIndicator;
+    double dot_product_ps = 0.0;
+    double uniaxial_plastic_strain = 0.0;
+    for (IndexType i = 0; i < plastic_strain.size(); ++i) {
+        dot_product_ps += plastic_strain[i] * plastic_strain[i];
+    }
+    uniaxial_plastic_strain = std::sqrt(2.0 / 3.0 * dot_product_ps);
+    Vector previous_plastic_strain = mPreviousPlasticStrain;
+    double previousp_dot = mPreviouspDot;
 
     array_1d<double, VoigtSize> predictive_stress_vector, kin_hard_stress_vector;
     if (r_constitutive_law_options.Is(ConstitutiveLaw::U_P_LAW)) {
@@ -344,15 +369,35 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
             plastic_dissipation, plastic_strain_increment,
             r_constitutive_matrix, plastic_strain, rValues,
             characteristic_length, back_stress_vector,
-            previous_stress_vector, non_variable_plastic_dissipation);
+            previous_stress_vector, non_variable_plastic_dissipation, uniaxial_stress_threshold,
+            uniaxial_plastic_strain, uniaxial_strain_threshold, previous_plastic_strain, previousp_dot);
     }
 
     mPlasticDissipation = plastic_dissipation;
     mThreshold = threshold;
+    noalias(mPreviousPlasticStrain) = plastic_strain;
+
+    double dot_product_dp = 0.0;
+    double pDot = 0;
+    for (IndexType i = 0; i < plastic_strain_increment.size(); ++i) {
+        dot_product_dp += plastic_strain_increment[i] * plastic_strain_increment[i];
+    }
+    pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
+    mPreviouspDot = pDot;
 
     noalias(mPlasticStrain) = plastic_strain;
     noalias(mPreviousStressVector) = predictive_stress_vector;
     noalias(mBackStressVector) = back_stress_vector;
+
+    if (plastic_dissipation > 0.1 && uniaxial_strain_indicator == false) {
+        mUniaxialStrainThreshold = uniaxial_plastic_strain;
+        mUniaxialStrainIndicator = true;
+    }
+
+    if (plastic_dissipation > 0.9 && uniaxial_stress_indicator == false) {
+        mUniaxialStressThreshold = uniaxial_stress;
+        mUniaxialStressIndicator = true;
+    }
 }
 
 /***********************************************************************************/
