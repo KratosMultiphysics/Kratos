@@ -42,10 +42,13 @@ public:
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;
 
-    void UpdateSurfaceProperties(double InitialFrictionAngle, double FrictionAngleStrengthFactor,
-        double InitialCohesion, double CohesionStrengthFactor,
-        double InitialDilatancyAngle, double DilatancyAngleStrengthFactor,
-        double kappa);
+    void UpdateSurfaceProperties(double InitialFrictionAngle,
+                                 double FrictionAngleStrengthFactor,
+                                 double InitialCohesion,
+                                 double CohesionStrengthFactor,
+                                 double InitialDilatancyAngle,
+                                 double DilatancyAngleStrengthFactor,
+                                 double kappa);
 
 private:
     friend class Serializer;

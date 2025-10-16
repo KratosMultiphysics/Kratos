@@ -34,18 +34,18 @@ public:
                                  double TensileStrength);
 
     [[nodiscard]] bool   IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
-    [[nodiscard]] Vector DoReturnMapping(const Properties& rProperties,
-                                         const Vector&     rTrialSigmaTau,
+    [[nodiscard]] Vector DoReturnMapping(const Properties&                         rProperties,
+                                         const Vector&                             rTrialSigmaTau,
                                          CoulombYieldSurface::CoulombAveragingType AveragingType);
 
 private:
     CoulombYieldSurface mCoulombYieldSurface;
     TensionCutoff       mTensionCutOff;
-    double mEquivalentPlasticStrain = 0.0;
+    double              mEquivalentPlasticStrain = 0.0;
 
-    double CalculateEquivalentPlasticStrain(const Vector& rSigmaTau,
-        CoulombYieldSurface::CoulombAveragingType AveragingType,
-        double lambda) const;
+    double CalculateEquivalentPlasticStrain(const Vector&                             rSigmaTau,
+                                            CoulombYieldSurface::CoulombAveragingType AveragingType,
+                                            double                                    lambda) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;

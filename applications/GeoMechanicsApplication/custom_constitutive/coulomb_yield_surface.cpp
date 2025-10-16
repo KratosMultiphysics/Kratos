@@ -61,14 +61,19 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAvera
     return result;
 }
 
-void CoulombYieldSurface::UpdateSurfaceProperties(double InitialFrictionAngle, double FrictionAngleStrengthFactor,
-    double InitialCohesion, double CohesionStrengthFactor,
-    double InitialDilatancyAngle, double DilatancyAngleStrengthFactor,
-    double kappa)
+void CoulombYieldSurface::UpdateSurfaceProperties(double InitialFrictionAngle,
+                                                  double FrictionAngleStrengthFactor,
+                                                  double InitialCohesion,
+                                                  double CohesionStrengthFactor,
+                                                  double InitialDilatancyAngle,
+                                                  double DilatancyAngleStrengthFactor,
+                                                  double kappa)
 {
-    mFrictionAngle = this->UpdateFrictionAngle(InitialFrictionAngle, FrictionAngleStrengthFactor, kappa) * 3.14159265358979323846 / 180;
+    mFrictionAngle = this->UpdateFrictionAngle(InitialFrictionAngle, FrictionAngleStrengthFactor, kappa) *
+                     3.14159265358979323846 / 180;
     mCohesion = this->UpdateCohesion(InitialCohesion, CohesionStrengthFactor, kappa);
-    mDilatationAngle = this->UpdateDilatancyAngle(InitialDilatancyAngle, DilatancyAngleStrengthFactor, kappa) * 3.14159265358979323846 / 180;
+    mDilatationAngle = this->UpdateDilatancyAngle(InitialDilatancyAngle, DilatancyAngleStrengthFactor, kappa) *
+                       3.14159265358979323846 / 180;
 }
 
 double CoulombYieldSurface::UpdateFrictionAngle(double InitialFrictionAngle, double StrengthFactor, double kappa) const
