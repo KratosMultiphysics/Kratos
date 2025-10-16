@@ -16,6 +16,7 @@
 #include <ostream>
 
 #include "containers/flags.h"
+#include "containers/model.h"
 #include "custom_constitutive/linear_elastic_law.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_aliases.h"
@@ -42,6 +43,11 @@ void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& 
 
 namespace Kratos
 {
+
+ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Settings) : mSettings(std::move(K0Settings))
+{
+    mrModelParts = {rModel.GetModelPart(mSettings["model_part_name"].GetString())};
+}
 
 ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(ModelPart& model_part, Parameters K0Settings)
     : Process(Flags()), mrModelParts{std::ref(model_part)}, mSettings(std::move(K0Settings))
