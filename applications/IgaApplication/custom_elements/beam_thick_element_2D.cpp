@@ -305,7 +305,6 @@ namespace Kratos
 
         const auto& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
-        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
 
         const SizeType number_of_control_points = GetGeometry().size();
         const SizeType mat_size = number_of_control_points * 3;
@@ -331,7 +330,7 @@ namespace Kratos
 
             rB[index] = r_DN_De(i, 0) * (alpha1 - rActualKinematic.beta * alpha2 - rActualKinematic.beta_deriv * rActualKinematic.a2[1]); 
             rB[index + 1] = r_DN_De(i, 0) * (alpha2 + rActualKinematic.beta * alpha1 + rActualKinematic.beta_deriv * rActualKinematic.a2[0]);  
-            rB[index + 2] = -r_DN_De(i, 0) * (rActualKinematic.a1[0]*rActualKinematic.a1[0] + rActualKinematic.a1[1]*rActualKinematic.a1[1]) / rActualKinematic.dL;
+            rB[index + 2] = -r_DN_De(i, 0) * (rActualKinematic.a1[0]*rActualKinematic.a1[0] + rActualKinematic.a1[1]*rActualKinematic.a1[1]) / rActualKinematic.dL
                           + r_N(IntegrationPointIndex, i) * (-alpha2 + alpha1);
         }
 
