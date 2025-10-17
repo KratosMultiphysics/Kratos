@@ -193,6 +193,10 @@ private:
 
     void CreateLinearSolver();
 
+    // Get scaling factor stabilising numerics, maximum distance between spline support points in either X or Y direction
+    double CalculateScaleFactor(DenseMatrixType& rOriginCoords);
+    
+    // Evaluate the polynomial required for the radial basis function interpolation
     std::vector<double> EvaluatePolynomialBasis(const array_1d<double, 3>& coords, unsigned int degree) const;
 
     Parameters GetMapperDefaultSettings() const override

@@ -79,7 +79,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
 
     // Calculate number of polynomial terms
     const unsigned int poly_degree = mLocalMapperSettings["additional_polynomial_degree"].GetInt();
-    const IndexType n_polynomial = (poly_degree + 3) * (poly_degree + 2) * (poly_degree + 1) / 6;
+    IndexType n_polynomial = 0;
 
     // Determine whether the origin and destination domain are IGA discretizations or not
     const bool is_origin_iga = mLocalMapperSettings["is_origin_iga"].GetBool();
@@ -87,6 +87,12 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
 
     // Determine whether we project or not the origin nodes coordinates to the plane of the panel mesh 
     const bool project_origin_nodes_to_destination_domain_panel_solver = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["project_origin_nodes_to_destination_domain_panel_solver"].GetBool();
+    // This projection basically means that the splining is constructed in the panel's plane (x-y plane if the wing has no dihedral)
+    if (!project_origin_nodes_to_destination_domain_panel_solver){
+        n_polynomial = (poly_degree + 3) * (poly_degree + 2) * (poly_degree + 1) / 6;
+    } else{
+         n_polynomial = (poly_degree + 2) * (poly_degree + 1) / 2;
+    }
 
     // Determine whether we map structural displacements to panels angle of attack or not
     const bool map_structural_displacements_to_panels_angles_of_attack = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["map_structural_displacements_to_panels_angles_of_attack"].GetBool();
@@ -150,9 +156,6 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
         }
     } 
 
-    KRATOS_WATCH(origin_coords)
-    exit(0);
-
     if (is_destination_iga == 1) n_destination = destination_integration_points.size();
     DenseMatrixType destination_coords(n_destination, 3);
     if(is_destination_iga == 1){
@@ -187,6 +190,8 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     } else if (rbf_type == "wendland_c2") {
         h = RBFShapeFunctionsUtility::CalculateWendlandC2SupportRadius(origin_coords, 2.5);
     }
+
+    double rbf_scale_factor = CalculateScaleFactor(origin_coords);
 
     // Build interpolation matrix
     SparseMatrixType origin_interpolation_matrix(origin_interpolation_matrix_size, origin_interpolation_matrix_size);
@@ -312,6 +317,40 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
         Parameters default_settings = this->GetMapperDefaultSettings();
         mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(default_settings["linear_solver_settings"]);
     }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+double RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateScaleFactor(DenseMatrixType& rOriginCoords)
+{
+    // rOriginCoords is (n_points x 3), columns: 0=x, 1=y, 2=z (ignored)
+    const IndexType n_origin = rOriginCoords.size1(); // number of points
+    if (n_origin == 0) {
+        // handle error or return 0
+        return 0.0;
+    }
+
+    // Initialize min/max with the first point
+    double minx = rOriginCoords(0, 0);
+    double maxx = minx;
+    double miny = rOriginCoords(0, 1);
+    double maxy = miny;
+
+    for (IndexType i = 0; i < n_origin; ++i) {
+        double x = rOriginCoords(i, 0);
+        double y = rOriginCoords(i, 1);
+
+        if (x > maxx) maxx = x;
+        if (x < minx) minx = x;
+        if (y > maxy) maxy = y;
+        if (y < miny) miny = y;
+    }
+
+    // Compute ranges
+    double rangeX = maxx - minx;
+    double rangeY = maxy - miny;
+
+    // Return the larger of the two ranges
+    return (rangeX >= rangeY) ? rangeX : rangeY;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
