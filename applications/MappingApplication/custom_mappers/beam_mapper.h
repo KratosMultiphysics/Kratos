@@ -26,9 +26,6 @@
 
 #include "custom_utilities/projection_utilities.h"
 #include "utilities/geometrical_projection_utilities.h"
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    #include "mpi_extension/custom_searching/interface_communicator_mpi.h"
-#endif
 
 namespace Kratos
 {
@@ -502,15 +499,9 @@ private:
     ///@{
     void InitializeInterfaceCommunicator()
     {
-        #ifdef KRATOS_USING_MPI
-            mpInterfaceCommunicator = Kratos::make_unique<InterfaceCommunicatorMPI>(
-                mrModelPartOrigin, mMapperLocalSystems, mMapperSettings
-            );
-        #else
-            mpInterfaceCommunicator = Kratos::make_unique<InterfaceCommunicator>(
-                mrModelPartOrigin, mMapperLocalSystems, mMapperSettings["search_settings"]
-            );
-        #endif
+        mpInterfaceCommunicator = Kratos::make_unique<InterfaceCommunicator>(
+            mrModelPartOrigin, mMapperLocalSystems, mMapperSettings["search_settings"]
+        );
     }
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags()){
