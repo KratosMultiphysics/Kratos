@@ -310,7 +310,7 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnly
 {
     auto rank_lambda = [this](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<int>> {
         std::vector<std::vector<int>> results;
-        rResultsVector.GetResultRank(results, mrDataCommunicator);
+        rResultsVector.GetResultRank(results);
         return results;
     };
     KeepOnlyGivenLambdaResult(rResults, rank_lambda);

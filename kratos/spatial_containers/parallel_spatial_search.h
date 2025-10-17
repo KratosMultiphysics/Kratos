@@ -680,7 +680,7 @@ private:
 
             // The ranks
             std::vector<std::vector<int>> all_ranks;
-            rResults.GetResultRank(all_ranks, mrDataCommunicator);
+            rResults.GetResultRank(all_ranks);
 
             // Retrieve the solution
             auto& r_results_vector = rResults.GetContainer();

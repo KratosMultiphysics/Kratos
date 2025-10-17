@@ -289,21 +289,16 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
         rResults.resize(number_of_global_solutions);
     }
 
-    // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> int {
-        return rGP->Get().GetRank();
-    });
-
     // Get the is local
+    const int rank = rDataCommunicator.Rank();
     for(std::size_t i = 0; i < number_of_global_solutions; ++i) {
         auto& r_global_results = mPointResults[i]->GetGlobalResults();
-        const int rank = rDataCommunicator.Rank();
         const std::size_t number_of_gp = r_global_results.size();
         auto& r_is_local = rResults[i];
         r_is_local.resize(number_of_gp);
         for(std::size_t j = 0; j < number_of_gp; ++j) {
             auto& r_gp = r_global_results(j);
-            const int retrieved_rank = rDataCommunicator.MaxAll(proxy.Get(r_gp));
+            const int retrieved_rank = r_gp.GetRank();
             r_is_local[j] = (rank == retrieved_rank);
         }
     }
@@ -313,21 +308,13 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
 /***********************************************************************************/
 
 template <class TObjectType, SpatialSearchCommunication TSpatialSearchCommunication>
-void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GetResultRank(
-    std::vector<std::vector<int>>& rResults,
-    const DataCommunicator& rDataCommunicator
-    )
+void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication>::GetResultRank(std::vector<std::vector<int>>& rResults)
 {
     // Define the coordinates vector
     const std::size_t number_of_global_solutions = mPointResults.size();
     if (rResults.size() != number_of_global_solutions) {
         rResults.resize(number_of_global_solutions);
     }
-
-    // Call Apply to get the proxy
-    auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> int {
-        return rGP->Get().GetRank();
-    });
 
     // Get the ranks
     for(std::size_t i = 0; i < number_of_global_solutions; ++i) {
@@ -337,7 +324,7 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
         r_ranks.resize(number_of_gp);
         for(std::size_t j = 0; j < number_of_gp; ++j) {
             auto& r_gp = r_global_results(j);
-            r_ranks[j] = rDataCommunicator.MaxAll(proxy.Get(r_gp));
+            r_ranks[j] = r_gp.GetRank();
         }
     }
 }

@@ -180,12 +180,9 @@ void BindSpatialSearchResultContainerVector(pybind11::module& m, const std::stri
         self.GetResultIsLocal(results, rDataCommunicator);
         return results;
     })
-    .def("GetResultRank", [](
-        ContainerVectorType& self,
-        const DataCommunicator& rDataCommunicator
-        ) {
+    .def("GetResultRank", [](ContainerVectorType& self) {
         std::vector<std::vector<int>> results;
-        self.GetResultRank(results, rDataCommunicator);
+        self.GetResultRank(results);
         return results;
     })
     .def("GetResultIsActive", [](

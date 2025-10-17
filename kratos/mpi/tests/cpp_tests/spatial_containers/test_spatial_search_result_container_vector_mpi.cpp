@@ -421,7 +421,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorGetRe
 
     // GetResultRank
     std::vector<std::vector<int>> result_rank;
-    container_vector.GetResultRank(result_rank, r_data_comm);
+    container_vector.GetResultRank(result_rank);
     KRATOS_EXPECT_EQ(container_vector.NumberOfSearchResults(), result_rank.size());
     for (int i = 0; i < static_cast<int>(result_rank.size()); ++i) {
         auto& r_partial_result_rank = result_rank[i];

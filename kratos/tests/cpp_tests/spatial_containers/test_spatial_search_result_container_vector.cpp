@@ -486,7 +486,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorGetResultRank, Krato
 
     // GetResultRank
     std::vector<std::vector<int>> rank;
-    container_vector.GetResultRank(rank, data_communicator);
+    container_vector.GetResultRank(rank);
     KRATOS_EXPECT_EQ(rank.size(), 2);
     KRATOS_EXPECT_EQ(rank[0].size(), 2);
     KRATOS_EXPECT_EQ(rank[0][0], 0);

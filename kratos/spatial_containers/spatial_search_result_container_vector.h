@@ -421,12 +421,8 @@ public:
     /**
      * @brief Retrieves the rank of the entity.
      * @param rResults The vector containing all the ranks of the entity.
-     * @param rDataCommunicator The data communicator.
      */
-    void GetResultRank(
-        std::vector<std::vector<int>>& rResults,
-        const DataCommunicator& rDataCommunicator
-        );
+    void GetResultRank(std::vector<std::vector<int>>& rResults);
 
     /**
      * @brief Retrieves if is active the entity.
