@@ -53,7 +53,7 @@ void BeamMapperInterfaceInfo::ProcessSearchResultForApproximation(const Interfac
         node.Z() = node.Z0();
     }
 
-    double projection_distance = GeometricalProjectionUtilities::FastProjectOnLine(*(p_geom), point_to_proj, projection_point);
+    (void)GeometricalProjectionUtilities::FastProjectOnLine(*(p_geom), point_to_proj, projection_point);
     
     Point min_distance_to_nodes;
     double distance_to_node1, distance_to_node2;
@@ -77,7 +77,7 @@ void BeamMapperInterfaceInfo::ProcessSearchResultForApproximation(const Interfac
             local_coords[0] = 1.0;
 
         bool ComputeApproximation = 0;
-        ProjectionUtilities::PairingIndex pairing_index = ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation); // Kust to get eq_ids
+        (void)ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation); // Kust to get eq_ids
 
         p_geom->ShapeFunctionsValues(linear_shape_function_values, local_coords);
         ProjectionUtilities::HermitianShapeFunctionsValues(hermitian_shape_function_values, hermitian_shape_function_derivatives_values, local_coords);
@@ -142,7 +142,7 @@ void BeamMapperInterfaceInfo::SaveSearchResult(const InterfaceObject& rInterface
     // Linear shape functions
     pairing_index_linear = ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation);
     // Hermitian shape functions
-    pairing_index_hermitian = ProjectionUtilities::ProjectOnLineHermitian(*p_geom, point_to_proj, mLocalCoordTol, hermitian_shape_function_values, hermitian_shape_function_derivatives_values, proj_dist, projection_point);
+    (void)ProjectionUtilities::ProjectOnLineHermitian(*p_geom, point_to_proj, mLocalCoordTol, hermitian_shape_function_values, hermitian_shape_function_derivatives_values, proj_dist, projection_point);
     const bool is_full_projection = (pairing_index_linear == ProjectionUtilities::PairingIndex::Line_Inside);
     
     if (is_full_projection) {
