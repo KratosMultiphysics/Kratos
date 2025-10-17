@@ -183,20 +183,20 @@ void CSDSG3ThickShellElement3D3N::CalculateRotationMatrixLocalToGlobal(
 
     if (this->Has(LOCAL_AXIS_1)) {
         noalias(v1) = this->GetValue(LOCAL_AXIS_1); // We assume that the user has set a unit vector
-        noalias(v2) = r_geometry[2] - r_geometry[0];
+        noalias(v2) = r_geometry[2].GetInitialPosition() - r_geometry[0].GetInitialPosition();
         v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
         const double norm_v2 = norm_2(v2);
         if (norm_v2 <= 1.0e-8) { // colineal
-            noalias(v2) = r_geometry[1] - r_geometry[0];
+            noalias(v2) = r_geometry[1].GetInitialPosition() - r_geometry[0].GetInitialPosition();
             v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
         }
         v2 /= norm_2(v2);
     } else {
-        noalias(v1) = r_geometry[1] - r_geometry[0];
+        noalias(v1) = r_geometry[1].GetInitialPosition() - r_geometry[0].GetInitialPosition();
         const double norm_v1 = norm_2(v1);
         KRATOS_DEBUG_ERROR_IF_NOT(norm_v1 > 0.0) << "Zero length local axis 1 for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
         v1 /= norm_v1;
-        noalias(v2) = r_geometry[2] - r_geometry[0];
+        noalias(v2) = r_geometry[2].GetInitialPosition() - r_geometry[0].GetInitialPosition();
         v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
         const double norm_v2 = norm_2(v2);
         KRATOS_DEBUG_ERROR_IF_NOT(norm_v2 > 0.0) << "Zero length local axis 2 for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
@@ -598,9 +598,9 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
     const array_3 center = r_geometry.Center();
-    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].Coordinates() - center);
-    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].Coordinates() - center);
-    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].Coordinates() - center);
+    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition() - center);
+    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition() - center);
+    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition() - center);
     const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
     VectorType nodal_values(system_size);
@@ -676,9 +676,9 @@ void CSDSG3ThickShellElement3D3N::CalculateLeftHandSide(
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
     const array_3 center = r_geometry.Center();
-    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].Coordinates() - center);
-    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].Coordinates() - center);
-    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].Coordinates() - center);
+    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition() - center);
+    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition() - center);
+    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition() - center);
     const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
     VectorType nodal_values(system_size);
@@ -752,9 +752,9 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
     const array_3 center = r_geometry.Center();
-    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].Coordinates() - center);
-    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].Coordinates() - center);
-    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].Coordinates() - center);
+    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition() - center);
+    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition() - center);
+    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition() - center);
     const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
     VectorType nodal_values(system_size);
