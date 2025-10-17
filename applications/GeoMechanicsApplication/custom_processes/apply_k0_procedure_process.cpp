@@ -49,7 +49,8 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Set
     : mSettings(std::move(K0Settings))
 {
     KRATOS_ERROR_IF_NOT(mSettings.Has("model_part_name") || mSettings.Has("model_part_name_list"))
-        << "Please specify 'model_part_name' or 'model_part_name_list' for " << ApplyK0ProcedureProcess::Info();
+        << "Please specify 'model_part_name' or 'model_part_name_list' for "
+        << ApplyK0ProcedureProcess::Info();
 
     KRATOS_ERROR_IF(mSettings.Has("model_part_name") && mSettings.Has("model_part_name_list"))
         << "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for "
