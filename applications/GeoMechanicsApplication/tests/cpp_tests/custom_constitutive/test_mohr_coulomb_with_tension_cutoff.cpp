@@ -622,4 +622,35 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZoneWithHardening,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+
+    properties.SetValue(GEO_FRICTION_ANGLE_STRENGTH_FACTOR, 0.0);
+    properties.SetValue(GEO_COHESION_STRENGTH_FACTOR, 0.1);
+    properties.SetValue(GEO_DILATANCY_ANGLE_STRENGTH_FACTOR, 0.0);
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(properties);
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    // Act and Assert
+    Vector cauchy_stress_vector(4);
+    cauchy_stress_vector <<= 10.0, 0.0, -50.0, 0.0;
+    Vector expected_cauchy_stress_vector(4);
+    expected_cauchy_stress_vector <<= 10, 0.0, -50.0, 0.0;
+    constexpr double tolerance = 1.0e-6;
+    KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
+                              expected_cauchy_stress_vector, tolerance);
+}
+
 } // namespace Kratos::Testing
