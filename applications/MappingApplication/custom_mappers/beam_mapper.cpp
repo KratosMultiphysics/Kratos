@@ -22,7 +22,7 @@
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "mapping_application_variables.h"
-#include <math.h>
+#include <cmath>
 
 namespace Kratos {
 
