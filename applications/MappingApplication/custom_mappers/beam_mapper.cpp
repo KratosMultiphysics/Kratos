@@ -127,7 +127,6 @@ void BeamMapperInterfaceInfo::SaveSearchResult(const InterfaceObject& rInterface
     std::vector<int> eq_ids;
 
     ProjectionUtilities::PairingIndex pairing_index_linear;
-    ProjectionUtilities::PairingIndex pairing_index_hermitian;
 
     for (auto& node : p_geom->Points()) {
         node.X() = node.X0();
