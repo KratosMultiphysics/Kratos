@@ -55,24 +55,24 @@ public:
     /// Pointer definition of RadialBasisFunctionMapper
     KRATOS_CLASS_POINTER_DEFINITION(RadialBasisFunctionMapper);
 
-    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, MapperBackend<TSparseSpace, TDenseSpace>> BaseType;
+    using BaseType = InterpolativeMapperBase<TSparseSpace, TDenseSpace, MapperBackend<TSparseSpace, TDenseSpace>>;
 
-    typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
-    typedef Kratos::unique_ptr<TMappingMatrixType> MappingMatrixUniquePointerType;
+    using MapperUniquePointerType = typename BaseType::MapperUniquePointerType;
+    using TMappingMatrixType = typename BaseType::TMappingMatrixType;
+    using MappingMatrixUniquePointerType = Kratos::unique_ptr<TMappingMatrixType>;
 
-    typedef LinearSolver<TSparseSpace, TDenseSpace> LinearSolverType;
-    typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
-    
-    typedef typename TSparseSpace::MatrixType SparseMatrixType;
-    typedef typename TDenseSpace::MatrixType DenseMatrixType;
+    using LinearSolverType = LinearSolver<TSparseSpace, TDenseSpace>;
+    using LinearSolverSharedPointerType = Kratos::shared_ptr<LinearSolverType>;
 
-    typedef typename MapperDefinitions::SparseSpaceType MappingSparseSpaceType;
-    typedef typename MapperDefinitions::DenseSpaceType  DenseSpaceType;
+    using SparseMatrixType = typename TSparseSpace::MatrixType;
+    using DenseMatrixType = typename TDenseSpace::MatrixType;
 
-    typedef MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType> MappingMatrixUtilitiesType;
+    using MappingSparseSpaceType = typename MapperDefinitions::SparseSpaceType;
+    using DenseSpaceType = typename MapperDefinitions::DenseSpaceType;
 
-    typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
+    using MappingMatrixUtilitiesType = MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType>;
+
+    using MapperInterfaceInfoUniquePointerType = typename BaseType::MapperInterfaceInfoUniquePointerType;
 
     
     ///@}
@@ -197,10 +197,10 @@ private:
     double CalculateScaleFactor(DenseMatrixType& rOriginCoords);
     
     // Evaluate the polynomial required for the radial basis function interpolation
-    std::vector<double> EvaluatePolynomialBasis(const array_1d<double, 3>& rCoords, unsigned int degree) const;
+    std::vector<double> EvaluatePolynomialBasis(const array_1d<double, 3>& rCoords, unsigned int degree, bool ProjectToPanelsPlane) const;
 
-    DenseMatrixType CreateAndInvertRBFMatrix(const DenseMatrixType& rOriginCoords, bool& rProjectToAerodynamicPanels, IndexType& rNumberOfPolyTerms,
-        std::string& rRBFType, double& rEps = 1.0 );
+    void CreateAndInvertRBFMatrix(DenseMatrixType& rInvCMatrix, const DenseMatrixType& rOriginCoords, bool ProjectToAerodynamicPanels,
+        IndexType Poly_Degree, const std::string& RBFType, double ScaleFactor = 1.0, double eps = 1.0);
 
     Parameters GetMapperDefaultSettings() const override
     {
