@@ -13,6 +13,7 @@
 //                   Marjan Fathian
 //
 #include "apply_excavation_process.h"
+#include "containers/model.h"
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
@@ -22,26 +23,51 @@
 namespace Kratos
 {
 
-ApplyExcavationProcess::ApplyExcavationProcess(ModelPart& rModelPart, const Parameters& rProcessSettings)
-    : Process(Flags()),
-      mrModelPart{rModelPart},
-      mDeactivateSoilPart{rProcessSettings["deactivate_soil_part"].GetBool()}
+ApplyExcavationProcess::ApplyExcavationProcess(Model& rModel, const Parameters& rProcessSettings)
+    : mDeactivateSoilPart{rProcessSettings["deactivate_soil_part"].GetBool()}
 {
+    KRATOS_ERROR_IF_NOT(rProcessSettings.Has("model_part_name") ||
+                        rProcessSettings.Has("model_part_name_list"))
+        << "Please specify 'model_part_name' or 'model_part_name_list' for "
+        << ApplyExcavationProcess::Info();
+
+    KRATOS_ERROR_IF(rProcessSettings.Has("model_part_name") &&
+                    rProcessSettings.Has("model_part_name_list"))
+        << "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for "
+        << ApplyExcavationProcess::Info();
+
+    const auto model_part_names = rProcessSettings.Has("model_part_name_list")
+                                      ? rProcessSettings["model_part_name_list"].GetStringArray()
+                                      : std::vector{rProcessSettings["model_part_name"].GetString()};
+    KRATOS_ERROR_IF(model_part_names.empty()) << "The parameters 'model_part_name_list' needs "
+                                                 "to contain at least one model part name for "
+                                              << ApplyExcavationProcess::Info();
+    std::ranges::transform(
+        model_part_names, std::back_inserter(mrModelParts),
+        [&rModel](const auto& rName) -> ModelPart& { return rModel.GetModelPart(rName); });
 }
 
 void ApplyExcavationProcess::ExecuteInitialize()
 {
     KRATOS_TRY
-    VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, mrModelPart.Elements());
-
-    if (mDeactivateSoilPart) {
-        block_for_each(mrModelPart.Elements(),
-                       [](Element& rElement) { rElement.ResetConstitutiveLaw(); });
-    } else {
-        VariableUtils{}.SetFlag(ACTIVE, true, mrModelPart.Nodes());
+    for (const auto& r_model_part : mrModelParts) {
+        VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, r_model_part.get().Elements());
     }
 
-    VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, mrModelPart.Conditions());
+    if (mDeactivateSoilPart) {
+        for (const auto& r_model_part : mrModelParts) {
+            block_for_each(r_model_part.get().Elements(),
+                           [](Element& rElement) { rElement.ResetConstitutiveLaw(); });
+        }
+    } else {
+        for (const auto& r_model_part : mrModelParts) {
+            VariableUtils{}.SetFlag(ACTIVE, true, r_model_part.get().Nodes());
+        }
+    }
+
+    for (const auto& r_model_part : mrModelParts) {
+        VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, r_model_part.get().Conditions());
+    }
     KRATOS_CATCH("")
 }
 
