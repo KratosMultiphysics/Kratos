@@ -71,7 +71,7 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Set
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
     if (UseStandardProcedure())
-        for (auto& rModelPart : mrModelParts) {
+        for (const auto& rModelPart : mrModelParts) {
             SetConsiderDiagonalEntriesOnlyAndNoShear(rModelPart.get().Elements(), true);
         }
 }
@@ -79,20 +79,20 @@ void ApplyK0ProcedureProcess::ExecuteInitialize()
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
     if (UseStandardProcedure())
-        for (auto& rModelPart : mrModelParts) {
+        for (const auto& rModelPart : mrModelParts) {
             SetConsiderDiagonalEntriesOnlyAndNoShear(rModelPart.get().Elements(), false);
         }
 }
 
 int ApplyK0ProcedureProcess::Check()
 {
-    for (auto& rModelPart : mrModelParts) {
+    for (const auto& rModelPart : mrModelParts) {
         KRATOS_ERROR_IF(rModelPart.get().Elements().empty())
             << "ApplyK0ProcedureProces has no elements in modelpart " << rModelPart.get().Name()
             << std::endl;
     }
 
-    for (auto& rModelPart : mrModelParts) {
+    for (const auto& rModelPart : mrModelParts) {
         block_for_each(rModelPart.get().Elements(), [](Element& rElement) {
             const auto& r_properties = rElement.GetProperties();
             CheckK0MainDirection(r_properties, rElement.Id());
@@ -206,7 +206,7 @@ void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
     KRATOS_TRY
 
     // K0 procedure for the model part:
-    for (auto& rModelPart : mrModelParts) {
+    for (const auto& rModelPart : mrModelParts) {
         block_for_each(rModelPart.get().Elements(), [&rModelPart, this](Element& rElement) {
             CalculateK0Stresses(rElement, rModelPart.get().GetProcessInfo());
         });
