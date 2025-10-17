@@ -53,7 +53,7 @@ void BeamMapperInterfaceInfo::ProcessSearchResultForApproximation(const Interfac
         node.Z() = node.Z0();
     }
 
-    std::abs(GeometricalProjectionUtilities::FastProjectOnLine(*(p_geom), point_to_proj, projection_point));
+    double projection_distance = GeometricalProjectionUtilities::FastProjectOnLine(*(p_geom), point_to_proj, projection_point);
     
     Point min_distance_to_nodes;
     double distance_to_node1, distance_to_node2;
@@ -77,7 +77,7 @@ void BeamMapperInterfaceInfo::ProcessSearchResultForApproximation(const Interfac
             local_coords[0] = 1.0;
 
         bool ComputeApproximation = 0;
-        ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation); // Kust to get eq_ids
+        ProjectionUtilities::PairingIndex pairing_index = ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation); // Kust to get eq_ids
 
         p_geom->ShapeFunctionsValues(linear_shape_function_values, local_coords);
         ProjectionUtilities::HermitianShapeFunctionsValues(hermitian_shape_function_values, hermitian_shape_function_derivatives_values, local_coords);
@@ -126,7 +126,8 @@ void BeamMapperInterfaceInfo::SaveSearchResult(const InterfaceObject& rInterface
     Vector hermitian_shape_function_derivatives_values;
     std::vector<int> eq_ids;
 
-    ProjectionUtilities::PairingIndex pairing_index;
+    ProjectionUtilities::PairingIndex pairing_index_linear;
+    ProjectionUtilities::PairingIndex pairing_index_hermitian;
 
     for (auto& node : p_geom->Points()) {
         node.X() = node.X0();
@@ -139,10 +140,10 @@ void BeamMapperInterfaceInfo::SaveSearchResult(const InterfaceObject& rInterface
 
     // Calculating and storing the shape function values
     // Linear shape functions
-    pairing_index = ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation);
+    pairing_index_linear = ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation);
     // Hermitian shape functions
-    ProjectionUtilities::ProjectOnLineHermitian(*p_geom, point_to_proj, mLocalCoordTol, hermitian_shape_function_values, hermitian_shape_function_derivatives_values, proj_dist, projection_point);
-    const bool is_full_projection = (pairing_index == ProjectionUtilities::PairingIndex::Line_Inside);
+    pairing_index_hermitian = ProjectionUtilities::ProjectOnLineHermitian(*p_geom, point_to_proj, mLocalCoordTol, hermitian_shape_function_values, hermitian_shape_function_derivatives_values, proj_dist, projection_point);
+    const bool is_full_projection = (pairing_index_linear == ProjectionUtilities::PairingIndex::Line_Inside);
     
     if (is_full_projection) {
         SetLocalSearchWasSuccessful();
@@ -159,8 +160,8 @@ void BeamMapperInterfaceInfo::SaveSearchResult(const InterfaceObject& rInterface
     const IndexType num_values_hermitian_der = hermitian_shape_function_derivatives_values.size();
 
 
-    if (pairing_index > mPairingIndex || (pairing_index == mPairingIndex && proj_dist < mClosestProjectionDistance)) {
-        mPairingIndex = pairing_index;
+    if (pairing_index_linear > mPairingIndex || (pairing_index_linear == mPairingIndex && proj_dist < mClosestProjectionDistance)) {
+        mPairingIndex = pairing_index_linear;
         mClosestProjectionDistance = proj_dist;
         mNodeIds = eq_ids;
 
