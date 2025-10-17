@@ -4,29 +4,24 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-
-
-#if !defined(KRATOS_SKYLINE_LU_FACTORIZATION_SOLVER_H_INCLUDED )
-#define  KRATOS_SKYLINE_LU_FACTORIZATION_SOLVER_H_INCLUDED
-
-
-
-// External includes
+#pragma once
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
 #include "includes/kratos_parameters.h"
 
-namespace Kratos
-{
-template< class TSparseSpaceType, class TDenseSpaceType > class LUSkylineFactorization
+namespace Kratos {
+
+
+template< class TSparseSpaceType, class TDenseSpaceType >
+class LUSkylineFactorization
 {
 public:
 
@@ -269,30 +264,6 @@ public:
                 }
             }
         }
-//                 for (i=0; i<size; i++)
-//                 {
-//                     for (CSRMatrix<double>::RowIteratorType row_iterator =A[i].begin() ;
-//                         row_iterator != A[i].end() ; ++row_iterator)
-//                     { // Changed by Pooyan!!!
-//                         j= row_iterator->first; // Changed by Pooyan!!!
-//                         entry = row_iterator->second; // Changed by Pooyan!!!
-//                         newi= invperm[i];
-//                         newj= invperm[j];
-//                         if (entry!=0)
-//                         {
-//                             if (newi>newj)
-//                             {
-//                                 // row newi needs length at least newi-newj
-//                                 if (rowIndex[newi] < newi-newj)  rowIndex[newi]= newi-newj;
-//                             }
-//                             else if (newi<newj)
-//                             {
-//                                 // column newj needs height at least newj-newi
-//                                 if (rowIndex[newj] < newj-newi)  rowIndex[newj]= newj-newi;
-//                             }
-//                         }
-//                     }
-//                 }
 
         // Transform rowIndex so that it doesn't contain the required lengths
         // and heights, but the indexes to the entries
@@ -355,33 +326,6 @@ public:
             }
         }
 
-//                 for (i=0; i<size; i++)
-//                 {
-//                     for (CSRMatrix<double>::RowIteratorType row_iterator =A[i].begin() ;
-//                     row_iterator != A[i].end() ; ++row_iterator)
-//                     { // Changed by Pooyan!!!
-//                         j= row_iterator->first; // Changed by Pooyan!!!
-//                         entry = row_iterator->second; // Changed by Pooyan!!!
-//                         newi= invperm[i];
-//                         newj= invperm[j];
-//                         if (entry != 0.00)
-//                         {
-//                             if (newi<newj)
-//                             {
-//                                 entriesU[ rowIndex[newj+1] + newi - newj ]= entry;
-//                             }
-//                             else if (newi==newj)
-//                             {
-//                                 entriesD[newi]= entry;
-//                             }
-//                             else
-//                             {
-//                                 entriesL[ rowIndex[newi+1] + newj - newi ]= entry;
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
         delete[] invperm;
 
     }//copyFromCSRMatrix
@@ -488,10 +432,6 @@ public:
         }
     }
 
-
-    //***************************************************************************************************
-    //*
-    //***************************************************************************************************
     /* bugfix janosch void backForwardSolve(int vector_size, Vector<double>& b, Vector<double>& x) // n, b, x*/
     void backForwardSolve(int vector_size, const VectorType& b, VectorType& x) // n, b, x
     {
@@ -500,10 +440,9 @@ public:
         // x = invperm[y];
         int i, j, indexL, indexU;
         double sum, *y;
-        if (this->size != vector_size)
-        {
-            throw std::runtime_error("matrix and vector have different sizes at LUSkylineFactorization::backForwardSolve");
-        }
+        KRATOS_ERROR_IF_NOT(this->size == vector_size)
+            << "Inconsistent input vector size. Expecting input vectors of size " << this->size << " "
+            << "but got " << vector_size << ".";
 
         y= new double[size];
         for (i=0; i<size; i++)
@@ -531,13 +470,6 @@ public:
         delete[] y;
     };
 
-
-
-
-
-
-    //**************************************************************************
-    //**************************************************************************
     LUSkylineFactorization()
     {
         size=0;
@@ -545,13 +477,11 @@ public:
         entriesL= entriesD= entriesU= NULL;
     };
 
-    //**************************************************************************
-    //**************************************************************************
     ~LUSkylineFactorization()
     {
         clear();
     };
-};//class LUSkylineFactorization
+}; //class LUSkylineFactorization
 
 
 
@@ -573,88 +503,91 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    /// Default constructor.
     SkylineLUFactorizationSolver() {}
+
     SkylineLUFactorizationSolver(Parameters settings): BaseType(settings) {}
-    
-    /// Destructor.
+
     ~SkylineLUFactorizationSolver() override {}
 
-
-    /** Normal solve method.
-    Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
-    @param rA. System matrix
-    @param rX. Solution vector.
-    @param rB. Right hand side vector.
-    */
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    /// @copydoc BaseType::InitializeSolutionStep
+    void InitializeSolutionStep(SparseMatrixType& rLhs,
+                                VectorType& rSolution,
+                                VectorType& rRhs) override
     {
-        if(this->IsNotConsistent(rA, rX, rB))
-            return false;
+        KRATOS_ERROR_IF_NOT(this->IsConsistent(rLhs, rSolution, rRhs))
+            << "Inconsistent linear system: "
+            << "(" << TSparseSpaceType::Size1(rLhs) << "x" << TSparseSpaceType::Size2(rLhs) << ")"
+            << " @ "
+            << "(" << TSparseSpaceType::Size(rSolution) << "x1) "
+            << "(" << TSparseSpaceType::Size(rRhs) << "x1)";
 
-        const int size = TSparseSpaceType::Size(rX);
-
-        // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<TSparseSpaceType, TDenseSpaceType> myFactorization;
-
-        // copy myMatrix into skyline format
-        myFactorization.copyFromCSRMatrix(rA);
-
-        // factorize it
-        myFactorization.factorize();
-
-        // and back solve
-        myFactorization.backForwardSolve(size, rB, rX);
-
-        return true;
+        KRATOS_TRY
+        mFactorization.clear();
+        mFactorization.copyFromCSRMatrix(rLhs);
+        mFactorization.factorize();
+        KRATOS_CATCH("")
     }
 
-    /** Multi solve method for solving a set of linear systems with same coefficient matrix.
-    Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
-    @param rA. System matrix
-    @param rX. Solution vector.
-    @param rB. Right hand side vector.
-    */
+    /// @copydoc BaseType::PerformSolutionStep
+    bool PerformSolutionStep(SparseMatrixType& rLhs,
+                             VectorType& rSolution,
+                             VectorType& rRhs) override
+    {
+        KRATOS_TRY
+        const auto system_size = TSparseSpaceType::Size(rSolution);
+        mFactorization.backForwardSolve(system_size, rRhs, rSolution);
+        return true;
+        KRATOS_CATCH("")
+    }
+
+    /// @copydoc BaseType::Solve(SparseMatrixType6,VectorType&,VectorType&)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    {
+        KRATOS_TRY
+        this->InitializeSolutionStep(rA, rX, rB);
+        const auto status = this->PerformSolutionStep(rA, rX, rB);
+        this->FinalizeSolutionStep(rA, rX, rB);
+        return status;
+        KRATOS_CATCH("")
+    }
+
+    /// @copydoc BaseType::Solve(SparseMatrixType6,DenseMatrixType&,DenseMatrixType&)
     bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
+        KRATOS_TRY
         const int size1 = TDenseSpaceType::Size1(rX);
         const int size2 = TDenseSpaceType::Size2(rX);
 
-        bool is_solved = true;
+        bool status = true;
 
         VectorType x(size1);
         VectorType b(size1);
 
-        // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<TSparseSpaceType, TDenseSpaceType> myFactorization;
-        // copy myMatrix into skyline format
-        myFactorization.copyFromCSRMatrix(rA);
-        // factorize it
-        myFactorization.factorize();
-
-        for(int i = 0 ; i < size2 ; i++)
-        {
+        this->InitializeSolutionStep(rA, x, b);
+        for(int i = 0 ; i < size2 ; i++) {
             TDenseSpaceType::GetColumn(i,rX, x);
             TDenseSpaceType::GetColumn(i,rB, b);
-
-            // and back solve
-            myFactorization.backForwardSolve(size1, b, x);
-
+            status &= this->PerformSolutionStep(rA, x, b);
             TDenseSpaceType::SetColumn(i,rX, x);
             TDenseSpaceType::SetColumn(i,rB, b);
         }
+        this->FinalizeSolutionStep(rA, x, b);
 
-        return is_solved;
+        return status;
+        KRATOS_CATCH("")
     }
 
-
+    void FinalizeSolutionStep(SparseMatrixType& rLhs,
+                              VectorType& rSolution,
+                              VectorType& rRhs) override
+    {
+        mFactorization.clear();
+    }
 
     /// Print information about this object.
     void  PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "LU factorization solver finished.";
+        rOStream << "SkylineLUFactorization";
     }
 
     /// Print object's data.
@@ -662,122 +595,30 @@ public:
     {
     }
 
-
-
-
 private:
+    SkylineLUFactorizationSolver& operator=(const SkylineLUFactorizationSolver& Other) = delete;
 
+    SkylineLUFactorizationSolver(const SkylineLUFactorizationSolver& Other) = delete;
 
-    /*        void CopyFromCSRMatrix(SparseMatrixType A)
-            {
-                int i, j, indexj;
-                double entry;
-
-                // First of all, if there was another factorization stored in this object, erase it
-                this->clear();
-                // The size of the factorization will be the same of A
-                int size = A.size;
-
-                // Let us find how large the rows of L and the columns of U should be.
-                // Provisionally, we will store in rowIndex[i] the minimum required height
-                // of column i over the diagonal, and length of row i below the diagonal.
-                int* rowIndex = new int[size+1];
-                for (i=0; i<=size; i++) rowIndex[i]=0;
-                // Traverse the matrix finding nonzero elements
-                for (i=0; i<size; i++)
-                {
-                    for (indexj=A.rowIndex[i]; indexj<A.rowIndex[i+1]; indexj++)
-                    {
-    	                j= A.columnIndex[indexj];
-    	                entry= A.entries[indexj];
-    	                if (entry!=0)
-                        {
-    		                if (i>j)
-                            {
-    			                // row i needs length at least i-j
-    			                rowIndex[i]= (rowIndex[i] > i-j) ? rowIndex[i] : i-j ;
-    		                }
-                            else if (i<j)
-                            {
-    			                // column j needs height at least j-i
-    			                rowIndex[j]= (rowIndex[j] > j-i) ? rowIndex[j] : j-i ;
-    		                }
-    	                }
-                    }
-                }
-
-                // Transform rowIndex so that it doesn't contain the required lengths
-                // and heights, but the indexes to the entries
-                int oldCarryOut=0;
-                for (i=1; i<=size; i++)
-                {
-                    int newCarryOut= rowIndex[i];
-                    rowIndex[i]= rowIndex[i-1]+oldCarryOut;
-                    oldCarryOut= newCarryOut;
-                }
-
-                // Allocate variables for skyline format entries
-                double* entriesL= new double[rowIndex[size]];
-                double* entriesD= new double[         size ];
-                double* entriesU= new double[rowIndex[size]];
-                for (i=0; i<rowIndex[size]; i++)
-                {
-                    entriesL[i]=0.0;
-                    entriesU[i]=0.0;
-                }
-
-                for (i=0; i<size; i++) entriesD[i]=0.0;
-
-                // And finally traverse again the CSR matrix, copying its entries into the
-                // correct places in the skyline format
-                for (i=0; i<size; i++)
-                {
-                    for (indexj=A.rowIndex[i]; indexj<A.rowIndex[i+1]; indexj++)
-                    {
-    	                j= A.columnIndex[indexj];
-    	                entry= A.entries[indexj];
-    	                if (i<j)
-                        {
-    		                entriesU[ rowIndex[j+1] + i - j ]= entry;
-    	                }
-                        else if (i==j) {
-    		                entriesD[i]= entry;
-    	                }
-                        else
-                        {
-    		                entriesL[ rowIndex[i+1] + j - i ]= entry;
-    	                }
-                    }
-                }
-    			delete[] rowIndex;
-            }
-      */
-
-    /// Assignment operator.
-    SkylineLUFactorizationSolver& operator=(const SkylineLUFactorizationSolver& Other);
-
-    /// Copy constructor.
-    //SkylineLUFactorizationSolver(const SkylineLUFactorizationSolver& Other);
-
-
+    LUSkylineFactorization<TSparseSpaceType, TDenseSpaceType> mFactorization;
 }; // Class SkylineLUFactorizationSolver
 
 
 /// input stream function
 template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
-inline std::istream& operator >> (std::istream& rIStream, SkylineLUFactorizationSolver<TSparseSpaceType,
-                                  TDenseSpaceType,
-                                  TReordererType>& rThis)
+std::istream& operator >> (std::istream& rIStream, SkylineLUFactorizationSolver<TSparseSpaceType,
+                            TDenseSpaceType,
+                            TReordererType>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const SkylineLUFactorizationSolver<TSparseSpaceType,
-                                  TDenseSpaceType,
-                                  TReordererType>& rThis)
+std::ostream& operator << (std::ostream& rOStream,
+                            const SkylineLUFactorizationSolver<TSparseSpaceType,
+                            TDenseSpaceType,
+                            TReordererType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -787,8 +628,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 
-}  // namespace Kratos.
-
-#endif // KRATOS_SKYLINE_LU_FACTORIZATION_SOLVER_H_INCLUDED  defined 
-
-
+}  // namespace Kratos

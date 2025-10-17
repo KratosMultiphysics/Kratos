@@ -5,13 +5,7 @@ import numpy as np
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis import GeoMechanicsAnalysis
-
-tests_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'tests'))
-if os.path.exists(tests_folder_path):
-    sys.path.append(tests_folder_path)
-    import test_helper
-else:
-    raise ImportError(f"Tests folder not found at: {tests_folder_path}")
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 
 
 class GenericTestRunner:
@@ -55,7 +49,7 @@ class GenericTestRunner:
         stress, mean_stress, von_mises, displacement, strain = [], [], [], [], []
 
         for path in self.output_file_paths:
-            output = test_helper.GiDOutputFileReader().read_output_from(path)
+            output = GiDOutputFileReader().read_output_from(path)
             for result_name, items in output["results"].items():
                 for item in items:
                     self._categorize_result(result_name, item, stress, mean_stress, von_mises, displacement, strain)

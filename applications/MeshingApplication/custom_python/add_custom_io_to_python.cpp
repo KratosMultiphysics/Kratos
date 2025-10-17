@@ -4,12 +4,12 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
-//  Main authors: Pooyan Dadvand
-//                Josep Maria Carbonell Puigbo
-//                Vicente Matix Ferrandiz
+//  Main authors:    Pooyan Dadvand
+//                   Josep Maria Carbonell Puigbo
+//                   Vicente Matix Ferrandiz
 //
 
 // System includes
@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 
@@ -25,9 +24,7 @@
     #include "custom_io/mmg/mmg_io.h"
 #endif
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -55,7 +52,6 @@ void  AddCustomIOToPython(pybind11::module& m)
 #endif
 
 }
-}  // namespace Python.
 
-} // Namespace Kratos
+} // Namespace Kratos::Python.
 
