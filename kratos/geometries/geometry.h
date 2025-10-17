@@ -1869,12 +1869,14 @@ public:
      * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
+     * @param rConverged A boolean indicating whether the computation has converged
      * @return The vector containing the local coordinates of the point
      */
     virtual CoordinatesArrayType& PointLocalCoordinates(
-            CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint
-            ) const
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint,
+        bool& rConverged
+        ) const
     {
         KRATOS_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
 
@@ -1889,6 +1891,8 @@ public:
         static constexpr double MaxNormPointLocalCoordinates = 30.0;
         static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
         static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
+
+        rConverged = false;
 
         //Newton iteration:
         for(std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++) {
@@ -1908,16 +1912,32 @@ public:
             const double norm2DXi = norm_2(DeltaXi);
 
             if(norm2DXi > MaxNormPointLocalCoordinates) {
-                KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
                 break;
             }
 
             if(norm2DXi < MaxTolerancePointLocalCoordinates) {
+                rConverged = true;
                 break;
             }
         }
 
         return rResult;
+
+    }
+
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    virtual CoordinatesArrayType& PointLocalCoordinates(
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint
+            ) const
+    {
+        bool tmp;
+        return PointLocalCoordinates(rResult, rPoint, tmp);
     }
 
     ///@}
@@ -1941,9 +1961,16 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const
     {
+        bool converged = false;
+
         PointLocalCoordinates(
             rResult,
-            rPointGlobalCoordinates);
+            rPointGlobalCoordinates,
+            converged);
+
+        if (!converged) {
+            return false;
+        }
 
         if (IsInsideLocalSpace(rResult, Tolerance) == 0) {
             return false;
