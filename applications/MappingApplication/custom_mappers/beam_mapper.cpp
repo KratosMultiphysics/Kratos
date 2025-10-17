@@ -797,6 +797,7 @@ void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& 
 {
     // see Non-linear Modeling and Analysis of Solids and Structures (Steen Krenk 2009) P52
     double angle = rRotationMatrix(0, 0) + rRotationMatrix(1, 1) + rRotationMatrix(2, 2) - 1.0;
+    const double pi = 3.14159265358979323846;
 
     angle /= 2.0;
     if (angle > 1.0)
@@ -813,7 +814,7 @@ void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& 
         rRotationVector(2) = 0.0;
 
         return;
-    } else if ((M_PI - angle) < EPS) {
+    } else if ((pi - angle) < EPS) {
         const double product11 = (rRotationMatrix(0,0) + 1.0) / 2.0;
         const double product22 = (rRotationMatrix(1,1) + 1.0) / 2.0;
         const double product33 = (rRotationMatrix(2,2) + 1.0) / 2.0;
@@ -834,9 +835,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& 
             if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
                 if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
                     if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
-                        rRotationVector(0) *= M_PI;
-                        rRotationVector(1) *= M_PI;
-                        rRotationVector(2) *= M_PI;
+                        rRotationVector(0) *= pi;
+                        rRotationVector(1) *= pi;
+                        rRotationVector(2) *= pi;
                         return;
                     }
         }
@@ -850,9 +851,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& 
             if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
                 if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
                     if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
-                        rRotationVector(0) *= M_PI;
-                        rRotationVector(1) *= M_PI;
-                        rRotationVector(2) *= M_PI;
+                        rRotationVector(0) *= pi;
+                        rRotationVector(1) *= pi;
+                        rRotationVector(2) *= pi;
                         return;
                     }
         }
@@ -866,9 +867,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& 
             if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
                 if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
                     if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
-                        rRotationVector(0) *= M_PI;
-                        rRotationVector(1) *= M_PI;
-                        rRotationVector(2) *= M_PI;
+                        rRotationVector(0) *= pi;
+                        rRotationVector(1) *= pi;
+                        rRotationVector(2) *= pi;
                         return;
                     }
         }
@@ -882,9 +883,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& 
             if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
                 if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
                     if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
-                        rRotationVector(0) *= M_PI;
-                        rRotationVector(1) *= M_PI;
-                        rRotationVector(2) *= M_PI;
+                        rRotationVector(0) *= pi;
+                        rRotationVector(1) *= pi;
+                        rRotationVector(2) *= pi;
                         return;
                     }
         }
