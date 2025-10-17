@@ -197,7 +197,10 @@ private:
     double CalculateScaleFactor(DenseMatrixType& rOriginCoords);
     
     // Evaluate the polynomial required for the radial basis function interpolation
-    std::vector<double> EvaluatePolynomialBasis(const array_1d<double, 3>& coords, unsigned int degree) const;
+    std::vector<double> EvaluatePolynomialBasis(const array_1d<double, 3>& rCoords, unsigned int degree) const;
+
+    DenseMatrixType CreateAndInvertRBFMatrix(const DenseMatrixType& rOriginCoords, bool& rProjectToAerodynamicPanels, IndexType& rNumberOfPolyTerms,
+        std::string& rRBFType, double& rEps = 1.0 );
 
     Parameters GetMapperDefaultSettings() const override
     {

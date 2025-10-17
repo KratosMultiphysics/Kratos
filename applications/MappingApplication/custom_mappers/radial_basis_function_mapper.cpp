@@ -290,12 +290,12 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
 
 template<class TSparseSpace, class TDenseSpace>
 std::vector<double> RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::EvaluatePolynomialBasis(
-    const array_1d<double, 3>& coords, unsigned int degree) const
+    const array_1d<double, 3>& rCoords, unsigned int degree) const
 {
     std::vector<double> values;
-    const double x = coords[0];
-    const double y = coords[1];
-    const double z = coords[2];
+    const double x = rCoords[0];
+    const double y = rCoords[1];
+    const double z = rCoords[2];
 
     for (unsigned int i = 0; i <= degree; ++i) {
         for (unsigned int j = 0; j <= degree - i; ++j) {
@@ -352,6 +352,13 @@ double RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateScaleFacto
     // Return the larger of the two ranges
     return (rangeX >= rangeY) ? rangeX : rangeY;
 }
+
+// template<class TSparseSpace, class TDenseSpace>
+// DenseMatrixType RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateAndInvertRBFMatrix(const DenseMatrixType& rOriginCoords, 
+//     bool& rProjectToAerodynamicPanels, IndexType& rNumberOfPolyTerms, std::string& rRBFType, double& rEps = 1.0)
+// {
+   
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
