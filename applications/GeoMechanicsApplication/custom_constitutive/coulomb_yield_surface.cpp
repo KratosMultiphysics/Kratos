@@ -25,6 +25,12 @@ CoulombYieldSurface::CoulombYieldSurface(double FrictionAngleInRad, double Cohes
 {
 }
 
+double CoulombYieldSurface::GetFrictionAngleInRadians() const { return mFrictionAngle; }
+
+double CoulombYieldSurface::GetCohesion() const { return mCohesion; }
+
+double CoulombYieldSurface::GetDilatationAngleInRadians() const { return mDilatationAngle; }
+
 double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
     return rSigmaTau[1] + rSigmaTau[0] * std::sin(mFrictionAngle) - mCohesion * std::cos(mFrictionAngle);
@@ -39,13 +45,14 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAvera
 {
     Vector result(2);
     switch (AveragingType) {
-    case CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES:
+        using enum CoulombAveragingType;
+    case LOWEST_PRINCIPAL_STRESSES:
         result <<= -(1.0 - 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 - std::sin(mDilatationAngle)) / 4.0;
         break;
-    case CoulombAveragingType::NO_AVERAGING:
+    case NO_AVERAGING:
         result <<= std::sin(mDilatationAngle), 1.0;
         break;
-    case CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES:
+    case HIGHEST_PRINCIPAL_STRESSES:
         result <<= (1.0 + 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 + std::sin(mDilatationAngle)) / 4.0;
         break;
     default:

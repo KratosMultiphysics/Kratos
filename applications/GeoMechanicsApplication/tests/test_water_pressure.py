@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 result_extension = '.post.res'
@@ -58,7 +59,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
 
         res_path = os.path.join(file_path, test_name + result_extension)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         simulation_output = reader.read_output_from(res_path)
         water_pressures = simulation_output["results"]["WATER_PRESSURE"]
 
@@ -160,7 +161,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
 
         res_path = os.path.join(file_path, test_name + result_extension)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         simulation_output = reader.read_output_from(res_path)
         water_pressures = simulation_output["results"]["WATER_PRESSURE"]
 
@@ -200,7 +201,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
 
         res_path = os.path.join(file_path, test_name + result_extension)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         simulation_output = reader.read_output_from(res_path)
         water_pressures = simulation_output["results"]["WATER_PRESSURE"]
 

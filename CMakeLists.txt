@@ -50,8 +50,8 @@ endif(POLICY CMP0167)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
-set (KratosMultiphysics_MINOR_VERSION 2)
-set (KratosMultiphysics_PATCH_VERSION 1)
+set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -79,7 +79,7 @@ if (APPLE)
   cmake_policy(SET CMP0042 NEW)
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
 else()
-  set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif()
 
 # If no test policy enable by default
@@ -211,7 +211,7 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override -Wno-template-id-cdtor")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
     message(STATUS "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
     message(FATAL_ERROR "Please use Version 8 or greater")
@@ -394,6 +394,11 @@ if(DEFINED ENV{PYTHON_EXECUTABLE})
   set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
 endif(DEFINED ENV{PYTHON_EXECUTABLE})
 
+# Try to use python library from env variable
+if(DEFINED ENV{PYTHON_LIBRARY})
+  set(PYTHON_LIBRARY $ENV{PYTHON_LIBRARY})
+endif(DEFINED ENV{PYTHON_LIBRARY})
+
 include(pybind11Tools)
 
 # Reset pybind11 config and remove -LTO since it gives multiple problems.
@@ -481,6 +486,14 @@ elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
 else()
   message(FATAL_ERROR "Invalid option chosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
+
+option(KRATOS_USE_TBB "Enable Intel Threading Building Blocks (TBB) support" OFF)
+
+if(KRATOS_USE_TBB)
+    find_package(TBB REQUIRED)
+    add_compile_definitions(KRATOS_USE_TBB)
+    message(STATUS "TBB support enabled")
+endif()
 
 OPTION(KRATOS_NO_TRY_CATCH "Disabled the use of try/catch through the code" OFF)
 if( KRATOS_NO_TRY_CATCH MATCHES ON )
@@ -654,6 +667,16 @@ endif()
 
 # Compile Kratos Core
 if(${EXCLUDE_KRATOS_CORE} MATCHES OFF)
+  # Add the definitions if required for gidpost
+  set(HDF5_FOUND FALSE)
+  set(ENABLE_PARALLEL_EXAMPLE OFF)
+  set(ENABLE_HDF5 OFF)
+  set(ZLIB_FOUND TRUE)
+
+  # (for gidpost )Disable examples and fortran examples.
+  set(ENABLE_EXAMPLES OFF)
+  set(ENABLE_FORTRAN_EXAMPLES OFF)
+
   add_subdirectory(external_libraries/gidpost)
   add_subdirectory(kratos)
 endif()
@@ -736,6 +759,7 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+install(FILES ${KRATOS_SOURCE_DIR}/kratos/pyproject.toml DESTINATION .)
 
 # Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
 add_subdirectory("scripts/post_install")

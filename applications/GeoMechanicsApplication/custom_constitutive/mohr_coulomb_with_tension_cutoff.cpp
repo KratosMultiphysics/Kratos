@@ -15,6 +15,7 @@
 // Application includes
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
@@ -29,9 +30,10 @@ using namespace Kratos;
 std::size_t AveragingTypeToArrayIndex(CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
     switch (AveragingType) {
-    case CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES:
+        using enum CoulombYieldSurface::CoulombAveragingType;
+    case LOWEST_PRINCIPAL_STRESSES:
         return 0;
-    case CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES:
+    case HIGHEST_PRINCIPAL_STRESSES:
         return 2;
     default:
         return 1;
@@ -43,11 +45,12 @@ Vector AveragePrincipalStressComponents(const Vector& rPrincipalStressVector,
 {
     auto result = rPrincipalStressVector;
     switch (AveragingType) {
-    case CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES:
+        using enum CoulombYieldSurface::CoulombAveragingType;
+    case LOWEST_PRINCIPAL_STRESSES:
         std::fill(result.begin(), result.begin() + 1,
                   (rPrincipalStressVector[0] + rPrincipalStressVector[1]) * 0.5);
         break;
-    case CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES:
+    case HIGHEST_PRINCIPAL_STRESSES:
         std::fill(result.begin() + 1, result.begin() + 2,
                   (rPrincipalStressVector[1] + rPrincipalStressVector[2]) * 0.5);
         break;
@@ -59,13 +62,14 @@ Vector AveragePrincipalStressComponents(const Vector& rPrincipalStressVector,
 
 CoulombYieldSurface::CoulombAveragingType FindAveragingType(const Vector& rMappedPrincipalStressVector)
 {
+    using enum CoulombYieldSurface::CoulombAveragingType;
     if (rMappedPrincipalStressVector[0] < rMappedPrincipalStressVector[1]) {
-        return CoulombYieldSurface::CoulombAveragingType::LOWEST_PRINCIPAL_STRESSES;
+        return LOWEST_PRINCIPAL_STRESSES;
     }
     if (rMappedPrincipalStressVector[1] < rMappedPrincipalStressVector[2]) {
-        return CoulombYieldSurface::CoulombAveragingType::HIGHEST_PRINCIPAL_STRESSES;
+        return HIGHEST_PRINCIPAL_STRESSES;
     }
-    return CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING;
+    return NO_AVERAGING;
 }
 
 } // namespace
@@ -123,16 +127,17 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
 {
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_COHESION);
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_FRICTION_ANGLE);
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, GEO_DILATANCY_ANGLE,
-                                            rMaterialProperties[GEO_FRICTION_ANGLE]);
-    ConstitutiveLawUtilities::CheckProperty(
-        rMaterialProperties, GEO_TENSILE_STRENGTH,
+    const CheckProperties check_properties(rMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
+    check_properties.Check(GEO_COHESION);
+    check_properties.Check(GEO_FRICTION_ANGLE);
+    check_properties.Check(GEO_DILATANCY_ANGLE, rMaterialProperties[GEO_FRICTION_ANGLE]);
+    check_properties.Check(
+        GEO_TENSILE_STRENGTH,
         rMaterialProperties[GEO_COHESION] /
             std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, YOUNG_MODULUS);
-    ConstitutiveLawUtilities::CheckProperty(rMaterialProperties, POISSON_RATIO, 0.5);
+    check_properties.Check(YOUNG_MODULUS);
+    constexpr auto max_value_poisson_ratio = 0.5;
+    check_properties.Check(POISSON_RATIO, max_value_poisson_ratio);
     return result;
 }
 
@@ -190,41 +195,38 @@ void MohrCoulombWithTensionCutOff::GetLawFeatures(Features& rFeatures)
 
 void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
-    const auto& r_prop = rParameters.GetMaterialProperties();
+    const auto& r_properties = rParameters.GetMaterialProperties();
 
     if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        rParameters.GetConstitutiveMatrix() =
-            mpConstitutiveDimension->CalculateElasticMatrix(r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
+        rParameters.GetConstitutiveMatrix() = mpConstitutiveDimension->CalculateElasticMatrix(r_properties);
     }
 
-    const auto trial_stress_vector = CalculateTrialStressVector(
-        rParameters.GetStrainVector(), r_prop[YOUNG_MODULUS], r_prop[POISSON_RATIO]);
+    const auto trial_stress_vector = CalculateTrialStressVector(rParameters.GetStrainVector(), r_properties);
 
     Vector principal_trial_stress_vector;
     Matrix rotation_matrix;
     StressStrainUtilities::CalculatePrincipalStresses(
         trial_stress_vector, principal_trial_stress_vector, rotation_matrix);
 
-    auto trial_sigma_tau =
-        StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_trial_stress_vector);
-
-    if (mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
+    if (auto trial_sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_trial_stress_vector);
+        mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         mStressVector = trial_stress_vector;
     } else {
         auto mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            r_prop, trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
+            r_properties, trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
         auto mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
             mapped_sigma_tau, principal_trial_stress_vector);
 
         // for interchanging principal stresses, retry mapping with averaged principal stresses.
-        const auto averaging_type = FindAveragingType(mapped_principal_stress_vector);
-        if (averaging_type != CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING) {
+
+        if (const auto averaging_type = FindAveragingType(mapped_principal_stress_vector);
+            averaging_type != CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING) {
             const auto averaged_principal_trial_stress_vector =
                 AveragePrincipalStressComponents(principal_trial_stress_vector, averaging_type);
             trial_sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(
                 averaged_principal_trial_stress_vector);
-            mapped_sigma_tau =
-                mCoulombWithTensionCutOffImpl.DoReturnMapping(r_prop, trial_sigma_tau, averaging_type);
+            mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
+                r_properties, trial_sigma_tau, averaging_type);
             mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
                 mapped_sigma_tau, averaged_principal_trial_stress_vector);
             mapped_principal_stress_vector[1] =
@@ -237,13 +239,11 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     rParameters.GetStressVector() = mStressVector;
 }
 
-Vector MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector& rStrainVector,
-                                                                double        YoungsModulus,
-                                                                double        PoissonsRatio) const
+Vector MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector&     rStrainVector,
+                                                                const Properties& rProperties) const
 {
-    return mStressVectorFinalized +
-           prod(mpConstitutiveDimension->CalculateElasticMatrix(YoungsModulus, PoissonsRatio),
-                rStrainVector - mStrainVectorFinalized);
+    return mStressVectorFinalized + prod(mpConstitutiveDimension->CalculateElasticMatrix(rProperties),
+                                         rStrainVector - mStrainVectorFinalized);
 }
 
 void MohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)

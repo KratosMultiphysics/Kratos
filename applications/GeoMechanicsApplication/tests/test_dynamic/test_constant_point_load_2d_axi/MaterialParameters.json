@@ -22,6 +22,7 @@
                 "RETENTION_LAW"       : "SaturatedBelowPhreaticLevelLaw",
                 "SATURATED_SATURATION": 1.0,
                 "RESIDUAL_SATURATION" : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY": 0.05,
                 "DYNAMIC_VISCOSITY"   : 0.0013,
                 "BULK_MODULUS_FLUID"  : 2000000000.0,
                 "DENSITY_WATER"       : 1000

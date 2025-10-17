@@ -70,74 +70,59 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: GEO_COHESION is not defined for property 3")
+        "GEO_COHESION does not exist in the property with Id 3.")
     properties.SetValue(GEO_COHESION, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_COHESION for property 3 is out of range: -1 is not in [0.0, ->")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_COHESION in the property with Id 3 has an invalid value: -1 is out of the range [0, -).")
     properties.SetValue(GEO_COHESION, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: GEO_FRICTION_ANGLE is not defined for property 3")
+        "GEO_FRICTION_ANGLE does not exist in the property with Id 3.")
     properties.SetValue(GEO_FRICTION_ANGLE, -30.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_FRICTION_ANGLE for property 3 is out of range: -30 is not in [0.0, ->")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_FRICTION_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range [0, -).")
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: GEO_DILATANCY_ANGLE is not defined for property 3")
+        "GEO_DILATANCY_ANGLE does not exist in the property with Id 3.")
     properties.SetValue(GEO_DILATANCY_ANGLE, -30.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_DILATANCY_ANGLE for property 3 is out "
-        "of range: -30 is not in [0.0, 30.000000]")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_DILATANCY_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range [0, 30].")
     properties.SetValue(GEO_DILATANCY_ANGLE, 40.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_DILATANCY_ANGLE for property 3 is out "
-        "of range: 40 is not in [0.0, 30.000000]")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), " GEO_DILATANCY_ANGLE in the property with Id 3 has an invalid value: 40 is out of the range [0, 30].")
     properties.SetValue(GEO_DILATANCY_ANGLE, 30.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: GEO_TENSILE_STRENGTH is not defined for property 3")
+        "GEO_TENSILE_STRENGTH does not exist in the property with Id 3.")
     properties.SetValue(GEO_TENSILE_STRENGTH, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_TENSILE_STRENGTH for property 3 is out "
-        "of range: -1 is not in [0.0, 1.732051]")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: -1 is out of the range [0, 1.73205].")
     properties.SetValue(GEO_TENSILE_STRENGTH, 2.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_TENSILE_STRENGTH for property 3 is out "
-        "of range: 2 is not in [0.0, 1.732051]")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: 2 is out of the range [0, 1.73205].")
     properties.SetValue(GEO_TENSILE_STRENGTH, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "YOUNG_MODULUS is not defined for property 3")
+        "YOUNG_MODULUS does not exist in the property with Id 3.")
     properties.SetValue(YOUNG_MODULUS, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of YOUNG_MODULUS for property 3 is out of range: -1 is not in [0.0, ->")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "YOUNG_MODULUS in the property with Id 3 has an invalid value: -1 is out of the range [0, -).")
     properties.SetValue(YOUNG_MODULUS, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "POISSON_RATIO is not defined for property 3")
+        "POISSON_RATIO does not exist in the property with Id 3.")
     properties.SetValue(POISSON_RATIO, -0.5);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of POISSON_RATIO for property 3 is out of "
-        "range: -0.5 is not in [0.0, 0.500000]")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "POISSON_RATIO in the property with Id 3 has an invalid value: -0.5 is out of the range [0, 0.5].")
     properties.SetValue(POISSON_RATIO, 1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of POISSON_RATIO for property 3 is out of "
-        "range: 1 is not in [0.0, 0.500000]")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), " POISSON_RATIO in the property with Id 3 has an invalid value: 1 is out of the range [0, 0.5].")
     properties.SetValue(POISSON_RATIO, 0.3);
 
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
@@ -367,9 +352,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     Vector calculated_cauchy_stress_vector;
     p_law->GetValue(CAUCHY_STRESS_VECTOR, calculated_cauchy_stress_vector);
 
-    const auto scoped_registration_dimension = ScopedSerializerRegistration{"PlaneStrain"s, PlaneStrain{}};
-    const auto scoped_registration_law =
-        ScopedSerializerRegistration{"MohrCoulombWithTensionCutOff"s, MohrCoulombWithTensionCutOff{}};
+    const auto scoped_registration = ScopedSerializerRegistration{
+        std::make_pair("PlaneStrain"s, PlaneStrain{}),
+        std::make_pair("MohrCoulombWithTensionCutOff"s, MohrCoulombWithTensionCutOff{})};
     auto serializer = StreamSerializer{};
 
     ConstitutiveLaw::Parameters parameters_to_be_ignored;

@@ -200,7 +200,6 @@ void ConnectivitiesData<TContainerType>::Write(
     mpFile->WriteAttribute(entity_group_path, "Name", entity_name);
     mpFile->WriteAttribute(entity_group_path, "WorkingSpaceDimension", ws_dim);
     mpFile->WriteAttribute(entity_group_path, "NumberOfNodes", num_nodes);
-    mpFile->WriteAttribute(entity_group_path, "Size", static_cast<int>(info.TotalSize));
 
     WritePartitionTable(*mpFile, entity_group_path, info);
 

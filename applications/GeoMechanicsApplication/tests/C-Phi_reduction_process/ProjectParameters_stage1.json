@@ -48,7 +48,6 @@
         "newmark_beta": 0.25,
         "newmark_gamma": 0.5,
         "newmark_theta": 0.5,
-        "nodal_smoothing": false,
         "number_cycles": 1,
         "problem_domain_sub_model_part_list": [
             "Material_1"

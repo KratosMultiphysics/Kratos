@@ -28,6 +28,8 @@ public:
 
     explicit TensionCutoff(double TensileStrength);
 
+    [[nodiscard]] double GetTensileStrength() const;
+
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
 

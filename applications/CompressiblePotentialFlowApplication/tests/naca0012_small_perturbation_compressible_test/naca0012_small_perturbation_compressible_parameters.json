@@ -9,7 +9,7 @@
     "solver_settings"                  : {
         "solver_type"            : "potential_flow",
         "domain_size"     : 2,
-        "model_part_name" : "MainModelPart",
+        "model_part_name" : "FluidModelPart",
         "model_import_settings"  : {
             "input_type"     : "mdpa",
             "input_filename" : "../naca0012_small_mdpa/naca0012_small"
@@ -32,30 +32,28 @@
     "processes" : {
         "initial_conditions_process_list"  : [],
         "boundary_conditions_process_list" : [{
-            "python_module" : "apply_far_field_process",
+            "python_module" : "apply_far_field_and_wake_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
-                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "free_stream_density"  : 1.225,
                 "mach_infinity": 0.6,
                 "heat_capacity_ratio": 1.4,
-                "perturbation_field": true
-            }
-        },{
-            "python_module" : "define_wake_process_2d",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "DefineWakeProcess",
-            "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body"
+                "perturbation_field": true,
+                "define_wake": true,
+                "wake_type"  : "Operations.KratosMultiphysics.CompressiblePotentialFlowApplication.Define2DWakeOperation",
+                "wake_parameters"    : {
+                    "body_model_part_name" : "FluidModelPart.Body2D_Body"
+                }
             }
         },{
             "python_module" : "compute_lift_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "ComputeLiftProcess3D",
             "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body",
-                "far_field_model_part_name": "MainModelPart.PotentialWallCondition2D_Far_field_Auto1"
+                "model_part_name" : "FluidModelPart.Body2D_Body",
+                "far_field_model_part_name": "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1"
             }
         }],
         "auxiliar_process_list" :[{
@@ -66,7 +64,7 @@
             "Parameters"            : {
                 "check_variables"  : ["VELOCITY_POTENTIAL"],
                 "input_file_name"  : "compressible_perturbation_velocity_potential_flow_field_test_results.json",
-                "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+                "model_part_name"  : "FluidModelPart.Parts_Parts_Auto1",
                 "tolerance"            : 1e-9,
                 "relative_tolerance"   : 1e-12,
                 "time_frequency"   : -2
@@ -82,7 +80,7 @@
         "Parameters"            : {
             "check_variables"  : ["VELOCITY_POTENTIAL"],
             "input_file_name"  : "compressible_perturbation_velocity_potential_flow_field_test_results.json",
-            "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+            "model_part_name"  : "FluidModelPart.Parts_Parts_Auto1",
             "tolerance"            : 1e-9,
             "relative_tolerance"   : 1e-12,
             "time_frequency"   : -2
@@ -96,7 +94,7 @@
         "Parameters"            : {
             "output_variables" : ["VELOCITY_POTENTIAL"],
             "output_file_name" : "compressible_perturbation_velocity_potential_flow_field_test_results.json",
-            "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
+            "model_part_name"  : "FluidModelPart.Parts_Parts_Auto1",
             "time_frequency"   : -2
         }
     }
