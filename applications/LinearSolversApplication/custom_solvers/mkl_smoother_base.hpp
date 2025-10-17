@@ -116,6 +116,23 @@ private:
 
     MKLSmootherBase& operator=(const MKLSmootherBase&) = delete;
 
+    /**
+     * @brief Checks the consistency between the maximum number of threads configured in MKL and the application's thread count.
+     * @details This method compares the maximum number of threads configured in MKL (mkl_get_max_threads()) with the number of threads currently used by the application (ParallelUtilities::GetNumThreads()).
+     * - If MKL threads > Application threads: A warning is issued, indicating that MKL is configured to use more threads than the application allows. The method returns false, signaling to the caller that the MKL thread count needs to be adjusted (reduced).
+     * - If MKL threads <= Application threads: The thread count is considered consistent. No action is taken, and the method returns true.
+     * @note This method only performs the check and warning; it does NOT modify the MKL thread count.** The caller is responsible for applying the necessary adjustment if the check returns false.
+     * @return true if MKL's thread count is consistent (less than or equal to the application's) or false if it is inconsistent (MKL thread count is greater).
+     */
+    static bool CheckThreadConsistency();
+    
+    /**
+    * @brief Ensures that MKL's thread count does not exceed the application's configured thread count.
+    * @details Calls CheckThreadConsistency(). If the check returns false (indicating MKL threads > Application threads), it reduces MKL's thread count to match the application's count via mkl_set_num_threads().
+    * This method effectively performs the correction identified by CheckThreadConsistency().
+    */
+    static void EnsureMKLThreadConsistency();
+
     struct Impl;
     class std::unique_ptr<Impl> mpImpl;
 }; // class MKLSmootherBase
