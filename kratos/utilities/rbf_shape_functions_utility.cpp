@@ -44,7 +44,7 @@ namespace Kratos
             if (x == 0.0) {
                 return 0.001;
             } else {
-                return std::pow(x, 2) * std::log(x); // Thin Plate Spline formula
+                return std::pow(x, 2) * std::log(std::pow(x, 2)); // Thin Plate Spline formula
             }
         }
         else if (rbf_type == "wendland_c2"){ // Extracted from: Review of coupling methods for non-matching meshes (https://doi.org/10.1016/j.cma.2006.03.017)
