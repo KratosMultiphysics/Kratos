@@ -13,11 +13,9 @@
 #include "apply_k0_procedure_process.h"
 
 #include <algorithm>
-#include <cmath>
 #include <iterator>
 #include <ostream>
 
-#include "containers/flags.h"
 #include "containers/model.h"
 #include "custom_constitutive/linear_elastic_law.h"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -45,7 +43,7 @@ void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& 
 namespace Kratos
 {
 
-ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Settings)
+ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, const Parameters& K0Settings)
     : mSettings(std::move(K0Settings))
 {
     KRATOS_ERROR_IF_NOT(mSettings.Has("model_part_name") || mSettings.Has("model_part_name_list"))
@@ -72,29 +70,29 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Set
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
     if (UseStandardProcedure())
-        for (const auto& rModelPart : mrModelParts) {
-            SetConsiderDiagonalEntriesOnlyAndNoShear(rModelPart.get().Elements(), true);
+        for (const auto& r_model_part : mrModelParts) {
+            SetConsiderDiagonalEntriesOnlyAndNoShear(r_model_part.get().Elements(), true);
         }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
     if (UseStandardProcedure())
-        for (const auto& rModelPart : mrModelParts) {
-            SetConsiderDiagonalEntriesOnlyAndNoShear(rModelPart.get().Elements(), false);
+        for (const auto& r_model_part : mrModelParts) {
+            SetConsiderDiagonalEntriesOnlyAndNoShear(r_model_part.get().Elements(), false);
         }
 }
 
 int ApplyK0ProcedureProcess::Check()
 {
-    for (const auto& rModelPart : mrModelParts) {
-        KRATOS_ERROR_IF(rModelPart.get().Elements().empty())
-            << "ApplyK0ProcedureProces has no elements in modelpart " << rModelPart.get().Name()
+    for (const auto& r_model_part : mrModelParts) {
+        KRATOS_ERROR_IF(r_model_part.get().Elements().empty())
+            << "ApplyK0ProcedureProces has no elements in modelpart " << r_model_part.get().Name()
             << std::endl;
     }
 
-    for (const auto& rModelPart : mrModelParts) {
-        block_for_each(rModelPart.get().Elements(), [](Element& rElement) {
+    for (const auto& r_model_part : mrModelParts) {
+        block_for_each(r_model_part.get().Elements(), [](Element& rElement) {
             const auto& r_properties = rElement.GetProperties();
             CheckK0MainDirection(r_properties, rElement.Id());
             CheckSufficientMaterialParameters(r_properties, rElement.Id());
@@ -207,9 +205,9 @@ void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
     KRATOS_TRY
 
     // K0 procedure for the model part:
-    for (const auto& rModelPart : mrModelParts) {
-        block_for_each(rModelPart.get().Elements(), [&rModelPart, this](Element& rElement) {
-            CalculateK0Stresses(rElement, rModelPart.get().GetProcessInfo());
+    for (const auto& r_model_part : mrModelParts) {
+        block_for_each(r_model_part.get().Elements(), [&r_model_part, this](Element& rElement) {
+            CalculateK0Stresses(rElement, r_model_part.get().GetProcessInfo());
         });
     }
     KRATOS_CATCH("")

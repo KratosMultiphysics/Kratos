@@ -28,7 +28,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyK0ProcedureProcess : public Pro
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyK0ProcedureProcess);
 
-    ApplyK0ProcedureProcess(Model& rModel, Parameters K0Settings);
+    ApplyK0ProcedureProcess(Model& rModel, const Parameters& rK0Settings);
     ~ApplyK0ProcedureProcess() override = default;
 
     void ExecuteInitialize() override;

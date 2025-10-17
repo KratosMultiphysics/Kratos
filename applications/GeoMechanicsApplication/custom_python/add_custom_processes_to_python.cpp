@@ -135,7 +135,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyK0ProcedureProcess, ApplyK0ProcedureProcess::Pointer, Process>(
         m, "ApplyK0ProcedureProcess")
-        .def(py::init<Model&, Parameters&>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<FindNeighbourElementsOfConditionsProcess, FindNeighbourElementsOfConditionsProcess::Pointer, Process>(
         m, "FindNeighbourElementsOfConditionsProcess")
