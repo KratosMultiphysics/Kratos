@@ -43,7 +43,7 @@ void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& 
 namespace Kratos
 {
 
-ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, const Parameters& K0Settings)
+ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Settings)
     : mSettings(std::move(K0Settings))
 {
     KRATOS_ERROR_IF_NOT(mSettings.Has("model_part_name") || mSettings.Has("model_part_name_list"))
@@ -54,33 +54,33 @@ ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, const Parameters
         << "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for "
         << ApplyK0ProcedureProcess::Info();
 
-    if (mSettings.Has("model_part_name_list")) {
-        const auto model_part_names = mSettings["model_part_name_list"].GetStringArray();
-        KRATOS_ERROR_IF(model_part_names.empty()) << "The parameters 'model_part_name_list' needs "
-                                                     "to contain at least one model part name for "
-                                                  << ApplyK0ProcedureProcess::Info();
-        std::ranges::transform(
-            model_part_names, std::back_inserter(mrModelParts),
-            [&rModel](const auto& rName) -> ModelPart& { return rModel.GetModelPart(rName); });
-    } else {
-        mrModelParts = {rModel.GetModelPart(mSettings["model_part_name"].GetString())};
-    }
+    const auto model_part_names = mSettings.Has("model_part_name_list")
+                                      ? mSettings["model_part_name_list"].GetStringArray()
+                                      : std::vector{mSettings["model_part_name"].GetString()};
+    KRATOS_ERROR_IF(model_part_names.empty()) << "The parameters 'model_part_name_list' needs "
+                                                 "to contain at least one model part name for "
+                                              << ApplyK0ProcedureProcess::Info();
+    std::ranges::transform(
+        model_part_names, std::back_inserter(mrModelParts),
+        [&rModel](const auto& rName) -> ModelPart& { return rModel.GetModelPart(rName); });
 }
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()
 {
-    if (UseStandardProcedure())
+    if (UseStandardProcedure()) {
         for (const auto& r_model_part : mrModelParts) {
             SetConsiderDiagonalEntriesOnlyAndNoShear(r_model_part.get().Elements(), true);
         }
+    }
 }
 
 void ApplyK0ProcedureProcess::ExecuteFinalize()
 {
-    if (UseStandardProcedure())
+    if (UseStandardProcedure()) {
         for (const auto& r_model_part : mrModelParts) {
             SetConsiderDiagonalEntriesOnlyAndNoShear(r_model_part.get().Elements(), false);
         }
+    }
 }
 
 int ApplyK0ProcedureProcess::Check()

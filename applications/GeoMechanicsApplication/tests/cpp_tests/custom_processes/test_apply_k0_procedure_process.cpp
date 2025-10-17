@@ -162,9 +162,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrowsWhenNoModelPartIsDefined, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    model.CreateModelPart("dummy");
-
-    auto k0_settings = Parameters{};
+    auto  k0_settings = Parameters{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{model, k0_settings}),
                                       "Please specify 'model_part_name' or "
@@ -175,9 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrows_WhenListAndSingularModelP
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    model.CreateModelPart("dummy");
-
-    auto k0_settings = Parameters{};
+    auto  k0_settings = Parameters{};
     k0_settings.AddString("model_part_name", "dummy");
     k0_settings.AddStringArray("model_part_name_list", {"dummy"});
 
@@ -190,9 +186,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrows_WhenListAndSingularModelP
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrows_WhenModelPartListIsEmpty, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    model.CreateModelPart("dummy");
-
-    auto k0_settings = Parameters{};
+    auto  k0_settings = Parameters{};
     k0_settings.AddStringArray("model_part_name_list", {});
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{model, k0_settings}),
