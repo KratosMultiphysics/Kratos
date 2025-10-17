@@ -573,8 +573,8 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsCorotation
             Rs_Rl1 = prod(R_d_T, rotation_B_1); 
             Rs_Rl2 = prod(R_d_T, Rotation_B_2);
             VectorType v_Rs_Rl1(3), v_Rs_Rl2(3);
-            getRotationVector(Rs_Rl1, v_Rs_Rl1);
-            getRotationVector(Rs_Rl2, v_Rs_Rl2);
+            GetRotationVector(Rs_Rl1, v_Rs_Rl1);
+            GetRotationVector(Rs_Rl2, v_Rs_Rl2);
 
             double theta_s = (v_Rs_Rl1(0) + v_Rs_Rl2(0)) / 2;
             MatrixType R_s(3, 3);
@@ -588,8 +588,8 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsCorotation
             MathUtils<double>::InvertMatrix3(R_s, R_s_T, determinant);
             Rl1 = prod(R_s_T, Rs_Rl1);
             Rl2 = prod(R_s_T, Rs_Rl2);
-            getRotationVector(Rl1, v_Rl1);
-            getRotationVector(Rl2, v_Rl2); 
+            GetRotationVector(Rl1, v_Rl1);
+            GetRotationVector(Rl2, v_Rl2); 
 
             MatrixType shape_functions_matrix(6, 12, 0.0);
             VectorType corBeamVector(3, 0.0);
@@ -687,7 +687,7 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsCorotation
 
             // For conservative mapping
             VectorType rotation_of_section(3);
-            getRotationVector(matrix_product, rotation_of_section);
+            GetRotationVector(matrix_product, rotation_of_section);
             r_local_sys->SaveRotationVectorValue(rotation_of_section);
 
             IndexType c = 0;
@@ -796,10 +796,10 @@ void BeamMapper<TSparseSpace, TDenseSpace>::CalculateRotationMatrixWithAngle( Ve
 }
 
 template<class TSparseSpace, class TDenseSpace>
-void BeamMapper<TSparseSpace, TDenseSpace>::getRotationVector(const MatrixType& rotation_matrix, VectorType& rotation_vector) 
+void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& rRotationMatrix, VectorType& rRotationVector) 
 {
     // see Non-linear Modeling and Analysis of Solids and Structures (Steen Krenk 2009) P52
-    double angle = rotation_matrix(0, 0) + rotation_matrix(1, 1) + rotation_matrix(2, 2) - 1.0;
+    double angle = rRotationMatrix(0, 0) + rRotationMatrix(1, 1) + rRotationMatrix(2, 2) - 1.0;
 
     angle /= 2.0;
     if (angle > 1.0)
@@ -811,83 +811,83 @@ void BeamMapper<TSparseSpace, TDenseSpace>::getRotationVector(const MatrixType& 
 
     const double EPS = 1E-6;
     if (angle < EPS) {
-        rotation_vector(0) = 0.0;
-        rotation_vector(1) = 0.0;
-        rotation_vector(2) = 0.0;
+        rRotationVector(0) = 0.0;
+        rRotationVector(1) = 0.0;
+        rRotationVector(2) = 0.0;
 
         return;
     } else if ((M_PI - angle) < EPS) {
-        const double product11 = (rotation_matrix(0,0) + 1.0) / 2.0;
-        const double product22 = (rotation_matrix(1,1) + 1.0) / 2.0;
-        const double product33 = (rotation_matrix(2,2) + 1.0) / 2.0;
-        const double product12 = (rotation_matrix(0,1) + 1.0) / 2.0;
-        const double product23 = (rotation_matrix(1,2) + 1.0) / 2.0;
-        const double product13 = (rotation_matrix(0,2) + 1.0) / 2.0;
+        const double product11 = (rRotationMatrix(0,0) + 1.0) / 2.0;
+        const double product22 = (rRotationMatrix(1,1) + 1.0) / 2.0;
+        const double product33 = (rRotationMatrix(2,2) + 1.0) / 2.0;
+        const double product12 = (rRotationMatrix(0,1) + 1.0) / 2.0;
+        const double product23 = (rRotationMatrix(1,2) + 1.0) / 2.0;
+        const double product13 = (rRotationMatrix(0,2) + 1.0) / 2.0;
         const double tmp1 = sqrt(product11);
         const double tmp2 = sqrt(product22);
         const double tmp3 = sqrt(product33);
 
         { // case 1 +++:
-            rotation_vector(0) = tmp1;
-            rotation_vector(1) = tmp2;
-            rotation_vector(2) = tmp3;
-            const double tmp12 = rotation_vector(0) * rotation_vector(1);
-            const double tmp13 = rotation_vector(0) * rotation_vector(2);
-            const double tmp23 = rotation_vector(1) * rotation_vector(2);
+            rRotationVector(0) = tmp1;
+            rRotationVector(1) = tmp2;
+            rRotationVector(2) = tmp3;
+            const double tmp12 = rRotationVector(0) * rRotationVector(1);
+            const double tmp13 = rRotationVector(0) * rRotationVector(2);
+            const double tmp23 = rRotationVector(1) * rRotationVector(2);
             if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
                 if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
                     if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
-                        rotation_vector(0) *= M_PI;
-                        rotation_vector(1) *= M_PI;
-                        rotation_vector(2) *= M_PI;
+                        rRotationVector(0) *= M_PI;
+                        rRotationVector(1) *= M_PI;
+                        rRotationVector(2) *= M_PI;
                         return;
                     }
         }
         { // case 2 +--:
-            rotation_vector(0) = tmp1;
-            rotation_vector(1) = -tmp2;
-            rotation_vector(2) = -tmp3;
-            const double tmp12 = rotation_vector[0] * rotation_vector[1];
-            const double tmp13 = rotation_vector[0] * rotation_vector[2];
-            const double tmp23 = rotation_vector[1] * rotation_vector[2];
+            rRotationVector(0) = tmp1;
+            rRotationVector(1) = -tmp2;
+            rRotationVector(2) = -tmp3;
+            const double tmp12 = rRotationVector[0] * rRotationVector[1];
+            const double tmp13 = rRotationVector[0] * rRotationVector[2];
+            const double tmp23 = rRotationVector[1] * rRotationVector[2];
             if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
                 if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
                     if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
-                        rotation_vector(0) *= M_PI;
-                        rotation_vector(1) *= M_PI;
-                        rotation_vector(2) *= M_PI;
+                        rRotationVector(0) *= M_PI;
+                        rRotationVector(1) *= M_PI;
+                        rRotationVector(2) *= M_PI;
                         return;
                     }
         }
         { // case 3 -+-:
-            rotation_vector(0) = -tmp1;
-            rotation_vector(1) = tmp2;
-            rotation_vector(2) = -tmp3;
-            const double tmp12 = rotation_vector(0) * rotation_vector(1);
-            const double tmp13 = rotation_vector(0) * rotation_vector(2);
-            const double tmp23 = rotation_vector(1) * rotation_vector(2);
+            rRotationVector(0) = -tmp1;
+            rRotationVector(1) = tmp2;
+            rRotationVector(2) = -tmp3;
+            const double tmp12 = rRotationVector(0) * rRotationVector(1);
+            const double tmp13 = rRotationVector(0) * rRotationVector(2);
+            const double tmp23 = rRotationVector(1) * rRotationVector(2);
             if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
                 if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
                     if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
-                        rotation_vector(0) *= M_PI;
-                        rotation_vector(1) *= M_PI;
-                        rotation_vector(2) *= M_PI;
+                        rRotationVector(0) *= M_PI;
+                        rRotationVector(1) *= M_PI;
+                        rRotationVector(2) *= M_PI;
                         return;
                     }
         }
         { // case 4 --+:
-            rotation_vector(0) = -tmp1;
-            rotation_vector(1) = -tmp2;
-            rotation_vector(2) = tmp3;
-            const double tmp12 = rotation_vector(0) * rotation_vector(1);
-            const double tmp13 = rotation_vector(0) * rotation_vector(2);
-            const double tmp23 = rotation_vector(1) * rotation_vector(2);
+            rRotationVector(0) = -tmp1;
+            rRotationVector(1) = -tmp2;
+            rRotationVector(2) = tmp3;
+            const double tmp12 = rRotationVector(0) * rRotationVector(1);
+            const double tmp13 = rRotationVector(0) * rRotationVector(2);
+            const double tmp23 = rRotationVector(1) * rRotationVector(2);
             if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
                 if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
                     if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
-                        rotation_vector(0) *= M_PI;
-                        rotation_vector(1) *= M_PI;
-                        rotation_vector(2) *= M_PI;
+                        rRotationVector(0) *= M_PI;
+                        rRotationVector(1) *= M_PI;
+                        rRotationVector(2) *= M_PI;
                         return;
                     }
         }
@@ -895,9 +895,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::getRotationVector(const MatrixType& 
     }
 
     double tmp = angle / 2.0 / sin(angle);
-    rotation_vector(0) = -(rotation_matrix(1,2) - rotation_matrix(2,1)) * tmp;
-    rotation_vector(1) =  (rotation_matrix(0,2) - rotation_matrix(2,0)) * tmp;
-    rotation_vector(2) = -(rotation_matrix(0,1) - rotation_matrix(1,0)) * tmp;
+    rRotationVector(0) = -(rRotationMatrix(1,2) - rRotationMatrix(2,1)) * tmp;
+    rRotationVector(1) =  (rRotationMatrix(0,2) - rRotationMatrix(2,0)) * tmp;
+    rRotationVector(2) = -(rRotationMatrix(0,1) - rRotationMatrix(1,0)) * tmp;
 }
 
 template<class TSparseSpace, class TDenseSpace>

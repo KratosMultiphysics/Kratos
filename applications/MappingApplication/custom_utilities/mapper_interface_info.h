@@ -47,15 +47,15 @@ public:
     /// Pointer definition of MapperInterfaceInfo
     KRATOS_CLASS_POINTER_DEFINITION(MapperInterfaceInfo);
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef typename InterfaceObject::CoordinatesArrayType CoordinatesArrayType;
+    using CoordinatesArrayType = typename InterfaceObject::CoordinatesArrayType;
 
-    typedef InterfaceObject::NodeType NodeType;
-    typedef InterfaceObject::GeometryType GeometryType;
+    using NodeType = InterfaceObject::NodeType;
+    using GeometryType = InterfaceObject::GeometryType;
 
-    typedef Matrix MatrixType;
-    typedef Vector VectorType;
+    using MatrixType = Matrix;
+    using VectorType = Vector;
 
     ///@}
     ///@name  Enum's

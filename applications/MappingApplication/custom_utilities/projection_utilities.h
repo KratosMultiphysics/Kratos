@@ -62,8 +62,8 @@ PairingIndex ProjectOnLineHermitian(const GeometryType& rGeometry,
                                     double& rProjectionDistance,
                                     Point& rProjectionOfPoint);
 
-void HermitianShapeFunctionsValues(Vector &hermitianShapeFunctions, 
-                                   Vector &hermitianShapeFunctionsDer, 
+void HermitianShapeFunctionsValues(Vector& rHermitianShapeFunctions, 
+                                   Vector& rHermitianShapeFunctionsDer, 
                                    const array_1d<double, 3>& rCoordinates);
 
 PairingIndex KRATOS_API(MAPPING_APPLICATION) ProjectOnSurface(const GeometryType& rGeometry,

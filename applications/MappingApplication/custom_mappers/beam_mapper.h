@@ -12,13 +12,11 @@
 //
 // See PhD Thesis Tianyang Wang Chapter 5
 
-#if !defined(KRATOS_BEAM_MAPPER_H_INCLUDED )
-#define  KRATOS_BEAM_MAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
-#include "utilities/math_utils.h"
 
 // Project includes
 #include "mappers/mapper.h"
@@ -112,24 +110,24 @@ public:
         rValue = *(mpInterfaceObject->pGetBaseGeometry());
     }
 
-    void GetValue(MatrixType& rotMatrixValue, 
-                  VectorType& transVectorValue,
-                  VectorType& linearValue, 
-                  VectorType& hermitianValue, 
-                  VectorType& hermitanDerValue) const override 
+    void GetValue(MatrixType& rRotMatrixValue, 
+                  VectorType& rTransVectorValue,
+                  VectorType& rLinearValue, 
+                  VectorType& rHermitianValue, 
+                  VectorType& rHermitianDerValue) const override 
     {
-        rotMatrixValue = mRotationMatrixOfBeam;
+        rRotMatrixValue = mRotationMatrixOfBeam;
 
-        transVectorValue(0) = mProjectionOfPoint[0];
-        transVectorValue(1) = mProjectionOfPoint[1];
-        transVectorValue(2) = mProjectionOfPoint[2];
+        rTransVectorValue(0) = mProjectionOfPoint[0];
+        rTransVectorValue(1) = mProjectionOfPoint[1];
+        rTransVectorValue(2) = mProjectionOfPoint[2];
         
-        linearValue(0) = mLinearShapeFunctionValues[0];
-        linearValue(1) = mLinearShapeFunctionValues[1];
+        rLinearValue(0) = mLinearShapeFunctionValues[0];
+        rLinearValue(1) = mLinearShapeFunctionValues[1];
 
         for (size_t i = 0; i < 4; i++){
-            hermitianValue(i) = mHermitianShapeFunctionValues[i];
-            hermitanDerValue(i) = mHermitianShapeFunctionValuesDerivatives[i];
+            rHermitianValue(i) = mHermitianShapeFunctionValues[i];
+            rHermitianDerValue(i) = mHermitianShapeFunctionValuesDerivatives[i];
         }
     }
 
@@ -260,8 +258,6 @@ public:
 private:
     NodePointerType mpNode;
     VectorType mRotationVectorOfSection;
-    mutable ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
-    double mTheta;
 };
 
 /// Beam Mapper
@@ -275,8 +271,6 @@ private:
  * This mapper can be used for example to couple a 3D continuum
  * structure with a 1D beam structure.
  * This mapper currently only works for linear beams (2-noded elements).
- * The implementation is done in a way that it could be extended to
- * higher order beams in the future.
 */
 template<class TSparseSpace, class TDenseSpace>
 class KRATOS_API(MAPPING_APPLICATION) BeamMapper
@@ -576,9 +570,9 @@ private:
         InitializeInformationBeamsCorotation(rOriginVariablesDisplacements, rOriginVariablesRotations, rDestinationVariableDisplacement);
     }
     
-    void CalculateRotationMatrixWithAngle( VectorType& rAxis, double& rAngle , MatrixType& rRotationMatrix);
+    void CalculateRotationMatrixWithAngle(VectorType& rAxis, double& rAngle , MatrixType& rRotationMatrix);
 
-    void getRotationVector(const MatrixType& rotationMatrix, VectorType& rotationVector);
+    void GetRotationVector(const MatrixType& rRotationMatrix, VectorType& rRotationVector);
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const 
     {
@@ -588,12 +582,12 @@ private:
     Parameters GetMapperDefaultSettings() const 
     {
         return Parameters( R"({
-                "search_settings"              : {},
-                "search_radius"            : -1.0,
-                "search_iterations"        : 3,
-                "local_coord_tolerance"    : 0.25,
-                "echo_level"               : 0,
-                "use_corotation"           : true
+            "search_settings"              : {},
+            "search_radius"            : -1.0,
+            "search_iterations"        : 3,
+            "local_coord_tolerance"    : 0.25,
+            "echo_level"               : 0,
+            "use_corotation"           : true
         })");
     }
 
@@ -603,5 +597,3 @@ private:
 
 ///@} addtogroup block
 }  // namespace Kratos.
-
-#endif // KRATOS_BEAM_MAPPER_H_INCLUDED  defined

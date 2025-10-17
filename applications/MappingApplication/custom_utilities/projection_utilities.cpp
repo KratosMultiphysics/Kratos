@@ -185,7 +185,7 @@ PairingIndex ProjectOnLineHermitian(const GeometryType& rGeometry,
 {
     rProjectionDistance = std::abs(GeometricalProjectionUtilities::FastProjectOnLine(rGeometry, rPointToProject, rProjectionOfPoint));
     array_1d<double, 3> local_coords;
-    PairingIndex pairing_index;
+    PairingIndex pairing_index = PairingIndex::Unspecified;
 
     if (rGeometry.IsInside(rProjectionOfPoint, local_coords, 1e-14)) {
         pairing_index = PairingIndex::Line_Inside;
@@ -195,27 +195,27 @@ PairingIndex ProjectOnLineHermitian(const GeometryType& rGeometry,
     return pairing_index;
 }
 
-void HermitianShapeFunctionsValues (Vector &hermitianShapeFunctions, 
-                                    Vector &hermitianShapeFunctionsDer, 
+void HermitianShapeFunctionsValues (Vector& rHermitianShapeFunctions, 
+                                    Vector& rHermitianShapeFunctionsDer, 
                                     const array_1d<double, 3>& rCoordinates) 
 {
-    if(hermitianShapeFunctions.size() != 4) {
-        hermitianShapeFunctions.resize(4, false);
+    if(rHermitianShapeFunctions.size() != 4) {
+        rHermitianShapeFunctions.resize(4, false);
     }
 
-    hermitianShapeFunctions[0] =  0.25 * ( 1.0 - rCoordinates[0]) * ( 1.0 - rCoordinates[0]) * ( 2.0 + rCoordinates[0]);
-    hermitianShapeFunctions[1] =  0.125 * ( 1.0 - rCoordinates[0]) * ( 1.0 - rCoordinates[0]) * ( 1.0 + rCoordinates[0]);
-    hermitianShapeFunctions[2] =  0.25 * ( 1.0 + rCoordinates[0]) * ( 1.0 + rCoordinates[0]) * ( 2.0 - rCoordinates[0]);
-    hermitianShapeFunctions[3] =  -0.125  * ( 1.0 + rCoordinates[0]) * ( 1.0 + rCoordinates[0]) * ( 1.0 - rCoordinates[0]);
+    rHermitianShapeFunctions[0] =  0.25 * ( 1.0 - rCoordinates[0]) * ( 1.0 - rCoordinates[0]) * ( 2.0 + rCoordinates[0]);
+    rHermitianShapeFunctions[1] =  0.125 * ( 1.0 - rCoordinates[0]) * ( 1.0 - rCoordinates[0]) * ( 1.0 + rCoordinates[0]);
+    rHermitianShapeFunctions[2] =  0.25 * ( 1.0 + rCoordinates[0]) * ( 1.0 + rCoordinates[0]) * ( 2.0 - rCoordinates[0]);
+    rHermitianShapeFunctions[3] =  -0.125  * ( 1.0 + rCoordinates[0]) * ( 1.0 + rCoordinates[0]) * ( 1.0 - rCoordinates[0]);
 
-    if(hermitianShapeFunctionsDer.size() != 4) {
-        hermitianShapeFunctionsDer.resize(4, false);
+    if(rHermitianShapeFunctionsDer.size() != 4) {
+        rHermitianShapeFunctionsDer.resize(4, false);
     }
 
-    hermitianShapeFunctionsDer[0] = -(3 / 2) * ( 1.0 - rCoordinates[0] ) * ( 1.0 + rCoordinates[0] ); 
-    hermitianShapeFunctionsDer[1] = -0.25 * ( 1.0 - rCoordinates[0] ) * ( 1.0 + 3 * rCoordinates[0]) ;
-    hermitianShapeFunctionsDer[2] = (3 / 2) * ( 1.0 + rCoordinates[0] ) * ( 1.0 - rCoordinates[0] );
-    hermitianShapeFunctionsDer[3] = -0.25 * ( 1.0 + rCoordinates[0] ) * ( 1.0 - 3 * rCoordinates[0]) ;    
+    rHermitianShapeFunctionsDer[0] = -(3 / 2) * ( 1.0 - rCoordinates[0] ) * ( 1.0 + rCoordinates[0] ); 
+    rHermitianShapeFunctionsDer[1] = -0.25 * ( 1.0 - rCoordinates[0] ) * ( 1.0 + 3 * rCoordinates[0]) ;
+    rHermitianShapeFunctionsDer[2] = (3 / 2) * ( 1.0 + rCoordinates[0] ) * ( 1.0 - rCoordinates[0] );
+    rHermitianShapeFunctionsDer[3] = -0.25 * ( 1.0 + rCoordinates[0] ) * ( 1.0 - 3 * rCoordinates[0]) ;    
 }
 
 PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
