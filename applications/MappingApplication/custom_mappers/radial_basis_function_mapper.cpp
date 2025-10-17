@@ -89,7 +89,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     const bool project_origin_nodes_to_destination_domain_panel_solver = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["project_origin_nodes_to_destination_domain_panel_solver"].GetBool();
 
     // Determine whether we map structural displacements to panels angle of attack or not
-    const bool const bool map_structural_displacements_to_panels_angles_of_attack = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["map_structural_displacements_to_panels_angles_of_attack"].GetBool();
+    const bool map_structural_displacements_to_panels_angles_of_attack = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["map_structural_displacements_to_panels_angles_of_attack"].GetBool();
 
     // If the origin is IGA, determine the number of integration points over the coupling boundary
     if (is_origin_iga == 1){
