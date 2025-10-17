@@ -24,7 +24,6 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
         # Validation for Time = 1.0, validate total and incremental rotations also for time 1.5
         rotations_for_node_1_time_1 = reader.nodal_values_at_time("ROTATION", 1,
                                                                   simulation_output, [1])[0]
-        print(rotations_for_node_1_time_1)
 
         total_rotations_for_node_1_time_1 = reader.nodal_values_at_time("TOTAL_ROTATION", 1,
                                                                         simulation_output, [1])[0]
