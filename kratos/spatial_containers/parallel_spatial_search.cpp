@@ -308,7 +308,7 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnly
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
 void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
 {
-    auto rank_lambda = [this](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<int>> {
+    auto rank_lambda = [](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<int>> {
         std::vector<std::vector<int>> results;
         rResultsVector.GetResultRank(results);
         return results;
