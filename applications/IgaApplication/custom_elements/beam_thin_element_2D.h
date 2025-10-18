@@ -34,11 +34,11 @@ protected:
         double b_11_covariant;
 
         //base vector 1
-        array_1d<double, 3> a1;
+        array_1d<double, 2> a1;
         //base vector 2 normalized
-        array_1d<double, 3> a2;
+        array_1d<double, 2> a2;
         //not-normalized base vector 2
-        array_1d<double, 3> a2_tilde;
+        array_1d<double, 2> a2_tilde;
 
         //differential length
         double dL;
@@ -392,7 +392,7 @@ private:
     ///@{
 
     void CalculateHessian(
-        array_1d<double, 3>& Hessian,
+        array_1d<double, 2>& Hessian,
         const Matrix& rDDN_DDe) const;
 
     ///@}

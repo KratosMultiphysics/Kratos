@@ -198,13 +198,11 @@ namespace Kratos
         {
             rKinematicVariables.a1[0] += r_DN_De(i, 0) * r_geometry[i].X();
             rKinematicVariables.a1[1] += r_DN_De(i, 0) * r_geometry[i].Y();
-            rKinematicVariables.a1[2] += r_DN_De(i, 0) * r_geometry[i].Z();
         }
 
         //not-normalized base vector 2
         rKinematicVariables.a2_tilde[0] = -rKinematicVariables.a1[1];
         rKinematicVariables.a2_tilde[1] = rKinematicVariables.a1[0];
-        rKinematicVariables.a2_tilde[2] = rKinematicVariables.a1[2];
 
         //differential length dL
         rKinematicVariables.dL = norm_2(rKinematicVariables.a1);
@@ -213,12 +211,12 @@ namespace Kratos
         noalias(rKinematicVariables.a2) = rKinematicVariables.a2_tilde / rKinematicVariables.dL;
 
         //GetCovariantMetric
-        rKinematicVariables.a_11_covariant = pow(rKinematicVariables.a1[0], 2) + pow(rKinematicVariables.a1[1], 2) + pow(rKinematicVariables.a1[2], 2);
+        rKinematicVariables.a_11_covariant = pow(rKinematicVariables.a1[0], 2) + pow(rKinematicVariables.a1[1], 2);
 
-        array_1d<double, 3> H = ZeroVector(3);
+        array_1d<double, 2> H = ZeroVector(2);
         CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
-        rKinematicVariables.b_11_covariant = H[0] * rKinematicVariables.a2[0] + H[1] * rKinematicVariables.a2[1] + H[2] * rKinematicVariables.a2[2];
+        rKinematicVariables.b_11_covariant = H[0] * rKinematicVariables.a2[0] + H[1] * rKinematicVariables.a2[1];
     }
 
     void BeamThinElement2D::CalculateConstitutiveVariables(
@@ -292,7 +290,7 @@ namespace Kratos
             rB.resize(mat_size);
         noalias(rB) = ZeroVector(mat_size);
 
-        array_1d<double, 3> H = ZeroVector(3);
+        array_1d<double, 2> H = ZeroVector(2);
         CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
 
         // compute coeficients needed for the curvature
@@ -455,7 +453,7 @@ namespace Kratos
     }
 
     void BeamThinElement2D::CalculateHessian(
-        array_1d<double, 3>& Hessian,
+        array_1d<double, 2>& Hessian,
         const Matrix& rDDN_DDe) const
     {
         const SizeType number_of_points = GetGeometry().size();
@@ -466,7 +464,6 @@ namespace Kratos
 
             Hessian[0] += rDDN_DDe(k, 0)*coords[0];
             Hessian[1] += rDDN_DDe(k, 0)*coords[1];
-            Hessian[2] += rDDN_DDe(k, 0)*coords[2];
         }
     }
 
