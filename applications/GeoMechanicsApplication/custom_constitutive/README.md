@@ -57,7 +57,7 @@ Where:
 The Mohr-Coulomb failure criterion is defined as:
 
 ```math
-    F_{mc}(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\phi} - c \cos⁡{\phi} = 0
+    F_{MC}(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\phi} - c \cos⁡{\phi} = 0
 ```
 
 where:
@@ -129,5 +129,215 @@ This mapping is based on a new Mohr-Coulomb diagram with modified zones, based o
 
 ### Detailed formulations
 
-For detailed formulations, see [here](documentation_data/Mohr-Coulomb-with-tension_cutoff-formulations.pdf)
+#### Tensile apex return zone
+
+First need to find whether there is intersection between the Yield and cutoff functions at the region of $\tau \ge 0$.
+
+Find the root of $F_{MC}$ (apex).
+
+$$ \sigma_{MC} = \frac{C}{\tan{\phi}} $$
+
+If $t_c < \sigma_{MC}$ we find a line perpendicular to the tensile-cutoff curve passing through the apex point. The equation for the tension-cutoff is:
+
+$$ \tau = - \sigma + t_c $$
+
+Then the perpendicular line passing from the apex point is:
+
+$$ \tau - \sigma + t_c = 0 $$
+
+Any trial stress which falls below this line is then belong to this region. It is namely:
+
+$$ \tau^{trial} - \sigma^{trial} + t_c < 0 $$
+
+If a point falls in this zone, it will be mapped back to the root point of the tension-cutoff line, namely to point $\sigma = t_c$ and $\tau = 0$. Then update the principal stresses based on the mapper values.
+
+$$ \sigma_1 = \sigma + \tau $$
+$$ \sigma_3 = \sigma - \tau $$
+
+They are the corrected principal stresses. They need to be rotated back to the element axes system. We need to use the rotation matrix.
+
+$$ \boldsymbol{\sigma} = \boldsymbol{R \sigma_p R^{-1}} $$
+
+The rotation matrix is orthogonal
+
+$$ \boldsymbol{R^T} = \boldsymbol{R^{-1}} \Rightarrow \boldsymbol{\sigma} = \boldsymbol{R \sigma_p R^{-1}} $$
+
+Where
+
+$$ \boldsymbol{\sigma_p} =
+\begin{bmatrix}
+\sigma_1 & 0 & 0 \\
+0 & \sigma_2 & 0 \\
+0 & 0 & \sigma_3
+\end{bmatrix} $$
+
+
+### Tensile cutoff return zone
+
+We need to find the shear at the intersection point. Setting  $\sigma_1 = t_c$ in the yield function (if $t_c < \sigma_{MC}$):
+
+$$ -\sigma + t + \sigma \sin{\phi} - C \cos{\phi} = 0 $$
+
+Then 
+
+$$ \tau_{corner} = \frac{C \cos⁡{\phi} - t_c \sin{\phi}⁡}{1-\sin{\phi}} $$
+
+$$ \sigma_{corner} = \frac{t_c - C \cos⁡{\phi}}{1 - \sin⁡{ϕ}} $$
+
+A perpendicular to the tension-cutoff curve, passing from the corner point is:
+
+$$ \tau - \tau_{corner} = \sigma - \sigma_{corner} $$
+
+Then the condition is:
+
+$$ \left(\tau^{trial} - \tau_{corner}) - (\sigma^{trial} - \sigma_{corner} \right) < 0 $$
+
+Each point which is outside the previous region (tensile-apex region) and follows this condition, then we need to map the trial stresses to the tension-cutoff curve. It means:
+
+$$ \sigma + \tau = t_c $$
+
+We move perpendicular to the tension-cutoff surface. We use here the derivative of the flow function related to the tension cutoff surface.
+
+$$ \dot{\lambda} = \frac{\sigma + \tau - t_c}{\partial G_t / \partial \boldsymbol{\sigma}} $$
+
+$$ \frac{\partial G_t}{\partial \boldsymbol{\sigma}} = \begin{bmatrix} 1 \\ 1 \end{bmatrix} $$
+
+$$ \sigma^{map} = \sigma^{trial} + \dot{\lambda} \frac{\partial G_t}{\partial \sigma} $$
+
+They are the corrected principal stresses. They need to be rotated back to the element axes system.
+
+
+### Zone of tensile corner return
+
+This zone is located under the line which is perpendicular to the flow function and passes through the intersection point of yield function and tension cutoff. 
+
+First we find the intersection point. The intersection point is related whether the tension-cutoff crosses the yield function. 
+
+#### The tension-cut-off crosses the yield function:
+In this case of crossing the shear can be found like the previous region:
+
+$$ \tau_{corner} = \frac{C \cos{\phi} - t_c \sin{\phi}}{1 - \sin{\phi}} $$
+
+And the normal stress can be found by
+
+$$ \sigma_{corner} = \frac{t_c - C \cos{\phi}}{1 - \sin{\phi}} $$
+
+
+#### The tension-cutoff is located outside:
+Then this point is equal to the root, which was derived in the previous section:
+
+$$ \tau_{corner} = 0 $$
+
+$$ \sigma_{corner} = \frac{C}{\tan{\phi}} $$
+
+#### Flow function:
+The flow function is:
+
+$$ G_{MC}(\boldsymbol{\sigma}) = \tau + \sigma \sin{\psi} = 0 $$
+
+$$ \tau =- \sigma \sin{\psi} $$
+
+The slope of this line is $-\sin⁡{\psi}$. The slope of a line perpendicular is then
+
+$$ m = \frac{1}{\sin{\psi}} $$
+
+If we consider a line as $\tau = m \sigma + B$, and substituting the intersection point
+
+$$ \tau_{corner} =m \sigma_{corner} + B $$
+$$ B = \tau_{corner} -m \sigma_{corner} $$
+
+Then
+
+$$ g = (\tau - \tau_{corner}) - \frac{1}{\sin{\psi}} (\sigma - \sigma_{corner}) = 0 $$
+
+This zone is defined in the region below this function and above the axial region (above the shear at intersection).
+
+$$ g \ge 0 , \tau_{trial} > \tau_{corner} $$
+
+Then
+
+$$ \tau = \tau_{corner} $$
+$$ \sigma = \sigma_{corner} $$
+
+They are the corrected principal stresses. They need to be rotated back to the element axes system. We need to use the rotation matrix, similar as done above for other regions. 
+
+
+### Zone of regular failure
+This zone is associated with the region above the yield function and above the function g derived in the previous section.
+
+$$ F_{MC} > 0, g < 0 $$
+
+We can use the derivative of the flow function to define the direction and find the return point on the yield surface.
+
+$$ \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} = \begin{bmatrix} \sin{\psi} \\ 1 \end{bmatrix} = \begin{bmatrix} n_1 \\ n_2 \end{bmatrix} $$
+
+Then a parametrized line can be defined by:
+
+$$ \sigma = \sigma^{trial} + \dot{\lambda} n_1 $$
+$$ \tau = \tau^{trial} + \dot{\lambda} n_2 $$
+
+At yield function,
+
+$$ F_{MC} = \tau + \sigma \sin{\phi} - C \cos⁡{\phi} = 0 $$
+$$ \sigma \sin{\phi} + \tau = C \cos{\phi} $$
+
+Solving this 3 equations:
+
+$$ \dot{\lambda} = \frac{C_2 - \sigma^{trial} C_1 - \tau^{trial}}{n_1 C_1 + n_3} $$
+
+Where $C_1 = \sin{\phi}$ and $C_2 = C \cos{\phi} $. Then
+
+$$ \sigma_1 = \dot{\lambda} \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} + \sigma_1^{trial} $$
+
+They are the corrected principal stresses. They need to be rotated back to the element axes system.
+
+### Rotation matrix
+The rotation matrix is derived from the eigenvectors of the Cauchy stresses. Having three eigenvectors related to the principal stresses
+
+$$ \begin{bmatrix} v_1 & v_2 & v_3 \end{bmatrix} $$
+
+Normalizing the vectors, it results in rotation matrix
+
+$$ \boldsymbol{R} = \begin{bmatrix} \frac{v_1}{\lVert v_1 \rVert} & \frac{v_2}{\lVert v_2 \rVert} & \frac{v_3}{\lVert v_3 \rVert} \end{bmatrix} $$
+
+
+### Reordering
+It can happen that, after mapping, the role of the principal stress change, and the condition $\sigma_1 \ge \sigma_2 \ge \sigma_3$ is no longer valid. In such a case, we apply averaging to the principal stresses and their associated mapping directions.
+
+- Case $\sigma_1 < \sigma_2$: Then we use averaging on the initial principle trial stresses (principal trial stresses before mapping) as follows:
+	
+$$ \sigma_1 = \sigma_2 = \frac{\sigma_1 + \sigma_2}{2} $$
+$$ \frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left(\frac{\partial G}{\partial \sigma_1} + \frac{\partial G}{\partial \sigma_2} \right) $$
+
+Where $G$ is the flow function. For Mohr-Coulomb, the derivative of flow function is:
+
+$$ \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} = \begin{bmatrix} \frac{1}{2} \left( 1 + \sin{\psi} \right) \\ 0 \\ \frac{1}{2} \left( -1 + \sin{\psi} \right) \end{bmatrix}$$
+
+Then the averaging leads to:
+
+$$ \frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{4} \left( 1 + \sin⁡{\psi} \right) $$
+$$ \frac{\partial G}{\partial \sigma_3} = - \frac{1}{2} \left( 1 - \sin⁡{\psi} \right) $$
+
+As we solve our mapping based on $\sigma$ and $\tau$, we need to convert this to:
+
+$$ \frac{\partial G}{\partial \sigma} = - \frac{1}{4} \left( 1 - 3 \sin⁡{\psi} \right) $$
+$$ \frac{\partial G}{\partial \tau} = \frac{1}{4} \left( 3 - \sin{\psi} \right) $$
+
+- Case $\sigma_1 < \sigma_2$: Then we use averaging on the initial principle trial stresses (principal trial stresses before mapping) as follows:
+	
+$$ \sigma_1 = \sigma_2 = \frac{\sigma_1 + \sigma_2}{2} $$
+$$ \frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left( \frac{\partial G}{\partial \sigma_1} + \frac{\partial G}{\partial \sigma_2} \right) $$
+
+Then the averaging of the mapping direction leads to:
+
+$$ \frac{\partial G}{\partial \sigma_3} = \frac{\partial G}{\partial \sigma_2} = - \frac{1}{4} \left( 1 - \sin⁡{\psi} \right) $$
+$$ \frac{\partial G}{\partial \sigma_1} = \frac{1}{2} \left( 1 + \sin⁡{\psi} \right) $$
+
+And based on $\sigma$ and $\tau$:
+
+$$ \frac{\partial G}{\partial \sigma} = \frac{1}{4} \left( 1 + 3 \sin⁡{\psi} \right) $$
+$$ \frac{\partial G}{\partial \tau} = \frac{1}{4} \left( 3 + \sin⁡{\psi} \right) $$
+
+Note that after averaging the mapping direction, we modify the Mohr-Coulomb curve to account for the modified mapping direction. 
+The mapping direction for tension cutoff stays unchanged because applying such averaging leads to the same form of mapping. After averaging the mapping for tension cutoff stays unchanged.
 
