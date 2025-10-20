@@ -26,13 +26,13 @@
 
 namespace Kratos {
 
-Kernel::Kernel() 
-    : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(std::string("KratosMultiphysics"))) 
+Kernel::Kernel()
+    : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(std::string("KratosMultiphysics")))
 {
     Initialize();
 }
 
-Kernel::Kernel(bool IsDistributedRun) 
+Kernel::Kernel(bool IsDistributedRun)
         : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(std::string("KratosMultiphysics")))
 {
     // Distributed run definition
@@ -63,11 +63,7 @@ void Kernel::Initialize() {
 
     // Import the Kratos core application (if not already imported)
     if (!IsImported("KratosMultiphysics")) {
-        // Boost is always available
-        if (!Registry::HasItem("libraries.boost")) {
-            Registry::AddItem<std::string>("libraries.boost");
-
-            // When using the nonfree version of TRIANGLE, add it to the list of libraries
+        // When using the nonfree version of TRIANGLE, add it to the list of libraries
         #if USE_TRIANGLE_NONFREE_TPL
             Registry::AddItem<std::string>("libraries.triangle");
         #else
@@ -90,20 +86,20 @@ void Kernel::Initialize() {
             Registry::AddItem<std::string>("libraries.benchmark");
         #endif
 
-            // Add the libraries that are always available
-            Registry::AddItem<std::string>("libraries.amgcl");
-            Registry::AddItem<std::string>("libraries.clipper");
-            Registry::AddItem<std::string>("libraries.concurrentqueue");
-            Registry::AddItem<std::string>("libraries.ghc");
-            Registry::AddItem<std::string>("libraries.gidpost");
-            Registry::AddItem<std::string>("libraries.intrusive_ptr");
-            Registry::AddItem<std::string>("libraries.json");
-            Registry::AddItem<std::string>("libraries.pybind11");
-            Registry::AddItem<std::string>("libraries.span");
-            Registry::AddItem<std::string>("libraries.tinyexpr");
-            Registry::AddItem<std::string>("libraries.vexcl");
-            Registry::AddItem<std::string>("libraries.zlib");
-        }
+        // Add the libraries that are always available
+        Registry::AddItem<std::string>("libraries.amgcl");
+        Registry::AddItem<std::string>("libraries.boost");
+        Registry::AddItem<std::string>("libraries.clipper");
+        Registry::AddItem<std::string>("libraries.concurrentqueue");
+        Registry::AddItem<std::string>("libraries.ghc");
+        Registry::AddItem<std::string>("libraries.gidpost");
+        Registry::AddItem<std::string>("libraries.intrusive_ptr");
+        Registry::AddItem<std::string>("libraries.json");
+        Registry::AddItem<std::string>("libraries.pybind11");
+        Registry::AddItem<std::string>("libraries.span");
+        Registry::AddItem<std::string>("libraries.tinyexpr");
+        Registry::AddItem<std::string>("libraries.vexcl");
+        Registry::AddItem<std::string>("libraries.zlib");
 
         // Import core application
         this->ImportApplication(mpKratosCoreApplication);
