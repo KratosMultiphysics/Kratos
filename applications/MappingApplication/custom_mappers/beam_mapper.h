@@ -7,8 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    E. G. Loera Villeda
-//  Contributor:     Juan I. Camarotti
+// Main authors:    E. G. Loera Villeda
+// Contributor:     Juan I. Camarotti
 //
 // See PhD Thesis Tianyang Wang Chapter 5
 
