@@ -112,8 +112,6 @@ TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
             param.name);
 }
 
-using ProcessFactoryFunction = std::function<Process*(Model&, Parameters)>;
-
 static const std::vector<NamedProcessFactory> kProcessFactories = {
     {"ApplyExcavationProcess",
      [](Model& rModel, const Parameters& rSettings) {
