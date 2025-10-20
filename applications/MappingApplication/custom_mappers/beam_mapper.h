@@ -10,7 +10,7 @@
 // Main authors:    E. G. Loera Villeda
 // Contributor:     Juan I. Camarotti
 //
-// See PhD Thesis Tianyang Wang Chapter 5
+//  See PhD Thesis Tianyang Wang Chapter 5
 
 #pragma once
 
