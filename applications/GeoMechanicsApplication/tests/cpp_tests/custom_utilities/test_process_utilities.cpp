@@ -10,6 +10,8 @@
 //  Main authors:    Gennady Markelov
 //
 
+#include "custom_processes/apply_excavation_process.h"
+#include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_utilities/process_utilities.h"
 #include "testing/testing.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -51,39 +53,76 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
     KRATOS_CHECK_EQUAL(model_parts[1].get().Name(), "Part2");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_BothParametersPresent_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
+struct NamedProcessFactory {
+    std::string                                                         name;
+    std::function<Kratos::Process*(Kratos::Model&, Kratos::Parameters)> factory;
+};
+
+class ProcessWithModelPartsTest : public ::testing::TestWithParam<NamedProcessFactory>
+{
+};
+
+TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_BothParametersPresent_Throws)
 {
     Model model;
 
     Parameters settings(R"(
         {
             "model_part_name": "Part1",
-            "model_part_name_list": ["Part2"]
+            "model_part_name_list": ["Part2"],
+            "deactivate_soil_part": false
         })");
 
+    auto param = GetParam();
+
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess"),
-        "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive");
+        std::unique_ptr<Kratos::Process> process(param.factory(model, settings));
+        ,
+        "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for " +
+            param.name);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_MissingParameters_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_MissingParameters_Throws)
 {
     Model      model;
-    Parameters settings("{}");
+    Parameters settings(R"({"deactivate_soil_part": false})");
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess"),
-                                     "Please specify 'model_part_name' or 'model_part_name_list'");
+    auto param = GetParam();
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        std::unique_ptr<Kratos::Process> process(param.factory(model, settings));
+        , "Please specify 'model_part_name' or 'model_part_name_list' for " + param.name);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_EmptyList_Throws, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
 {
     Model      model;
     Parameters settings(R"(
         {
-            "model_part_name_list": []
+            "model_part_name_list": [],
+            "deactivate_soil_part": false
         })");
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess"), "The parameters 'model_part_name_list' needs to contain at least one model part name for TestProcess");
+    auto param = GetParam();
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        std::unique_ptr<Kratos::Process> process(param.factory(model, settings));
+        ,
+        "The parameters 'model_part_name_list' needs to contain at least one model part name for " +
+            param.name);
 }
+
+using ProcessFactoryFunction = std::function<Process*(Model&, Parameters)>;
+
+static const std::vector<NamedProcessFactory> kProcessFactories = {
+    {"ApplyExcavationProcess",
+     [](Model& rModel, Parameters rSettings) {
+    return new Kratos::ApplyExcavationProcess(rModel, rSettings);
+}},
+    {"ApplyK0ProcedureProcess", [](Model& rModel, Parameters rSettings) {
+    return new Kratos::ApplyK0ProcedureProcess(rModel, rSettings);
+}}};
+
+INSTANTIATE_TEST_SUITE_P(ProcessUtilitiesTests, ProcessWithModelPartsTest, ::testing::ValuesIn(kProcessFactories));
 
 } // namespace Kratos::Testing
