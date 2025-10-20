@@ -360,6 +360,11 @@ public:
     }
 
     /**
+     * @brief This method add the body forces contribution to the RHS
+     */
+    void AddBodyForces(const double Area, VectorType &rRightHandSideVector);
+
+    /**
      * @brief This method returns a material property (e.g. Poisson ratio) without assuming that this property is
      * in the main property. It looks into the subproperties to find the property.
      */
