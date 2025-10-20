@@ -20,7 +20,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleModelPart, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_model_part = model.CreateModelPart("Main");
+    model.CreateModelPart("Main");
 
     Parameters settings(R"(
         {
