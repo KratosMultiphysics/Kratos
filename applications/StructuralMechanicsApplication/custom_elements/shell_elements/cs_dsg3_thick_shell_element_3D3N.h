@@ -67,6 +67,8 @@ public:
     using bounded_3_matrix = BoundedMatrix<double, 3, 3>; // rotation matrix
     using bounded_18_matrix = BoundedMatrix<double, 18, 18>; // stiffness matrix
 
+    static constexpr bool is_corotational = IS_COROTATIONAL;
+
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CSDSG3ThickShellElement3D3N);
 
@@ -429,6 +431,10 @@ protected:
     IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; /// Currently selected integration methods
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
+
+    Quaternion<double> mQ0; /// The initial rotation quaternion (used only for corotational formulation)
+    array_1d< Quaternion<double>, 3 > mQN; // The rotation quaternions at the nodes (used only for corotational formulation)
+    
 
     ///@}
     ///@name Protected Operators
