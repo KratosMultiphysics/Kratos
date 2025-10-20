@@ -2,7 +2,6 @@ import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
-import glob
 
 import KratosMultiphysics.GeoMechanicsApplication
 from KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis import (
@@ -20,8 +19,7 @@ class KratosGeoMechanicsDeactivationWithStructuralTest(KratosUnittest.TestCase):
         test_name = "deactivation_with_structural_element"
         project_path = test_helper.get_file_path(test_name)
 
-        file_pattern = os.path.join(project_path, "ProjectParameters_stage*.json")
-        stage_files = glob.glob(file_pattern)
+        stage_files = [os.path.join(project_path, filename) for filename in ["ProjectParameters_stage1.json", "ProjectParameters_stage2.json"]]
 
         cwd = os.getcwd()
         os.chdir(project_path)
