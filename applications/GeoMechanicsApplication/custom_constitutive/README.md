@@ -214,7 +214,10 @@ We move perpendicular to the tension-cutoff surface. We use here the derivative 
 
 $$ \dot{\lambda} = \frac{\sigma + \tau - t_c}{\partial G_t / \partial \boldsymbol{\sigma}} $$
 
-$$ \frac{\partial G_t}{\partial \boldsymbol{\sigma}} = \begin{bmatrix} 1 \\ 1 \end{bmatrix} $$
+$$ \frac{\partial G_t}{\partial \boldsymbol{\sigma}} = 
+\begin{bmatrix} 1 \\
+1
+\end{bmatrix} $$
 
 $$ \sigma^{map} = \sigma^{trial} + \dot{\lambda} \frac{\partial G_t}{\partial \sigma} $$
 
