@@ -19,6 +19,8 @@
 // Application includes
 #include "cs_dsg3_thick_shell_element_3D3N.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/EICR.hpp"
+#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 
 namespace Kratos
 {
@@ -956,7 +958,60 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeCorotationalCalculati
         const bool RHS_required,
         const bool LHS_required)
 {
-    
+    bounded_3_matrix T;
+    CalculateRotationMatrixLocalToGlobal(T, false);
+    bounded_18_matrix GlobalSizeRotationMatrix;
+    GlobalSizeRotationMatrix.clear();
+    const auto& r_geometry = GetGeometry();
+    const SizeType num_nodes = r_geometry.PointsNumber();
+    const SizeType global_size = num_nodes * GetDoFsPerNode();
+
+    for (IndexType k = 0; k < 6; k++) {
+        IndexType i = k * 3;
+
+        GlobalSizeRotationMatrix(i, i)         = T(0, 0);
+        GlobalSizeRotationMatrix(i, i + 1)     = T(0, 1);
+        GlobalSizeRotationMatrix(i, i + 2)     = T(0, 2);
+        GlobalSizeRotationMatrix(i + 1, i)     = T(1, 0);
+        GlobalSizeRotationMatrix(i + 1, i + 1) = T(1, 1);
+        GlobalSizeRotationMatrix(i + 1, i + 2) = T(1, 2);
+        GlobalSizeRotationMatrix(i + 2, i)     = T(2, 0);
+        GlobalSizeRotationMatrix(i + 2, i + 1) = T(2, 1);
+        GlobalSizeRotationMatrix(i + 2, i + 2) = T(2, 2);
+    }
+
+    MatrixType P(global_size, global_size), S(global_size, 3), G(num_nodes, global_size);
+    noalias(P) = EICR::Compute_Pt(num_nodes);
+    noalias(S) = EICR::Compute_S(std::vector<array_3>{r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates()});
+
+    const auto LCS = ShellT3_LocalCoordinateSystem(r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates());
+    auto shell3_corot_coord_transf = ShellT3_CorotationalCoordinateTransformation(pGetGeometry());
+    shell3_corot_coord_transf.Initialize();
+    noalias(G) = shell3_corot_coord_transf.RotationGradient(LCS);
+    noalias(P) -= prod(S, G);
+
+    if (RHS_required) {
+        // Compute the Right-Hand-Side vector in global coordinate system (- T' * P' * Km * U).
+        // At this point the computation of the Right-Hand-Side is complete.
+        VectorType projectedLocalForces(prod(trans(P), rRHS));
+        noalias(rRHS) = prod(trans(T), projectedLocalForces);
+    }
+    if (LHS_required) {
+        MatrixType temp(global_size, global_size);
+        MatrixType H(EICR::Compute_H(rLocalNodalValues));
+
+        noalias(temp) = prod(rLHS, H);
+        noalias(rLHS) = prod(temp, P);
+        noalias(temp) = prod(trans(P), rLHS);
+        rLHS.swap(temp);
+    }
+
+
+
+
+
+
+
 }
 
 /***********************************************************************************/
