@@ -19,8 +19,7 @@
         "domain_size"                        : 2,
         "echo_level"                         : 0,
         "model_import_settings"              : {
-            "input_type"     : "mdpa",
-            "input_filename" : "excavation_test_with_structural_elements"
+            "input_type"     : "use_input_model_part"
         },
         "material_import_settings"           : {
             "materials_filename" : "Materials.json"
