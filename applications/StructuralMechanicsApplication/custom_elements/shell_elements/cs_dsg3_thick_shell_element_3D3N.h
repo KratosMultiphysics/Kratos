@@ -50,6 +50,7 @@ namespace Kratos
  * DOI: 10.3844/ajeassp.2016.420.431
  * @author Alejandro Cornejo
  */
+template <bool IS_COROTATIONAL>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CSDSG3ThickShellElement3D3N
     : public Element
 {

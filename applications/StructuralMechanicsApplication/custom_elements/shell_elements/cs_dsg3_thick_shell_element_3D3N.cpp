@@ -19,7 +19,6 @@
 // Application includes
 #include "cs_dsg3_thick_shell_element_3D3N.h"
 #include "structural_mechanics_application_variables.h"
-// #include "geometries/triangle_3d_3.h"
 
 namespace Kratos
 {
@@ -27,7 +26,8 @@ namespace Kratos
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::Initialize(const ProcessInfo& rCurrentProcessInfo)
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -47,7 +47,8 @@ void CSDSG3ThickShellElement3D3N::Initialize(const ProcessInfo& rCurrentProcessI
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::InitializeMaterial()
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeMaterial()
 {
     KRATOS_TRY
 
@@ -71,15 +72,15 @@ void CSDSG3ThickShellElement3D3N::InitializeMaterial()
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer CSDSG3ThickShellElement3D3N::Clone(
+template <bool IS_COROTATIONAL>
+Element::Pointer CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes
     ) const
 {
     KRATOS_TRY
 
-    CSDSG3ThickShellElement3D3N::Pointer p_new_elem = Kratos::make_intrusive<CSDSG3ThickShellElement3D3N>
-        (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    CSDSG3ThickShellElement3D3N::Pointer p_new_elem = Kratos::make_intrusive<CSDSG3ThickShellElement3D3N>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -97,7 +98,8 @@ Element::Pointer CSDSG3ThickShellElement3D3N::Clone(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::EquationIdVector(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -129,7 +131,8 @@ void CSDSG3ThickShellElement3D3N::EquationIdVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::GetDofList(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -155,7 +158,9 @@ void CSDSG3ThickShellElement3D3N::GetDofList(
 
 /***********************************************************************************/
 /***********************************************************************************/
-double CSDSG3ThickShellElement3D3N::CalculateArea(
+
+template <bool IS_COROTATIONAL>
+double CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateArea(
     const array_3& r_coord_1, 
     const array_3& r_coord_2, 
     const array_3& r_coord_3 
@@ -173,7 +178,8 @@ double CSDSG3ThickShellElement3D3N::CalculateArea(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::CalculateRotationMatrixLocalToGlobal(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixLocalToGlobal(
     bounded_3_matrix& rRotationMatrix
 ) const
 {
@@ -216,7 +222,8 @@ void CSDSG3ThickShellElement3D3N::CalculateRotationMatrixLocalToGlobal(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::RotateLHSToGlobal(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::RotateLHSToGlobal(
     MatrixType& rLHS,
     const bounded_3_matrix& rRotationMatrix // provided
 ) const
@@ -257,7 +264,8 @@ void CSDSG3ThickShellElement3D3N::RotateLHSToGlobal(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::RotateRHSToGlobal(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::RotateRHSToGlobal(
     VectorType& rRHS,
     const bounded_3_matrix& rRotationMatrix // provided
 ) const
@@ -286,7 +294,8 @@ void CSDSG3ThickShellElement3D3N::RotateRHSToGlobal(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::RotateRHSToLocal(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::RotateRHSToLocal(
     VectorType& rRHS,
     const bounded_3_matrix& rRotationMatrix // provided
 ) const
@@ -315,7 +324,8 @@ void CSDSG3ThickShellElement3D3N::RotateRHSToLocal(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateBTriangle(
     MatrixType& rB,
     const double Area,
     const array_3& r_local_coord_1,
@@ -541,7 +551,8 @@ void CSDSG3ThickShellElement3D3N::CalculateBTriangle(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::GetNodalValuesVector(VectorType& rNodalValues) const
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetNodalValuesVector(VectorType& rNodalValues) const
 {
     KRATOS_TRY
     const auto& r_geometry = GetGeometry();
@@ -561,7 +572,8 @@ void CSDSG3ThickShellElement3D3N::GetNodalValuesVector(VectorType& rNodalValues)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::CalculateB(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateB(
     MatrixType &rB
 )
 {
@@ -571,7 +583,8 @@ void CSDSG3ThickShellElement3D3N::CalculateB(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
     MatrixType& rLHS,
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo
@@ -655,7 +668,8 @@ void CSDSG3ThickShellElement3D3N::CalculateLocalSystem(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::CalculateLeftHandSide(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLeftHandSide(
     MatrixType& rLHS,
     const ProcessInfo& rProcessInfo
     )
@@ -731,7 +745,8 @@ void CSDSG3ThickShellElement3D3N::CalculateLeftHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo
     )
@@ -807,7 +822,8 @@ void CSDSG3ThickShellElement3D3N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::AddBodyForces(const double Area,
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::AddBodyForces(const double Area,
     VectorType &rRightHandSideVector)
 {
     KRATOS_TRY
@@ -847,7 +863,8 @@ void CSDSG3ThickShellElement3D3N::AddBodyForces(const double Area,
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -917,7 +934,8 @@ void CSDSG3ThickShellElement3D3N::FinalizeSolutionStep(const ProcessInfo& rCurre
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -986,7 +1004,8 @@ void CSDSG3ThickShellElement3D3N::InitializeSolutionStep(const ProcessInfo& rCur
 /***********************************************************************************/
 /***********************************************************************************/
 
-int CSDSG3ThickShellElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo) const
+template <bool IS_COROTATIONAL>
+int CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -1002,10 +1021,11 @@ int CSDSG3ThickShellElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo) c
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::save(Serializer& rSerializer) const
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-    int IntMethod = int(this->GetIntegrationMethod());
+    int IntMethod = int(GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
 }
@@ -1013,7 +1033,8 @@ void CSDSG3ThickShellElement3D3N::save(Serializer& rSerializer) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CSDSG3ThickShellElement3D3N::load(Serializer& rSerializer)
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     int IntMethod;
@@ -1021,5 +1042,16 @@ void CSDSG3ThickShellElement3D3N::load(Serializer& rSerializer)
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// Either corotational or linear
+template class CSDSG3ThickShellElement3D3N<true>;
+template class CSDSG3ThickShellElement3D3N<false>;
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 
 } // Namespace Kratos

@@ -305,7 +305,8 @@ private:
     const ShellThinElement3D3N<ShellKinematics::LINEAR>                  mShellThinElement3D3N;
     const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D3N;
     const ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D3N;
-    const CSDSG3ThickShellElement3D3N mCSDSG3ThickShellElement3D3N;
+    const CSDSG3ThickShellElement3D3N<false> mCSDSG3ThickShellLinearElement3D3N;
+    const CSDSG3ThickShellElement3D3N<true> mCSDSG3ThickShellCorotationalElement3D3N;
 
     // Adding the membrane elements
     const MembraneElement mMembraneElement3D4N;
