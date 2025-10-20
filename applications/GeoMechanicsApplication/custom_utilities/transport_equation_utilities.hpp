@@ -129,8 +129,8 @@ public:
                                                                                       double BishopCoefficient,
                                                                                       double IntegrationCoefficient)
     {
-        return PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient * BishopCoefficient * IntegrationCoefficient *
-                       outer_prod(Vector(prod(trans(rB), rVoigtVector)), rNp);
+        return PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient * BishopCoefficient *
+               IntegrationCoefficient * outer_prod(Vector(prod(trans(rB), rVoigtVector)), rNp);
     }
 
     template <unsigned int TNumNodes>
