@@ -31,7 +31,8 @@ public:
     ApplyExcavationProcess(const ApplyExcavationProcess&)            = delete;
     ApplyExcavationProcess& operator=(const ApplyExcavationProcess&) = delete;
 
-    void ExecuteInitialize() override;
+    void                      ExecuteInitialize() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
     std::vector<std::reference_wrapper<ModelPart>> mrModelParts;

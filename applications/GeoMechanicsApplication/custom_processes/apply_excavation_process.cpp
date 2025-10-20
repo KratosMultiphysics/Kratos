@@ -55,6 +55,8 @@ void ApplyExcavationProcess::ExecuteInitialize()
     KRATOS_CATCH("")
 }
 
+std::string ApplyExcavationProcess::Info() const { return "ApplyExcavationProcess"; }
+
 ApplyExcavationProcess::~ApplyExcavationProcess() = default;
 
 } // namespace Kratos
