@@ -32,6 +32,7 @@
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/generalized_newmark_T_scheme.hpp"
 #include "custom_strategies/schemes/geomechanics_static_scheme.hpp"
+#include "custom_strategies/schemes/load_stepping_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
@@ -69,7 +70,8 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
         BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>;
     using BackwardEulerQuasistaticTSchemeType = BackwardEulerTScheme<SparseSpaceType, LocalSpaceType>;
 
-    using GeoStaticSchemeType = GeoMechanicsStaticScheme<SparseSpaceType, LocalSpaceType>;
+    using GeoStaticSchemeType       = GeoMechanicsStaticScheme<SparseSpaceType, LocalSpaceType>;
+    using GeoLoadSteppingSchemeType = LoadSteppingScheme<SparseSpaceType, LocalSpaceType>;
 
     using GeoMechanicsNewtonRaphsonStrategyType =
         GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
@@ -110,6 +112,10 @@ void AddCustomStrategiesToPython(const pybind11::module& m)
 
     py::class_<GeoStaticSchemeType, typename GeoStaticSchemeType::Pointer, BaseSchemeType>(
         m, "GeoStaticScheme")
+        .def(py::init<>());
+
+    py::class_<GeoLoadSteppingSchemeType, typename GeoLoadSteppingSchemeType::Pointer, BaseSchemeType>(
+        m, "GeoLoadSteppingScheme")
         .def(py::init<>());
 
     py::class_<GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType>(

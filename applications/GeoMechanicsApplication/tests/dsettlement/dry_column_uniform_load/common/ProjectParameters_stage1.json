@@ -16,7 +16,7 @@
             "input_filename": "mesh"
         },
         "material_import_settings": {
-            "materials_filename": "MaterialParameters_linear.json"
+            "materials_filename": "../common/MaterialParameters_linear.json"
         },
         "time_stepping": {
             "time_step": 1,
@@ -27,7 +27,7 @@
         "compute_reactions": true,
         "reform_dofs_at_each_step": false,
         "block_builder": true,
-        "solution_type": "Quasi-Static",
+        "solution_type": "static",
         "scheme_type": "Backward_Euler",
         "reset_displacements": false,
         "strategy_type": "line_search",
