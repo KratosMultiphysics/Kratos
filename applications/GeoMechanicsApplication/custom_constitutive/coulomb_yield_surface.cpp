@@ -14,6 +14,7 @@
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "includes/serializer.h"
 
+#include "utilities/math_utils.h"
 #include <boost/numeric/ublas/assignment.hpp>
 #include <cmath>
 
@@ -69,26 +70,30 @@ void CoulombYieldSurface::UpdateSurfaceProperties(double InitialFrictionAngle,
                                                   double DilatancyAngleStrengthFactor,
                                                   double kappa)
 {
-    mFrictionAngle = this->UpdateFrictionAngle(InitialFrictionAngle, FrictionAngleStrengthFactor, kappa) *
-                     3.14159265358979323846 / 180;
-    mCohesion = this->UpdateCohesion(InitialCohesion, CohesionStrengthFactor, kappa);
-    mDilatationAngle = this->UpdateDilatancyAngle(InitialDilatancyAngle, DilatancyAngleStrengthFactor, kappa) *
-                       3.14159265358979323846 / 180;
+    mFrictionAngle =
+        this->CalculateUpdatedFrictionAngle(InitialFrictionAngle, FrictionAngleStrengthFactor, kappa);
+    mCohesion = this->CalculateUpdatedCohesion(InitialCohesion, CohesionStrengthFactor, kappa);
+    mDilatationAngle =
+        this->CalculateUpdatedDilatancyAngle(InitialDilatancyAngle, DilatancyAngleStrengthFactor, kappa);
 }
 
-double CoulombYieldSurface::UpdateFrictionAngle(double InitialFrictionAngle, double StrengthFactor, double kappa) const
+double CoulombYieldSurface::CalculateUpdatedFrictionAngle(double InitialFrictionAngle,
+                                                          double StrengthFactor,
+                                                          double kappa) const
 {
-    return InitialFrictionAngle + StrengthFactor * kappa;
+    return MathUtils<>::DegreesToRadians(InitialFrictionAngle + StrengthFactor * kappa);
 }
 
-double CoulombYieldSurface::UpdateCohesion(double InitialCohesion, double StrengthFactor, double kappa) const
+double CoulombYieldSurface::CalculateUpdatedCohesion(double InitialCohesion, double StrengthFactor, double kappa) const
 {
     return InitialCohesion + StrengthFactor * kappa;
 }
 
-double CoulombYieldSurface::UpdateDilatancyAngle(double InitialDilatancyAngle, double StrengthFactor, double kappa) const
+double CoulombYieldSurface::CalculateUpdatedDilatancyAngle(double InitialDilatancyAngle,
+                                                           double StrengthFactor,
+                                                           double kappa) const
 {
-    return InitialDilatancyAngle + StrengthFactor * kappa;
+    return MathUtils<>::DegreesToRadians(InitialDilatancyAngle + StrengthFactor * kappa);
 }
 
 void CoulombYieldSurface::save(Serializer& rSerializer) const

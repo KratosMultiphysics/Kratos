@@ -55,9 +55,9 @@ private:
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    double UpdateFrictionAngle(double InitialFrictionAngle, double StrengthFactor, double kappa) const;
-    double UpdateCohesion(double InitialCohesion, double StrengthFactor, double kappa) const;
-    double UpdateDilatancyAngle(double InitialDilatancyAngle, double StrengthFactor, double kappa) const;
+    double CalculateUpdatedFrictionAngle(double InitialFrictionAngle, double StrengthFactor, double kappa) const;
+    double CalculateUpdatedCohesion(double InitialCohesion, double StrengthFactor, double kappa) const;
+    double CalculateUpdatedDilatancyAngle(double InitialDilatancyAngle, double StrengthFactor, double kappa) const;
 
     double mFrictionAngle   = 0.0;
     double mCohesion        = 0.0;

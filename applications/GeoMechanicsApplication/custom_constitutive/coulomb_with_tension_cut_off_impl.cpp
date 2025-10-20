@@ -24,10 +24,10 @@ namespace
 
 using namespace Kratos;
 
-double CalculatePlasticMultiplier(const Vector& rSigmaTau,
-                                  const Vector& rDerivativeOfFlowFunction,
-                                  double        FrictionAngleInRadians,
-                                  double        Cohesion)
+const double CalculatePlasticMultiplier(const Vector& rSigmaTau,
+                                        const Vector& rDerivativeOfFlowFunction,
+                                        double        FrictionAngleInRadians,
+                                        double        Cohesion)
 {
     const auto sin_phi   = std::sin(FrictionAngleInRadians);
     const auto numerator = sin_phi * rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1];
@@ -96,7 +96,7 @@ Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
                                         double        FrictionAngleInRadians,
                                         double        Cohesion)
 {
-    double lambda =
+    const auto lambda =
         CalculatePlasticMultiplier(rSigmaTau, rDerivativeOfFlowFunction, FrictionAngleInRadians, Cohesion);
     return rSigmaTau + lambda * rDerivativeOfFlowFunction;
 }
@@ -162,11 +162,10 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
             rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
             mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
 
-        double lambda = CalculatePlasticMultiplier(
+        const auto lambda = CalculatePlasticMultiplier(
             rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
             mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
-        double delta_kappa = CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
-        kappa += delta_kappa;
+        kappa += CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
         mEquivalentPlasticStrain = kappa;
 
         mCoulombYieldSurface.UpdateSurfaceProperties(
@@ -195,15 +194,14 @@ double CoulombWithTensionCutOffImpl::CalculateEquivalentPlasticStrain(const Vect
                                                                       CoulombYieldSurface::CoulombAveragingType AveragingType,
                                                                       double lambda) const
 {
-    Vector dGdsigma = mCoulombYieldSurface.DerivativeOfFlowFunction(rSigmaTau, AveragingType);
-    double g1       = (dGdsigma[0] + dGdsigma[1]) * 0.5;
-    double g3       = (dGdsigma[0] - dGdsigma[1]) * 0.5;
+    Vector     dGdsigma = mCoulombYieldSurface.DerivativeOfFlowFunction(rSigmaTau, AveragingType);
+    const auto g1       = (dGdsigma[0] + dGdsigma[1]) * 0.5;
+    const auto g3       = (dGdsigma[0] - dGdsigma[1]) * 0.5;
 
-    double m_mean       = (g1 + g3) / 3.0;
-    double m_deviatoric = std::sqrt(std::pow(g1 - m_mean, 2) + std::pow(g3 - m_mean, 2));
-    double alpha        = std::sqrt(2.0 / 3.0) * m_deviatoric;
-    double delta_kappa  = -alpha * lambda;
-
+    const auto mean        = (g1 + g3) / 3.0;
+    const auto deviatoric  = std::sqrt(std::pow(g1 - mean, 2) + std::pow(g3 - mean, 2));
+    const auto alpha       = std::sqrt(2.0 / 3.0) * deviatoric;
+    const auto delta_kappa = -alpha * lambda;
     return delta_kappa;
 }
 

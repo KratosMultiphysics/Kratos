@@ -15,6 +15,7 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -644,10 +645,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 10.0, 0.0, -50.0, 0.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= 10, 0.0, -50.0, 0.0;
+    auto cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 0.0, -50.0, 0.0});
+    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 0.0, -50.0, 0.0});
     constexpr double tolerance = 1.0e-6;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
