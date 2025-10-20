@@ -47,8 +47,8 @@ namespace Kratos
 ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Settings)
     : mSettings(std::move(K0Settings))
 {
-    mrModelParts = ProcessUtilities::CheckAndReturnModelPartNames(rModel, mSettings,
-                                                                  ApplyK0ProcedureProcess::Info());
+    mrModelParts =
+        ProcessUtilities::GetModelPartsFromSettings(rModel, mSettings, ApplyK0ProcedureProcess::Info());
 }
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()

@@ -15,7 +15,7 @@
 
 namespace Kratos
 {
-std::vector<std::reference_wrapper<ModelPart>> ProcessUtilities::CheckAndReturnModelPartNames(
+std::vector<std::reference_wrapper<ModelPart>> ProcessUtilities::GetModelPartsFromSettings(
     Model& rModel, const Parameters& rProcessSettings, const std::string& rProcessInfo)
 {
     KRATOS_ERROR_IF_NOT(rProcessSettings.Has("model_part_name") ||

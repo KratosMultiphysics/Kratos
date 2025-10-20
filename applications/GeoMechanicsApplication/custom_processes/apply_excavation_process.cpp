@@ -27,8 +27,8 @@ namespace Kratos
 ApplyExcavationProcess::ApplyExcavationProcess(Model& rModel, const Parameters& rProcessSettings)
     : mDeactivateSoilPart{rProcessSettings["deactivate_soil_part"].GetBool()}
 {
-    mrModelParts = ProcessUtilities::CheckAndReturnModelPartNames(rModel, rProcessSettings,
-                                                                  ApplyExcavationProcess::Info());
+    mrModelParts = ProcessUtilities::GetModelPartsFromSettings(rModel, rProcessSettings,
+                                                               ApplyExcavationProcess::Info());
 }
 
 void ApplyExcavationProcess::ExecuteInitialize()
