@@ -54,8 +54,8 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
 }
 
 struct NamedProcessFactory {
-    std::string                                                         name;
-    std::function<Kratos::Process*(Kratos::Model&, Kratos::Parameters)> factory;
+    std::string                                                                         name;
+    std::function<std::unique_ptr<Kratos::Process>(Kratos::Model&, Kratos::Parameters)> factory;
 };
 
 class ProcessWithModelPartsTest : public ::testing::TestWithParam<NamedProcessFactory>
@@ -73,7 +73,7 @@ TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_BothParametersPresen
             "deactivate_soil_part": false
         })");
 
-    auto param = GetParam();
+    const auto& param = GetParam();
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         std::unique_ptr<Kratos::Process> process(param.factory(model, settings));
@@ -87,7 +87,7 @@ TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_MissingParameters_Th
     Model      model;
     Parameters settings(R"({"deactivate_soil_part": false})");
 
-    auto param = GetParam();
+    const auto& param = GetParam();
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         std::unique_ptr<Kratos::Process> process(param.factory(model, settings));
@@ -103,7 +103,7 @@ TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
             "deactivate_soil_part": false
         })");
 
-    auto param = GetParam();
+    const auto& param = GetParam();
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         std::unique_ptr<Kratos::Process> process(param.factory(model, settings));
@@ -116,11 +116,11 @@ using ProcessFactoryFunction = std::function<Process*(Model&, Parameters)>;
 
 static const std::vector<NamedProcessFactory> kProcessFactories = {
     {"ApplyExcavationProcess",
-     [](Model& rModel, Parameters rSettings) {
-    return new Kratos::ApplyExcavationProcess(rModel, rSettings);
+     [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::ApplyExcavationProcess>(rModel, rSettings);
 }},
-    {"ApplyK0ProcedureProcess", [](Model& rModel, Parameters rSettings) {
-    return new Kratos::ApplyK0ProcedureProcess(rModel, rSettings);
+    {"ApplyK0ProcedureProcess", [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::ApplyK0ProcedureProcess>(rModel, rSettings);
 }}};
 
 INSTANTIATE_TEST_SUITE_P(ProcessUtilitiesTests, ProcessWithModelPartsTest, ::testing::ValuesIn(kProcessFactories));
