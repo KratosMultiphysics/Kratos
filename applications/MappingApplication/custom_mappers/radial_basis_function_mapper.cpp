@@ -194,116 +194,129 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     double rbf_scale_factor = CalculateScaleFactor(origin_coords);
 
     // Build interpolation matrix
-    SparseMatrixType origin_interpolation_matrix(origin_interpolation_matrix_size, origin_interpolation_matrix_size);
-    for (IndexType r = 0; r < n_origin; ++r) {
-        for (IndexType c = 0; c < n_origin; ++c) {
-            const double r_ij = norm_2(row(origin_coords, r) - row(origin_coords, c));
-            origin_interpolation_matrix(r, c) = RBFShapeFunctionsUtility::EvaluateRBF(r_ij, h, rbf_type);
-        }
+    DenseMatrixType origin_interpolation_matrix(origin_interpolation_matrix_size, origin_interpolation_matrix_size);
+    // for (IndexType r = 0; r < n_origin; ++r) {
+    //     for (IndexType c = 0; c < n_origin; ++c) {
+    //         const double r_ij = norm_2(row(origin_coords, r) - row(origin_coords, c));
+    //         origin_interpolation_matrix(r, c) = RBFShapeFunctionsUtility::EvaluateRBF(r_ij, h, rbf_type);
+    //     }
 
-        const auto poly_vals = EvaluatePolynomialBasis(row(origin_coords, r), poly_degree);
-        for (IndexType j = 0; j < n_polynomial; ++j) {
-            origin_interpolation_matrix(r, n_origin + j) = poly_vals[j];
-            origin_interpolation_matrix(n_origin + j, r) = poly_vals[j];
-        }
-    }
+    //     const auto poly_vals = EvaluatePolynomialBasis(row(origin_coords, r), poly_degree);
+    //     for (IndexType j = 0; j < n_polynomial; ++j) {
+    //         origin_interpolation_matrix(r, n_origin + j) = poly_vals[j];
+    //         origin_interpolation_matrix(n_origin + j, r) = poly_vals[j];
+    //     }
+    // }
+    CreateAndInvertRBFMatrix(origin_interpolation_matrix, origin_coords, project_origin_nodes_to_destination_domain_panel_solver,
+        poly_degree, rbf_type, rbf_scale_factor, h);
 
-    // Solve for each destination node
-    Vector b(origin_interpolation_matrix_size, 0.0);
-    Vector solution(origin_interpolation_matrix_size, 0.0);
+    // // Solve for each destination node
+    // Vector b(origin_interpolation_matrix_size, 0.0);
+    // Vector solution(origin_interpolation_matrix_size, 0.0);
 
-    IndexType dest_idx = 0;
-    for (IndexType dest_idx = 0; dest_idx < n_destination; ++dest_idx) {
-        // Load destination point from matrix
-        array_1d<double, 3> destination_point;
-        for (unsigned int dim = 0; dim < 3; ++dim) {
-            destination_point[dim] = destination_coords(dest_idx, dim);
-        }
+    // IndexType dest_idx = 0;
+    // for (IndexType dest_idx = 0; dest_idx < n_destination; ++dest_idx) {
+    //     // Load destination point from matrix
+    //     array_1d<double, 3> destination_point;
+    //     for (unsigned int dim = 0; dim < 3; ++dim) {
+    //         destination_point[dim] = destination_coords(dest_idx, dim);
+    //     }
 
-        // Fill RHS vector b
-        for (IndexType j = 0; j < n_origin; ++j) {
-            const double r_j = norm_2(destination_point - row(origin_coords, j));
-            b[j] = RBFShapeFunctionsUtility::EvaluateRBF(r_j, h, rbf_type);
-        }
+    //     // Fill RHS vector b
+    //     for (IndexType j = 0; j < n_origin; ++j) {
+    //         const double r_j = norm_2(destination_point - row(origin_coords, j));
+    //         b[j] = RBFShapeFunctionsUtility::EvaluateRBF(r_j, h, rbf_type);
+    //     }
 
-        const auto destination_poly_vals = EvaluatePolynomialBasis(destination_point, poly_degree);
-        for (IndexType j = 0; j < n_polynomial; ++j) {
-            b[n_origin + j] = destination_poly_vals[j];
-        }
+    //     const auto destination_poly_vals = EvaluatePolynomialBasis(destination_point, poly_degree);
+    //     for (IndexType j = 0; j < n_polynomial; ++j) {
+    //         b[n_origin + j] = destination_poly_vals[j];
+    //     }
 
-        // Solve linear system
-        mpLinearSolver->Solve(origin_interpolation_matrix, solution, b);
+    //     // Solve linear system
+    //     //mpLinearSolver->Solve(origin_interpolation_matrix, solution, b);
 
-        // Fill mapping matrix
-        for (IndexType j = 0; j < n_origin; ++j) {
-            (*this->mpMappingMatrix)(dest_idx, j) = solution[j];
-        }
-    }
+    //     // Fill mapping matrix
+    //     for (IndexType j = 0; j < n_origin; ++j) {
+    //         (*this->mpMappingMatrix)(dest_idx, j) = solution[j];
+    //     }
+    // }
 
-    // If the origin is iga, we need to transform the gauss point values to control point values ---> H = H_tilde(from gp to fem) @ N
-    // N is the matrix of shape functions    
-    if(is_origin_iga == 1){
-        DenseMatrixType N;
-        N = ZeroMatrix(origin_integration_points.size(), this->GetOriginModelPart().GetRootModelPart().NumberOfNodes());
-        for (IndexType i = 0; i < origin_integration_points.size(); ++i) {
-            auto p_geometry = origin_integration_points[i]->pGetGeometry();
-            const auto& shape_functions = p_geometry->ShapeFunctionsValues();
+    // // If the origin is iga, we need to transform the gauss point values to control point values ---> H = H_tilde(from gp to fem) @ N
+    // // N is the matrix of shape functions    
+    // if(is_origin_iga == 1){
+    //     DenseMatrixType N;
+    //     N = ZeroMatrix(origin_integration_points.size(), this->GetOriginModelPart().GetRootModelPart().NumberOfNodes());
+    //     for (IndexType i = 0; i < origin_integration_points.size(); ++i) {
+    //         auto p_geometry = origin_integration_points[i]->pGetGeometry();
+    //         const auto& shape_functions = p_geometry->ShapeFunctionsValues();
 
-            for (IndexType j = 0; j < p_geometry->size(); ++j) {
-                IndexType node_id = (*p_geometry)[j].Id() - 1;  // IDs inician en 1
-                N(i, node_id) = shape_functions(0, j);
-            }
-        }
-        // Now we filter the matrix N keeping just those rows and columns which belong to the origin model part 
-        std::unordered_set<IndexType> existing_node_ids;
-        for (const auto& node : this->GetOriginModelPart().Nodes()) {
-            existing_node_ids.insert(node.Id());
-        }
+    //         for (IndexType j = 0; j < p_geometry->size(); ++j) {
+    //             IndexType node_id = (*p_geometry)[j].Id() - 1;  // IDs inician en 1
+    //             N(i, node_id) = shape_functions(0, j);
+    //         }
+    //     }
+    //     // Now we filter the matrix N keeping just those rows and columns which belong to the origin model part 
+    //     std::unordered_set<IndexType> existing_node_ids;
+    //     for (const auto& node : this->GetOriginModelPart().Nodes()) {
+    //         existing_node_ids.insert(node.Id());
+    //     }
 
-        std::vector<IndexType> valid_columns;
+    //     std::vector<IndexType> valid_columns;
 
-        for (IndexType j = 0; j < N.size2(); ++j) {
-            IndexType node_id = j + 1;  
-            if (existing_node_ids.count(node_id)) {
-                valid_columns.push_back(j);
-            }
-        }
+    //     for (IndexType j = 0; j < N.size2(); ++j) {
+    //         IndexType node_id = j + 1;  
+    //         if (existing_node_ids.count(node_id)) {
+    //             valid_columns.push_back(j);
+    //         }
+    //     }
 
-        DenseMatrixType N_reduced(N.size1(), valid_columns.size());
+    //     DenseMatrixType N_reduced(N.size1(), valid_columns.size());
 
-        for (IndexType i = 0; i < N.size1(); ++i) {
-            for (IndexType j = 0; j < valid_columns.size(); ++j) {
-                N_reduced(i, j) = N(i, valid_columns[j]);
-            }
-        }
+    //     for (IndexType i = 0; i < N.size1(); ++i) {
+    //         for (IndexType j = 0; j < valid_columns.size(); ++j) {
+    //             N_reduced(i, j) = N(i, valid_columns[j]);
+    //         }
+    //     }
 
-        // Compute the mapping matrix tilde as H_tilde = H @ N
-        DenseMatrixType mapping_matrix_tilde;
-        mapping_matrix_tilde = ZeroMatrix(this->GetDestinationModelPart().NumberOfNodes(), this->GetOriginModelPart().NumberOfNodes());
-        noalias(mapping_matrix_tilde) = prod(*this->mpMappingMatrix, N_reduced);
+    //     // Compute the mapping matrix tilde as H_tilde = H @ N
+    //     DenseMatrixType mapping_matrix_tilde;
+    //     mapping_matrix_tilde = ZeroMatrix(this->GetDestinationModelPart().NumberOfNodes(), this->GetOriginModelPart().NumberOfNodes());
+    //     noalias(mapping_matrix_tilde) = prod(*this->mpMappingMatrix, N_reduced);
         
-        // Resize the mpMappingMatrix and fill it with the values of mapping_matrix_tilde
-        this->mpMappingMatrix->resize(this->GetDestinationModelPart().NumberOfNodes(), this->GetOriginModelPart().NumberOfNodes(), false); 
-        noalias(*this->mpMappingMatrix) = mapping_matrix_tilde;
-    }
+    //     // Resize the mpMappingMatrix and fill it with the values of mapping_matrix_tilde
+    //     this->mpMappingMatrix->resize(this->GetDestinationModelPart().NumberOfNodes(), this->GetOriginModelPart().NumberOfNodes(), false); 
+    //     noalias(*this->mpMappingMatrix) = mapping_matrix_tilde;
+    // }
 }
 
 template<class TSparseSpace, class TDenseSpace>
 std::vector<double> RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::EvaluatePolynomialBasis(
-    const array_1d<double, 3>& rCoords, unsigned int degree) const
+    const array_1d<double, 3>& rCoords, unsigned int degree, bool ProjectToPanelsPlane) const
 {
     std::vector<double> values;
     const double x = rCoords[0];
     const double y = rCoords[1];
     const double z = rCoords[2];
 
-    for (unsigned int i = 0; i <= degree; ++i) {
-        for (unsigned int j = 0; j <= degree - i; ++j) {
-            for (unsigned int k = 0; k <= degree - i - j; ++k) {
-                values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
+    if (ProjectToPanelsPlane) {
+        // 2D polynomial basis in standard order: 1, x, y, x^2, xy, y^2, ...
+        for (unsigned int j = 0; j <= degree; ++j) {           // power of y
+            for (unsigned int i = 0; i <= degree - j; ++i) {   // power of x
+                values.push_back(std::pow(x, i) * std::pow(y, j));
+            }
+        }
+    } else {
+        // 3D polynomial basis
+        for (unsigned int i = 0; i <= degree; ++i) {
+            for (unsigned int j = 0; j <= degree - i; ++j) {
+                for (unsigned int k = 0; k <= degree - i - j; ++k) {
+                    values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
+                }
             }
         }
     }
+
     return values;
 }
 
@@ -353,12 +366,62 @@ double RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateScaleFacto
     return (rangeX >= rangeY) ? rangeX : rangeY;
 }
 
-// template<class TSparseSpace, class TDenseSpace>
-// DenseMatrixType RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateAndInvertRBFMatrix(const DenseMatrixType& rOriginCoords, 
-//     bool& rProjectToAerodynamicPanels, IndexType& rNumberOfPolyTerms, std::string& rRBFType, double& rEps = 1.0)
-// {
-   
-// }
+template<class TSparseSpace, class TDenseSpace>
+void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateAndInvertRBFMatrix(
+    DenseMatrixType& rInvCMatrix, // OUT: inverted RBF + poly matrix
+    const DenseMatrixType& rOriginCoords,
+    bool ProjectToAerodynamicPanels,
+    IndexType Poly_Degree,
+    const std::string& RBFType,
+    double ScaleFactor,
+    double eps)
+{
+    // Determine number of points in the origin domain
+    const IndexType nPoints = rOriginCoords.size1(); // n_points x 3
+
+    IndexType n_polynomial = 0;
+    if (!ProjectToAerodynamicPanels){
+        n_polynomial = (Poly_Degree + 3) * (Poly_Degree + 2) * (Poly_Degree + 1) / 6;
+    } else{
+        n_polynomial = (Poly_Degree + 2) * (Poly_Degree + 1) / 2;
+    }
+
+    // Initialize the matrix
+    noalias(rInvCMatrix) = ZeroMatrix(nPoints + n_polynomial, nPoints + n_polynomial);
+
+    for (IndexType i = 0; i < nPoints; ++i) {
+        array_1d<double,3> point;
+        point[0] = rOriginCoords(i,0);
+        point[1] = rOriginCoords(i,1);
+        point[2] = rOriginCoords(i,2);
+
+        const auto poly_vals = EvaluatePolynomialBasis(point, Poly_Degree, ProjectToAerodynamicPanels);
+        KRATOS_WATCH(poly_vals)
+
+        for (IndexType j = 0; j < n_polynomial; ++j) {
+            // P block: rows n_poly..n_poly+nPoints-1, columns 0..n_poly-1
+            rInvCMatrix(i + n_polynomial, j) = poly_vals[j];
+
+            // P^T block: top-left n_poly x nPoints
+            rInvCMatrix(j, i + n_polynomial) = poly_vals[j]; // transpose
+        }
+    }
+    for (IndexType i = 0; i < nPoints; ++i) {
+        for (IndexType j = i; j < nPoints; ++j) {
+            double dx = rOriginCoords(i,0) - rOriginCoords(j,0);
+            double dy = rOriginCoords(i,1) - rOriginCoords(j,1);
+            double dz = ProjectToAerodynamicPanels ? 0.0 : rOriginCoords(i,2) - rOriginCoords(j,2);
+            double r = std::sqrt(dx*dx + dy*dy + dz*dz);
+
+            double k = (i == j) ? 0.0 : RBFShapeFunctionsUtility::EvaluateRBF(r, eps, RBFType); // set diagonal to 0
+
+            rInvCMatrix(i + n_polynomial, j + n_polynomial) = k;
+            rInvCMatrix(j + n_polynomial, i + n_polynomial) = k; // symmetry
+        }
+    }
+    KRATOS_WATCH(rInvCMatrix)
+    exit(0);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
