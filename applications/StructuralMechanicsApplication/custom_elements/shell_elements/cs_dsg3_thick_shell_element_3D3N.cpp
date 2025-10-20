@@ -27,7 +27,8 @@ namespace Kratos
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Initialize(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -884,7 +885,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::AddBodyForces(const double Area,
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::AddBodyForces(
+    const double Area,
     VectorType &rRightHandSideVector)
 {
     KRATOS_TRY
@@ -925,7 +927,44 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::AddBodyForces(const double Ar
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeNonLinearIteration(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    if constexpr (is_corotational) {
+        const auto& r_geometry = GetGeometry();
+        array_3 current_rotation, previous_rotation;
+        for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+            noalias(previous_rotation) = r_geometry[i].GetSolutionStepValue(ROTATION, 1);
+            noalias(current_rotation) = r_geometry[i].FastGetSolutionStepValue(ROTATION);
+            Quaternion<double> incremental_quaternion = Quaternion<double>::FromRotationVector(current_rotation - previous_rotation);
+            mQN[i] = incremental_quaternion * mQN[i];
+        }
+    }
+
+        KRATOS_CATCH("CSDSG3ThickShellElement3D3N::FinalizeNonLinearIteration")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeCorotationalCalculations(
+        const Vector& rLocalNodalValues,
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const bool RHS_required,
+        const bool LHS_required)
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -995,7 +1034,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(const Pr
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1064,7 +1104,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(const 
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
-int CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Check(
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -1081,7 +1122,8 @@ int CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Check(const ProcessInfo& rCurr
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::save(Serializer& rSerializer) const
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::save(
+    Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     int IntMethod = int(GetIntegrationMethod());
@@ -1093,7 +1135,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::save(Serializer& rSerializer)
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::load(Serializer& rSerializer)
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::load(
+    Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     int IntMethod;

@@ -338,6 +338,12 @@ public:
      */
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief this is called for non-linear analysis at the end of the iteration process
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
 
     /**
     * @brief This function returns the size of the strain vector
@@ -363,6 +369,17 @@ public:
 
         return integration_points;
     }
+
+    /**
+     * @brief This method finalizes the corotational calculations, rotating LHS and RHS to global system
+     */
+    void FinalizeCorotationalCalculations(
+        const Vector& rLocalNodalValues,
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const bool RHS_required,
+        const bool LHS_required
+    );
 
     /**
      * @brief This method computes the initial center of the element
