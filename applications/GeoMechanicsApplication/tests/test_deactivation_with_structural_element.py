@@ -12,7 +12,7 @@ from KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis import (
 class KratosGeoMechanicsDeactivationWithStructuralTest(KratosUnittest.TestCase):
     """
     This class contains a test for a multistage computation with deactivation of structural elements in the first stage
-    and the use of 'rest' as input type for the second stage.
+    and the use of 'use_input_model_part' as input type for the second stage.
     """
 
     def test_deactivation_with_structural_element(self):
