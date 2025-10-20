@@ -32,8 +32,9 @@ public:
     ApplyFinalStressesOfPreviousStageToInitialState(const ApplyFinalStressesOfPreviousStageToInitialState&) = delete;
     ApplyFinalStressesOfPreviousStageToInitialState& operator=(const ApplyFinalStressesOfPreviousStageToInitialState&) = delete;
 
-    void ExecuteInitialize() override;
-    void ExecuteBeforeSolutionLoop() override;
+    void                      ExecuteInitialize() override;
+    void                      ExecuteBeforeSolutionLoop() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
     ModelPart& mrModelPart;

@@ -53,4 +53,10 @@ void CalculateTotalMotionProcess::Execute()
                      << mIncrementalVariableName << " not found in the model part." << std::endl;
     }
 }
+
+std::string CalculateTotalMotionProcess::Info() const
+{
+    return "ApplyFinalStressesOfPreviousStageToInitialState";
+}
+
 } // namespace Kratos

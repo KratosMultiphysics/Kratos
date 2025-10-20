@@ -80,4 +80,9 @@ void ApplyFinalStressesOfPreviousStageToInitialState::CheckRetrievedElementData(
         << ") for element " << ElementId << std::endl;
 }
 
+std::string ApplyFinalStressesOfPreviousStageToInitialState::Info() const
+{
+    return "ApplyFinalStressesOfPreviousStageToInitialState";
+}
+
 } // namespace Kratos

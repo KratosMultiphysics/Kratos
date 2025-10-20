@@ -32,10 +32,11 @@ public:
     {
     }
 
-    void ExecuteInitializeSolutionStep() override;
-    void ExecuteFinalizeSolutionStep() override;
-    void ExecuteFinalize() override;
-    int  Check() override;
+    void                      ExecuteInitializeSolutionStep() override;
+    void                      ExecuteFinalizeSolutionStep() override;
+    void                      ExecuteFinalize() override;
+    int                       Check() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
     ModelPart& mrModelPart;
