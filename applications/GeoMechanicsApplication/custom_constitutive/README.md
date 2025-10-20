@@ -333,7 +333,12 @@ $$ \frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} =
 
 Where $G$ is the flow function. For Mohr-Coulomb, the derivative of flow function is:
 
-$$ \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} = \begin{bmatrix} \frac{1}{2} \left( 1 + \sin{\psi} \right) \\ 0 \\ \frac{1}{2} \left( -1 + \sin{\psi} \right) \end{bmatrix}$$
+$$ \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} =
+\begin{bmatrix}
+\frac{1}{2} \left( 1 + \sin{\psi} \right) \\
+0 \\
+\frac{1}{2} \left( -1 + \sin{\psi} \right)
+\end{bmatrix}$$
 
 Then the averaging leads to:
 
@@ -362,10 +367,6 @@ $$ \frac{\partial G}{\partial \tau} = \frac{1}{4} \left( 3 + \sin⁡{\psi} \righ
 
 Note that after averaging the mapping direction, we modify the Mohr-Coulomb curve to account for the modified mapping direction. 
 The mapping direction for tension cutoff stays unchanged because applying such averaging leads to the same form of mapping. After averaging the mapping for tension cutoff stays unchanged.
-
-
-
-
 
 
 ### Hardening and softening
