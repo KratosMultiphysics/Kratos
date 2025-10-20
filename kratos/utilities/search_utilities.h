@@ -567,7 +567,7 @@ private:
     ///@{
 
     /**
-     * @details Synchronizes points between different processes. 
+     * @details Synchronizes points between different processes.
      * @details Synchonously
      * @param itPointBegin Iterator pointing to the beginning of the range of points
      * @param itPointEnd Iterator pointing to the end of the range of points
