@@ -37,7 +37,7 @@
         "residual_absolute_tolerance": 1e-09,
         "min_iterations": 6,
         "max_iterations": 15,
-        "number_cycles": 5,
+        "number_cycles": 1,
         "reduction_factor": 0.5,
         "increase_factor": 2.0,
         "calculate_reactions": true,
@@ -297,7 +297,9 @@
                     "value": [0.0, -9.81, 0.0],
                     "table": [0, 0, 0]
                 }
-            },
+            }
+        ],
+        "auxiliary_process_list": [
             {
                 "python_module": "apply_k0_procedure_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
