@@ -990,10 +990,10 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeCorotationalCalculati
     noalias(G) = shell3_corot_coord_transf.RotationGradient(LCS);
     noalias(P) -= prod(S, G);
 
+    VectorType projectedLocalForces(prod(trans(P), rRHS)); // The RHS is  ALWAYS needed...
     if (RHS_required) {
         // Compute the Right-Hand-Side vector in global coordinate system (- T' * P' * Km * U).
         // At this point the computation of the Right-Hand-Side is complete.
-        VectorType projectedLocalForces(prod(trans(P), rRHS));
         noalias(rRHS) = prod(trans(T), projectedLocalForces);
     }
     if (LHS_required) {
@@ -1004,14 +1004,38 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeCorotationalCalculati
         noalias(rLHS) = prod(temp, P);
         noalias(temp) = prod(trans(P), rLHS);
         rLHS.swap(temp);
+
+        // Step 2: ( K.GP: Equilibrium Projection Geometric Stiffness Matrix )
+        // First assemble the 'Fnm' matrix with the Spins of the nodal forces.
+        // Actually at this point the 'Fnm' Matrix is the 'Fn' Matrix,
+        // because it only contains the spins of the 'translational' forces.
+        // At this point 'LHS' contains also this term of the Geometric stiffness
+        // (Ke = (P' * Km * H * P) - (G' * Fn' * P))
+        MatrixType Fnm(global_size, num_nodes, 0.0);
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 0);
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 6);
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 12);
+
+        noalias(temp) = prod(trans(G), trans(Fnm));
+        noalias(rLHS) += prod(temp, P); 
+        
+        // Step 3: ( K.GR: Rotational Geometric Stiffness Matrix )
+        // Add the Spins of the nodal moments to 'Fnm'.
+        // At this point 'LHS' contains also this term of the Geometric stiffness
+        // (Ke = (P' * Km * H * P) - (G' * Fn' * P) - (Fnm * G))
+
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 3);
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 9);
+        EICR::Spin_AtRow(projectedLocalForces, Fnm, 15);
+
+        noalias(rLHS) += prod(Fnm, G);     // note: '+' not '-' because the RHS already has the negative sign
+
+        // Step 4: (Global Stiffness Matrix)
+        // Transform the LHS to the Global coordinate system.
+        // T' * [(P' * Km * H * P) - (G' * Fn' * P) - (Fnm * G)] * T
+        noalias(temp) = prod(rLHS, T);
+        noalias(rLHS) = prod(trans(T), temp);// note: '+' not '-' because the RHS already has the negative sign
     }
-
-
-
-
-
-
-
 }
 
 /***********************************************************************************/
