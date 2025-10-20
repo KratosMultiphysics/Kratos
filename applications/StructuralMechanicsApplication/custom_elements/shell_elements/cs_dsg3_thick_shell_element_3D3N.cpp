@@ -33,8 +33,9 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Initialize(const ProcessInfo&
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const auto& r_geometry = GetGeometry();
 
-        const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(GetGeometry().Area());
+        const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(r_geometry.Area());
 
         // Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size())
@@ -44,6 +45,15 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Initialize(const ProcessInfo&
         bounded_3_matrix T0;
         CalculateRotationMatrixLocalToGlobal(T0, true);
         mQ0 = Quaternion<double>::FromRotationMatrix(T0);
+
+        if constexpr (is_corotational) {
+            // Let's initialize the nodal rotation quaternions
+            array_3 rotation;
+            for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+                noalias(rotation) = r_geometry[i].FastGetSolutionStepValue(ROTATION);
+                mQN[i] = Quaternion<double>::FromRotationVector(rotation);
+            }
+        }
     }
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::Initialize")
 }
@@ -93,6 +103,10 @@ Element::Pointer CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Clone(
 
     // The vector containing the constitutive laws
     p_new_elem->SetConstitutiveLawVector(mConstitutiveLawVector);
+
+    // ADD the quaternions stuiff!!!!!!!!!!!!!!!!!!
+    // ADD the quaternions stuiff!!!!!!!!!!!!!!!!!!
+    // ADD the quaternions stuiff!!!!!!!!!!!!!!!!!!
 
     return p_new_elem;
 
@@ -576,8 +590,34 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetNodalValuesVector(
     const auto& r_geometry = GetGeometry();
 
     if constexpr (is_corotational) {
-        // TODO
-    } else {
+
+        bounded_3_matrix T_curr, T0;
+        CalculateRotationMatrixLocalToGlobal(T_curr, false);
+        mQ0.ToRotationMatrix(T0);
+
+        Quaternion<double> Q_curr = Quaternion<double>::FromRotationMatrix(T_curr);
+        const array_3 center = r_geometry.Center();
+        const array_3 initial_center = GetInitialCenter();
+        array_3 deformational_values;
+
+
+        for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+            IndexType index = i * 6;
+
+            noalias(deformational_values) = prod(T_curr , r_geometry[i] - center);
+            noalias(deformational_values) -= prod(T0, r_geometry[i].GetInitialPosition() - initial_center);
+
+            rNodalValues[index]     = deformational_values[0];
+            rNodalValues[index + 1] = deformational_values[1];
+            rNodalValues[index + 2] = deformational_values[2];
+
+            const Quaternion<double> delta_Q = Q_curr * mQN[i] * mQ0.conjugate();
+
+            delta_Q.ToRotationVector(rNodalValues[index + 3],
+                                     rNodalValues[index + 4],
+                                     rNodalValues[index + 5]);
+        }
+    } else { // Linear
         IndexType index = 0;
         for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
             rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_X);
