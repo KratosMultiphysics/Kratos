@@ -250,7 +250,8 @@ public:
      *      e3]
      */
     void CalculateRotationMatrixLocalToGlobal(
-        bounded_3_matrix& rRotationMatrix
+        bounded_3_matrix& rRotationMatrix,
+        const bool UseInitialConfiguration
     ) const;
 
     /**
@@ -279,8 +280,9 @@ public:
 
     /**
      * @brief This method builds the nodal values vector in the order: [u1, v1, w1, theta_x1, theta_y1, theta_z1, ...]
+     * It returns in local axes in linear case, and only the deformational movements in corotational case
      */
-    void GetNodalValuesVector(VectorType &rNodalValues) const;
+    void GetNodalValuesVector(VectorType &rNodalValues, const bounded_3_matrix &rT) const;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -363,6 +365,21 @@ public:
     }
 
     /**
+     * @brief This method computes the initial center of the element
+     */
+    array_3 GetInitialCenter() const
+    {
+        const auto& r_geometry = GetGeometry();
+        const auto number_of_nodes = r_geometry.PointsNumber();
+        array_3 center = ZeroVector(3);
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            noalias(center) += r_geometry[i].GetInitialPosition();
+        }
+        center /= static_cast<double>(number_of_nodes);
+        return center;
+    }
+
+    /**
      * @brief This method add the body forces contribution to the RHS
      */
     void AddBodyForces(const double Area, VectorType &rRightHandSideVector);
@@ -433,8 +450,7 @@ protected:
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
     Quaternion<double> mQ0; /// The initial rotation quaternion (used only for corotational formulation)
-    array_1d< Quaternion<double>, 3 > mQN; // The rotation quaternions at the nodes (used only for corotational formulation)
-    
+    array_1d<Quaternion<double>, 3> mQN; // The rotation quaternions at the nodes (used only for corotational formulation)
 
     ///@}
     ///@name Protected Operators
