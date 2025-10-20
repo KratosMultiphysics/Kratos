@@ -191,21 +191,21 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixLocalT
     KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     array_3 v1, v2, v3; // basis vectors
-
-    array_3 aux_0;
-    array_3 aux_1;
+    array_3 aux_0, aux_1, aux_2;
 
     if (UseInitialConfiguration) {
         noalias(aux_0) = r_geometry[0].GetInitialPosition();
         noalias(aux_1) = r_geometry[1].GetInitialPosition();
+        noalias(aux_2) = r_geometry[2].GetInitialPosition();
     } else {
         noalias(aux_0) = r_geometry[0].Coordinates();
         noalias(aux_1) = r_geometry[1].Coordinates();
+        noalias(aux_2) = r_geometry[2].Coordinates();
     }
 
     if (this->Has(LOCAL_AXIS_1)) {
         noalias(v1) = this->GetValue(LOCAL_AXIS_1); // We assume that the user has set a unit vector
-        noalias(v2) = r_geometry[2].GetInitialPosition() - aux_0;
+        noalias(v2) = aux_2 - aux_0;
         v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
         const double norm_v2 = norm_2(v2);
         if (norm_v2 <= 1.0e-8) { // colineal
@@ -218,7 +218,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixLocalT
         const double norm_v1 = norm_2(v1);
         KRATOS_DEBUG_ERROR_IF_NOT(norm_v1 > 0.0) << "Zero length local axis 1 for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
         v1 /= norm_v1;
-        noalias(v2) = r_geometry[2].GetInitialPosition() - aux_0;
+        noalias(v2) = aux_2 - aux_0;
         v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
         const double norm_v2 = norm_2(v2);
         KRATOS_DEBUG_ERROR_IF_NOT(norm_v2 > 0.0) << "Zero length local axis 2 for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
