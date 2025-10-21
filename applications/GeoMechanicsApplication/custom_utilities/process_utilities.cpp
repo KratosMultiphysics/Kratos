@@ -8,10 +8,13 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Markelov Gennady
 //
 
 // Project includes
 #include "process_utilities.h"
+#include "containers/model.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -35,6 +38,7 @@ std::vector<std::reference_wrapper<ModelPart>> ProcessUtilities::GetModelPartsFr
                                               << rProcessInfo;
 
     std::vector<std::reference_wrapper<ModelPart>> result;
+    result.reserve(model_part_names.size());
     std::ranges::transform(
         model_part_names, std::back_inserter(result),
         [&rModel](const auto& rName) -> ModelPart& { return rModel.GetModelPart(rName); });
