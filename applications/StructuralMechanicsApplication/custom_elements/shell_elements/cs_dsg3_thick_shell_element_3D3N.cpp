@@ -724,8 +724,12 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
         noalias(rRHS) -= weight * prod(trans(B), gen_stress_vector);
 
     }
-    RotateLHSToGlobal(rLHS, rotation_matrix);
-    RotateRHSToGlobal(rRHS, rotation_matrix);
+    if constexpr (is_corotational) {
+        FinalizeCorotationalCalculations(nodal_values, rLHS, rRHS, true, true);
+    } else {
+        RotateLHSToGlobal(rLHS, rotation_matrix);
+        RotateRHSToGlobal(rRHS, rotation_matrix);
+    }
     AddBodyForces(area, rRHS);
 
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateLocalSystem")
