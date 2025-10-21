@@ -2,6 +2,7 @@ import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 
 import test_helper
 
@@ -16,7 +17,7 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
         # run simulation
         test_helper.run_kratos(file_path)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         res_path = os.path.join(file_path, test_name + result_extension)
         simulation_output = reader.read_output_from(res_path)
         rotations = simulation_output["results"]["ROTATION"]
@@ -60,7 +61,7 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
 
         self.assertTrue(isinstance(simulation._GetSolver().builder_and_solver, KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping))
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         res_path = os.path.join(file_path, test_name + result_extension)
         simulation_output = reader.read_output_from(res_path)
         rotations = simulation_output["results"]["ROTATION"]
