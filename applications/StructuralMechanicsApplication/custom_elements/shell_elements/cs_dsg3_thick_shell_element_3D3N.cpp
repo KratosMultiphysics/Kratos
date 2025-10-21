@@ -746,68 +746,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLeftHandSide(
 {
     KRATOS_TRY
 
-    // const IndexType strain_size = GetStrainSize();
-    // const auto& r_geometry = GetGeometry();
-    // const auto& r_props = GetProperties();
-    // const IndexType number_of_nodes = r_geometry.PointsNumber();
-    // const IndexType system_size = number_of_nodes * GetDoFsPerNode();
-    
-    // bounded_3_matrix rotation_matrix;
-    // mQ0.ToRotationMatrix(rotation_matrix);
-
-    // if (rLHS.size1() != system_size || rLHS.size2() != system_size)
-    //     rLHS.resize(system_size, system_size, false);
-    // rLHS.clear();
-
-    // array_3 local_coords_1, local_coords_2, local_coords_3;
-    // const array_3 center = r_geometry.Center();
-    // noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition() - center);
-    // noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition() - center);
-    // noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition() - center);
-    // const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
-
-    // VectorType nodal_values(system_size);
-    // GetNodalValuesVector(nodal_values, rotation_matrix);
-    // // We rotate the nodal values to the local system of the shell
-    // RotateRHSToLocal(nodal_values, rotation_matrix); // rotate to local
-
-    // ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-    // auto &r_cl_options = cl_values.GetOptions();
-    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    
-    // // Let's initialize the constitutive law's values
-    // VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
-    // MatrixType gen_constitutive_matrix(strain_size, strain_size);
-    // cl_values.SetStrainVector(gen_strain_vector);
-    // cl_values.SetStressVector(gen_stress_vector);
-    // cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
-
-    // const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
-    // double zeta1, zeta2, zeta3, weight;
-    // MatrixType B(strain_size, system_size);
-    // for (SizeType i_point = 0; i_point < r_integration_points.size(); ++i_point) {
-    //     zeta1 = r_integration_points[i_point].X();
-    //     zeta2 = r_integration_points[i_point].Y();
-    //     zeta3 = r_integration_points[i_point].Z();
-    //     weight = r_integration_points[i_point].Weight();
-
-    //     CalculateBTriangle(B, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
-
-    //     // We compute the strain at the integration point
-    //     noalias(gen_strain_vector) = prod(B, nodal_values);
-
-    //     // We call the constitutive law to compute the stress
-    //     cl_values.SetStrainVector(gen_strain_vector);
-    //     mConstitutiveLawVector[i_point]->CalculateMaterialResponseCauchy(cl_values);
-    //     noalias(gen_stress_vector) = cl_values.GetStressVector();
-    //     noalias(gen_constitutive_matrix) = cl_values.GetConstitutiveMatrix();
-
-    //     // We integrate the LHS and RHS
-    //     noalias(rLHS) += weight * prod(trans(B), Matrix(prod(gen_constitutive_matrix, B)));
-
-    // }
-    // RotateLHSToGlobal(rLHS, rotation_matrix);
+    // TODO: think about needing the RHS in the corotational case
 
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateLeftHandSide")
 }
@@ -829,12 +768,13 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
     const IndexType number_of_nodes = r_geometry.PointsNumber();
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
 
-    bounded_3_matrix rotation_matrix;
-    mQ0.ToRotationMatrix(rotation_matrix);
-
     if (rRHS.size() != system_size)
         rRHS.resize(system_size, false);
     rRHS.clear();
+
+    bounded_3_matrix rotation_matrix;
+    mQ0.ToRotationMatrix(rotation_matrix);
+
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
     const array_3 center = GetInitialCenter();
@@ -849,10 +789,10 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
     
     // Let's initialize the constitutive law's values
-    VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size);
+    VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
     MatrixType gen_constitutive_matrix(strain_size, strain_size);
     cl_values.SetStrainVector(gen_strain_vector);
     cl_values.SetStressVector(gen_stress_vector);
@@ -876,12 +816,17 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
         cl_values.SetStrainVector(gen_strain_vector);
         mConstitutiveLawVector[i_point]->CalculateMaterialResponseCauchy(cl_values);
         noalias(gen_stress_vector) = cl_values.GetStressVector();
+        noalias(gen_constitutive_matrix) = cl_values.GetConstitutiveMatrix();
 
         // We integrate the LHS and RHS
         noalias(rRHS) -= weight * prod(trans(B), gen_stress_vector);
 
     }
-    RotateRHSToGlobal(rRHS, rotation_matrix);
+    if constexpr (is_corotational) {
+        FinalizeCorotationalCalculations(nodal_values, Matrix(), rRHS, true, false);
+    } else {
+        RotateRHSToGlobal(rRHS, rotation_matrix);
+    }
     AddBodyForces(area, rRHS);
 
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateRightHandSide")
