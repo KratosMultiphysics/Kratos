@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
@@ -32,9 +32,9 @@
 #endif
 
 // Project includes
-#include "includes/define.h"
 #include "includes/global_variables.h"
 #include "includes/lock_object.h"
+#include "includes/thread_manager.h"
 
 #define KRATOS_CRITICAL_SECTION const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock());
 
@@ -63,10 +63,11 @@ KRATOS_ERROR_IF_NOT(err_msg.empty()) << "The following errors occured in a paral
 namespace Kratos
 {
 ///@addtogroup KratosCore
+///@{
 
 /// Shared memory parallelism related helper class
 /** Provides access to functionalities for shared memory parallelism
- * such as the number of threads in usa.
+ * such as the number of threads in use.
 */
 class KRATOS_API(KRATOS_CORE) ParallelUtilities
 {
@@ -102,15 +103,25 @@ public:
      */
     [[nodiscard]] static LockObject& GetGlobalLock();
 
-    ///@}
+    /**
+     * @brief Adds a new ThreadManager instance to the list of managed thread managers.
+     * @param pThreadManager A smart pointer to the ThreadManager instance to be added.
+     * This static method appends the provided ThreadManager pointer to the internal
+     * collection of thread managers. It is typically used to register new thread
+     * managers for parallel execution management.
+     */
+    static void AddThreadManager(ThreadManager::Pointer pThreadManager);
 
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{
 
-    static LockObject* mspGlobalLock;
+    static LockObject* mspGlobalLock;                            ///< Global lock for critical sections
 
-    static int* mspNumThreads;
+    static int* mspNumThreads;                                   ///< Pointer to the number of threads in use
+
+    static std::vector<ThreadManager::Pointer> msThreadManagers; ///< List of thread managers to be called when setting the number of threads
 
     ///@}
     ///@name Private Operations
@@ -123,8 +134,8 @@ private:
      * @return number of threads
      */
     static int InitializeNumberOfThreads();
-    ///@}
 
+    ///@}
     ///@name Private Access
     ///@{
 
