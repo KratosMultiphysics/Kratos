@@ -15,6 +15,7 @@
 
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
+#include "containers/model.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -134,7 +135,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyK0ProcedureProcess, ApplyK0ProcedureProcess::Pointer, Process>(
         m, "ApplyK0ProcedureProcess")
-        .def(py::init<ModelPart&, Parameters&>());
+        .def(py::init<Model&, Parameters>());
 
     py::class_<FindNeighbourElementsOfConditionsProcess, FindNeighbourElementsOfConditionsProcess::Pointer, Process>(
         m, "FindNeighbourElementsOfConditionsProcess")
