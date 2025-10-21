@@ -42,7 +42,7 @@ void DeactivateConditionsOnInactiveElements::Execute()
 
 std::string DeactivateConditionsOnInactiveElements::Info() const
 {
-    return "ApplyFinalStressesOfPreviousStageToInitialState";
+    return "DeactivateConditionsOnInactiveElements";
 }
 
 } // namespace Kratos

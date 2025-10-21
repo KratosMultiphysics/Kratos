@@ -54,9 +54,6 @@ void CalculateTotalMotionProcess::Execute()
     }
 }
 
-std::string CalculateTotalMotionProcess::Info() const
-{
-    return "ApplyFinalStressesOfPreviousStageToInitialState";
-}
+std::string CalculateTotalMotionProcess::Info() const { return "CalculateTotalMotionProcess"; }
 
 } // namespace Kratos

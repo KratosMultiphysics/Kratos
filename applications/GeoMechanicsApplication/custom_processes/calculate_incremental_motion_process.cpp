@@ -56,7 +56,7 @@ void CalculateIncrementalMotionProcess::Execute()
 
 std::string CalculateIncrementalMotionProcess::Info() const
 {
-    return "ApplyFinalStressesOfPreviousStageToInitialState";
+    return "CalculateIncrementalMotionProcess";
 }
 
 } // namespace Kratos
