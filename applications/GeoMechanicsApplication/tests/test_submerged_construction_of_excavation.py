@@ -129,6 +129,9 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
     def test_simulation_with_Mohr_Coulomb(self):
         self.run_simulation("Mohr_Coulomb")
 
+    def test_simulation_with_hardening_soil(self):
+        self.run_simulation("hardening_soil")
+
 
 if __name__ == "__main__":
     KratosUnittest.main()
