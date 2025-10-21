@@ -35,7 +35,7 @@ build_core_wheel () {
 
     cd ${WHEEL_ROOT}/dist
 
-    auditwheel repair *.whl
+    # auditwheel repair *.whl
 
     mkdir $CORE_LIB_DIR
     unzip -j wheelhouse/KratosMultiphysics* 'KratosMultiphysics.libs/*' -d $CORE_LIB_DIR
@@ -54,9 +54,9 @@ build_application_wheel () {
 
     $PYTHON_LOCATION -m build
 
-    auditwheel repair dist/*.whl
+    # auditwheel repair dist/*.whl
 
-    optimize_wheel
+    # optimize_wheel
 
     cp ${WHEEL_ROOT}/wheelhouse/* ${WHEEL_OUT}/
 
