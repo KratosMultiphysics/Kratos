@@ -994,7 +994,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeCorotationalCalculati
     if (RHS_required) {
         // Compute the Right-Hand-Side vector in global coordinate system (- T' * P' * Km * U).
         // At this point the computation of the Right-Hand-Side is complete.
-        noalias(rRHS) = prod(trans(T), projectedLocalForces);
+        noalias(rRHS) = prod(trans(GlobalSizeRotationMatrix), projectedLocalForces);
     }
     if (LHS_required) {
         MatrixType temp(global_size, global_size);
@@ -1033,8 +1033,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeCorotationalCalculati
         // Step 4: (Global Stiffness Matrix)
         // Transform the LHS to the Global coordinate system.
         // T' * [(P' * Km * H * P) - (G' * Fn' * P) - (Fnm * G)] * T
-        noalias(temp) = prod(rLHS, T);
-        noalias(rLHS) = prod(trans(T), temp);// note: '+' not '-' because the RHS already has the negative sign
+        noalias(temp) = prod(rLHS, GlobalSizeRotationMatrix);
+        noalias(rLHS) = prod(trans(GlobalSizeRotationMatrix), temp);// note: '+' not '-' because the RHS already has the negative sign
     }
 }
 
