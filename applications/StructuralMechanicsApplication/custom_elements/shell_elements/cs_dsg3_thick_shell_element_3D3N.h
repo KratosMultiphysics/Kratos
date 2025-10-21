@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/element.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 
 namespace Kratos
 {
@@ -66,6 +67,7 @@ public:
     using bounded_18_vector = array_1d<double, 18>;
     using bounded_3_matrix = BoundedMatrix<double, 3, 3>; // rotation matrix
     using bounded_18_matrix = BoundedMatrix<double, 18, 18>; // stiffness matrix
+    using CoordinateTransformationPointerType = Kratos::unique_ptr<ShellT3_CorotationalCoordinateTransformation>;
 
     static constexpr bool is_corotational = IS_COROTATIONAL;
 
@@ -249,7 +251,7 @@ public:
      *      e2
      *      e3]
      */
-    void CalculateRotationMatrixLocalToGlobal(
+    void CalculateRotationMatrixGlobalToLocal(
         bounded_3_matrix& rRotationMatrix,
         const bool UseInitialConfiguration
     ) const;
@@ -468,6 +470,8 @@ protected:
 
     Quaternion<double> mQ0; /// The initial rotation quaternion (used only for corotational formulation)
     array_1d<Quaternion<double>, 3> mQN; // The rotation quaternions at the nodes (used only for corotational formulation)
+    CoordinateTransformationPointerType mpCoordinateTransformation = nullptr;
+
 
     ///@}
     ///@name Protected Operators

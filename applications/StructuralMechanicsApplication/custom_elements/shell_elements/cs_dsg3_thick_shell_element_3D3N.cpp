@@ -20,7 +20,6 @@
 #include "cs_dsg3_thick_shell_element_3D3N.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/EICR.hpp"
-#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 
 namespace Kratos
 {
@@ -45,17 +44,9 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Initialize(
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
 
-        bounded_3_matrix T0;
-        CalculateRotationMatrixLocalToGlobal(T0, true);
-        mQ0 = Quaternion<double>::FromRotationMatrix(T0);
-
         if constexpr (is_corotational) {
-            // Let's initialize the nodal rotation quaternions
-            array_3 rotation;
-            for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
-                noalias(rotation) = r_geometry[i].FastGetSolutionStepValue(ROTATION);
-                mQN[i] = Quaternion<double>::FromRotationVector(rotation);
-            }
+            mpCoordinateTransformation = Kratos::make_unique<ShellT3_CorotationalCoordinateTransformation>(pGetGeometry());
+            mpCoordinateTransformation->Initialize();
         }
     }
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::Initialize")
@@ -200,7 +191,7 @@ double CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateArea(
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixLocalToGlobal(
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixGlobalToLocal(
     bounded_3_matrix& rRotationMatrix,
     const bool UseInitialConfiguration
 ) const
@@ -249,7 +240,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixLocalT
         rRotationMatrix(1, i) = v2[i];
         rRotationMatrix(2, i) = v3[i];
     }
-    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateRotationMatrixLocalToGlobal")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateRotationMatrixGlobalToLocal")
 }
 
 /***********************************************************************************/
@@ -593,33 +584,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetNodalValuesVector(
     const auto& r_geometry = GetGeometry();
 
     if constexpr (is_corotational) {
-
-        bounded_3_matrix T_curr, T0;
-        CalculateRotationMatrixLocalToGlobal(T_curr, false);
-        mQ0.ToRotationMatrix(T0);
-
-        Quaternion<double> Q_curr = Quaternion<double>::FromRotationMatrix(T_curr);
-        const array_3 center = r_geometry.Center();
-        const array_3 initial_center = GetInitialCenter();
-        array_3 deformational_values;
-
-
-        for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
-            IndexType index = i * 6;
-
-            noalias(deformational_values) = prod(T_curr , r_geometry[i].Coordinates() - center);
-            noalias(deformational_values) -= prod(T0, r_geometry[i].GetInitialPosition() - initial_center);
-
-            rNodalValues[index]     = deformational_values[0];
-            rNodalValues[index + 1] = deformational_values[1];
-            rNodalValues[index + 2] = deformational_values[2];
-
-            const Quaternion<double> delta_Q = Q_curr * mQN[i] * mQ0.conjugate();
-
-            delta_Q.ToRotationVector(rNodalValues[index + 3],
-                                     rNodalValues[index + 4],
-                                     rNodalValues[index + 5]);
-        }
+        const auto LCS = ShellT3_LocalCoordinateSystem(r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates());
+        noalias(rNodalValues) = mpCoordinateTransformation->CalculateLocalDisplacements(LCS, Vector());
     } else { // Linear
         IndexType index = 0;
         for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
@@ -674,7 +640,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
     rRHS.clear();
 
     bounded_3_matrix rotation_matrix;
-    mQ0.ToRotationMatrix(rotation_matrix);
+    CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
+    // mQ0.ToRotationMatrix(rotation_matrix);
 
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
@@ -773,7 +740,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
     rRHS.clear();
 
     bounded_3_matrix rotation_matrix;
-    mQ0.ToRotationMatrix(rotation_matrix);
+    // mQ0.ToRotationMatrix(rotation_matrix);
+    CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
 
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
@@ -908,7 +876,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeCorotationalCalculati
         const bool LHS_required)
 {
     bounded_3_matrix T;
-    CalculateRotationMatrixLocalToGlobal(T, false);
+    CalculateRotationMatrixGlobalToLocal(T, false);
     bounded_18_matrix GlobalSizeRotationMatrix;
     GlobalSizeRotationMatrix.clear();
     const auto& r_geometry = GetGeometry();
