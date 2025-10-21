@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/condition.h"
 #include "iga_application_variables.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -35,8 +36,11 @@ class KRATOS_API(IGA_APPLICATION) FluidCouplingCondition : public Condition
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FluidCouplingCondition);
 
-    using SizeType = std::size_t;
-    using IndexType = std::size_t;
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
+
+    /// Type for shape function derivatives container
+    typedef Kratos::Matrix ShapeDerivativesType;
 
     FluidCouplingCondition(
         IndexType NewId,
@@ -134,6 +138,11 @@ private:
     }
 
     void InitializeMemberVariables();
+    void InitializeMaterial();
+
+    void CalculateB(
+        Matrix& rB,
+        const ShapeDerivativesType& r_DN_DX) const;
 
     void GetVelocityCoefficientVectorA(Vector& rValues) const;
     void GetVelocityCoefficientVectorB(Vector& rValues) const;
@@ -150,11 +159,38 @@ private:
         return *neigh[0];
     }
     
+    // Small helper to hold CL variables (2D Voigt size = 3)
+    struct ConstitutiveVariables
+    {
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
+
+        explicit ConstitutiveVariables(const SizeType StrainSize)
+        {
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
+    // Constitutive law pointer (cloned from Properties)
+    ConstitutiveLaw::Pointer mpConstitutiveLaw;
+
     array_1d<double, 3> mNormalParameterSpaceA = ZeroVector(3);
     array_1d<double, 3> mNormalParameterSpaceB = ZeroVector(3);
 
     array_1d<double, 3> mNormalPhysicalSpaceA = ZeroVector(3);
     array_1d<double, 3> mNormalPhysicalSpaceB = ZeroVector(3);
+
+    // Polynomial order used to scale penalty (p^2/h)
+    IndexType mBasisFunctionsOrder = 1;
 };
 
 } // namespace Kratos
