@@ -96,4 +96,16 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateTotalMotionProcessUndefined, KratosGeoMechani
         "Invalid variable name: NOTHING. Expected DISPLACEMENT or ROTATION.");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoCalculateTotalMotionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("dummy", 2);
+    const Parameters parameters(R"(
+      {
+          "variable_name": "ROTATION"
+      }  )");
+    CalculateTotalMotionProcess process(r_model_part, parameters);
+
+    KRATOS_EXPECT_EQ(process.Info(), "CalculateTotalMotionProcess");
+}
 } // namespace Kratos::Testing

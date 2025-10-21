@@ -109,4 +109,17 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessUndefined, KratosGeoM
         "Invalid variable name: NOTHING. Expected DISPLACEMENT or ROTATION.");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoCalculateIncrementalMotionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("dummy", 2);
+    const Parameters parameters(R"(
+      {
+          "variable_name": "DISPLACEMENT"
+      }  )");
+    CalculateIncrementalMotionProcess process(r_model_part, parameters);
+
+    KRATOS_EXPECT_EQ(process.Info(), "CalculateIncrementalMotionProcess");
+}
+
 } // namespace Kratos::Testing
