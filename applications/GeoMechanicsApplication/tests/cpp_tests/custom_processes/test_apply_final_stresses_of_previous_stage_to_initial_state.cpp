@@ -117,9 +117,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsIn
         PK2_STRESS_VECTOR, std::vector<Vector>(number_of_integration_points, initial_stress_vector),
         dummy_process_info);
 
-    const auto dummy_parameters = Parameters{};
+    auto parameters = Parameters{};
+    parameters.AddStringArray("model_part_name_list", {"MainModelPart"});
     ApplyFinalStressesOfPreviousStageToInitialState apply_final_stresses_of_previous_stage_to_initial_state(
-        model_part, dummy_parameters);
+        model, parameters);
 
     // This is also the order in which these functions are called in an analysis
     // which is why we emulate exactly this order here.
@@ -146,8 +147,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
     Model model;
     auto& model_part = CreateModelPartWithAStubElement(model);
 
-    const auto                                      dummy_parameters = Parameters{};
-    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, dummy_parameters);
+    auto parameters = Parameters{};
+    parameters.AddStringArray("model_part_name_list", {"MainModelPart"});
+    ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
 
     const auto dummy_process_info          = ProcessInfo{};
     const auto empty_constitutive_law_list = std::vector<ConstitutiveLaw::Pointer>{};
@@ -164,8 +166,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
     Model model;
     auto& model_part = CreateModelPartWithAStubElement(model);
 
-    const auto                                      dummy_parameters = Parameters{};
-    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, dummy_parameters);
+    auto parameters = Parameters{};
+    parameters.AddStringArray("model_part_name_list", {"MainModelPart"});
+    ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         process.ExecuteInitialize(),
@@ -181,8 +184,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
     model_part.Elements()[1].SetValuesOnIntegrationPoints(
         PK2_STRESS_VECTOR, std::vector<Vector>(2, ScalarVector(4, 1.0)), dummy_process_info);
 
-    const auto                                      dummy_parameters = Parameters{};
-    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, dummy_parameters);
+    auto parameters = Parameters{};
+    parameters.AddStringArray("model_part_name_list", {"MainModelPart"});
+    ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitialize(),
                                       "Number of retrieved stress vectors (2) does not match the "
