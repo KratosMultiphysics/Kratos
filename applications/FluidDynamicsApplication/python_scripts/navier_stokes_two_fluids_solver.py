@@ -580,7 +580,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return distance_curvature_process
 
     def _CreateConsistentNodalPressureGradientProcess(self):
-        consistent_nodal_pressure_gradient_process = KratosCFD.CalulateLevelsetConsistentNodalGradientProcess(
+        consistent_nodal_pressure_gradient_process = KratosCFD.CalculateLevelsetConsistentNodalGradientProcess(
                 self.main_model_part)
 
         return consistent_nodal_pressure_gradient_process

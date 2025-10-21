@@ -56,6 +56,13 @@ public:
         rRightHandSideVector = Vector(4, 10.0);
     }
 
+    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
+                              VectorType&        rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    }
+
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
     {
         rResult = {1, 2};
