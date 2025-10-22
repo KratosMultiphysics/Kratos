@@ -127,7 +127,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyExcavationProcess, ApplyExcavationProcess::Pointer, Process>(
         m, "ApplyExcavationProcess")
-        .def(py::init<ModelPart&, const Parameters&>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<ApplyWriteScalarProcess, ApplyWriteScalarProcess::Pointer, Process>(
         m, "ApplyWriteScalarProcess")
