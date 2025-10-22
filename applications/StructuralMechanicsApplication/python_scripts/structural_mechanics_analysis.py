@@ -14,7 +14,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def __init__(self, model, project_parameters):
         # Making sure that older cases still work by properly initalizing the parameters
         solver_settings = project_parameters["solver_settings"]
-
         if solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
             raise Exception("StructuralMechanicsAnalysis: " + '"domain_size" defined both in "problem_data" and "solver_settings"!')
 
@@ -38,8 +37,15 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         super().__init__(model, project_parameters)
 
     def Initialize(self):
+        
         """ Initializing the Analysis """
         super().Initialize()
+        # Properties-Check:CHECKLEO: jetzt sind die Properties und Elemente initialisiert!
+        model_part = self._GetSolver().GetComputingModelPart()
+        print("=== Properties im ModelPart ===")
+        for prop in model_part.Properties:
+            print(f"Property ID: {prop.Id}")
+
 
         # In case of contact problem
         if self.contact_problem:
@@ -81,7 +87,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         It will be removed in the future
         """
         list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
-
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
@@ -107,7 +112,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 raise Exception("StructuralMechanicsAnalysis: " + info_msg)
         else:
             raise NameError("wrong parameter name")
-
+        
         return list_of_processes
 
     def _GetSimulationName(self):

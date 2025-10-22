@@ -95,6 +95,32 @@ public:
       mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties)),
       mHasRotationDofs(HasRotationDofs)
     {
+            KRATOS_WATCH(pGeometry);
+            if (pGeometry) {
+                KRATOS_WATCH(pGeometry->PointsNumber());
+            } else {
+                KRATOS_INFO("ActiveAdjointFiniteDifferencingBaseElement") << "pGeometry is nullptr!" << std::endl;
+            }
+            if (mpPrimalElement) {
+                KRATOS_WATCH(mpPrimalElement->pGetGeometry());
+                if (mpPrimalElement->pGetGeometry()) {
+                    KRATOS_WATCH(mpPrimalElement->pGetGeometry()->PointsNumber());
+                } else {
+                    KRATOS_INFO("ActiveAdjointFiniteDifferencingBaseElement") << "mpPrimalElement->pGetGeometry() is nullptr!" << std::endl;
+                }
+            }
+            KRATOS_WATCH(pProperties); //CHECKLEO -> Outbut untersuchung, weil Primal element keine Properies zum initialisieren hat 
+            if (pProperties) {
+                KRATOS_WATCH(pProperties->Id());
+            } else {
+                KRATOS_INFO("ActiveAdjointFiniteDifferencingBaseElement") << "pProperties is nullptr!" << std::endl;
+            }
+            if (mpPrimalElement) {
+                KRATOS_WATCH(mpPrimalElement->pGetProperties());
+                KRATOS_WATCH(mpPrimalElement->GetProperties().Id());
+            } else {
+                KRATOS_INFO("ActiveAdjointFiniteDifferencingBaseElement") << "mpPrimalElement is nullptr!" << std::endl;
+            }
     }
 
     ///@}
@@ -136,6 +162,7 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
+        mpPrimalElement->SetProperties(pGetProperties());
         mpPrimalElement->Initialize(rCurrentProcessInfo);
     }
 
@@ -404,6 +431,8 @@ public:
     ///@}
 
 protected:
+    ///@name Property/Material Checks (SMA-like)
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@name Protected Lyfe Cycle
     ///@{

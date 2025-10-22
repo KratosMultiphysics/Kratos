@@ -213,12 +213,12 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector
 {
     KRATOS_TRY
 
-    const GeometryType & geom = this->GetGeometry();
+    // const GeometryType & geom = this->GetGeometry();
 
-    const SizeType number_of_nodes = geom.PointsNumber();
-    const SizeType dimension =  geom.WorkingSpaceDimension();
-    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-    const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
+    // const SizeType number_of_nodes = geom.PointsNumber();
+    // const SizeType dimension =  geom.WorkingSpaceDimension();
+    // const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+    // const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
 
     const SizeType number_of_control_points = GetGeometry().size();
 
@@ -375,43 +375,86 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnInte
     AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
 }
 
-template <class TPrimalElement>
+// template <class TPrimalElement>
+// int ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
+// {
+//     KRATOS_TRY
+
+//     int return_value = Element::Check(rCurrentProcessInfo);
+
+//     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
+
+//     const GeometryType& r_geom = this->GetGeometry();
+
+//     // TODO generic way of doing these checks without checking the dofs..
+
+//     // Check dofs
+//     for (IndexType i = 0; i < r_geom.size(); ++i) {
+//         const auto& r_node = r_geom[i];
+
+//         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
+//         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
+
+//         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
+//         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
+//         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
+
+//         if(mHasRotationDofs) {
+//             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
+//             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
+//             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
+//             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
+//             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
+//         }
+//     }
+
+//     return return_value;
+
+//     KRATOS_CATCH("")
+// }
+
+
+// Check-Override: ruft Property-Check auf
+template <typename TPrimalElement>
 int ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_TRY
-
     int return_value = Element::Check(rCurrentProcessInfo);
-
-    KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
-
-    const GeometryType& r_geom = this->GetGeometry();
-
-    // TODO generic way of doing these checks without checking the dofs..
-
-    // Check dofs
-    for (IndexType i = 0; i < r_geom.size(); ++i) {
-        const auto& r_node = r_geom[i];
-
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
-
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
-
-        if(mHasRotationDofs) {
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
-            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
-            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
-            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
-        }
-    }
-
+    this->CheckProperties(rCurrentProcessInfo);
     return return_value;
-
-    KRATOS_CATCH("")
 }
+
+// Property/Material check analog zu SMA-Adjoint-Element
+template <typename TPrimalElement>
+void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
+{
+    if (this->pGetProperties() == nullptr) {
+    // Erzeuge ein neues, leeres Properties-Objekt
+    Properties::Pointer p_dummy_properties = Kratos::make_shared<Properties>(0);
+    const_cast<ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>*>(this)->SetProperties(p_dummy_properties);
+    KRATOS_WARNING("ActiveAdjointFiniteDifferencingBaseElement") << "Properties not provided for element " << this->Id() << ". An empty Properties object has been assigned." << std::endl;
+    }
+    // if(this->pGetProperties() == nullptr)
+    //     KRATOS_ERROR << "Properties not provided for element " << this->Id() << std::endl;
+
+    // const PropertiesType & props = this->GetProperties();
+    // const GeometryType& geom = this->GetGeometry();
+
+    // if (!props.Has(CONSTITUTIVE_LAW))
+    //     KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
+    // if (!props.Has(THICKNESS))
+    //     KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
+    // if (!props.Has(DENSITY))
+    //     KRATOS_ERROR << "DENSITY not provided for element " << this->Id() << std::endl;
+
+    // // Optional: DummySection analog SMA falls benötigt
+    // ShellCrossSection::Pointer dummySection = Kratos::make_shared<ShellCrossSection>(ShellCrossSection());
+    // dummySection->BeginStack();
+    // dummySection->AddPly(0, 5, props);
+    // dummySection->EndStack();
+    // dummySection->SetSectionBehavior(ShellCrossSection::Thick);
+    // dummySection->Check(props, geom, rCurrentProcessInfo);
+}
+
 
 // Sensitivity functions
 

@@ -49,7 +49,7 @@ class MechanicalSolver(PythonSolver):
             "problem_domain_sub_model_part_list",
             "processes_sub_model_part_list"
         ]
-
+        
         for old_setting in old_unused_settings:
             if custom_settings.Has(old_setting):
                 KratosMultiphysics.Logger.PrintWarning("::[MechanicalSolver]:: ", 'Settings contain no longer used setting, please remove it: "{}"'.format(old_setting))
@@ -235,11 +235,6 @@ class MechanicalSolver(PythonSolver):
 
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
-
-        #CHECKLEO
-        print("end of AddDofs  in MechanicalSolver:")
-        print("DOFs added to the model part: ", dofs_and_reactions_to_add)
-        # raise RuntimeError(1)
 
     def GetDofsList(self):
         """This function creates and returns a list with the DOFs defined in the conditions and elements specifications
