@@ -8,19 +8,21 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Markelov Gennady
 //
 
 #pragma once
 
 // Project includes
-#include "containers/model.h"
-#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
 #include <string>
 
 namespace Kratos
 {
+
+class Model;
+class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ProcessUtilities
 {

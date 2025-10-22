@@ -30,10 +30,10 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleModelPart, KratosGeoMe
             "model_part_name": "Main"
         })");
 
-    auto model_parts = ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess");
+    const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess");
 
-    KRATOS_CHECK_EQUAL(model_parts.size(), 1);
-    KRATOS_CHECK_EQUAL(model_parts[0].get().Name(), "Main");
+    KRATOS_EXPECT_EQ(model_parts.size(), 1);
+    KRATOS_EXPECT_EQ(model_parts[0].get().Name(), "Main");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -47,16 +47,16 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
             "model_part_name_list": ["Part1", "Part2"]
         })");
 
-    auto model_parts = ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess");
+    const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess");
 
-    KRATOS_CHECK_EQUAL(model_parts.size(), 2);
-    KRATOS_CHECK_EQUAL(model_parts[0].get().Name(), "Part1");
-    KRATOS_CHECK_EQUAL(model_parts[1].get().Name(), "Part2");
+    KRATOS_EXPECT_EQ(model_parts.size(), 2);
+    KRATOS_EXPECT_EQ(model_parts[0].get().Name(), "Part1");
+    KRATOS_EXPECT_EQ(model_parts[1].get().Name(), "Part2");
 }
 
 struct NamedProcessFactory {
-    std::string                                                                         name;
-    std::function<std::unique_ptr<Kratos::Process>(Kratos::Model&, Kratos::Parameters)> factory;
+    std::string name;
+    std::function<std::unique_ptr<Kratos::Process>(Kratos::Model&, const Kratos::Parameters&)> factory;
 };
 
 class ProcessWithModelPartsTest : public ::testing::TestWithParam<NamedProcessFactory>
@@ -77,8 +77,7 @@ TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_BothParametersPresen
     const auto& param = GetParam();
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        std::unique_ptr<Kratos::Process> process(param.factory(model, settings));
-        ,
+        param.factory(model, settings),
         "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for " +
             param.name);
 }
@@ -91,8 +90,8 @@ TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_MissingParameters_Th
     const auto& param = GetParam();
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        std::unique_ptr<Kratos::Process> process(param.factory(model, settings));
-        , "Please specify 'model_part_name' or 'model_part_name_list' for " + param.name);
+        param.factory(model, settings),
+        "Please specify 'model_part_name' or 'model_part_name_list' for " + param.name);
 }
 
 TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
@@ -107,8 +106,7 @@ TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
     const auto& param = GetParam();
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        std::unique_ptr<Kratos::Process> process(param.factory(model, settings));
-        ,
+        param.factory(model, settings),
         "The parameters 'model_part_name_list' needs to contain at least one model part name for " +
             param.name);
 }
@@ -118,8 +116,7 @@ static const std::vector<NamedProcessFactory> kProcessFactories = {
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyExcavationProcess>(rModel, rSettings);
 }},
-    {"ApplyK0ProcedureProcess",
-     [](Model& rModel, const Parameters& rSettings) {
+    {"ApplyK0ProcedureProcess", [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyK0ProcedureProcess>(rModel, rSettings);
 }},
     {"ApplyFinalStressesOfPreviousStageToInitialState", [](Model& rModel, const Parameters& rSettings) {
