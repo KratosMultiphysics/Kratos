@@ -63,7 +63,6 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         res_path = os.path.join(file_path, test_name + result_extension)
         simulation_output = reader.read_output_from(res_path)
-        rotations = simulation_output["results"]["ROTATION"]
 
         rotations_for_node_1_time_1 = reader.nodal_values_at_time("ROTATION", 1,
                                                            simulation_output, [1])[0]
