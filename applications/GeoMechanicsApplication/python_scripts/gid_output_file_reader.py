@@ -22,6 +22,7 @@ class GiDOutputFileReader:
         Optionally filters by element IDs and integration point indices.
 
     get_time_steps_from_first_valid_result(output_data):
+    Retrieves times at which results are written based on the first valid result.
     """
 
     def __init__(self):
