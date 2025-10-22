@@ -193,8 +193,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyFinalStressesOfPreviousStageToInitialSta
 {
     Model      model;
     auto&      model_part       = CreateModelPartWithAStubElement(model);
-    const auto dummy_parameters = Parameters{};
-    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, dummy_parameters);
+    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, {});
     KRATOS_EXPECT_EQ(process.Info(), "ApplyFinalStressesOfPreviousStageToInitialState");
 }
 

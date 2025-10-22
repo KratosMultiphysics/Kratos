@@ -631,8 +631,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoK0ProcedureProcess, KratosGeoMechanicsFastSui
     // Arrange
     Model model;
     model.CreateModelPart("dummy");
-    auto k0_settings = Parameters{};
-    k0_settings.AddString("model_part_name", "dummy");
+    const auto k0_settings = Parameters{R"({"model_part_name" : "dummy"})"};
     ApplyK0ProcedureProcess process{model, k0_settings};
 
     // Act & assert
