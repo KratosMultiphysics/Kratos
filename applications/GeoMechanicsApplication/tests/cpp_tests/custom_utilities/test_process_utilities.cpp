@@ -10,6 +10,7 @@
 //  Main authors:    Gennady Markelov
 //
 
+#include "custom_processes/apply_c_phi_reduction_process.h"
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_utilities/process_utilities.h"
@@ -115,8 +116,12 @@ static const std::vector<NamedProcessFactory> kProcessFactories = {
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyExcavationProcess>(rModel, rSettings);
 }},
-    {"ApplyK0ProcedureProcess", [](Model& rModel, const Parameters& rSettings) {
+    {"ApplyK0ProcedureProcess",
+     [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyK0ProcedureProcess>(rModel, rSettings);
+}},
+    {"ApplyCPhiReductionProcess", [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::ApplyCPhiReductionProcess>(rModel, rSettings);
 }}};
 
 INSTANTIATE_TEST_SUITE_P(ProcessUtilitiesTests, ProcessWithModelPartsTest, ::testing::ValuesIn(kProcessFactories));

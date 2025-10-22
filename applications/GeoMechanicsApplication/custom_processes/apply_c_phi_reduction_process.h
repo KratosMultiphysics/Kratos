@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "containers/model.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/kratos_export_api.h"
@@ -27,33 +28,31 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyCPhiReductionProcess : public P
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyCPhiReductionProcess);
 
-    ApplyCPhiReductionProcess(ModelPart& rModelPart, const Parameters&)
-        : Process(Flags()), mrModelPart(rModelPart)
-    {
-    }
+    ApplyCPhiReductionProcess(Model& rModel, const Parameters& rProcessSettings);
 
-    void ExecuteInitializeSolutionStep() override;
-    void ExecuteFinalizeSolutionStep() override;
-    void ExecuteFinalize() override;
-    int  Check() override;
+    void                      ExecuteInitializeSolutionStep() override;
+    void                      ExecuteFinalizeSolutionStep() override;
+    void                      ExecuteFinalize() override;
+    int                       Check() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
-    ModelPart& mrModelPart;
-    double     mReductionFactor         = 1.0;
-    double     mPreviousReductionFactor = 1.0;
-    double     mReductionIncrement      = 0.1;
+    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
+    double                                         mReductionFactor         = 1.0;
+    double                                         mPreviousReductionFactor = 1.0;
+    double                                         mReductionIncrement      = 0.1;
 
-    [[nodiscard]] double GetAndCheckPhi(const Element::PropertiesType& rProp) const;
+    [[nodiscard]] double GetAndCheckPhi(const ModelPart& rModelPart, const Element::PropertiesType& rProp) const;
 
     [[nodiscard]] double ComputeReducedPhi(double Phi) const;
 
-    [[nodiscard]] double GetAndCheckC(const Element::PropertiesType& rProp) const;
+    [[nodiscard]] double GetAndCheckC(const ModelPart& rModelPart, const Element::PropertiesType& rProp) const;
 
     void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC) const;
 
     void SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue) const;
 
-    [[nodiscard]] bool IsStepRestarted() const;
+    [[nodiscard]] bool IsStepRestarted(const ModelPart& rModelPart) const;
 };
 
 } // namespace Kratos
