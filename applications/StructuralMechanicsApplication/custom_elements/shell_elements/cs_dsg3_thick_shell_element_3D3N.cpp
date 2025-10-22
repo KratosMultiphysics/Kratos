@@ -747,9 +747,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
     rRHS.clear();
 
     bounded_3_matrix rotation_matrix;
-    // mQ0.ToRotationMatrix(rotation_matrix);
     CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
-
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
     const array_3 center = GetInitialCenter();
@@ -798,7 +796,14 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
 
     }
     if constexpr (is_corotational) {
-        // TODO
+        const auto LCS = ShellT3_LocalCoordinateSystem(r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates());
+        this->mpCoordinateTransformation->FinalizeCalculations(LCS,
+                                                               Vector(),
+                                                               nodal_values,
+                                                               Matrix(),
+                                                               rRHS,
+                                                               true,
+                                                               false);
     } else {
         RotateRHSToGlobal(rRHS, rotation_matrix);
     }
@@ -857,11 +862,12 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeNonLinearIteration(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
     if constexpr (is_corotational) {
         this->mpCoordinateTransformation->FinalizeNonLinearIteration();
     }
 
-        KRATOS_CATCH("CSDSG3ThickShellElement3D3N::FinalizeNonLinearIteration")
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::FinalizeNonLinearIteration")
 }
 
 /***********************************************************************************/
@@ -901,7 +907,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(
         const IndexType system_size = number_of_nodes * GetDoFsPerNode();
 
         bounded_3_matrix rotation_matrix;
-        mQ0.ToRotationMatrix(rotation_matrix);
+        CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
 
         array_3 local_coords_1, local_coords_2, local_coords_3, center;
         noalias(center) = GetInitialCenter();
@@ -976,7 +982,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(
         const IndexType system_size = number_of_nodes * GetDoFsPerNode();
 
         bounded_3_matrix rotation_matrix;
-        mQ0.ToRotationMatrix(rotation_matrix);
+        CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
 
         array_3 local_coords_1, local_coords_2, local_coords_3, center;
         noalias(center) = GetInitialCenter();
