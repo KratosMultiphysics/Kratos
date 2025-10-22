@@ -692,7 +692,14 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
 
     }
     if constexpr (is_corotational) {
-        FinalizeCorotationalCalculations(nodal_values, rLHS, rRHS, true, true);
+        const auto LCS = ShellT3_LocalCoordinateSystem(r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates());
+        this->mpCoordinateTransformation->FinalizeCalculations(LCS,
+                                                               Vector(),
+                                                               nodal_values,
+                                                               rLHS,
+                                                               rRHS,
+                                                               true,
+                                                               true);
     } else {
         RotateLHSToGlobal(rLHS, rotation_matrix);
         RotateRHSToGlobal(rRHS, rotation_matrix);
@@ -791,7 +798,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
 
     }
     if constexpr (is_corotational) {
-        FinalizeCorotationalCalculations(nodal_values, Matrix(), rRHS, true, false);
+        // TODO
     } else {
         RotateRHSToGlobal(rRHS, rotation_matrix);
     }
@@ -851,14 +858,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeNonLinearIteration(
 {
     KRATOS_TRY
     if constexpr (is_corotational) {
-        const auto& r_geometry = GetGeometry();
-        array_3 current_rotation, previous_rotation;
-        for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
-            noalias(previous_rotation) = r_geometry[i].GetSolutionStepValue(ROTATION, 1);
-            noalias(current_rotation) = r_geometry[i].FastGetSolutionStepValue(ROTATION);
-            Quaternion<double> incremental_quaternion = Quaternion<double>::FromRotationVector(current_rotation - previous_rotation);
-            mQN[i] = incremental_quaternion * mQN[i];
-        }
+        this->mpCoordinateTransformation->FinalizeNonLinearIteration();
     }
 
         KRATOS_CATCH("CSDSG3ThickShellElement3D3N::FinalizeNonLinearIteration")
@@ -875,84 +875,6 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeCorotationalCalculati
         const bool RHS_required,
         const bool LHS_required)
 {
-    bounded_3_matrix T;
-    CalculateRotationMatrixGlobalToLocal(T, false);
-    bounded_18_matrix GlobalSizeRotationMatrix;
-    GlobalSizeRotationMatrix.clear();
-    const auto& r_geometry = GetGeometry();
-    const SizeType num_nodes = r_geometry.PointsNumber();
-    const SizeType global_size = num_nodes * GetDoFsPerNode();
-
-    for (IndexType k = 0; k < 6; k++) {
-        IndexType i = k * 3;
-
-        GlobalSizeRotationMatrix(i, i)         = T(0, 0);
-        GlobalSizeRotationMatrix(i, i + 1)     = T(0, 1);
-        GlobalSizeRotationMatrix(i, i + 2)     = T(0, 2);
-        GlobalSizeRotationMatrix(i + 1, i)     = T(1, 0);
-        GlobalSizeRotationMatrix(i + 1, i + 1) = T(1, 1);
-        GlobalSizeRotationMatrix(i + 1, i + 2) = T(1, 2);
-        GlobalSizeRotationMatrix(i + 2, i)     = T(2, 0);
-        GlobalSizeRotationMatrix(i + 2, i + 1) = T(2, 1);
-        GlobalSizeRotationMatrix(i + 2, i + 2) = T(2, 2);
-    }
-
-    MatrixType P(global_size, global_size), S(global_size, 3), G(num_nodes, global_size);
-    noalias(P) = EICR::Compute_Pt(num_nodes);
-    noalias(S) = EICR::Compute_S(std::vector<array_3>{r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates()});
-
-    const auto LCS = ShellT3_LocalCoordinateSystem(r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates());
-    auto shell3_corot_coord_transf = ShellT3_CorotationalCoordinateTransformation(pGetGeometry());
-    shell3_corot_coord_transf.Initialize();
-    noalias(G) = shell3_corot_coord_transf.RotationGradient(LCS);
-    noalias(P) -= prod(S, G);
-
-    VectorType projectedLocalForces(prod(trans(P), rRHS)); // The RHS is  ALWAYS needed...
-    if (RHS_required) {
-        // Compute the Right-Hand-Side vector in global coordinate system (- T' * P' * Km * U).
-        // At this point the computation of the Right-Hand-Side is complete.
-        noalias(rRHS) = prod(trans(GlobalSizeRotationMatrix), projectedLocalForces);
-    }
-    if (LHS_required) {
-        MatrixType temp(global_size, global_size);
-        MatrixType H(EICR::Compute_H(rLocalNodalValues));
-
-        noalias(temp) = prod(rLHS, H);
-        noalias(rLHS) = prod(temp, P);
-        noalias(temp) = prod(trans(P), rLHS);
-        rLHS.swap(temp);
-
-        // Step 2: ( K.GP: Equilibrium Projection Geometric Stiffness Matrix )
-        // First assemble the 'Fnm' matrix with the Spins of the nodal forces.
-        // Actually at this point the 'Fnm' Matrix is the 'Fn' Matrix,
-        // because it only contains the spins of the 'translational' forces.
-        // At this point 'LHS' contains also this term of the Geometric stiffness
-        // (Ke = (P' * Km * H * P) - (G' * Fn' * P))
-        MatrixType Fnm(global_size, num_nodes, 0.0);
-        EICR::Spin_AtRow(projectedLocalForces, Fnm, 0);
-        EICR::Spin_AtRow(projectedLocalForces, Fnm, 6);
-        EICR::Spin_AtRow(projectedLocalForces, Fnm, 12);
-
-        noalias(temp) = prod(trans(G), trans(Fnm));
-        noalias(rLHS) += prod(temp, P); 
-        
-        // Step 3: ( K.GR: Rotational Geometric Stiffness Matrix )
-        // Add the Spins of the nodal moments to 'Fnm'.
-        // At this point 'LHS' contains also this term of the Geometric stiffness
-        // (Ke = (P' * Km * H * P) - (G' * Fn' * P) - (Fnm * G))
-
-        EICR::Spin_AtRow(projectedLocalForces, Fnm, 3);
-        EICR::Spin_AtRow(projectedLocalForces, Fnm, 9);
-        EICR::Spin_AtRow(projectedLocalForces, Fnm, 15);
-
-        noalias(rLHS) += prod(Fnm, G);     // note: '+' not '-' because the RHS already has the negative sign
-
-        // Step 4: (Global Stiffness Matrix)
-        // Transform the LHS to the Global coordinate system.
-        // T' * [(P' * Km * H * P) - (G' * Fn' * P) - (Fnm * G)] * T
-        noalias(temp) = prod(rLHS, GlobalSizeRotationMatrix);
-        noalias(rLHS) = prod(trans(GlobalSizeRotationMatrix), temp);// note: '+' not '-' because the RHS already has the negative sign
-    }
 }
 
 /***********************************************************************************/
@@ -1022,6 +944,10 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(
             mConstitutiveLawVector[i_point]->FinalizeMaterialResponse(cl_values, ConstitutiveLaw::StressMeasure_Cauchy);
         }
     }
+    if constexpr (is_corotational) {
+        this->mpCoordinateTransformation->FinalizeSolutionStep();
+    }
+
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::FinalizeSolutionStep")
 }
 
@@ -1093,6 +1019,11 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(
             mConstitutiveLawVector[i_point]->InitializeMaterialResponse(cl_values, ConstitutiveLaw::StressMeasure_Cauchy);
         }
     }
+
+    if constexpr (is_corotational) {
+        this->mpCoordinateTransformation->InitializeSolutionStep();
+    }
+
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::InitializeSolutionStep")
 }
 
