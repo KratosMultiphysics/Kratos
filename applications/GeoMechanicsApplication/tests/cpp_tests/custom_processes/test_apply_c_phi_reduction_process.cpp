@@ -82,8 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProce
     Model model;
     const auto& r_model_part = PrepareCPhiTestModelPart(model);
 
-    auto parameters = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"dummy"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
     ApplyCPhiReductionProcess process{model, parameters};
     process.ExecuteInitializeSolutionStep();
 
@@ -96,8 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReduction
     Model model;
     const auto& r_model_part = PrepareCPhiTestModelPart(model);
 
-    auto parameters = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"dummy"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
     ApplyCPhiReductionProcess process{model, parameters};
     process.ExecuteInitializeSolutionStep();
     process.ExecuteFinalizeSolutionStep();
@@ -114,8 +112,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     auto& r_model_part_properties = r_model_part.GetProperties(0);
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
     r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
-    auto parameters = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"dummy"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
         "UMAT_PARAMETERS does not exist in the model part property with Id 0.")
@@ -174,8 +172,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, K
 {
     Model model;
     model.CreateModelPart("dummy");
-    auto parameters = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"dummy"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.Check()),
                                       "ApplyCPhiReductionProces has no elements in modelpart dummy")
 }
@@ -184,8 +182,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionPro
 {
     Model model;
     PrepareCPhiTestModelPart(model);
-    auto parameters = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"dummy"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+
     ApplyCPhiReductionProcess process{model, parameters};
     KRATOS_CHECK_EQUAL(process.Check(), 0);
 }
@@ -196,8 +194,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionP
     Model model;
     PrepareCPhiTestModelPart(model);
 
-    auto parameters = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"dummy"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+
     ApplyCPhiReductionProcess process{model, parameters};
     for (size_t i = 0; i < 9; ++i) {
         process.ExecuteInitializeSolutionStep();
@@ -216,8 +214,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReducti
     // Number of cycles should be larger than one to trigger the step halving of the
     // reduction increment
     r_model_part.GetProcessInfo().GetValue(NUMBER_OF_CYCLES) = 10;
-    auto parameters                                          = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"dummy"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+
     ApplyCPhiReductionProcess process{model, parameters};
     for (size_t i = 0; i < 6; ++i) {
         process.ExecuteInitializeSolutionStep();
