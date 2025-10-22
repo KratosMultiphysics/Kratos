@@ -80,7 +80,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_model_part = PrepareCPhiTestModelPart(model);
+    const auto& r_model_part = PrepareCPhiTestModelPart(model);
 
     auto parameters = Parameters{};
     parameters.AddStringArray("model_part_name_list", {"dummy"});
@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReduction
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_model_part = PrepareCPhiTestModelPart(model);
+    const auto& r_model_part = PrepareCPhiTestModelPart(model);
 
     auto parameters = Parameters{};
     parameters.AddStringArray("model_part_name_list", {"dummy"});
