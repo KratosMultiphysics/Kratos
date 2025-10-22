@@ -98,10 +98,6 @@ Element::Pointer CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Clone(
     // The vector containing the constitutive laws
     p_new_elem->SetConstitutiveLawVector(mConstitutiveLawVector);
 
-    // ADD the quaternions stuiff!!!!!!!!!!!!!!!!!!
-    // ADD the quaternions stuiff!!!!!!!!!!!!!!!!!!
-    // ADD the quaternions stuiff!!!!!!!!!!!!!!!!!!
-
     return p_new_elem;
 
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::Clone")
@@ -584,8 +580,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetNodalValuesVector(
     const auto& r_geometry = GetGeometry();
 
     if constexpr (is_corotational) {
-        const auto LCS = ShellT3_LocalCoordinateSystem(r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates());
-        noalias(rNodalValues) = mpCoordinateTransformation->CalculateLocalDisplacements(LCS, Vector());
+        noalias(rNodalValues) = mpCoordinateTransformation->CalculateLocalDisplacements(mpCoordinateTransformation->CreateLocalCoordinateSystem(), Vector());
     } else { // Linear
         IndexType index = 0;
         for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
@@ -692,8 +687,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
 
     }
     if constexpr (is_corotational) {
-        const auto LCS = ShellT3_LocalCoordinateSystem(r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates());
-        this->mpCoordinateTransformation->FinalizeCalculations(LCS,
+        this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
                                                                Vector(),
                                                                nodal_values,
                                                                rLHS,
@@ -796,8 +790,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
 
     }
     if constexpr (is_corotational) {
-        const auto LCS = ShellT3_LocalCoordinateSystem(r_geometry[0].Coordinates(), r_geometry[1].Coordinates(), r_geometry[2].Coordinates());
-        this->mpCoordinateTransformation->FinalizeCalculations(LCS,
+        this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
                                                                Vector(),
                                                                nodal_values,
                                                                Matrix(),

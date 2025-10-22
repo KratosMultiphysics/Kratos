@@ -84,14 +84,16 @@ public:
     }
 
     // Constructor using an array of nodes
-    CSDSG3ThickShellElement3D3N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry)
+    CSDSG3ThickShellElement3D3N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry),
+        mpCoordinateTransformation(Kratos::make_unique<ShellT3_CorotationalCoordinateTransformation>(pGeometry))
     {
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
 
     // Constructor using an array of nodes with properties
     CSDSG3ThickShellElement3D3N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId,pGeometry,pProperties)
+        : Element(NewId,pGeometry,pProperties),
+        mpCoordinateTransformation(Kratos::make_unique<ShellT3_CorotationalCoordinateTransformation>(pGeometry))
     {
         // This is needed to prevent uninitialised integration method in inactive elements
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
