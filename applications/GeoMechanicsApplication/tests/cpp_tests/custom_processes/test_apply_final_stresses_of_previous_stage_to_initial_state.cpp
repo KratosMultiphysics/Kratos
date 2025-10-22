@@ -164,7 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& model_part = CreateModelPartWithAStubElement(model);
+    CreateModelPartWithAStubElement(model);
 
     auto parameters = Parameters{};
     parameters.AddStringArray("model_part_name_list", {"MainModelPart"});
