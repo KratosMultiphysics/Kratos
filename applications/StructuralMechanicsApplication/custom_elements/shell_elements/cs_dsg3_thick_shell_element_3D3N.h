@@ -468,8 +468,6 @@ protected:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
-    Quaternion<double> mQ0; /// The initial rotation quaternion (used only for corotational formulation)
-    array_1d<Quaternion<double>, 3> mQN; // The rotation quaternions at the nodes (used only for corotational formulation)
     CoordinateTransformationPointerType mpCoordinateTransformation = nullptr;
 
 
