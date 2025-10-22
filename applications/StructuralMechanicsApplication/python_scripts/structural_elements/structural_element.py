@@ -5,18 +5,12 @@ class StructuralElement(ABC):
 
     def __init__(self, 
                  sub_model_part, 
-                 origin_node_id: int, 
-                 corner_node_x_id: int, 
-                 corner_node_y_id: int,
                  boundary_conditions: list[float], 
                  analysis_methods: list[str]):
         self.sub_model_part = sub_model_part
-        self.origin_node_id: int = origin_node_id
-        self.corner_node_x_id: int = corner_node_x_id
-        self.corner_node_y_id: int = corner_node_y_id
         self.boundary_conditions: list[float] = boundary_conditions
         self.analysis_methods: list[str] = analysis_methods
-        self.sub_model_part.AddNodes([self.corner_node_x_id, self.corner_node_y_id, self.origin_node_id])
+        #self.sub_model_part.AddNodes([self.corner_node_x_id, self.corner_node_y_id, self.origin_node_id])
         #self.InitializeNodeVectors()
         #self.SetLocalCoordinateSystem()
          

@@ -11,18 +11,13 @@ class Panel(StructuralElement):
 
     def __init__(self, 
                  sub_model_part, 
-                 origin_node_id: int, 
-                 corner_node_x_id: int, 
-                 corner_node_y_id: int,
                  boundary_conditions: list[float],
                   analysis_methods: list[str]):
-        super().__init__(sub_model_part, origin_node_id, corner_node_x_id, corner_node_y_id, boundary_conditions, analysis_methods)
+        super().__init__(sub_model_part, boundary_conditions, analysis_methods)
         self.DefinePanelGeometry()
         self.GetMaterialData()
         self.ComputeLoad()
         self.RunHandbookMethods()
-
-
 
     @classmethod
     def FromDict(cls, sub_model_part, data):
@@ -42,14 +37,37 @@ class Panel(StructuralElement):
         """
         method_list = [data["analysis_methods"][i].GetString() for i in range(data["analysis_methods"].size())]
         boundary_conditions = [data["boundary_conditions"][i].GetDouble() for i in range(data["boundary_conditions"].size())]
+        #try: 
+        #    panel_origin_node = data["panel_origin_node"].GetInt()
+        #    corner_node_x = data["corner_node_x"].GetInt()
+        #    corner_node_y = data["corner_node_y"].GetInt()
         return cls(sub_model_part, 
-            data["panel_origin_node"].GetInt(),
-            data["corner_node_x"].GetInt(),
-            data["corner_node_y"].GetInt(),
             boundary_conditions,
             method_list)
     
     def DefinePanelGeometry(self) -> None:
+
+        element_areas = []
+        element_centroids = []
+        for element in self.sub_model_part.Elements:
+            element_areas.append(element.GetGeometry().Area())
+            coords = [np.array([node.X, node.Y, node.Z]) for node in element.GetGeometry()]
+            el_centroid = sum(coords)/len(coords)
+            element_centroids.append((element, el_centroid))
+        
+        centroid_coords = np.array([centroid for _, centroid in element_centroids])
+        panel_center = np.mean(centroid_coords, axis=0)
+        min_distance = float("inf")
+        center_elem = None
+        for elem, centroid in element_centroids:
+            print("CENTROID:", centroid)
+            dist = np.linalg.norm(centroid - panel_center)
+            if dist < min_distance:
+                min_distance = dist
+                center_elem = elem
+        self.center_element = elem
+        self.avg_element_area = np.mean(element_areas)
+        self.total_elemental_area = sum(element_areas)
         points = self.DefinePointCloud()
         #Test mit selbst definiertes Parabel
         #xs = np.linspace(0, 20, 21)
@@ -110,34 +128,80 @@ class Panel(StructuralElement):
         Returns:
             tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple consists of the three basis vectors for the panel and the points that were projected onto the panel plane
         """
-
+        #TODO: Check skewness of panel and give warning if skewness is to high
         print("NODE_CLOUD SHAPE: ", points.shape)
         centroid = np.mean(points, axis=0)
-        #U, S, Vt = np.linalg.svd(points - centroid)
-        #x = Vt[0]/np.linalg.norm(Vt[0])
-        #y = Vt[1]/np.linalg.norm(Vt[1])
-        #normal = Vt[-1]
-        P = points - centroid
-        Sr = np.dot(P.T, P)
-        eigV, V = np.linalg.eig(Sr)
-        Vt = V.T
-        z = Vt[np.argmin(eigV)] # normal vector
-        x = Vt[np.argmax(eigV)] # PC
-        y = np.cross(x, z) # PC2 (width)
+        centered_points = points - centroid
+        U, S, Vt = np.linalg.svd(centered_points)
 
-        z /= np.linalg.norm(z)
-        x /= np.linalg.norm(x)
-        y /= np.linalg.norm(y)
-        print("Normal", z)
-        print("PC", x)
-        print("PC2", y)
+        # Test for oblique panel testmodel -------------------------------------------------------------------------
+        #corner_nodes = [1, 15, 36, 23] #oblique panel
+        #corner_nodes = [1, 5, 6, 4] #shell angle test
+        #n1_vector = np.array([self.sub_model_part.GetNode(corner_nodes[0]).X,
+        #                        self.sub_model_part.GetNode(corner_nodes[0]).Y,
+        #                        self.sub_model_part.GetNode(corner_nodes[0]).Z])
+        #n2_vector = np.array([self.sub_model_part.GetNode(corner_nodes[1]).X,
+        #                        self.sub_model_part.GetNode(corner_nodes[1]).Y,
+        #                        self.sub_model_part.GetNode(corner_nodes[1]).Z])
+        #n3_vector = np.array([self.sub_model_part.GetNode(corner_nodes[2]).X,
+        #                        self.sub_model_part.GetNode(corner_nodes[2]).Y,
+        #                        self.sub_model_part.GetNode(corner_nodes[2]).Z])
+        #n4_vector = np.array([self.sub_model_part.GetNode(corner_nodes[3]).X,
+        #                        self.sub_model_part.GetNode(corner_nodes[3]).Y,
+        #                        self.sub_model_part.GetNode(corner_nodes[3]).Z])
+#
+        #diag_vec1 = n3_vector - n1_vector
+        #diag_vec2 = n4_vector - n2_vector
+        #n1n2_vector = n2_vector - n1_vector
+        #n3n4_vector = n4_vector - n3_vector
+        #print("DIAG",diag_vec1)
+        #print("N1N2", n1n2_vector)
+#
+        #beta = np.arccos(np.dot(diag_vec1, n1n2_vector)/(np.linalg.norm(diag_vec1)*np.linalg.norm(n1n2_vector)))
+        #gamma = np.arccos(np.dot((-1)*diag_vec2, (-1)*n1n2_vector)/(np.linalg.norm(diag_vec2)*np.linalg.norm(n1n2_vector)))
+        #alpha = (beta+gamma)/2
+        #print(f"Beta: {np.degrees(beta)}; Gamma: {np.degrees(gamma)}, Alpha: {np.degrees(alpha)}")
+        #R = np.array([[np.cos(alpha), -np.sin(alpha), 0],
+        #    [np.sin(alpha),  np.cos(alpha), 0],
+        #    [0,0,0]])
+        #x = diag_vec1 @ R.T
+        #x /= np.linalg.norm(x)
+        #z = Vt.T[-1]
+        #y = np.cross(x, z)
+        #y /= np.linalg.norm(y)
+#
+        #principal_axes = np.array([x,y,z])
+        # --------------------------------------------------------------------------------------------------------------------
+        principal_axes = Vt.T
+        proj_points = centered_points @ principal_axes
+        x = principal_axes[0]
+        y = principal_axes[1]
+        z = principal_axes[-1]
+        #check alignment with local coordinate system of center element
+        cos_theta = np.dot(x, self.center_element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self.sub_model_part.ProcessInfo)[0])
+        phi = np.degrees(np.arccos(np.clip(cos_theta, -1.0, 1.0)))
+        print(self.center_element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self.sub_model_part.ProcessInfo)[0])
+        if ((abs(phi) < 70) or (abs(phi) > 90)) & ((abs(phi) < 160) or abs(phi) > 200):
+            angle_rad = np.radians(phi)
+            R = np.array([[np.cos(angle_rad), -np.sin(angle_rad), 0],
+            [np.sin(angle_rad),  np.cos(angle_rad), 0],
+            [0, 0, 1]])
+            x = x @ R
+            #x = np.append(x, 0)
+            y = np.cross(x, z)
+            principal_axes = np.array([x, y, z])
+            print("PRINC1:", principal_axes)
+            proj_points = centered_points @ principal_axes
 
-        # Project points onto the new plane:
-        proj_points = np.empty(shape=points.shape)
-        for i,point in enumerate(points):
-            v = point - centroid
-            dist = np.dot(z, v)
-            proj_points[i] = point - dist*z
+        # --------------------------------------------------------------------------------------------------------------------------------
+        #principal_axes_niklas = np.array([  [-0.13541024, 0.99078962, 0.],
+        #                                    [-0.99078962, -0.13541024,  0.],
+        #                                    [-8.107655, 12.8377, 0.]])
+        #x = principal_axes_niklas[0]
+        #y = principal_axes_niklas[1]
+        #z = principal_axes_niklas[-1]
+        #proj_points = centered_points @ principal_axes_niklas
+        # --------------------------------------------------------------------------------------------------------------------------------
 
         return x, y, z, proj_points
     
@@ -153,46 +217,96 @@ class Panel(StructuralElement):
             tuple[float, float]: [measurement in x direction, measurement in y direction]
         """
 
-        print("PROJ", proj_points)
         xs = proj_points[:, 0]
         ys = proj_points[:, 1]
-        num_slices_x = int(len(xs)/5)
-        num_slices_y = int(len(ys)/5)
+        num_slices_x = max(10, min(100, len(xs) // 5))
+        num_slices_y = max(10, min(100, len(ys) // 5))#int(len(ys)/2)
 
         min_x, max_x = xs.min(), xs.max()
         min_y, max_y = ys.min(), ys.max()
 
         #TODO: Überlegen, wie man am besten die num_slices und die tolerance definiert (vermutlich am Besten über die Elementgeometrie die Toleranz)
-        slices_x = np.linspace(min_x, max_x, num_slices_x + 1)
-        slices_y = np.linspace(min_y, max_y, num_slices_y + 1)
+        slices_x = np.linspace(min_x, max_x, 5)
+        slices_y = np.linspace(min_y, max_y, 5)
         xs_dist = np.sort(xs)[-1] - np.sort(xs)[0]
         ys_dist = np.sort(ys)[-1] - np.sort(ys)[0]
-        tolerance_x = xs_dist/(len(xs)/2)
-        tolerance_y = ys_dist/(len(ys)/2)
+        tolerance_x = (max_x - min_x) / 3 #np.sqrt(self.avg_element_area)
+        tolerance_y = (max_y - min_y) / 3 #np.sqrt(self.avg_element_area)
         y_distances = []
         x_distances = []
-
+        print(slices_x)
+        print("TOLERANCE X:", tolerance_x)
+        print("TOLERANCE Y:", tolerance_y)
         #get width (y-measurement of panel)
+        i = 0
         for x_slice in slices_x:
             mask = (xs <= x_slice + tolerance_x) & (xs >= x_slice- tolerance_x)
+            if np.count_nonzero(mask) < 2:
+                continue
             ys_in_slice = ys[mask]
             try:
-                y_min, y_max = ys_in_slice.min(), ys_in_slice.max()
+                min_y, max_y = np.min(ys_in_slice), np.max(ys_in_slice)
             except ValueError:
                 #print("No ys in slice")
                 continue
-            distance = y_max - y_min
+            distance = max_y - min_y
             if distance != 0:
                 y_distances.append(distance)
+            if i == 0:
+                i += 1
+                plt.figure(figsize=(6,6))
+                points_in_slice = proj_points[mask]
+                plt.scatter(proj_points[:, 0], proj_points[:, 1], color='lightgray', label='All Points')
+                plt.scatter(points_in_slice[:, 0], points_in_slice[:, 1], color='red', label='Slice Points')
+
+                # Optional: connect min/max y points with a line
+                min_y_idx = np.argmin(ys_in_slice)
+                max_y_idx = np.argmax(ys_in_slice)
+                min_x = xs[min_y_idx]
+                max_x = xs[max_y_idx]
+                p1 = points_in_slice[min_y_idx]
+                p2 = points_in_slice[max_y_idx]
+                plt.plot([min_x, max_x], [min_y, max_y], 'blue', linewidth=2, label='Slice Width')
+
+                plt.title(f"Slice at x = {x_slice:.2f}")
+                plt.xlabel("x (PCA-aligned)")
+                plt.ylabel("y (PCA-aligned)")
+                plt.legend()
+                plt.axis('equal')
+                plt.grid(True)
+                plt.show()
+
+                fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+                points = self.DefinePointCloud()
+                # 1️⃣ Original coordinate system
+                axs[0].scatter(points[:, 0], points[:, 1], color='gray', label='Original Points')
+                axs[0].set_title('Original Coordinate System')
+                axs[0].set_xlabel('X')
+                axs[0].set_ylabel('Y')
+                axs[0].axis('equal')
+                axs[0].grid(True)
+                axs[0].legend()
+
+                # 2️⃣ PCA-aligned coordinate system
+                axs[1].scatter(proj_points[:, 0], proj_points[:, 1], color='red', label='Projected Points')
+                axs[1].set_title('PCA-Aligned Coordinate System')
+                axs[1].set_xlabel('Principal X')
+                axs[1].set_ylabel('Principal Y')
+                axs[1].axis('equal')
+                axs[1].grid(True)
+                axs[1].legend()
+
+                plt.tight_layout()
+                plt.show()
 
         for y_slice in slices_y:
             mask = (ys <= y_slice + tolerance_y) & (ys >= y_slice- tolerance_y)
             xs_in_slice = xs[mask]
             try:
-                x_min, x_max = xs_in_slice.min(), xs_in_slice.max()
+                min_x, max_x = np.min(xs_in_slice), np.max(xs_in_slice)
             except ValueError:
                 continue
-            distance = x_max - x_min
+            distance = max_x - min_x
             if distance != 0:
                 x_distances.append(distance)
 
@@ -295,6 +409,8 @@ class Panel(StructuralElement):
         else:
             self.buckling_mode = "None"
             KratosMultiphysics.Logger.PrintInfo(f"{self.sub_model_part.Name} is in tension")
+            self.a = self.x_measurement
+            self.b = self.y_measurement
             #print(f"{self.sub_model_part.Name} is in tension (or no valid stress results available). No buckling calculation is needed.")
 
 
@@ -313,7 +429,7 @@ class Panel(StructuralElement):
                 elif self.buckling_mode == 'biaxial':
                     #TODO: Methode für biaxial anpassen
                     RF = StabilityMethods.BiaxialBuckling(self.E, self.nu, self.a, self.b, self.thickness, self.beta, self.biaxial_buckling_stress)
-                elif self.buckling_mode == None:
+                elif self.buckling_mode == "None":
                     RF = 8888
                 with open("buckling.txt", "a") as f:
                     f.write(f"{self.sub_model_part.Name} : \n \t Buckling Mode: {self.buckling_mode}; \n \t RF: {RF} \n \n")

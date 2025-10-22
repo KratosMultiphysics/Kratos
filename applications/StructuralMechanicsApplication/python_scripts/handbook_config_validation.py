@@ -27,7 +27,7 @@ class Schema_Validation:
                 "boundary_conditions" : {"type": "array", "items" : {"type" : "number"}},
                 "analysis_methods"  :   {"type": "array", "items": {"type": "string"}}
             },
-            "required": ["type", "submodelpart", "panel_origin_node", "corner_node_x", "corner_node_y", "analysis_methods"]
+            "required": ["type", "submodelpart", "analysis_methods"]
         }
 
     def create_type_schemas(self):
