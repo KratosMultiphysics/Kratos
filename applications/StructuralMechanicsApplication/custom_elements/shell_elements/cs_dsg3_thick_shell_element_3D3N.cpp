@@ -373,7 +373,6 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateBTriangle(
     const double x3 = r_local_coord_3[0];
     const double y3 = r_local_coord_3[1];
 
-
     const double x12 = x1 - x2;
     const double x23 = x2 - x3;
     const double x31 = x3 - x1;
@@ -393,17 +392,17 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateBTriangle(
     // Membrane components with drilling rotations (Zhang et al 2011)
     // CST membrane part
     rB(0, 0) = y23;
-    rB(0, 1) = x32;
+    rB(1, 1) = x32;
     rB(2, 0) = x32;
     rB(2, 1) = y23;
 
     rB(0, 6) = y31;
-    rB(0, 7) = x13;
+    rB(1, 7) = x13;
     rB(2, 6) = x13;
     rB(2, 7) = y31;
 
     rB(0, 12) = y12;
-    rB(0, 13) = x21;
+    rB(1, 13) = x21;
     rB(2, 12) = x21;
     rB(2, 13) = y12;
 
