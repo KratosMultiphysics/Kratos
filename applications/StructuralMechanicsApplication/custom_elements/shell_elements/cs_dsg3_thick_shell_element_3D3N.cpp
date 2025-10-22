@@ -88,7 +88,8 @@ Element::Pointer CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Clone(
 {
     KRATOS_TRY
 
-    CSDSG3ThickShellElement3D3N::Pointer p_new_elem = Kratos::make_intrusive<CSDSG3ThickShellElement3D3N>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    CSDSG3ThickShellElement3D3N::Pointer p_new_elem = Kratos::make_intrusive<CSDSG3ThickShellElement3D3N>
+        (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -580,7 +581,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetNodalValuesVector(
     const auto& r_geometry = GetGeometry();
 
     if constexpr (is_corotational) {
-        noalias(rNodalValues) = mpCoordinateTransformation->CalculateLocalDisplacements(mpCoordinateTransformation->CreateLocalCoordinateSystem(), Vector());
+        noalias(rNodalValues) = mpCoordinateTransformation->CalculateLocalDisplacements(
+            mpCoordinateTransformation->CreateLocalCoordinateSystem(), Vector());
     } else { // Linear
         IndexType index = 0;
         for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
@@ -636,14 +638,11 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
 
     bounded_3_matrix rotation_matrix;
     CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
-    // mQ0.ToRotationMatrix(rotation_matrix);
-
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
-    const array_3 center = GetInitialCenter();
-    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition() - center);
-    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition() - center);
-    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition() - center);
+    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition());
+    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition());
+    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition());
     const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
     VectorType nodal_values(system_size);
@@ -744,10 +743,9 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
     CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
 
     array_3 local_coords_1, local_coords_2, local_coords_3;
-    const array_3 center = GetInitialCenter();
-    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition() - center);
-    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition() - center);
-    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition() - center);
+    noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition());
+    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition());
+    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition());
     const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
     VectorType nodal_values(system_size);
@@ -903,10 +901,9 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(
         CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
 
         array_3 local_coords_1, local_coords_2, local_coords_3, center;
-        noalias(center) = GetInitialCenter();
-        noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition() - center);
-        noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition() - center);
-        noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition() - center);
+        noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition());
+        noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition());
+        noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition());
         const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
         VectorType nodal_values(system_size);
