@@ -62,6 +62,10 @@ public:
                                       std::vector<ConstitutiveLaw::Pointer>&    rOutput,
                                       const ProcessInfo&) override;
     using Element::CalculateOnIntegrationPoints;
+
+    void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rProcessInfo) override;
+    using Element::Calculate;
+
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     int  Check(const ProcessInfo& rCurrentProcessInfo) const override;

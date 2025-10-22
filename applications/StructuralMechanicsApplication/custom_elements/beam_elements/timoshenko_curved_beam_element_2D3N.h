@@ -363,6 +363,10 @@ public:
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
+    using Element::CalculateOnIntegrationPoints;
+
+    void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rProcessInfo) override;
+    using Element::Calculate;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
