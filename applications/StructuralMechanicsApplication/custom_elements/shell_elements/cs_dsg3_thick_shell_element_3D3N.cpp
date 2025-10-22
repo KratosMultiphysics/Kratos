@@ -938,7 +938,6 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(
             zeta1 = r_integration_points[i_point].X();
             zeta2 = r_integration_points[i_point].Y();
             zeta3 = r_integration_points[i_point].Z();
-            weight = r_integration_points[i_point].Weight();
 
             CalculateBTriangle(B, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
 
@@ -1013,7 +1012,6 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(
             zeta1 = r_integration_points[i_point].X();
             zeta2 = r_integration_points[i_point].Y();
             zeta3 = r_integration_points[i_point].Z();
-            weight = r_integration_points[i_point].Weight();
 
             CalculateBTriangle(B, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
 
