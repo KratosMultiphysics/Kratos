@@ -117,8 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsIn
         PK2_STRESS_VECTOR, std::vector<Vector>(number_of_integration_points, initial_stress_vector),
         dummy_process_info);
 
-    auto parameters = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"MainModelPart"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["MainModelPart"]})"};
     ApplyFinalStressesOfPreviousStageToInitialState apply_final_stresses_of_previous_stage_to_initial_state(
         model, parameters);
 
@@ -147,8 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
     Model model;
     auto& model_part = CreateModelPartWithAStubElement(model);
 
-    auto parameters = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"MainModelPart"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["MainModelPart"]})"};
     ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
 
     const auto dummy_process_info          = ProcessInfo{};
@@ -166,8 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
     Model model;
     CreateModelPartWithAStubElement(model);
 
-    auto parameters = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"MainModelPart"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["MainModelPart"]})"};
     ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -184,8 +181,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
     model_part.Elements()[1].SetValuesOnIntegrationPoints(
         PK2_STRESS_VECTOR, std::vector<Vector>(2, ScalarVector(4, 1.0)), dummy_process_info);
 
-    auto parameters = Parameters{};
-    parameters.AddStringArray("model_part_name_list", {"MainModelPart"});
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["MainModelPart"]})"};
     ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitialize(),
