@@ -239,13 +239,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_InterpolatesMult
     EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckInfoFixWaterPressureAbovePhreaticLine,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoFixWaterPressureAbovePhreaticLine, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto  model        = Model{};
-    auto& r_model_part = model.CreateModelPart("foo");
-    const auto test_parameters = Parameters{R"(
+    auto                                      model           = Model{};
+    auto&                                     r_model_part    = model.CreateModelPart("foo");
+    const auto                                test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "x_coordinates": [0.0, 1.0],

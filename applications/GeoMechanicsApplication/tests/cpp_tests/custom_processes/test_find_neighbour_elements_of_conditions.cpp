@@ -200,8 +200,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighboursWithMultipleNeigh
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoFindNeighbourElementsOfConditionsProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Model model;
-    auto& r_model_part = model.CreateModelPart("dummy", 2);
+    Model                                    model;
+    auto&                                    r_model_part = model.CreateModelPart("dummy", 2);
     FindNeighbourElementsOfConditionsProcess process(r_model_part);
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "FindNeighbourElementsOfConditionsProcess");

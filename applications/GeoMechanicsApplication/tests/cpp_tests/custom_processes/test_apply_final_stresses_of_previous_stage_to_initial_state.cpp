@@ -191,8 +191,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
 
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyFinalStressesOfPreviousStageToInitialState, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model      model;
-    auto&      model_part       = CreateModelPartWithAStubElement(model);
+    Model model;
+    auto& model_part = CreateModelPartWithAStubElement(model);
     ApplyFinalStressesOfPreviousStageToInitialState process(model_part, {});
     KRATOS_EXPECT_EQ(process.Info(), "ApplyFinalStressesOfPreviousStageToInitialState");
 }

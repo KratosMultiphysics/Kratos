@@ -368,13 +368,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesProcess,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
     auto& model_part = CreateModelPartWithTwoStubElements(model);
-    auto parameters = Parameters(R"(
+    auto  parameters = Parameters(R"(
      {
          "model_part_name"            : "MainModelPart",
          "list_of_variables"          : ["FLUID_FLUX_VECTOR"]

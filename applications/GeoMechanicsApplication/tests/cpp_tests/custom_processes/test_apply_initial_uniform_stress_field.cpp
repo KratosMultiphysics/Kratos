@@ -130,8 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldThrowsUponConstructionWh
         "'Main'. Please check the process parameters.");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyInitialUniformStressField,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyInitialUniformStressField, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const Parameters parameters(R"({
@@ -145,7 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyInitialUniformStressField,
     ApplyInitialUniformStressField process(r_model_part, parameters);
 
     // Act & assert
-    KRATOS_EXPECT_EQ(process.Info(), "ApplyInitialUniformStressField" );
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyInitialUniformStressField");
 }
 
 } // namespace Kratos::Testing
