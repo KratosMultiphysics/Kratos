@@ -186,6 +186,12 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
 
+    // If adjacent elements have stresses extrapolated to their nodes, this may be the place to interpolate
+    // them to i.p. locations and introduce them to the constitutive law in an initial stress state
+    // InitialState::SetInitialStressVector(const Vector& rInitialStressVector) for the incremental linear elastic model
+    // or through InterfaceCoulombWithTensionCutOff::SetValue(CAUCHY_STRESS_VECTOR, rValue, rCurrentProcessInfo) for our Coulomb friction law
+    // ( have we forgotten an initial state for Coulomb friction? )
+
     mConstitutiveLaws.clear();
     for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
         mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
