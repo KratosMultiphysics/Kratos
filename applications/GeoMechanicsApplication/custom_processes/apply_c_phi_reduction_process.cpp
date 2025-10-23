@@ -33,7 +33,11 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    if (IsStepRestarted(mrModelParts[0].get())) mReductionIncrement *= 0.5;
+    const bool any_restarted = std::any_of(
+        mrModelParts.begin(), mrModelParts.end(),
+        [this](const auto& rModelPart) { return IsStepRestarted(rModelPart.get()); });
+
+    if (any_restarted) mReductionIncrement *= 0.5;
     mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
     KRATOS_ERROR_IF(mReductionFactor <= 0.01)
         << "Reduction factor should not drop below 0.01, calculation stopped." << std::endl;
