@@ -26,7 +26,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyFinalStressesOfPreviousStageToI
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyFinalStressesOfPreviousStageToInitialState);
-    ApplyFinalStressesOfPreviousStageToInitialState(Model& rModel, const Parameters&);
+    ApplyFinalStressesOfPreviousStageToInitialState(Model& rModel, const Parameters& rProcessSettings);
     ~ApplyFinalStressesOfPreviousStageToInitialState() override = default;
 
     ApplyFinalStressesOfPreviousStageToInitialState(const ApplyFinalStressesOfPreviousStageToInitialState&) = delete;

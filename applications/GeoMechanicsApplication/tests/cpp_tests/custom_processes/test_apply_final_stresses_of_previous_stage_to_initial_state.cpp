@@ -117,7 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsIn
         PK2_STRESS_VECTOR, std::vector<Vector>(number_of_integration_points, initial_stress_vector),
         dummy_process_info);
 
-    const auto parameters = Parameters{R"({"model_part_name_list" : ["MainModelPart"]})"};
+    const auto parameters = Parameters{R"({"model_part_name" : "MainModelPart"})"};
     ApplyFinalStressesOfPreviousStageToInitialState apply_final_stresses_of_previous_stage_to_initial_state(
         model, parameters);
 
@@ -146,7 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
     Model model;
     auto& model_part = CreateModelPartWithAStubElement(model);
 
-    const auto parameters = Parameters{R"({"model_part_name_list" : ["MainModelPart"]})"};
+    const auto parameters = Parameters{R"({"model_part_name" : "MainModelPart"})"};
     ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
 
     const auto dummy_process_info          = ProcessInfo{};

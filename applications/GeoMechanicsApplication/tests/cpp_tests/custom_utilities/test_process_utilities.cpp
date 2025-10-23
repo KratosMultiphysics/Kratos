@@ -116,7 +116,8 @@ static const std::vector<NamedProcessFactory> kProcessFactories = {
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyExcavationProcess>(rModel, rSettings);
 }},
-    {"ApplyK0ProcedureProcess", [](Model& rModel, const Parameters& rSettings) {
+    {"ApplyK0ProcedureProcess",
+     [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyK0ProcedureProcess>(rModel, rSettings);
 }},
     {"ApplyFinalStressesOfPreviousStageToInitialState", [](Model& rModel, const Parameters& rSettings) {
