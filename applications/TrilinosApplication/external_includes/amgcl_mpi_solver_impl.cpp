@@ -11,6 +11,21 @@
 //                   Riccardo Rossi
 //
 
+// The implementation of AMGCLSolver is split between
+// - an implementation header ("linear_solvers/amgcl_solver_impl.hpp")
+// - implementation sources (this source file and "linear_solvers/amgcl_solver_impl.cpp")
+//
+// The reason is twofold:
+// - includes from the AMGCL library are extremely heavy, so they are
+//   avoided in the class declaration ("linear_solvers/amgcl_solver.h").
+//   Instead, the implementation header includes them and defines logic
+//   common to any matrix/vector representations. Each source file that
+//   defines an instantiation of AMGCLSolver includes the implementation
+//   header.
+// - Shared memory and distributed memory matrix/vector representations
+//   are handled in separate source files to avoid adding a Trilinos
+//   dependency to core.
+
 // External includes
 #include "amgcl/adapter/epetra.hpp"
 
@@ -19,7 +34,7 @@
 #include "amgcl_mpi_solver.h"
 #include "custom_utilities/trilinos_solver_utilities.h"
 
-#define KRATOS_AMGCL_MPI
+#define KRATOS_AMGCL_MPI // <= avoid including mpi.h in KratosCore
 #include "linear_solvers/amgcl_solver_impl.hpp"
 #undef KRATOS_AMGCL_MPI
 
