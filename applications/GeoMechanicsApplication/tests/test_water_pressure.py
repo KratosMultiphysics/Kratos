@@ -412,7 +412,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         # get water pressures
         water_pressures = test_helper.get_water_pressure(simulation)
 
-        # get coordinatess
+        # get coordinates
         nodal_coordinates = test_helper.get_nodal_coordinates(simulation)
         gauss_coordinates = test_helper.get_gauss_coordinates(simulation)
 
