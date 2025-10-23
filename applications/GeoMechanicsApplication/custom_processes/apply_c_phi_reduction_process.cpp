@@ -14,12 +14,12 @@
 
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
+#include "containers/model.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/process_utilities.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
-#include "containers/model.h"
 
 namespace Kratos
 {
@@ -34,9 +34,9 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    const bool any_restarted = std::any_of(
-        mrModelParts.begin(), mrModelParts.end(),
-        [this](const auto& rModelPart) { return IsStepRestarted(rModelPart.get()); });
+    const bool any_restarted =
+        std::any_of(mrModelParts.begin(), mrModelParts.end(),
+                    [this](const auto& rModelPart) { return IsStepRestarted(rModelPart.get()); });
 
     if (any_restarted) mReductionIncrement *= 0.5;
     mReductionFactor = mPreviousReductionFactor - mReductionIncrement;

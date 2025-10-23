@@ -12,6 +12,7 @@
 
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "custom_processes/apply_excavation_process.h"
+#include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_utilities/process_utilities.h"
 #include "testing/testing.h"
@@ -119,6 +120,10 @@ static const std::vector<NamedProcessFactory> kProcessFactories = {
     {"ApplyK0ProcedureProcess",
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyK0ProcedureProcess>(rModel, rSettings);
+}},
+    {"ApplyFinalStressesOfPreviousStageToInitialState",
+     [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::ApplyFinalStressesOfPreviousStageToInitialState>(rModel, rSettings);
 }},
     {"ApplyCPhiReductionProcess", [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyCPhiReductionProcess>(rModel, rSettings);
