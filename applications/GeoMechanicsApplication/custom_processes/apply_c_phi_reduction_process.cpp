@@ -33,25 +33,26 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    for (const auto& r_model_part : mrModelParts) {
-        if (IsStepRestarted(r_model_part.get())) mReductionIncrement *= 0.5;
-        mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
-        KRATOS_ERROR_IF(mReductionFactor <= 0.01)
-            << "Reduction factor should not drop below 0.01, calculation stopped." << std::endl;
-        KRATOS_ERROR_IF(mReductionIncrement <= 0.001)
-            << "Reduction increment should not drop below 0.001, calculation stopped. Final safety "
-               "factor = "
-            << 1.0 / mPreviousReductionFactor << std::endl;
-        KRATOS_INFO("ApplyCPhiReductionProces::ExecuteInitializeSolutionStep")
-            << "Try a c-phi reduction factor " << mReductionFactor << " (safety factor "
-            << 1. / mReductionFactor << ") Previous reduction = " << mPreviousReductionFactor
-            << " Reduction increment = " << mReductionIncrement << std::endl;
+    if (IsStepRestarted(mrModelParts[0].get())) mReductionIncrement *= 0.5;
+    mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
+    KRATOS_ERROR_IF(mReductionFactor <= 0.01)
+        << "Reduction factor should not drop below 0.01, calculation stopped." << std::endl;
+    KRATOS_ERROR_IF(mReductionIncrement <= 0.001)
+        << "Reduction increment should not drop below 0.001, calculation stopped. Final safety "
+           "factor = "
+        << 1.0 / mPreviousReductionFactor << std::endl;
+    KRATOS_INFO("ApplyCPhiReductionProces::ExecuteInitializeSolutionStep")
+        << "Try a c-phi reduction factor " << mReductionFactor << " (safety factor "
+        << 1. / mReductionFactor << ") Previous reduction = " << mPreviousReductionFactor
+        << " Reduction increment = " << mReductionIncrement << std::endl;
 
-        double    phi                = 0.;
-        double    reduced_phi        = 0.;
-        double    c                  = 0.;
-        double    reduced_c          = 0.;
-        IndexType previousPropertyId = -1;
+    double    phi                = 0.;
+    double    reduced_phi        = 0.;
+    double    c                  = 0.;
+    double    reduced_c          = 0.;
+    IndexType previousPropertyId = -1;
+
+    for (const auto& r_model_part : mrModelParts) {
         // Apply C/Phi Reduction procedure for the model part:
         block_for_each(r_model_part.get().Elements(), [this, &r_model_part, &phi, &reduced_phi, &c,
                                                        &reduced_c, &previousPropertyId](Element& rElement) {
@@ -83,14 +84,9 @@ void ApplyCPhiReductionProcess::ExecuteFinalize()
 
 int ApplyCPhiReductionProcess::Check()
 {
-    for (const auto& r_model_part : mrModelParts) {
-        if (!r_model_part.get().Elements().empty()) return 0;
-    }
-    for (const auto& r_model_part : mrModelParts) {
-        KRATOS_INFO("ApplyCPhiReductionProcess")
-            << " modelpart " << r_model_part.get().Name() << " has no elements." << std::endl;
-    }
-    KRATOS_ERROR << "ApplyCPhiReductionProcess needs at least one element." << std::endl;
+    KRATOS_ERROR_IF(std::ranges::all_of(mrModelParts, [](const auto& r_model_part_ref) {
+        return r_model_part_ref.get().Elements().empty();
+    })) << "None of the provided model parts contains at least one element. A c-phi reduction analysis requires at least one element.\n";
 }
 
 double ApplyCPhiReductionProcess::GetAndCheckPhi(const ModelPart&               rModelPart,
