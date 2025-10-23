@@ -93,6 +93,9 @@ private:
     // defined below. We need to keep it alive until
     // the hierarchy construction finishes, hence the
     // convoluted member variable.
+    // Optional is used here to represent an invalid state
+    // of the matrix view, before InitializeSolutionStep is
+    // called.
     std::optional<amgcl::adapter::epetra_map> mAdaptor;
 };
 

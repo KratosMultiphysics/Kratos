@@ -95,6 +95,9 @@ private:
     // defined below. We need to keep it alive until
     // the hierarchy construction finishes, hence the
     // convoluted member variable.
+    // Optional is used here to represent an invalid state
+    // of the matrix view, before InitializeSolutionStep is
+    // called.
     std::optional<std::tuple<
         std::size_t,
         const typename TMatrix::index_array_type&,
