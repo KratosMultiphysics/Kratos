@@ -79,7 +79,6 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
         find_neighbours = Kratos.FindGlobalNodalNeighboursProcess(self.model_part)
         find_neighbours.Execute()
         node_neighbours = find_neighbours.GetNeighbourIds(self.model_part.Nodes)
-        expected_valence = 17  # internal node in 2D Hexa3D8 structured mesh
 
         element: Kratos.Element
         for element in self.model_part.Elements:
@@ -107,6 +106,8 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                 num_neigh = len(node_neighbours[node.Id])
                 if num_neigh == 11 and phi >= 0.0:
                     zero_level_set.append((node.X0, node.Y0, node.Z0))
+                elif num_neigh == 17 and phi >= 0.0:
+                    zero_level_set.append((node.X0, node.Y0, node.Z0))
                 elif num_neigh == 7 and phi >= 0.0:
                     corners.append((node.X0, node.Y0, node.Z0))
 
@@ -133,6 +134,7 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
             mp_interface.CreateNewNode(i, zero_level_set[k][0], zero_level_set[k][1], zero_level_set[k][2])
             node_ids.append(i)
         if corners == []:
+            # raise RuntimeError(f"zero node coordinates: {zero_level_set}\nzero node ids: {node_ids}\ncorners: {corners}\nedge: {edge}")
             if n == 2:
                 mp_interface.CreateNewCondition("LineCondition3D2N", j + 1, node_ids, prop)
             elif n == 3:
@@ -182,6 +184,32 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                 g, h = min(distances_bound, key=distances_bound.get)
                 mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [a, c, b, d], prop)
                 mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, [e, f, h, g], prop)
+            elif n == 6 and len(edge) == 0:
+                distances = {}
+                distances_bound = {}
+                for l in range(4):
+                    node1 = zero_level_set[l]
+                    for k, node_bound in enumerate(zero_level_set[4:6]):
+                        dist_bound = sum((node1[dim] - node_bound[dim])**2 for dim in range(3))
+                        distances_bound[(node_ids[l], node_ids[k + 4])] = dist_bound
+                    for k in range(l + 1, 4):
+                        node2 = zero_level_set[k]
+                        distance = sum((node1[dim] - node2[dim])**2 for dim in range(3))
+                        distances[(node_ids[l], node_ids[k])] = distance
+                        
+                furthest = max(distances, key=distances.get)
+                a, b = furthest
+                # Collect all cutting node indices
+                remaining = list(set(node_ids[0:4]) - {a, b})
+                c, d = remaining[0], remaining[1]
+                # boundary nodes
+                closest = min(distances_bound, key=distances_bound.get)
+                e, f = closest
+                distances_bound.pop(closest)
+                g, h = min(distances_bound, key=distances_bound.get)
+                mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [a, c, b, d], prop)
+                mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, [e, f, h, g], prop)
+            # two internal node intersections
             elif n == 8 and len(edge) == 8:
                 connections = []
                 phi = 0
@@ -238,6 +266,7 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                 e, f, g, h = node_ids[surf2[0]], node_ids[surf2[1]], node_ids[surf2[2]], node_ids[surf2[3]]
                 mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [a, b, c, d], prop)
                 mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, [e, f, g, h], prop)
+            # intersection and boundary element
             elif n == 8 and len(edge) == 4:
                 distances = {}
                 distances2 = {}
@@ -269,29 +298,52 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                 phi = []
                 for id in node_ids:
                     phi.append(control_field[id])
-                raise RuntimeError(f"Node ids: {node_ids}\nCoordinates: {zero_level_set}\nPhi value: {phi}")
+                raise RuntimeError(f"Node ids: {node_ids}\nCoordinates: {zero_level_set}\nPhi value: {phi}\n Edges: {edge}")
         else:
-            if len(corners) != 2:
-                raise RuntimeError("Expected exactly 2 corner nodes for corner elements.")
+            n = len(corners)
             corner_node_ids = []
-            for k in range(2):
+            for k in range(n):
                 i += 1
                 mp_interface.CreateNewNode(i, corners[k][0], corners[k][1], corners[k][2])
                 corner_node_ids.append(i)
+            # triangular cut including corner (??)
+            if n + len(zero_level_set) == 3:
+                mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 1, node_ids + corner_node_ids, prop)
             # corner case: split 6 nodes into 2 quads -> 4 triangles
             # raise RuntimeError(f"Essa: {coords}\n {node_ids}")
-            distances = {}
-            for k in range(1,4):
-                node1 = 0
-                node2 = k
-                d = sum((zero_level_set[node1][dim] - zero_level_set[node2][dim]) ** 2 for dim in range(3))
-                #save distance from node 0 to all other non corner nodes by id
-                distances[node_ids[node2]] = d
-            # 2 highest distances belong to another face, c is with checked node
-            res = sorted(distances, key=distances.get, reverse=True)
-            a, b, c = res[0], res[1], res[2]
-            d = node_ids[0]
+            # pseudo 3D full corner
+            elif len(zero_level_set) == 4 and n == 2:
+                res = self.FindClosest(zero_level_set, node_ids, zero_level_set[0])
+                # print(f"corner nodes: {corner_node_ids}, Zero-level: {distances}")
+                a, b, c = res[3], res[2], res[1]
+                d = node_ids[0]
+                # Order each quad along longest diagonal
+                mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [a, b, corner_node_ids[0], corner_node_ids[1]], prop)
+                mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, [c, d, corner_node_ids[0], corner_node_ids[1]], prop)
+            # 3D full corner
+            elif len(zero_level_set) == 6 and n == 1:
+                corner_closest = self.FindClosest(zero_level_set, node_ids, corners[0])[:3]
+                for k, lvl_one in enumerate(corner_closest):
+                    lvl_two = self.FindClosest(zero_level_set, node_ids, zero_level_set[node_ids.index(lvl_one)])[0]
+                    lvl_three = self.FindClosest(zero_level_set, node_ids, zero_level_set[node_ids.index(lvl_two)])
+                    if lvl_three[0] == lvl_one:
+                        lvl_three = lvl_three[1]
+                    else:
+                        lvl_three = lvl_three[0]
+                    mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + k + 1, [corner_node_ids[0], lvl_one, lvl_two, lvl_three], prop)
+                    del zero_level_set[node_ids.index(lvl_two)]
+                    node_ids.remove(lvl_two)
+            else:
+                print(f"corner nodes: {corner_node_ids}, Zero-level: {node_ids}")
 
-            # Order each quad along longest diagonal
-            mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [a, b, corner_node_ids[0], corner_node_ids[1]], prop)
-            mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, [c, d, corner_node_ids[0], corner_node_ids[1]], prop)
+    def FindClosest(self, searced_node_list, node_ids, anchor_node):
+        distances = {}
+        for k in range(0, len(searced_node_list)):
+            node2 = k
+            if anchor_node == searced_node_list[k]:
+                continue
+            d = sum((anchor_node[dim] - searced_node_list[node2][dim]) ** 2 for dim in range(3))
+            #save distance from node 0 to all other non corner nodes by id
+            distances[node_ids[node2]] = d
+        # return sorted ids of closest nodes
+        return sorted(distances, key=distances.get, reverse=False)

@@ -139,7 +139,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
                 "write_deformed_configuration": false,
                 "list_of_output_components"   : ["all"],
                 "output_precision"            : 7,
-                "output_interval"             : 1,
+                "output_interval"             : 20,
                 "echo_level"                  : 0
             }
             """
@@ -159,6 +159,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         self.write_deformed_configuration = parameters["write_deformed_configuration"].GetBool()
         self.output_precision = parameters["output_precision"].GetInt()
         file_format = parameters["file_format"].GetString()
+        self.output_interval = parameters["output_interval"].GetInt()
         if file_format == "ascii":
             self.writer_format = Kratos.VtuOutput.ASCII
         elif file_format == "binary":
@@ -175,8 +176,9 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             self.InitializeVtuOutputIO()
             self.initialized_vtu_outputs = True
 
-        for expression_vtu_output in self.list_of_expresson_vtu_outputs:
-            expression_vtu_output.WriteOutput()
+        if self.optimization_problem.GetStep() % self.output_interval == 0:
+            for expression_vtu_output in self.list_of_expresson_vtu_outputs:
+                expression_vtu_output.WriteOutput()
 
     def InitializeVtuOutputIO(self) -> None:
         # get all the component names at the first writing point
