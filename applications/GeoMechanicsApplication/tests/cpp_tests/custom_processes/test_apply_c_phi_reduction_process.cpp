@@ -79,10 +79,10 @@ namespace Kratos::Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model model;
+    Model       model;
     const auto& r_model_part = PrepareCPhiTestModelPart(model);
 
-    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+    const auto                parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
     ApplyCPhiReductionProcess process{model, parameters};
     process.ExecuteInitializeSolutionStep();
 
@@ -92,10 +92,10 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProce
 KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReductionProcessTwice,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model model;
+    Model       model;
     const auto& r_model_part = PrepareCPhiTestModelPart(model);
 
-    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+    const auto                parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
     ApplyCPhiReductionProcess process{model, parameters};
     process.ExecuteInitializeSolutionStep();
     process.ExecuteFinalizeSolutionStep();
@@ -175,7 +175,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, K
     const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.Check()),
-                                      "ApplyCPhiReductionProces has no elements in modelpart dummy")
+                                      "ApplyCPhiReductionProces needs at least one element.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
