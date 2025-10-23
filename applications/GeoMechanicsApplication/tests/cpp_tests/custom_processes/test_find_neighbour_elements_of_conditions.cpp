@@ -201,8 +201,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoFindNeighbourElementsOfConditionsProcess, Kra
 {
     // Arrange
     Model                                    model;
-    auto&                                    r_model_part = model.CreateModelPart("dummy", 2);
-    const FindNeighbourElementsOfConditionsProcess process(r_model_part);
+    auto&                                    r_empty_model_part = model.CreateModelPart("foo");
+    const FindNeighbourElementsOfConditionsProcess process(r_empty_model_part);
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "FindNeighbourElementsOfConditionsProcess");
 }

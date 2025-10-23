@@ -372,13 +372,13 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesPr
 {
     // Arrange
     Model model;
-    auto& model_part = CreateModelPartWithTwoStubElements(model);
+    auto& r_empty_model_part = model.CreateModelPart("foo");
     auto  parameters = Parameters(R"(
      {
          "model_part_name"            : "MainModelPart",
          "list_of_variables"          : ["FLUID_FLUX_VECTOR"]
      })");
-    const GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
+    const GeoExtrapolateIntegrationPointValuesToNodesProcess process(r_empty_model_part, parameters);
 
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "GeoExtrapolateIntegrationPointValuesToNodesProcess");

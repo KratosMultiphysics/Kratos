@@ -222,8 +222,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyCPhiReductionProcess, KratosGeoMechanics
 {
     // Arrange
     Model                     model;
-    auto&                     r_model_part = PrepareCPhiTestModelPart(model);
-    const ApplyCPhiReductionProcess process{r_model_part, {}};
+    auto&                     r_empty_model_part = model.CreateModelPart("foo");
+    const ApplyCPhiReductionProcess process{r_empty_model_part, {}};
 
     // Act & Assert
     KRATOS_EXPECT_EQ(process.Info(), "ApplyCPhiReductionProcess");

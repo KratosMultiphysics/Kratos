@@ -243,14 +243,14 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoFixWaterPressureAbovePhreaticLine, KratosGeoM
 {
     // Arrange
     auto                                      model           = Model{};
-    auto&                                     r_model_part    = model.CreateModelPart("foo");
+    auto&                                     r_empty_model_part    = model.CreateModelPart("foo");
     const auto                                test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "x_coordinates": [0.0, 1.0],
                 "y_coordinates": [-1.0, 0.0]
             }  )"};
-    const FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
+    const FixWaterPressuresAbovePhreaticLineProcess process(r_empty_model_part, test_parameters);
 
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "FixWaterPressuresAbovePhreaticLineProcess");

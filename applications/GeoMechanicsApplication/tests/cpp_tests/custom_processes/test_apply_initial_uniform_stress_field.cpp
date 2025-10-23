@@ -133,15 +133,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldThrowsUponConstructionWh
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyInitialUniformStressField, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const Parameters parameters(R"({
-        "value": [1.0, 2.0, 3.0, 4.0]
-    })");
-
     Model model;
-    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
-    r_model_part.GetElement(1).GetProperties()[CONSTITUTIVE_LAW] =
-        std::make_shared<GeoIncrementalLinearElasticLaw>(std::make_unique<PlaneStrain>());
-    const ApplyInitialUniformStressField process(r_model_part, parameters);
+    auto& r_empty_model_part = model.CreateModelPart("foo");
+    const ApplyInitialUniformStressField process(r_empty_model_part, {R"({"value": [1.0, 2.0, 3.0, 4.0]})"});
 
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "ApplyInitialUniformStressField");

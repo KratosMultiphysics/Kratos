@@ -81,7 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyPhreaticMultiLinePressureTableProcess, K
 {
     // Arrange
     auto                                       model           = Model{};
-    auto&                                      r_model_part    = model.CreateModelPart("foo");
+    auto&                                      r_empty_model_part    = model.CreateModelPart("foo");
     const auto                                 test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyPhreaticMultiLinePressureTableProcess, K
                 "out_of_plane_direction": 2,
                 "table": [0, 0, 3]
             }  )"};
-    const ApplyPhreaticMultiLinePressureTableProcess process{r_model_part, test_parameters};
+    const ApplyPhreaticMultiLinePressureTableProcess process{r_empty_model_part, test_parameters};
 
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "ApplyPhreaticMultiLinePressureTableProcess");
