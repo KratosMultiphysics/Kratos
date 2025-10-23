@@ -20,11 +20,10 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         res_path = os.path.join(file_path, test_name + result_extension)
         simulation_output = reader.read_output_from(res_path)
-        rotations = simulation_output["results"]["ROTATION"]
 
         # Validation for Time = 1.0, validate total and incremental rotations also for time 1.5
-        rotations_time_1 = reader.get_values_at_time(1.0, rotations)
-        rotations_for_node_1 = reader.get_value_at_node(1, rotations_time_1)
+        rotations_for_node_1_time_1 = reader.nodal_values_at_time("ROTATION", 1,
+                                                                  simulation_output, [1])[0]
 
         total_rotations_for_node_1_time_1 = reader.nodal_values_at_time("TOTAL_ROTATION", 1,
                                                                         simulation_output, [1])[0]
@@ -39,7 +38,7 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
         # This test is a regression test, if rotation is not added to the
         # newmark upw scheme as a variable that needs to be predicted and
         # updated, the results will be different. TOTAL_ROTATION should be equal to ROTATION
-        self.assertAlmostEqual(-0.000177858, rotations_for_node_1[2])
+        self.assertAlmostEqual(-0.000177858, rotations_for_node_1_time_1[2])
 
         self.assertAlmostEqual(-0.000177858, total_rotations_for_node_1_time_1[2])
         self.assertAlmostEqual(-0.000238568, total_rotations_for_node_1_time_1_5[2])
@@ -64,16 +63,14 @@ class KratosGeoMechanicsRotationWithMovingLoadTests(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         res_path = os.path.join(file_path, test_name + result_extension)
         simulation_output = reader.read_output_from(res_path)
-        rotations = simulation_output["results"]["ROTATION"]
 
-        # Validation for Time = 1.0
-        rotations_time_1 = reader.get_values_at_time(1.0, rotations)
-        rotations_for_node_1 = reader.get_value_at_node(1, rotations_time_1)
+        rotations_for_node_1_time_1 = reader.nodal_values_at_time("ROTATION", 1,
+                                                           simulation_output, [1])[0]
 
         # This test is a regression test, if rotation is not added to the
         # ResidualBasedBlockBuilderAndSolverWithMassAndDamping as a variable that
         # needs to update the first/second time derivatives, the results will be different.
-        self.assertAlmostEqual(-0.000177858, rotations_for_node_1[2])
+        self.assertAlmostEqual(-0.000177858, rotations_for_node_1_time_1[2])
 
 if __name__ == '__main__':
     KratosUnittest.main()
