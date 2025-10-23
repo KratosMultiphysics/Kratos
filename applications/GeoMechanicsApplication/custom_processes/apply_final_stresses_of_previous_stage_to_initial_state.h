@@ -26,7 +26,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyFinalStressesOfPreviousStageToI
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyFinalStressesOfPreviousStageToInitialState);
-    ApplyFinalStressesOfPreviousStageToInitialState(ModelPart& rModelPart, const Parameters&);
+    ApplyFinalStressesOfPreviousStageToInitialState(Model& rModel, const Parameters& rProcessSettings);
     ~ApplyFinalStressesOfPreviousStageToInitialState() override = default;
 
     ApplyFinalStressesOfPreviousStageToInitialState(const ApplyFinalStressesOfPreviousStageToInitialState&) = delete;
@@ -37,7 +37,7 @@ public:
     [[nodiscard]] std::string Info() const override;
 
 private:
-    ModelPart& mrModelPart;
+    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
 
     static void CheckRetrievedElementData(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
                                           const std::vector<Vector>& rStressesOnIntegrationPoints,
