@@ -506,7 +506,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateBTriangle(
 
     const double beta0 = 0.5 * (1.0 - 4.0 * std::pow(GetMaterialProperty<double>(POISSON_RATIO, GetProperties()), 2));
     noalias(aux3_by_3) = (1.5 * sqrt(beta0)) * prod(trans(Q), trans(Te));
-    noalias(B_m_high_order) = trans(prod(TTu, aux3_by_3));
+    noalias(B_m_high_order) = trans(prod(TTu, aux3_by_3)) / aux_prod;
 
     // We assemble into the global one
     BoundedVector<IndexType, 9> local_indices; // u,v,theta_z to global size
