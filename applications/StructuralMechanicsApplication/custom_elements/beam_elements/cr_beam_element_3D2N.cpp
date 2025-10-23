@@ -21,17 +21,97 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "span/span.hpp"
 
-namespace Kratos
+namespace Kratos {
+
+
+template <class T, class TElement>
+span<T> GetDeformationCurrentIteration(TElement* pElement) noexcept
 {
+    constexpr int i_begin = 0;
+    constexpr int i_end = CrBeamElement3D2N::msElementSize;
+    auto& r_internal_variables = pElement->GetValue(INTERNAL_VARIABLES);
+    return {&r_internal_variables[i_begin], &r_internal_variables[i_end]};
+}
+
+
+template <class T, class TElement>
+span<T> GetDeformationPreviousIteration(TElement* pElement) noexcept
+{
+    constexpr int i_begin = CrBeamElement3D2N::msElementSize;
+    constexpr int i_end = 2 * CrBeamElement3D2N::msElementSize;
+    auto& r_internal_variables = pElement->GetValue(INTERNAL_VARIABLES);
+    return {&r_internal_variables[i_begin], &r_internal_variables[i_end]};
+}
+
+
+template <class T, class TElement>
+span<T> GetQuaternionVecA(TElement* pElement) noexcept
+{
+    constexpr int i_begin = 2 * CrBeamElement3D2N::msElementSize;
+    constexpr int i_end = 2 * CrBeamElement3D2N::msElementSize + CrBeamElement3D2N::msDimension;
+    auto& r_internal_variables = pElement->GetValue(INTERNAL_VARIABLES);
+    return {&r_internal_variables[i_begin], &r_internal_variables[i_end]};
+}
+
+
+template <class T, class TElement>
+span<T> GetQuaternionVecB(TElement* pElement) noexcept
+{
+    constexpr int i_begin = 2 * CrBeamElement3D2N::msElementSize + CrBeamElement3D2N::msDimension;
+    constexpr int i_end = 2 * CrBeamElement3D2N::msElementSize + 2 * CrBeamElement3D2N::msDimension;
+    auto& r_internal_variables = pElement->GetValue(INTERNAL_VARIABLES);
+    return {&r_internal_variables[i_begin], &r_internal_variables[i_end]};
+}
+
+
+template <class T, class TElement>
+T& GetQuaternionSCAA(TElement* pElement) noexcept
+{
+    constexpr int i = 2 * CrBeamElement3D2N::msElementSize + 2 * CrBeamElement3D2N::msDimension;
+    auto& r_internal_variables = pElement->GetValue(INTERNAL_VARIABLES);
+    return r_internal_variables[i];
+}
+
+
+template <class T, class TElement>
+T& GetQuaternionSCAB(TElement* pElement) noexcept
+{
+    constexpr int i = 2 * CrBeamElement3D2N::msElementSize + 2 * CrBeamElement3D2N::msDimension + 1;
+    auto& r_internal_variables = pElement->GetValue(INTERNAL_VARIABLES);
+    return r_internal_variables[i];
+}
+
+
 CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
                                      GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry) {}
+    : CrBeamElement3D2N(NewId, pGeometry, PropertiesType::Pointer(new Properties))
+{
+}
 
 CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
                                      GeometryType::Pointer pGeometry,
                                      PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties) {}
+    : Element(NewId, pGeometry, pProperties)
+{
+    Vector internal_variables(
+          msElementSize             //< deformation current iteration
+        + msElementSize             //< deformation previous iteration
+        + msDimension               //< quaternion vec A
+        + msDimension               //< quaternion vec B
+        + 1                         //< quaternion sca A
+        + 1                         //< quaternion sca B
+    );
+
+    constexpr double quaternion_sca_a = 1.0;
+    constexpr double quaternion_sca_b = 1.0;
+
+    internal_variables[2 * msElementSize + 2 * msDimension] = quaternion_sca_a;
+    internal_variables[2 * msElementSize + 2 * msDimension + 1] = quaternion_sca_b;
+
+    this->SetValue(INTERNAL_VARIABLES, internal_variables);
+}
 
 Element::Pointer
 CrBeamElement3D2N::Create(IndexType NewId, NodesArrayType const& rThisNodes,
@@ -124,8 +204,14 @@ void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) co
 void CrBeamElement3D2N::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    mDeformationPreviousIteration = mDeformationCurrentIteration;
-    GetValuesVector(mDeformationCurrentIteration, 0);
+    GetDeformationPreviousIteration<double>(this) = GetDeformationCurrentIteration<double>(this);
+
+    // Collect current deformations.
+    Vector source;
+    GetValuesVector(source, 0);
+    auto target = GetDeformationCurrentIteration<double>(this);
+    std::copy(source.begin(), source.end(), target.begin());
+
     KRATOS_CATCH("")
 }
 
@@ -158,9 +244,7 @@ void CrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) con
 void CrBeamElement3D2N::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
-    if (rValues.size() != msElementSize) {
-        rValues.resize(msElementSize, false);
-    }
+    rValues.resize(msElementSize, false);
 
     for (int i = 0; i < msNumberOfNodes; ++i) {
         int index = i * msDimension * 2;
@@ -317,11 +401,11 @@ Vector CrBeamElement3D2N::CalculateLocalNodalForces() const
 {
     // Deformation modes
     const Vector element_forces_t = CalculateElementForces();
-    
+
     // Nodal element forces local
     const Matrix transformation_matrix_s = CalculateTransformationS();
     const Vector nodal_forces_local_qe = prod(transformation_matrix_s, element_forces_t);
-     
+
     return nodal_forces_local_qe;
 }
 
@@ -712,9 +796,20 @@ CrBeamElement3D2N::CalculateInitialLocalCS() const
 
 Vector CrBeamElement3D2N::GetIncrementDeformation() const
 {
-    KRATOS_TRY;
-    return mDeformationCurrentIteration - mDeformationPreviousIteration;
-    KRATOS_CATCH("")
+    Vector output;
+    const auto current = GetDeformationCurrentIteration<const double>(this);
+    const auto previous = GetDeformationPreviousIteration<const double>(this);
+    output.resize(current.size(), false);
+
+    std::transform(current.begin(),
+                   current.end(),
+                   previous.begin(),
+                   output.begin(),
+                   [](double current, double previous) -> double {
+                        return current - previous;
+                   });
+
+    return output;
 }
 
 
@@ -756,8 +851,12 @@ void CrBeamElement3D2N::UpdateQuaternionParameters(
     double temp_scalar = 0.00;
 
     // Node A
-    temp_vector = mQuaternionVEC_A;
-    temp_scalar = mQuaternionSCA_A;
+    {
+        const auto quaternion_vec = GetQuaternionVecA<const double>(this);
+        temp_vector.resize(quaternion_vec.size(), false);
+        std::copy(quaternion_vec.begin(), quaternion_vec.end(), temp_vector.begin());
+        temp_scalar = GetQuaternionSCAA<const double>(this);
+    }
 
     rScalNodeA = drA_sca * temp_scalar;
     for (unsigned int i = 0; i < msDimension; ++i) {
@@ -769,8 +868,12 @@ void CrBeamElement3D2N::UpdateQuaternionParameters(
     rVecNodeA += MathUtils<double>::CrossProduct(drA_vec, temp_vector);
 
     // Node B
-    temp_vector = mQuaternionVEC_B;
-    temp_scalar = mQuaternionSCA_B;
+    {
+        const auto quaternion_vec = GetQuaternionVecB<const double>(this);
+        temp_vector.resize(quaternion_vec.size(), false);
+        std::copy(quaternion_vec.begin(), quaternion_vec.end(), temp_vector.begin());
+        temp_scalar = GetQuaternionSCAB<const double>(this);
+    }
 
    rScalNodeB = drB_sca * temp_scalar;
     for (unsigned int i = 0; i < msDimension; ++i) {
@@ -794,10 +897,16 @@ void CrBeamElement3D2N::SaveQuaternionParameters()
     UpdateQuaternionParameters(quaternion_sca_a,
     quaternion_sca_b,quaternion_vec_a,quaternion_vec_b);
 
-    mQuaternionVEC_A = quaternion_vec_a;
-    mQuaternionVEC_B = quaternion_vec_b;
-    mQuaternionSCA_A = quaternion_sca_a;
-    mQuaternionSCA_B = quaternion_sca_b;
+    std::copy(quaternion_vec_a.begin(),
+              quaternion_vec_a.end(),
+              GetQuaternionVecA<double>(this).begin());
+
+    std::copy(quaternion_vec_b.begin(),
+              quaternion_vec_b.end(),
+              GetQuaternionVecB<double>(this).begin());
+
+    GetQuaternionSCAA<double>(this) = quaternion_sca_a;
+    GetQuaternionSCAB<double>(this) = quaternion_sca_b;
     KRATOS_CATCH("");
 }
 
@@ -1032,25 +1141,25 @@ void CrBeamElement3D2N::CalculateRightHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateRightHandSide(
-    VectorType& rRightHandSideVector, 
+    VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
     KRATOS_TRY;
-    
+
     // Add internal forces
     const Vector internal_forces = CalculateGlobalNodalForces();
     rRightHandSideVector = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -= internal_forces;
-    
+
     // Add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();
-    
+
     KRATOS_CATCH("")
 }
 
 void CrBeamElement3D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, 
+    MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -1061,7 +1170,7 @@ void CrBeamElement3D2N::CalculateLeftHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, 
+    MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
@@ -1102,7 +1211,7 @@ CrBeamElement3D2N::CalculateElementForces() const
     BoundedVector<double, msLocalSize> deformation_modes_total_v = ZeroVector(msLocalSize);
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-  
+
     BoundedVector<double, 3> initial_strain_vector = ZeroVector(3);
     double initial_unit_elongation = 0.0;
     double initial_unit_rotation_2 = 0.0;
@@ -1767,23 +1876,11 @@ const Parameters CrBeamElement3D2N::GetSpecifications() const
 void CrBeamElement3D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-    rSerializer.save("NodalDeformationCurrent", mDeformationCurrentIteration);
-    rSerializer.save("NodalDeformationPrevious", mDeformationPreviousIteration);
-    rSerializer.save("QuaternionVecA", mQuaternionVEC_A);
-    rSerializer.save("QuaternionVecB", mQuaternionVEC_B);
-    rSerializer.save("QuaternionScaA", mQuaternionSCA_A);
-    rSerializer.save("QuaternionScaB", mQuaternionSCA_B);
 }
 
 void CrBeamElement3D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-    rSerializer.load("NodalDeformationCurrent", mDeformationCurrentIteration);
-    rSerializer.load("NodalDeformationPrevious", mDeformationPreviousIteration);
-    rSerializer.load("QuaternionVecA", mQuaternionVEC_A);
-    rSerializer.load("QuaternionVecB", mQuaternionVEC_B);
-    rSerializer.load("QuaternionScaA", mQuaternionSCA_A);
-    rSerializer.load("QuaternionScaB", mQuaternionSCA_B);
 }
 
 } // namespace Kratos.

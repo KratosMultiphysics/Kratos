@@ -33,16 +33,8 @@ namespace Kratos
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CrBeamElement3D2N : public Element
 {
-protected:
-    //const values
-    static constexpr int msNumberOfNodes = 2;
-    static constexpr int msDimension = 3;
-    static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
-    static constexpr unsigned int msElementSize = msLocalSize * 2;
-
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElement3D2N);
-
 
     typedef Element BaseType;
     typedef BaseType::GeometryType GeometryType;
@@ -54,6 +46,11 @@ public:
     typedef BaseType::VectorType VectorType;
     typedef BaseType::EquationIdVectorType EquationIdVectorType;
     typedef BaseType::DofsVectorType DofsVectorType;
+
+    static constexpr int msNumberOfNodes = 2;
+    static constexpr int msDimension = 3;
+    static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
+    static constexpr unsigned int msElementSize = msLocalSize * 2;
 
     CrBeamElement3D2N() {};
     CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -312,22 +309,9 @@ public:
     const Parameters GetSpecifications() const override;
 
 private:
-
-
-    Vector mDeformationCurrentIteration = ZeroVector(msElementSize);
-    Vector mDeformationPreviousIteration = ZeroVector(msElementSize);
-    Vector mQuaternionVEC_A = ZeroVector(msDimension);
-    Vector mQuaternionVEC_B = ZeroVector(msDimension);
-    double mQuaternionSCA_A = 1.00;
-    double mQuaternionSCA_B = 1.00;
-
-
-
-
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
-
 };
 
 
