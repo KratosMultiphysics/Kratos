@@ -401,7 +401,7 @@ void AMGCLSolver<TSparse,TDense>::ProvideAdditionalData(SparseMatrixType& rA,
         if(old_ndof != -1)
             detected_block_size = ndof;
 
-        int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(detected_block_size.value());
+        int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(detected_block_size);
 
         if( old_ndof == -1) {
             detected_block_size = max_block_size;
