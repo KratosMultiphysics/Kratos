@@ -189,4 +189,12 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
                                       "number of constitutive laws (3) for element 1")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyFinalStressesOfPreviousStageToInitialState, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& r_empty_model_part = model.CreateModelPart("foo");
+    const ApplyFinalStressesOfPreviousStageToInitialState process(r_empty_model_part, {});
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyFinalStressesOfPreviousStageToInitialState");
+}
+
 } // namespace Kratos::Testing
