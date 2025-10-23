@@ -118,9 +118,16 @@ void SupportFluidCondition::CalculateAll(
     Vector traction_current_iteration = prod(stress_old, n_tensor); 
 
     for (IndexType i = 0; i < number_of_nodes; i++) {
-        for (IndexType j = 0; j < number_of_nodes; j++) {
-            for (IndexType idim = 0; idim < 2; idim++) {
+        for (IndexType idim = 0; idim < 2; idim++) {
+            Matrix DB_contribution_w = ZeroMatrix(2, 2);
+            DB_contribution_w(0, 0) = DB_voigt(0, 2*i+idim);
+            DB_contribution_w(0, 1) = DB_voigt(2, 2*i+idim);
+            DB_contribution_w(1, 0) = DB_voigt(2, 2*i+idim);
+            DB_contribution_w(1, 1) = DB_voigt(1, 2*i+idim);
+            // Compute the traction vector: sigma * n.
+            Vector traction_nitsche_w = prod(DB_contribution_w, n_tensor);
 
+            for (IndexType j = 0; j < number_of_nodes; j++) {  
                 // Penalty term for the velocity
                 rLeftHandSideMatrix(3*i+idim, 3*j+idim) += H(0,i)*H(0,j)* penalty_integration;
                 
@@ -138,12 +145,17 @@ void SupportFluidCondition::CalculateAll(
                     rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0, i) * traction(idim) * integration_weight;
                     
                     // Nitsche term --> With Constitutive law
-                    rLeftHandSideMatrix(3*j+jdim, 3*i+idim) += H(0, i) * traction(idim) * integration_weight;
+                    rLeftHandSideMatrix(3*i+idim, 3*j+jdim) += H(0, j) * traction_nitsche_w(jdim) * integration_weight;
                 }
 
                 // integration by parts PRESSURE
                 rLeftHandSideMatrix(3*i+idim, 3*j+2) += H(0,j)* ( H(0,i) * normal_parameter_space[idim] )
                         * integration_weight;
+
+                // Nitsche term --> q term
+                rLeftHandSideMatrix(3*j+mDim, 3*i+idim) -= H(0,j)* ( H(0,i) * normal_parameter_space[idim] )
+                        * integration_weight;
+
             }
         }
 
@@ -164,7 +176,13 @@ void SupportFluidCondition::CalculateAll(
             DB_contribution(1, 1) = DB_voigt(1, 2*i+idim); 
             // Compute the traction vector: sigma * n.
             Vector traction = prod(DB_contribution, n_tensor);
-            rRightHandSideVector(3*i+idim) -= velocity_current_iteration[idim] * traction(idim) * integration_weight;
+            for (IndexType jdim = 0; jdim < mDim; jdim++) {
+                rRightHandSideVector(3*i+idim) -= velocity_current_iteration[jdim] * traction(jdim) * integration_weight;
+            }
+            // Nitsche term --> q term
+            rRightHandSideVector(3*i+mDim) += velocity_current_iteration[idim] * ( H(0,i) * normal_parameter_space[idim] )
+                        * integration_weight;
+            
         }
     }
             
@@ -181,7 +199,6 @@ void SupportFluidCondition::CalculateAll(
 
             // Extract the 2x2 block for the control point i from the sigma matrix.
             Matrix sigma_block = ZeroMatrix(2, 2);
-
             sigma_block(0, 0) = DB_voigt(0, 2*i+idim);
             sigma_block(0, 1) = DB_voigt(2, 2*i+idim);
             sigma_block(1, 0) = DB_voigt(2, 2*i+idim);
@@ -189,7 +206,12 @@ void SupportFluidCondition::CalculateAll(
             // Compute the traction vector: sigma * n.
             Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
             // Nitsche term --> With Constitutive law
-            rRightHandSideVector[3*i+idim] += u_D[idim] * traction(idim) * integration_weight;
+            for (IndexType jdim = 0; jdim < mDim; jdim++) {
+                rRightHandSideVector[3*i+idim] += u_D[jdim] * traction(jdim) * integration_weight;
+            }
+
+            // Nitsche term --> q term
+            rRightHandSideVector[3*i+mDim] -= u_D[idim] * H(0,i)*normal_parameter_space[idim] * integration_weight;
 
         }
     }

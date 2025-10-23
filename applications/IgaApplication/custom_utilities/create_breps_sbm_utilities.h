@@ -288,10 +288,13 @@ private:
 
 
         // INNER
-        for (IndexType i_element = 1; i_element < rSurrogateModelPartInner.Elements().size()+1; i_element++) {
-            IndexType first_surrogate_cond_id = rSurrogateModelPartInner.pGetElement(i_element)->GetGeometry()[0].Id(); // Element 1 because is the only surrogate loop
-            IndexType last_surrogate_cond_id = rSurrogateModelPartInner.pGetElement(i_element)->GetGeometry()[1].Id();  // Element 1 because is the only surrogate loop
-    
+        const auto& r_elems = rSurrogateModelPartInner.Elements();
+
+        for (const auto& rElem : r_elems) {
+            const auto& r_geom = rElem.GetGeometry();
+            IndexType first_surrogate_cond_id = r_geom[0].Id();
+            IndexType last_surrogate_cond_id  = r_geom[1].Id();
+
             for (IndexType cond_id = first_surrogate_cond_id; cond_id <= last_surrogate_cond_id; ++cond_id) {
                 
                 auto p_cond = rSurrogateModelPartInner.pGetCondition(cond_id);

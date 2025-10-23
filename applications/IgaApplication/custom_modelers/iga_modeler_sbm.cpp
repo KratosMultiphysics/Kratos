@@ -141,13 +141,18 @@ void IgaModelerSbm::GetGeometryList(
                     << "::[IgaModelerSbm]:: The surrogate_model_part_inner has zero elements (no inner loop/boundary defined)."
                     << "Something might be missing in the NurbsModelerSbm." << std::endl;
 
-                for (IndexType iel = 1; iel < surrogate_model_part_inner.NumberOfElements()+1; iel++) { //loop over the number of inner loops
+                for (const auto& rElem : surrogate_model_part_inner.Elements()) {
                     /*
                     Each element in the surrogate_model_part_inner represents a surrogate boundary loop. First "node.Id()" is the id of the first condition and
                         the second "node.Id()" is the last condition of that loop. (Essential for multiple inner loops)
                     */
-                    IndexType first_condition_id = surrogate_model_part_inner.pGetElement(iel)->GetGeometry()[0].Id();
-                    IndexType last_condition_id = surrogate_model_part_inner.pGetElement(iel)->GetGeometry()[1].Id();
+                    const auto& rGeom = rElem.GetGeometry();
+                    KRATOS_ERROR_IF(rGeom.PointsNumber() < 2)
+                        << "Surrogate loop element " << rElem.Id() << " has <2 geometry points." << std::endl;
+
+                    // First/last condition IDs encoded as the first two geometry nodes
+                    const IndexType first_condition_id = rGeom[0].Id();
+                    const IndexType last_condition_id  = rGeom[1].Id();
 
                     SizeType size_surrogate_loop = last_condition_id - first_condition_id + 1;
 
@@ -265,13 +270,16 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
             << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
         if (type == "element") {
+            // Get the mesh sizes from the iga model part
+            const Vector& knot_span_sizes = rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Elements().size() > 0)
                 id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
             this->CreateElements(
                 geometries.ptr_begin(), geometries.ptr_end(),
-                rModelPart, name, id, PropertiesPointerType());
+                rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
         }
         else if (type == "condition") {
             // Get the mesh sizes from the iga model part
@@ -681,7 +689,8 @@ void IgaModelerSbm::CreateElements(
     ModelPart& rModelPart,
     std::string& rElementName,
     SizeType& rIdCounter,
-    PropertiesPointerType pProperties) const
+    PropertiesPointerType pProperties,
+    const Vector KnotSpanSizes) const
 {
     KRATOS_ERROR_IF(!KratosComponents<Element>::Has(rElementName))
         << rElementName << " not registered." << std::endl;
@@ -697,14 +706,20 @@ void IgaModelerSbm::CreateElements(
     SizeType num_elements = std::distance(rGeometriesBegin, rGeometriesEnd);
     new_element_list.reserve(num_elements);
 
+    int count = 0;
     for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
     {
         new_element_list.push_back(
             rReferenceElement.Create(rIdCounter, (*it), pProperties));
+
+        // Set knot span sizes to the condition
+        new_element_list.GetContainer()[count]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
+
         for (SizeType i = 0; i < (*it)->size(); ++i) {
             rModelPart.Nodes().push_back((*it)->pGetPoint(i));
         }
         rIdCounter++;
+        count++;
     }
 
     rModelPart.AddElements(new_element_list.begin(), new_element_list.end());
