@@ -24,7 +24,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyExcavationProcess : public Proc
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyExcavationProcess);
 
-    ApplyExcavationProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
+    ApplyExcavationProcess(Model& rModel, const Parameters& rProcessSettings);
 
     ~ApplyExcavationProcess() override;
 
@@ -35,8 +35,8 @@ public:
     [[nodiscard]] std::string Info() const override;
 
 private:
-    ModelPart& mrModelPart;
-    bool       mDeactivateSoilPart;
+    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
+    bool                                           mDeactivateSoilPart;
 };
 
 } // namespace Kratos
