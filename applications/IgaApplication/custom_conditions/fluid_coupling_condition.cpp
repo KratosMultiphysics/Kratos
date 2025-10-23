@@ -252,9 +252,6 @@ void FluidCouplingCondition::CalculateLeftHandSide(
     array_1d<double,2> normal_A; 
     normal_A[0]=mNormalPhysicalSpaceA[0]; 
     normal_A[1]=mNormalPhysicalSpaceA[1];
-    array_1d<double,2> normal_B; 
-    normal_B[0]=mNormalPhysicalSpaceB[0]; 
-    normal_B[1]=mNormalPhysicalSpaceB[1];
 
 
 
@@ -270,7 +267,6 @@ void FluidCouplingCondition::CalculateLeftHandSide(
     // ANDREA's CODE:
     const auto& r_surrogate_geometry_plus = GetGeometry();
     const auto& r_surrogate_geometry_minus = GetGeometryMirror();
-    const auto& r_true_geometry = GetGeometry();
 
     const SizeType number_of_control_points_plus = r_surrogate_geometry_plus.size();
     const SizeType number_of_control_points_minus = r_surrogate_geometry_minus.size();
@@ -302,7 +298,7 @@ void FluidCouplingCondition::CalculateLeftHandSide(
     Matrix DB_sum_plus = prod(r_D_A, B_sum_plus);
     Matrix DB_sum_minus = prod(r_D_B, B_sum_minus);
 
-    // ASSEMBLE
+    // INTEGRATION BY PARTS -[[w]] {{tau n}}
     //-----------------------------------------------------
     const SizeType shift_dof = mat_size_plus + number_of_control_points_plus; // shift for minus side DOFs
     // -w_plus * (sigma_plus + sigma_minus) /2
@@ -323,6 +319,11 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                                                     * (DB_sum_plus(id1, jglob_DB)* normal_A[0] + DB_sum_plus(id2, jglob_DB)* normal_A[1]) 
                                                     * integration_weight;
                 }
+                // pressure -w_plus * ((-p_plus n_A) /2
+                const int jpressure = 3*j + 2;
+                rLeftHandSideMatrix(iglob, jpressure) += 0.5 * N_sum_vec_plus(i) * N_sum_vec_plus(j) 
+                                                * normal_A[idim] 
+                                                * integration_weight;
             }
         }
 
@@ -342,6 +343,11 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                                                     * (DB_sum_minus(id1, jloc)* normal_A[0] + DB_sum_minus(id2, jloc)* normal_A[1]) 
                                                     * integration_weight;
                 }
+                // pressure -w_plus * ((-p_minus n_B) /2
+                const int jpressure = 3*j + 2 + shift_dof;
+                rLeftHandSideMatrix(iglob, jpressure) += 0.5 * N_sum_vec_plus(i) * N_sum_vec_minus(j) 
+                                                * normal_A[idim] 
+                                                * integration_weight;
             }
         }
     }
@@ -364,6 +370,11 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                                                     * (DB_sum_plus(id1, jglob_DB)* normal_A[0] + DB_sum_plus(id2, jglob_DB)* normal_A[1]) 
                                                     * integration_weight;
                 }
+                // pressure +w_minus * ((-p_plus n_A) /2
+                const int jpressure = 3*j + 2;
+                rLeftHandSideMatrix(iglob, jpressure) -= 0.5 * N_sum_vec_minus(i) * N_sum_vec_plus(j) 
+                                                * normal_A[idim] 
+                                                * integration_weight;
             }
         }
 
@@ -383,6 +394,11 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                                                     * (DB_sum_minus(id1, jloc)* normal_A[0] + DB_sum_minus(id2, jloc)* normal_A[1]) 
                                                     * integration_weight;
                 }
+                // pressure +w_minus * ((-p_minus n_B) /2
+                const int jpressure = 3*j + 2 + shift_dof;
+                rLeftHandSideMatrix(iglob, jpressure) -= 0.5 * N_sum_vec_minus(i) * N_sum_vec_minus(j) 
+                                                * normal_A[idim] 
+                                                * integration_weight;
             }
         }
     }
@@ -415,6 +431,11 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     // //*********************************************** */
                     rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*tau_w_n_A[jdim] * integration_weight;
                 }
+                // pressure (q term) -> + q_A n_A (u_A) * 0.5
+                const int ipressure = 3*i + 2;
+                const int jglob = 3*j+idim;
+                rLeftHandSideMatrix(ipressure, jglob) += 0.5*mNitschePenalty*N_sum_vec_plus(i) * normal_A[idim]
+                                                    * N_sum_vec_plus(j) * integration_weight;
 
             }
 
@@ -431,6 +452,11 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     // //*********************************************** */
                     rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*tau_w_n_A[jdim] * integration_weight;
                 }
+                // pressure (q term) -> + q_A n_A (u_B) * 0.5
+                const int ipressure = 3*i + 2;
+                const int jglob = 3*j+idim + shift_dof;
+                rLeftHandSideMatrix(ipressure, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(i) * normal_A[idim]
+                                                    * N_sum_vec_minus(j) * integration_weight;
             }
         }
     }
@@ -457,6 +483,11 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     // //*********************************************** */
                     rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*tau_w_n_B[jdim] * integration_weight;
                 }
+                // pressure (q term) -> - q_B n_B (u_A) * 0.5
+                const int ipressure = 3*i + 2 + shift_dof;
+                const int jglob = 3*j+idim;
+                rLeftHandSideMatrix(ipressure, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(i) * normal_A[idim]
+                                                    * N_sum_vec_plus(j) * integration_weight;
 
             }
 
@@ -473,329 +504,15 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     // //*********************************************** */
                     rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*tau_w_n_B[jdim] * integration_weight;
                 }
+                // pressure (q term) -> - q_B n_B (u_B) * 0.5
+                const int ipressure = 3*i + 2 + shift_dof;
+                const int jglob = 3*j+idim + shift_dof;
+                rLeftHandSideMatrix(ipressure, jglob) -= 0.5*mNitschePenalty*N_sum_vec_minus(i) * normal_A[idim]
+                                                    * N_sum_vec_minus(j) * integration_weight;
             }
         }
     }
 
-
-
-    // // --- first block: -[[w]], {{sigma n}} 
-    // for (IndexType idim = 0; idim < dim; ++idim) {
-    //     // rows: test from A  -> contributes - w_A * 0.5*(tau_A n_A + tau_B n_B)
-    //     for (IndexType i = 0; i < n_patch_A; ++i) {
-    //         const double vA = N_patch_A(0, i);
-
-    //         // columns from A -> - w_A * 0.5*(tau_A n_A)
-    //         for (IndexType j = 0; j < n_patch_A; ++j) {
-    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //                 Matrix DB_contribution = ZeroMatrix(2, 2);
-    //                 DB_contribution(0, 0) = DB_A(0, 2*j+jdim);
-    //                 DB_contribution(0, 1) = DB_A(2, 2*j+jdim);
-    //                 DB_contribution(1, 0) = DB_A(2, 2*j+jdim);
-    //                 DB_contribution(1, 1) = DB_A(1, 2*j+jdim);
-    //                 // Compute the traction vector: sigma * n.
-    //                 Vector traction = prod(DB_contribution, normal_A);
-    //                 rLeftHandSideMatrix(idxA(i, idim), idxA(j, jdim)) -= 0.5 * vA * traction(idim) * weight;
-    //             }
-    //         }
-    //         // columns from B -> - w_A * 0.5*(tau_B n_B)
-    //         for (IndexType j = 0; j < n_patch_B; ++j) {
-    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //                 Matrix DB_contribution = ZeroMatrix(2, 2);
-    //                 DB_contribution(0, 0) = DB_B(0, 2*j+jdim);
-    //                 DB_contribution(0, 1) = DB_B(2, 2*j+jdim);
-    //                 DB_contribution(1, 0) = DB_B(2, 2*j+jdim);
-    //                 DB_contribution(1, 1) = DB_B(1, 2*j+jdim);
-    //                 // Compute the traction vector: sigma * n.
-    //                 Vector traction = prod(DB_contribution, normal_B);
-    //                 rLeftHandSideMatrix(idxA(i, idim), idxB(j, jdim)) -= 0.5 * vA * traction(idim) * weight;
-    //             }
-    //         }
-
-    //         // // pressure contribution to traction: -[[w]] · 0.5*(-p_A n_A - p_B n_B)
-    //         // // -> for A rows: - w_A · 0.5*(-p_A n_A - p_B n_B) = +0.5 w_A · (p_A n_A + p_B n_B)
-    //         // for (IndexType j = 0; j < n_patch_A; ++j) {
-    //         //     rLeftHandSideMatrix(idxA(i, idim), idxA(j, dim)) += weight * 0.5 * vA * normal_A[idim] * N_patch_A(0, j);
-    //         // }
-    //         // for (IndexType j = 0; j < n_patch_B; ++j) {
-    //         //     rLeftHandSideMatrix(idxA(i, idim), idxB(j, dim)) += weight * 0.5 * vA * normal_B[idim] * N_patch_B(0, j);
-    //         // }
-    //     }
-
-
-
-    //     // rows: test from B  -> contributes + w_B * 0.5*(tau_A n_A + tau_B n_B)
-    //     for (IndexType i = 0; i < n_patch_B; ++i) {
-    //         const double vB = N_patch_B(0, i);
-
-    //         // columns from A -> + w_B * 0.5*(tau_A n_A)
-    //         for (IndexType j = 0; j < n_patch_A; ++j) {
-    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //                 Matrix DB_contribution = ZeroMatrix(2, 2);
-    //                 DB_contribution(0, 0) = DB_A(0, 2*j+jdim);
-    //                 DB_contribution(0, 1) = DB_A(2, 2*j+jdim);
-    //                 DB_contribution(1, 0) = DB_A(2, 2*j+jdim);
-    //                 DB_contribution(1, 1) = DB_A(1, 2*j+jdim);
-    //                 // Compute the traction vector: sigma * n.
-    //                 Vector traction = prod(DB_contribution, normal_A);
-    //                 rLeftHandSideMatrix(idxB(i, idim), idxA(j, jdim)) += 0.5 * vB * traction(idim) * weight;
-    //             }
-    //         }
-    //         // columns from B -> + w_B * 0.5*(tau_B n_B)
-    //         for (IndexType j = 0; j < n_patch_B; ++j) {
-    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //                 Matrix DB_contribution = ZeroMatrix(2, 2);  
-    //                 DB_contribution(0, 0) = DB_B(0, 2*j+jdim);
-    //                 DB_contribution(0, 1) = DB_B(2, 2*j+jdim);
-    //                 DB_contribution(1, 0) = DB_B(2, 2*j+jdim);
-    //                 DB_contribution(1, 1) = DB_B(1, 2*j+jdim);
-    //                 // Compute the traction vector: sigma * n.
-    //                 Vector traction = prod(DB_contribution, normal_B);
-    //                 rLeftHandSideMatrix(idxB(i, idim), idxB(j, jdim)) += 0.5 * vB * traction(idim) * weight;
-    //             }
-    //         }
-
-    //         // // pressure contribution to traction for B rows: + w_B · 0.5*(-p_A n_A - p_B n_B)
-    //         // // -> gives -0.5 w_B · (p_A n_A + p_B n_B) in the matrix
-    //         // for (IndexType j = 0; j < n_patch_A; ++j) {
-    //         //     rLeftHandSideMatrix(idxB(i, idim), idxA(j, dim)) -= weight * 0.5 * vB * normal_A[idim] * N_patch_A(0, j);
-    //         // }
-    //         // for (IndexType j = 0; j < n_patch_B; ++j) {
-    //         //     rLeftHandSideMatrix(idxB(i, idim), idxB(j, dim)) -= weight * 0.5 * vB * normal_B[idim] * N_patch_B(0, j);
-    //         // }
-    //     }
-    // }
-
-
-
-    // // Nitsche: + {{tau(w)}}, [[u]] 
-    // double factor = 0.5*nitsche_stabilization_factor;
-
-    // // (tau(w_A)+tau(w_B)) * 0.5 * (u_A - u_B)
-    // for (IndexType idim = 0; idim < dim; ++idim) {
-    //     // tau(w_A)  -> contributes + tau(w_A)*n_A *0.5 (u_A - u_B)
-    //     for (IndexType i = 0; i < n_patch_A; ++i) {
-    //         // columns from A -> + tau(w_A)*n_A *0.5 * u_A
-    //         for (IndexType j = 0; j < n_patch_A; ++j) {
-    //             const double uA = N_patch_A(0, j);
-    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //                 Matrix DB_contribution_w = ZeroMatrix(2, 2);
-    //                 DB_contribution_w(0, 0) = DB_A(0, 2*i+idim);
-    //                 DB_contribution_w(0, 1) = DB_A(2, 2*i+idim);
-    //                 DB_contribution_w(1, 0) = DB_A(2, 2*i+idim);
-    //                 DB_contribution_w(1, 1) = DB_A(1, 2*i+idim);
-    //                 // Compute the traction vector: sigma * n.
-    //                 Vector traction_nitsche_w = prod(DB_contribution_w, normal_A);
-    //                 rLeftHandSideMatrix(idxA(i, idim), idxA(j, jdim)) += factor * uA * traction_nitsche_w(jdim) * weight;
-    //             }
-    //         }
-    //         // columns from B -> - tau(w_A)*n_A *0.5 * u_B
-    //         for (IndexType j = 0; j < n_patch_B; ++j) {
-    //             const double uB = N_patch_B(0, j);
-    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //                 Matrix DB_contribution_w = ZeroMatrix(2, 2);
-    //                 DB_contribution_w(0, 0) = DB_A(0, 2*i+idim);
-    //                 DB_contribution_w(0, 1) = DB_A(2, 2*i+idim);
-    //                 DB_contribution_w(1, 0) = DB_A(2, 2*i+idim);
-    //                 DB_contribution_w(1, 1) = DB_A(1, 2*i+idim);
-    //                 // Compute the traction vector: sigma * n.
-    //                 Vector traction_nitsche_w = prod(DB_contribution_w, normal_A);
-    //                 rLeftHandSideMatrix(idxA(i, idim), idxB(j, jdim)) -= factor * uB * traction_nitsche_w(jdim) * weight;
-    //             }
-    //         }
-
-    //         // // pressure contribution to traction: + {{-q n}}, [[u]] 
-    //         // // -> for A rows: - q_A*n_A · 0.5*(u_A)
-    //         // for (IndexType j = 0; j < n_patch_A; ++j) {
-    //         //     const double uA = N_patch_A(0, j);
-    //         //     rLeftHandSideMatrix(idxA(i, dim), idxA(j, idim)) -= weight * factor * normal_A[idim] * N_patch_A(0, i) * uA ;
-    //         // } 
-    //         // // -> for A rows: + q_A*n_A · 0.5*(u_B) 
-    //         // for (IndexType j = 0; j < n_patch_B; ++j) {
-    //         //     const double uB = N_patch_B(0, j);
-    //         //     rLeftHandSideMatrix(idxA(i, dim), idxB(j, idim)) += weight * factor * normal_A[idim] * N_patch_A(0, i) * uB ;
-    //         // }
-    //     }
-
-
-
-    //     // tau(w_B)  -> contributes + tau(w_B)*n_B *0.5 (u_A - u_B)
-    //     for (IndexType i = 0; i < n_patch_B; ++i) {
-    //         // columns from A -> + tau(w_B)*n_B *0.5 * u_A
-    //         for (IndexType j = 0; j < n_patch_A; ++j) {
-    //             const double uA = N_patch_A(0, j);
-    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //                 Matrix DB_contribution_w_B = ZeroMatrix(2, 2);
-    //                 DB_contribution_w_B(0, 0) = DB_B(0, 2*i+idim);
-    //                 DB_contribution_w_B(0, 1) = DB_B(2, 2*i+idim);
-    //                 DB_contribution_w_B(1, 0) = DB_B(2, 2*i+idim);
-    //                 DB_contribution_w_B(1, 1) = DB_B(1, 2*i+idim);
-    //                 // Compute the traction vector: sigma * n.
-    //                 Vector traction_nitsche_w = prod(DB_contribution_w_B, normal_B);
-    //                 rLeftHandSideMatrix(idxB(i, idim), idxA(j, jdim)) += factor * uA * traction_nitsche_w(jdim) * weight;
-    //             }
-    //         }
-    //         // columns from B -> - tau(w_B)*n_B *0.5 * u_B
-    //         for (IndexType j = 0; j < n_patch_B; ++j) {
-    //             const double uB = N_patch_B(0, j);
-    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //                 Matrix DB_contribution_w_B = ZeroMatrix(2, 2);
-    //                 DB_contribution_w_B(0, 0) = DB_B(0, 2*i+idim);
-    //                 DB_contribution_w_B(0, 1) = DB_B(2, 2*i+idim);
-    //                 DB_contribution_w_B(1, 0) = DB_B(2, 2*i+idim);
-    //                 DB_contribution_w_B(1, 1) = DB_B(1, 2*i+idim);
-    //                 // Compute the traction vector: sigma * n.
-    //                 Vector traction_nitsche_w = prod(DB_contribution_w_B, normal_B);
-    //                 rLeftHandSideMatrix(idxB(i, idim), idxB(j, jdim)) -= factor * uB * traction_nitsche_w(jdim) * weight;
-    //             }
-    //         }
-
-    //         // // pressure contribution to traction: + {{-q n}}, [[u]] 
-    //         // // -> for A rows: - q_B*n_B · 0.5*(u_A)
-    //         // for (IndexType j = 0; j < n_patch_A; ++j) {
-    //         //     const double uA = N_patch_A(0, j);
-    //         //     rLeftHandSideMatrix(idxB(i, dim), idxA(j, idim)) -= weight * factor * normal_B[idim] * N_patch_B(0, i) * uA ;
-    //         // } 
-    //         // // -> for A rows: + q_B*n_B · 0.5*(u_B) 
-    //         // for (IndexType j = 0; j < n_patch_B; ++j) {
-    //         //     const double uB = N_patch_B(0, j);
-    //         //     rLeftHandSideMatrix(idxB(i, dim), idxB(j, idim)) += weight * factor * normal_B[idim] * N_patch_B(0, i) * uB ;
-    //         // }
-    //     }
-    // }
-
-    
-    // // Penalty term
-    // if (penalty_over_h != 0.0) {
-
-    //     // // new new
-    //     // const double g = penalty_over_h * weight;
-    //     // // unit normals already built
-    //     // array_1d<double,2> nA = normal_A;                  // n_B = -n_A holds
-    //     // array_1d<double,2> nB = normal_B;
-    //     // // projectors
-    //     // double Pn[2][2] = { { nA[0]*nA[0], nA[0]*nA[1] },
-    //     //                     { nA[1]*nA[0], nA[1]*nA[1] } };
-    //     // double Pt[2][2] = { { 1.0 - Pn[0][0],   -Pn[0][1] },
-    //     //                     {   -Pn[1][0],    1.0 - Pn[1][1] } };
-    //     // // choose weights (set both to 1.0 to enforce full continuity)
-    //     // const double beta_n = 1.0;
-    //     // const double beta_t = 1.0;
-    //     // // P = beta_n * nn^T + beta_t * (I - nn^T)
-    //     // double P[2][2] = {
-    //     // { beta_n*Pn[0][0] + beta_t*Pt[0][0], beta_n*Pn[0][1] + beta_t*Pt[0][1] },
-    //     // { beta_n*Pn[1][0] + beta_t*Pt[1][0], beta_n*Pn[1][1] + beta_t*Pt[1][1] }
-    //     // };
-    //     // for (IndexType i=0;i<n_patch_A;++i){
-    //     //     for (IndexType j=0;j<n_patch_A;++j){
-    //     //         const double Nij = N_patch_A(0,i)*N_patch_A(0,j);
-    //     //         for (unsigned p=0;p<2;++p) for (unsigned q=0;q<2;++q)
-    //     //         rLeftHandSideMatrix(idxA(i,p), idxA(j,q)) += g * P[p][q] * Nij;        // AA
-    //     //     }
-    //     //     for (IndexType j=0;j<n_patch_B;++j){
-    //     //         const double Nij = N_patch_A(0,i)*N_patch_B(0,j);
-    //     //         for (unsigned p=0;p<2;++p) for (unsigned q=0;q<2;++q)
-    //     //         rLeftHandSideMatrix(idxA(i,p), idxB(j,q)) -= g * P[p][q] * Nij;        // AB (minus)
-    //     //     }
-    //     //     }
-    //     //     for (IndexType i=0;i<n_patch_B;++i){
-    //     //     for (IndexType j=0;j<n_patch_A;++j){
-    //     //         const double Nij = N_patch_B(0,i)*N_patch_A(0,j);
-    //     //         for (unsigned p=0;p<2;++p) for (unsigned q=0;q<2;++q)
-    //     //         rLeftHandSideMatrix(idxB(i,p), idxA(j,q)) -= g * P[p][q] * Nij;        // BA (minus)
-    //     //     }
-    //     //     for (IndexType j=0;j<n_patch_B;++j){
-    //     //         const double Nij = N_patch_B(0,i)*N_patch_B(0,j);
-    //     //         for (unsigned p=0;p<2;++p) for (unsigned q=0;q<2;++q)
-    //     //         rLeftHandSideMatrix(idxB(i,p), idxB(j,q)) += g * P[p][q] * Nij;        // BB
-    //     //     }
-    //     // }
-
-    //     // penalty only continuity
-    //     const double g = penalty_over_h * weight;
-    //     // enforce continuity component-wise: AA += g N_i N_j, AB -= g N_i M_j, ...
-    //     for (IndexType idim = 0; idim < dim; ++idim) {
-    //         // A–A
-    //         for (IndexType i=0;i<n_patch_A;++i){
-    //             const double Ni = N_patch_A(0,i);
-    //             const IndexType row = idxA(i,idim);
-    //             for (IndexType j=0;j<n_patch_A;++j){
-    //                 const double Nj = N_patch_A(0,j);
-    //                 rLeftHandSideMatrix(row, idxA(j,idim)) += g * Ni * Nj;
-    //             }
-    //             // A–B
-    //             for (IndexType j=0;j<n_patch_B;++j){
-    //                 const double Mj = N_patch_B(0,j);
-    //                 rLeftHandSideMatrix(row, idxB(j,idim)) -= g * Ni * Mj;
-    //             }
-    //         }
-    //         // B–A and B–B
-    //         for (IndexType i=0;i<n_patch_B;++i){
-    //             const double Mi = N_patch_B(0,i);
-    //             const IndexType row = idxB(i,idim);
-    //             for (IndexType j=0;j<n_patch_A;++j){
-    //                 const double Nj = N_patch_A(0,j);
-    //                 rLeftHandSideMatrix(row, idxA(j,idim)) -= g * Mi * Nj;
-    //             }
-    //             for (IndexType j=0;j<n_patch_B;++j){
-    //                 const double Mj = N_patch_B(0,j);
-    //                 rLeftHandSideMatrix(row, idxB(j,idim)) += g * Mi * Mj;
-    //             }
-    //         }
-    //     }
-
-
-    // }
-
-    // // // Zero out all pressure (q) rows and columns to avoid spurious coupling
-    // // {
-    // //     const SizeType n_total = rLeftHandSideMatrix.size1();
-    // //     // Zero rows/cols for pressures on patch A
-    // //     for (IndexType i = 0; i < n_patch_A; ++i) {
-    // //         const IndexType p_index = idxA(i, dim);
-    // //         // zero row
-    // //         for (IndexType j = 0; j < n_total; ++j) {
-    // //             rLeftHandSideMatrix(p_index, j) = 0.0;
-    // //         }
-    // //         // zero column
-    // //         for (IndexType j = 0; j < n_total; ++j) {
-    // //             rLeftHandSideMatrix(j, p_index) = 0.0;
-    // //         }
-    // //     }
-    // //     // Zero rows/cols for pressures on patch B
-    // //     for (IndexType i = 0; i < n_patch_B; ++i) {
-    // //         const IndexType p_index = idxB(i, dim);
-    // //         // zero row
-    // //         for (IndexType j = 0; j < n_total; ++j) {
-    // //             rLeftHandSideMatrix(p_index, j) = 0.0;
-    // //         }
-    // //         // zero column
-    // //         for (IndexType j = 0; j < n_total; ++j) {
-    // //             rLeftHandSideMatrix(j, p_index) = 0.0;
-    // //         }
-    // //     }
-    // // }    
-    
-
-    // // Symmetry check of the resulting LHS (lightweight, early-exit)
-    // {
-    //     const SizeType n = rLeftHandSideMatrix.size1();
-    //     double max_asym = 0.0;
-    //     const double tol = 1e-12; // tight tolerance for assembly-level symmetry
-    //     for (SizeType i = 0; i < n; ++i) {
-    //         for (SizeType j = i + 1; j < n; ++j) {
-    //             const double diff = std::abs(rLeftHandSideMatrix(i, j) - rLeftHandSideMatrix(j, i));
-    //             if (diff > max_asym) {
-    //                 max_asym = diff;
-    //                 if (max_asym > tol) break; // early exit on first violation
-    //             }
-    //         }
-    //         if (max_asym > tol) break;
-    //     }
-    //     KRATOS_INFO_IF("maiooo", max_asym > tol)
-    //         << "Assembled LHS is not symmetric. Max asymmetry = " << max_asym << std::endl;
-    // }
-    
 
     KRATOS_CATCH("")
 }
@@ -856,223 +573,6 @@ void FluidCouplingCondition::CalculateRightHandSide(
         rRightHandSideVector.resize(size, false);
     }
     noalias(rRightHandSideVector) = -prod(lhs, values_full);
-
-
-
-
-
-    // Proper RHS
-
-    // const auto& integration_points_patch_A = r_patch_A.IntegrationPoints();
-    // const auto& integration_points_patch_B = r_patch_B.IntegrationPoints();
-    // KRATOS_ERROR_IF(integration_points_patch_A.empty() || integration_points_patch_B.empty())
-    //     << "FluidCouplingCondition expects at least one integration point." << std::endl;
-    // const Matrix& N_patch_A = r_patch_A.ShapeFunctionsValues();
-    // const Matrix& N_patch_B = r_patch_B.ShapeFunctionsValues();
-    // KRATOS_ERROR_IF(N_patch_A.size2() != n_patch_A)
-    //     << "FluidCouplingCondition: shape function values columns mismatch for patch A. Expected "
-    //     << n_patch_A << ", obtained " << N_patch_A.size2() << "." << std::endl;
-    // KRATOS_ERROR_IF(N_patch_B.size2() != n_patch_B)
-    //     << "FluidCouplingCondition: shape function values columns mismatch for patch B. Expected "
-    //     << n_patch_B << ", obtained " << N_patch_B.size2() << "." << std::endl;
-
-    // const unsigned int dim_patch_A = rDN_De_A[0].size2();
-    // const unsigned int dim_patch_B = rDN_De_B[0].size2();
-
-    // KRATOS_ERROR_IF(dim_patch_A < 2 || dim_patch_B < 2)
-    //     << "FluidCouplingCondition requires at least 2D parameter space." << std::endl;
-
-    // // Jacobians to compute the interface measure
-    // GeometryType::JacobiansType J_patch_A;
-    // r_patch_A.Jacobian(J_patch_A, r_patch_A.GetDefaultIntegrationMethod());
-    // Matrix jacobian_patch_A = ZeroMatrix(3, 3);
-    // jacobian_patch_A(0, 0) = J_patch_A[0](0, 0);
-    // jacobian_patch_A(0, 1) = J_patch_A[0](0, 1);
-    // jacobian_patch_A(1, 0) = J_patch_A[0](1, 0);
-    // jacobian_patch_A(1, 1) = J_patch_A[0](1, 1);
-    // jacobian_patch_A(2, 2) = 1.0;
-    // array_1d<double, 3> tangent_patch_A;
-    // r_patch_A.Calculate(LOCAL_TANGENT, tangent_patch_A);
-    // Vector determinant_factor_patch_A = prod(jacobian_patch_A, tangent_patch_A);
-    // determinant_factor_patch_A[2] = 0.0;
-    // const double detJ_patch_A = norm_2(determinant_factor_patch_A);
-    // KRATOS_ERROR_IF(detJ_patch_A <= std::numeric_limits<double>::epsilon())
-    //     << "FluidCouplingCondition: degenerate Jacobian for patch A (determinant ~ 0)." << std::endl;
-    // const double weight = integration_points_patch_A[0].Weight() * detJ_patch_A;
-    // KRATOS_ERROR_IF(std::abs(weight) <= std::numeric_limits<double>::epsilon())
-    //     << "FluidCouplingCondition: zero integration weight on patch A." << std::endl;
-
-    // double penalty_factor;
-    // double nitsche_stabilization_factor = -1.0;
-    // if (GetProperties().Has(PENALTY_FACTOR)) {
-    //     // penalty_factor = -1.0; // GetProperties()[PENALTY_FACTOR];
-    //     penalty_factor = 1e3; 
-    // } else {
-    //     KRATOS_ERROR << "FluidCouplingCondition requires PENALTY_FACTOR to be defined in the Properties." << std::endl;
-    // }
-
-
-
-    // double characteristic_length;
-    // if (Has(KNOT_SPAN_SIZES)) {
-    //     const Vector& knot_span_sizes = GetValue(KNOT_SPAN_SIZES);
-    //     if (!knot_span_sizes.empty()) {
-    //         characteristic_length = knot_span_sizes[0];
-    //         if (knot_span_sizes.size() > 1) {
-    //             characteristic_length = std::min(characteristic_length, knot_span_sizes[1]);
-    //         }
-    //     } else {
-    //         KRATOS_ERROR << "KNOT_SPAN_SIZES is empty in FluidCouplingCondition" << std::endl;
-    //     }
-    // }
-    // if (characteristic_length <= 0.0) {
-    //     KRATOS_ERROR << "KNOT_SPAN_SIZES is < 0 in FluidCouplingCondition" << std::endl;
-    // }
-    // const double penalty_over_h = penalty_factor * mBasisFunctionsOrder * mBasisFunctionsOrder / characteristic_length;
-
-    // // // Helper to compute index in block with (node, component, side)
-    // auto idxA = [dofs_per_node](IndexType node, IndexType idim){ return node * dofs_per_node + idim; };
-    // auto idxB = [dofs_per_node, n_patch_A](IndexType node, IndexType idim){ return n_patch_A * dofs_per_node + node * dofs_per_node + idim; };
-
-
-    // // --- Precompute traction operators on each side: Tn = (D * B) applied to normal ---
-    // Matrix DN_DX_A = rDN_De_A[0];
-    // Matrix DN_DX_B = rDN_De_B[0];
-
-    // Matrix B_A(3, n_patch_A*dim, 0.0), B_B(3, n_patch_B*dim, 0.0);
-    // CalculateB(B_A, DN_DX_A); // same shape as in SupportFluidCondition
-    // CalculateB(B_B, DN_DX_B);
-
-    // // constitutive law A
-    // ConstitutiveLaw::Parameters Values_A(r_patch_A, GetProperties(), rCurrentProcessInfo);
-    // ConstitutiveVariables constitutive_variables_A(3);
-    // ApplyConstitutiveLaw(r_patch_A, B_A, Values_A, constitutive_variables_A);
-    // const Matrix& r_D_A = Values_A.GetConstitutiveMatrix();
-    // Matrix DB_A = Matrix(prod(r_D_A, B_A));
-
-    // // constitutive law B
-    // ConstitutiveLaw::Parameters Values_B(r_patch_B, GetProperties(), rCurrentProcessInfo);
-    // ConstitutiveVariables constitutive_variables_B(3);
-    // ApplyConstitutiveLaw(r_patch_B, B_B, Values_B, constitutive_variables_B);
-    // const Matrix& r_D_B = Values_B.GetConstitutiveMatrix();
-    // Matrix DB_B = Matrix(prod(r_D_B, B_B));
-
-    // // 2D traction mapping from Voigt to vector: t = [ [1,0,0],[0,1,0],[0,0,1] ]* ... then dot n
-    // array_1d<double,2> normal_A; normal_A[0]=mNormalPhysicalSpaceA[0]; normal_A[1]=mNormalPhysicalSpaceA[1];
-    // array_1d<double,2> normal_B; normal_B[0]=mNormalPhysicalSpaceB[0]; normal_B[1]=mNormalPhysicalSpaceB[1];
-
-    // // Compute the traction vector: sigma * n using r_stress_vector
-    // Vector& r_stress_vector_A = Values_A.GetStressVector();
-    // Matrix stress_old_A = ZeroMatrix(2, 2);
-    // stress_old_A(0, 0) = r_stress_vector_A[0];      stress_old_A(0, 1) = r_stress_vector_A[2];      
-    // stress_old_A(1, 0) = r_stress_vector_A[2];      stress_old_A(1, 1) = r_stress_vector_A[1];         
-    // Vector traction_current_iteration_A = prod(stress_old_A, normal_A); 
-
-    // Vector& r_stress_vector_B = Values_B.GetStressVector();
-    // Matrix stress_old_B = ZeroMatrix(2, 2);
-    // stress_old_B(0, 0) = r_stress_vector_B[0];      stress_old_B(0, 1) = r_stress_vector_B[2];      
-    // stress_old_B(1, 0) = r_stress_vector_B[2];      stress_old_B(1, 1) = r_stress_vector_B[1];         
-    // Vector traction_current_iteration_B = prod(stress_old_B, normal_B); 
-    
-
-
-    // // --- first block: -[[w]], {{sigma n}} 
-    // for (IndexType idim = 0; idim < dim; ++idim) {
-    //     // rows: test from A  -> contributes - w_A * 0.5*(tau_A n_A + tau_B n_B)
-    //     for (IndexType i = 0; i < n_patch_A; ++i) {
-    //         const double vA = N_patch_A(0, i);
-    //         // // columns from A -> - w_A * 0.5*(tau_A n_A)
-    //         // for (IndexType j = 0; j < n_patch_A; ++j) {
-    //         //     for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //         //         Matrix DB_contribution = ZeroMatrix(2, 2);
-    //         //         DB_contribution(0, 0) = DB_A(0, 2*j+jdim);
-    //         //         DB_contribution(0, 1) = DB_A(2, 2*j+jdim);
-    //         //         DB_contribution(1, 0) = DB_A(2, 2*j+jdim);
-    //         //         DB_contribution(1, 1) = DB_A(1, 2*j+jdim);
-    //         //         // Compute the traction vector: sigma * n.
-    //         //         Vector traction = prod(DB_contribution, normal_A);
-    //         //         rLeftHandSideMatrix(idxA(i, idim), idxA(j, jdim)) -= 0.5 * vA * traction(idim) * weight;
-    //         //     }
-    //         // }
-    //         rRightHandSideVector(idxA(i, idim)) += 0.5 * vA * traction_current_iteration_A(idim) * weight;
-    //         // // columns from B -> - w_A * 0.5*(tau_B n_B)
-    //         // for (IndexType j = 0; j < n_patch_B; ++j) {
-    //         //     for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //         //         Matrix DB_contribution = ZeroMatrix(2, 2);
-    //         //         DB_contribution(0, 0) = DB_B(0, 2*j+jdim);
-    //         //         DB_contribution(0, 1) = DB_B(2, 2*j+jdim);
-    //         //         DB_contribution(1, 0) = DB_B(2, 2*j+jdim);
-    //         //         DB_contribution(1, 1) = DB_B(1, 2*j+jdim);
-    //         //         // Compute the traction vector: sigma * n.
-    //         //         Vector traction = prod(DB_contribution, normal_B);
-    //         //         rLeftHandSideMatrix(idxA(i, idim), idxB(j, jdim)) -= 0.5 * vA * traction(idim) * weight;
-    //         //     }
-    //         // }
-    //         rRightHandSideVector(idxA(i, idim)) += 0.5 * vA * traction_current_iteration_B(idim) * weight;
-
-    //         // // pressure contribution to traction: -[[w]] · 0.5*(-p_A n_A - p_B n_B)
-    //         // // -> for A rows: - w_A · 0.5*(-p_A n_A - p_B n_B) = +0.5 w_A · (p_A n_A + p_B n_B)
-    //         // for (IndexType j = 0; j < n_patch_A; ++j) {
-    //         //     rLeftHandSideMatrix(idxA(i, idim), idxA(j, dim)) += weight * 0.5 * vA * normal_A[idim] * N_patch_A(0, j);
-    //         // }
-    //         // for (IndexType j = 0; j < n_patch_B; ++j) {
-    //         //     rLeftHandSideMatrix(idxA(i, idim), idxB(j, dim)) += weight * 0.5 * vA * normal_B[idim] * N_patch_B(0, j);
-    //         // }
-    //     }
-
-    //     // rows: test from B  -> contributes + w_B * 0.5*(tau_A n_A + tau_B n_B)
-    //     for (IndexType i = 0; i < n_patch_B; ++i) {
-    //         const double vB = N_patch_B(0, i);
-
-    //         // // columns from A -> + w_B * 0.5*(tau_A n_A)
-    //         // for (IndexType j = 0; j < n_patch_A; ++j) {
-    //         //     for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //         //         Matrix DB_contribution = ZeroMatrix(2, 2);
-    //         //         DB_contribution(0, 0) = DB_A(0, 2*j+jdim);
-    //         //         DB_contribution(0, 1) = DB_A(2, 2*j+jdim);
-    //         //         DB_contribution(1, 0) = DB_A(2, 2*j+jdim);
-    //         //         DB_contribution(1, 1) = DB_A(1, 2*j+jdim);
-    //         //         // Compute the traction vector: sigma * n.
-    //         //         Vector traction = prod(DB_contribution, normal_A);
-    //         //         rLeftHandSideMatrix(idxB(i, idim), idxA(j, jdim)) += 0.5 * vB * traction(idim) * weight;
-    //         //     }
-    //         // }
-    //         rRightHandSideVector(idxB(i, idim)) -= 0.5 * vB * traction_current_iteration_A(idim) * weight;
-
-    //         // columns from B -> + w_B * 0.5*(tau_B n_B)
-    //         // for (IndexType j = 0; j < n_patch_B; ++j) {
-    //         //     for (IndexType jdim = 0; jdim < 2; jdim++) {
-    //         //         Matrix DB_contribution = ZeroMatrix(2, 2);  
-    //         //         DB_contribution(0, 0) = DB_B(0, 2*j+jdim);
-    //         //         DB_contribution(0, 1) = DB_B(2, 2*j+jdim);
-    //         //         DB_contribution(1, 0) = DB_B(2, 2*j+jdim);
-    //         //         DB_contribution(1, 1) = DB_B(1, 2*j+jdim);
-    //         //         // Compute the traction vector: sigma * n.
-    //         //         Vector traction = prod(DB_contribution, normal_B);
-    //         //         rLeftHandSideMatrix(idxB(i, idim), idxB(j, jdim)) += 0.5 * vB * traction(idim) * weight;
-    //         //     }
-    //         // }
-    //         rRightHandSideVector(idxB(i, idim)) -= 0.5 * vB * traction_current_iteration_B(idim) * weight;
-
-    //         // // pressure contribution to traction for B rows: + w_B · 0.5*(-p_A n_A - p_B n_B)
-    //         // // -> gives -0.5 w_B · (p_A n_A + p_B n_B) in the matrix
-    //         // for (IndexType j = 0; j < n_patch_A; ++j) {
-    //         //     rLeftHandSideMatrix(idxB(i, idim), idxA(j, dim)) -= weight * 0.5 * vB * normal_A[idim] * N_patch_A(0, j);
-    //         // }
-    //         // for (IndexType j = 0; j < n_patch_B; ++j) {
-    //         //     rLeftHandSideMatrix(idxB(i, idim), idxB(j, dim)) -= weight * 0.5 * vB * normal_B[idim] * N_patch_B(0, j);
-    //         // }
-    //     }
-    // }
-
-
-
-
-    
-
-
-
-
 
 
     
