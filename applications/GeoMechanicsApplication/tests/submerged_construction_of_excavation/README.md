@@ -18,7 +18,7 @@ This script produces a new `.mdpa` file (i.e., it doesn't overwrite the existing
 
 The next step is to create master-slave constraints using yet another Python script from the `FEA-Tools` repository:
 ```shell
-python <path-to-fea-tools-repo>\MiscellaneousTools\InterfaceInserter\insert_master_slave_constraints.py Clay_Left,Sand_Left Clay_Upper_Right,Clay_Middle_Right,Clay_Lower_Right,Sand_Right submerged_excavation_gid_project_with_interfaces.mdpa 1_Initial_stage.json --search_radius 0.01
+python <path-to-FEA-Tools-repo>\MiscellaneousTools\InterfaceInserter\insert_master_slave_constraints.py Clay_Left,Sand_Left Clay_Upper_Right,Clay_Middle_Right,Clay_Lower_Right,Sand_Right submerged_excavation_gid_project_with_interfaces.mdpa 1_Initial_stage.json --search_radius 0.01
 ```
 This script produces two new files: `out_submerged_excavation_gid_project_with_interfaces.mdpa` and `out_1_Initial_stage.json`.  After inspecting the differences between the original files and the new files, we can safely rename the new files to the original file names.
 
@@ -48,40 +48,67 @@ For the initial stage (which uses a $`K_0`$ procedure), we need to assign linear
 
 The following table lists the material properties of the soil layers that have been adopted by the Kratos model.
 
-| Property                                  | Kratos input parameter | Clay                             | Sand                             | Unit                           |
-|-------------------------------------------|------------------------|----------------------------------|----------------------------------|--------------------------------|
-| Grain density $`\rho_{\mathrm{g}}`$       | `DENSITY_SOLID`        | 2038.74                          | 2475.61                          | $`\mathrm{kg} / \mathrm{m}^3`$ |
-| Water density $`\rho_{\mathrm{w}}`$       | `DENSITY_WATER`        | 1019.37                          | 1019.37                          | $`\mathrm{kg} / \mathrm{m}^3`$ |
-| Porosity $`n`$                            | `POROSITY`             | 0.20                             | 0.30                             | $`[-]`$                        |
-| Retention law type                        | `RETENTION_LAW`        | `SaturatedBelowPhreaticLevelLaw` | `SaturatedBelowPhreaticLevelLaw` | N/A                            |
-| Residual saturation $`S_{\mathrm{res}}`$  | `RESIDUAL_SATURATION`  | $`1 \cdot 10^{-10}`$             | $`1 \cdot 10^{-10}`$             | $`[-]`$                        |
-| Saturated saturation $`S_{\mathrm{sat}}`$ | `SATURATED_SATURATION` | 1.0                              | 1.0                              | $`[-]`$                        |
-| Young's modulus $`E`$                     | `YOUNG_MODULUS`        | $`12 \cdot 10^3`$                | $`120 \cdot 10^3`$               | $`\mathrm{kN} / \mathrm{m}^2`$ |
-| Poisson's ratio $`\nu`$                   | `POISSON_RATIO`        | 0.15                             | 0.20                             | $`[-]`$                        |
-| Cohesion $`c`$                            | `GEO_COHESION`         | 1000.0                           | 0.0                              | $`\mathrm{N} / \mathrm{m}^2`$  |
-| Friction angle $`\phi`$                   | `GEO_FRICTION_ANGLE`   | 25.0                             | 32.0                             | $`^{\circ}`$                   |
-| Dilatancy angle $`\psi`$                  | `GEO_DILATANCY_ANGLE`  | 0.0                              | 2.0                              | $`^{\circ}`$                   |
+| Property                                                  | Kratos input parameter | Clay                             | Sand                             | Unit                           |
+|-----------------------------------------------------------|------------------------|----------------------------------|----------------------------------|--------------------------------|
+| Grain density $`\rho_{\mathrm{g}}`$                       | `DENSITY_SOLID`        | 2038.74                          | 2475.61                          | $`\mathrm{kg} / \mathrm{m}^3`$ |
+| Water density $`\rho_{\mathrm{w}}`$                       | `DENSITY_WATER`        | 1019.37                          | 1019.37                          | $`\mathrm{kg} / \mathrm{m}^3`$ |
+| Porosity $`n`$                                            | `POROSITY`             | 0.20                             | 0.30                             | $`[-]`$                        |
+| Retention law type                                        | `RETENTION_LAW`        | `SaturatedBelowPhreaticLevelLaw` | `SaturatedBelowPhreaticLevelLaw` | N/A                            |
+| Residual saturation $`S_{\mathrm{res}}`$                  | `RESIDUAL_SATURATION`  | $`1 \cdot 10^{-10}`$             | $`1 \cdot 10^{-10}`$             | $`[-]`$                        |
+| Saturated saturation $`S_{\mathrm{sat}}`$                 | `SATURATED_SATURATION` | 1.0                              | 1.0                              | $`[-]`$                        |
+| Young's modulus $`E`$                                     | `YOUNG_MODULUS`        | $`12 \cdot 10^3`$                | $`120 \cdot 10^3`$               | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| Poisson's ratio $`\nu`$                                   | `POISSON_RATIO`        | 0.15                             | 0.20                             | $`[-]`$                        |
+| Cohesion $`c`$                                            | `GEO_COHESION`         | 1000.0                           | 0.0                              | $`\mathrm{N} / \mathrm{m}^2`$  |
+| Friction angle $`\phi`$                                   | `GEO_FRICTION_ANGLE`   | 25.0                             | 32.0                             | $`^{\circ}`$                   |
+| Dilatancy angle $`\psi`$                                  | `GEO_DILATANCY_ANGLE`  | 0.0                              | 2.0                              | $`^{\circ}`$                   |
+| K0-value for normal consolidation $`K_{\mathrm{0}}^{nc}`$ | `K0_NC`                | 0.5774                           | 0.4701                           | $`[-]`$                        |
+
+The table below is specifically for the material properties of the soils for the Hardening soil (HS) model. For the hardening soil user defined soil model being used in the current model, 21 parameters are expected. These inputs are listed below by order:
+
+| UMAT_PARAMETERS number | Property                                                                     | Clay                 | Sand                 | Unit                           |
+|------------------------|------------------------------------------------------------------------------|----------------------|----------------------|--------------------------------|
+| 1                      | Secant stiffness in standard drained triaxial test $`E_{\mathrm{50}}^{ref}`$ | $`4 \cdot 10^{3}`$   | $`40 \cdot 10^{3}`$  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 2                      | Tangent stiffness for primary oedometer loading $`E_{\mathrm{oed}}^{ref}`$   | $`3.3 \cdot 10^{3}`$ | $`40 \cdot 10^{3}`$  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 3                      | Unloading / reloading stiffness $`E_{\mathrm{ur}}^{ref}`$                    | $`12 \cdot 10^{3}`$  | $`120 \cdot 10^{3}`$ | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 4                      | Power for stress-level dependency of stiffness                               | 1.0                  | 0.5                  | $`[m]`$                        |
+| 5                      | Friction angle $`\phi_{\mathrm{peak}}`$                                      | 25.0                 | 32.0                 | $`^{\circ}`$                   |
+| 6                      | Dilatancy angle $`\psi_{\mathrm{peak}}`$                                     | 0.0                  | 2.0                  | $`^{\circ}`$                   |
+| 7                      | Cohesion $`c'`$                                                              | 1.0                  | 0.0                  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 8                      | Poisson's ratio $`\nu`$                                                      | 0.15                 | 0.2                  | $`[-]`$                        |
+| 9                      | Reference stress for stiffnesses $`P_{\mathrm{ref}}`$                        | 100                  | 100                  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 10                     | Failure ratio $`q_{\mathrm{f}}/ q{\mathrm{a}}`$                              | 0.9                  | 0.9                  | $`[-]`$                        |
+| 11                     | Tensile strength $`\sigma_{\mathrm{t,} \mathrm{cut-off}}`$                   | 0.0                  | 0.0                  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 12                     | OCR                                                                          | 1.0                  | 1.0                  | $`[-]`$                        |
+| 13                     | POP                                                                          | 5.0                  | 0.0                  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 14                     | K0-value for normal consolidation $`K_{\mathrm{0}}^{nc}`$                    | 0.5774               | 0.4701               | $`[-]`$                        |
+| 15                     | Unloading Poisson's ratio  $`\nu_{\mathrm{un}} UMAT`$                        | 0.15                 | 0.2                  | $`[-]`$                        |
+| 16                     | Initial void ration $`e_{\mathrm{0}}`$                                       | 0.25                 | 0.4286               | $`[-]`$                        |
+| 17                     | Maximum void ration $`e_{\mathrm{max}}`$                                     | 1.0                  | 1.0                  | $`[-]`$                        |
+| 18                     | Flow rule (HS=0, HSSmall=1, Rowe=2, UBC=3)                                   | 0                    | 0                    | $`[-]`$                        |
+| 19                     | Initial shear modulus (small strains) $`G_{\mathrm{0}}^{ref}`$               | 0.0                  | 0.0                  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 20                     | Threshold shear strain $`\gamma_{\mathrm{r}}`$                               | 0.0                  | 0.0                  | $`[-]`$                        |
+| 21                     | Controls the shape of the modulus reduction curve $`\alpha_{\mathrm{r}}`$    | 0.0                  | 0.0                  | $`[-]`$                        |
 
 The following table lists the material properties of the interfaces that have been adopted by the Kratos model.
 
-| Property                            | Kratos input parameter | Clay      | Sand   | Unit                           |
-|-------------------------------------|------------------------|-----------|--------|--------------------------------|
-| Normal stiffness $`k_{\mathrm{n}}`$ | `NORMAL_STIFFNESS`     | 48000     | 480000 | $`\mathrm{kN} / \mathrm{m}^3`$ |
-| Shear stiffness $`k_{\mathrm{s}}`$  | `SHEAR_STIFFNESS`      | 20869.565 | 200000 | $`\mathrm{kN} / \mathrm{m}^3`$ |
-| Cohesion $`c`$                      | `GEO_COHESION`         | 1000.0    | 0.0    | $`\mathrm{N} / \mathrm{m}^2`$  |
-| Friction angle $`\phi`$             | `GEO_FRICTION_ANGLE`   | 25.0      | 32.0   | $`^{\circ}`$                   |
-| Dilatancy angle $`\psi`$            | `GEO_DILATANCY_ANGLE`  | 0.0       | 2.0    | $`^{\circ}`$                   |
-
+| Property                                 | Kratos input parameter | Clay      | Sand    | Unit                           |
+|------------------------------------------|------------------------|-----------|---------|--------------------------------|
+| Normal stiffness $`k_{\mathrm{n}}`$      | `NORMAL_STIFFNESS`     | 48000     | 480000  | $`\mathrm{kN} / \mathrm{m}^3`$ |
+| Shear stiffness $`k_{\mathrm{s}}`$       | `SHEAR_STIFFNESS`      | 20869.565 | 200000  | $`\mathrm{kN} / \mathrm{m}^3`$ |
+| Cohesion $`c`$                           | `GEO_COHESION`         | 1000.0    | 0.0     | $`\mathrm{N} / \mathrm{m}^2`$  |
+| Friction angle $`\phi`$                  | `GEO_FRICTION_ANGLE`   | 25.0      | 32.0    | $`^{\circ}`$                   |
+| Dilatancy angle $`\psi`$                 | `GEO_DILATANCY_ANGLE`  | 0.0       | 2.0     | $`^{\circ}`$                   |
+| Tensile strength $`\sigma_{\mathrm{t}}`$ | `GEO_TENSILE_STRENGTH` | 2.1445    | 0.0     | $`\mathrm{N} / \mathrm{m}^2`$  |
 
 The following table lists the material properties of the diaphragm wall that have been adopted by the Kratos model.
 
-| Property                | Kratos input parameter | Diaphragm wall      | Unit                           |
-|-------------------------|------------------------|---------------------|--------------------------------|
-| Young's modulus $`E`$   | `YOUNG_MODULUS`        | $`5.93 \cdot 10^6`$ | $`\mathrm{kN} / \mathrm{m}^2`$ |
-| Poisson's ratio $`\nu`$ | `POISSON_RATIO`        | 0.0                 | $`[-]`$                        |
-| Thickness $`t`$         | `THICKNESS`            | 1.265               | $`[m]`$                        |
-| Density $`\rho`$        | `DENSITY`              | 1019.368            | $`\mathrm{kg} / \mathrm{m}^3`$ |
-
+| Property                                       | Kratos input parameter  | Diaphragm wall      | Unit                           |
+|------------------------------------------------|-------------------------|---------------------|--------------------------------|
+| Young's modulus $`E`$                          | `YOUNG_MODULUS`         | $`5.93 \cdot 10^6`$ | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| Poisson's ratio $`\nu`$                        | `POISSON_RATIO`         | 0.0                 | $`[-]`$                        |
+| Thickness $`t`$                                | `THICKNESS`             | 1.265               | $`[m]`$                        |
+| Effective shear thickness y $`t_{\mathrm{y}}`$ | `THICKNESS_EFFECTIVE_Y` | 0.025               | $`[m]`$                        |
+| Density $`\rho`$                               | `DENSITY`               | 1019.368            | $`\mathrm{kg} / \mathrm{m}^3`$ |
 
 The following table lists the material properties of the strut that have been adopted by the Kratos model.
 
