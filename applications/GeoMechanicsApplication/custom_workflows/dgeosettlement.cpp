@@ -435,15 +435,17 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::vector<std::string> domain_condition_names;
     std::unordered_set<std::string> unique_names;
 
-    for (const auto& list_name : process_list_names) {
-        if (rSolverSettings["processes"].Has(list_name)) {
-            const auto& process_list = rSolverSettings["processes"][list_name];
-            for (const auto& process : process_list) {
-                if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
-                    const auto model_part_name =
-                        process["Parameters"]["model_part_name"].GetString();
-                    if (unique_names.insert(model_part_name).second) {
-                        domain_condition_names.emplace_back(model_part_name);
+    if (rSolverSettings.Has("processes")) {
+        for (const auto& list_name : process_list_names) {
+            if (rSolverSettings["processes"].Has(list_name)) {
+                const auto& process_list = rSolverSettings["processes"][list_name];
+                for (const auto& process : process_list) {
+                    if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
+                        const auto model_part_name =
+                            process["Parameters"]["model_part_name"].GetString();
+                        if (unique_names.insert(model_part_name).second) {
+                            domain_condition_names.emplace_back(model_part_name);
+                        }
                     }
                 }
             }
@@ -478,14 +480,14 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
             for (const auto& name : missing_names) {
                 KRATOS_INFO("PrepareModelPart") << " missing model_part_name :" << name << '\n';
             }
-            KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has more names"<< std::endl;
+       //     KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has more names"<< std::endl;
         }
 
         if (!extra_names.empty()) {
             for (const auto& name : missing_names) {
                 KRATOS_INFO("PrepareModelPart") << " extra model_part_name :" << name << '\n';
             }
-            KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has less names"<< std::endl;
+       //     KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has less names"<< std::endl;
         }
     }
 
