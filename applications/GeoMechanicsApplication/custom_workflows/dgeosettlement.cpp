@@ -452,6 +452,45 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         }
     }
 
+    // the old way of settings
+    if (rSolverSettings.Has("processes_sub_model_part_list")) {
+        const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
+
+        std::unordered_set<std::string> sub_model_part_set;
+        for (const auto& sub_mp_entry : processes_sub_model_part_list) {
+            sub_model_part_set.insert(sub_mp_entry.GetString());
+        }
+
+        std::vector<std::string> missing_names;
+        std::vector<std::string> extra_names;
+
+        for (const auto& name : sub_model_part_set) {
+            if (unique_names.find(name) == unique_names.end()) {
+                missing_names.push_back(name);
+            }
+        }
+
+        for (const auto& name : unique_names) {
+            if (sub_model_part_set.find(name) == sub_model_part_set.end()) {
+                extra_names.push_back(name);
+            }
+        }
+
+        if (!missing_names.empty()) {
+            for (const auto& name : missing_names) {
+                KRATOS_INFO("PrepareModelPart") << " missing model_part_name :" << name << '\n';
+            }
+            KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has more names"<< std::endl;
+        }
+
+        if (!extra_names.empty()) {
+            for (const auto& name : missing_names) {
+                KRATOS_INFO("PrepareModelPart") << " extra model_part_name :" << name << '\n';
+            }
+            KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has less names"<< std::endl;
+        }
+    }
+
     std::set<IndexedObject::IndexType> condition_id_set;
     for (const auto& name : domain_condition_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
