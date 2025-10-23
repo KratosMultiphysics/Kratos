@@ -1503,52 +1503,62 @@ public:
         );
 
     /** Returns if the Element corresponding to it's identifier exists */
-    bool HasGeometry(IndexType GeometryId, IndexType ThisIndex = 0) const {
+    bool HasGeometry(IndexType GeometryId, IndexType ThisIndex = 0) const 
+    {
         return GetMesh(ThisIndex).HasGeometry(GeometryId);
     }
 
     /** Returns if the Element corresponding to it's name exists */
-    bool HasGeometry(std::string GeometryName, IndexType ThisIndex = 0) const {
+    bool HasGeometry(std::string GeometryName, IndexType ThisIndex = 0) const 
+    {
         return GetMesh(ThisIndex).HasGeometry(GeometryName);
     }
 
     /// Returns the Geometry::Pointer corresponding to the Id
-    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId, IndexType ThisIndex = 0) {
+    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId, IndexType ThisIndex = 0) 
+    {
         return GetMesh(ThisIndex).pGetGeometry(GeometryId);
     }
 
     /// Returns the const Geometry::Pointer corresponding to the Id
-    const typename GeometryType::Pointer pGetGeometry(const IndexType GeometryId, const IndexType ThisIndex = 0) const {
+    const typename GeometryType::Pointer pGetGeometry(const IndexType GeometryId, const IndexType ThisIndex = 0) const 
+    {
         return GetMesh(ThisIndex).pGetGeometry(GeometryId);
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
-    typename GeometryType::Pointer pGetGeometry(std::string GeometryName, IndexType ThisIndex = 0) {
+    typename GeometryType::Pointer pGetGeometry(std::string GeometryName, IndexType ThisIndex = 0) 
+    {
         return GetMesh(ThisIndex).pGetGeometry(GeometryName);
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
-    const typename GeometryType::Pointer pGetGeometry(const std::string GeometryName, const IndexType ThisIndex = 0) const {
+    const typename GeometryType::Pointer pGetGeometry(const std::string GeometryName, const IndexType ThisIndex = 0) const 
+    {
         return GetMesh(ThisIndex).pGetGeometry(GeometryName);
     }
 
     /// Returns a reference geometry corresponding to the id
-    GeometryType& GetGeometry(IndexType GeometryId, IndexType ThisIndex = 0) {
+    GeometryType& GetGeometry(IndexType GeometryId, IndexType ThisIndex = 0) 
+    {
         return GetMesh(ThisIndex).GetGeometry(GeometryId);
     }
 
     /// Returns a const reference geometry corresponding to the id
-    const GeometryType& GetGeometry(IndexType GeometryId, IndexType ThisIndex = 0) const {
+    const GeometryType& GetGeometry(IndexType GeometryId, IndexType ThisIndex = 0) const 
+    {
         return GetMesh(ThisIndex).GetGeometry(GeometryId);
     }
 
     /// Returns a reference geometry corresponding to the name
-    GeometryType& GetGeometry(std::string GeometryName, IndexType ThisIndex = 0) {
+    GeometryType& GetGeometry(std::string GeometryName, IndexType ThisIndex = 0) 
+    {
         return GetMesh(ThisIndex).GetGeometry(GeometryName);
     }
 
     /// Returns a const reference geometry corresponding to the name
-    const GeometryType& GetGeometry(std::string GeometryName, IndexType ThisIndex = 0) const {
+    const GeometryType& GetGeometry(std::string GeometryName, IndexType ThisIndex = 0) const 
+    {
         return GetMesh(ThisIndex).GetGeometry(GeometryName);
     }
 
