@@ -53,7 +53,7 @@ private:
 
     void SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue) const;
 
-    [[nodiscard]] bool IsStepRestarted(const ProcessInfo& rProcessInfo) const;
+    [[nodiscard]] bool IsStepRestarted() const;
 };
 
 } // namespace Kratos

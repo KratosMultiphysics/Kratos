@@ -34,7 +34,7 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    if (IsStepRestarted(mrModelParts[0].get().GetProcessInfo())) mReductionIncrement *= 0.5;
+    if (IsStepRestarted()) mReductionIncrement *= 0.5;
     mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
     KRATOS_ERROR_IF(mReductionFactor <= 0.01)
         << "Reduction factor should not drop below 0.01, calculation stopped." << std::endl;
@@ -166,9 +166,9 @@ void ApplyCPhiReductionProcess::SetValueAtElement(Element&                rEleme
     rElement.SetProperties(p_new_prop);
 }
 
-bool ApplyCPhiReductionProcess::IsStepRestarted(const ProcessInfo& rProcessInfo) const
+bool ApplyCPhiReductionProcess::IsStepRestarted() const
 {
-    return rProcessInfo.GetValue(NUMBER_OF_CYCLES) > 1;
+    return mrModelParts[0].get().GetProcessInfo().GetValue(NUMBER_OF_CYCLES) > 1;
 }
 
 std::string ApplyCPhiReductionProcess::Info() const { return "ApplyCPhiReductionProcess"; }
