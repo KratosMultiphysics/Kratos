@@ -47,26 +47,25 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
         << 1. / mReductionFactor << ") Previous reduction = " << mPreviousReductionFactor
         << " Reduction increment = " << mReductionIncrement << std::endl;
 
-    double    phi                = 0.;
-    double    reduced_phi        = 0.;
-    double    c                  = 0.;
-    double    reduced_c          = 0.;
-    IndexType previousPropertyId = -1;
+    double    phi                  = 0.;
+    double    reduced_phi          = 0.;
+    double    c                    = 0.;
+    double    reduced_c            = 0.;
+    IndexType previous_property_Id = -1;
 
     for (const auto& r_model_part : mrModelParts) {
         // Apply C/Phi Reduction procedure for the model part:
-        block_for_each(r_model_part.get().Elements(), [this, &r_model_part, &phi, &reduced_phi, &c,
-                                                       &reduced_c, &previousPropertyId](Element& rElement) {
+        block_for_each(r_model_part.get().Elements(), [this, &r_model_part, &phi, &reduced_phi, &c, &reduced_c,
+                                                       &previous_property_Id](Element& rElement) {
             // Only compute new c and phi if the Id changes
-            if (rElement.GetProperties().Id() != previousPropertyId) {
-                const auto element_property_id = rElement.GetProperties().Id();
-                const auto& r_part_properties =
-                    r_model_part.get().GetProperties(element_property_id);
-                phi                = GetAndCheckPhi(r_part_properties, element_property_id);
-                reduced_phi        = ComputeReducedPhi(phi);
-                c                  = GetAndCheckC(r_part_properties);
-                reduced_c          = mReductionFactor * c;
-                previousPropertyId = rElement.GetProperties().Id();
+            const auto element_property_Id = rElement.GetProperties().Id();
+            if (element_property_Id != previous_property_Id) {
+                const auto& r_part_properties = r_model_part.get().GetProperties(element_property_Id);
+                phi                  = GetAndCheckPhi(r_part_properties, element_property_Id);
+                reduced_phi          = ComputeReducedPhi(phi);
+                c                    = GetAndCheckC(r_part_properties);
+                reduced_c            = mReductionFactor * c;
+                previous_property_Id = element_property_Id;
             }
             SetCPhiAtElement(rElement, reduced_phi, reduced_c);
         });
@@ -94,19 +93,19 @@ int ApplyCPhiReductionProcess::Check()
     return 0;
 }
 
-double ApplyCPhiReductionProcess::GetAndCheckPhi(const Properties& rPartProperties, size_t ElementPropertyId) const
+double ApplyCPhiReductionProcess::GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId) const
 {
     // Get the initial properties from the model part. Recall that we create a separate
     // properties object with reduced c and phi for each and every element. Those reduced
     // properties objects are not linked to the original ones.
 
-    const CheckProperties check_properties(rPartProperties, "model part property",
+    const CheckProperties check_properties(rModelPartProperties, "model part property",
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.CheckAvailability(UMAT_PARAMETERS);
     check_properties.Check(INDEX_OF_UMAT_PHI_PARAMETER, 1,
-                           static_cast<int>(rPartProperties[UMAT_PARAMETERS].size()));
+                           static_cast<int>(rModelPartProperties[UMAT_PARAMETERS].size()));
 
-    const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(rPartProperties);
+    const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(rModelPartProperties);
     KRATOS_ERROR_IF(phi < 0. || phi > 90.)
         << "Friction angle Phi in the model part property with Id " << ElementPropertyId
         << " has an invalid value: " << phi << " is out of range [0,90] (degrees)." << std::endl;
@@ -121,23 +120,23 @@ double ApplyCPhiReductionProcess::ComputeReducedPhi(double Phi) const
     return std::atan(reduced_tan_phi) * 180.0 / Globals::Pi;
 }
 
-double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rPartProperties) const
+double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rModelPartProperties) const
 {
     // Get the initial properties from the model part. Recall that we create a separate
     // properties object with reduced c and phi for each and every element. Those reduced
     // properties objects are not linked to the original ones.
 
-    KRATOS_ERROR_IF_NOT(rPartProperties.Has(UMAT_PARAMETERS))
+    KRATOS_ERROR_IF_NOT(rModelPartProperties.Has(UMAT_PARAMETERS))
         << "Missing required item UMAT_PARAMETERS" << std::endl;
-    KRATOS_ERROR_IF_NOT(rPartProperties.Has(INDEX_OF_UMAT_C_PARAMETER))
+    KRATOS_ERROR_IF_NOT(rModelPartProperties.Has(INDEX_OF_UMAT_C_PARAMETER))
         << "Missing required item INDEX_OF_UMAT_C_PARAMETER" << std::endl;
 
-    KRATOS_ERROR_IF(rPartProperties[INDEX_OF_UMAT_C_PARAMETER] < 1 ||
-                    rPartProperties[INDEX_OF_UMAT_C_PARAMETER] >
-                        static_cast<int>(rPartProperties[UMAT_PARAMETERS].size()))
-        << "invalid INDEX_OF_UMAT_C_PARAMETER: " << rPartProperties[INDEX_OF_UMAT_C_PARAMETER]
+    KRATOS_ERROR_IF(rModelPartProperties[INDEX_OF_UMAT_C_PARAMETER] < 1 ||
+                    rModelPartProperties[INDEX_OF_UMAT_C_PARAMETER] >
+                        static_cast<int>(rModelPartProperties[UMAT_PARAMETERS].size()))
+        << "invalid INDEX_OF_UMAT_C_PARAMETER: " << rModelPartProperties[INDEX_OF_UMAT_C_PARAMETER]
         << " (out-of-bounds index)" << std::endl;
-    const auto c = ConstitutiveLawUtilities::GetCohesion(rPartProperties);
+    const auto c = ConstitutiveLawUtilities::GetCohesion(rModelPartProperties);
     KRATOS_ERROR_IF(c < 0.) << "Cohesion C out of range: " << c << std::endl;
     return c;
 }

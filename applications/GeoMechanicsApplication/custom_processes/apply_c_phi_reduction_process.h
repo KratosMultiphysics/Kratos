@@ -43,11 +43,11 @@ private:
     double                                         mPreviousReductionFactor = 1.0;
     double                                         mReductionIncrement      = 0.1;
 
-    [[nodiscard]] double GetAndCheckPhi(const Properties& rPartProperties, size_t ElementPropertyId) const;
+    [[nodiscard]] double GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId) const;
 
     [[nodiscard]] double ComputeReducedPhi(double Phi) const;
 
-    [[nodiscard]] double GetAndCheckC(const Properties& rPartProperties) const;
+    [[nodiscard]] double GetAndCheckC(const Properties& rModelPartProperties) const;
 
     void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC) const;
 
