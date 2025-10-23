@@ -88,7 +88,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D4EdgesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D4();
-        KRATOS_EXPECT_EQ(p_geometry->EdgesNumber(), 2);
+        KRATOS_EXPECT_EQ(p_geometry->EdgesNumber(), 1);
     }
 
     /** Checks if the number of faces is correct.

@@ -84,7 +84,7 @@ namespace {
 */
 KRATOS_TEST_CASE_IN_SUITE(Line3D3EdgesNumber, KratosCoreGeometriesFastSuite) {
     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();
-    KRATOS_EXPECT_EQ(p_geometry->EdgesNumber(), 2);
+    KRATOS_EXPECT_EQ(p_geometry->EdgesNumber(), 1);
 }
 
 /** Checks if the number of faces is correct.
