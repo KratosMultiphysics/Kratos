@@ -427,10 +427,29 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
     GetComputationalModelPart().Conditions().clear();
-    const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
+    // Define all the process list names you want to extract
+    const std::vector<std::string> process_list_names = {
+        "constraints_process_list",
+        "loads_process_list"//,
+      //  "boundary_conditions_process_list",
+      //  "some_other_process_list"
+    };
     std::vector<std::string> domain_condition_names;
-    for (const auto& sub_model_part : processes_sub_model_part_list) {
-        domain_condition_names.emplace_back(sub_model_part.GetString());
+    std::unordered_set<std::string> unique_names;
+
+    for (const auto& list_name : process_list_names) {
+        if (rSolverSettings["processes"].Has(list_name)) {
+            const auto& process_list = rSolverSettings["processes"][list_name];
+            for (const auto& process : process_list) {
+                if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
+                    const auto model_part_name =
+                        process["Parameters"]["model_part_name"].GetString();
+                    if (unique_names.insert(model_part_name).second) {
+                        domain_condition_names.emplace_back(model_part_name);
+                    }
+                }
+            }
+        }
     }
 
     std::set<IndexedObject::IndexType> condition_id_set;
