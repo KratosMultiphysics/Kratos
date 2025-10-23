@@ -19,6 +19,7 @@
 #include "custom_utilities/process_utilities.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
+#include "containers/model.h"
 
 namespace Kratos
 {
@@ -91,6 +92,7 @@ int ApplyCPhiReductionProcess::Check()
     KRATOS_ERROR_IF(std::ranges::all_of(mrModelParts, [](const auto& r_model_part_ref) {
         return r_model_part_ref.get().Elements().empty();
     })) << "None of the provided model parts contains at least one element. A c-phi reduction analysis requires at least one element.\n";
+    return 0;
 }
 
 double ApplyCPhiReductionProcess::GetAndCheckPhi(const ModelPart&               rModelPart,

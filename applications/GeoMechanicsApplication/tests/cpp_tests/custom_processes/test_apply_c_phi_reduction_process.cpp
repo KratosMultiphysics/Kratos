@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProce
     Model       model;
     const auto& r_model_part = PrepareCPhiTestModelPart(model);
 
-    const auto                parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+    const auto                parameters = Parameters{R"({"model_part_name" : "dummy"})"};
     ApplyCPhiReductionProcess process{model, parameters};
     process.ExecuteInitializeSolutionStep();
 
@@ -95,7 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReduction
     Model       model;
     const auto& r_model_part = PrepareCPhiTestModelPart(model);
 
-    const auto                parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+    const auto                parameters = Parameters{R"({"model_part_name" : "dummy"})"};
     ApplyCPhiReductionProcess process{model, parameters};
     process.ExecuteInitializeSolutionStep();
     process.ExecuteFinalizeSolutionStep();
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     auto& r_model_part_properties = r_model_part.GetProperties(0);
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
     r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
-    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+    const auto parameters = Parameters{R"({"model_part_name" : "dummy"})"};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
@@ -172,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, K
 {
     Model model;
     model.CreateModelPart("dummy");
-    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+    const auto parameters = Parameters{R"({"model_part_name" : "dummy"})"};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (ApplyCPhiReductionProcess{model, parameters}.Check()),
