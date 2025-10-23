@@ -430,9 +430,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     // Define all the process list names you want to extract
     const std::vector<std::string> process_list_names = {
         "constraints_process_list",
-        "loads_process_list"//,
-      //  "boundary_conditions_process_list",
-      //  "some_other_process_list"
+        "loads_process_list"
     };
     std::vector<std::string> domain_condition_names;
     std::unordered_set<std::string> unique_names;
@@ -452,7 +450,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         }
     }
 
-    // the old way of settings
+    // check against the old way of settings
     if (rSolverSettings.Has("processes_sub_model_part_list")) {
         const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
 
