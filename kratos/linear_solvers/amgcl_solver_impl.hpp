@@ -344,75 +344,82 @@ void AMGCLSolver<TSparse,TDense>::ProvideAdditionalData(SparseMatrixType& rA,
                                                         DofsArrayType& rDofSet,
                                                         ModelPart& rModelPart)
 {
-    if (!mBlockSize.has_value()) {
-        mBlockSize = 1;
-        int old_ndof = -1;
-        int ndof=0;
+    int detected_block_size = 1;
+    int old_ndof = -1;
+    int ndof=0;
 
-        if (!rModelPart.IsDistributed())
-        {
-            unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
-            for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
-                if(it->EquationId() < TSparse::Size1(rA) ) {
-                    IndexType id = it->Id();
-                    if(id != old_node_id) {
-                        old_node_id = id;
-                        if(old_ndof == -1) old_ndof = ndof;
-                        else if(old_ndof != ndof) { //if it is different than the block size is 1
-                            old_ndof = -1;
-                            break;
-                        }
-
-                        ndof=1;
-                    } else {
-                        ndof++;
+    if (!rModelPart.IsDistributed())
+    {
+        unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
+        for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
+            if(it->EquationId() < TSparse::Size1(rA) ) {
+                IndexType id = it->Id();
+                if(id != old_node_id) {
+                    old_node_id = id;
+                    if(old_ndof == -1) old_ndof = ndof;
+                    else if(old_ndof != ndof) { //if it is different than the block size is 1
+                        old_ndof = -1;
+                        break;
                     }
+
+                    ndof=1;
+                } else {
+                    ndof++;
                 }
             }
-
-            if(old_ndof == -1 || old_ndof != ndof)
-                mBlockSize = 1;
-            else
-                mBlockSize = ndof;
-
         }
-        else //distribute
-        {
-            const std::size_t system_size = TSparse::Size1(rA);
-            int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
-            unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
-            for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
-                if(it->EquationId() < system_size  && it->GetSolutionStepValue(PARTITION_INDEX) == current_rank) {
-                    IndexType id = it->Id();
-                    if(id != old_node_id) {
-                        old_node_id = id;
-                        if(old_ndof == -1) old_ndof = ndof;
-                        else if(old_ndof != ndof) { //if it is different than the block size is 1
-                            old_ndof = -1;
-                            break;
-                        }
 
-                        ndof=1;
-                    } else {
-                        ndof++;
+        if(old_ndof == -1 || old_ndof != ndof)
+            detected_block_size = 1;
+        else
+            detected_block_size = ndof;
+
+    }
+    else //distribute
+    {
+        const std::size_t system_size = TSparse::Size1(rA);
+        int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
+        unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
+        for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
+            if(it->EquationId() < system_size  && it->GetSolutionStepValue(PARTITION_INDEX) == current_rank) {
+                IndexType id = it->Id();
+                if(id != old_node_id) {
+                    old_node_id = id;
+                    if(old_ndof == -1) old_ndof = ndof;
+                    else if(old_ndof != ndof) { //if it is different than the block size is 1
+                        old_ndof = -1;
+                        break;
                     }
+
+                    ndof=1;
+                } else {
+                    ndof++;
                 }
             }
-
-            if(old_ndof != -1)
-                mBlockSize = ndof;
-
-            int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize.value());
-
-            if( old_ndof == -1) {
-                mBlockSize = max_block_size;
-            }
-
-            KRATOS_ERROR_IF(mBlockSize.value() != max_block_size)
-                << "Block size is not consistent. Local: " << mBlockSize.value()
-                << " Max: " << max_block_size << std::endl;
         }
-    } // if not mBlockSize.has_value()
+
+        if(old_ndof != -1)
+            detected_block_size = ndof;
+
+        int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(detected_block_size.value());
+
+        if( old_ndof == -1) {
+            detected_block_size = max_block_size;
+        }
+
+        KRATOS_ERROR_IF(detected_block_size != max_block_size)
+            << "Block size is not consistent. Local: " << detected_block_size
+            << " Max: " << max_block_size << std::endl;
+    }
+
+    if (mBlockSize.has_value()) {
+        KRATOS_WARNING_IF("AMGCLSolver", mBlockSize.value() != detected_block_size)
+            << "The user-specified block size (" << mBlockSize.value() << ") "
+            << "does not match the detected block size (" << detected_block_size << "). "
+            << "Continuing with the user-specified block size (" << mBlockSize.value() << ").";
+    } else {
+        mBlockSize = detected_block_size;
+    }
 
     KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1)
         << "mndof: " << mBlockSize.value() << std::endl;
