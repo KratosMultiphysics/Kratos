@@ -471,7 +471,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.ApplyForwardCoupling(1.0)
         for elem in self.spheres_model_part.Elements:
             elem.Calculate(Kratos.HYDRODYNAMIC_FORCE,self.spheres_model_part.ProcessInfo)
-        self._GetSolver().projection_module.ProjectFromParticles()
+        # self._GetSolver().projection_module.ProjectFromParticles()
         for node in self.fluid_model_part.Nodes:
             fluid_fraction = node.GetSolutionStepValue(Kratos.FLUID_FRACTION)
             node.SetSolutionStepValue(Kratos.FLUID_FRACTION_OLD, fluid_fraction)

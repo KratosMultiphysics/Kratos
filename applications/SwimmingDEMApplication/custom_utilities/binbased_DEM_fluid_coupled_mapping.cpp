@@ -1152,6 +1152,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Project(
         Interpolate(p_elem, N, p_node, NODAL_DENSITY, NODAL_DENSITY_PROJECTED, alpha);
     }
 
+    else if (*r_destination_variable == TRUNC_SOLUTION_PROJECTED){
+        Interpolate(p_elem, N, p_node, TRUNC_SOLUTION_SDEM, TRUNC_SOLUTION_PROJECTED, alpha);
+    }
+
     else if (*r_destination_variable == FLUID_FRACTION_PROJECTED && mVariables.Is(FLUID_FRACTION, "Fluid")){
         Interpolate(p_elem, N, p_node, FLUID_FRACTION, FLUID_FRACTION_PROJECTED, alpha);
     }

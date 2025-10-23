@@ -409,8 +409,12 @@ class VariablesManager:
         # Nodal density
         if 'NODAL_DENSITY_PROJECTED' in self.dem_nodal_results:
             self.coupling_dem_vars += [SDEM.NODAL_DENSITY_PROJECTED]
+        if 'TRUNC_SOLUTION_PROJECTED' in self.dem_nodal_results:
+            self.coupling_dem_vars += [SDEM.TRUNC_SOLUTION_PROJECTED]
         if 'NODAL_DENSITY' in self.dem_nodal_results:
             self.coupling_fluid_vars += [SDEM.NODAL_DENSITY]
+        if 'TRUNC_SOLUTION_SDEM' in self.dem_nodal_results:
+            self.coupling_fluid_vars += [SDEM.TRUNC_SOLUTION_SDEM]
         if 'EXACT_MATERIAL_ACCELERATION' in self.dem_nodal_results:
             self.coupling_dem_vars += [SDEM.EXACT_MATERIAL_ACCELERATION]
 

@@ -1187,6 +1187,7 @@ class Report():
         label = "DEM: "
 
         if incremental_time > self.control_time:
+            self.total_steps_expected = 1 if self.total_steps_expected < 1 else self.total_steps_expected
             percentage = 100 * (float(step) / self.total_steps_expected)
             elapsed_time = timer.time() - self.initial_re_time
 
