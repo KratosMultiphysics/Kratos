@@ -52,13 +52,12 @@ public:
     static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
     static constexpr unsigned int msElementSize = msLocalSize * 2;
 
-    CrBeamElement3D2N() {};
+    CrBeamElement3D2N();
+
     CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
+
     CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
                       PropertiesType::Pointer pProperties);
-
-
-    ~CrBeamElement3D2N() override;
 
     /**
     * @brief Creates a new element

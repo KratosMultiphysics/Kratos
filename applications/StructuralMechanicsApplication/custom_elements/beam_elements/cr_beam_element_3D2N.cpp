@@ -84,6 +84,11 @@ T& GetQuaternionSCAB(TElement* pElement) noexcept
 }
 
 
+CrBeamElement3D2N::CrBeamElement3D2N()
+    : CrBeamElement3D2N(0, nullptr)
+{
+}
+
 CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
                                      GeometryType::Pointer pGeometry)
     : CrBeamElement3D2N(NewId, pGeometry, PropertiesType::Pointer(new Properties))
@@ -107,7 +112,7 @@ CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
     constexpr double quaternion_sca_a = 1.0;
     constexpr double quaternion_sca_b = 1.0;
 
-    internal_variables[2 * msElementSize + 2 * msDimension] = quaternion_sca_a;
+    internal_variables[2 * msElementSize + 2 * msDimension]     = quaternion_sca_a;
     internal_variables[2 * msElementSize + 2 * msDimension + 1] = quaternion_sca_b;
 
     this->SetValue(INTERNAL_VARIABLES, internal_variables);
@@ -129,8 +134,6 @@ CrBeamElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
     return Kratos::make_intrusive<CrBeamElement3D2N>(NewId, pGeom,
             pProperties);
 }
-
-CrBeamElement3D2N::~CrBeamElement3D2N() {}
 
 void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const
@@ -204,12 +207,16 @@ void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) co
 void CrBeamElement3D2N::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    GetDeformationPreviousIteration<double>(this) = GetDeformationCurrentIteration<double>(this);
+    // Overwrite previous deformations with the current one.
+    std::copy(GetDeformationCurrentIteration<const double>(this).begin(),
+              GetDeformationCurrentIteration<const double>(this).end(),
+              GetDeformationPreviousIteration<double>(this).begin());
 
-    // Collect current deformations.
+    // Collect and update current deformations.
     Vector source;
     GetValuesVector(source, 0);
     auto target = GetDeformationCurrentIteration<double>(this);
+    KRATOS_ERROR_IF_NOT(source.size() == target.size());
     std::copy(source.begin(), source.end(), target.begin());
 
     KRATOS_CATCH("")
