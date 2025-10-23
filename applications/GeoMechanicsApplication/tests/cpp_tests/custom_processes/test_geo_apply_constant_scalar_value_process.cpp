@@ -179,7 +179,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoApplyConstantScalarValueProcess, KratosGeo
           "is_fixed"        : true,
           "value"           : 1.0
       }  )");
-    GeoApplyConstantScalarValueProcess process(r_model_part, parameters);
+    const GeoApplyConstantScalarValueProcess process(r_model_part, parameters);
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "GeoApplyConstantScalarValueProcess");
 }

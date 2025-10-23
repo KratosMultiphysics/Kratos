@@ -100,11 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoCalculateTotalMotionProcess, KratosGeoMechani
 {
     Model                       model;
     auto&                       r_model_part = model.CreateModelPart("dummy", 2);
-    const Parameters            parameters(R"(
-      {
-          "variable_name": "ROTATION"
-      }  )");
-    CalculateTotalMotionProcess process(r_model_part, parameters);
+    const CalculateTotalMotionProcess process(r_model_part, {R"({"variable_name": "ROTATION"})"});
 
     KRATOS_EXPECT_EQ(process.Info(), "CalculateTotalMotionProcess");
 }

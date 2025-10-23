@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyPhreaticMultiLinePressureTableProcess, K
                 "out_of_plane_direction": 2,
                 "table": [0, 0, 3]
             }  )"};
-    ApplyPhreaticMultiLinePressureTableProcess process{r_model_part, test_parameters};
+    const ApplyPhreaticMultiLinePressureTableProcess process{r_model_part, test_parameters};
 
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "ApplyPhreaticMultiLinePressureTableProcess");

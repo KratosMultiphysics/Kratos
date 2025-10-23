@@ -113,11 +113,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoCalculateIncrementalMotionProcess, KratosGeoM
 {
     Model                             model;
     auto&                             r_model_part = model.CreateModelPart("dummy", 2);
-    const Parameters                  parameters(R"(
-      {
-          "variable_name": "DISPLACEMENT"
-      }  )");
-    CalculateIncrementalMotionProcess process(r_model_part, parameters);
+    const CalculateIncrementalMotionProcess process(r_model_part, {R"({"variable_name": "DISPLACEMENT"})"});
 
     KRATOS_EXPECT_EQ(process.Info(), "CalculateIncrementalMotionProcess");
 }

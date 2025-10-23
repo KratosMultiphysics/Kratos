@@ -206,7 +206,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyConstantPhreaticMultilinePressureProcess
                 "table": [0, 0, 0],
                 "gravity_direction": 1
             }  )"};
-    ApplyConstantPhreaticMultiLinePressureProcess process{r_empty_model_part, test_parameters};
+    const ApplyConstantPhreaticMultiLinePressureProcess process{r_empty_model_part, test_parameters};
 
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "ApplyConstantPhreaticMultiLinePressureProcess");

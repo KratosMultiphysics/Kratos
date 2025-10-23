@@ -142,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyScalarConstraintTableProcess, KratosGeoM
           "table":           1,
           "value":           0.3
       }  )");
-    ApplyScalarConstraintTableProcess process(r_model_part, parameters);
+    const ApplyScalarConstraintTableProcess process(r_model_part, parameters);
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "ApplyScalarConstraintTableProcess");
 }

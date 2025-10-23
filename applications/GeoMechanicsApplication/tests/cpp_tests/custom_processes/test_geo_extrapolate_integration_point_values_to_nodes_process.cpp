@@ -378,7 +378,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesPr
          "model_part_name"            : "MainModelPart",
          "list_of_variables"          : ["FLUID_FLUX_VECTOR"]
      })");
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
+    const GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
 
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "GeoExtrapolateIntegrationPointValuesToNodesProcess");
