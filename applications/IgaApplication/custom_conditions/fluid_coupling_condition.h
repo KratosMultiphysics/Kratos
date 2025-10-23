@@ -180,6 +180,17 @@ private:
         }
     };
 
+    // Applies the constitutive law at the interface using the given B-matrix
+    // to compute strains. Fills stress vector and constitutive tensor in
+    // rConstitutiveVariables via rValues and the stored constitutive law.
+    // Apply CL using a specific geometry (A or B) so nodal values and sizes
+    // are taken from the correct side of the interface
+    void ApplyConstitutiveLaw(
+        const GeometryType& rGeometry,
+        const Matrix& rB,
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveVariables& rConstitutiveVariables) const;
+
     // Constitutive law pointer (cloned from Properties)
     ConstitutiveLaw::Pointer mpConstitutiveLaw;
 
@@ -191,6 +202,12 @@ private:
 
     // Polynomial order used to scale penalty (p^2/h)
     IndexType mBasisFunctionsOrder = 1;
+
+    // Spatial velocity dimension inferred from geometry (2 or 3)
+    SizeType mDim = 2;
+    
+    double mPenalty;
+    double mNitschePenalty;
 };
 
 } // namespace Kratos
