@@ -58,8 +58,8 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
         block_for_each(r_model_part.get().Elements(), [this, &r_model_part, &phi, &reduced_phi, &c, &reduced_c,
                                                        &previous_property_Id](Element& rElement) {
             // Only compute new c and phi if the Id changes
-            const auto element_property_Id = rElement.GetProperties().Id();
-            if (element_property_Id != previous_property_Id) {
+            if (const auto element_property_Id = rElement.GetProperties().Id();
+                element_property_Id != previous_property_Id) {
                 const auto& r_part_properties = r_model_part.get().GetProperties(element_property_Id);
                 phi                  = GetAndCheckPhi(r_part_properties, element_property_Id);
                 reduced_phi          = ComputeReducedPhi(phi);
