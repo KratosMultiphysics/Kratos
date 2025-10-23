@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureIsMissing, KratosGe
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
-                                      "Missing variable TEMPERATURE on node 1")
+                                      "Missing variable TEMPERATURE on nodes 1 2 3")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDtTemperatureIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDtTemperatureIsMissing, Kratos
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
-                                      "Missing variable DT_TEMPERATURE on node 1")
+                                      "Missing variable DT_TEMPERATURE on nodes 1 2 3")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureDofIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -156,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureDofIsMissing, Krato
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
-                                      "Missing degree of freedom for TEMPERATURE on node 1")
+                                      "Missing the DoF for the variable TEMPERATURE on nodes 1 2 3")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenPropertyIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -175,7 +175,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenPropertyIsMissing, KratosGeoMe
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(r_current_process_info),
-        "DENSITY_WATER does not exist in the thermal element's properties")
+        "DENSITY_WATER does not exist in the properties with Id 0 at element with Id 1.")
 }
 
 void GenerateTransientThermalElement2D3NWithNonZeroZ(ModelPart& rModelPart)
@@ -201,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When2DElementHasNonZeroZValue, Kra
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(model_part.GetElement(1).Check(r_current_process_info),
-                                      "Node with non-zero Z coordinate found. Id: 1")
+                                      "Node with Id: 1 has non-zero Z coordinate.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckElement_Returns0_When2DElementIsCorrectlySet, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -500,7 +500,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When3DPropertyHasInvalidValue, Kra
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(r_current_process_info),
-        "THERMAL_CONDUCTIVITY_SOLID_ZZ has an invalid value at element 1")
+        "THERMAL_CONDUCTIVITY_SOLID_ZZ in the properties with Id 0 at element with Id 1 has an "
+        "invalid value: -5 is out of the range [0, -).")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D4N, KratosGeoMechanicsFastSuiteWithoutKernel)

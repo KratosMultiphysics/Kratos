@@ -27,7 +27,7 @@
         "compute_reactions": true,
         "reform_dofs_at_each_step": false,
         "block_builder": true,
-        "solution_type": "Quasi-Static",
+        "solution_type": "static",
         "scheme_type": "Backward_Euler",
         "reset_displacements": false,
         "strategy_type": "line_search",
