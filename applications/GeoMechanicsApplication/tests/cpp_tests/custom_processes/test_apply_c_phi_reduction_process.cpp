@@ -175,7 +175,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, K
     const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.Check()),
-                                      "ApplyCPhiReductionProces needs at least one element.")
+                                      "ApplyCPhiReductionProcess needs at least one element.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)

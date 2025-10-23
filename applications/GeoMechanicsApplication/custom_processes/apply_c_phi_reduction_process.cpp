@@ -87,10 +87,10 @@ int ApplyCPhiReductionProcess::Check()
         if (!r_model_part.get().Elements().empty()) return 0;
     }
     for (const auto& r_model_part : mrModelParts) {
-        KRATOS_INFO("ApplyCPhiReductionProces")
+        KRATOS_INFO("ApplyCPhiReductionProcess")
             << " modelpart " << r_model_part.get().Name() << " has no elements." << std::endl;
     }
-    KRATOS_ERROR << "ApplyCPhiReductionProces needs at least one element." << std::endl;
+    KRATOS_ERROR << "ApplyCPhiReductionProcess needs at least one element." << std::endl;
 }
 
 double ApplyCPhiReductionProcess::GetAndCheckPhi(const ModelPart&               rModelPart,
