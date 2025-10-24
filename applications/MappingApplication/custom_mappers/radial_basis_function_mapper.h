@@ -22,7 +22,6 @@
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/mapper_backend.h"
 
-#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
@@ -60,9 +59,6 @@ public:
     using MapperUniquePointerType = typename BaseType::MapperUniquePointerType;
     using TMappingMatrixType = typename BaseType::TMappingMatrixType;
     using MappingMatrixUniquePointerType = Kratos::unique_ptr<TMappingMatrixType>;
-
-    using LinearSolverType = LinearSolver<TSparseSpace, TDenseSpace>;
-    using LinearSolverSharedPointerType = Kratos::shared_ptr<LinearSolverType>;
 
     using SparseMatrixType = typename TSparseSpace::MatrixType;
     using DenseMatrixType = typename TDenseSpace::MatrixType;
@@ -169,8 +165,6 @@ private:
 
     ///@name Private Operations
     ///@{
-    // ModelPart& mrModelPartOrigin;
-    // ModelPart& mrModelPartDestination;
     ModelPart* mpCouplingMP = nullptr;
     ModelPart* mpCouplingInterfaceMaster = nullptr;
     ModelPart* mpCouplingInterfaceSlave = nullptr;
@@ -180,9 +174,6 @@ private:
     MappingMatrixUniquePointerType mpOriginInterpolationMatrix;
     MappingMatrixUniquePointerType mpDestinationEvaluationMatrix;
 
-    LinearSolverSharedPointerType mpLinearSolver = nullptr;
-
-
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
     void AssignInterfaceEquationIds()
@@ -191,17 +182,28 @@ private:
         MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceMaster->GetCommunicator());
     }
 
-    void CreateLinearSolver();
+    void FillCoordinatesMatrix(const ModelPart& ModelPart, const std::vector<Condition::Pointer>& IntegrationPointsPointerVector, DenseMatrixType& rCoordinatesMatrix, bool IsDomainIGA);
 
     // Get scaling factor stabilising numerics, maximum distance between spline support points in either X or Y direction
     double CalculateScaleFactor(DenseMatrixType& rOriginCoords);
+
+    IndexType CalculateNumberOfPolynomialTermsFromDegree(IndexType PolyDegree, bool ProjectToAerodynamicPanels);
     
     // Evaluate the polynomial required for the radial basis function interpolation
     std::vector<double> EvaluatePolynomialBasis(const array_1d<double, 3>& rCoords, unsigned int degree, bool ProjectToPanelsPlane) const;
 
-    void CreateAndInvertRBFMatrix(DenseMatrixType& rInvCMatrix, const DenseMatrixType& rOriginCoords, bool ProjectToAerodynamicPanels,
-        IndexType Poly_Degree, const std::string& RBFType, double ScaleFactor = 1.0, double eps = 1.0);
+    // Create and invert the coefficient matrix of the spline C. This depends only on the positions of the origin support points 
+    void CreateAndInvertOriginRBFMatrix(DenseMatrixType& rInvCMatrix, const DenseMatrixType& rOriginCoords, bool ProjectToAerodynamicPanels,
+        IndexType Poly_Degree, const std::string& RBFType, double Factor = 1.0, double eps = 1.0);
 
+    // Compute Aij splining matrix, relating origin and destination interpolation points
+    void CreateDestinationRBFMatrix(DenseMatrixType& rAMatrix, const DenseMatrixType& rOriginCoords, const DenseMatrixType& rDestinationCoords,
+        bool ProjectToAerodynamicPanels, IndexType Poly_Degree, const std::string& RBFType, bool ReturnAOAMatrix, double rbf_shape_parameter);
+    
+    // For IGA, compute the mapping matrix mapping from origin control points to destination nodes
+    std::unique_ptr<TMappingMatrixType> ComputeMappingMatrixIga(const TMappingMatrixType& rMappingMatrixGP, const std::vector<Condition::Pointer>& rOriginIntegrationPoints,
+        const ModelPart& rOriginModelPart) const;
+        
     Parameters GetMapperDefaultSettings() const override
     {
         return Parameters(R"({
@@ -211,9 +213,6 @@ private:
             "destination_is_slave"          : true,
             "is_origin_iga"             : false,
             "is_destination_iga"             : false,
-            "linear_solver_settings": {
-                "solver_type": "skyline_lu_factorization"
-            },
             "aerodynamic_panel_solver_settings": {
                 "project_origin_nodes_to_destination_domain_panel_solver": false,
                 "map_structural_displacements_to_panels_angles_of_attack": false
@@ -225,9 +224,10 @@ private:
         const Communicator& rModelPartCommunicator,
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
+        KRATOS_ERROR_IF(false) << "The RBF mapper does not use local systems!" << std::endl;
     }
 
-    MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
+    MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const noexcept override
     {
         return nullptr;
     }
