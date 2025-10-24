@@ -1,0 +1,19 @@
+{
+    "list_of_sensors": [
+        {
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "location": [
+                0.25,
+                0.25,
+                0.0
+            ],
+            "name": "disp_x_1",
+            "type": "displacement_sensor",
+            "weight": 100.0
+        }
+    ]
+}

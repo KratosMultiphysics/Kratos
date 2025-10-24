@@ -1,0 +1,130 @@
+{
+    "problem_data": {
+        "problem_name": "benchmark_2",
+        "parallel_type": "OpenMP",
+        "start_time": 0,
+        "end_time": 1,
+        "echo_level": 0
+    },
+    "solver_settings": {
+        "solver_type": "adjoint_dynamic",
+        "time_integration_method": "implicit",
+        "scheme_type": "bossak",
+        "damp_factor_m": -0.3,
+        "analysis_type": "linear",
+        "model_part_name": "AdjointStructure",
+        "domain_size": 3,
+        "time_stepping": {
+            "time_step": 0.25
+        },
+        "compute_reactions": false,
+        "move_mesh_flag": false,
+        "response_function_settings": {
+            "perturbation_size": 1e-8,
+            "adapt_perturbation_size": true
+        },
+        "sensitivity_settings": {
+            "sensitivity_model_part_name": "all_nodes_elements_model_part",
+            "element_data_value_sensitivity_variables": [
+                "YOUNG_MODULUS"
+            ],
+            "build_mode": "integrate"
+        },
+        "echo_level": 0,
+        "rotation_dofs": false,
+        "model_import_settings": {
+            "input_type": "use_input_model_part"
+        },
+        "material_import_settings": {
+            "materials_filename": "auxiliary_files_7/adjoint_material_parameters.json"
+        },
+        "linear_solver_settings": {
+            "solver_type": "amgcl"
+        }
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "This process fixes the selected components of a given vector variable",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "AdjointStructure.BoundPtsType7",
+                    "variable_name": "ADJOINT_DISPLACEMENT",
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "constrained": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "interval": [
+                        0.0,
+                        "End"
+                    ]
+                }
+            }
+        ],
+        "loads_process_list": [],
+        "list_other_processes": [
+            {
+                "kratos_module": "KratosMultiphysics.HDF5Application",
+                "python_module": "single_mesh_temporal_input_process",
+                "help": "",
+                "process_name": "",
+                "Parameters": {
+                    "model_part_name": "Structure",
+                    "file_settings": {
+                        "file_access_mode": "read_only",
+                        "file_name": "auxiliary_files_7/hdf5_output/<model_part_name>_T_<step>.h5"
+                    },
+                    "nodal_solution_step_data_settings": {
+                        "list_of_variables": [
+                            "DISPLACEMENT",
+                            "ACCELERATION"
+                        ]
+                    }
+                }
+            },
+            {
+                "kratos_module": "KratosMultiphysics.HDF5Application",
+                "python_module": "single_mesh_temporal_input_process",
+                "help": "",
+                "process_name": "",
+                "Parameters": {
+                    "model_part_name": "sensors",
+                    "file_settings": {
+                        "file_access_mode": "read_only",
+                        "file_name": "auxiliary_files_7/damaged_system/hdf5_output/SensorModelPart_T_<step>.h5"
+                    },
+                    "nodal_data_value_settings": {
+                        "list_of_variables": [
+                            "SENSOR_MEASURED_VALUE"
+                        ]
+                    }
+                }
+            },
+            {
+                "python_module": "single_mesh_temporal_input_process",
+                "kratos_module": "KratosMultiphysics.HDF5Application",
+                "Parameters": {
+                    "model_part_name": "sensors",
+                    "file_settings": {
+                        "file_name": "auxiliary_files_7/hdf5_output/SensorModelPart_T_<step>.h5"
+                    },
+                    "nodal_data_value_settings": {
+                        "list_of_variables": [
+                            "SENSOR_COMPUTED_VALUE"
+                        ]
+                    }
+                }
+            }
+        ]
+    },
+    "output_processes": {},
+    "analysis_stage": "KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.sensor_sensitivity_dynamic_analysis"
+}

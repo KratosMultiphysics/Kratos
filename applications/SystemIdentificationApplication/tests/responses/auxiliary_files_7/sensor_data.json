@@ -1,0 +1,274 @@
+{
+    "list_of_sensors": [
+        {
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "location": [
+                0.75,
+                0.25,
+                0.5
+            ],
+            "name": "disp_x_1",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "location": [
+                0.5,
+                0.25,
+                0.75
+            ],
+            "name": "disp_x_2",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "location": [
+                0.5,
+                0.75,
+                0.25
+            ],
+            "name": "disp_x_3",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "location": [
+                0.25,
+                0.75,
+                0.5
+            ],
+            "name": "disp_x_4",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "location": [
+                0.75,
+                0.5,
+                0.25
+            ],
+            "name": "disp_x_5",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "location": [
+                0.25,
+                0.5,
+                0.75
+            ],
+            "name": "disp_x_6",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "location": [
+                0.75,
+                0.25,
+                0.5
+            ],
+            "name": "disp_y_1",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "location": [
+                0.5,
+                0.25,
+                0.75
+            ],
+            "name": "disp_y_2",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "location": [
+                0.5,
+                0.75,
+                0.25
+            ],
+            "name": "disp_y_3",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "location": [
+                0.25,
+                0.75,
+                0.5
+            ],
+            "name": "disp_y_4",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "location": [
+                0.75,
+                0.5,
+                0.25
+            ],
+            "name": "disp_y_5",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                1.0,
+                0.0
+            ],
+            "location": [
+                0.25,
+                0.5,
+                0.75
+            ],
+            "name": "disp_y_6",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                0.0,
+                1.0
+            ],
+            "location": [
+                0.75,
+                0.25,
+                0.5
+            ],
+            "name": "disp_z_1",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                0.0,
+                1.0
+            ],
+            "location": [
+                0.5,
+                0.25,
+                0.75
+            ],
+            "name": "disp_z_2",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                0.0,
+                1.0
+            ],
+            "location": [
+                0.5,
+                0.75,
+                0.25
+            ],
+            "name": "disp_z_3",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                0.0,
+                1.0
+            ],
+            "location": [
+                0.25,
+                0.75,
+                0.5
+            ],
+            "name": "disp_z_4",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                0.0,
+                1.0
+            ],
+            "location": [
+                0.75,
+                0.5,
+                0.25
+            ],
+            "name": "disp_z_5",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        },
+        {
+            "direction": [
+                0.0,
+                0.0,
+                1.0
+            ],
+            "location": [
+                0.25,
+                0.5,
+                0.75
+            ],
+            "name": "disp_z_6",
+            "type": "displacement_sensor",
+            "weight": 1e7
+        }
+    ]
+}
