@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 using NodeIdsToBoundariesHashMap     = std::unordered_multimap<std::vector<std::size_t>,
-                                                               std::vector<Condition::Pointer>,
+                                                               std::vector<GeometricalObject::Pointer>,
                                                                KeyHasherRange<std::vector<std::size_t>>,
                                                                KeyComparorRange<std::vector<std::size_t>>>;
 using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::size_t>,
@@ -49,7 +49,7 @@ private:
     NodeIdsToBoundariesHashMap     mBoundaryNodeIdsToBoundaries;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedBoundaryNodeIds;
 
-    void InitializeConditionMaps();
+    void InitializeBoundaryMaps();
     void FindNeighbouringElementsForAllBoundaryTypes();
 
     void SetElementAsNeighbourOfAllGeometryWithIdenticalNodeIds(const std::vector<std::size_t>& rNodeIds,
@@ -76,7 +76,7 @@ private:
 
     [[nodiscard]] bool AllBoundariesHaveAtLeastOneNeighbour() const;
     [[nodiscard]] static std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
-    [[noreturn]] void ReportConditionsWithoutNeighboursAndThrow() const;
+    [[noreturn]] void ReportBoundariesWithoutNeighboursAndThrow() const;
 };
 
 std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfConditionsProcess& rThis);

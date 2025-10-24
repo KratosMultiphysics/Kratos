@@ -28,15 +28,15 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     if (mrModelPart.Conditions().empty()) return;
 
-    InitializeConditionMaps();
+    InitializeBoundaryMaps();
     FindNeighbouringElementsForAllBoundaryTypes();
 
     if (!AllBoundariesHaveAtLeastOneNeighbour()) {
-        ReportConditionsWithoutNeighboursAndThrow();
+        ReportBoundariesWithoutNeighboursAndThrow();
     }
 }
 
-void FindNeighbourElementsOfConditionsProcess::InitializeConditionMaps()
+void FindNeighbourElementsOfConditionsProcess::InitializeBoundaryMaps()
 {
     mBoundaryNodeIdsToBoundaries.clear();
     std::ranges::transform(
@@ -186,8 +186,8 @@ bool FindNeighbourElementsOfConditionsProcess::AreQuadraticRotatedEquivalents(
     // voor quadratic line geometry gaat onderstaande indexberekening fout ( moet altijd 2 opleveren ), voor quadratic plane geometry is het o.k.
     auto first_mid_side_node_id = (LocalSpaceDimension == 1) ? First.begin()+2 : First.begin() + First.size() / 2;
     std::rotate(First.begin(), First.begin() + amount_of_needed_rotations, first_mid_side_node_id);
+    // Only rotate midside nodes of planes, the midside node for quadratic line remains in place
     if (LocalSpaceDimension == 2) {
-        // Only rotate midside nodes of planes, the midside node for quadratic line remains in place
         std::rotate(first_mid_side_node_id, first_mid_side_node_id + amount_of_needed_rotations,
                     First.end());
     }
@@ -202,10 +202,10 @@ bool FindNeighbourElementsOfConditionsProcess::AllBoundariesHaveAtLeastOneNeighb
     });
 }
 
-void FindNeighbourElementsOfConditionsProcess::ReportConditionsWithoutNeighboursAndThrow() const
+void FindNeighbourElementsOfConditionsProcess::ReportBoundariesWithoutNeighboursAndThrow() const
 {
     // i.p.v. mrModelPart.Conditions kan hier een lijst met geometry(Pointer?)s is als argument
-    std::vector<Condition> boundaries_without_neighbours;
+    std::vector<GeometricalObject> boundaries_without_neighbours;
     std::ranges::copy_if(
         mrModelPart.Conditions(), std::back_inserter(boundaries_without_neighbours),
         [](const auto& rBoundary) { return rBoundary.GetValue(NEIGHBOUR_ELEMENTS).size() == 0; });
