@@ -15,10 +15,98 @@
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/checks.h"
 #include "custom_elements/beam_elements/cr_beam_element_linear_3D2N.hpp"
+#include "utilities/indirect_scalar.h"
 
 
 namespace Kratos
 {
+
+    template <class TPrimalElement>
+AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::ThisExtensions::ThisExtensions(Element* pElement)
+    : mpElement{pElement}
+{
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::ThisExtensions::GetFirstDerivativesVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+
+    rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() * 2);
+    std::size_t index = 0;
+
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Z, Step);
+
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_2_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_2_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_2_Z, Step);    
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::ThisExtensions::GetSecondDerivativesVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+
+    rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() * 2);
+    std::size_t index = 0;
+
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Z, Step);
+
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_3_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_3_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_3_Z, Step);    
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::ThisExtensions::GetAuxiliaryVector(
+    std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+{
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+
+    rVector.resize(mpElement->GetGeometry().WorkingSpaceDimension() * 2);
+    std::size_t index = 0;
+
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Z, Step);
+
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_ROTATION_VECTOR_1_X, Step);
+    rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_ROTATION_VECTOR_1_Y, Step);
+    if (mpElement->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_ROTATION_VECTOR_1_Z, Step);    
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::ThisExtensions::GetFirstDerivativesVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    rVariables.resize(2);
+    rVariables[0] = &ADJOINT_VECTOR_2;
+    rVariables[1] = &ADJOINT_ROTATION_VECTOR_2;
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::ThisExtensions::GetSecondDerivativesVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    rVariables.resize(2);
+    rVariables[0] = &ADJOINT_VECTOR_3;
+    rVariables[1] = &ADJOINT_ROTATION_VECTOR_3;
+}
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::ThisExtensions::GetAuxiliaryVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    rVariables.resize(2);
+    rVariables[0] = &AUX_ADJOINT_VECTOR_1;
+    rVariables[1] = &AUX_ADJOINT_ROTATION_VECTOR_1;
+}
 
 template <class TPrimalElement>
 void AdjointFiniteDifferenceCrBeamElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
