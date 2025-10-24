@@ -78,9 +78,7 @@ void FindNeighbourElementsOfConditionsProcess::FindNeighbouringElementsForAllBou
     // as neighbours when the boundary is not neighbouring 2D or 3D elements
     const std::vector<std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)>> boundary_generators = {
         generate_generic_boundaries, generate_points, generate_edges_3d, generate_edges_1d};
-    // natuurlijker lijkt generate_generic_boundaries, generate_points_boundaries, generate_3d_edge_boundaries, generate_1d_edge_boundaries
     for (const auto& r_boundary_generator : boundary_generators) {
-        // generiek FindGeometryNeighboursBasedOnBoundaryType
         FindNeighboursBasedOnBoundaryType(r_boundary_generator);
         if (AllBoundariesHaveAtLeastOneNeighbour()) return;
     }
