@@ -126,7 +126,7 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponseCauchy
         const double Db_factor = E * t * t_square / (12.0 * one_minus_nu2);
 
         const double k_shear = 5.0 / 6.0; // Shear correction factor
-        const double h_max = rValues.GetElementGeometry().MaxEdgeLength();
+        const double h_max = GetMaxReferenceEdgeLength(rValues.GetElementGeometry());
         const double alpha = 0.1; // This could be an input property
         const double stenberg_stabilization = t_square / (t_square + alpha * h_max * h_max);
         const double G = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);

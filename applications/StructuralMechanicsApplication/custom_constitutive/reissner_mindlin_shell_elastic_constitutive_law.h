@@ -145,6 +145,25 @@ public:
         return false;
     }
 
+    double GetMaxReferenceEdgeLength(const GeometryType& rGeometry) const
+    {
+        double max_length = 0.0;
+        const SizeType number_of_points = rGeometry.PointsNumber();
+
+        const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
+        const auto& r_coord_2 = rGeometry[1].GetInitialPosition();
+        const auto& r_coord_3 = rGeometry[2].GetInitialPosition();
+
+        const double length_12 = norm_2(r_coord_2 - r_coord_1);
+        const double length_23 = norm_2(r_coord_3 - r_coord_2);
+        const double length_31 = norm_2(r_coord_1 - r_coord_3);
+
+        max_length = std::max(length_12, length_23);
+        max_length = std::max(max_length, length_31);
+
+        return max_length;
+    }
+
 protected:
 
     ///@name Protected static Member Variables
