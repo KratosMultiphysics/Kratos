@@ -725,17 +725,13 @@ public:
     ///@name Edge
     ///@{
 
-    /**
-     * @copydoc Geometry::EdgesNumber
-     */
+    /// @copydoc Geometry::EdgesNumber
     SizeType EdgesNumber() const override
     {
         return 1;
     }
 
-    /**
-     * @copydoc Geometry::GenerateEdges
-     */
+    /// @copydoc Geometry::GenerateEdges
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();

@@ -688,17 +688,13 @@ namespace Kratos
             return std::sqrt(std::pow(J(0, 0), 2) + std::pow(J(1, 0), 2));
         }
 
-        /** EdgesNumber
-         * @copydoc Geometry::EdgesNumber
-         */
+        /// @copydoc Geometry::EdgesNumber
         SizeType EdgesNumber() const override
         {
             return 1;
         }
 
-        /**
-         * @copydoc Geometry::GenerateEdges
-         */
+        /// @copydoc Geometry::GenerateEdges
         GeometriesArrayType GenerateEdges() const override
         {
             GeometriesArrayType edges;
