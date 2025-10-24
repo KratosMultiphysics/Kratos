@@ -442,11 +442,13 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
             for (const auto& process : process_list) {
                 if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
                     auto model_part_name = process["Parameters"]["model_part_name"].GetString();
-                    if (model_part_name.rfind(prefix, 0) == 0) {
-                        model_part_name.erase(0, prefix.size());
-                    }
-                    if (unique_names.insert(model_part_name).second) {
-                        domain_condition_names.emplace_back(model_part_name);
+                    if (model_part_name != root_name) {
+                        if (model_part_name.rfind(prefix, 0) == 0) {
+                            model_part_name.erase(0, prefix.size());
+                        }
+                        if (unique_names.insert(model_part_name).second) {
+                            domain_condition_names.emplace_back(model_part_name);
+                        }
                     }
                 }
             }
