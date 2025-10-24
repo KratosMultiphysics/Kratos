@@ -42,15 +42,11 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::RadialBasisFunctionMapper(
 {
     mLocalMapperSettings.ValidateAndAssignDefaults(this->GetMapperDefaultSettings());
 
-    const bool destination_is_slave = mLocalMapperSettings["destination_is_slave"].GetBool();
+    //const bool is_destination_slave = mLocalMapperSettings["is_destination_slave"].GetBool();
 
-    mpCouplingInterfaceMaster = destination_is_slave
-        ? &rModelPartOrigin
-        : &rModelPartDestination;
-
-    mpCouplingInterfaceSlave = destination_is_slave
-        ? &rModelPartDestination
-        : &rModelPartOrigin;
+    // Define the master and slave interfaces
+    mpCouplingInterfaceMaster = &rModelPartOrigin;
+    mpCouplingInterfaceSlave = &rModelPartDestination;
 
     MappingMatrixUtilitiesType::InitializeSystemVector(
         this->pGetInterfaceVectorContainerOrigin()->pGetVector(),
@@ -72,25 +68,21 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     std::vector<Condition::Pointer> origin_integration_points;
     std::vector<Condition::Pointer> destination_integration_points;
 
-    // Calculate number of polynomial terms
+     // Determine whether we project or not the origin nodes coordinates to the plane of the panel mesh 
+    const bool project_origin_nodes_to_destination_domain_panel_solver = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["project_origin_nodes_to_destination_domain_panel_solver"].GetBool();
+    // Determine whether we map structural displacements to panels angle of attack or not
+    const bool map_structural_displacements_to_panels_angles_of_attack = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["map_structural_displacements_to_panels_angles_of_attack"].GetBool();
+
+    // Obtain the polynomial degree and calculate number of polynomial terms
     const unsigned int poly_degree = mLocalMapperSettings["additional_polynomial_degree"].GetInt();
-    IndexType n_polynomial = 0;
+    IndexType n_polynomial = CalculateNumberOfPolynomialTermsFromDegree(poly_degree, project_origin_nodes_to_destination_domain_panel_solver);
 
     // Determine whether the origin and destination domain are IGA discretizations or not
     const bool is_origin_iga = mLocalMapperSettings["is_origin_iga"].GetBool();
     const bool is_destination_iga = mLocalMapperSettings["is_destination_iga"].GetBool();
 
-    // Determine whether we project or not the origin nodes coordinates to the plane of the panel mesh 
-    const bool project_origin_nodes_to_destination_domain_panel_solver = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["project_origin_nodes_to_destination_domain_panel_solver"].GetBool();
-    // Determine whether we map structural displacements to panels angle of attack or not
-    const bool map_structural_displacements_to_panels_angles_of_attack = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["map_structural_displacements_to_panels_angles_of_attack"].GetBool();
-
-    // This projection basically means that the splining is constructed in the panel's plane (x-y plane if the wing has no dihedral)
-    if (!project_origin_nodes_to_destination_domain_panel_solver){
-        n_polynomial = (poly_degree + 3) * (poly_degree + 2) * (poly_degree + 1) / 6;
-    } else{
-         n_polynomial = (poly_degree + 2) * (poly_degree + 1) / 2;
-    }
+    // Throw an error iF the destination domain is discretized with IBRA
+    if (is_destination_iga == true ){KRATOS_ERROR << "This mapper is not available when the destination domain is discretized with IBRA" << std::endl;}
 
     // Remember that in the IgaApplication, conditions are represented geometrically by integrtion points
     auto collect_conditions = [](const ModelPart& model_part, auto& integration_points_vector) {
