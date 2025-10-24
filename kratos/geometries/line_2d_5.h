@@ -689,7 +689,7 @@ namespace Kratos
         }
 
         /** EdgesNumber
-         * @return SizeType contains number of this geometry edges.
+         * @copydoc Geometry::EdgesNumber
          */
         SizeType EdgesNumber() const override
         {
@@ -697,12 +697,7 @@ namespace Kratos
         }
 
         /**
-         * @brief This method gives you all edges of this geometry.
-         * @details This method will give you all the edges with one dimension less than this geometry.
-         * For example a triangle would return three lines as its edges or a tetrahedral would return four triangles as its edges but won't return its six edge lines by this method.
-         * @return GeometriesArrayType contains this geometry edges.
-         * @see EdgesNumber()
-         * @see Edge()
+         * @copydoc Geometry::GenerateEdges
          */
         GeometriesArrayType GenerateEdges() const override
         {
