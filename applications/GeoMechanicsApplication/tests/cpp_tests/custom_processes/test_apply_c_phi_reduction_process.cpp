@@ -218,4 +218,15 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReducti
                                       "calculation stopped. Final safety factor = 1.10919");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model                     model;
+    auto&                     r_empty_model_part = model.CreateModelPart("foo");
+    const ApplyCPhiReductionProcess process{r_empty_model_part, {}};
+
+    // Act & Assert
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyCPhiReductionProcess");
+}
+
 } // namespace Kratos::Testing

@@ -158,4 +158,6 @@ bool ApplyCPhiReductionProcess::IsStepRestarted() const
 {
     return mrModelPart.GetProcessInfo().GetValue(NUMBER_OF_CYCLES) > 1;
 }
+
+std::string ApplyCPhiReductionProcess::Info() const { return "ApplyCPhiReductionProcess"; }
 } // namespace Kratos

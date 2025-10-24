@@ -11,6 +11,8 @@
 //
 
 #include "apply_final_stresses_of_previous_stage_to_initial_state.h"
+#include "containers/model.h"
+#include "custom_utilities/process_utilities.h"
 #include "includes/initial_state.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -22,44 +24,51 @@
 namespace Kratos
 {
 
-ApplyFinalStressesOfPreviousStageToInitialState::ApplyFinalStressesOfPreviousStageToInitialState(ModelPart& rModelPart,
-                                                                                                 const Parameters&)
-    : mrModelPart(rModelPart)
+ApplyFinalStressesOfPreviousStageToInitialState::ApplyFinalStressesOfPreviousStageToInitialState(
+    Model& rModel, const Parameters& rProcessSettings)
 {
+    mrModelParts = ProcessUtilities::GetModelPartsFromSettings(
+        rModel, rProcessSettings, ApplyFinalStressesOfPreviousStageToInitialState::Info());
 }
 
 void ApplyFinalStressesOfPreviousStageToInitialState::ExecuteInitialize()
 {
-    block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
-        std::vector<Vector> stresses_on_integration_points;
-        rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points,
-                                              mrModelPart.GetProcessInfo());
-        if (stresses_on_integration_points.empty()) {
-            rElement.CalculateOnIntegrationPoints(
-                CAUCHY_STRESS_VECTOR, stresses_on_integration_points, mrModelPart.GetProcessInfo());
-        }
-        std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
-        rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, mrModelPart.GetProcessInfo());
+    for (const auto& r_model_part : mrModelParts) {
+        block_for_each(r_model_part.get().Elements(), [&r_model_part, this](Element& rElement) {
+            std::vector<Vector> stresses_on_integration_points;
+            rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points,
+                                                  r_model_part.get().GetProcessInfo());
+            if (stresses_on_integration_points.empty()) {
+                rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stresses_on_integration_points,
+                                                      r_model_part.get().GetProcessInfo());
+            }
+            std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+            rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws,
+                                                  r_model_part.get().GetProcessInfo());
 
-        CheckRetrievedElementData(constitutive_laws, stresses_on_integration_points, rElement.GetId());
-        mStressesByElementId[rElement.GetId()] = stresses_on_integration_points;
-    });
+            CheckRetrievedElementData(constitutive_laws, stresses_on_integration_points, rElement.GetId());
+            mStressesByElementId[rElement.GetId()] = stresses_on_integration_points;
+        });
+    }
 }
 
 void ApplyFinalStressesOfPreviousStageToInitialState::ExecuteBeforeSolutionLoop()
 {
-    block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
-        std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
-        rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, mrModelPart.GetProcessInfo());
-        const auto stresses_on_integration_points = mStressesByElementId.at(rElement.GetId());
-        for (auto i = std::size_t{0}; i < constitutive_laws.size(); ++i) {
-            auto p_initial_state = make_intrusive<InitialState>();
-            p_initial_state->SetInitialStressVector(stresses_on_integration_points[i]);
-            p_initial_state->SetInitialStrainVector(ZeroVector{constitutive_laws[i]->GetStrainSize()});
-            constitutive_laws[i]->SetInitialState(p_initial_state);
-            constitutive_laws[i]->InitializeMaterial(rElement.GetProperties(), rElement.GetGeometry(), {});
-        }
-    });
+    for (const auto& r_model_part : mrModelParts) {
+        block_for_each(r_model_part.get().Elements(), [&r_model_part, this](Element& rElement) {
+            std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+            rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws,
+                                                  r_model_part.get().GetProcessInfo());
+            const auto stresses_on_integration_points = mStressesByElementId.at(rElement.GetId());
+            for (auto i = std::size_t{0}; i < constitutive_laws.size(); ++i) {
+                auto p_initial_state = make_intrusive<InitialState>();
+                p_initial_state->SetInitialStressVector(stresses_on_integration_points[i]);
+                p_initial_state->SetInitialStrainVector(ZeroVector{constitutive_laws[i]->GetStrainSize()});
+                constitutive_laws[i]->SetInitialState(p_initial_state);
+                constitutive_laws[i]->InitializeMaterial(rElement.GetProperties(), rElement.GetGeometry(), {});
+            }
+        });
+    }
     mStressesByElementId.clear();
 }
 
@@ -78,6 +87,11 @@ void ApplyFinalStressesOfPreviousStageToInitialState::CheckRetrievedElementData(
         << "Number of retrieved stress vectors (" << rStressesOnIntegrationPoints.size()
         << ") does not match the number of constitutive laws (" << rConstitutiveLaws.size()
         << ") for element " << ElementId << std::endl;
+}
+
+std::string ApplyFinalStressesOfPreviousStageToInitialState::Info() const
+{
+    return "ApplyFinalStressesOfPreviousStageToInitialState";
 }
 
 } // namespace Kratos
