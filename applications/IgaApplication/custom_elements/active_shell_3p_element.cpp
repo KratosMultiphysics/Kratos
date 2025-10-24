@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main author:    Leonhard Rieder                 
+//  Main author:    Leonhard Rieder
 
 
 // System includes
@@ -149,7 +149,7 @@ namespace Kratos
         else if (rVariable==PK2_STRESS_XX || rVariable==PK2_STRESS_YY || rVariable==PK2_STRESS_XY)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-                
+
                 array_1d<double, 3> membrane_stress_pk2_car;
                 array_1d<double, 3> bending_stress_pk2_car;
 
@@ -169,14 +169,14 @@ namespace Kratos
                 }
             }
         }
-        else if(rVariable==CAUCHY_STRESS_XX || rVariable==CAUCHY_STRESS_YY || rVariable==CAUCHY_STRESS_XY 
-            || rVariable==CAUCHY_STRESS_TOP_XX || rVariable==CAUCHY_STRESS_TOP_YY || rVariable==CAUCHY_STRESS_TOP_XY  
+        else if(rVariable==CAUCHY_STRESS_XX || rVariable==CAUCHY_STRESS_YY || rVariable==CAUCHY_STRESS_XY
+            || rVariable==CAUCHY_STRESS_TOP_XX || rVariable==CAUCHY_STRESS_TOP_YY || rVariable==CAUCHY_STRESS_TOP_XY
             || rVariable==CAUCHY_STRESS_BOTTOM_XX || rVariable==CAUCHY_STRESS_BOTTOM_YY || rVariable==CAUCHY_STRESS_BOTTOM_XY
-            || rVariable==MEMBRANE_FORCE_XX || rVariable==MEMBRANE_FORCE_YY || rVariable==MEMBRANE_FORCE_XY 
+            || rVariable==MEMBRANE_FORCE_XX || rVariable==MEMBRANE_FORCE_YY || rVariable==MEMBRANE_FORCE_XY
             || rVariable==INTERNAL_MOMENT_XX || rVariable==INTERNAL_MOMENT_YY || rVariable==INTERNAL_MOMENT_XY)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-                
+
                 array_1d<double, 3> membrane_stress_cau_car;
                 array_1d<double, 3> bending_stress_cau_car;
 
@@ -195,15 +195,15 @@ namespace Kratos
                 {
                     rOutput[point_number] = membrane_stress_cau_car[2];
                 }
-                else if (rVariable==CAUCHY_STRESS_TOP_XX) 
+                else if (rVariable==CAUCHY_STRESS_TOP_XX)
                 {
                     rOutput[point_number] = membrane_stress_cau_car[0] + thickness / 2 * bending_stress_cau_car[0];
                 }
-                else if (rVariable==CAUCHY_STRESS_TOP_YY) 
+                else if (rVariable==CAUCHY_STRESS_TOP_YY)
                 {
                     rOutput[point_number] = membrane_stress_cau_car[1] + thickness / 2 * bending_stress_cau_car[1];
                 }
-                else if (rVariable==CAUCHY_STRESS_TOP_XY) 
+                else if (rVariable==CAUCHY_STRESS_TOP_XY)
                 {
                     rOutput[point_number] = membrane_stress_cau_car[2] + thickness / 2 * bending_stress_cau_car[2];
                 }
@@ -243,7 +243,7 @@ namespace Kratos
                 {
                     rOutput[point_number] = bending_stress_cau_car[2] * pow(thickness, 3) / 12;
                 }
-            } 
+            }
         }
         else if (mConstitutiveLawVector[0]->Has(rVariable)) {
             GetValueOnConstitutiveLaw(rVariable, rOutput);
@@ -275,7 +275,7 @@ namespace Kratos
                 rOutput[point_number] = membrane_stress_pk2_car;
             }
         }
-        else if(rVariable==CAUCHY_STRESS || rVariable==CAUCHY_STRESS_TOP || rVariable==CAUCHY_STRESS_BOTTOM 
+        else if(rVariable==CAUCHY_STRESS || rVariable==CAUCHY_STRESS_TOP || rVariable==CAUCHY_STRESS_BOTTOM
                 || rVariable==MEMBRANE_FORCE ||  rVariable==INTERNAL_MOMENT)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
@@ -290,7 +290,7 @@ namespace Kratos
                 {
                     rOutput[point_number] = membrane_stress_cau_car;
                 }
-                else if (rVariable==CAUCHY_STRESS_TOP) 
+                else if (rVariable==CAUCHY_STRESS_TOP)
                 {
                     rOutput[point_number] = membrane_stress_cau_car + thickness / 2 * bending_stress_cau_car;
                 }
@@ -318,7 +318,7 @@ namespace Kratos
     void ActiveShell3pElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
         InitializeActiveShellDofs();
-    }    
+    }
 
     void ActiveShell3pElement::InitializeActiveShellDofs()
     {
@@ -326,20 +326,20 @@ namespace Kratos
         // KRATOS_WATCH(GetGeometry().GetGeometryParent(0))
         const Node& r_active_shell_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
 
-        mACTUATION_ALPHA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA); 
-        mACTUATION_BETA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA); 
-        mACTUATION_GAMMA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA); 
-        mACTUATION_KAPPA_1 = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1); 
-        mACTUATION_KAPPA_2 = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2); 
-        mACTUATION_KAPPA_12 = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12);         
+        mACTUATION_ALPHA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA);
+        mACTUATION_BETA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA);
+        mACTUATION_GAMMA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA);
+        mACTUATION_KAPPA_1 = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1);
+        mACTUATION_KAPPA_2 = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2);
+        mACTUATION_KAPPA_12 = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12);
 
         // for output purpose
-        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_ALPHA, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA)); 
-        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_BETA, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA)); 
-        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_GAMMA, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA)); 
-        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_KAPPA_1, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1)); 
-        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_KAPPA_2, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2)); 
-        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_KAPPA_12, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12));        
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_ALPHA, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA));
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_BETA, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA));
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_GAMMA, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA));
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_KAPPA_1, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1));
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_KAPPA_2, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2));
+        GetGeometry().GetGeometryParent(0).SetValue(ACTIVE_SHELL_KAPPA_12, r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12));
     }
 
     void ActiveShell3pElement::CalculateAll(
@@ -353,6 +353,16 @@ namespace Kratos
         KRATOS_TRY
 
         const auto& r_geometry = GetGeometry();
+
+
+        // const SizeType num_of_nodes = GetGeometry().size();
+        // Vector current_displacement = ZeroVector(3*num_of_nodes + 6);
+        // GetValuesVector(current_displacement, 0);
+        // KRATOS_WATCH(current_displacement)
+
+        // // for (SizeType i=0;i<num_of_nodes;++i){
+        // //     KRATOS_WATCH(GetGeometry().GetPoint( i ).X0())
+        // // }
 
         // definition of problem size
         const SizeType number_of_nodes = r_geometry.size();
@@ -419,8 +429,8 @@ namespace Kratos
             // === Aktuierter Load-Vector initialisieren ===
             std::vector<Matrix> IKg_act(3, ZeroMatrix(6,6));
             CalculateSecondVariationActuationStrain(
-                point_number, 
-                IKg_act, 
+                point_number,
+                IKg_act,
                 kinematic_variables);
 
             double integration_weight =
@@ -455,11 +465,11 @@ namespace Kratos
                     second_variations_curvature,
                     constitutive_variables_curvature.StressVector,
                     integration_weight);
-            
+
                 // === ColumnMatrix berechnen und ABZIEHEN ===
                 // k_act_col -= B^T * D * B_act * weight
                 noalias(k_act_col) -= integration_weight * prod(trans(BMembrane), Matrix(prod(constitutive_variables_membrane.ConstitutiveMatrix, ActuatedB)));
-                
+
                 // === DiagonalMatrix berechnen und hinzufügen ===
                 CalculateActuationDiagonalMatrix(
                     k_act_diag,
@@ -477,7 +487,11 @@ namespace Kratos
                 // operation performed: rRightHandSideVector -= Weight*IntForce
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
-            
+
+                // KRATOS_WATCH(constitutive_variables_membrane.StressVector)
+                // KRATOS_WATCH(constitutive_variables_curvature.StressVector)
+                // KRATOS_WATCH(rRightHandSideVector)
+
                 // Aktuierter Anteil: bop_act * S * fac_ele
                 // bop_act = ActuatedBMembrane, S = constitutive_variables_membrane.StressVector, fac_ele = integration_weight
                 noalias(f_int_act) += integration_weight * prod(ActuatedB, constitutive_variables_membrane.StressVector);
@@ -500,7 +514,7 @@ namespace Kratos
                 for (SizeType i = 0; i < u; ++i)
                     for (SizeType j = 0; j < 6; ++j)
                         extended_matrix(i, u + j) = k_act_col(i, j);
-                
+
                 // Linke untere Ecke: k_act_col^T
                 for (SizeType i = 0; i < 6; ++i)
                     for (SizeType j = 0; j < u; ++j)
@@ -533,6 +547,9 @@ namespace Kratos
                 rRightHandSideVector.swap(extended_vector);
             }
         }
+
+        // KRATOS_WATCH(rLeftHandSideMatrix)
+        // KRATOS_WATCH(rRightHandSideVector)
 
         KRATOS_CATCH("");
     }
@@ -802,14 +819,14 @@ namespace Kratos
 
         array_1d<double, 3> total_strain_vector = 0.5 * (rActualKinematic.a_ab_covariant - m_A_ab_covariant_vector[IntegrationPointIndex]);
 
-        array_1d<double, 3> actuated_strain_vector;   
+        array_1d<double, 3> actuated_strain_vector;
         //CHECKLEO strain part -> Vektor (E11,E22;E12)
         actuated_strain_vector[0] = (mACTUATION_ALPHA + 0.5 * std::pow(mACTUATION_ALPHA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][0];
-        actuated_strain_vector[1] = (mACTUATION_BETA + 0.5 * std::pow(mACTUATION_BETA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][1]; 
+        actuated_strain_vector[1] = (mACTUATION_BETA + 0.5 * std::pow(mACTUATION_BETA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][1];
         actuated_strain_vector[2] = 0.5 * (mACTUATION_ALPHA + mACTUATION_BETA + mACTUATION_ALPHA*mACTUATION_BETA) * m_A_ab_covariant_vector[IntegrationPointIndex][2];
         //shear part
         actuated_strain_vector[2] = 0.5 * (m_A_ab_covariant_vector[IntegrationPointIndex][2] * cos(mACTUATION_GAMMA) + m_dA_vector[IntegrationPointIndex] * sin(mACTUATION_GAMMA) - m_A_ab_covariant_vector[IntegrationPointIndex][2] ) * 2;
-        
+
         array_1d<double, 3> strain_vector = total_strain_vector - actuated_strain_vector;
         noalias(rThisConstitutiveVariablesMembrane.StrainVector) = prod(m_T_vector[IntegrationPointIndex], strain_vector);
 
@@ -817,7 +834,7 @@ namespace Kratos
         array_1d<double, 3> total_curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
 
         array_1d<double, 3> actuated_curvature_vector;
-        actuated_curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: multiplication with the zeta is covered by the preintegration 
+        actuated_curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: multiplication with the zeta is covered by the preintegration
         actuated_curvature_vector[1] = mACTUATION_KAPPA_2;
         actuated_curvature_vector[2] = mACTUATION_KAPPA_12;
 
@@ -883,10 +900,10 @@ namespace Kratos
 
     //     //bending part
     //     array_1d<double, 3> curvature_vector;
-    //     curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: This might not be coorect as it is not multiplied with the zeta -> preintegration 
+    //     curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: This might not be coorect as it is not multiplied with the zeta -> preintegration
     //     curvature_vector[1] = mACTUATION_KAPPA_2;
     //     curvature_vector[2] = mACTUATION_KAPPA_12;
-        
+
     //     noalias(rThisActuatedConstitutiveVariablesCurvature.StrainVector) = prod(m_T_vector[IntegrationPointIndex], curvature_vector);
 
     //     // Constitive Matrices DMembrane and DCurvature
@@ -1164,7 +1181,7 @@ namespace Kratos
         }
     }
 
-    //CHECKLEO 
+    //CHECKLEO
     void ActiveShell3pElement::CalculateSecondVariationActuationStrain(
         const IndexType IntegrationPointIndex,
         std::vector<Matrix>& rIKgAct, // rIKgAct[0]: e11, rIKgAct[1]: e22, rIKgAct[2]: e12
@@ -1262,7 +1279,7 @@ namespace Kratos
     ///@}
     ///@name Stress recovery
     ///@{
-    
+
     void ActiveShell3pElement::CalculatePK2Stress(
         const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rPK2MembraneStressCartesian,
@@ -1289,17 +1306,17 @@ namespace Kratos
             constitutive_variables_curvature,
             constitutive_law_parameters,
             ConstitutiveLaw::StressMeasure_PK2);
-        
+
         double thickness = this->GetProperties().GetValue(THICKNESS);
 
         rPK2MembraneStressCartesian = constitutive_variables_membrane.StressVector;
         rPK2BendingStressCartesian = -1.0 * constitutive_variables_curvature.StressVector / pow(thickness, 2) * 12;
     }
-    
+
     void ActiveShell3pElement::CalculateCauchyStress(
         const IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
-        array_1d<double, 3>& rCauchyBendingStressesCartesian, 
+        array_1d<double, 3>& rCauchyMembraneStressesCartesian,
+        array_1d<double, 3>& rCauchyBendingStressesCartesian,
         const ProcessInfo& rCurrentProcessInfo) const
     {
         // Compute PK2 stress
@@ -1325,7 +1342,7 @@ namespace Kratos
             T_car_to_cov(2, i) = T_car_to_cov(i, 2) / 2;
         }
 
-        // Compute Transformation matrix T from covariant basis to local cartesian coordinate system            
+        // Compute Transformation matrix T from covariant basis to local cartesian coordinate system
         Matrix T_cov_to_car = ZeroMatrix(3,3);
         CalculateTransformationFromCovariantToCartesian(kinematic_variables, T_cov_to_car);
 
@@ -1344,7 +1361,7 @@ namespace Kratos
 
     void ActiveShell3pElement::CalculateShearForce(
         const IndexType IntegrationPointIndex,
-        array_1d<double, 2>& rq, 
+        array_1d<double, 2>& rq,
         const ProcessInfo& rCurrentProcessInfo) const
     {
         // Compute Kinematics and Metric
@@ -1367,14 +1384,14 @@ namespace Kratos
             constitutive_variables_curvature,
             constitutive_law_parameters,
             ConstitutiveLaw::StressMeasure_PK2);
-        
+
         double thickness = this->GetProperties().GetValue(THICKNESS);
 
         // Calculate Hessian Matrix at initial configuration
         const SizeType number_of_points = GetGeometry().size();
         const SizeType working_space_dimension = 3;
         const Matrix& rDDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
-        
+
         Matrix H_initial;
         H_initial.resize(working_space_dimension, working_space_dimension);
         H_initial = ZeroMatrix(working_space_dimension, working_space_dimension);
@@ -1406,7 +1423,7 @@ namespace Kratos
         array_1d<double, 3> DCurvature_D1_initial = ZeroVector(3);
         array_1d<double, 3> DCurvature_D2_initial = ZeroVector(3);
         CalculateDerivativeOfCurvatureInitial(IntegrationPointIndex, DCurvature_D1_initial, DCurvature_D2_initial, H_initial);
-        
+
         // Calculate derivative of curvature w.r.t. theta1 and theta2 at actual configuration
         array_1d<double, 3> DCurvature_D1_actual = ZeroVector(3);
         array_1d<double, 3> DCurvature_D2_actual = ZeroVector(3);
@@ -1511,7 +1528,7 @@ namespace Kratos
         array_1d<double, 3> DDa2_DD22 = ZeroVector(3);
 
         const SizeType number_of_points = GetGeometry().size();
-    
+
         for (IndexType k = 0; k < number_of_points; k++)
         {
             const array_1d<double, 3> coords = GetGeometry()[k].GetInitialPosition();
@@ -1520,8 +1537,8 @@ namespace Kratos
             DDa1_DD12 += rDDDN_DDDe(k, 1) * coords;
             DDa2_DD21 += rDDDN_DDDe(k, 2) * coords;
             DDa2_DD22 += rDDDN_DDDe(k, 3) * coords;
-        } 
-        
+        }
+
         // derivative of the curvature
         array_1d<double, 3> cross1;
         array_1d<double, 3> cross2;
@@ -1538,7 +1555,7 @@ namespace Kratos
 
         MathUtils<double>::CrossProduct(cross1, Da1_D1, a2);
         MathUtils<double>::CrossProduct(cross2, a1, Da1_D2);
-        array_1d<double, 3> Da3_D1 = (m_dA_vector[IntegrationPointIndex] * (cross1 + cross2) - a3_tilde * inner_prod(a3,(cross1 + cross2))/m_dA_vector[IntegrationPointIndex]) 
+        array_1d<double, 3> Da3_D1 = (m_dA_vector[IntegrationPointIndex] * (cross1 + cross2) - a3_tilde * inner_prod(a3,(cross1 + cross2))/m_dA_vector[IntegrationPointIndex])
             / pow(m_dA_vector[IntegrationPointIndex], 2);
         MathUtils<double>::CrossProduct(cross1, Da1_D2, a2);
         MathUtils<double>::CrossProduct(cross2, a1, Da2_D2);
@@ -1551,7 +1568,7 @@ namespace Kratos
         rDCurvature_D2[1] = inner_prod(DDa2_DD22, a3) + inner_prod(Da2_D2, Da3_D2);
         rDCurvature_D2[2] = inner_prod(DDa2_DD21, a3) + inner_prod(Da1_D2, Da3_D2);
     }
-    
+
     void ActiveShell3pElement::CalculateDerivativeOfCurvatureActual(
         const IndexType IntegrationPointIndex,
         array_1d<double, 3>& rDCurvature_D1,
@@ -1567,8 +1584,8 @@ namespace Kratos
         array_1d<double, 3> DDa2_DD21 = ZeroVector(3);
         array_1d<double, 3> DDa2_DD22 = ZeroVector(3);
 
-        CalculateSecondDerivativesOfBaseVectors(rDDDN_DDDe, DDa1_DD11, DDa1_DD12, DDa2_DD21, DDa2_DD22); 
-        
+        CalculateSecondDerivativesOfBaseVectors(rDDDN_DDDe, DDa1_DD11, DDa1_DD12, DDa2_DD21, DDa2_DD22);
+
         // derivative of the curvature
         array_1d<double, 3> cross1;
         array_1d<double, 3> cross2;
@@ -1585,7 +1602,7 @@ namespace Kratos
 
         MathUtils<double>::CrossProduct(cross1, Da1_D1, rKinematicVariables.a2);
         MathUtils<double>::CrossProduct(cross2, rKinematicVariables.a1, Da1_D2);
-        array_1d<double, 3> Da3_D1 = (rKinematicVariables.dA * (cross1 + cross2) - rKinematicVariables.a3_tilde * inner_prod(rKinematicVariables.a3_tilde,(cross1 + cross2))/rKinematicVariables.dA) 
+        array_1d<double, 3> Da3_D1 = (rKinematicVariables.dA * (cross1 + cross2) - rKinematicVariables.a3_tilde * inner_prod(rKinematicVariables.a3_tilde,(cross1 + cross2))/rKinematicVariables.dA)
             / pow(rKinematicVariables.dA, 2);
         MathUtils<double>::CrossProduct(cross1, Da1_D2, rKinematicVariables.a2);
         MathUtils<double>::CrossProduct(cross2, rKinematicVariables.a1, Da2_D2);
@@ -1662,26 +1679,26 @@ namespace Kratos
         array_1d<double, 3> De1_D1 = Da1_D1_init / l_a1 - inner_prod(e1, Da1_D1_init) * e1 / l_a1;
         array_1d<double, 3> tilde_t2 = a2 - inner_prod(a2, e1) * e1;
         double bar_tilde_t2 = norm_2(tilde_t2);
-        array_1d<double, 3> tilde_t2_1 = Da1_D2_init - (inner_prod(Da1_D2_init, e1) + inner_prod(a2,De1_D1)) * e1 
+        array_1d<double, 3> tilde_t2_1 = Da1_D2_init - (inner_prod(Da1_D2_init, e1) + inner_prod(a2,De1_D1)) * e1
             - inner_prod(a2, e1) * De1_D1;
         array_1d<double, 3> De2_D1 = tilde_t2_1 / bar_tilde_t2 + inner_prod(e2, tilde_t2_1) * e2 / bar_tilde_t2;
 
 
         //derivative of covariant base vectors
-        double A_1 = 2.0 * inner_prod(Da1_D1_init, a1) * m_A_ab_covariant_vector[IntegrationPointIndex][1] 
-            + 2.0 * m_A_ab_covariant_vector[IntegrationPointIndex][0] * inner_prod(Da1_D2_init, a2) 
+        double A_1 = 2.0 * inner_prod(Da1_D1_init, a1) * m_A_ab_covariant_vector[IntegrationPointIndex][1]
+            + 2.0 * m_A_ab_covariant_vector[IntegrationPointIndex][0] * inner_prod(Da1_D2_init, a2)
             - 2.0 * m_A_ab_covariant_vector[IntegrationPointIndex][2] * (inner_prod(Da1_D1_init, a2) + inner_prod(a1, Da1_D2_init)); // check (stands in Carat Code)
-        array_1d<double, 3> Da1_con_D1 = inv_det_g_ab 
-            * (2.0 * inner_prod(Da1_D2_init, a2) * a1 + m_A_ab_covariant_vector[IntegrationPointIndex][1] * Da1_D1_init 
-            - (inner_prod(Da1_D1_init, a2) + inner_prod(a1, Da1_D2_init)) 
-            * a2 - m_A_ab_covariant_vector[IntegrationPointIndex][2] * Da1_D2_init) 
+        array_1d<double, 3> Da1_con_D1 = inv_det_g_ab
+            * (2.0 * inner_prod(Da1_D2_init, a2) * a1 + m_A_ab_covariant_vector[IntegrationPointIndex][1] * Da1_D1_init
+            - (inner_prod(Da1_D1_init, a2) + inner_prod(a1, Da1_D2_init))
+            * a2 - m_A_ab_covariant_vector[IntegrationPointIndex][2] * Da1_D2_init)
             - pow(inv_det_g_ab, 2) * (m_A_ab_covariant_vector[IntegrationPointIndex][1] * a1 - m_A_ab_covariant_vector[IntegrationPointIndex][2] * a2) * A_1;
         array_1d<double, 3> Da2_con_D1 = inv_det_g_ab
-            * (-(inner_prod(Da1_D2_init, a1) + inner_prod(a2, Da1_D1_init)) * a1 
-            + m_A_ab_covariant_vector[IntegrationPointIndex][2] * Da1_D1_init + 2.0 * inner_prod(Da1_D1_init, a1) * a2 
-            - m_A_ab_covariant_vector[IntegrationPointIndex][0] * Da1_D2_init) - pow(inv_det_g_ab, 2) 
+            * (-(inner_prod(Da1_D2_init, a1) + inner_prod(a2, Da1_D1_init)) * a1
+            + m_A_ab_covariant_vector[IntegrationPointIndex][2] * Da1_D1_init + 2.0 * inner_prod(Da1_D1_init, a1) * a2
+            - m_A_ab_covariant_vector[IntegrationPointIndex][0] * Da1_D2_init) - pow(inv_det_g_ab, 2)
             * (-m_A_ab_covariant_vector[IntegrationPointIndex][2] * a1 + m_A_ab_covariant_vector[IntegrationPointIndex][0] * a2) * A_1;
-  
+
         double eG11 = inner_prod(e1, a_contravariant_1);
         double eG12 = inner_prod(e1, a_contravariant_2);
         double eG21 = inner_prod(e2, a_contravariant_1);
@@ -1690,7 +1707,7 @@ namespace Kratos
         double eG12_d1 = inner_prod(De1_D1, a_contravariant_2) + inner_prod(e1, Da2_con_D1);
         double eG21_d1 = inner_prod(De2_D1, a_contravariant_1) + inner_prod(e2, Da1_con_D1);
         double eG22_d1 = inner_prod(De2_D1, a_contravariant_2) + inner_prod(e2, Da2_con_D1);
-        
+
         // derivative of the transformation matrix T_con_to_car (contravariant to local Cartesian basis) of the initial configuration w.r.t. theta1
         rDQ_Dalpha_init[0](0,0) = eG11_d1 * eG11 + eG11 * eG11_d1;
         rDQ_Dalpha_init[0](0,1) = eG12_d1 * eG12 + eG12 * eG12_d1;
@@ -1701,7 +1718,7 @@ namespace Kratos
         rDQ_Dalpha_init[0](2,0) = 2.0 * (eG11_d1 * eG21 + eG11 * eG21_d1);  // should be always zero (ML)
         rDQ_Dalpha_init[0](2,1) = 2.0 * (eG12_d1 * eG22 + eG12 * eG22_d1);
         rDQ_Dalpha_init[0](2,2) = 2.0 * (eG11_d1 * eG22 + eG12_d1 * eG21 + eG11 * eG22_d1 + eG12 * eG21_d1);
-        // derivative of the transformation matrix T_car_to_cov (local Cartesian to covariant basis) of the initial configuration 
+        // derivative of the transformation matrix T_car_to_cov (local Cartesian to covariant basis) of the initial configuration
         // w.r.t. theta1
         rDTransCartToCov_Dalpha_init[0](0,0) = eG11_d1 * eG11 + eG11 * eG11_d1;
         rDTransCartToCov_Dalpha_init[0](0,1) = eG21_d1 * eG21 + eG21 * eG21_d1;
@@ -1715,21 +1732,21 @@ namespace Kratos
 
         // in 2.direction
         array_1d<double, 3> De1_D2 = Da1_D2_init / l_a1 + inner_prod(e1, Da1_D2_init) * e1 / l_a1;
-        array_1d<double, 3> tilde_t2_2 = Da2_D2_init - (inner_prod(Da2_D2_init, e1) + inner_prod(a2, De1_D2)) * e1 
+        array_1d<double, 3> tilde_t2_2 = Da2_D2_init - (inner_prod(Da2_D2_init, e1) + inner_prod(a2, De1_D2)) * e1
             - inner_prod(a2, e1) * De1_D2;
         array_1d<double, 3> De2_D2 = tilde_t2_2 / bar_tilde_t2 + inner_prod(e2, tilde_t2_2) * e2 / bar_tilde_t2;
-  
+
         //derivative of covariant base vectors
-        double A_2 = 2.0 * inner_prod(Da1_D2_init, a1) * m_A_ab_covariant_vector[IntegrationPointIndex][1] 
-            + 2.0 * m_A_ab_covariant_vector[IntegrationPointIndex][0] * inner_prod(Da2_D2_init, a2) 
+        double A_2 = 2.0 * inner_prod(Da1_D2_init, a1) * m_A_ab_covariant_vector[IntegrationPointIndex][1]
+            + 2.0 * m_A_ab_covariant_vector[IntegrationPointIndex][0] * inner_prod(Da2_D2_init, a2)
             - 2.0 * m_A_ab_covariant_vector[IntegrationPointIndex][2] * (inner_prod(Da1_D2_init, a2) + inner_prod(a1, Da2_D2_init));
-        array_1d<double, 3> Da1_con_D2 = inv_det_g_ab * (2.0 * inner_prod(Da2_D2_init, a2) * a1 
-            + m_A_ab_covariant_vector[IntegrationPointIndex][1] * Da1_D2_init - (inner_prod(Da1_D2_init, a2) 
-            + inner_prod(a1, Da2_D2_init)) * a2 - m_A_ab_covariant_vector[IntegrationPointIndex][2] * Da2_D2_init) 
+        array_1d<double, 3> Da1_con_D2 = inv_det_g_ab * (2.0 * inner_prod(Da2_D2_init, a2) * a1
+            + m_A_ab_covariant_vector[IntegrationPointIndex][1] * Da1_D2_init - (inner_prod(Da1_D2_init, a2)
+            + inner_prod(a1, Da2_D2_init)) * a2 - m_A_ab_covariant_vector[IntegrationPointIndex][2] * Da2_D2_init)
             - pow(inv_det_g_ab, 2) * (m_A_ab_covariant_vector[IntegrationPointIndex][1] * a1 - m_A_ab_covariant_vector[IntegrationPointIndex][2] * a2) * A_2;
-        array_1d<double, 3> Da2_con_D2 = inv_det_g_ab * (-(inner_prod(Da2_D2_init, a1) 
-            + inner_prod(a2, Da1_D2_init)) * a1 + m_A_ab_covariant_vector[IntegrationPointIndex][2] * Da1_D2_init 
-            + 2.0 * inner_prod(Da1_D2_init, a1) * a2 - m_A_ab_covariant_vector[IntegrationPointIndex][0] * Da2_D2_init) 
+        array_1d<double, 3> Da2_con_D2 = inv_det_g_ab * (-(inner_prod(Da2_D2_init, a1)
+            + inner_prod(a2, Da1_D2_init)) * a1 + m_A_ab_covariant_vector[IntegrationPointIndex][2] * Da1_D2_init
+            + 2.0 * inner_prod(Da1_D2_init, a1) * a2 - m_A_ab_covariant_vector[IntegrationPointIndex][0] * Da2_D2_init)
             - pow(inv_det_g_ab, 2) * (-m_A_ab_covariant_vector[IntegrationPointIndex][2] * a1 + m_A_ab_covariant_vector[IntegrationPointIndex][0] * a2) * A_2;
 
         double eG11_d2 = inner_prod(De1_D2, a_contravariant_1) + inner_prod(e1, Da1_con_D2);
@@ -1747,8 +1764,8 @@ namespace Kratos
         rDQ_Dalpha_init[1](2,0) = 2.0 * (eG11_d2 * eG21 + eG11 * eG21_d2);
         rDQ_Dalpha_init[1](2,1) = 2.0 * (eG12_d2 * eG22 + eG12 * eG22_d2);
         rDQ_Dalpha_init[1](2,2) = 2.0 * (eG11_d2 * eG22 + eG12_d2 * eG21 + eG11 * eG22_d2 + eG12 * eG21_d2);
-        
-        // derivative of the transformation matrix T_car_to_cov (local Cartesian to covariant basis) of the initial configuration 
+
+        // derivative of the transformation matrix T_car_to_cov (local Cartesian to covariant basis) of the initial configuration
         // w.r.t. theta2
         rDTransCartToCov_Dalpha_init[1](0,0) = eG11_d2 * eG11 + eG11 * eG11_d2;
         rDTransCartToCov_Dalpha_init[1](0,1) = eG21_d2*eG21 + eG21*eG21_d2;
@@ -1952,7 +1969,7 @@ namespace Kratos
         array_1d<double, 3>& rDDa2_DD22) const
     {
         const SizeType number_of_points = GetGeometry().size();
-    
+
         for (IndexType k = 0; k < number_of_points; k++)
         {
             const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
