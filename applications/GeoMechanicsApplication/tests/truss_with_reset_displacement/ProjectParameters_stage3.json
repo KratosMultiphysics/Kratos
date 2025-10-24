@@ -12,7 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "rest"
+            "input_type":       "use_input_model_part"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -26,7 +26,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
@@ -85,7 +84,7 @@
                         "gidpost_flags":       {
                             "WriteDeformedMeshFlag": "WriteUndeformed",
                             "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostBinary",
+                            "GiDPostMode":           "GiD_PostAscii",
                             "MultiFileFlag":         "SingleFile"
                         },
                         "file_label":          "step",
@@ -96,7 +95,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["DISPLACEMENT"],
-                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
+                        "gauss_point_results": []
                     },
                     "point_data_configuration":  []
                 }
@@ -128,7 +127,14 @@
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
-    }],
+    },{
+            "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
+            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
+            "Parameters"    : {
+                "model_part_name": "PorousDomain.Truss-auto-1"
+            }
+        }],
     "loads_process_list": [{
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
@@ -137,7 +143,7 @@
             "model_part_name": "PorousDomain.Point_Load-auto-1",
             "variable_name":   "POINT_LOAD",
             "active":          [true,false,false],
-            "value":           [-1e10,0.0,0.0],
+            "value":           [-2e10,0.0,0.0],
             "table":           [0,0,0]
         }
     }]

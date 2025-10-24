@@ -139,7 +139,7 @@ public:
         unsigned int n_fs=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);
         n_fs+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE);
 
-        //THIS REFINES THE NODES OF INTERBAL ELEMENTS OF THE SURFACE WHERE THE INBLOW IS: FLAG_VAR=1
+        //THIS REFINES THE NODES OF INTERNAL ELEMENTS OF THE SURFACE WHERE THE INBLOW IS: FLAG_VAR=1
         if (n_fs==ic->GetGeometry().size())
                 {
                 double x0=ic->GetGeometry()[0].X();     double y0=ic->GetGeometry()[0].Y();
@@ -395,7 +395,7 @@ public:
         }
 
         //and now we shall find out where the new nodes belong to
-        //defintions for spatial search
+        //definitions for spatial search
         typedef Node PointType;
         typedef Node::Pointer PointPointerType;
         typedef std::vector<PointType::Pointer>           PointVector;
@@ -720,7 +720,7 @@ private:
         Node work_point(0,0.0,0.0,0.0);
 
         unsigned int n_points_in_radius;
-        //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
+        //radius means the distance, closer than which no node shall be allowed. if closer -> mark for erasing
         double radius;
 
         for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in != ThisModelPart.NodesEnd(); in++)
@@ -745,7 +745,7 @@ private:
                          in->Set(TO_ERASE,true);
 
                 }
-        //GLASS: WE DISTNIGUISH  THE INBLOW BY FLAG=1
+        //GLASS: WE DISTINGUISH THE INBLOW BY FLAG=1
                 else if ( (in)->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0 && (in)->FastGetSolutionStepValue(FLAG_VARIABLE)!=1.0) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
                 {
                     //here we loop over the neighbouring nodes and if there are nodes
@@ -780,7 +780,7 @@ private:
     {
         //NOTE THAT preserved_list1 will be overwritten, only the elements that passed alpha-shaoe check will enter it
 
-        //prepairing for alpha shape passing : creating necessary arrays
+        //preparing for alpha shape passing : creating necessary arrays
         //list of preserved elements is created: at max el_number can be preserved (all elements)
 
 
@@ -1085,7 +1085,7 @@ private:
 
         KRATOS_CATCH("")
     }
-    //AUXILLIARY FCTNS
+    //AUXILIARY FUNCTIONS
     inline void CalculateCenterAndSearchRadius(const double x0, const double y0,
             const double x1, const double y1,
             const double x2, const double y2,

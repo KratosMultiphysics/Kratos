@@ -13,9 +13,10 @@
 
 #pragma once
 
-// Project includes
 #include "containers/variable.h"
 #include "includes/constitutive_law.h"
+
+#include <optional>
 
 namespace Kratos
 {
@@ -36,6 +37,15 @@ public:
     static double GetCohesion(const Properties& rProperties);
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
+
+    static Matrix MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
+                                                  double      ShearStiffness,
+                                                  std::size_t TractionSize,
+                                                  std::size_t NumberOfNormalComponents);
+
+    static void CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId);
+
+    static void CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
 
 }; /* Class ConstitutiveLawUtilities*/
 

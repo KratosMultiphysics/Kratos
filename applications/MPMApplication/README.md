@@ -8,7 +8,7 @@ This application implements the **Material Point Method (MPM)** with main motiva
 
 Particle or meshfree methods are a family of methods in which the state of a system is represented by a set of particles, without a fixed connectivity. As a consequence, these methods are particularly well suited for the analysis of moving discontinuities and large deformations with breaking and fragmentation. This approach does not suffer from the mesh distortion and entanglement issues posed by other Lagrangian discretizations such as the Finite Element Method (FEM).
 
-The **Material Point Method** (MPM) is an hybrid thechnique which uses a fixed background grid (or mesh) for solving the governing equations in a FEM fashion and  set of material particles (MP) for storing all the hystorical variables and material informations. The MPM has gained a remarkably increasing popularity due to its capability in simulating problems involving historically dependent materials and large deformations. As MPM is able to combine the strengths of both Eulerian and Lagrangian methods, it has been used in various engineering applications and industrial purposes, in particular in geomechanics and in the environmental fluid dynamics field.
+The **Material Point Method** (MPM) is an hybrid thechnique which uses a fixed background grid (or mesh) for solving the governing equations in a FEM fashion and  set of material particles (MP) for storing all the hystorical variables and material information. The MPM has gained a remarkably increasing popularity due to its capability in simulating problems involving historically dependent materials and large deformations. As MPM is able to combine the strengths of both Eulerian and Lagrangian methods, it has been used in various engineering applications and industrial purposes, in particular in geomechanics and in the environmental fluid dynamics field.
 
 ## Getting Started
 
@@ -97,9 +97,9 @@ The following features are currently available and subject to development within
         * [moving point load](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/point_load.html)
         * interface condition for partitioned coupling with DEM
     * Dirichlet: fixed, slip or contact condition
-        * [penalty method](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/penalty.html)
-        * Lagrange multiplier method (*soon in the master branch*)
-        * perturbed Lagrangian method (*soon in the master branch*)
+        * [penalty method](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/dirichlet_boundary_particles.html)
+        * [Lagrange multiplier method](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/dirichlet_boundary_particles.html) (only for triangles and tetrahedra)
+        * [perturbed Lagrangian method](https://kratosmultiphysics.github.io/Kratos/pages/Applications/MPM_Application/Processes/Material_Point-based_Boundary_Conditions/dirichlet_boundary_particles.html)
         * interface condition for partitioned coupling with FEM, RBS,...
 
 **Time schemes**
@@ -116,7 +116,7 @@ The following features are currently available and subject to development within
 
 Recommended references for implementation details of MPM in Kratos:
 
-* Singer, V., (2024). **Partitioned Coupling Strategies to Simulate the Impact of Granular Mass Flows on Flexible Protective Structures**, *PhD Thesis*, Technical University of Munich.
+* Singer, V., (2024). **Partitioned Coupling Strategies to Simulate the Impact of Granular Mass Flows on Flexible Protective Structures**, *PhD Thesis*, Technical University of Munich. PDF: <a href="https://mediatum.ub.tum.de/1743069">https://mediatum.ub.tum.de/1743069</a>
 * Singer, V., Teschemacher, T., Larese, A., Wüchner, R., Bletzinger, K.U. (2024). **Lagrange multiplier imposition of non-conforming essential boundary conditions in implicit Material Point Method**, *Computational Mechanics*, 73, 1311–1333 DOI: <a href="https://doi.org/10.1007/s00466-023-02412-w">10.1007/s00466-023-02412-w</a>.
 * Singer, V., Sautter, K.B., Larese, A., Wüchner, R., Bletzinger K.-U., (2023) **Partitioned Coupling Approaches for the Simulation of Natural Hazards Impacting Protective Structures**, *VIII International Conference on Particle-Based Methods*. DOI: <a href="https://doi.org/10.23967/c.particles.2023.002">10.23967/c.particles.2023.002</a>.
 * Singer, V., Larese, A., Wüchner, R., Bletzinger K.-U., (2023). **Partitioned MPM-FEM Coupling Approach for Advanced Numerical Simulation of Mass-Movement Hazards Impacting Flexible Protective Structures**, *X International Conference on Computational Methods for Coupled Problems in Science and Engineering*. DOI: <a href="https://doi.org/10.23967/c.coupled.2023.026">10.23967/c.coupled.2023.026</a>.
