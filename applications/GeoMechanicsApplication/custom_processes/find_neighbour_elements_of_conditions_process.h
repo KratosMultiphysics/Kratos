@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-using NodeIdsToConditionsHashMap     = std::unordered_multimap<std::vector<std::size_t>,
+using NodeIdsToBoundariesHashMap     = std::unordered_multimap<std::vector<std::size_t>,
                                                                std::vector<Condition::Pointer>,
                                                                KeyHasherRange<std::vector<std::size_t>>,
                                                                KeyComparorRange<std::vector<std::size_t>>>;
@@ -46,32 +46,35 @@ public:
 
 private:
     ModelPart&                     mrModelPart;
-    NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
-    SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
+    NodeIdsToBoundariesHashMap     mBoundaryNodeIdsToBoundaries;
+    SortedToUnsortedNodeIdsHashMap mSortedToUnsortedBoundaryNodeIds;
 
     void InitializeConditionMaps();
     void FindNeighbouringElementsForAllBoundaryTypes();
 
-    void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,
+    void SetElementAsNeighbourOfAllGeometryWithIdenticalNodeIds(const std::vector<std::size_t>& rNodeIds,
                                                                   Element* pElement);
 
-    void FindConditionNeighboursBasedOnBoundaryType(auto GenerateBoundaries);
+    void FindNeighboursBasedOnBoundaryType(auto GenerateBoundaries);
 
-    void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
-        Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
+    void AddNeighbouringElementsBasedOnOverlappingBoundaryGeometries(
+        Element& rElement, const Geometry<Node>::GeometriesArrayType& rElementBoundaryGeometries);
 
     void                      SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(Element& rElement,
                                                                                  const std::vector<std::size_t>& element_boundary_node_ids,
-                                                                                 const GeometryData::KratosGeometryOrderType& r_order_type);
+                                                                                 const GeometryData::KratosGeometryOrderType& r_order_type,
+                                                                                 std::size_t LocalSpaceDimension);
     [[nodiscard]] static bool AreRotatedEquivalents(const std::vector<std::size_t>& rFirst,
                                                     const std::vector<std::size_t>& rSecond,
-                                                    const GeometryData::KratosGeometryOrderType& rOrderType);
+                                                    const GeometryData::KratosGeometryOrderType& rOrderType,
+                                                    std::size_t LocalSpaceDimension);
     [[nodiscard]] static bool AreLinearRotatedEquivalents(std::vector<std::size_t> elements_boundary_node_ids,
                                                           const std::vector<std::size_t>& condition_node_ids);
     [[nodiscard]] static bool AreQuadraticRotatedEquivalents(std::vector<std::size_t> elements_boundary_node_ids,
-                                                             const std::vector<std::size_t>& condition_node_ids);
+                                                             const std::vector<std::size_t>& condition_node_ids,
+                                                             std::size_t LocalSpaceDimension);
 
-    [[nodiscard]] bool AllConditionsHaveAtLeastOneNeighbour() const;
+    [[nodiscard]] bool AllBoundariesHaveAtLeastOneNeighbour() const;
     [[nodiscard]] static std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
     [[noreturn]] void ReportConditionsWithoutNeighboursAndThrow() const;
 };
