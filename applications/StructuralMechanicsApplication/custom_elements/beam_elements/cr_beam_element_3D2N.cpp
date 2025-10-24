@@ -112,6 +112,7 @@ CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
     constexpr double quaternion_sca_a = 1.0;
     constexpr double quaternion_sca_b = 1.0;
 
+    std::fill(internal_variables.begin(), internal_variables.end(), 0.0);
     internal_variables[2 * msElementSize + 2 * msDimension]     = quaternion_sca_a;
     internal_variables[2 * msElementSize + 2 * msDimension + 1] = quaternion_sca_b;
 
@@ -138,9 +139,7 @@ CrBeamElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo) const
 {
-    if (rResult.size() != msElementSize) {
-        rResult.resize(msElementSize);
-    }
+    rResult.resize(msElementSize);
 
     for (int i = 0; i < msNumberOfNodes; ++i) {
         int index = i * msNumberOfNodes * msDimension;
@@ -159,10 +158,7 @@ void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType& rResult,
 void CrBeamElement3D2N::GetDofList(DofsVectorType& rElementalDofList,
                                    const ProcessInfo& rCurrentProcessInfo) const
 {
-
-    if (rElementalDofList.size() != msElementSize) {
-        rElementalDofList.resize(msElementSize);
-    }
+    rElementalDofList.resize(msElementSize);
 
     for (int i = 0; i < msNumberOfNodes; ++i) {
         int index = i * msNumberOfNodes * msDimension;
@@ -182,9 +178,7 @@ void CrBeamElement3D2N::GetSecondDerivativesVector(Vector& rValues, int Step) co
 {
 
     KRATOS_TRY
-    if (rValues.size() != msElementSize) {
-        rValues.resize(msElementSize, false);
-    }
+    rValues.resize(msElementSize, false);
 
     for (int i = 0; i < msNumberOfNodes; ++i) {
         int index = i * msDimension * 2;
@@ -226,9 +220,7 @@ void CrBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step) con
 {
 
     KRATOS_TRY
-    if (rValues.size() != msElementSize) {
-        rValues.resize(msElementSize, false);
-    }
+    rValues.resize(msElementSize, false);
 
     for (int i = 0; i < msNumberOfNodes; ++i) {
         int index = i * msDimension * 2;
