@@ -41,8 +41,8 @@ namespace Kratos
             return std::exp(-0.5 * std::pow(q, 2));
         }
         else if (rbf_type == "thin_plate_spline") {
-            if (x == 0.0) {
-                return 0.001;
+            if (std::abs(x) < 1.0e-12) {
+                return 0.000;
             } else {
                 return std::pow(x, 2) * std::log(std::pow(x, 2)); // Thin Plate Spline formula
             }
