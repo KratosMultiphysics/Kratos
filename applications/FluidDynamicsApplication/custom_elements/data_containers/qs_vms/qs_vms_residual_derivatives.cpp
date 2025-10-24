@@ -404,8 +404,8 @@ void QSVMSResidualDerivatives<TDim, TNumNodes>::InitializeConstitutiveLaw(
     cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
     rParameters.SetStrainVector(rStrainVector); // this is the input parameter
-    rParameters.SetStressVector(rStressVector); // this is an ouput parameter
-    rParameters.SetConstitutiveMatrix(rConstitutiveMatrix); // this is an ouput parameter
+    rParameters.SetStressVector(rStressVector); // this is an output parameter
+    rParameters.SetConstitutiveMatrix(rConstitutiveMatrix); // this is an output parameter
 }
 
 // template instantiations

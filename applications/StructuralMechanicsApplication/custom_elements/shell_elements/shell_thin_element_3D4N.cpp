@@ -757,7 +757,7 @@ void ShellThinElement3D4N<TKinematics>::InitializeCalculationData(CalculationDat
         geom.IntegrationPoints(this->mIntegrationMethod);
     data.dA.clear();
     for (int gp = 0; gp < 4; gp++) {
-        //getting informations for integration
+        //getting information for integration
         double IntegrationWeight = integration_points[gp].Weight();
 
         // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian

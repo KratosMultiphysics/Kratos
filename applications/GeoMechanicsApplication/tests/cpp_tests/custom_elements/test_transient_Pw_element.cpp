@@ -16,6 +16,7 @@
 #include "custom_elements/transient_Pw_element.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace
@@ -104,7 +105,7 @@ intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutP
     auto p_element = make_intrusive<TransientPwElement<2, 3>>(
         NextElementNumber(rModelPart),
         std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<3>(rModelPart)), rProperties,
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 
     rModelPart.AddElement(p_element);
     return p_element;
@@ -219,7 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechani
     // Arrange
     const TransientPwElement<2, 3> element(
         0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
-        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>());
+        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>(), nullptr);
 
     // Act
     const auto p_integration_method = element.GetIntegrationMethod();
@@ -235,169 +236,184 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     const auto                     p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element_with_coincident_nodes(
         1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()), p_properties,
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_coincident_nodes.Check(dummy_process_info),
-                                      "Error: DomainSize < 1.0e-15 for the element 1")
+                                      "DomainSize (0) is smaller than 1e-15 for element 1")
 
     const TransientPwElement<2, 3> element_with_correct_domain_size(
         1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()), p_properties,
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_correct_domain_size.Check(dummy_process_info),
-                                      "Error: Missing variable WATER_PRESSURE on node 1")
+                                      "Missing variable WATER_PRESSURE on nodes 1 2 3")
 
     Model model;
     auto& model_part = model.CreateModelPart("Main");
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     auto p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: Missing variable DT_WATER_PRESSURE on node 1")
+                                      "Missing variable DT_WATER_PRESSURE on nodes 1 2 3")
 
     RemoveThreeNodes(model_part);
     model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
     p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Missing variable VOLUME_ACCELERATION on node 1")
+                                      "Missing variable VOLUME_ACCELERATION on nodes 1 2 3")
 
     RemoveThreeNodes(model_part);
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     p_element = CreateTriangleTransientPwElementWithoutPWDofs(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Missing variable WATER_PRESSURE on node 1")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "Missing the DoF for the variable WATER_PRESSURE on nodes 1 2 3")
 
     RemoveThreeNodes(model_part);
     p_element = CreateTransientPwElementWithPWDofs<2, 3>(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "DENSITY_WATER does not exist in the material properties or "
-                                      "has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "DENSITY_WATER does not exist in the material properties with Id 0 at element with Id 4.")
 
     p_element->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "DENSITY_WATER does not exist in the material properties or "
-                                      "has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "DENSITY_WATER in the material properties with Id 0 at element with Id 4 has an invalid "
+        "value: -1000 is out of the range [0, -).")
 
     p_element->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: BULK_MODULUS_SOLID does not exist in the material "
-                                      "properties or has an invalid value at element 4")
+                                      "BULK_MODULUS_SOLID does not exist in the material "
+                                      "properties with Id 0 at element with Id 4.")
 
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, -1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: BULK_MODULUS_SOLID does not exist in the material "
-                                      "properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "BULK_MODULUS_SOLID in the material properties with Id 0 at element with Id 4 has an "
+        "invalid value: -1e+06 is out of the range [0, -).")
 
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: POROSITY does not exist in the material properties "
-                                      "or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "POROSITY does not exist in the material properties with Id 0 at element with Id 4.")
 
     p_element->GetProperties().SetValue(POROSITY, -1.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: POROSITY does not exist in the material properties "
-                                      "or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "POROSITY in the material properties with Id 0 at element with Id 4 has an invalid value: "
+        "-1 is out of the range [0, 1].")
 
     p_element->GetProperties().SetValue(POROSITY, 2.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: POROSITY does not exist in the material properties "
-                                      "or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "POROSITY in the material properties with Id 0 at element with Id 4 has an invalid value: "
+        "2 is out of the range [0, 1].")
 
     p_element->GetProperties().SetValue(POROSITY, 0.5);
 
     p_element->GetGeometry().begin()->Z() += 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error:  Node with non-zero Z coordinate found. Id: 1")
+                                      "Node with Id: 1 has non-zero Z coordinate.")
     p_element->GetGeometry().begin()->Z() = 0;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: BULK_MODULUS_FLUID does not exist in the material "
-                                      "properties or has an invalid value at element 4")
+                                      "BULK_MODULUS_FLUID does not exist in the material "
+                                      "properties with Id 0 at element with Id 4.")
 
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, -1.0e6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: BULK_MODULUS_FLUID does not exist in the material "
-                                      "properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "BULK_MODULUS_FLUID in the material properties with Id 0 at element with Id 4 has an "
+        "invalid value: -1e+06 is out of the range (0, -).")
 
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0e6);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: DYNAMIC_VISCOSITY does not exist in the material "
-                                      "properties or has an invalid value at element 4")
+                                      "DYNAMIC_VISCOSITY does not exist in the material properties "
+                                      "with Id 0 at element with Id 4.")
 
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "Error: DYNAMIC_VISCOSITY does not exist in the material "
-                                      "properties or has an invalid value at element 4")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "DYNAMIC_VISCOSITY in the material properties with Id 0 at element with Id 4 has an "
+        "invalid value: -0.01 is out of the range (0, -).")
 
     p_element->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "PERMEABILITY_XX does not exist in the material properties "
-                                      "or has an invalid value at element 4")
-
-    p_element->GetProperties().SetValue(PERMEABILITY_XX, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "PERMEABILITY_XX does not exist in the material properties "
-                                      "or has an invalid value at element 4")
-
-    p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "PERMEABILITY_YY does not exist in the material properties "
-                                      "or has an invalid value at element 4")
-
-    p_element->GetProperties().SetValue(PERMEABILITY_YY, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "PERMEABILITY_YY does not exist in the material properties "
-                                      "or has an invalid value at element 4")
-
-    p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "PERMEABILITY_XY does not exist in the material properties "
-                                      "or has an invalid value at element 4")
-
-    p_element->GetProperties().SetValue(PERMEABILITY_XY, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
-                                      "PERMEABILITY_XY does not exist in the material properties "
-                                      "or has an invalid value at element 4")
-
-    p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_element->Check(dummy_process_info),
-        "Error: BIOT_COEFFICIENT does not exist in the material properties in element 4")
+                                      "BIOT_COEFFICIENT does not exist in the material properties "
+                                      "with Id 0 at element with Id 4.")
 
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_XX does not exist in the material properties with Id 0 at element with Id 4.")
 
-    // No exceptions on correct input for 2D element
+    p_element->GetProperties().SetValue(PERMEABILITY_XX, -1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_XX in the material properties with Id 0 at element with Id 4 has an invalid "
+        "value: -0.01 is out of the range [0, -).")
+
+    p_element->GetProperties().SetValue(PERMEABILITY_XX, 1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_YY does not exist in the material properties with Id 0 at element with Id 4.")
+
+    p_element->GetProperties().SetValue(PERMEABILITY_YY, -1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_YY in the material properties with Id 0 at element with Id 4 has an invalid "
+        "value: -0.01 is out of the range [0, -).")
+
+    p_element->GetProperties().SetValue(PERMEABILITY_YY, 1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_XY does not exist in the material properties with Id 0 at element with Id 4.")
+
+    p_element->GetProperties().SetValue(PERMEABILITY_XY, -1.0E-2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_XY in the material properties with Id 0 at element with Id 4 has an invalid "
+        "value: -0.01 is out of the range [0, -).")
+
+    p_element->GetProperties().SetValue(PERMEABILITY_XY, 1.0E-2);
+
+    // No exceptions on correct input for 2D element when retention law vector is initialized
+    p_element->Initialize(dummy_process_info);
+
     KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
 
     auto p_3D_element = CreateTransientPwElementWithPWDofs<3, 4>(model_part, p_properties);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
-                                      "PERMEABILITY_ZZ does not exist in the material properties "
-                                      "or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_3D_element->Check(dummy_process_info),
+        "PERMEABILITY_ZZ does not exist in the material properties with Id 0 at element with Id 5.")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZZ, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
-                                      "PERMEABILITY_ZZ does not exist in the material properties "
-                                      "or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_3D_element->Check(dummy_process_info),
+        "PERMEABILITY_ZZ in the material properties with Id 0 at element with Id 5 has an invalid "
+        "value: -0.01 is out of the range [0, -).")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZZ, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
-                                      "PERMEABILITY_YZ does not exist in the material properties "
-                                      "or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_3D_element->Check(dummy_process_info),
+        "PERMEABILITY_YZ does not exist in the material properties with Id 0 at element with Id 5.")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_YZ, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
-                                      "PERMEABILITY_YZ does not exist in the material properties "
-                                      "or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_3D_element->Check(dummy_process_info),
+        "PERMEABILITY_YZ in the material properties with Id 0 at element with Id 5 has an invalid "
+        "value: -0.01 is out of the range [0, -).")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_YZ, 1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
-                                      "PERMEABILITY_ZX does not exist in the material properties "
-                                      "or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_3D_element->Check(dummy_process_info),
+        "PERMEABILITY_ZX does not exist in the material properties with Id 0 at element with Id 5.")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZX, -1.0E-2);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_3D_element->Check(dummy_process_info),
-                                      "PERMEABILITY_ZX does not exist in the material properties "
-                                      "or has an invalid value at element 5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_3D_element->Check(dummy_process_info),
+        "PERMEABILITY_ZX in the material properties with Id 0 at element with Id 5 has an invalid "
+        "value: -0.01 is out of the range [0, -).")
 
     p_3D_element->GetProperties().SetValue(PERMEABILITY_ZX, 1.0E-2);
 
@@ -413,7 +429,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastS
     // Arrange
     TransientPwElement<2, 3> element(
         0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
-        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>());
+        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>(), nullptr);
     const auto dummy_process_info = ProcessInfo{};
 
     // Act
@@ -707,7 +723,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMecha
     // Arrange
     TransientPwElement<2, 3> element(
         0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
-        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>());
+        std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>(), nullptr);
     const auto   dummy_process_info = ProcessInfo{};
     const auto   n_DoF              = 3;
     const Matrix expected_matrix    = ZeroMatrix(n_DoF, n_DoF);

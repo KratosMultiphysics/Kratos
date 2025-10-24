@@ -50,16 +50,6 @@ namespace Testing {
           return "GI_GAUSS_4";
         case GeometryData::IntegrationMethod::GI_GAUSS_5 :
           return "GI_GAUSS_5";
-        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 :
-          return "GI_EXTENDED_GAUSS_1";
-        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 :
-          return "GI_EXTENDED_GAUSS_2";
-        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 :
-          return "GI_EXTENDED_GAUSS_3";
-        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 :
-          return "GI_EXTENDED_GAUSS_4";
-        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 :
-          return "GI_EXTENDED_GAUSS_5";
         case GeometryData::IntegrationMethod::GI_LOBATTO_1 :
           return "GI_LOBATTO_1";
         case GeometryData::IntegrationMethod::NumberOfIntegrationMethods :

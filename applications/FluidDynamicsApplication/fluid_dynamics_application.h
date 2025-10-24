@@ -100,6 +100,7 @@
 #include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_convection_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
+#include "custom_constitutive/bingham_2d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/euler_3d_law.h"
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
@@ -484,6 +485,7 @@ private:
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;
+    const Bingham2DLaw mBingham2DLaw;
     const Euler2DLaw mEuler2DLaw;
     const Euler3DLaw mEuler3DLaw;
     const HerschelBulkley3DLaw mHerschelBulkley3DLaw;

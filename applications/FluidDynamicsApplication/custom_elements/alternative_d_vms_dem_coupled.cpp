@@ -16,7 +16,7 @@
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
 
-// Aplication includes
+// Application includes
 #include "alternative_d_vms_dem_coupled.h"
 #include "data_containers/qs_vms_dem_coupled/qs_vms_dem_coupled_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
@@ -913,7 +913,7 @@ template <class TElementData>
 void AlternativeDVMSDEMCoupled<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                                    const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rMassMatrix.size1() != LocalSize)
         rMassMatrix.resize(LocalSize, LocalSize, false);
 
@@ -950,7 +950,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateLocalVelocityContribution
                                                                                   VectorType& rRightHandSideVector,
                                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if( rDampMatrix.size1() != LocalSize )
         rDampMatrix.resize(LocalSize,LocalSize,false);
 
@@ -1014,9 +1014,9 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddMassLHS(
     }
 
     /* Note on OSS and full projection: Riccardo says that adding the terms provided by
-     * AddMassStabilization (and incluiding their corresponding terms in the projeciton)
+     * AddMassStabilization (and including their corresponding terms in the projection)
      * could help reduce the non-linearity of the coupling between projection and u,p
-     * However, leaving them on gives a lot of trouble whith the Bossak scheme:
+     * However, leaving them on gives a lot of trouble with the Bossak scheme:
      * think that we solve F - (1-alpha)*M*u^(n+1) - alpha*M*u^(n) - K(u^(n+1)) = 0
      * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
      */

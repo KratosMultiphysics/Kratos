@@ -48,7 +48,7 @@ namespace Kratos
             }
 
             for (IndexType i_inner_loops = 0; i_inner_loops < rInnerLoops.size(); ++i_inner_loops) {
-                //ClipperLib::IntPoint int_point;
+
                 int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
                 int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
                 for (IndexType j = 0; j < rInnerLoops[i_inner_loops].size(); ++j) {
@@ -94,10 +94,10 @@ namespace Kratos
                     clipper_operation_inner.AddSubject(solution_outer);
                     clipper_operation_inner.Execute(Clipper2Lib::ClipType::Difference, Clipper2Lib::FillRule::NonZero, solution_inner);
 
-                    if (solution_outer.size() == 0) {
+                    if (solution_outer.size() == 0 || clip_area/span_area < 1e-6) {
                         continue;
                     }
-                    else if (std::abs(clip_area- span_area) < 1000) {
+                    else if (std::abs(1-clip_area/span_area) < 1e-6) {
                         const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
 
                         IndexType initial_integration_size = rIntegrationPoints.size();
@@ -119,7 +119,7 @@ namespace Kratos
                         std::vector<Matrix> triangles;
                         for(IndexType i = 0; i < solution_inner.size(); ++i)
                         {
-                            BrepTrimmingUtilities::Triangulate_OPT(solution_inner[i], triangles, factor);
+                            BrepTrimmingUtilities::Triangulate_OPT(solution_inner[i], triangles, factor, span_area);
                         }
 
                         const SizeType number_of_points = std::max(rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));

@@ -54,7 +54,7 @@ namespace Kratos
   ///@{
 
   /** 
-   * @brief This process applies diferent boundary conditions accoring to the
+   * @brief This process applies different boundary conditions according to the
    * mach regime.
    * Parameters:
    * @param model_part_name The model part onto which to enforce the boundary

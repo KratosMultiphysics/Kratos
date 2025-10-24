@@ -176,7 +176,7 @@ public:
         CommunicatorGeneration.Execute();
         //CommunicatorGeneration.PrintDebugInfo()
 
-        // pointer types for the solution strategy construcion
+        // pointer types for the solution strategy construction
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;

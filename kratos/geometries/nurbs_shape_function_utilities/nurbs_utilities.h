@@ -28,7 +28,7 @@ namespace Kratos {
 
 /// Utility functions for NURBS computation
 /*
-* Provides universal geometrical utiltity functions for the computation of
+* Provides universal geometrical utility functions for the computation of
 * curve and surface NURBS/ B-Spline shape functions.
  */
 namespace NurbsUtilities
@@ -136,7 +136,7 @@ namespace NurbsUtilities
 
 
     /*
-    * @brief Computes a vector index from two matrix indicies.
+    * @brief Computes a vector index from two matrix indices.
     * @return index within vector
     */
     static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
@@ -148,7 +148,7 @@ namespace NurbsUtilities
 
     /**
      * @brief Computes a vector index from three matrix indices.
-     * @details Matrix serialization: First walk along rows, then colums, then into depths.
+     * @details Matrix serialization: First walk along rows, then columns, then into depths.
      * @return Index within vector.
      **/
     static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
@@ -175,7 +175,7 @@ namespace NurbsUtilities
 
     /**
      * @brief Computes three matrix indices from vector index.
-     * @details Matrix serialization: First walk along rows, then colums, then into depths.
+     * @details Matrix serialization: First walk along rows, then columns, then into depths.
      * @return indices within Matrix.
      **/
     static inline array_1d<IndexType,3> GetMatrixIndicesFromVectorIndex(
