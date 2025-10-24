@@ -146,13 +146,13 @@ void IgaModelerSbm::GetGeometryList(
                     Each element in the surrogate_model_part_inner represents a surrogate boundary loop. First "node.Id()" is the id of the first condition and
                         the second "node.Id()" is the last condition of that loop. (Essential for multiple inner loops)
                     */
-                    const auto& rGeom = rElem.GetGeometry();
-                    KRATOS_ERROR_IF(rGeom.PointsNumber() < 2)
+                    const auto& r_geometry = rElem.GetGeometry();
+                    KRATOS_ERROR_IF(r_geometry.PointsNumber() < 2)
                         << "Surrogate loop element " << rElem.Id() << " has <2 geometry points." << std::endl;
 
                     // First/last condition IDs encoded as the first two geometry nodes
-                    const IndexType first_condition_id = rGeom[0].Id();
-                    const IndexType last_condition_id  = rGeom[1].Id();
+                    const IndexType first_condition_id = r_geometry[0].Id();
+                    const IndexType last_condition_id  = r_geometry[1].Id();
 
                     SizeType size_surrogate_loop = last_condition_id - first_condition_id + 1;
 

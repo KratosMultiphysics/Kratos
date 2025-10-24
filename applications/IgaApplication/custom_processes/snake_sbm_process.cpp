@@ -230,7 +230,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         // number of sampling points per curve side
         const int number_initial_points_if_importing_nurbs = NumberInitialPointsIfImportingNurbs; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
-        const SizeType n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
+        const std::size_t n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
 
         // Reorder curves to form a single closed loop: each curve's start must match previous curve's end (within tol)
         const double tol = 1e-7;
@@ -301,7 +301,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
                 // compute normal at the node coords
                 std::vector<CoordinatesArrayType> global_space_derivatives;
-                SizeType derivative_order = 2;
+                std::size_t derivative_order = 2;
                 CoordinatesArrayType new_point_local_coord = ZeroVector(3); //first point at local coord zero
                 p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
                 CoordinatesArrayType tangent_vector = global_space_derivatives[1];
@@ -334,7 +334,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                 
                 // compute normal at the node coords
                 std::vector<CoordinatesArrayType> global_space_derivatives;
-                SizeType derivative_order = 2;
+                std::size_t derivative_order = 2;
                 CoordinatesArrayType new_point_local_coord = ZeroVector(3); //first point at local coord zero
                 p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
                 CoordinatesArrayType tangent_vector = global_space_derivatives[1];
@@ -668,7 +668,7 @@ void SnakeSbmProcess::SnakeStepNurbs(
         
         // compute normal and tangent informations at the local coord of the point 
         std::vector<CoordinatesArrayType> global_space_derivatives;
-        SizeType derivative_order = 2;
+        std::size_t derivative_order = 2;
         CoordinatesArrayType new_point_local_coord = ZeroVector(3);
         new_point_local_coord[0] = rLocalCoords[1];
         rpCurve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);

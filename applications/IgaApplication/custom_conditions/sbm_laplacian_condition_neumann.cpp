@@ -39,7 +39,7 @@ void SbmLaplacianConditionNeumann::CalculateLocalSystem(
 {
     KRATOS_TRY
     
-    const SizeType mat_size = GetGeometry().size() * 1;
+    const std::size_t mat_size = GetGeometry().size() * 1;
 
     if (rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size);
@@ -147,7 +147,7 @@ void SbmLaplacianConditionNeumann::CalculateLeftHandSide(
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const std::size_t number_of_nodes = r_geometry.PointsNumber();
 
     if (rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes) {
         rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
@@ -197,7 +197,7 @@ void SbmLaplacianConditionNeumann::CalculateRightHandSide(
     const auto& r_geometry = this->GetGeometry();
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const std::size_t number_of_nodes = r_geometry.PointsNumber();
     if (rRightHandSideVector.size() != number_of_nodes) {
         rRightHandSideVector.resize(number_of_nodes, false);
     }
@@ -233,7 +233,7 @@ void SbmLaplacianConditionNeumann::CalculateRightHandSide(
 void SbmLaplacianConditionNeumann::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
 {
     const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const std::size_t number_of_nodes = r_geometry.PointsNumber();
     const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
 
     // Compute all the derivatives of the basis functions involved
@@ -347,7 +347,7 @@ void SbmLaplacianConditionNeumann::EquationIdVector(
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const std::size_t number_of_nodes = r_geometry.size();
 
     if (rResult.size() !=  number_of_nodes)
         rResult.resize(number_of_nodes, false);
@@ -366,7 +366,7 @@ void SbmLaplacianConditionNeumann::GetDofList(
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
     
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const std::size_t number_of_nodes = r_geometry.size();
 
     rElementalDofList.resize(0);
     rElementalDofList.reserve(number_of_nodes);
