@@ -24,7 +24,6 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
         mapper_params = KM.Parameters("""{
                     "mapper_type": "radial_basis_function",
                     "additional_polynomial_degree": 0,
-                    "destination_is_slave"          : true,
                     "is_origin_iga"             : true,
                     "is_destination_iga"             : false,
 					"echo_level" : 0,
