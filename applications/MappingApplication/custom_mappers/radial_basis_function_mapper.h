@@ -187,6 +187,7 @@ private:
     // Get scaling factor stabilising numerics, maximum distance between spline support points in either X or Y direction
     double CalculateScaleFactor(DenseMatrixType& rOriginCoords);
 
+    // This function calculates the number of polynomial terms from the degree
     IndexType CalculateNumberOfPolynomialTermsFromDegree(IndexType PolyDegree, bool ProjectToAerodynamicPanels);
     
     // Evaluate the polynomial required for the radial basis function interpolation
