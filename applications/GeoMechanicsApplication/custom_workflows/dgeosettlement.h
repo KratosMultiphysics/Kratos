@@ -21,10 +21,6 @@
 
 #include "custom_utilities/node_utilities.h"
 #include "custom_utilities/process_factory.hpp"
-#include "geo_mechanics_application.h"
-#include "linear_solvers_application.h"
-#include "structural_mechanics_application.h"
-#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -35,6 +31,9 @@ class Process;
 class TimeLoopExecutorInterface;
 class TimeIncrementor;
 class StrategyWrapper;
+class KratosGeoMechanicsApplication;
+class KratosStructuralMechanicsApplication;
+class KratosLinearSolversApplication;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
@@ -48,7 +47,7 @@ public:
     int RunStage(const std::filesystem::path&            rWorkingDirectory,
                  const std::filesystem::path&            rProjectParametersFile,
                  const std::function<void(const char*)>& rLogCallback,
-                 const std::function<void(double)>&      rReportProgress,
+                 const std::function<void(double)>&      rProgressDelegate,
                  const std::function<void(const char*)>& rReportTextualProgress,
                  const std::function<bool()>&            rShouldCancel);
 
@@ -78,10 +77,10 @@ private:
     {
         if (!GetComputationalModelPart().HasNodalSolutionStepVariable(rVariable)) return;
 
-        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-            GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 0);
-        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-            GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 1);
+        NodeUtilities::AssignUpdatedVectorVariableToNodes(GetComputationalModelPart().Nodes(),
+                                                          rVariable, rVariable.Zero(), 0);
+        NodeUtilities::AssignUpdatedVectorVariableToNodes(GetComputationalModelPart().Nodes(),
+                                                          rVariable, rVariable.Zero(), 1);
     }
 
     template <typename ProcessType>
@@ -93,12 +92,20 @@ private:
         };
     }
 
-    Kernel                                        mKernel;
-    Model                                         mModel;
-    std::string                                   mModelPartName;
-    KratosGeoMechanicsApplication::Pointer        mpGeoApp;
-    KratosLinearSolversApplication::Pointer       mpLinearSolversApp;
-    KratosStructuralMechanicsApplication::Pointer mpStructuralMechanicsApp;
+    template <typename ProcessType>
+    std::function<ProcessFactory::ProductType(const Parameters&)> MakeCreatorWithModelFor()
+    {
+        return [&model = mModel](const Parameters& rProcessSettings) {
+            return std::make_unique<ProcessType>(model, rProcessSettings);
+        };
+    }
+
+    Kernel                                                mKernel;
+    Model                                                 mModel;
+    std::string                                           mModelPartName;
+    std::shared_ptr<KratosGeoMechanicsApplication>        mpGeoApp;
+    std::shared_ptr<KratosLinearSolversApplication>       mpLinearSolversApp;
+    std::shared_ptr<KratosStructuralMechanicsApplication> mpStructuralMechanicsApp;
     std::unique_ptr<ProcessFactory>            mProcessFactory = std::make_unique<ProcessFactory>();
     std::unique_ptr<InputUtility>              mpInputUtility;
     std::unique_ptr<ProcessInfoParser>         mpProcessInfoParser;

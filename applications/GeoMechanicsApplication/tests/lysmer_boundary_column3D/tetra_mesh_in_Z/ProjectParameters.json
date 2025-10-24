@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Dynamic",
         "scheme_type":                        "Newmark",
@@ -138,7 +137,6 @@
             "absorbing_factors": [1,1],
 			"virtual_thickness": 1000
         }
-    }],
-        "auxiliar_process_list": []
+    }]
     }
 }

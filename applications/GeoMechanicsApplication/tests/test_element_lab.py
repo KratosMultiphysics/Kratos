@@ -1,21 +1,14 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
 class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     """
     This class contains some element tests, such as triaxial and oedometer tests
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
-
     def test_triaxial_comp_6n(self):
         """
         Drained compression triaxial test on Mohr-Coulomb model with axisymmetric 2D6N elements
@@ -23,44 +16,40 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         1) apply confining stress of -100 kPa
         2) apply deviatoric stress of -200 kPa
         """
-        test_name = 'triaxial_comp_6n'
-        project_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
+        project_path = test_helper.get_file_path(os.path.join('test_element_lab', 'triaxial_comp_6n'))
 
         n_stages = 2
-        directory_names = test_helper.get_separated_directory_names(project_path, n_stages)
+        run_multiple_stages.run_stages(project_path, n_stages)
 
-        stages = test_helper.get_separated_stages(directory_names)
-
-        effective_stresses_stages = [None] * n_stages
-        initial_directory = os.getcwd()
-
-        # run stages and get results
-        for idx, stage in enumerate(stages):
-            os.chdir(directory_names[idx])
-            stage.Run()
-            effective_stresses_stages[idx] = test_helper.get_cauchy_stress_tensor(stage)
-        os.chdir(initial_directory)
+        reader = GiDOutputFileReader()
 
         # Assert
-        stage_nr = 0
-        effective_stresses_xx = [integration_point[0,0] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        effective_stresses_yy = [integration_point[1,1] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        effective_stresses_zz = [integration_point[2,2] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        # Assert integration point information
-        for idx, effective_stress_xx in enumerate(effective_stresses_xx):
-            self.assertAlmostEqual(-100.0, effective_stress_xx,        3)
-            self.assertAlmostEqual(-100.0, effective_stresses_yy[idx], 3)
-            self.assertAlmostEqual(-100.0, effective_stresses_zz[idx], 3)
+        output_data = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_stage1.post.res"))
+        time = 1.0
+        stress_vectors_per_element = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data)
+        number_of_elements = 2
+        self.assertEqual(number_of_elements, len(stress_vectors_per_element))
 
-        stage_nr = 1
-        effective_stresses_xx = [integration_point[0,0] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        effective_stresses_yy = [integration_point[1,1] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        effective_stresses_zz = [integration_point[2,2] for element in effective_stresses_stages[stage_nr] for integration_point in element]
-        # Assert integration point information
-        for idx, effective_stress_xx in enumerate(effective_stresses_xx):
-            self.assertAlmostEqual(-100.0, effective_stress_xx,        2)
-            self.assertAlmostEqual(-300.0, effective_stresses_yy[idx], 2)
-            self.assertAlmostEqual(-100.0, effective_stresses_zz[idx], 2)
+        number_of_integration_points_per_element = 3
+        for element_stress_vectors in stress_vectors_per_element:
+            self.assertEqual(number_of_integration_points_per_element, len(element_stress_vectors))
+            for stress_vector in element_stress_vectors:
+                self.assertAlmostEqual(-100.0, stress_vector[0], 3)  # sigma_xx
+                self.assertAlmostEqual(-100.0, stress_vector[1], 3)  # sigma_yy
+                self.assertAlmostEqual(-100.0, stress_vector[2], 3)  # sigma_zz
+
+        output_data = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_stage2.post.res"))
+        time = 1.25
+        stress_vectors_per_element = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data)
+        self.assertEqual(number_of_elements, len(stress_vectors_per_element))
+
+        for element_stress_vectors in stress_vectors_per_element:
+            self.assertEqual(number_of_integration_points_per_element, len(element_stress_vectors))
+            for stress_vector in element_stress_vectors:
+                self.assertAlmostEqual(-100.0, stress_vector[0], 2)  # sigma_xx
+                self.assertAlmostEqual(-300.0, stress_vector[1], 2)  # sigma_yy
+                self.assertAlmostEqual(-100.0, stress_vector[2], 2)  # sigma_zz
+
 
     def test_oedometer_ULFEM(self):
         """
@@ -82,19 +71,19 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
 
         top_node_nbrs = [1, 2]
         output_file_path = os.path.join(project_path, test_name+'.post.res')
-        output_reader = test_helper.GiDOutputFileReader()
+        output_reader = GiDOutputFileReader()
         output_data = output_reader.read_output_from(output_file_path)
-        displacements = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 0.1, output_data, node_ids=top_node_nbrs)
+        displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 0.1, output_data, node_ids=top_node_nbrs)
         for displacement in displacements:
             y_displacement = displacement[1]
             self.assertAlmostEqual(-0.00990099, y_displacement, 6)
 
-        displacements = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 0.7, output_data, node_ids=top_node_nbrs)
+        displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 0.7, output_data, node_ids=top_node_nbrs)
         for displacement in displacements:
             y_displacement = displacement[1]
             self.assertAlmostEqual(-0.0654206, y_displacement, 6)
 
-        displacements = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 1.0, output_data, node_ids=top_node_nbrs)
+        displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 1.0, output_data, node_ids=top_node_nbrs)
         for displacement in displacements:
             y_displacement = displacement[1]
             self.assertAlmostEqual(-0.0909090909516868, y_displacement, 6)

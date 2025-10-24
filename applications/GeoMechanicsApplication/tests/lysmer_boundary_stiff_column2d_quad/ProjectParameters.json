@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Dynamic",
         "scheme_type":                        "Newmark",
@@ -110,8 +109,7 @@
 			"virtual_thickness": 0.001
         }
     }],
-        "auxiliar_process_list": [],
-		"json_output": [{
+        "json_output": [{
             "python_module": "json_output_process",
             "kratos_module": "KratosMultiphysics",
             "process_name": "JsonOutputProcess",

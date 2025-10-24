@@ -74,7 +74,7 @@ public:
         ///@}
 
     private:
-        ///@name Private member varaibles
+        ///@name Private member variables
         ///@{
 
         const GeometryType& mrGeometry;

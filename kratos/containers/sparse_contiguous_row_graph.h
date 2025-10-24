@@ -97,15 +97,16 @@ public:
         });
     }
 
+    SparseContiguousRowGraph(SparseContiguousRowGraph&&) noexcept = default;
+
     /// Destructor.
     ~SparseContiguousRowGraph(){}
 
-    /// Assignment operator. TODO: decide if we do want to allow it
+    /// Assignment operator
     SparseContiguousRowGraph& operator=(SparseContiguousRowGraph const& rOther)=delete;
-    // {
-    //     this->AddEntries(rOther.GetGraph());
-    //     return *this;
-    // }
+
+    /// Move assignment operator
+    SparseContiguousRowGraph& operator=(SparseContiguousRowGraph&&) noexcept = default;
 
     /// Copy constructor.
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
@@ -135,11 +136,16 @@ public:
     void Clear()
     {
         mGraph.clear();
-        mLocks.clear();
+        mLocks = decltype(mLocks)(mGraph.size());
     }
 
     inline IndexType Size() const{
         return mGraph.size();
+    }
+
+    bool IsEmpty() const
+    {
+        return mGraph.empty();
     }
 
     bool Has(const IndexType I, const IndexType J) const
@@ -413,6 +419,7 @@ public:
     ///@name Inquiry
     ///@{
 
+    static constexpr bool IsThreadSafe = true;
 
     ///@}
     ///@name Input and output

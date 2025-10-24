@@ -102,6 +102,12 @@ public:
     ///@name Operations
     ///@{
 
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
+
     /**
      * @brief Execute method is used to execute the AssignScalarVariableToEntitiesProcess algorithms.
      */
@@ -155,7 +161,6 @@ private:
     double mDoubleValue;        /// The double value to assign
     int mIntValue;              /// The integer value to assign
     bool mBoolValue;            /// The boolean value to assign
-    std::size_t mMeshId;        /// The mesh id
 
     ///@}
     ///@name Private Operators

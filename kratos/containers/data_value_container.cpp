@@ -18,9 +18,23 @@
 // Project includes
 #include "containers/data_value_container.h"
 
-namespace Kratos
-{
+namespace Kratos {
+
 KRATOS_CREATE_LOCAL_FLAG(DataValueContainer, OVERWRITE_OLD_VALUES, 0);
+
+
+DataValueContainer& DataValueContainer::operator=(const DataValueContainer& rOther)
+{
+    if (this != &rOther) {
+        Clear();
+
+        for(const_iterator i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
+            mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
+    } // if this != &rOther
+
+    return *this;
+}
+
 
 void DataValueContainer::Merge(
     const DataValueContainer& rOther,
@@ -39,7 +53,7 @@ void DataValueContainer::Merge(
                         j->second = i->first->Clone(i->second);
                     }
                 }
-            if (!variable_already_exist) { 
+            if (!variable_already_exist) {
                 mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
             }
         }

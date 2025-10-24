@@ -23,26 +23,22 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ActivateModelPartOperation, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ActivateModelPartOperation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Create the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
+    auto  p_properties      = r_test_model_part.CreateNewProperties(0);
 
-    // Set up the test model part mesh
-    auto                   p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
-    auto                   p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
-    auto                   p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
-    auto                   p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
-    Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    const auto p_node1 = r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    const auto p_node2 = r_test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    const auto p_node3 = r_test_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+    const auto p_node4 = r_test_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
 
-    Parameters mesher_parameters(R"({
-        "number_of_divisions": 2,
-        "element_name": "Element2D3N",
-        "condition_name": "LineCondition",
-        "create_skin_sub_model_part": true
-    })");
-    StructuredMeshGeneratorProcess(domain_geometry, r_test_model_part, mesher_parameters).Execute();
+    r_test_model_part.AddElement(make_intrusive<Element>(
+        1, std::make_shared<Triangle2D3<Node>>(p_node1, p_node2, p_node3), p_properties));
+    r_test_model_part.AddElement(make_intrusive<Element>(
+        3, std::make_shared<Triangle2D3<Node>>(p_node1, p_node3, p_node4), p_properties));
 
     // Deactivate all the model part entities
     for (auto& r_node : r_test_model_part.Nodes()) {

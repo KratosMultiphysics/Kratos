@@ -5,10 +5,14 @@ from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objectiv
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.combined_conv_criterion import CombinedConvCriterion
+from KratosMultiphysics.OptimizationApplication.convergence_criteria.max_iter_conv_criterion import MaxIterConvCriterion
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OptimizationComponentFactory
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import ListLogger
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -16,7 +20,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class AlgorithmSteepestDescent(Algorithm):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        A classical steepest descent algorithm to solve unconstrained optimization problems.
     """
 
     @classmethod
@@ -56,7 +60,7 @@ class AlgorithmSteepestDescent(Algorithm):
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
 
-        self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"], self._optimization_problem)
+        self._convergence_criteria = self.__CreateConvergenceCriteria(settings["conv_settings"])
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
@@ -79,10 +83,12 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__objective.Initialize()
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
+        self._convergence_criteria.Initialize()
 
     def Finalize(self):
         self.master_control.Finalize()
         self.__objective.Finalize()
+        self._convergence_criteria.Finalize()
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
@@ -137,11 +143,13 @@ class AlgorithmSteepestDescent(Algorithm):
 
                 self._FinalizeIteration()
 
+                self.converged = self._convergence_criteria.IsConverged()
+
                 self.Output()
 
                 self.UpdateControl()
 
-                self.converged = self.__convergence_criteria.IsConverged()
+                ListLogger("Convergence info", self._convergence_criteria.GetInfo())
 
                 self._optimization_problem.AdvanceStep()
 
@@ -152,3 +160,42 @@ class AlgorithmSteepestDescent(Algorithm):
             return self.__obj_val
         else:
             raise RuntimeError("Optimization problem hasn't been solved.")
+
+    def __CreateConvergenceCriteria(self, settings: Kratos.Parameters) -> ConvergenceCriterion:
+        default_settings = Kratos.Parameters("""{
+            "max_iter": 0,
+            "type"    : "",
+            "module"  : "KratosMultiphysics.OptimizationApplication.convergence_criteria",
+            "settings": {}
+        }""")
+        settings.AddMissingParameters(default_settings)
+
+        max_iter_params = Kratos.Parameters("""{
+            "max_iter": """ + str(settings["max_iter"].GetInt()) + """
+        }""")
+        max_iter_conv_criteria = MaxIterConvCriterion(max_iter_params, self._optimization_problem)
+        if settings["type"].GetString() == "":
+            return max_iter_conv_criteria
+        else:
+            # create the additional convergence criterions given by the user
+            additional_conv_params = Kratos.Parameters("""{
+                "type"    : "",
+                "module"  : "",
+                "settings": {}
+            }""")
+            additional_conv_params["type"].SetString(settings["type"].GetString())
+            additional_conv_params["module"].SetString(settings["module"].GetString())
+            additional_conv_params["settings"] = settings["settings"]
+            additional_conv: ConvergenceCriterion = OptimizationComponentFactory(self.model, additional_conv_params, self._optimization_problem)
+
+            # now create the combined one and return the combined one
+            combined_params = Kratos.Parameters("""{
+                "operator": "or"
+            }""")
+            combined_conv_criteria = CombinedConvCriterion(self.model, combined_params, self._optimization_problem)
+            combined_conv_criteria.Add(max_iter_conv_criteria) # add the max iter conv criteria
+            combined_conv_criteria.Add(additional_conv) # add the additional conv criteria
+            return combined_conv_criteria
+
+
+

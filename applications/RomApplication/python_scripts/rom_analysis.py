@@ -28,7 +28,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 for name in self.project_parameters["output_processes"].keys():
                     if name=="rom_output":
                         rom_output_parameters = self.project_parameters["output_processes"]["rom_output"]
-                        for parameter_set in rom_output_parameters:
+                        for parameter_set in rom_output_parameters.values():
                             if parameter_set["python_module"].GetString() == "calculate_rom_basis_output_process":
                                 if parameter_set["Parameters"].Has("rom_basis_output_name"):
                                     self.rom_basis_output_name = parameter_set["Parameters"]["rom_basis_output_name"].GetString()
@@ -261,7 +261,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 self.__petrov_galerkin_training_utility = PetrovGalerkinTrainingUtility(
                     self._GetSolver(),
                     self.rom_parameters)
-                
+
 
         def ModifyInitialGeometry(self):
             super().ModifyInitialGeometry()
@@ -277,7 +277,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 self._GetSolver()._GetBuilderAndSolver().SetDecoderParameters(computing_model_part, len(NNLayers), SVDPhiMatrices[0], SVDPhiMatrices[1], SVDPhiMatrices[2], refSnapshot)
                 for i, layer in enumerate(NNLayers):
                     self._GetSolver()._GetBuilderAndSolver().SetNNLayer(computing_model_part, i, layer)
-                
+
                 nodal_unknown_names= self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray()
                 nodal_dofs = len(nodal_unknown_names)
                 nodal_unknowns=[]
@@ -302,7 +302,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                 computing_model_part.SetValue(KratosROM.ROM_SOLUTION_BASE, KratosMultiphysics.Vector(q))
                 computing_model_part.SetValue(KratosROM.ROM_SOLUTION_TOTAL, KratosMultiphysics.Vector(q))
                 computing_model_part.SetValue(KratosROM.ROM_SOLUTION_INCREMENT, KratosMultiphysics.Vector(np.zeros_like(q)))
-                
+
                 s_init = np.array(self._GetSolver()._GetBuilderAndSolver().RunDecoder(computing_model_part, q))
                 print(s_init.shape)
 
@@ -311,7 +311,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, nn_rom_interface=No
                     for nodal_var in nodal_unknowns:
                         node.SetSolutionStepValue(nodal_var, s_init[i])
                         i+=1
-                        
+
                 computing_model_part.SetValue(KratosROM.SOLUTION_BASE, KratosMultiphysics.Vector(s_init))
 
                 # Initialize nodal ROM_BASIS to zeros

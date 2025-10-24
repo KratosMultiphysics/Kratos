@@ -141,7 +141,7 @@ namespace Kratos::Testing
             if (it_master != master_ids.end()) {
                 mastersIds_of_slaveId_found[slave_id][it_master - master_ids.begin()] = true;
             } else {
-                KRATOS_ERROR << "Master node not found in list of expected contraint masters.";
+                KRATOS_ERROR << "Master node not found in list of expected constraint masters.";
             }
         }
 

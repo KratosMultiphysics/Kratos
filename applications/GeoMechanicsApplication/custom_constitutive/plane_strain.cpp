@@ -18,12 +18,14 @@
 namespace Kratos
 {
 
-Matrix PlaneStrain::CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const
+Matrix PlaneStrain::CalculateElasticMatrix(const Properties& rProperties) const
 {
-    const auto c0 = YoungsModulus / ((1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio));
-    const auto c1 = (1.0 - PoissonsRatio) * c0;
-    const auto c2 = PoissonsRatio * c0;
-    const auto c3 = (0.5 - PoissonsRatio) * c0;
+    const auto youngs_modulus = rProperties[YOUNG_MODULUS];
+    const auto poissons_ratio = rProperties[POISSON_RATIO];
+    const auto c0 = youngs_modulus / ((1.0 + poissons_ratio) * (1.0 - 2.0 * poissons_ratio));
+    const auto c1 = (1.0 - poissons_ratio) * c0;
+    const auto c2 = poissons_ratio * c0;
+    const auto c3 = (0.5 - poissons_ratio) * c0;
 
     Matrix result = ZeroMatrix(4, 4);
 
@@ -56,5 +58,15 @@ std::size_t PlaneStrain::GetDimension() const { return N_DIM_2D; }
 std::size_t PlaneStrain::GetNumberOfNormalComponents() const { return 3; }
 
 Flags PlaneStrain::GetSpatialType() const { return ConstitutiveLaw::PLANE_STRAIN_LAW; }
+
+void PlaneStrain::save(Serializer&) const
+{
+    // No data members to be saved (yet)
+}
+
+void PlaneStrain::load(Serializer&)
+{
+    // No data members to be saved (yet)
+}
 
 } // namespace Kratos

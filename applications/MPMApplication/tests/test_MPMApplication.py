@@ -28,6 +28,9 @@ from mpm_test_factory import GravityApplicationTest as TGravityApplicationTest
 from mpm_test_factory import GravityTimeStepTableTest as TGravityTimeStepTableTest
 
 from mpm_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+from mpm_test_factory import LagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+from mpm_test_factory import LagrangeCenterImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TLagrangeCenterImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+from mpm_test_factory import PerturbedLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPerturbedLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 
 from mpm_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 from mpm_test_factory import PenaltyBasedSlipTest as TPenaltyBasedSlipTest
@@ -53,6 +56,7 @@ from mpm_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 ##### RESTART TESTS #####
 from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
 from restart_tests import MPMRestartTestDynamicCantilever2D    as TMPMRestartTestDynamicCantilever2D
+from restart_tests import MPMRestartTestCantileverLagrange2D    as TMPMRestartTestCantileverLagrange2D
 
 
 
@@ -126,6 +130,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TLagrangeCenterImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TPerturbedLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicConsistentMassTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicHyperelasticUPTest('test_execution'))
@@ -149,9 +156,10 @@ def AssembleTestSuites():
 
     nightSuite.addTest(TMPMRestartTestBeamStaticLineLoad2D('test_execution'))
     nightSuite.addTest(TMPMRestartTestDynamicCantilever2D('test_execution'))
+    nightSuite.addTest(TMPMRestartTestCantileverLagrange2D('test_execution'))
 
     ### Adding Validation Tests
-    ## For very long tests that should not be in nighly and you can use to validate
+    ## For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
 
     ### Create a test suit that contains all the tests:

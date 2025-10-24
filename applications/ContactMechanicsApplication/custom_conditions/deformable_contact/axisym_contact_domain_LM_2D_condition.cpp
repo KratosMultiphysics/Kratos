@@ -50,7 +50,7 @@ AxisymContactDomainLM2DCondition::AxisymContactDomainLM2DCondition( AxisymContac
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 AxisymContactDomainLM2DCondition&  AxisymContactDomainLM2DCondition::operator=(AxisymContactDomainLM2DCondition const& rOther)
@@ -192,7 +192,7 @@ void AxisymContactDomainLM2DCondition::CalculateKinematics( ConditionVariables& 
     ElementType&  MasterElement  = mContactVariables.GetMasterElement();
     GeometryType& MasterGeometry = mContactVariables.GetMasterGeometry();
 
-    //Get the parent coodinates derivative [dN/d£]
+    //Get the parent coordinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = MasterGeometry.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
     //Get integration points number
