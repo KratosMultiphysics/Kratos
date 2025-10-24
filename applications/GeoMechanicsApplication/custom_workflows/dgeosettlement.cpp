@@ -196,7 +196,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
         }
 
-        PrepareModelPart(project_parameters["solver_settings"]);
+        PrepareModelPart(project_parameters["solver_settings"], project_parameters["processes"]);
 
         if (project_parameters["solver_settings"].Has("material_import_settings")) {
             const auto material_file_name =
@@ -378,7 +378,7 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
                                                         rWorkingDirectory, rProjectParameters);
 }
 
-void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
+void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, const Parameters& rProcesses)
 {
     auto& main_model_part = GetMainModelPart();
     main_model_part.GetProcessInfo().SetValue(TIME_UNIT_CONVERTER, 1.0);
@@ -429,23 +429,24 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     GetComputationalModelPart().Conditions().clear();
     // Define all the process list names you want to extract
     const std::vector<std::string> process_list_names = {
-        "constraints_process_list",
-        "loads_process_list"
-    };
-    std::vector<std::string> domain_condition_names;
-    std::unordered_set<std::string> unique_names;
+        "constraints_process_list", "loads_process_list", "auxiliary_process_list"};
 
-    if (rSolverSettings.Has("processes")) {
-        for (const auto& list_name : process_list_names) {
-            if (rSolverSettings["processes"].Has(list_name)) {
-                const auto& process_list = rSolverSettings["processes"][list_name];
-                for (const auto& process : process_list) {
-                    if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
-                        const auto model_part_name =
-                            process["Parameters"]["model_part_name"].GetString();
-                        if (unique_names.insert(model_part_name).second) {
-                            domain_condition_names.emplace_back(model_part_name);
-                        }
+    std::vector<std::string>        domain_condition_names;
+    std::unordered_set<std::string> unique_names;
+    const auto root_name = rSolverSettings["model_part_name"].GetString();
+    const auto prefix = root_name + ".";
+
+    for (const auto& list_name : process_list_names) {
+        if (rProcesses.Has(list_name)) {
+            const auto& process_list = rProcesses[list_name];
+            for (const auto& process : process_list) {
+                if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
+                    auto model_part_name = process["Parameters"]["model_part_name"].GetString();
+                    if (model_part_name.rfind(prefix, 0) == 0) {
+                        model_part_name.erase(0, prefix.size());
+                    }
+                    if (unique_names.insert(model_part_name).second) {
+                        domain_condition_names.emplace_back(model_part_name);
                     }
                 }
             }
@@ -478,16 +479,17 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
 
         if (!missing_names.empty()) {
             for (const auto& name : missing_names) {
+                domain_condition_names.emplace_back(name);
                 KRATOS_INFO("PrepareModelPart") << " missing model_part_name :" << name << '\n';
             }
-       //     KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has more names"<< std::endl;
+//            KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has more names"<< std::endl;
         }
 
         if (!extra_names.empty()) {
             for (const auto& name : missing_names) {
                 KRATOS_INFO("PrepareModelPart") << " extra model_part_name :" << name << '\n';
             }
-       //     KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has less names"<< std::endl;
+  //          KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has less names"<< std::endl;
         }
     }
 
