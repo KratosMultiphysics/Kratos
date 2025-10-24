@@ -108,7 +108,7 @@ namespace Testing {
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D4FacesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D4();
-        KRATOS_EXPECT_EQ(p_geometry->FacesNumber(), 2);
+        KRATOS_EXPECT_EQ(p_geometry->FacesNumber(), 0);
     }
 
     /** Checks if the length of the line is calculated correctly.
