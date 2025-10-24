@@ -86,8 +86,8 @@ KRATOS_TEST_CASE_IN_SUITE(Line3D3EdgesNumber, KratosCoreGeometriesFastSuite) {
     KRATOS_EXPECT_EQ(p_geometry->EdgesNumber(), 1);
 }
 
-    /** Checks if the edges are correct.
-        */
+/** Checks if the edges are correct.
+*/
 KRATOS_TEST_CASE_IN_SUITE(Line3D3Edges, KratosCoreGeometriesFastSuite) {
     auto p_geom = GeneratePointsUnitXDirectionLine3D3();
 
@@ -100,7 +100,6 @@ KRATOS_TEST_CASE_IN_SUITE(Line3D3Edges, KratosCoreGeometriesFastSuite) {
 }
 
 /** Checks if the number of faces is correct.
-* Checks if the number of faces is correct.
 */
 KRATOS_TEST_CASE_IN_SUITE(Line3D3FacesNumber, KratosCoreGeometriesFastSuite) {
     auto p_geometry = GeneratePointsUnitXDirectionLine3D3();

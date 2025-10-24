@@ -109,7 +109,6 @@ namespace Testing {
     }
 
     /** Checks if the number of faces is correct.
-    * Checks if the number of faces is correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Line2D5FacesNumber, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsUnitXDirectionLine2D5();
