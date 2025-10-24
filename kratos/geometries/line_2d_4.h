@@ -72,6 +72,9 @@ public:
     /// Pointer definition of Line2D4
     KRATOS_CLASS_POINTER_DEFINITION(Line2D4);
 
+    /// Type of edge geometry
+    typedef Line2D4<TPointType> EdgeType;
+
     /** Integration methods implemented in geometry.
     */
     typedef GeometryData::IntegrationMethod IntegrationMethod;
@@ -687,6 +690,21 @@ public:
     SizeType EdgesNumber() const override
     {
         return 1;
+    }
+
+    /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will give you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType contains this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
+    {
+        GeometriesArrayType edges;
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) );
+        return edges;
     }
 
     /** FacesNumber
