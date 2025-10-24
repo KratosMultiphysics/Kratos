@@ -156,6 +156,12 @@ void BaseLoadCondition::GetDofList(
             ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+            // if (this->HasRotDof()) 
+            // {
+            //     ElementalDofList.push_back( GetGeometry()[i].pGetDof(ROTATION_X));
+            //     ElementalDofList.push_back( GetGeometry()[i].pGetDof(ROTATION_Y));
+            //     ElementalDofList.push_back( GetGeometry()[i].pGetDof(ROTATION_Z));
+            // }
         }
     }
     KRATOS_CATCH("")
@@ -171,6 +177,7 @@ void BaseLoadCondition::GetValuesVector(
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    //const SizeType block_size = this->GetBlockSize();
     const SizeType mat_size = number_of_nodes * dim;
 
     if (rValues.size() != mat_size) {
@@ -183,6 +190,12 @@ void BaseLoadCondition::GetValuesVector(
         for(SizeType k = 0; k < dim; ++k) {
             rValues[index + k] = r_displacement[k];
         }
+        // if (this->HasRotDof()) {
+        //     const array_1d<double, 3 > & r_rotation = GetGeometry()[i].FastGetSolutionStepValue(ROTATION, Step);
+        //     for(SizeType k = 0; k < dim; ++k) {
+        //         rValues[index + dim + k] = r_rotation[k];
+        //     }
+        // }
     }
 }
 
@@ -196,6 +209,7 @@ void BaseLoadCondition::GetFirstDerivativesVector(
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    //const SizeType block_size = this->GetBlockSize();
     const SizeType mat_size = number_of_nodes * dim;
 
     if (rValues.size() != mat_size) {
@@ -208,6 +222,12 @@ void BaseLoadCondition::GetFirstDerivativesVector(
         for(SizeType k = 0; k<dim; ++k) {
             rValues[index + k] = Velocity[k];
         }
+        // if (this->HasRotDof()) {
+        //     const array_1d<double, 3 > & angular_velocity = GetGeometry()[i].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
+        //     for(SizeType k = 0; k < dim; ++k) {
+        //         rValues[index + dim + k] = angular_velocity[k];
+        //     }
+        // }
     }
 }
 
@@ -221,6 +241,7 @@ void BaseLoadCondition::GetSecondDerivativesVector(
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    //const SizeType block_size = this->GetBlockSize();
     const SizeType mat_size = number_of_nodes * dim;
 
     if (rValues.size() != mat_size) {
@@ -233,6 +254,12 @@ void BaseLoadCondition::GetSecondDerivativesVector(
         for(SizeType k = 0; k < dim; ++k) {
             rValues[index + k] = r_acceleration[k];
         }
+        // if (this->HasRotDof()) {
+        //     const array_1d<double, 3 > & angular_acceleration = GetGeometry()[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
+        //     for(SizeType k = 0; k < dim; ++k) {
+        //         rValues[index + dim + k] = angular_acceleration[k];
+        //     }
+        // }
     }
 }
 
@@ -252,6 +279,19 @@ void BaseLoadCondition::CalculateRightHandSide(
     CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, calculate_stiffness_matrix_flag, calculate_residual_vector_flag );
 }
 
+void BaseLoadCondition::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    // Calculation flags
+    const bool calculate_stiffness_matrix_flag = true;
+    const bool calculate_residual_vector_flag = true;
+    VectorType temp = Vector();
+
+    CalculateAll( rLeftHandSideMatrix, temp, rCurrentProcessInfo, calculate_stiffness_matrix_flag, calculate_residual_vector_flag );
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 void BaseLoadCondition::CalculateLocalSystem(
@@ -265,6 +305,162 @@ void BaseLoadCondition::CalculateLocalSystem(
     const bool calculate_residual_vector_flag = true;
 
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, calculate_stiffness_matrix_flag, calculate_residual_vector_flag );
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/**
+ * ELEMENTS inherited from this class must implement this methods
+ * if they need to add dynamic element contributions
+ * note: first derivatives means the velocities if the displacements are the dof of the analysis
+ * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+ * CalculateFirstDerivativesContributions,
+ * CalculateFirstDerivativesLHS, CalculateFirstDerivativesRHS methods are : OPTIONAL
+ */
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the first derivatives contributions for the LHS and RHS
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rRightHandSideVector the elemental right hand side
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void BaseLoadCondition::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                    VectorType& rRightHandSideVector,
+                                                    const ProcessInfo& rCurrentProcessInfo)
+{
+    //const SizeType num_dofs = GetNumberOfDofs();
+    const SizeType number_of_nodes = GetGeometry().size();
+    //const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    const SizeType block_size = this->GetBlockSize();
+    const SizeType mat_size = number_of_nodes * block_size;
+
+    if (rLeftHandSideMatrix.size1() != mat_size || (rLeftHandSideMatrix.size2() != mat_size)) {
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    if (rRightHandSideVector.size() != mat_size) {
+        rRightHandSideVector.resize(mat_size, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+    noalias(rRightHandSideVector) = ZeroVector(mat_size);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental left hand side matrix for the first derivatives contributions
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void BaseLoadCondition::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    //const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    const SizeType block_size = this->GetBlockSize();
+    const SizeType mat_size = number_of_nodes * block_size;
+
+    if (rLeftHandSideMatrix.size1() != mat_size || (rLeftHandSideMatrix.size2() != mat_size)) {
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental right hand side vector for the first derivatives contributions
+ * @param rRightHandSideVector the elemental right hand side vector
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void BaseLoadCondition::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    //const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    const SizeType block_size = this->GetBlockSize();
+    const SizeType mat_size = number_of_nodes * block_size;
+
+    if (rRightHandSideVector.size() != mat_size) {
+        rRightHandSideVector.resize(mat_size, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(mat_size);
+}
+
+/**
+ * ELEMENTS inherited from this class must implement this methods
+ * if they need to add dynamic element contributions
+ * note: second derivatives means the accelerations if the displacements are the dof of the analysis
+ * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+ * CalculateSecondDerivativesContributions,
+ * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
+ */
+
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the second derivative contributions for the LHS and RHS
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rRightHandSideVector the elemental right hand side
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void BaseLoadCondition::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                        VectorType& rRightHandSideVector,
+                                                        const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    //const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    const SizeType block_size = this->GetBlockSize();
+    const SizeType mat_size = number_of_nodes * block_size;
+
+    if (rLeftHandSideMatrix.size1() != mat_size || (rLeftHandSideMatrix.size2() != mat_size)) {
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    if (rRightHandSideVector.size() != mat_size) {
+        rRightHandSideVector.resize(mat_size, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+    noalias(rRightHandSideVector) = ZeroVector(mat_size);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental left hand side matrix for the second derivatives contributions
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void BaseLoadCondition::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    //const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    const SizeType block_size = this->GetBlockSize();
+    const SizeType mat_size = number_of_nodes * block_size;
+
+    if (rLeftHandSideMatrix.size1() != mat_size || (rLeftHandSideMatrix.size2() != mat_size)) {
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental right hand side vector for the second derivatives contributions
+ * @param rRightHandSideVector the elemental right hand side vector
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void BaseLoadCondition::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    //const SizeType dim = GetGeometry().WorkingSpaceDimension();
+    const SizeType block_size = this->GetBlockSize();
+    const SizeType mat_size = number_of_nodes * block_size;
+
+    if (rRightHandSideVector.size() != mat_size) {
+        rRightHandSideVector.resize(mat_size, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(mat_size);
 }
 
 /***********************************************************************************/
@@ -321,6 +517,14 @@ int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node)
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
+
+        // // if (this->HasRotDof()){
+        // //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,r_node)
+
+        // //     KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, r_node)
+        // //     KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y, r_node)
+        // //     KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z, r_node)
+        // // }
     }
 
     return 0;
@@ -360,6 +564,7 @@ void BaseLoadCondition::AddExplicitContribution(
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+    //const SizeType block_size      = this->GetBlockSize();
 
     if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL ) {
         for(SizeType i=0; i< number_of_nodes; ++i) {

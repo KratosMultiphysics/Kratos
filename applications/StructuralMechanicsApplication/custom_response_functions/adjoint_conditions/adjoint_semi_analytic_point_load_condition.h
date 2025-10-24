@@ -46,6 +46,32 @@ template <typename TPrimalCondition>
 class AdjointSemiAnalyticPointLoadCondition
     : public AdjointSemiAnalyticBaseCondition<TPrimalCondition>
 {
+    class ThisExtensions : public AdjointExtensions
+    {
+        Condition* mpCondition;
+
+    public:
+        explicit ThisExtensions(Condition* pCondition);
+
+        void GetFirstDerivativesVector(std::size_t NodeId,
+                                       std::vector<IndirectScalar<double>>& rVector,
+                                       std::size_t Step) override;
+
+        void GetSecondDerivativesVector(std::size_t NodeId,
+                                        std::vector<IndirectScalar<double>>& rVector,
+                                        std::size_t Step) override;
+
+        void GetAuxiliaryVector(std::size_t NodeId,
+                                std::vector<IndirectScalar<double>>& rVector,
+                                std::size_t Step) override;
+
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
+    };    
+
 public:
     ///@name Type Definitions
     ///@{
@@ -89,6 +115,12 @@ public:
     {
     }
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        AdjointSemiAnalyticBaseCondition<TPrimalCondition>::Initialize(rCurrentProcessInfo);
+        this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
+    }
+
     ///@}
     ///@name Operations
     ///@{
@@ -113,6 +145,11 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
+
+    /**
+     * Check if Rotational Dof existant
+     */
+    bool HasRotDof() const override {return false;};
     ///@}
     ///@name Access
     ///@{

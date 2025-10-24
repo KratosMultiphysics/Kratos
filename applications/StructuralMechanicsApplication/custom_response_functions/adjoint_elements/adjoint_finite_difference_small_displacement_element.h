@@ -12,7 +12,7 @@
 
 
 #pragma once
-
+#include "utilities/adjoint_extensions.h"
 #include "adjoint_finite_difference_base_element.h"
 
 namespace Kratos
@@ -27,6 +27,31 @@ namespace Kratos
 template <typename TPrimalElement>
 class AdjointFiniteDifferencingSmallDisplacementElement : public AdjointFiniteDifferencingBaseElement<TPrimalElement>
 {
+    class ThisExtensions : public AdjointExtensions
+    {
+        Element* mpElement;
+
+    public:
+        explicit ThisExtensions(Element* pElement);
+
+        void GetFirstDerivativesVector(std::size_t NodeId,
+                                       std::vector<IndirectScalar<double>>& rVector,
+                                       std::size_t Step) override;
+
+        void GetSecondDerivativesVector(std::size_t NodeId,
+                                        std::vector<IndirectScalar<double>>& rVector,
+                                        std::size_t Step) override;
+
+        void GetAuxiliaryVector(std::size_t NodeId,
+                                std::vector<IndirectScalar<double>>& rVector,
+                                std::size_t Step) override;
+
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
+    };  
 public:
 
     ///@name Type Definitions
@@ -67,6 +92,15 @@ public:
     {
     }
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                       const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
      * Calculates the stress-displacement derivative of the given rStressVariable.
      * For the linear case this happens by calculating the stress using a unit-displacement for each dof.
@@ -91,6 +125,12 @@ public:
     }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        BaseType::Initialize(rCurrentProcessInfo);
+        this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
+    }
 
 private:
 

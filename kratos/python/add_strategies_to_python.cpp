@@ -260,6 +260,8 @@ namespace Kratos:: Python
             .def("Check", [](const BaseSchemeType& self, const ModelPart& rModelPart){ return self.Check(rModelPart); })
             .def("GetDefaultParameters",&BaseSchemeType::GetDefaultParameters)
             .def("Info", &BaseSchemeType::Info)
+            .def("CalculateSystemContributions", py::overload_cast<Element&, Matrix&, Vector&, std::vector<std::size_t>&, const ProcessInfo&>(&BaseSchemeType::CalculateSystemContributions)) 
+            .def("CalculateSystemContributions", py::overload_cast<Condition&, Matrix&, Vector&, std::vector<std::size_t>&, const ProcessInfo&>(&BaseSchemeType::CalculateSystemContributions)) 
             ;
 
         py::class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
@@ -340,6 +342,9 @@ namespace Kratos:: Python
         py::class_<ResidualBasedAdjointBossakSchemeType, typename ResidualBasedAdjointBossakSchemeType::Pointer, BaseSchemeType>
         (m, "ResidualBasedAdjointBossakScheme")
         .def(py::init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
+        .def("SetResponseFunction", &ResidualBasedAdjointBossakSchemeType::SetResponseFunction, py::arg("new_response_function"))
+        //.def("UpdateAuxiliaryVariable", &ResidualBasedAdjointBossakSchemeType::UpdateAuxiliaryVariable) 
+            
         ;
 
         //********************************************************************

@@ -152,6 +152,26 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                VectorType& rRightHandSideVector,
+                                                const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                VectorType& rRightHandSideVector,
+                                                const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                       const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+                                       const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
                                       std::vector<array_1d<double, 3> >& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;

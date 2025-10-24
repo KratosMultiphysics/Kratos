@@ -226,6 +226,32 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                VectorType& rRightHandSideVector,
+                                                const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                VectorType& rRightHandSideVector,
+                                                const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                       const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+                                       const ProcessInfo& rCurrentProcessInfo) override;
+
+
     /**
       * @brief This is called during the assembling process in order to calculate the elemental mass matrix
       * @param rMassMatrix the elemental mass matrix

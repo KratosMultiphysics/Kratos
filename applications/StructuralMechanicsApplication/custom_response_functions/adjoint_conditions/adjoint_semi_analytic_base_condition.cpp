@@ -25,9 +25,123 @@
 #include "custom_conditions/line_load_condition.h"
 #include "custom_conditions/small_displacement_line_load_condition.h"
 #include "custom_response_functions/response_utilities/finite_difference_utility.h"
+#include "utilities/indirect_scalar.h"
 
 namespace Kratos
 {
+    template <class TPrimalCondition>
+    AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::ThisExtensions(Condition* pCondition)
+        : mpCondition{pCondition}
+    {
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetFirstDerivativesVector(
+        std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+    {
+
+        auto& r_node = mpCondition->GetGeometry()[NodeId];
+        const SizeType dimension = mpCondition->GetGeometry().WorkingSpaceDimension();
+        const SizeType num_dofs = (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) ?  2 * dimension : dimension; // *2 for rotation
+        rVector.resize(num_dofs );
+        std::size_t index = 0;
+
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Y, Step);
+        if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Z, Step);
+
+        if (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) {
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_2_X, Step);
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_2_Y, Step);
+            if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_2_Z, Step);    
+        }
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetSecondDerivativesVector(
+        std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+    {
+        auto& r_node = mpCondition->GetGeometry()[NodeId];
+        const SizeType dimension = mpCondition->GetGeometry().WorkingSpaceDimension();
+        const SizeType num_dofs = (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) ?  2 * dimension : dimension; // *2 for rotation
+        rVector.resize(num_dofs );
+        std::size_t index = 0;
+
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Y, Step);
+        if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Z, Step);
+
+        if (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) {
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_3_X, Step);
+            rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_3_Y, Step);
+            if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_ROTATION_VECTOR_3_Z, Step);    
+        }
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetAuxiliaryVector(
+        std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+    {
+        auto& r_node = mpCondition->GetGeometry()[NodeId];
+        const SizeType dimension = mpCondition->GetGeometry().WorkingSpaceDimension();
+        const SizeType num_dofs = (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) ?  2 * dimension : dimension; // *2 for rotation
+        rVector.resize(num_dofs ); 
+        std::size_t index = 0;
+
+        rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Y, Step);
+        if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Z, Step);
+
+        //std::cout << "in auxiliary vector" << std::endl;
+        if (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) {
+            //std::cout << "auxiliary vector has rotation" << std::endl;
+            rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_ROTATION_VECTOR_1_X, Step);
+            rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_ROTATION_VECTOR_1_Y, Step);
+            if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_ROTATION_VECTOR_1_Z, Step);    
+        }
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetFirstDerivativesVariables(
+        std::vector<VariableData const*>& rVariables) const
+    {
+        if (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) {
+            rVariables.resize(2);
+            rVariables[0] = &ADJOINT_VECTOR_2;
+            rVariables[1] = &ADJOINT_ROTATION_VECTOR_2;
+        } else {
+            rVariables.resize(1);
+            rVariables[0] = &ADJOINT_VECTOR_2;
+        }
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetSecondDerivativesVariables(
+        std::vector<VariableData const*>& rVariables) const
+    {
+        if (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) {
+            rVariables.resize(2);
+            rVariables[0] = &ADJOINT_VECTOR_3;
+            rVariables[1] = &ADJOINT_ROTATION_VECTOR_3;
+        } else {
+            rVariables.resize(1);
+            rVariables[0] = &ADJOINT_VECTOR_3;
+        }
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticBaseCondition<TPrimalCondition>::ThisExtensions::GetAuxiliaryVariables(
+        std::vector<VariableData const*>& rVariables) const
+    {
+        if (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) {
+            rVariables.resize(2);
+            rVariables[0] = &AUX_ADJOINT_VECTOR_1;
+            rVariables[1] = &AUX_ADJOINT_ROTATION_VECTOR_1;
+        } else {
+            rVariables.resize(1);
+            rVariables[0] = &AUX_ADJOINT_VECTOR_1;
+        }
+    }
     namespace AdjointSemiAnalyticBaseConditionHelperUtils
     {
         template <class TData>
@@ -70,25 +184,33 @@ namespace Kratos
 
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dim = this->GetGeometry().WorkingSpaceDimension();
-        if (rResult.size() != dim * number_of_nodes) {
-            rResult.resize(dim*number_of_nodes,false);
-        }
+        const SizeType block_size = this->GetBlockSize();
+        const SizeType num_dofs = number_of_nodes * block_size;
+
+        rResult.resize(num_dofs, false);
 
         const IndexType pos = this->GetGeometry()[0].GetDofPosition(ADJOINT_DISPLACEMENT_X);
 
         if(dim == 2) {
             for (IndexType i = 0; i < number_of_nodes; ++i) {
-                const IndexType index = i * 2;
+                const IndexType index = i * block_size;
                 rResult[index    ] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
+                if (this->HasRotDof())
+                    rResult[index + 2] = GetGeometry()[i].GetDof(ADJOINT_ROTATION_Z,pos + 2).EquationId();
             }
         }
         else {
             for (IndexType i = 0; i < number_of_nodes; ++i) {
-                const IndexType index = i * 3;
+                const IndexType index = i * block_size;
                 rResult[index    ] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
                 rResult[index + 2] = this->GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Z,pos + 2).EquationId();
+                if (this->HasRotDof()) {
+                    rResult[index + 3] = GetGeometry()[i].GetDof(ADJOINT_ROTATION_X, pos + 3).EquationId();
+                    rResult[index + 4] = GetGeometry()[i].GetDof(ADJOINT_ROTATION_Y, pos + 4).EquationId();
+                    rResult[index + 5] = GetGeometry()[i].GetDof(ADJOINT_ROTATION_Z, pos + 5).EquationId();
+                }
             }
         }
         KRATOS_CATCH("")
@@ -101,25 +223,31 @@ namespace Kratos
 
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
-        const SizeType num_dofs = number_of_nodes * dimension;
+        const SizeType block_size = this->GetBlockSize();
+        const SizeType num_dofs = number_of_nodes * block_size;
 
-        if (rElementalDofList.size() != num_dofs) {
-            rElementalDofList.resize(num_dofs);
-        }
+        rElementalDofList.resize(num_dofs);
 
         if(dimension == 2) {
             for (IndexType i = 0; i < number_of_nodes; ++i) {
-                const IndexType index = i * 2;
+                const IndexType index = i * block_size;
                 rElementalDofList[index    ] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
                 rElementalDofList[index + 1] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
+                if (this->HasRotDof())
+                    rElementalDofList[index + 2] = this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z);
             }
         }
         else {
             for (IndexType i = 0; i < number_of_nodes; ++i) {
-                const IndexType index = i * 3;
+                const IndexType index = i * block_size;
                 rElementalDofList[index    ] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
                 rElementalDofList[index + 1] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
                 rElementalDofList[index + 2] = this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
+                if (this->HasRotDof()) {
+                    rElementalDofList[index + 3] = this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_X);
+                    rElementalDofList[index + 4] = this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Y);
+                    rElementalDofList[index + 5] = this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z);
+                }
             }
         }
 
@@ -131,17 +259,22 @@ namespace Kratos
     {
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
-        const SizeType num_dofs = number_of_nodes * dimension;
+        const SizeType block_size = this->GetBlockSize();
+        const SizeType num_dofs = number_of_nodes * block_size;
 
-        if (rValues.size() != num_dofs) {
-            rValues.resize(num_dofs, false);
-        }
+        rValues.resize(num_dofs, false);
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const array_1d<double, 3 > & Displacement = this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
-            IndexType index = i * dimension;
+            IndexType index = i * block_size;
             for(IndexType k = 0; k < dimension; ++k) {
                 rValues[index + k] = Displacement[k];
+            }
+            if (this->HasRotDof()) {
+                const array_1d<double, 3 > & r_rotation = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
+                for(SizeType k = 0; k < dimension; ++k) {
+                    rValues[index + dimension + k] = r_rotation[k];
+                }
             }
         }
     }
@@ -226,8 +359,9 @@ namespace Kratos
         KRATOS_TRY
 
         const SizeType number_of_nodes = this->GetGeometry().size();
-        const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
-        const SizeType local_size = number_of_nodes * dimension;
+        //const SizeType dimension =  this->GetGeometry().WorkingSpaceDimension();
+        const SizeType block_size = this->GetBlockSize();
+        const SizeType local_size = number_of_nodes * block_size;
 
         // this is to derive w.r.t. to variables like PRESSURE
         if(this->Has(rDesignVariable)) {
@@ -271,7 +405,8 @@ namespace Kratos
 
         const SizeType number_of_nodes = this->GetGeometry().size();
         const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
-        const SizeType local_size = number_of_nodes * dimension;
+        const SizeType block_size = this->GetBlockSize();
+        const SizeType local_size = number_of_nodes * block_size;
         Vector RHS;
         Vector perturbed_RHS = Vector(0);
         const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
@@ -355,11 +490,26 @@ namespace Kratos
             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
+
+            if (this->HasRotDof()){
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,r_node)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION,r_node)
+
+                KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node)
+                KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node)
+                KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node)
+            }
         }
 
         return return_value;
 
         KRATOS_CATCH( "" )
+    }
+
+    template <class TPrimalCondition>
+    bool AdjointSemiAnalyticBaseCondition<TPrimalCondition>::HasRotDof() const
+    {
+        return (this->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X));
     }
 
     // private

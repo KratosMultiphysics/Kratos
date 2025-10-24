@@ -20,9 +20,88 @@
 #include "structural_mechanics_application_variables.h"
 #include "includes/variables.h"
 #include "custom_conditions/point_load_condition.h"
+#include "utilities/indirect_scalar.h"
 
 namespace Kratos
 {
+    template <class TPrimalCondition>
+    AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::ThisExtensions::ThisExtensions(Condition* pCondition)
+        : mpCondition{pCondition}
+    {
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::ThisExtensions::GetFirstDerivativesVector(
+        std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+    {
+        
+        auto& r_node = mpCondition->GetGeometry()[NodeId];
+        const SizeType dimension = mpCondition->GetGeometry().WorkingSpaceDimension();
+        //const SizeType num_dofs = (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) ?  2 * dimension : dimension; // *2 for rotation
+        rVector.resize(dimension );
+        std::size_t index = 0;
+
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Y, Step);
+        if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_Z, Step);
+
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::ThisExtensions::GetSecondDerivativesVector(
+        std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+    {
+        auto& r_node = mpCondition->GetGeometry()[NodeId];
+        const SizeType dimension = mpCondition->GetGeometry().WorkingSpaceDimension();
+        //const SizeType num_dofs = (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) ?  2 * dimension : dimension; // *2 for rotation
+        rVector.resize(dimension );
+        std::size_t index = 0;
+
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Y, Step);
+        if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_Z, Step);
+
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::ThisExtensions::GetAuxiliaryVector(
+        std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+    {
+        auto& r_node = mpCondition->GetGeometry()[NodeId];
+        const SizeType dimension = mpCondition->GetGeometry().WorkingSpaceDimension();
+        //const SizeType num_dofs = (mpCondition->GetGeometry()[0].HasDofFor(ADJOINT_ROTATION_X)) ?  2 * dimension : dimension; // *2 for rotation
+        rVector.resize(dimension ); 
+        std::size_t index = 0;
+
+        rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
+        rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Y, Step);
+        if (mpCondition->GetGeometry().WorkingSpaceDimension() == 3) rVector[index++] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_Z, Step);
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::ThisExtensions::GetFirstDerivativesVariables(
+        std::vector<VariableData const*>& rVariables) const
+    {
+        rVariables.resize(1);
+        rVariables[0] = &ADJOINT_VECTOR_2;
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::ThisExtensions::GetSecondDerivativesVariables(
+        std::vector<VariableData const*>& rVariables) const
+    {
+        rVariables.resize(1);
+        rVariables[0] = &ADJOINT_VECTOR_3;
+    }
+
+    template <class TPrimalCondition>
+    void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::ThisExtensions::GetAuxiliaryVariables(
+        std::vector<VariableData const*>& rVariables) const
+    {
+        rVariables.resize(1);
+        rVariables[0] = &AUX_ADJOINT_VECTOR_1;
+    }
+
     template <class TPrimalCondition>
     void AdjointSemiAnalyticPointLoadCondition<TPrimalCondition>::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,

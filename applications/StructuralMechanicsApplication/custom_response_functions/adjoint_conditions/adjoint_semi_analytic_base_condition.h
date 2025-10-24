@@ -17,7 +17,9 @@
 // External includes
 
 // Project includes
+#include "utilities/adjoint_extensions.h"
 #include "includes/condition.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -52,6 +54,33 @@ template <typename TPrimalCondition>
 class AdjointSemiAnalyticBaseCondition
     : public Condition
 {
+    class ThisExtensions : public AdjointExtensions
+    {
+        Condition* mpCondition;
+
+    public:
+        explicit ThisExtensions(Condition* pCondition);
+
+        void GetFirstDerivativesVector(std::size_t NodeId,
+                                       std::vector<IndirectScalar<double>>& rVector,
+                                       std::size_t Step) override;
+
+        void GetSecondDerivativesVector(std::size_t NodeId,
+                                        std::vector<IndirectScalar<double>>& rVector,
+                                        std::size_t Step) override;
+
+        void GetAuxiliaryVector(std::size_t NodeId,
+                                std::vector<IndirectScalar<double>>& rVector,
+                                std::size_t Step) override;
+
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
+    };    
+
+
 public:
     ///@name Type Definitions
     ///@{
@@ -124,6 +153,7 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalCondition->Initialize(rCurrentProcessInfo);
+        this->SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     }
 
     void ResetConstitutiveLaw() override
@@ -300,6 +330,31 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
+
+    /**
+     * @brief Check if Rotational Dof existant
+     * @return Trues if exists, false otherwise
+     */
+    virtual bool HasRotDof() const;
+
+    /**
+     * @brief This method computes the DoF block size
+     * @return The size of the DoF block
+     */
+    unsigned int GetBlockSize() const
+    {
+        unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        if( HasRotDof() ) { // if it has rotations
+            if(dim == 2)
+                return 3;
+            else if(dim == 3)
+                return 6;
+            else
+                KRATOS_ERROR << "The conditions only works for 2D and 3D elements";
+        } else {
+            return dim;
+        }
+    }
 
     /**
      * Calculates the pseudo-load contribution of the condition w.r.t.  a scalar design variable.

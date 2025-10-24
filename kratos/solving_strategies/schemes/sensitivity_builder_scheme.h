@@ -594,10 +594,13 @@ private:
         KRATOS_TRY;
 
         const auto k = OpenMPUtils::ThisThread();
-
+        //KRATOS_WATCH(rCurrentEntity.Id())
         rCurrentEntity.CalculateSensitivityMatrix(rVariable, mSensitivityMatrices[k], rCurrentProcessInfo);
         rCurrentEntity.GetValuesVector(mAdjointVectors[k]);
+        //KRATOS_WATCH(mSensitivityMatrices[k])
+        //KRATOS_WATCH(mAdjointVectors[k])
 
+        //KRATOS_ERROR_IF_NOT(k < mAdjointVectors.size());
         KRATOS_ERROR_IF(mAdjointVectors[k].size() != mSensitivityMatrices[k].size2())
             << "mAdjointVectors.size(): " << mAdjointVectors[k].size()
             << " incompatible with mSensitivityMatrices[k].size1(): "
@@ -605,6 +608,8 @@ private:
 
         rResponseFunction.CalculatePartialSensitivity(
             rCurrentEntity, rVariable, mSensitivityMatrices[k], mPartialSensitivity[k], rCurrentProcessInfo);
+
+        //KRATOS_WATCH(mPartialSensitivity[k])
 
         KRATOS_ERROR_IF(mPartialSensitivity[k].size() != mSensitivityMatrices[k].size1())
             << "mPartialSensitivity.size(): " << mPartialSensitivity[k].size()
@@ -616,7 +621,7 @@ private:
         }
 
         noalias(rSensitivity) = prod(mSensitivityMatrices[k], mAdjointVectors[k]) + mPartialSensitivity[k];
-
+        //KRATOS_WATCH(rSensitivity)
         KRATOS_CATCH("");
     }
 

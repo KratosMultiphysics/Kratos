@@ -105,6 +105,7 @@ public:
     explicit ResidualBasedBossakDisplacementScheme(Parameters ThisParameters)
         : ImplicitBaseType()
     {
+        //std::cout << "Creating ResidualBasedBossakDisplacementScheme " << std::endl;
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
@@ -122,6 +123,7 @@ public:
     explicit ResidualBasedBossakDisplacementScheme(const double Alpha = 0.0)
         : ResidualBasedBossakDisplacementScheme(Alpha, 0.25)
     {
+        //std::cout << "Creating ResidualBasedBossakDisplacementScheme " << std::endl;
     }
 
     /** @brief Constructor.
@@ -133,6 +135,7 @@ public:
     explicit ResidualBasedBossakDisplacementScheme(const double Alpha, const double NewmarkBeta)
         :ImplicitBaseType()
     {
+        //std::cout << "Creating ResidualBasedBossakDisplacementScheme " << std::endl;
         // For pure Newmark Scheme
         mBossak.alpha = Alpha;
         mNewmark.beta = NewmarkBeta;
@@ -174,6 +177,10 @@ public:
     {
         mBossak.beta  = (1.0 - mBossak.alpha) * (1.0 - mBossak.alpha) * mNewmark.beta;
         mBossak.gamma = mNewmark.gamma  - mBossak.alpha;
+        KRATOS_WATCH(mBossak.alpha)
+        KRATOS_WATCH(mBossak.beta)
+        KRATOS_WATCH(mBossak.gamma)
+  
     }
 
     /** @brief Update state variables within a newton iteration at the end of the time step.
@@ -341,6 +348,13 @@ public:
         mBossak.c3 = ( 0.5 / (mBossak.beta) - 1.0 );
         mBossak.c4 = ( (mBossak.gamma / mBossak.beta) - 1.0  );
         mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
+
+        // KRATOS_WATCH(mBossak.c0)
+        // KRATOS_WATCH(mBossak.c1)
+        // KRATOS_WATCH(mBossak.c2)
+        // KRATOS_WATCH(mBossak.c3)
+        // KRATOS_WATCH(mBossak.c4)
+        // KRATOS_WATCH(mBossak.c5)
 
         // Updating time derivatives (nodally for efficiency)
         if (rModelPart.Nodes().size() > 0) {

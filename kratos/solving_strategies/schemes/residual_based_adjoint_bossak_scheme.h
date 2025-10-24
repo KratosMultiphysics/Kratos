@@ -98,6 +98,22 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Set the Response Function
+     *
+     * This sets the response function used in the sensitivity builder. This
+     * is useful in cases where the LHS of the adjoint problem does not change,
+     * but the RHS changes due to change in the the response function. In these
+     * cases, this allows re-use of the already constructed LHS with different
+     * RHSs.
+     *
+     * @param pResponseFunction         New Response function to be set.
+     */
+    void SetResponseFunction(AdjointResponseFunction::Pointer pResponseFunction)
+    {
+        mpResponseFunction = pResponseFunction;
+    }
+
     int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY
@@ -188,6 +204,7 @@ public:
         mBossak = CalculateBossakConstants(mBossak.Alpha, GetTimeStep(r_current_process_info));
 
         this->CalculateNodeNeighbourCount(rModelPart);
+        //std::cout << "InitializeSolnStep of Bossak" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -235,7 +252,7 @@ public:
 
         const auto k = OpenMPUtils::ThisThread();
         const auto& r_const_elem_ref = rCurrentElement;
-
+        //KRATOS_WATCH(rCurrentElement.Id())
         r_const_elem_ref.GetValuesVector(mAdjointValuesVector[k]);
         const auto local_size = mAdjointValuesVector[k].size();
         if (rRHS_Contribution.size() != local_size)
@@ -247,22 +264,31 @@ public:
             rLHS_Contribution.resize(local_size, local_size, false);
         }
         this->CheckAndResizeThreadStorage(local_size);
-
+        //std::cout<< "CalculateGradientContributions" << std::endl;
         this->CalculateGradientContributions(rCurrentElement, rLHS_Contribution,
                                              rRHS_Contribution, rCurrentProcessInfo);
-
+        //KRATOS_WATCH(rLHS_Contribution)
+        //KRATOS_WATCH(rRHS_Contribution)
+        //std::cout<< "CalculateFirstDerivativeContributions" << std::endl;
         this->CalculateFirstDerivativeContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-
+        //KRATOS_WATCH(rLHS_Contribution)
+        //KRATOS_WATCH(rRHS_Contribution)
+        //std::cout<< "CalculateSecondDerivativeContributions" << std::endl;
         this->CalculateSecondDerivativeContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-
+        //KRATOS_WATCH(rLHS_Contribution)
+        //KRATOS_WATCH(rRHS_Contribution)
+        //std::cout<< "CalculatePreviousTimeStepContributions" << std::endl;
         this->CalculatePreviousTimeStepContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-
+        //KRATOS_WATCH(rLHS_Contribution)
+        //KRATOS_WATCH(rRHS_Contribution)
+        //std::cout<< "CalculateResidualLocalContributions" << std::endl;
         this->CalculateResidualLocalContributions(
             rCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-
+        //KRATOS_WATCH(rLHS_Contribution)
+        //KRATOS_WATCH(rRHS_Contribution)
         rCurrentElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
@@ -292,6 +318,7 @@ public:
 
         const auto k = OpenMPUtils::ThisThread();
         const auto& r_const_cond_ref = rCurrentCondition;
+        //KRATOS_WATCH(rCurrentCondition.Id())
         r_const_cond_ref.GetValuesVector(mAdjointValuesVector[k]);
         const auto local_size = mAdjointValuesVector[k].size();
         if (rRHS_Contribution.size() != local_size)
@@ -303,24 +330,30 @@ public:
             rLHS_Contribution.resize(local_size, local_size, false);
         }
         this->CheckAndResizeThreadStorage(local_size);
-
+        //std::cout<< "CalculateGradientContributions" << std::endl;
         this->CalculateGradientContributions(rCurrentCondition, rLHS_Contribution,
                                              rRHS_Contribution, rCurrentProcessInfo);
-
+        //KRATOS_WATCH(rLHS_Contribution)
+        //KRATOS_WATCH(rRHS_Contribution)
+        //std::cout<< "CalculateFirstDerivativeContributions" << std::endl;
         this->CalculateFirstDerivativeContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-
+        //KRATOS_WATCH(rLHS_Contribution)
+        //KRATOS_WATCH(rRHS_Contribution)
+        //std::cout<< "CalculateSecondDerivativeContributions" << std::endl;
         this->CalculateSecondDerivativeContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-
+        //KRATOS_WATCH(rLHS_Contribution)
+        //KRATOS_WATCH(rRHS_Contribution)
         // It is not required to call CalculatePreviousTimeStepContributions here again
         // since, the previous time step contributions from conditions are stored in variables
         // mentioned in AdjointExtensions, and they are added via CalculateSystemContributions<ElementType>
         // method.
-
+        //std::cout<< "CalculateResidualLocalContributions" << std::endl;
         this->CalculateResidualLocalContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-
+        //KRATOS_WATCH(rLHS_Contribution)
+        //KRATOS_WATCH(rRHS_Contribution)
         rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
@@ -666,8 +699,11 @@ private:
     {
         int k = OpenMPUtils::ThisThread();
         auto& r_residual_adjoint = mAdjointValuesVector[k];
+        //KRATOS_WATCH(r_residual_adjoint)
+        //KRATOS_WATCH(mAdjointValuesVector[k])
         const auto& r_const_entity_ref = rCurrentEntity;
         r_const_entity_ref.GetValuesVector(r_residual_adjoint);
+        //KRATOS_WATCH(r_residual_adjoint)
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, r_residual_adjoint);
     }
 
@@ -755,12 +791,16 @@ private:
         int k = OpenMPUtils::ThisThread();
         rCurrentEntity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rCurrentProcessInfo);
         mSecondDerivsLHS[k] *= (1.0 - mBossak.Alpha);
+        //KRATOS_WATCH(mSecondDerivsLHS[k])
         this->mpResponseFunction->CalculateSecondDerivativesGradient(
             rCurrentEntity, mSecondDerivsLHS[k],
             mSecondDerivsResponseGradient[k], rCurrentProcessInfo);
         noalias(rLHS_Contribution) += mBossak.C7 * mSecondDerivsLHS[k];
         noalias(rRHS_Contribution) -=
             mBossak.C7 * mSecondDerivsResponseGradient[k];
+        //KRATOS_WATCH(mBossak.C7)
+        //KRATOS_WATCH(mBossak.Beta)
+        
     }
 
     /**
@@ -799,6 +839,10 @@ private:
             r_extensions.GetSecondDerivativesVector(i_node, mAdjointIndirectVector3[k], 1);
             r_extensions.GetAuxiliaryVector(i_node, mAuxAdjointIndirectVector1[k], 1);
             const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+
+            // KRATOS_WATCH(mAuxAdjointIndirectVector1[k])
+            // KRATOS_WATCH(mAdjointIndirectVector2[k])
+            // KRATOS_WATCH(mAdjointIndirectVector3[k])
 
             for (unsigned d = 0; d < mAdjointIndirectVector2[k].size(); ++d)
             {
@@ -867,6 +911,12 @@ private:
             -mSecondDerivsResponseGradient[k] -
             prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
 
+        // KRATOS_WATCH(mAdjointValuesVector[k])
+        // KRATOS_WATCH(mFirstDerivsLHS[k])
+        // KRATOS_WATCH(mFirstDerivsResponseGradient[k])
+        // KRATOS_WATCH(mSecondDerivsLHS[k])
+        // KRATOS_WATCH(mSecondDerivsResponseGradient[k])
+
         KRATOS_CATCH("");
     }
 
@@ -902,6 +952,8 @@ private:
 
         if (rAdjointAuxiliaryValues.size() != mSecondDerivsLHS[k].size1())
             rAdjointAuxiliaryValues.resize(mSecondDerivsLHS[k].size1(), false);
+        //KRATOS_WATCH(mSecondDerivsLHS[k])
+        //KRATOS_WATCH(mAdjointValuesVector[k])
         noalias(rAdjointAuxiliaryValues) =
             prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) +
             mSecondDerivsResponseGradient[k];
@@ -950,7 +1002,9 @@ private:
 
         const auto& r_process_info = rModelPart.GetProcessInfo();
         UpdateEntityTimeSchemeContributions(rModelPart.Elements(), r_process_info);
+        //std::cout << "FInished UpdateEntityTimeSchemeContributions for elements" << std::endl;
         UpdateEntityTimeSchemeContributions(rModelPart.Conditions(), r_process_info);
+        //std::cout << "FInished UpdateEntityTimeSchemeContributions for conditions" << std::endl;
 
         // Finalize global assembly
         Assemble_AdjointVars(lambda2_vars, rModelPart.GetCommunicator());
@@ -1004,6 +1058,9 @@ private:
             this->CalculateTimeSchemeContributions(
                 rEntity, r_adjoint2_aux, r_adjoint3_aux, *this->mpResponseFunction,
                 mBossak, rProcessInfo);
+
+            //KRATOS_WATCH(r_adjoint2_aux)
+            //KRATOS_WATCH(r_adjoint3_aux)
 
             auto& r_extensions = *rEntity.GetValue(ADJOINT_EXTENSIONS);
 
@@ -1059,10 +1116,14 @@ private:
             r_lambda2_value += r_old_lambda2_value * mBossak.C0;
             r_lambda2_value += r_old_lambda3_value * mBossak.C1;
 
+            //KRATOS_WATCH(r_lambda2_value)
+
             TDataType& r_lambda3_value = rNode.FastGetSolutionStepValue(r_lambda3_variable);
             r_lambda3_value += r_old_lambda2_value * mBossak.C2;
             r_lambda3_value += r_old_lambda3_value * mBossak.C3;
             r_lambda3_value += rNode.FastGetSolutionStepValue(r_auxiliary_variable, 1);
+
+            //KRATOS_WATCH(r_lambda3_value)
         });
 
         KRATOS_CATCH("");
@@ -1115,7 +1176,7 @@ private:
 
             this->CalculateAuxiliaryVariableContributions(
                 rEntity, rAuxAdjointVectorTLS, *this->mpResponseFunction, mBossak, rProcessInfo);
-
+            //KRATOS_WATCH(rAuxAdjointVectorTLS)
             auto& r_extensions = *rEntity.GetValue(ADJOINT_EXTENSIONS);
             // Assemble the contributions to the corresponding nodal unknowns.
             unsigned local_index = 0;
@@ -1124,12 +1185,14 @@ private:
             for (unsigned i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
                 auto& r_node = r_geometry[i_node];
                 r_extensions.GetAuxiliaryVector(i_node, mAuxAdjointIndirectVector1[k], 0);
-
+                //KRATOS_WATCH(i_node)
+                //KRATOS_WATCH(mAuxAdjointIndirectVector1[k])
                 r_node.SetLock();
                 for (unsigned d = 0; d < mAuxAdjointIndirectVector1[k].size(); ++d) {
                     mAuxAdjointIndirectVector1[k][d] -= rAuxAdjointVectorTLS[local_index];
                     ++local_index;
                 }
+                //KRATOS_WATCH(mAuxAdjointIndirectVector1[k])
                 r_node.UnSetLock();
             }
         });
@@ -1201,6 +1264,20 @@ private:
         bc.C5 = -1.0 * (bc.Gamma + 0.5) / (DeltaTime * DeltaTime * bc.Beta * bc.Beta);
         bc.C6 = bc.Gamma / (bc.Beta * DeltaTime);
         bc.C7 = 1.0 / (DeltaTime * DeltaTime * bc.Beta);
+
+        KRATOS_WATCH(bc.Alpha)
+        KRATOS_WATCH(bc.Beta)
+        KRATOS_WATCH(bc.Gamma)
+        // KRATOS_WATCH(bc.C0)
+        // KRATOS_WATCH(bc.C1)
+        // KRATOS_WATCH(bc.C2)
+        // KRATOS_WATCH(bc.C3)
+        // KRATOS_WATCH(bc.C4)
+        // KRATOS_WATCH(bc.C5)
+        // KRATOS_WATCH(bc.C6)
+        // KRATOS_WATCH(bc.C7)
+
+        //KRATOS_WATCH(DeltaTime)
         return bc;
     }
 
@@ -1208,6 +1285,9 @@ private:
     {
         const ProcessInfo& r_last_process_info =
             rCurrentProcessInfo.GetPreviousSolutionStepInfo(1);
+
+        //KRATOS_WATCH(r_last_process_info.GetValue(TIME))
+        //KRATOS_WATCH(rCurrentProcessInfo.GetValue(TIME))
 
         // Note: solution is backwards in time, but we still want a positive
         // time step

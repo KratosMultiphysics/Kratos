@@ -104,16 +104,24 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
+    SensitivityBuilder() = delete;
+
     SensitivityBuilder(Parameters Settings,
                        ModelPart& rModelPart,
                        AdjointResponseFunction::Pointer pResponseFunction);
 
-    /// Constructor with SensitivityBuilderScheme.
     SensitivityBuilder(Parameters Settings,
                        ModelPart& rModelPart,
                        AdjointResponseFunction::Pointer pResponseFunction,
                        SensitivityBuilderScheme::Pointer pSensitivityBuilderScheme);
+
+    SensitivityBuilder(SensitivityBuilder&&) noexcept = default;
+
+    SensitivityBuilder(const SensitivityBuilder&) = delete;
+
+    SensitivityBuilder& operator=(SensitivityBuilder&&) noexcept = default;
+
+    SensitivityBuilder& operator=(const SensitivityBuilder&) = delete;
 
     ///@}
     ///@name Operations

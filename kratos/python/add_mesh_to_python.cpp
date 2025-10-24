@@ -346,6 +346,23 @@ void EntityCalculateSensitivityMatrix(
 }
 
 template<class TEntityType>
+void EntityGetValuesVector1(
+    const TEntityType& dummy,
+    Vector& rOutput)
+{
+    dummy.GetValuesVector(rOutput,0);
+}
+
+template<class TEntityType>
+void EntityGetValuesVector2(
+    const TEntityType& dummy,
+    Vector& rOutput,
+    int step)
+{
+    dummy.GetValuesVector(rOutput,step);
+}
+
+template<class TEntityType>
 void EntityGetFirstDerivativesVector1(
     const TEntityType& dummy,
     Vector& rOutput)
@@ -498,6 +515,8 @@ void  AddMeshToPython(pybind11::module& m)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Element>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Element>)
     .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Element>)
+    .def("GetValuesVector", &EntityGetValuesVector1<Element>)
+    .def("GetValuesVector", &EntityGetValuesVector2<Element>)
     .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector1<Element>)
     .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector2<Element>)
     .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector1<Element>)
@@ -667,6 +686,8 @@ void  AddMeshToPython(pybind11::module& m)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Condition>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Condition>)
     .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Condition>)
+    .def("GetValuesVector", &EntityGetValuesVector1<Condition>)
+    .def("GetValuesVector", &EntityGetValuesVector2<Condition>)
     .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector1<Condition>)
     .def("GetFirstDerivativesVector", &EntityGetFirstDerivativesVector2<Condition>)
     .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector1<Condition>)

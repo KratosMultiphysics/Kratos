@@ -19,6 +19,7 @@
 
 // Application includes
 #include "custom_responses/measurement_residual_response_function.h"
+#include "custom_responses/measurement_residual_dynamic_response_function.h"
 
 // Include base h
 #include "custom_python/add_custom_responses_to_python.h"
@@ -37,6 +38,14 @@ void AddCustomResponsesToPython(pybind11::module& m)
         .def("Clear", &MeasurementResidualResponseFunction::Clear)
         .def("GetSensorsList", &MeasurementResidualResponseFunction::GetSensorsList)
         .def("__str__", PrintObject<MeasurementResidualResponseFunction>)
+        ;
+
+    py::class_<MeasurementResidualDynamicResponseFunction, MeasurementResidualDynamicResponseFunction::Pointer, AdjointResponseFunction>(responses_module, "MeasurementResidualDynamicResponseFunction")
+        .def(py::init<const double>(), py::arg("p_coefficient"))
+        .def("AddSensor", &MeasurementResidualDynamicResponseFunction::AddSensor, py::arg("sensor"))
+        .def("Clear", &MeasurementResidualDynamicResponseFunction::Clear)
+        .def("GetSensorsList", &MeasurementResidualDynamicResponseFunction::GetSensorsList)
+        .def("__str__", PrintObject<MeasurementResidualDynamicResponseFunction>)
         ;
 
 }

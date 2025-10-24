@@ -350,6 +350,146 @@ void BaseShellElement<TCoordinateTransformation>::CalculateRightHandSide(VectorT
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
+/**
+ * ELEMENTS inherited from this class must implement this methods
+ * if they need to add dynamic element contributions
+ * note: first derivatives means the velocities if the displacements are the dof of the analysis
+ * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+ * CalculateFirstDerivativesContributions,
+ * CalculateFirstDerivativesLHS, CalculateFirstDerivativesRHS methods are : OPTIONAL
+ */
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the first derivatives contributions for the LHS and RHS
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rRightHandSideVector the elemental right hand side
+ * @param rCurrentProcessInfo the current process info instance
+ */
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                    VectorType& rRightHandSideVector,
+                                                    const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType num_dofs = GetNumberOfDofs();
+
+    if (rLeftHandSideMatrix.size1() != num_dofs || (rLeftHandSideMatrix.size2() != num_dofs)) {
+        rLeftHandSideMatrix.resize(num_dofs, num_dofs, false);
+    }
+    if (rRightHandSideVector.size() != num_dofs) {
+        rRightHandSideVector.resize(num_dofs, false);
+    }
+
+    CalculateFirstDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateFirstDerivativesRHS(rRightHandSideVector, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental left hand side matrix for the first derivatives contributions
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rCurrentProcessInfo the current process info instance
+ */
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType num_dofs = GetNumberOfDofs();
+
+    if (rLeftHandSideMatrix.size1() != num_dofs || (rLeftHandSideMatrix.size2() != num_dofs)) {
+        rLeftHandSideMatrix.resize(num_dofs, num_dofs, false);
+    }
+    CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental right hand side vector for the first derivatives contributions
+ * @param rRightHandSideVector the elemental right hand side vector
+ * @param rCurrentProcessInfo the current process info instance
+ */
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType num_dofs = GetNumberOfDofs();
+
+    if (rRightHandSideVector.size() != num_dofs) {
+        rRightHandSideVector.resize(num_dofs, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(num_dofs);
+}
+
+/**
+ * ELEMENTS inherited from this class must implement this methods
+ * if they need to add dynamic element contributions
+ * note: second derivatives means the accelerations if the displacements are the dof of the analysis
+ * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+ * CalculateSecondDerivativesContributions,
+ * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
+ */
+
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the second derivative contributions for the LHS and RHS
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rRightHandSideVector the elemental right hand side
+ * @param rCurrentProcessInfo the current process info instance
+ */
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                        VectorType& rRightHandSideVector,
+                                                        const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType num_dofs = GetNumberOfDofs();
+
+    if (rLeftHandSideMatrix.size1() != num_dofs || (rLeftHandSideMatrix.size2() != num_dofs)) {
+        rLeftHandSideMatrix.resize(num_dofs, num_dofs, false);
+    }
+    if (rRightHandSideVector.size() != num_dofs) {
+        rRightHandSideVector.resize(num_dofs, false);
+    }
+    CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateSecondDerivativesRHS(rRightHandSideVector, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental left hand side matrix for the second derivatives contributions
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rCurrentProcessInfo the current process info instance
+ */
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType num_dofs = GetNumberOfDofs();
+
+    if (rLeftHandSideMatrix.size1() != num_dofs || (rLeftHandSideMatrix.size2() != num_dofs)) {
+        rLeftHandSideMatrix.resize(num_dofs, num_dofs, false);
+    }
+    CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental right hand side vector for the second derivatives contributions
+ * @param rRightHandSideVector the elemental right hand side vector
+ * @param rCurrentProcessInfo the current process info instance
+ */
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType num_dofs = GetNumberOfDofs();
+
+    if (rRightHandSideVector.size() != num_dofs) {
+        rRightHandSideVector.resize(num_dofs, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(num_dofs);
+}
+
 template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {

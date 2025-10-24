@@ -75,6 +75,10 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         # initialize model parts
         self.model_parts = [self.model[model_part_name] for model_part_name in self.parameters["model_part_names"].GetStringArray()]
 
+        for model_part in self.model_parts:
+            model_part.SetValue(KratosOA.EXECUTION_POLICY_NAME, self.GetName())
+            #print("exec name ", model_part.GetValue(KratosOA.EXECUTION_POLICY_NAME))
+
     def Check(self) -> None:
         pass
 
