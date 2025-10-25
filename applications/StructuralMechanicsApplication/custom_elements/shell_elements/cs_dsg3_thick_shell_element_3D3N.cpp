@@ -733,24 +733,20 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
         CalculateBTriangle(B2, area_2, initial_center, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
         CalculateBTriangle(B3, area_3, initial_center, local_coords_3, local_coords_1, zeta1, zeta2, zeta3);
 
-        // TODO equation (27)
-        for (IndexType block = 0; block < 3; ++block) { // 3 blocks of 6 DoFs
-            for (IndexType row = 3; row < 7; ++row) { // bending and shear rows
-                for (IndexType col = 0; col < 6; ++col) { // 6 Dofs per node
-                    if (block == 0) {
-                        Bsmoothed(row, block*6 + col) += (area_1 * (B1(row, col) / 3.0 + B1(row, col + 12)) +
-                                                          area_2 * (B2(row, col) / 3.0 + B2(row, col + 12)) +
-                                                          area_3 * (B3(row, col) / 3.0 + B3(row, col + 12))) / area;
-                    } else if (block == 1) {
-                        Bsmoothed(row, block*6 + col) += (area_1 * (B1(row, col) / 3.0) +
-                                                          area_2 * (B2(row, col) / 3.0) +
-                                                          area_3 * (B3(row, col) / 3.0)) / area;
-                    } else if (block == 2) {
-                        Bsmoothed(row, block*6 + col) += (area_1 * (B1(row, col) / 3.0 + B1(row, col + 6)) +
-                                                          area_2 * (B2(row, col) / 3.0 + B2(row, col + 6)) +
-                                                          area_3 * (B3(row, col) / 3.0 + B3(row, col + 6))) / area;
-                    }
-                }
+        for (IndexType row = 3; row < 7; ++row) { // bending and shear rows
+            for (IndexType col = 0; col < 6; ++col) { // 6 Dofs per node
+                // Block 1
+                Bsmoothed(row, col) += (area_1 * (B1(row, col) / 3.0 + B1(row, col + 6)) +
+                                                    area_2 * (B2(row, col) / 3.0) +
+                                                    area_3 * (B3(row, col) / 3.0 + B3(row, col + 12))) / area;
+                // Block 2
+                Bsmoothed(row, 6 + col) += (area_1 * (B1(row, col) / 3.0 + B1(row, col + 12)) +
+                                                    area_2 * (B2(row, col) / 3.0 +  B2(row, col + 6)) +
+                                                    area_3 * (B3(row, col) / 3.0)) / area;
+                // Block 3
+                Bsmoothed(row, 12 + col) += (area_1 * (B1(row, col) / 3.0) +
+                                             area_2 * (B2(row, col) / 3.0 + B2(row, col + 12)) +
+                                             area_3 * (B3(row, col) / 3.0 + B3(row, col + 6))) / area;
             }
         }
 
@@ -873,25 +869,20 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
         CalculateBTriangle(B2, area_2, initial_center, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
         CalculateBTriangle(B3, area_3, initial_center, local_coords_3, local_coords_1, zeta1, zeta2, zeta3);
 
-        // TODO equation (27)
-        // TODO equation (27)
-        for (IndexType block = 0; block < 3; ++block) { // 3 blocks of 6 DoFs
-            for (IndexType row = 3; row < 7; ++row) { // bending and shear rows
-                for (IndexType col = 0; col < 6; ++col) { // 6 Dofs per node
-                    if (block == 0) {
-                        Bsmoothed(row, block*6 + col) += (area_1 * (B1(row, col) / 3.0 + B1(row, col + 12)) +
-                                                          area_2 * (B2(row, col) / 3.0 + B2(row, col + 12)) +
-                                                          area_3 * (B3(row, col) / 3.0 + B3(row, col + 12))) / area;
-                    } else if (block == 1) {
-                        Bsmoothed(row, block*6 + col) += (area_1 * (B1(row, col) / 3.0) +
-                                                          area_2 * (B2(row, col) / 3.0) +
-                                                          area_3 * (B3(row, col) / 3.0)) / area;
-                    } else if (block == 2) {
-                        Bsmoothed(row, block*6 + col) += (area_1 * (B1(row, col) / 3.0 + B1(row, col + 6)) +
-                                                          area_2 * (B2(row, col) / 3.0 + B2(row, col + 6)) +
-                                                          area_3 * (B3(row, col) / 3.0 + B3(row, col + 6))) / area;
-                    }
-                }
+        for (IndexType row = 3; row < 7; ++row) { // bending and shear rows
+            for (IndexType col = 0; col < 6; ++col) { // 6 Dofs per node
+                // Block 1
+                Bsmoothed(row, col) += (area_1 * (B1(row, col) / 3.0 + B1(row, col + 6)) +
+                                                    area_2 * (B2(row, col) / 3.0) +
+                                                    area_3 * (B3(row, col) / 3.0 + B3(row, col + 12))) / area;
+                // Block 2
+                Bsmoothed(row, 6 + col) += (area_1 * (B1(row, col) / 3.0 + B1(row, col + 12)) +
+                                                    area_2 * (B2(row, col) / 3.0 +  B2(row, col + 6)) +
+                                                    area_3 * (B3(row, col) / 3.0)) / area;
+                // Block 3
+                Bsmoothed(row, 12 + col) += (area_1 * (B1(row, col) / 3.0) +
+                                             area_2 * (B2(row, col) / 3.0 + B2(row, col + 12)) +
+                                             area_3 * (B3(row, col) / 3.0 + B3(row, col + 6))) / area;
             }
         }
 
