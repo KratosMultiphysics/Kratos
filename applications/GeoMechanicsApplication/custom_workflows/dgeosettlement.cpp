@@ -196,7 +196,10 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
         }
 
-        PrepareModelPart(project_parameters["solver_settings"], project_parameters["processes"]);
+        static const Parameters empty_parameters("{}");
+        const Parameters&       processes_parameters =
+            project_parameters.Has("processes") ? project_parameters["processes"] : empty_parameters;
+        PrepareModelPart(project_parameters["solver_settings"], processes_parameters);
 
         if (project_parameters["solver_settings"].Has("material_import_settings")) {
             const auto material_file_name =
@@ -433,8 +436,8 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
 
     std::vector<std::string>        domain_condition_names;
     std::unordered_set<std::string> unique_names;
-    const auto root_name = rSolverSettings["model_part_name"].GetString();
-    const auto prefix = root_name + ".";
+    const auto                      root_name = rSolverSettings["model_part_name"].GetString();
+    const auto                      prefix    = root_name + ".";
 
     for (const auto& list_name : process_list_names) {
         if (rProcesses.Has(list_name)) {
@@ -484,14 +487,12 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
                 domain_condition_names.emplace_back(name);
                 KRATOS_INFO("PrepareModelPart") << " missing model_part_name :" << name << '\n';
             }
-//            KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has more names"<< std::endl;
         }
 
         if (!extra_names.empty()) {
             for (const auto& name : missing_names) {
                 KRATOS_INFO("PrepareModelPart") << " extra model_part_name :" << name << '\n';
             }
-  //          KRATOS_ERROR << "PrepareModelPart processes_sub_model_part_list has less names"<< std::endl;
         }
     }
 
