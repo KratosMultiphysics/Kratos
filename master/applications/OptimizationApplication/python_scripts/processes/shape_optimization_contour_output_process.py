@@ -133,6 +133,7 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
             i += 1
             mp_interface.CreateNewNode(i, zero_level_set[k][0], zero_level_set[k][1], zero_level_set[k][2])
             node_ids.append(i)
+        print(f"id:{node_ids}\ncoordinates: {zero_level_set}")
         if corners == []:
             # raise RuntimeError(f"zero node coordinates: {zero_level_set}\nzero node ids: {node_ids}\ncorners: {corners}\nedge: {edge}")
             if n == 2:
@@ -159,7 +160,7 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                 # # Create two triangle conditions sharing the shorter diagonal (c,d)
                 # mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 1, [a, c, d], prop)
                 # mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 2, [b, c, d], prop)
-            elif n == 6:
+            elif n == 6 and len(edge)!=0:
                 distances = {}
                 distances_bound = {}
                 for l in range(4):
@@ -185,30 +186,83 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                 mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [a, c, b, d], prop)
                 mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, [e, f, h, g], prop)
             elif n == 6 and len(edge) == 0:
-                distances = {}
-                distances_bound = {}
-                for l in range(4):
+                shortest = []
+                third_shortest = {}
+                for l in range(6):
+                    distances = {}
                     node1 = zero_level_set[l]
-                    for k, node_bound in enumerate(zero_level_set[4:6]):
-                        dist_bound = sum((node1[dim] - node_bound[dim])**2 for dim in range(3))
-                        distances_bound[(node_ids[l], node_ids[k + 4])] = dist_bound
-                    for k in range(l + 1, 4):
+                    for k in range(6):
+                        if l == k:
+                            continue
                         node2 = zero_level_set[k]
                         distance = sum((node1[dim] - node2[dim])**2 for dim in range(3))
                         distances[(node_ids[l], node_ids[k])] = distance
-                        
-                furthest = max(distances, key=distances.get)
-                a, b = furthest
-                # Collect all cutting node indices
-                remaining = list(set(node_ids[0:4]) - {a, b})
-                c, d = remaining[0], remaining[1]
-                # boundary nodes
-                closest = min(distances_bound, key=distances_bound.get)
-                e, f = closest
-                distances_bound.pop(closest)
-                g, h = min(distances_bound, key=distances_bound.get)
-                mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [a, c, b, d], prop)
-                mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, [e, f, h, g], prop)
+                    cur_shortest = sorted(distances, key=distances.get, reverse=False)[:3]
+                    third_shortest[cur_shortest[2]] = distances[cur_shortest[2]]
+                    # print(f"Distances: {distances}\nThird shortest: {third_shortest}")
+                    if (cur_shortest[0] not in shortest) and (cur_shortest[0][::-1] not in shortest):
+                        shortest.append(cur_shortest[0])
+                    if cur_shortest[1] not in shortest and cur_shortest[1][::-1] not in shortest:
+                        shortest.append(cur_shortest[1])
+                    # print(f"current shortest: {cur_shortest}")
+                    # print(f"shortest: {shortest}")
+                if len(shortest) == 6:
+                    third = sorted(third_shortest, key=third_shortest.get, reverse=False)[0]
+                    shortest.append(third)
+                # how many instances
+                shared_nodes = {}
+                for pair in shortest:
+                    for node in pair:
+                        if not node in shared_nodes:
+                            shared_nodes[node] = 1
+                        else:
+                            shared_nodes[node] = shared_nodes[node] + 1
+                # print(f"Connections: {shortest}\nNumber of edges: {shared_nodes}")
+                shared = []
+                # nodes that appare 3 times are shared nodes of surfaces
+                for shared_node, instances in shared_nodes.items():
+                    if instances == 3:
+                        shared.append(shared_node)
+                # print(f"Shared: {shared}, reverse: {shared[::-1]}")
+                if tuple(shared) in shortest:
+                    shortest.remove(tuple(shared))
+                elif tuple(shared[::-1]) in shortest:
+                    shortest.remove(tuple(shared[::-1]))
+                surf1 = shared.copy()
+                cur = shared[1]
+                # loop over remaining pairs to find a closed loop
+                while len(surf1) < 4:
+                    for l in range(len(shortest)):
+                        if cur == shortest[l][0]:
+                            surf1.append(shortest[l][1])
+                            cur = shortest[l][1]
+                            shortest.pop(l)
+                            break
+                        elif cur == shortest[l][1]:
+                            surf1.append(shortest[l][0])
+                            cur = shortest[l][0]
+                            shortest.pop(l)
+                            break
+                if (surf1[0], surf1[-1]) in shortest:
+                    shortest.remove((surf1[0], surf1[-1]))
+                elif (surf1[-1], surf1[0]) in shortest:
+                    shortest.remove((surf1[-1], surf1[0]))
+                surf2 = shared.copy()
+                cur = shared[1]
+                while len(surf2) < 4:
+                    for l in range(len(shortest)):
+                        if cur == shortest[l][0]:
+                            surf2.append(shortest[l][1])
+                            cur = shortest[l][1]
+                            shortest.pop(l)
+                            break
+                        elif cur == shortest[l][1]:
+                            surf2.append(shortest[l][0])
+                            cur = shortest[l][0]
+                            shortest.pop(l)
+                            break
+                mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, surf1, prop)
+                mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, surf2, prop)
             # two internal node intersections
             elif n == 8 and len(edge) == 8:
                 connections = []
