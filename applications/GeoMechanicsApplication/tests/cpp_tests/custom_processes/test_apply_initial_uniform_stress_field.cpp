@@ -20,7 +20,6 @@
 
 namespace Kratos::Testing
 {
-
 KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToPlaneStrainElementsInModelPart,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -129,6 +128,17 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldThrowsUponConstructionWh
         "match the strain size of the constitutive law, which is 4, but is 3 for element 1 in "
         "model part "
         "'Main'. Please check the process parameters.");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyInitialUniformStressField, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_empty_model_part = model.CreateModelPart("foo");
+    const ApplyInitialUniformStressField process(r_empty_model_part, {R"({"value": [1.0, 2.0, 3.0, 4.0]})"});
+
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyInitialUniformStressField");
 }
 
 } // namespace Kratos::Testing
