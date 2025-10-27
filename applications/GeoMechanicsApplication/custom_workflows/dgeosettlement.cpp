@@ -446,12 +446,12 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
 
     auto extract_model_part_names = [&domain_condition_names, &root_name, &prefix](const auto& process_list) {
         for (const auto& process : process_list) {
-            if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
-                auto model_part_name = process["Parameters"]["model_part_name"].GetString();
-                if (model_part_name == root_name) continue;
-                if (model_part_name.rfind(prefix, 0) == 0) model_part_name.erase(0, prefix.size());
-                domain_condition_names.insert(model_part_name);
-            }
+            if (!process.Has("Parameters")) continue;
+            if (!process["Parameters"].Has("model_part_name")) continue;
+            auto model_part_name = process["Parameters"]["model_part_name"].GetString();
+            if (model_part_name == root_name) continue;
+            if (model_part_name.rfind(prefix, 0) == 0) model_part_name.erase(0, prefix.size());
+            domain_condition_names.insert(model_part_name);
         }
     };
 
