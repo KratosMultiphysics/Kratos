@@ -624,10 +624,6 @@ Begin Conditions LineLoadDiffOrderCondition2D3N
   171  0  2 3 104
 End Conditions
 
-Begin Conditions LineNormalLoadDiffOrderCondition2D3N
-  172  0  2 3 104
-End Conditions
-
 Begin SubModelPart Soil-0
   Begin SubModelPartNodes
     23
@@ -3338,17 +3334,6 @@ Begin SubModelPart Head_line0
   End SubModelPartElements
 End SubModelPart 
 
-Begin SubModelPart PhreaticLineContactStress0
-  Begin SubModelPartNodes
-    2
-    3
-    104
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    172
-  End SubModelPartConditions
-End SubModelPart 
-
 Begin SubModelPart K0_model_part
   Begin SubModelPartNodes
     1
@@ -4589,17 +4574,6 @@ Begin SubModelPart Head_line1
   End SubModelPartElements
 End SubModelPart 
 
-Begin SubModelPart PhreaticLineContactStress1
-  Begin SubModelPartNodes
-    2
-    3
-    104
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    172
-  End SubModelPartConditions
-End SubModelPart 
-
 Begin SubModelPart Head_line2
   Begin SubModelPartNodes
     1
@@ -5220,17 +5194,6 @@ Begin SubModelPart Head_line2
   End SubModelPartElements
 End SubModelPart 
 
-Begin SubModelPart PhreaticLineContactStress2
-  Begin SubModelPartNodes
-    2
-    3
-    104
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    172
-  End SubModelPartConditions
-End SubModelPart 
-
 Begin SubModelPart Head_line3
   Begin SubModelPartNodes
     1
@@ -5849,17 +5812,6 @@ Begin SubModelPart Head_line3
     169
     170
   End SubModelPartElements
-End SubModelPart 
-
-Begin SubModelPart PhreaticLineContactStress3
-  Begin SubModelPartNodes
-    2
-    3
-    104
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    172
-  End SubModelPartConditions
 End SubModelPart 
 
 Begin Table 4 X LINE_LOAD_Y
@@ -6499,17 +6451,6 @@ Begin SubModelPart Head_line4
     169
     170
   End SubModelPartElements
-End SubModelPart 
-
-Begin SubModelPart PhreaticLineContactStress4
-  Begin SubModelPartNodes
-    2
-    3
-    104
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    172
-  End SubModelPartConditions
 End SubModelPart 
 
 Begin Table 5 X LINE_LOAD_Y
