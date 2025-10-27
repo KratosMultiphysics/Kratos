@@ -79,7 +79,9 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     target_link_libraries(KratosCoreTestUtilities KratosCore GTest::gtest GTest::gmock)
     set_target_properties(KratosCoreTestUtilities PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_UTILS=IMPORT,API")
     target_link_libraries(KratosCoreTest PUBLIC KratosCoreTestUtilities GTest::gmock_main)
-    set_target_properties(KratosCoreTest PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_CORE=IMPORT,API")
+    set_target_properties(KratosCoreTest PROPERTIES
+                          COMPILE_DEFINITIONS "KRATOS_TEST_CORE=IMPORT,API"
+                          INSTALL_RPATH "$ORIGIN/../libs")
 
     install(TARGETS KratosCoreTestUtilities DESTINATION libs)
     install(TARGETS KratosCoreTest DESTINATION test)
