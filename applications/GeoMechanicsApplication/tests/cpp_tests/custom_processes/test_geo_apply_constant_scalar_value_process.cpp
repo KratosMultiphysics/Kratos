@@ -170,9 +170,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoApplyConstantScalarValueProcess, KratosGeo
     // Arrange
     Model      model;
     const auto nodal_variables = Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X)};
-    auto&      r_model_part =
-        ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model, nodal_variables);
-    Parameters                         parameters(R"(
+    auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model, nodal_variables);
+    Parameters                               parameters(R"(
       {
           "model_part_name" : "Main",
           "variable_name"   : "DISPLACEMENT_X",
