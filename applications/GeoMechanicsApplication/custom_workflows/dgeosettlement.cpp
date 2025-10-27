@@ -430,16 +430,20 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
     GetComputationalModelPart().Conditions().clear();
-    const std::vector<std::string> process_lists_to_be_checked = {
-        "constraints_process_list", "loads_process_list", "auxiliary_process_list"};
 
-    std::unordered_set<std::string> domain_condition_names;
+    struct StringHash {
+        using is_transparent = void; // Enables heterogeneous operations.
+
+        std::size_t operator()(std::string_view sv) const {
+            std::hash<std::string_view> hasher;
+            return hasher(sv);
+        }
+    };
+    std::unordered_set<std::string, StringHash, std::equal_to<>> domain_condition_names;
     const auto                      root_name = rSolverSettings["model_part_name"].GetString();
     const auto                      prefix    = root_name + ".";
 
-    for (const auto& process_list_name : process_lists_to_be_checked) {
-        if (!rProcesses.Has(process_list_name)) continue;
-        const auto& process_list = rProcesses[process_list_name];
+    auto extract_model_part_names = [&domain_condition_names, &root_name, &prefix](const auto& process_list) {
         for (const auto& process : process_list) {
             if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
                 auto model_part_name = process["Parameters"]["model_part_name"].GetString();
@@ -448,6 +452,13 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
                 domain_condition_names.insert(model_part_name);
             }
         }
+    };
+
+    const std::vector<std::string> process_lists_to_be_checked = {
+        "constraints_process_list", "loads_process_list", "auxiliary_process_list"};
+    for (const auto& process_list_name : process_lists_to_be_checked) {
+        if (rProcesses.Has(process_list_name))
+            extract_model_part_names(rProcesses[process_list_name]);
     }
 
     KRATOS_INFO_IF("PrepareModelPart", rSolverSettings.Has("processes_sub_model_part_list"))
