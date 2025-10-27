@@ -430,71 +430,28 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
     GetComputationalModelPart().Conditions().clear();
-    // Define all the process list names you want to extract
-    const std::vector<std::string> process_list_names = {
+    const std::vector<std::string> process_lists_to_be_checked = {
         "constraints_process_list", "loads_process_list", "auxiliary_process_list"};
 
-    std::vector<std::string>        domain_condition_names;
-    std::unordered_set<std::string> unique_names;
+    std::unordered_set<std::string> domain_condition_names;
     const auto                      root_name = rSolverSettings["model_part_name"].GetString();
     const auto                      prefix    = root_name + ".";
 
-    for (const auto& list_name : process_list_names) {
-        if (rProcesses.Has(list_name)) {
-            const auto& process_list = rProcesses[list_name];
-            for (const auto& process : process_list) {
-                if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
-                    auto model_part_name = process["Parameters"]["model_part_name"].GetString();
-                    if (model_part_name != root_name) {
-                        if (model_part_name.rfind(prefix, 0) == 0) {
-                            model_part_name.erase(0, prefix.size());
-                        }
-                        if (unique_names.insert(model_part_name).second) {
-                            domain_condition_names.emplace_back(model_part_name);
-                        }
-                    }
-                }
+    for (const auto& process_list_name : process_lists_to_be_checked) {
+        if (!rProcesses.Has(process_list_name)) continue;
+        const auto& process_list = rProcesses[process_list_name];
+        for (const auto& process : process_list) {
+            if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
+                auto model_part_name = process["Parameters"]["model_part_name"].GetString();
+                if (model_part_name == root_name) continue;
+                if (model_part_name.rfind(prefix, 0) == 0) model_part_name.erase(0, prefix.size());
+                domain_condition_names.insert(model_part_name);
             }
         }
     }
 
-    // check against the old way of settings
-    if (rSolverSettings.Has("processes_sub_model_part_list")) {
-        const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
-
-        std::unordered_set<std::string> sub_model_part_set;
-        for (const auto& sub_mp_entry : processes_sub_model_part_list) {
-            sub_model_part_set.insert(sub_mp_entry.GetString());
-        }
-
-        std::vector<std::string> missing_names;
-        std::vector<std::string> extra_names;
-
-        for (const auto& name : sub_model_part_set) {
-            if (unique_names.find(name) == unique_names.end()) {
-                missing_names.push_back(name);
-            }
-        }
-
-        for (const auto& name : unique_names) {
-            if (sub_model_part_set.find(name) == sub_model_part_set.end()) {
-                extra_names.push_back(name);
-            }
-        }
-
-        if (!missing_names.empty()) {
-            for (const auto& name : missing_names) {
-                domain_condition_names.emplace_back(name);
-                KRATOS_INFO("PrepareModelPart") << " missing model_part_name :" << name << '\n';
-            }
-        }
-
-        if (!extra_names.empty()) {
-            for (const auto& name : missing_names) {
-                KRATOS_INFO("PrepareModelPart") << " extra model_part_name :" << name << '\n';
-            }
-        }
-    }
+    KRATOS_INFO_IF("PrepareModelPart", rSolverSettings.Has("processes_sub_model_part_list"))
+        << " processes_sub_model_part_list is deprecated" << std::endl;
 
     std::set<IndexedObject::IndexType> condition_id_set;
     for (const auto& name : domain_condition_names) {
