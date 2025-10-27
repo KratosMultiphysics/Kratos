@@ -46,9 +46,12 @@ namespace Kratos
 /**
  * @class CSDSG3ThickShellElement3D3N
  * @ingroup StructuralMechanicsApplication
- * @brief This is the CS-DSG3 shell element. This element accounts for shear deformation using the Discrete Shear Gap (DSG) technique
- * Reference: Rama et al., "Efficient Co-Rotational 3-Node Shell Element", American Journal of Engineering and Applied Sciences 2016, 9 (2): 420.431
- * DOI: 10.3844/ajeassp.2016.420.431
+ * @brief This is the enhanced CS-DSG3 shell element. This element accounts for shear deformation using the Discrete Shear Gap (DSG) technique [1]. The shear and bending strain-displacement matrices are smoothed to improve the performance of the element in bending-dominated problems.
+ * The membrane part is based on the ANDES membrane formulation proposed by Felippa [2]. 
+ * This element can be used in both Linear and corotational formulations.
+ * References:
+ * [1]: Rama et al., "Efficient Co-Rotational 3-Node Shell Element", American Journal of Engineering and Applied Sciences 2016, 9 (2): 420.431 DOI: 10.3844/ajeassp.2016.420.431
+ * [2]: Felippa, C. A., "A study of optimal membrane triangle with drilling freedoms", CMAME, 2003, 2125-2168 DOI:10.1016/S0045-7825(03)00253-6
  * @author Alejandro Cornejo
  */
 template <bool IS_COROTATIONAL>
@@ -240,9 +243,9 @@ public:
     );
 
     /**
-     * @brief This method computes the Strain-Displacement matrix B, used to relate nodal displacements to strains for a triangle sub-element
+     * @brief This method computes the Strain-Displacement matrix B for the membrane part.
      * It assumes that the coordinates are already in the local coordinate system
-     * @details The B matrix includes the membrane, bending and shear parts. Size of 8x18 since we have 8 generalized strains and 18 dofs (3 nodes with 6 dofs each)
+     * @details The B matrix includes the membrane based on the Felippa's ANDES optimal membrane element
      */
     void CalculateBmTriangle(
         MatrixType& rB,
@@ -389,21 +392,6 @@ public:
         integration_points[2] = IntegrationPoint<3>(0.5, 0.0, 0.5, w);
 
         return integration_points;
-    }
-
-    /**
-     * @brief This method computes the initial center of the element
-     */
-    array_3 GetInitialCenter() const
-    {
-        const auto& r_geometry = GetGeometry();
-        const auto number_of_nodes = r_geometry.PointsNumber();
-        array_3 center = ZeroVector(3);
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            noalias(center) += r_geometry[i].GetInitialPosition();
-        }
-        center /= static_cast<double>(number_of_nodes);
-        return center;
     }
 
     /**
