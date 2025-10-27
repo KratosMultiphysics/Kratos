@@ -217,9 +217,24 @@ public:
     /**
      * @brief This method computes the Strain-Displacement matrix B, used to relate nodal displacements to strains for a triangle sub-element
      * It assumes that the coordinates are already in the local coordinate system
-     * @details The B matrix includes the membrane, bending and shear parts. Size of 8x18 since we have 8 generalized strains and 18 dofs (3 nodes with 6 dofs each)
+     * @details The B matrix includes the bending and shear parts. Size of 8x18 since we have 8 generalized strains and 18 dofs (3 nodes with 6 dofs each)
      */
-    void CalculateBTriangle(
+    void CalculateBbendingShearTriangle(
+        MatrixType& rB,
+        const double Area,
+        const array_3& r_coord_1, 
+        const array_3& r_coord_2, 
+        const array_3& r_coord_3,
+        const double area_coord_1,
+        const double area_coord_2,
+        const double area_coord_3
+    );
+
+    /**
+     * @brief This method computes the smoothed bending and shear Strain-Displacement matrix B, used to relate nodal displacements to strains for the global triangle
+     * Source: Eqs. (29)-(31) in Rama et al., "Efficient Co-Rotational 3-Node Shell Element", American Journal of Engineering and Applied Sciences 2016, 9 (2): 420.431
+     */
+    void CalculateSmoothedBendingShearB(
         MatrixType& rB,
         const double Area,
         const array_3& r_coord_1, 
