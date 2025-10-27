@@ -59,7 +59,7 @@
                                          "LeftSide",
                                          "RightSide",
                                          "K0_model_part",
-                                         "Head_line0"],
+                                         "Head_line"],
     "body_domain_sub_model_part_list" : ["Soil-0"],
     "move_mesh_flag": false
   },
@@ -176,7 +176,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyScalarConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.Head_line0",
+          "model_part_name"        : "PorousDomain.Head_line",
           "variable_name"          : "WATER_PRESSURE",
           "is_fixed"               : false,
           "value"                  : 0.0,
