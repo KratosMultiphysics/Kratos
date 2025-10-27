@@ -47,6 +47,16 @@ using DenseSpaceType   = UblasSpace<double, Matrix, Vector>;
 using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
 using SolvingStrategyFactoryType = SolvingStrategyFactory<SparseSpaceType, DenseSpaceType, LinearSolverType>;
 
+struct StringHash {
+    using is_transparent = void; // Enables heterogeneous operations.
+
+    std::size_t operator()(std::string_view sv) const
+    {
+        std::hash<std::string_view> hasher;
+        return hasher(sv);
+    }
+};
+
 double GetStartTimeFrom(const Parameters& rProjectParameters)
 {
     return rProjectParameters["problem_data"]["start_time"].GetDouble();
@@ -408,13 +418,16 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
         domain_part_names.emplace_back(sub_model_part.GetString());
     }
 
-    // Add nodes to computing model part
+    auto collect_ids_from_part = [](auto& container, auto& id_set) {
+        for (const auto& item : container) {
+            id_set.insert(item.Id());
+        }
+    };
+
     std::set<Node::IndexType> node_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& node : domain_part.Nodes()) {
-            node_id_set.insert(node.Id());
-        }
+        collect_ids_from_part(domain_part.Nodes(), node_id_set);
     }
     GetComputationalModelPart().AddNodes(
         std::vector<Node::IndexType>{node_id_set.begin(), node_id_set.end()});
@@ -422,26 +435,14 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
     std::set<IndexedObject::IndexType> element_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& element : domain_part.Elements()) {
-            element_id_set.insert(element.Id());
-        }
+        collect_ids_from_part(domain_part.Elements(), element_id_set);
     }
     GetComputationalModelPart().AddElements(
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
-    GetComputationalModelPart().Conditions().clear();
-
-    struct StringHash {
-        using is_transparent = void; // Enables heterogeneous operations.
-
-        std::size_t operator()(std::string_view sv) const {
-            std::hash<std::string_view> hasher;
-            return hasher(sv);
-        }
-    };
     std::unordered_set<std::string, StringHash, std::equal_to<>> domain_condition_names;
-    const auto                      root_name = rSolverSettings["model_part_name"].GetString();
-    const auto                      prefix    = root_name + ".";
+    const auto root_name = rSolverSettings["model_part_name"].GetString();
+    const auto prefix    = root_name + ".";
 
     auto extract_model_part_names = [&domain_condition_names, &root_name, &prefix](const auto& process_list) {
         for (const auto& process : process_list) {
@@ -467,10 +468,9 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
     std::set<IndexedObject::IndexType> condition_id_set;
     for (const auto& name : domain_condition_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& condition : domain_part.Conditions()) {
-            condition_id_set.insert(condition.Id());
-        }
+        collect_ids_from_part(domain_part.Conditions(), condition_id_set);
     }
+    GetComputationalModelPart().Conditions().clear();
     GetComputationalModelPart().AddConditions(
         std::vector<IndexedObject::IndexType>{condition_id_set.begin(), condition_id_set.end()});
 
