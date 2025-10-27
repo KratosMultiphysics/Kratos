@@ -242,9 +242,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_InterpolatesMult
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoFixWaterPressureAbovePhreaticLine, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto                                      model           = Model{};
-    auto&                                     r_empty_model_part    = model.CreateModelPart("foo");
-    const auto                                test_parameters = Parameters{R"(
+    auto       model              = Model{};
+    auto&      r_empty_model_part = model.CreateModelPart("foo");
+    const auto test_parameters    = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "x_coordinates": [0.0, 1.0],
