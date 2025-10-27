@@ -41,4 +41,9 @@ void ApplyInitialUniformStressField::ExecuteInitialize()
     });
 }
 
+std::string ApplyInitialUniformStressField::Info() const
+{
+    return "ApplyInitialUniformStressField";
+}
+
 } // namespace Kratos
