@@ -369,9 +369,10 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateSmoothedBendingShear
     rB.clear();
 
     MatrixType B1(strain_size, system_size), B2(strain_size, system_size), B3(strain_size, system_size);
-    MatrixType conv_B1(strain_size, system_size, 0.0), conv_B2(strain_size, system_size, 0.0), conv_B3(strain_size, system_size, 0.0);
 
-    const array_3 initial_center = (r_coord_1 + r_coord_2 + r_coord_3) / 3.0;
+    const double one_third = 1.0 / 3.0;
+
+    const array_3 initial_center = one_third * (r_coord_1 + r_coord_2 + r_coord_3);
     const double area_1 = CalculateArea(initial_center, r_coord_1, r_coord_2);
     const double area_2 = CalculateArea(initial_center, r_coord_2, r_coord_3);
     const double area_3 = CalculateArea(initial_center, r_coord_3, r_coord_1);
@@ -380,23 +381,23 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateSmoothedBendingShear
     CalculateBbendingShearTriangle(B2, area_2, initial_center, r_coord_2, r_coord_3, zeta1, zeta2, zeta3);
     CalculateBbendingShearTriangle(B3, area_3, initial_center, r_coord_3, r_coord_1, zeta1, zeta2, zeta3);
 
-    for (IndexType row = 3; row < 8; ++row) { // bending and shear rows
-        for (IndexType col = 0; col < 6; ++col) { // 6 Dofs per node
-            // Block 1
-            conv_B1(row, col) = (B1(row, col) / 3.0 + B1(row, col + 6));
-            conv_B2(row, col) = (B2(row, col) / 3.0);
-            conv_B3(row, col) = (B3(row, col) / 3.0 + B3(row, col + 12));
-            // Block 2
-            conv_B1(row, 6 + col) = (B1(row, col) / 3.0 + B1(row, col + 12));
-            conv_B2(row, 6 + col) = (B2(row, col) / 3.0 +  B2(row, col + 6));
-            conv_B3(row, 6 + col) = (B3(row, col) / 3.0);
-            // Block 3
-            conv_B1(row, 12 + col) = (B1(row, col) / 3.0);
-            conv_B2(row, 12 + col) = (B2(row, col) / 3.0 + B2(row, col + 12));
-            conv_B3(row, 12 + col) = (B3(row, col) / 3.0 + B3(row, col + 6));
+    const double w1 = area_1 / Area;
+    const double w2 = area_2 / Area;
+    const double w3 = area_3 / Area;
+
+    for (IndexType row = 3; row < 8; ++row) { // bending + shear rows
+        for (IndexType col = 0; col < 6; ++col) {
+            const IndexType c1 = col;
+            const IndexType c2 = col + 6;
+            const IndexType c3 = col + 12;
+            // --- Block 1 ---
+            rB(row, c1) += w1 * (B1(row, c1) * one_third + B1(row, c2)) + w2 * (B2(row, c1) * one_third) + w3 * (B3(row, c1) * one_third + B3(row, c3));
+            // --- Block 2 ---
+            rB(row, c2) += w1 * (B1(row, c1) * one_third + B1(row, c3)) + w2 * (B2(row, c1) * one_third + B2(row, c2)) + w3 * (B3(row, c1) * one_third);
+            // --- Block 3 ---
+            rB(row, c3) += w1 * (B1(row, c1) * one_third) + w2 * (B2(row, c1) * one_third + B2(row, c3)) + w3 * (B3(row, c1) * one_third + B3(row, c2));
         }
     }
-    noalias(rB) = (area_1 * conv_B1 + area_2 * conv_B2 + area_3 * conv_B3) / Area;
 }
 
 /***********************************************************************************/
