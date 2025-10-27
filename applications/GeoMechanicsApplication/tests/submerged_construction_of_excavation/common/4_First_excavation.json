@@ -337,47 +337,12 @@
                 "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
                 "Parameters"    : {
-                    "model_part_name": "PorousDomain.Diaphragm_Wall"
-                }
-            },
-            {
-                "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
-                "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
-                "Parameters"    : {
-                    "model_part_name": "PorousDomain.Wall_Clay_Interface_Left"
-                }
-            },
-            {
-                "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
-                "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
-                "Parameters"    : {
-                    "model_part_name": "PorousDomain.Wall_Sand_Interface_Left"
-                }
-            },
-            {
-                "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
-                "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
-                "Parameters"    : {
-                    "model_part_name": "PorousDomain.Wall_Clay_Interface_Middle_Right"
-                }
-            },
-            {
-                "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
-                "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
-                "Parameters"    : {
-                    "model_part_name": "PorousDomain.Wall_Clay_Interface_Lower_Right"
-                }
-            },
-            {
-                "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
-                "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
-                "Parameters"    : {
-                    "model_part_name": "PorousDomain.Wall_Sand_Interface_Right"
+                    "model_part_name_list": ["PorousDomain.Diaphragm_Wall",
+                                             "PorousDomain.Wall_Clay_Interface_Left",
+                                             "PorousDomain.Wall_Sand_Interface_Left",
+                                             "PorousDomain.Wall_Clay_Interface_Middle_Right",
+                                             "PorousDomain.Wall_Clay_Interface_Lower_Right",
+                                             "PorousDomain.Wall_Sand_Interface_Right"]
                 }
             }
         ]
