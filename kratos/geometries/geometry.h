@@ -2138,7 +2138,7 @@ public:
     /**
      * @brief This method gives you all edges of this geometry.
      * @details Each returned edge will be a line geometry. The number of points of each edge must match the number of
-     * points of the boundary the geometry. In the special case of inquiring the edges of a line, it will return the
+     * points of the geometry's boundary. In the special case of inquiring the edges of a line, it will return the
      * line itself.
      * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()

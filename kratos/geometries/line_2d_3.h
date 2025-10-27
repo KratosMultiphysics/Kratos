@@ -730,7 +730,7 @@ public:
         return 1;
     }
 
-     /// @copydoc Geometry::GenerateEdges
+    /// @copydoc Geometry::GenerateEdges
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges;
