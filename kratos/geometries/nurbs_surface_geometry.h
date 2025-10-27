@@ -713,10 +713,11 @@ public:
                 shape_function_values, shape_function_derivatives);
 
             rResultGeometries(0) = CreateKnotSpanUtility<NodeType>::CreateKnotSpan(
-                this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points, this);
+                this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points, this,
+                PolynomialDegreeU() + 1, PolynomialDegreeV() + 1, 0.0, 1.0, 0.0, 1.0); //TO DO: pass dummy values
         }
         // Option 2: A list of QuadraturePointGeometry is created, one for each integration points.
-        else if ( IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS == rIntegrationInfo.GetQuadratureMethod(0) )
+        else if ( IntegrationInfo::QuadratureMethod::CUSTOM == rIntegrationInfo.GetQuadratureMethod(0) )
         {
             // shape function container.
             NurbsSurfaceShapeFunction shape_function_container(
@@ -832,18 +833,18 @@ public:
 
                     GeometriesArrayType result_geometries_per_span;
 
-                    // Manuel's idea + Ricky
-                    // KnotSpanGeometry knot_span_geo(points_in_u, points_in_v,
-                    //     knot_span_intervals_u[i], knot_span_intervals_v[j], mpNurbsSurface);
-
-                    // knot_span_geo.CreateIntegrationPoints()
-                    // knot_span_geo.CreateQuadraturePoints()
-
                     CreateIntegrationPoints(
                         IntegrationPoints, points_in_u, points_in_v,
                         knot_span_intervals_u[i], knot_span_intervals_v[j]);
 
-                    KRATOS_WATCH(IntegrationPoints.size())
+
+                    // Manuel's idea + Ricky
+                    // KnotSpanGeometry knot_span_geo(points_in_u, points_in_v,
+                    //     knot_span_intervals_u[i], knot_span_intervals_v[j], mpNurbsSurface);
+
+                    // knot_span_geo.CreateIntegrationPoints() //question mark, we want to have thr characteristic of qpg.
+                    // knot_span_geo.CreateQuadraturePoints()
+
 
                     this->CreateQuadraturePointGeometries(
                         result_geometries_per_span,
@@ -862,7 +863,7 @@ public:
             }
         }
         // Option 2: A list of QuadraturePointGeometry is created, one for each integration points.
-        else if ( IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS == rIntegrationInfo.GetQuadratureMethod(0) )
+        else if ( IntegrationInfo::QuadratureMethod::CUSTOM == rIntegrationInfo.GetQuadratureMethod(0) )
         {
             IntegrationPointsArrayType IntegrationPoints;
             CreateIntegrationPoints(IntegrationPoints, rIntegrationInfo);

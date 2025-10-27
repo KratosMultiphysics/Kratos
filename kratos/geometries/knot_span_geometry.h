@@ -38,14 +38,14 @@ template<class TPointType,
     int TLocalSpaceDimension = TWorkingSpaceDimension,
     int TDimension = TLocalSpaceDimension>
 class KnotSpanGeometry
-    : public Geometry<TPointType>
+    : public QuadraturePointGeometry<TPointType, 3, 2, 2>
 {
 public:
 
     /// Pointer definition of KnotSpanGeometry
     KRATOS_CLASS_POINTER_DEFINITION( KnotSpanGeometry );
 
-    typedef Geometry<TPointType> BaseType;
+    typedef QuadraturePointGeometry<TPointType, 3, 2, 2> BaseType;
     typedef Geometry<TPointType> GeometryType;
 
     typedef typename GeometryType::IndexType IndexType;
@@ -77,47 +77,67 @@ public:
     ///@{
 
     /// Constructor with points and all shape function containers separately
-    KnotSpanGeometry(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointsContainerType& rIntegrationPoints,
-        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
-        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::IntegrationMethod::GI_GAUSS_1,
-            rIntegrationPoints,
-            rShapeFunctionValues,
-            rShapeFunctionsDerivativesVector)
-    {
-    }
+    // KnotSpanGeometry(
+    //     const PointsArrayType& ThisPoints,
+    //     const IntegrationPointsContainerType& rIntegrationPoints,
+    //     const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+    //     const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
+    //     const std::size_t PointsInU,
+    //     const std::size_t PointsInV,
+    //     const double KnotSpanIntervalUBegin,
+    //     const double KnotSpanIntervalUEnd,
+    //     const double KnotSpanIntervalVBegin,
+    //     const double KnotSpanIntervalVEnd)
+    //     : BaseType(ThisPoints, rIntegrationPoints, rShapeFunctionValues, rShapeFunctionsDerivativesVector)
+    //     , mPointsInU(PointsInU)
+    //     , mPointsInV(PointsInV)
+    //     , mKnotSpanIntervalUBegin(KnotSpanIntervalUBegin)
+    //     , mKnotSpanIntervalUEnd(KnotSpanIntervalUEnd)
+    //     , mKnotSpanIntervalVBegin(KnotSpanIntervalVBegin)
+    //     , mKnotSpanIntervalVEnd(KnotSpanIntervalVEnd)
+    // {
+    // }
 
     /// Constructor with points and all shape function containers separately including the parent
-    KnotSpanGeometry(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointsContainerType& rIntegrationPoints,
-        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
-        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
-        GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::IntegrationMethod::GI_GAUSS_1,
-            rIntegrationPoints,
-            rShapeFunctionValues,
-            rShapeFunctionsDerivativesVector)
-        , mpGeometryParent(pGeometryParent)
-    {
-    }
+    // KnotSpanGeometry(
+    //     const PointsArrayType& ThisPoints,
+    //     const IntegrationPointsContainerType& rIntegrationPoints,
+    //     const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+    //     const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector,
+    //     GeometryType* pGeometryParent,
+    //     const std::size_t PointsInU,
+    //     const std::size_t PointsInV,
+    //     const double KnotSpanIntervalUBegin,
+    //     const double KnotSpanIntervalUEnd,
+    //     const double KnotSpanIntervalVBegin,
+    //     const double KnotSpanIntervalVEnd)
+    //     : BaseType(ThisPoints, rIntegrationPoints, rShapeFunctionValues, rShapeFunctionsDerivativesVector, pGeometryParent)
+    //     , mPointsInU(PointsInU)
+    //     , mPointsInV(PointsInV)
+    //     , mKnotSpanIntervalUBegin(KnotSpanIntervalUBegin)
+    //     , mKnotSpanIntervalUEnd(KnotSpanIntervalUEnd)
+    //     , mKnotSpanIntervalVBegin(KnotSpanIntervalVBegin)
+    //     , mKnotSpanIntervalVEnd(KnotSpanIntervalVEnd)
+    // {
+    // }
 
     /// Constructor with points and geometry shape function container
     KnotSpanGeometry(
         const PointsArrayType& ThisPoints,
-        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            ThisGeometryShapeFunctionContainer)
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        const std::size_t PointsInU,
+        const std::size_t PointsInV,
+        const double KnotSpanIntervalUBegin,
+        const double KnotSpanIntervalUEnd,
+        const double KnotSpanIntervalVBegin,
+        const double KnotSpanIntervalVEnd)
+        : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer)
+        , mPointsInU(PointsInU)
+        , mPointsInV(PointsInV)
+        , mKnotSpanIntervalUBegin(KnotSpanIntervalUBegin)
+        , mKnotSpanIntervalUEnd(KnotSpanIntervalUEnd)
+        , mKnotSpanIntervalVBegin(KnotSpanIntervalVBegin)
+        , mKnotSpanIntervalVEnd(KnotSpanIntervalVEnd)
     {
     }
 
@@ -125,78 +145,86 @@ public:
     KnotSpanGeometry(
         const PointsArrayType& ThisPoints,
         const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
-        GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            ThisGeometryShapeFunctionContainer)
-        , mpGeometryParent(pGeometryParent)
+        GeometryType* pGeometryParent,
+        const std::size_t PointsInU,
+        const std::size_t PointsInV,
+        const double KnotSpanIntervalUBegin,
+        const double KnotSpanIntervalUEnd,
+        const double KnotSpanIntervalVBegin,
+        const double KnotSpanIntervalVEnd)
+        : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer, pGeometryParent)
+        , mPointsInU(PointsInU)
+        , mPointsInV(PointsInV)
+        , mKnotSpanIntervalUBegin(KnotSpanIntervalUBegin)
+        , mKnotSpanIntervalUEnd(KnotSpanIntervalUEnd)
+        , mKnotSpanIntervalVBegin(KnotSpanIntervalVBegin)
+        , mKnotSpanIntervalVEnd(KnotSpanIntervalVEnd)
     {
     }
 
     /// Constructor with points, N, Vector<DN_De, ...>
-    KnotSpanGeometry(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointType& ThisIntegrationPoint,
-        const Matrix& ThisShapeFunctionsValues,
-        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryShapeFunctionContainerType(
-                GeometryData::IntegrationMethod::GI_GAUSS_1,
-                ThisIntegrationPoint,
-                ThisShapeFunctionsValues,
-                ThisShapeFunctionsDerivatives))
-    {
-    }
+    // KnotSpanGeometry(
+    //     const PointsArrayType& ThisPoints,
+    //     const IntegrationPointType& ThisIntegrationPoint,
+    //     const Matrix& ThisShapeFunctionsValues,
+    //     const DenseVector<Matrix>& ThisShapeFunctionsDerivatives)
+    //     : BaseType(ThisPoints, &mGeometryData)
+    //     , mGeometryData(
+    //         &msGeometryDimension,
+    //         GeometryShapeFunctionContainerType(
+    //             GeometryData::IntegrationMethod::GI_GAUSS_1,
+    //             ThisIntegrationPoint,
+    //             ThisShapeFunctionsValues,
+    //             ThisShapeFunctionsDerivatives))
+    // {
+    // }
 
     /// Constructor with points, N, Vector<DN_De, ...>, parent
-    KnotSpanGeometry(
-        const PointsArrayType& ThisPoints,
-        const IntegrationPointType& ThisIntegrationPoint,
-        const Matrix& ThisShapeFunctionsValues,
-        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
-        GeometryType* pGeometryParent)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryShapeFunctionContainerType(
-                GeometryData::IntegrationMethod::GI_GAUSS_1,
-                ThisIntegrationPoint,
-                ThisShapeFunctionsValues,
-                ThisShapeFunctionsDerivatives))
-        , mpGeometryParent(pGeometryParent)
-    {
-    }
+    // KnotSpanGeometry(
+    //     const PointsArrayType& ThisPoints,
+    //     const IntegrationPointType& ThisIntegrationPoint,
+    //     const Matrix& ThisShapeFunctionsValues,
+    //     const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
+    //     GeometryType* pGeometryParent)
+    //     : BaseType(ThisPoints, &mGeometryData)
+    //     , mGeometryData(
+    //         &msGeometryDimension,
+    //         GeometryShapeFunctionContainerType(
+    //             GeometryData::IntegrationMethod::GI_GAUSS_1,
+    //             ThisIntegrationPoint,
+    //             ThisShapeFunctionsValues,
+    //             ThisShapeFunctionsDerivatives))
+    //     , mpGeometryParent(pGeometryParent)
+    // {
+    // }
 
-    /// Constructor.
-    KnotSpanGeometry(
-        const PointsArrayType& ThisPoints) = delete;
+    // /// Constructor.
+    // KnotSpanGeometry(
+    //     const PointsArrayType& ThisPoints) = delete;
 
-    /// Constructor with Geometry Id
-    KnotSpanGeometry(
-        const IndexType GeometryId,
-        const PointsArrayType& ThisPoints
-    ) : BaseType( GeometryId, ThisPoints, &mGeometryData )
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::IntegrationMethod::GI_GAUSS_1,
-            {}, {}, {})
-    {
-    }
+    // /// Constructor with Geometry Id
+    // KnotSpanGeometry(
+    //     const IndexType GeometryId,
+    //     const PointsArrayType& ThisPoints
+    // ) : BaseType( GeometryId, ThisPoints, &mGeometryData )
+    //     , mGeometryData(
+    //         &msGeometryDimension,
+    //         GeometryData::IntegrationMethod::GI_GAUSS_1,
+    //         {}, {}, {})
+    // {
+    // }
 
-    /// Constructor with Geometry Name
-    KnotSpanGeometry(
-        const std::string& GeometryName,
-        const PointsArrayType& ThisPoints
-    ) : BaseType( GeometryName, ThisPoints, &mGeometryData )
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::IntegrationMethod::GI_GAUSS_1,
-            {}, {}, {})
-    {
-    }
+    // /// Constructor with Geometry Name
+    // KnotSpanGeometry(
+    //     const std::string& GeometryName,
+    //     const PointsArrayType& ThisPoints
+    // ) : BaseType( GeometryName, ThisPoints, &mGeometryData )
+    //     , mGeometryData(
+    //         &msGeometryDimension,
+    //         GeometryData::IntegrationMethod::GI_GAUSS_1,
+    //         {}, {}, {})
+    // {
+    // }
 
     /// Destructor.
     ~KnotSpanGeometry() override = default;
@@ -205,8 +233,12 @@ public:
     KnotSpanGeometry(
         KnotSpanGeometry const& rOther )
         : BaseType( rOther )
-        , mGeometryData(rOther.mGeometryData)
-        , mpGeometryParent(rOther.mpGeometryParent)
+        , mPointsInU(rOther.PointsInU)
+        , mPointsInV(rOther.PointsInV)
+        , mKnotSpanIntervalUBegin(rOther.KnotSpanIntervalUBegin)
+        , mKnotSpanIntervalUEnd(rOther.KnotSpanIntervalUEnd)
+        , mKnotSpanIntervalVBegin(rOther.KnotSpanIntervalVBegin)
+        , mKnotSpanIntervalVEnd(rOther.KnotSpanIntervalVEnd)
     {
     }
 
@@ -220,8 +252,10 @@ public:
     {
         BaseType::operator=( rOther );
 
-        mGeometryData = rOther.mGeometryData;
-        mpGeometryParent = rOther.mpGeometryParent;
+        mKnotSpanIntervalUBegin = rOther.KnotSpanIntervalUBegin;
+        mKnotSpanIntervalUEnd = rOther.KnotSpanIntervalUEnd;
+        mKnotSpanIntervalVBegin = rOther.KnotSpanIntervalVBegin;
+        mKnotSpanIntervalVEnd = rOther.KnotSpanIntervalVEnd;
 
         return *this;
     }
@@ -230,90 +264,90 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Creates a new geometry pointer
-     * @param ThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
-    {
-        KRATOS_ERROR << "KnotSpanGeometry cannot be created with 'PointsArrayType const& PointsArrayType'. "
-            << "This constructor is not allowed as it would remove the evaluated shape functions as the ShapeFunctionContainer is not being copied."
-            << std::endl;
-    }
+    // /**
+    //  * @brief Creates a new geometry pointer
+    //  * @param ThisPoints the nodes of the new geometry
+    //  * @return Pointer to the new geometry
+    //  */
+    // typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
+    // {
+    //     KRATOS_ERROR << "KnotSpanGeometry cannot be created with 'PointsArrayType const& PointsArrayType'. "
+    //         << "This constructor is not allowed as it would remove the evaluated shape functions as the ShapeFunctionContainer is not being copied."
+    //         << std::endl;
+    // }
 
-    /**
-     * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param rThisPoints the nodes of the new geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        const IndexType NewGeometryId,
-        PointsArrayType const& rThisPoints
-        ) const override
-    {
-        return typename BaseType::Pointer( new KnotSpanGeometry( NewGeometryId, rThisPoints ) );
-    }
+    // /**
+    //  * @brief Creates a new geometry pointer
+    //  * @param NewGeometryId the ID of the new geometry
+    //  * @param rThisPoints the nodes of the new geometry
+    //  * @return Pointer to the new geometry
+    //  */
+    // typename BaseType::Pointer Create(
+    //     const IndexType NewGeometryId,
+    //     PointsArrayType const& rThisPoints
+    //     ) const override
+    // {
+    //     return typename BaseType::Pointer( new KnotSpanGeometry( NewGeometryId, rThisPoints ) );
+    // }
 
-    /**
-     * @brief Creates a new geometry pointer
-     * @param NewGeometryId the ID of the new geometry
-     * @param rGeometry reference to an existing geometry
-     * @return Pointer to the new geometry
-     */
-    typename BaseType::Pointer Create(
-        const IndexType NewGeometryId,
-        const BaseType& rGeometry
-    ) const override
-    {
-        auto p_geometry = typename BaseType::Pointer( new KnotSpanGeometry( NewGeometryId, rGeometry.Points() ) );
-        p_geometry->SetData(rGeometry.GetData());
-        return p_geometry;
-    }
+    // /**
+    //  * @brief Creates a new geometry pointer
+    //  * @param NewGeometryId the ID of the new geometry
+    //  * @param rGeometry reference to an existing geometry
+    //  * @return Pointer to the new geometry
+    //  */
+    // typename BaseType::Pointer Create(
+    //     const IndexType NewGeometryId,
+    //     const BaseType& rGeometry
+    // ) const override
+    // {
+    //     auto p_geometry = typename BaseType::Pointer( new KnotSpanGeometry( NewGeometryId, rGeometry.Points() ) );
+    //     p_geometry->SetData(rGeometry.GetData());
+    //     return p_geometry;
+    // }
 
     ///@}
     ///@name Dynamic access to internals
     ///@{
 
     /// Calculate with array_1d<double, 3>
-    void Calculate(
-        const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& rOutput) const override
-    {
-        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
-        {
-            rOutput = this->IntegrationPoints()[0];
-            mpGeometryParent->Calculate(rVariable, rOutput);
-        }
-    }
+    // void Calculate(
+    //     const Variable<array_1d<double, 3>>& rVariable,
+    //     array_1d<double, 3>& rOutput) const override
+    // {
+    //     if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+    //     {
+    //         rOutput = this->IntegrationPoints()[0];
+    //         mpGeometryParent->Calculate(rVariable, rOutput);
+    //     }
+    // }
 
-    ///@}
-    ///@name  Geometry Shape Function Container
-    ///@{
+    // ///@}
+    // ///@name  Geometry Shape Function Container
+    // ///@{
 
-    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
-     *        the GeometryData. This function works only for geometries with a non-const GeometryData.
-     */
-    void SetGeometryShapeFunctionContainer(
-        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rGeometryShapeFunctionContainer) override
-    {
-        mGeometryData.SetGeometryShapeFunctionContainer(rGeometryShapeFunctionContainer);
-    }
+    // /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
+    //  *        the GeometryData. This function works only for geometries with a non-const GeometryData.
+    //  */
+    // void SetGeometryShapeFunctionContainer(
+    //     const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rGeometryShapeFunctionContainer) override
+    // {
+    //     mGeometryData.SetGeometryShapeFunctionContainer(rGeometryShapeFunctionContainer);
+    // }
 
-    ///@}
-    ///@name Parent
-    ///@{
+    // ///@}
+    // ///@name Parent
+    // ///@{
 
-    GeometryType& GetGeometryParent(IndexType Index) const override
-    {
-        return *mpGeometryParent;
-    }
+    // GeometryType& GetGeometryParent(IndexType Index) const override
+    // {
+    //     return *mpGeometryParent;
+    // }
 
-    void SetGeometryParent(GeometryType* pGeometryParent) override
-    {
-        mpGeometryParent = pGeometryParent;
-    }
+    // void SetGeometryParent(GeometryType* pGeometryParent) override
+    // {
+    //     mpGeometryParent = pGeometryParent;
+    // }
 
     ///@}
     ///@name Dynamic access to internals
@@ -324,9 +358,9 @@ public:
         const Variable<Vector>& rVariable,
         Vector& rOutput) const override
     {
-        if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT) {
-            DeterminantOfJacobianParent(rOutput);
-        }
+        // if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT) {
+        //     DeterminantOfJacobianParent(rOutput);
+        // }
     }
 
     ///@}
@@ -367,15 +401,15 @@ public:
     ///@name Mathematical Informations
     ///@{
 
-    /// Returns the polynomial degree of the parent geometry
-    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
-    {
-        KRATOS_DEBUG_ERROR_IF_NOT(mpGeometryParent)
-            << "Trying to call PolynomialDegree(LocalDirectionIndex) from quadrature point. "
-            << "Pointer to parent is not assigned." << std::endl;
+    // /// Returns the polynomial degree of the parent geometry
+    // SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    // {
+    //     KRATOS_DEBUG_ERROR_IF_NOT(mpGeometryParent)
+    //         << "Trying to call PolynomialDegree(LocalDirectionIndex) from quadrature point. "
+    //         << "Pointer to parent is not assigned." << std::endl;
 
-        return mpGeometryParent->PolynomialDegree(LocalDirectionIndex);
-    }
+    //     return mpGeometryParent->PolynomialDegree(LocalDirectionIndex);
+    // }
 
     ///@}
     ///@name Coordinates
@@ -386,17 +420,17 @@ public:
     * local coordinates. The mapping is done on the parent.
     * Error if Parent is not assigned is only thrown in debug mode.
     */
-    CoordinatesArrayType& GlobalCoordinates(
-        CoordinatesArrayType& rResult,
-        CoordinatesArrayType const& LocalCoordinates
-    ) const override
-    {
-        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
-            << "Trying to call GlobalCoordinates(LocalCoordinates) from quadrature point. "
-            << "Pointer to parent is not assigned." << std::endl;
+    // CoordinatesArrayType& GlobalCoordinates(
+    //     CoordinatesArrayType& rResult,
+    //     CoordinatesArrayType const& LocalCoordinates
+    // ) const override
+    // {
+    //     KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+    //         << "Trying to call GlobalCoordinates(LocalCoordinates) from quadrature point. "
+    //         << "Pointer to parent is not assigned." << std::endl;
 
-        return mpGeometryParent->GlobalCoordinates(rResult, LocalCoordinates);
-    }
+    //     return mpGeometryParent->GlobalCoordinates(rResult, LocalCoordinates);
+    // }
 
     /* @brief returns the respective segment domain size of this
      *        quadrature point, computed on the parent of this geometry.
@@ -404,18 +438,18 @@ public:
      *        nodes are part of this geometry - used for mapping).
      * @param rResult vector of results of this quadrature point.
      */
-    CoordinatesArrayType& GlobalCoordinates(
-        CoordinatesArrayType& rResult,
-        CoordinatesArrayType const& LocalCoordinates,
-        Matrix& DeltaPosition
-    ) const override
-    {
-        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
-            << "Trying to call GlobalCoordinates(LocalCoordinates, DeltaPosition) from quadrature point. "
-            << "Pointer to parent is not assigned." << std::endl;
+    // CoordinatesArrayType& GlobalCoordinates(
+    //     CoordinatesArrayType& rResult,
+    //     CoordinatesArrayType const& LocalCoordinates,
+    //     Matrix& DeltaPosition
+    // ) const override
+    // {
+    //     KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+    //         << "Trying to call GlobalCoordinates(LocalCoordinates, DeltaPosition) from quadrature point. "
+    //         << "Pointer to parent is not assigned." << std::endl;
 
-        return mpGeometryParent->GlobalCoordinates(rResult, LocalCoordinates, DeltaPosition);
-    }
+    //     return mpGeometryParent->GlobalCoordinates(rResult, LocalCoordinates, DeltaPosition);
+    // }
 
     ///@}
     ///@name Jacobian
@@ -429,17 +463,17 @@ public:
     *        be calculated in it.
     * @return jacobian matrix \f$ J \f$ in given point.
     */
-    Matrix& Jacobian(
-        Matrix& rResult,
-        const CoordinatesArrayType& rCoordinates
-    ) const override
-    {
-        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
-            << "Trying to call Jacobian(LocalCoordinates) from quadrature point. "
-            << "Pointer to parent is not assigned." << std::endl;
+    // Matrix& Jacobian(
+    //     Matrix& rResult,
+    //     const CoordinatesArrayType& rCoordinates
+    // ) const override
+    // {
+    //     KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+    //         << "Trying to call Jacobian(LocalCoordinates) from quadrature point. "
+    //         << "Pointer to parent is not assigned." << std::endl;
 
-        return mpGeometryParent->Jacobian(rResult, rCoordinates);
-    }
+    //     return mpGeometryParent->Jacobian(rResult, rCoordinates);
+    // }
 
     /** Determinant of jacobian in given point. Computed on parent
     *        geometry.
@@ -449,72 +483,72 @@ public:
     * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
     *         point.
     */
-    double DeterminantOfJacobian(
-        const CoordinatesArrayType& rPoint
-    ) const override
-    {
-        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
-            << "Trying to call DeterminantOfJacobian(rPoint) from quadrature point. "
-            << "Pointer to parent is not assigned." << std::endl;
+    // double DeterminantOfJacobian(
+    //     const CoordinatesArrayType& rPoint
+    // ) const override
+    // {
+    //     KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+    //         << "Trying to call DeterminantOfJacobian(rPoint) from quadrature point. "
+    //         << "Pointer to parent is not assigned." << std::endl;
 
-        return mpGeometryParent->DeterminantOfJacobian(rPoint);
-    }
+    //     return mpGeometryParent->DeterminantOfJacobian(rPoint);
+    // }
 
 
     /* @brief returns the respective segment length of this
      *        quadrature point. Length of vector always 1.
      * @param rResult vector of results of this quadrature point.
      */
-    Vector& DeterminantOfJacobianParent(
-        Vector& rResult) const
-    {
-        if (rResult.size() != 1)
-            rResult.resize(1, false);
+    // Vector& DeterminantOfJacobianParent(
+    //     Vector& rResult) const
+    // {
+    //     if (rResult.size() != 1)
+    //         rResult.resize(1, false);
 
-        rResult[0] = this->GetGeometryParent(0).DeterminantOfJacobian(this->IntegrationPoints()[0]);
+    //     rResult[0] = this->GetGeometryParent(0).DeterminantOfJacobian(this->IntegrationPoints()[0]);
 
-        return rResult;
-    }
+    //     return rResult;
+    // }
 
-    Matrix& InverseOfJacobian(
-        Matrix& rResult,
-        const CoordinatesArrayType& rCoordinates
-    ) const override
-    {
-        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
-            << "Trying to call InverseOfJacobian(rPoint) from quadrature point. "
-            << "Pointer to parent is not assigned." << std::endl;
+    // Matrix& InverseOfJacobian(
+    //     Matrix& rResult,
+    //     const CoordinatesArrayType& rCoordinates
+    // ) const override
+    // {
+    //     KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+    //         << "Trying to call InverseOfJacobian(rPoint) from quadrature point. "
+    //         << "Pointer to parent is not assigned." << std::endl;
 
-        return mpGeometryParent->InverseOfJacobian(rResult, rCoordinates);
-    }
+    //     return mpGeometryParent->InverseOfJacobian(rResult, rCoordinates);
+    // }
 
     ///@}
     ///@name Shape Function
     ///@{
 
-    Vector& ShapeFunctionsValues(
-        Vector &rResult,
-        const CoordinatesArrayType& rCoordinates
-    ) const override
-    {
-        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
-            << "Trying to call ShapeFunctionsValues(rCoordinates) from quadrature point. "
-            << "Pointer to parent is not assigned." << std::endl;
+    // Vector& ShapeFunctionsValues(
+    //     Vector &rResult,
+    //     const CoordinatesArrayType& rCoordinates
+    // ) const override
+    // {
+    //     KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+    //         << "Trying to call ShapeFunctionsValues(rCoordinates) from quadrature point. "
+    //         << "Pointer to parent is not assigned." << std::endl;
 
-        return mpGeometryParent->ShapeFunctionsValues(rResult, rCoordinates);
-    }
+    //     return mpGeometryParent->ShapeFunctionsValues(rResult, rCoordinates);
+    // }
 
-    virtual Matrix& ShapeFunctionsLocalGradients(
-        Matrix& rResult,
-        const CoordinatesArrayType& rPoint
-    ) const override
-    {
-        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
-            << "Trying to call ShapeFunctionsLocalGradients(rPoint) from quadrature point. "
-            << "Pointer to parent is not assigned." << std::endl;
+    // virtual Matrix& ShapeFunctionsLocalGradients(
+    //     Matrix& rResult,
+    //     const CoordinatesArrayType& rPoint
+    // ) const override
+    // {
+    //     KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+    //         << "Trying to call ShapeFunctionsLocalGradients(rPoint) from quadrature point. "
+    //         << "Pointer to parent is not assigned." << std::endl;
 
-        return mpGeometryParent->ShapeFunctionsLocalGradients(rResult, rPoint);
-    }
+    //     return mpGeometryParent->ShapeFunctionsLocalGradients(rResult, rPoint);
+    // }
 
     ///@}
     ///@name Kratos Geometry Families
@@ -547,13 +581,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "Quadrature point templated by local space dimension and working space dimension.";
+        return "Knot span templated by local space dimension and working space dimension.";
     }
 
     /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "Quadrature point templated by local space dimension and working space dimension.";
+        rOStream << "Knot span templated by local space dimension and working space dimension.";
     }
 
     /// Print object's data.
@@ -567,17 +601,17 @@ protected:
     ///@name Constructor
     ///@{
 
-    /// Standard Constructor
-    KnotSpanGeometry()
-        : BaseType(
-            PointsArrayType(),
-            &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::IntegrationMethod::GI_GAUSS_1,
-            {}, {}, {})
-    {
-    }
+    // /// Standard Constructor
+    // KnotSpanGeometry()
+    //     : BaseType(
+    //         PointsArrayType(),
+    //         &mGeometryData)
+    //     , mGeometryData(
+    //         &msGeometryDimension,
+    //         GeometryData::IntegrationMethod::GI_GAUSS_1,
+    //         {}, {}, {})
+    // {
+    // }
 
     ///@}
 
@@ -585,51 +619,74 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static const GeometryDimension msGeometryDimension;
+    std::size_t mPointsInU;
+    std::size_t mPointsInV; 
+    double mKnotSpanIntervalUBegin;
+    double mKnotSpanIntervalUEnd;
+    double mKnotSpanIntervalVBegin;
+    double mKnotSpanIntervalVEnd;
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+    // static const GeometryDimension msGeometryDimension;
 
-    GeometryData mGeometryData;
+    // ///@}
+    // ///@name Member Variables
+    // ///@{
 
-    // quatrature point can be related to a parent geometry. To keep the connection,
-    // this geometry is related to the integration point.
-    GeometryType* mpGeometryParent = nullptr;
+    // GeometryData mGeometryData;
+
+    // // quatrature point can be related to a parent geometry. To keep the connection,
+    // // this geometry is related to the integration point.
+    // GeometryType* mpGeometryParent = nullptr;
 
     ///@}
     ///@name Serialization
     ///@{
+
+    KnotSpanGeometry()
+        : BaseType()
+    {
+    }
 
     friend class Serializer;
 
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+        rSerializer.save("mPointsInU", mPointsInU);
+        rSerializer.save("mPointsInV", mPointsInV);
+        rSerializer.save("KnotSpanIntervalUBegin", mKnotSpanIntervalUBegin);
+        rSerializer.save("KnotSpanIntervalUEnd", mKnotSpanIntervalUEnd);
+        rSerializer.save("KnotSpanIntervalVBegin", mKnotSpanIntervalVBegin);
+        rSerializer.save("KnotSpanIntervalVEnd", mKnotSpanIntervalVEnd);
 
-        rSerializer.save("IntegrationPoints", mGeometryData.IntegrationPoints());
-        rSerializer.save("ShapeFunctionsValues", mGeometryData.ShapeFunctionsValues());
-        rSerializer.save("ShapeFunctionsLocalGradients", mGeometryData.ShapeFunctionsLocalGradients());
+        // rSerializer.save("IntegrationPoints", mGeometryData.IntegrationPoints());
+        // rSerializer.save("ShapeFunctionsValues", mGeometryData.ShapeFunctionsValues());
+        // rSerializer.save("ShapeFunctionsLocalGradients", mGeometryData.ShapeFunctionsLocalGradients());
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+        rSerializer.load("mPointsInU", mPointsInU);
+        rSerializer.load("mPointsInV", mPointsInV);
+        rSerializer.load("KnotSpanIntervalUBegin", mKnotSpanIntervalUBegin);
+        rSerializer.load("KnotSpanIntervalUEnd", mKnotSpanIntervalUEnd);
+        rSerializer.load("KnotSpanIntervalVBegin", mKnotSpanIntervalVBegin);
+        rSerializer.load("KnotSpanIntervalVEnd", mKnotSpanIntervalVEnd);
 
-        IntegrationPointsContainerType integration_points;
-        ShapeFunctionsValuesContainerType shape_functions_values;
-        ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients;
+        // IntegrationPointsContainerType integration_points;
+        // ShapeFunctionsValuesContainerType shape_functions_values;
+        // ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients;
 
-        rSerializer.load("IntegrationPoints", integration_points[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
-        rSerializer.load("ShapeFunctionsValues", shape_functions_values[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
-        rSerializer.load("ShapeFunctionsLocalGradients", shape_functions_local_gradients[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
+        // rSerializer.load("IntegrationPoints", integration_points[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
+        // rSerializer.load("ShapeFunctionsValues", shape_functions_values[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
+        // rSerializer.load("ShapeFunctionsLocalGradients", shape_functions_local_gradients[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
 
-        mGeometryData.SetGeometryShapeFunctionContainer(GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
-            GeometryData::IntegrationMethod::GI_GAUSS_1,
-            integration_points,
-            shape_functions_values,
-            shape_functions_local_gradients));
-
+        // mGeometryData.SetGeometryShapeFunctionContainer(GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
+        //     GeometryData::IntegrationMethod::GI_GAUSS_1,
+        //     integration_points,
+        //     shape_functions_values,
+        //     shape_functions_local_gradients));
 
     }
 
@@ -640,45 +697,45 @@ private:
 ///@{
 
 /// input stream function
-template<class TPointType,
-    int TWorkingSpaceDimension,
-    int TLocalSpaceDimension,
-    int TDimension>
-inline std::istream& operator >> (
-    std::istream& rIStream,
-    KnotSpanGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>& rThis );
+// template<class TPointType,
+//     int TWorkingSpaceDimension,
+//     int TLocalSpaceDimension,
+//     int TDimension>
+// inline std::istream& operator >> (
+//     std::istream& rIStream,
+//     KnotSpanGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>& rThis );
 
 /// output stream function
-template<class TPointType,
-    int TWorkingSpaceDimension,
-    int TLocalSpaceDimension,
-    int TDimension>
-inline std::ostream& operator << (
-    std::ostream& rOStream,
-    const KnotSpanGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>& rThis )
-{
-    rThis.PrintInfo( rOStream );
-    rOStream << std::endl;
-    rThis.PrintData( rOStream );
+// template<class TPointType,
+//     int TWorkingSpaceDimension,
+//     int TLocalSpaceDimension,
+//     int TDimension>
+// inline std::ostream& operator << (
+//     std::ostream& rOStream,
+//     const KnotSpanGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>& rThis )
+// {
+//     rThis.PrintInfo( rOStream );
+//     rOStream << std::endl;
+//     rThis.PrintData( rOStream );
 
-    return rOStream;
-}
+//     return rOStream;
+// }
 
 ///@}
 ///@name Type Dimension Definition
 ///@{
 
-template<class TPointType,
-    int TWorkingSpaceDimension,
-    int TLocalSpaceDimension,
-    int TDimension>
-const GeometryDimension KnotSpanGeometry<
-    TPointType,
-    TWorkingSpaceDimension,
-    TLocalSpaceDimension,
-    TDimension>::msGeometryDimension(
-        TWorkingSpaceDimension,
-        TLocalSpaceDimension);
+// template<class TPointType,
+//     int TWorkingSpaceDimension,
+//     int TLocalSpaceDimension,
+//     int TDimension>
+// const GeometryDimension KnotSpanGeometry<
+//     TPointType,
+//     TWorkingSpaceDimension,
+//     TLocalSpaceDimension,
+//     TDimension>::msGeometryDimension(
+//         TWorkingSpaceDimension,
+//         TLocalSpaceDimension);
 
 ///@}
 

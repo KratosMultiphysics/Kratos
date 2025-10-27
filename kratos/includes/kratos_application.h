@@ -464,8 +464,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const QuadraturePointGeometry<Node,3> mQuadraturePointGeometryVolume3D = QuadraturePointGeometry<Node,3>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
     //KnotSpanGeometries:
-    const KnotSpanGeometry<Node,3,2> mKnotSpanGeometrySurface = KnotSpanGeometry<Node,3,2>(GeometryType::PointsArrayType(),
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
+    // const KnotSpanGeometry<Node,3,2> mKnotSpanGeometrySurface = KnotSpanGeometry<Node,3,2>(GeometryType::PointsArrayType(),
+    //     GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
     // General conditions must be defined
     // Generic condition

@@ -108,50 +108,62 @@ namespace Kratos
             SizeType LocalSpaceDimension,
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
             PointsArrayType rPoints,
-            GeometryType* pGeometryParent)
+            GeometryType* pGeometryParent,
+            std::size_t PointsInU,
+            std::size_t PointsInV,
+            double KnotSpanIntervalUBegin,
+            double KnotSpanIntervalUEnd,
+            double KnotSpanIntervalVBegin,
+            double KnotSpanIntervalVEnd)
         {
-            if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
+            // if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
                 return Kratos::make_shared<
                     KnotSpanGeometry<TPointType, 1>>(
                         rPoints,
                         rShapeFunctionContainer,
-                        pGeometryParent);
-            else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
-                    KnotSpanGeometry<TPointType, 2, 1>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        pGeometryParent);
-            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
-                    KnotSpanGeometry<TPointType, 3, 1>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        pGeometryParent);
-            else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
-                return Kratos::make_shared<
-                    KnotSpanGeometry<TPointType, 2>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        pGeometryParent);
-            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
-                return Kratos::make_shared<
-                    KnotSpanGeometry<TPointType, 3, 2>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        pGeometryParent);
-            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
-                return Kratos::make_shared<
-                    KnotSpanGeometry<TPointType, 3>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        pGeometryParent);
-            else{
-                KRATOS_ERROR << "Working/Local space dimension combinations are "
-                    << "not provided for KnotSpanGeometry. WorkingSpaceDimension: "
-                    << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
-                    <<  std::endl;
-            }
+                        pGeometryParent,
+                        PointsInU,
+                        PointsInV,
+                        KnotSpanIntervalUBegin,
+                        KnotSpanIntervalUEnd,
+                        KnotSpanIntervalVBegin,
+                        KnotSpanIntervalVEnd);
+            // else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
+            //     return Kratos::make_shared<
+            //         KnotSpanGeometry<TPointType, 2, 1>>(
+            //             rPoints,
+            //             rShapeFunctionContainer,
+            //             pGeometryParent);
+            // else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 1)
+            //     return Kratos::make_shared<
+            //         KnotSpanGeometry<TPointType, 3, 1>>(
+            //             rPoints,
+            //             rShapeFunctionContainer,
+            //             pGeometryParent);
+            // else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
+            //     return Kratos::make_shared<
+            //         KnotSpanGeometry<TPointType, 2>>(
+            //             rPoints,
+            //             rShapeFunctionContainer,
+            //             pGeometryParent);
+            // else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
+            //     return Kratos::make_shared<
+            //         KnotSpanGeometry<TPointType, 3, 2>>(
+            //             rPoints,
+            //             rShapeFunctionContainer,
+            //             pGeometryParent);
+            // else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
+            //     return Kratos::make_shared<
+            //         KnotSpanGeometry<TPointType, 3>>(
+            //             rPoints,
+            //             rShapeFunctionContainer,
+            //             pGeometryParent);
+            // else{
+            //     KRATOS_ERROR << "Working/Local space dimension combinations are "
+            //         << "not provided for KnotSpanGeometry. WorkingSpaceDimension: "
+            //         << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
+            //         <<  std::endl;
+            // }
         }
 
     };

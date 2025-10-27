@@ -699,7 +699,7 @@ public:
             }
         }
         // Option 2: A list of QuadraturePointGeometry is created, one for each integration points.
-        else if ( IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS == rIntegrationInfo.GetQuadratureMethod(0) )
+        else if ( IntegrationInfo::QuadratureMethod::CUSTOM == rIntegrationInfo.GetQuadratureMethod(0) )
         {
             IntegrationPointsArrayType IntegrationPoints;
             CreateIntegrationPoints(IntegrationPoints, rIntegrationInfo);

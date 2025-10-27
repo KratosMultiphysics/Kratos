@@ -259,7 +259,7 @@ namespace Kratos
                         std::vector<Matrix> triangles;
                         for(IndexType i = 0; i < solution_inner.size(); ++i)
                         {
-                            BrepTrimmingUtilities::Triangulate_OPT(solution_inner[i], triangles, factor);
+                            BrepTrimmingUtilities::Triangulate_OPT(solution_inner[i], triangles, factor, span_area);
                         }
 
                         const SizeType number_of_points = std::max(rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));
