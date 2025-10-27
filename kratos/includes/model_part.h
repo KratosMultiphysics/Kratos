@@ -1349,21 +1349,21 @@ public:
     ///@name Geometries
     ///@{
 
-    SizeType NumberOfGeometries(IndexType ThisIndex = 0) const
+    SizeType NumberOfGeometries() const
     {
-        return GetMesh(ThisIndex).NumberOfGeometries();
+        return GetMesh(0).NumberOfGeometries();
     }
 
     /** Inserts a geometry in the current mesh.
      */
-    void AddGeometry(typename GeometryType::Pointer pNewGeometry, IndexType ThisIndex = 0);
+    void AddGeometry(typename GeometryType::Pointer pNewGeometry);
 
     /// Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
     void AddGeometries(std::vector<IndexType> const& GeometriesIds);
 
     /// Inserts a list of pointers to geometries
     template<class TIteratorType >
-    void AddGeometries(TIteratorType geometries_begin,  TIteratorType geometries_end, IndexType ThisIndex = 0)
+    void AddGeometries(TIteratorType geometries_begin,  TIteratorType geometries_end)
     {
         EntityRangeChecker<GeometryContainerType>()(this, geometries_begin, geometries_end);
 
@@ -1398,8 +1398,7 @@ public:
      */
     GeometryType::Pointer CreateNewGeometry(
         const std::string& rGeometryTypeName,
-        const std::vector<IndexType>& rGeometryNodeIds,
-        IndexType ThisIndex = 0
+        const std::vector<IndexType>& rGeometryNodeIds
         );
 
     /**
@@ -1409,8 +1408,7 @@ public:
      */
     GeometryType::Pointer CreateNewGeometry(
         const std::string& rGeometryTypeName,
-        GeometryType::PointsArrayType pGeometryNodes,
-        IndexType ThisIndex = 0
+        GeometryType::PointsArrayType pGeometryNodes
         );
 
     /**
@@ -1420,8 +1418,7 @@ public:
      */
     GeometryType::Pointer CreateNewGeometry(
         const std::string& rGeometryTypeName,
-        GeometryType::Pointer pGeometry,
-        IndexType ThisIndex = 0
+        GeometryType::Pointer pGeometry
         );
 
     /**
@@ -1433,8 +1430,7 @@ public:
     GeometryType::Pointer CreateNewGeometry(
         const std::string& rGeometryTypeName,
         const IndexType GeometryId,
-        const std::vector<IndexType>& rGeometryNodeIds,
-        IndexType ThisIndex = 0
+        const std::vector<IndexType>& rGeometryNodeIds
         );
 
     /**
@@ -1446,8 +1442,7 @@ public:
     GeometryType::Pointer CreateNewGeometry(
         const std::string& rGeometryTypeName,
         const IndexType GeometryId,
-        GeometryType::PointsArrayType pGeometryNodes,
-        IndexType ThisIndex = 0
+        GeometryType::PointsArrayType pGeometryNodes
         );
 
     /**
@@ -1459,8 +1454,7 @@ public:
     GeometryType::Pointer CreateNewGeometry(
         const std::string& rGeometryTypeName,
         const IndexType GeometryId,
-        GeometryType::Pointer pGeometry,
-        IndexType ThisIndex = 0
+        GeometryType::Pointer pGeometry
         );
 
     /**
@@ -1472,8 +1466,7 @@ public:
     GeometryType::Pointer CreateNewGeometry(
         const std::string& rGeometryTypeName,
         const std::string& rGeometryIdentifierName,
-        const std::vector<IndexType>& rGeometryNodeIds,
-        IndexType ThisIndex = 0
+        const std::vector<IndexType>& rGeometryNodeIds
         );
 
     /**
@@ -1485,8 +1478,7 @@ public:
     GeometryType::Pointer CreateNewGeometry(
         const std::string& rGeometryTypeName,
         const std::string& rGeometryIdentifierName,
-        GeometryType::PointsArrayType pGeometryNodes,
-        IndexType ThisIndex = 0
+        GeometryType::PointsArrayType pGeometryNodes
         );
 
         /**
@@ -1498,150 +1490,149 @@ public:
     GeometryType::Pointer CreateNewGeometry(
         const std::string& rGeometryTypeName,
         const std::string& rGeometryIdentifierName,
-        GeometryType::Pointer pGeometry,
-        IndexType ThisIndex = 0
+        GeometryType::Pointer pGeometry
         );
 
     /** Returns if the Element corresponding to it's identifier exists */
-    bool HasGeometry(IndexType GeometryId, IndexType ThisIndex = 0) const 
+    bool HasGeometry(IndexType GeometryId) const 
     {
-        return GetMesh(ThisIndex).HasGeometry(GeometryId);
+        return GetMesh(0).HasGeometry(GeometryId);
     }
 
     /** Returns if the Element corresponding to it's name exists */
-    bool HasGeometry(std::string GeometryName, IndexType ThisIndex = 0) const 
+    bool HasGeometry(std::string GeometryName) const 
     {
-        return GetMesh(ThisIndex).HasGeometry(GeometryName);
+        return GetMesh(0).HasGeometry(GeometryName);
     }
 
     /// Returns the Geometry::Pointer corresponding to the Id
-    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId, IndexType ThisIndex = 0) 
+    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) 
     {
-        return GetMesh(ThisIndex).pGetGeometry(GeometryId);
+        return GetMesh(0).pGetGeometry(GeometryId);
     }
 
     /// Returns the const Geometry::Pointer corresponding to the Id
-    const typename GeometryType::Pointer pGetGeometry(const IndexType GeometryId, const IndexType ThisIndex = 0) const 
+    const typename GeometryType::Pointer pGetGeometry(const IndexType GeometryId) const 
     {
-        return GetMesh(ThisIndex).pGetGeometry(GeometryId);
+        return GetMesh(0).pGetGeometry(GeometryId);
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
-    typename GeometryType::Pointer pGetGeometry(std::string GeometryName, IndexType ThisIndex = 0) 
+    typename GeometryType::Pointer pGetGeometry(std::string GeometryName) 
     {
-        return GetMesh(ThisIndex).pGetGeometry(GeometryName);
+        return GetMesh(0).pGetGeometry(GeometryName);
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
-    const typename GeometryType::Pointer pGetGeometry(const std::string GeometryName, const IndexType ThisIndex = 0) const 
+    const typename GeometryType::Pointer pGetGeometry(const std::string GeometryName) const 
     {
-        return GetMesh(ThisIndex).pGetGeometry(GeometryName);
+        return GetMesh(0).pGetGeometry(GeometryName);
     }
 
     /// Returns a reference geometry corresponding to the id
-    GeometryType& GetGeometry(IndexType GeometryId, IndexType ThisIndex = 0) 
+    GeometryType& GetGeometry(IndexType GeometryId) 
     {
-        return GetMesh(ThisIndex).GetGeometry(GeometryId);
+        return GetMesh(0).GetGeometry(GeometryId);
     }
 
     /// Returns a const reference geometry corresponding to the id
-    const GeometryType& GetGeometry(IndexType GeometryId, IndexType ThisIndex = 0) const 
+    const GeometryType& GetGeometry(IndexType GeometryId) const 
     {
-        return GetMesh(ThisIndex).GetGeometry(GeometryId);
+        return GetMesh(0).GetGeometry(GeometryId);
     }
 
     /// Returns a reference geometry corresponding to the name
-    GeometryType& GetGeometry(std::string GeometryName, IndexType ThisIndex = 0) 
+    GeometryType& GetGeometry(std::string GeometryName) 
     {
-        return GetMesh(ThisIndex).GetGeometry(GeometryName);
+        return GetMesh(0).GetGeometry(GeometryName);
     }
 
     /// Returns a const reference geometry corresponding to the name
-    const GeometryType& GetGeometry(std::string GeometryName, IndexType ThisIndex = 0) const 
+    const GeometryType& GetGeometry(std::string GeometryName) const 
     {
-        return GetMesh(ThisIndex).GetGeometry(GeometryName);
+        return GetMesh(0).GetGeometry(GeometryName);
     }
 
     /** Remove the geometry with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
-    void RemoveGeometry(IndexType GeometryId, IndexType ThisIndex = 0);
+    void RemoveGeometry(IndexType GeometryId);
 
     /** Remove the geometry with given name from mesh with ThisIndex in this modelpart and all its subs.
     */
-    void RemoveGeometry(std::string GeometryName, IndexType ThisIndex = 0);
+    void RemoveGeometry(std::string GeometryName);
 
      /** Remove given geometry from mesh with ThisIndex in this modelpart and all its subs.
     */
-    void RemoveGeometry(GeometryType& ThisGeometry, IndexType ThisIndex = 0);
+    void RemoveGeometry(GeometryType& ThisGeometry);
 
     /** Remove given geometry from mesh with ThisIndex in this modelpart and all its subs.
     */
-    void RemoveGeometry(GeometryType::Pointer pThisGeometry, IndexType ThisIndex = 0);
+    void RemoveGeometry(GeometryType::Pointer pThisGeometry);
 
 
     /// Removes a geometry by id from all root and sub model parts.
-    void RemoveGeometryFromAllLevels(IndexType GeometryId, IndexType ThisIndex = 0);
+    void RemoveGeometryFromAllLevels(IndexType GeometryId);
 
     /// Removes a geometry by name from all root and sub model parts.
-    void RemoveGeometryFromAllLevels(std::string GeometryName, IndexType ThisIndex = 0);
+    void RemoveGeometryFromAllLevels(std::string GeometryName);
 
     /** Remove given geometry from mesh with ThisIndex in parents, itself and children.
     */
-    void RemoveGeometryFromAllLevels(GeometryType& ThisGeometry, IndexType ThisIndex = 0);
+    void RemoveGeometryFromAllLevels(GeometryType& ThisGeometry);
 
     /** Remove given geometry from mesh with ThisIndex in parents, itself and children.
     */
-    void RemoveGeometryFromAllLevels(GeometryType::Pointer pThisGeometry, IndexType ThisIndex = 0);
+    void RemoveGeometryFromAllLevels(GeometryType::Pointer pThisGeometry);
 
     /// Begin geometry iterator
-    GeometryIterator GeometriesBegin(IndexType ThisIndex = 0) 
+    GeometryIterator GeometriesBegin() 
     {
-        return GetMesh(ThisIndex).GeometriesBegin();
+        return GetMesh(0).GeometriesBegin();
     }
 
     /// Begin geometry const iterator
-    GeometryConstantIterator GeometriesBegin(IndexType ThisIndex = 0) const 
+    GeometryConstantIterator GeometriesBegin() const 
     {
-        return GetMesh(ThisIndex).GeometriesBegin();
+        return GetMesh(0).GeometriesBegin();
     }
 
     /// End geometry iterator
-    GeometryIterator GeometriesEnd(IndexType ThisIndex = 0) 
+    GeometryIterator GeometriesEnd() 
     {
-        return GetMesh(ThisIndex).GeometriesEnd();
+        return GetMesh(0).GeometriesEnd();
     }
 
     /// End geometry const iterator
-    GeometryConstantIterator GeometriesEnd(IndexType ThisIndex = 0) const 
+    GeometryConstantIterator GeometriesEnd() const 
     {
-        return GetMesh(ThisIndex).GeometriesEnd();
+        return GetMesh(0).GeometriesEnd();
     }
 
     /// Get geometry container
-    GeometryContainerType& Geometries(IndexType ThisIndex = 0)
+    GeometryContainerType& Geometries()
     {
-        return GetMesh(ThisIndex).Geometries();
+        return GetMesh(0).Geometries();
     }
 
     /// Get geometry map container
-    const GeometryContainerType& Geometries(IndexType ThisIndex = 0) const
+    const GeometryContainerType& Geometries() const
     {
-        return GetMesh(ThisIndex).Geometries();
+        return GetMesh(0).Geometries();
     }
 
-    GeometryContainerType::Pointer pGeometries(IndexType ThisIndex = 0)
+    GeometryContainerType::Pointer pGeometries()
     {
-        return GetMesh(ThisIndex).pGeometries();
+        return GetMesh(0).pGeometries();
     }
 
-    void SetGeometries(GeometryContainerType::Pointer pOtherGeometries, IndexType ThisIndex = 0)
+    void SetGeometries(GeometryContainerType::Pointer pOtherGeometries)
     {
-        GetMesh(ThisIndex).SetGeometries(pOtherGeometries);
+        GetMesh(0).SetGeometries(pOtherGeometries);
     }
 
-    GeometryContainerType::ContainerType& GeometriesArray(IndexType ThisIndex = 0)
+    GeometryContainerType::ContainerType& GeometriesArray()
     {
-        return GetMesh(ThisIndex).GeometriesArray();
+        return GetMesh(0).GeometriesArray();
     }
 
     ///@}

@@ -1593,18 +1593,18 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
 
 /** Inserts a geometry in the mesh with ThisIndex.
 */
-void ModelPart::AddGeometry(ModelPart::GeometryType::Pointer pNewGeometry, ModelPart::IndexType ThisIndex)
+void ModelPart::AddGeometry(ModelPart::GeometryType::Pointer pNewGeometry)
 {
     if (IsSubModelPart()) {
-        mpParentModelPart->AddGeometry(pNewGeometry, ThisIndex);
-        GetMesh(ThisIndex).AddGeometry(pNewGeometry);
+        mpParentModelPart->AddGeometry(pNewGeometry);
+        GetMesh(0).AddGeometry(pNewGeometry);
     }
     else 
     {
-        auto existing_geometry_it = this->GetMesh(ThisIndex).Geometries().find(pNewGeometry->Id());
-        if( existing_geometry_it == GetMesh(ThisIndex).Geometries().end()) //node did not exist
+        auto existing_geometry_it = this->GetMesh(0).Geometries().find(pNewGeometry->Id());
+        if( existing_geometry_it == GetMesh(0).Geometries().end()) //node did not exist
         {
-            GetMesh(ThisIndex).AddGeometry(pNewGeometry);
+            GetMesh(0).AddGeometry(pNewGeometry);
         }
         else  //node did exist already
         {
@@ -1631,13 +1631,12 @@ void ModelPart::AddGeometries(std::vector<IndexType> const& GeometriesIds)
 
 ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     const std::string& rGeometryTypeName,
-    const std::vector<IndexType>& rGeometryNodeIds,
-    IndexType ThisIndex
+    const std::vector<IndexType>& rGeometryNodeIds
     )
 {
     if (IsSubModelPart()) {
-        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryNodeIds, ThisIndex);
-        GetMesh(ThisIndex).AddGeometry(p_new_geometry);
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryNodeIds);
+        GetMesh(0).AddGeometry(p_new_geometry);
         return p_new_geometry;
     }
 
@@ -1646,20 +1645,19 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
         p_geometry_nodes.push_back(pGetNode(rGeometryNodeIds[i]));
     }
 
-    return CreateNewGeometry(rGeometryTypeName, p_geometry_nodes, ThisIndex);
+    return CreateNewGeometry(rGeometryTypeName, p_geometry_nodes);
 }
 
 ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     const std::string& rGeometryTypeName,
-    GeometryType::PointsArrayType pGeometryNodes,
-    IndexType ThisIndex
+    GeometryType::PointsArrayType pGeometryNodes
     )
 {
     KRATOS_TRY
 
         if (IsSubModelPart()) {
-            GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, pGeometryNodes, ThisIndex);
-            GetMesh(ThisIndex).AddGeometry(p_new_geometry);
+            GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, pGeometryNodes);
+            GetMesh(0).AddGeometry(p_new_geometry);
             return p_new_geometry;
         }
 
@@ -1668,7 +1666,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     GeometryType::Pointer p_geometry = r_clone_geometry.Create(pGeometryNodes);
 
     //add the new geometry
-    GetMesh(ThisIndex).AddGeometry(p_geometry);
+    GetMesh(0).AddGeometry(p_geometry);
 
     return p_geometry;
 
@@ -1677,15 +1675,14 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 
 ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     const std::string& rGeometryTypeName,
-    GeometryType::Pointer pGeometry,
-    IndexType ThisIndex
+    GeometryType::Pointer pGeometry
     )
 {
     KRATOS_TRY
 
         if (IsSubModelPart()) {
-            GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, pGeometry, ThisIndex);
-            GetMesh(ThisIndex).AddGeometry(p_new_geometry);
+            GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, pGeometry);
+            GetMesh(0).AddGeometry(p_new_geometry);
             return p_new_geometry;
         }
 
@@ -1694,7 +1691,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     GeometryType::Pointer p_geometry = r_clone_geometry.Create(*pGeometry);
 
     //add the new geometry
-    GetMesh(ThisIndex).AddGeometry(p_geometry);
+    GetMesh(0).AddGeometry(p_geometry);
 
     return p_geometry;
 
@@ -1704,13 +1701,12 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     const std::string& rGeometryTypeName,
     const IndexType GeometryId,
-    const std::vector<IndexType>& rGeometryNodeIds,
-    IndexType ThisIndex
+    const std::vector<IndexType>& rGeometryNodeIds
     )
 {
     if (IsSubModelPart()) {
-        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, rGeometryNodeIds, ThisIndex);
-        GetMesh(ThisIndex).AddGeometry(p_new_geometry);
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, rGeometryNodeIds);
+        GetMesh(0).AddGeometry(p_new_geometry);
         return p_new_geometry;
     }
 
@@ -1719,28 +1715,27 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
         p_geometry_nodes.push_back(pGetNode(rGeometryNodeIds[i]));
     }
 
-    return CreateNewGeometry(rGeometryTypeName, GeometryId, p_geometry_nodes, ThisIndex);
+    return CreateNewGeometry(rGeometryTypeName, GeometryId, p_geometry_nodes);
 }
 
 ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     const std::string& rGeometryTypeName,
     const IndexType GeometryId,
-    GeometryType::PointsArrayType pGeometryNodes,
-    IndexType ThisIndex
+    GeometryType::PointsArrayType pGeometryNodes
     )
 {
     KRATOS_TRY
 
     if (IsSubModelPart()) {
-        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometryNodes, ThisIndex);
-        GetMesh(ThisIndex).AddGeometry(p_new_geometry);
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometryNodes);
+        GetMesh(0).AddGeometry(p_new_geometry);
         return p_new_geometry;
     }
 
     // Check if the geometry already exists
-    if (GetMesh(ThisIndex).HasGeometry(GeometryId)) {
+    if (GetMesh(0).HasGeometry(GeometryId)) {
         // Get the existing geometry with the same Id
-        const auto p_existing_geom = GetMesh(ThisIndex).pGetGeometry(GeometryId);
+        const auto p_existing_geom = GetMesh(0).pGetGeometry(GeometryId);
 
         // Check if the existing geometry has the same type
         KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
@@ -1761,7 +1756,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     GeometryType::Pointer p_geometry = r_clone_geometry.Create(GeometryId, pGeometryNodes);
 
     // Add the new geometry
-    GetMesh(ThisIndex).AddGeometry(p_geometry);
+    GetMesh(0).AddGeometry(p_geometry);
 
     // Return the new geometry
     return p_geometry;
@@ -1772,22 +1767,21 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     const std::string& rGeometryTypeName,
     const IndexType GeometryId,
-    GeometryType::Pointer pGeometry,
-    IndexType ThisIndex
+    GeometryType::Pointer pGeometry
     )
 {
     KRATOS_TRY
 
     if (IsSubModelPart()) {
-        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometry, ThisIndex);
-        GetMesh(ThisIndex).AddGeometry(p_new_geometry);
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometry);
+        GetMesh(0).AddGeometry(p_new_geometry);
         return p_new_geometry;
     }
 
     // Check if the geometry already exists
-    if (GetMesh(ThisIndex).HasGeometry(GeometryId)) {
+    if (GetMesh(0).HasGeometry(GeometryId)) {
         // Get the existing geometry with the same Id
-        const auto p_existing_geom = GetMesh(ThisIndex).pGetGeometry(GeometryId);
+        const auto p_existing_geom = GetMesh(0).pGetGeometry(GeometryId);
 
         // Check if the existing geometry has the same type
         KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
@@ -1808,7 +1802,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     GeometryType::Pointer p_geometry = r_clone_geometry.Create(GeometryId, *pGeometry);
 
     // Add the new geometry
-    GetMesh(ThisIndex).AddGeometry(p_geometry);
+    GetMesh(0).AddGeometry(p_geometry);
 
     // Return the new geometry
     return p_geometry;
@@ -1819,13 +1813,12 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     const std::string& rGeometryTypeName,
     const std::string& rGeometryIdentifierName,
-    const std::vector<IndexType>& rGeometryNodeIds,
-    IndexType ThisIndex
+    const std::vector<IndexType>& rGeometryNodeIds
     )
 {
     if (IsSubModelPart()) {
-        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, rGeometryNodeIds, ThisIndex);
-        GetMesh(ThisIndex).AddGeometry(p_new_geometry);
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, rGeometryNodeIds);
+        GetMesh(0).AddGeometry(p_new_geometry);
         return p_new_geometry;
     }
 
@@ -1834,28 +1827,27 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
         p_geometry_nodes.push_back(pGetNode(rGeometryNodeIds[i]));
     }
 
-    return CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, p_geometry_nodes, ThisIndex);
+    return CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, p_geometry_nodes);
 }
 
 ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     const std::string& rGeometryTypeName,
     const std::string& rGeometryIdentifierName,
-    GeometryType::PointsArrayType pGeometryNodes,
-    IndexType ThisIndex
+    GeometryType::PointsArrayType pGeometryNodes
     )
 {
     KRATOS_TRY
 
     if (IsSubModelPart()) {
-        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometryNodes, ThisIndex);
-        GetMesh(ThisIndex).AddGeometry(p_new_geometry);
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometryNodes);
+        GetMesh(0).AddGeometry(p_new_geometry);
         return p_new_geometry;
     }
 
     // Check if the geometry already exists
-    if (GetMesh(ThisIndex).HasGeometry(rGeometryIdentifierName)) {
+    if (GetMesh(0).HasGeometry(rGeometryIdentifierName)) {
         // Get the existing geometry with the same Id
-        const auto p_existing_geom = GetMesh(ThisIndex).pGetGeometry(rGeometryIdentifierName);
+        const auto p_existing_geom = GetMesh(0).pGetGeometry(rGeometryIdentifierName);
 
         // Check if the existing geometry has the same type
         KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
@@ -1876,7 +1868,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     GeometryType::Pointer p_geometry = r_clone_geometry.Create(rGeometryIdentifierName, pGeometryNodes);
 
     //add the new geometry
-    GetMesh(ThisIndex).AddGeometry(p_geometry);
+    GetMesh(0).AddGeometry(p_geometry);
 
     return p_geometry;
 
@@ -1886,22 +1878,21 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     const std::string& rGeometryTypeName,
     const std::string& rGeometryIdentifierName,
-    GeometryType::Pointer pGeometry,
-    IndexType ThisIndex
+    GeometryType::Pointer pGeometry
     )
 {
     KRATOS_TRY
 
     if (IsSubModelPart()) {
-        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometry, ThisIndex);
-        GetMesh(ThisIndex).AddGeometry(p_new_geometry);
+        GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, rGeometryIdentifierName, pGeometry);
+        GetMesh(0).AddGeometry(p_new_geometry);
         return p_new_geometry;
     }
 
     // Check if the geometry already exists
-    if (GetMesh(ThisIndex).HasGeometry(rGeometryIdentifierName)) {
+    if (GetMesh(0).HasGeometry(rGeometryIdentifierName)) {
         // Get the existing geometry with the same Id
-        const auto p_existing_geom = GetMesh(ThisIndex).pGetGeometry(rGeometryIdentifierName);
+        const auto p_existing_geom = GetMesh(0).pGetGeometry(rGeometryIdentifierName);
 
         // Check if the existing geometry has the same type
         KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(*p_existing_geom, KratosComponents<GeometryType>::Get(rGeometryTypeName)))
@@ -1922,7 +1913,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     GeometryType::Pointer p_geometry = r_clone_geometry.Create(rGeometryIdentifierName, *pGeometry);
 
     //add the new geometry
-    GetMesh(ThisIndex).AddGeometry(p_geometry);
+    GetMesh(0).AddGeometry(p_geometry);
 
     return p_geometry;
 
@@ -1930,91 +1921,91 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 }
 
 /// Removes a geometry by id.
-void ModelPart::RemoveGeometry(ModelPart::IndexType GeometryId, ModelPart::IndexType ThisIndex)
+void ModelPart::RemoveGeometry(ModelPart::IndexType GeometryId)
 {
-    GetMesh(ThisIndex).RemoveGeometry(GeometryId);
+    GetMesh(0).RemoveGeometry(GeometryId);
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveGeometry(GeometryId, ThisIndex);
+        i_sub_model_part->RemoveGeometry(GeometryId);
 }
 
 /// Removes a geometry by name.
-void ModelPart::RemoveGeometry(std::string GeometryName, ModelPart::IndexType ThisIndex)
+void ModelPart::RemoveGeometry(std::string GeometryName)
 {
-    GetMesh(ThisIndex).RemoveGeometry(GeometryName);
+    GetMesh(0).RemoveGeometry(GeometryName);
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveGeometry(GeometryName, ThisIndex);
+        i_sub_model_part->RemoveGeometry(GeometryName);
 }
 
 /** Remove given geometry from mesh with ThisIndex in this modelpart and all its subs.
 */
-void ModelPart::RemoveGeometry(ModelPart::GeometryType& ThisGeometry, ModelPart::IndexType ThisIndex)
+void ModelPart::RemoveGeometry(ModelPart::GeometryType& ThisGeometry)
 {
-    GetMesh(ThisIndex).RemoveGeometry(ThisGeometry);
+    GetMesh(0).RemoveGeometry(ThisGeometry);
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveGeometry(ThisGeometry, ThisIndex);
+        i_sub_model_part->RemoveGeometry(ThisGeometry);
 }
 
 /** Remove given geometry from mesh with ThisIndex in this modelpart and all its subs.
 */
-void ModelPart::RemoveGeometry(ModelPart::GeometryType::Pointer pThisGeometry, ModelPart::IndexType ThisIndex)
+void ModelPart::RemoveGeometry(ModelPart::GeometryType::Pointer pThisGeometry)
 {
-    GetMesh(ThisIndex).RemoveGeometry(pThisGeometry);
+    GetMesh(0).RemoveGeometry(pThisGeometry);
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveGeometry(pThisGeometry, ThisIndex);
+        i_sub_model_part->RemoveGeometry(pThisGeometry);
 }
 
 /// Removes a geometry by id from all root and sub model parts.
-void ModelPart::RemoveGeometryFromAllLevels(ModelPart::IndexType GeometryId, ModelPart::IndexType ThisIndex)
+void ModelPart::RemoveGeometryFromAllLevels(ModelPart::IndexType GeometryId)
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveGeometry(GeometryId, ThisIndex);
+        mpParentModelPart->RemoveGeometry(GeometryId);
         return;
     }
 
-    RemoveGeometry(GeometryId, ThisIndex);
+    RemoveGeometry(GeometryId);
 }
 
 /// Removes a geometry by name from all root and sub model parts.
-void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName, ModelPart::IndexType ThisIndex)
+void ModelPart::RemoveGeometryFromAllLevels(std::string GeometryName)
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveGeometry(GeometryName, ThisIndex);
+        mpParentModelPart->RemoveGeometry(GeometryName);
         return;
     }
 
-    RemoveGeometry(GeometryName, ThisIndex);
+    RemoveGeometry(GeometryName);
 }
 
 /** Remove given geometry from mesh with ThisIndex in parents, itself and children.
 */
-void ModelPart::RemoveGeometryFromAllLevels(ModelPart::GeometryType& ThisGeometry, ModelPart::IndexType ThisIndex)
+void ModelPart::RemoveGeometryFromAllLevels(ModelPart::GeometryType& ThisGeometry)
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveGeometry(ThisGeometry, ThisIndex);
+        mpParentModelPart->RemoveGeometry(ThisGeometry);
         return;
     }
 
-    RemoveGeometry(ThisGeometry, ThisIndex);
+    RemoveGeometry(ThisGeometry);
 }
 
 /** Remove given geometry from mesh with ThisIndex in parents, itself and children.
 */
-void ModelPart::RemoveGeometryFromAllLevels(ModelPart::GeometryType::Pointer pThisGeometry, ModelPart::IndexType ThisIndex)
+void ModelPart::RemoveGeometryFromAllLevels(ModelPart::GeometryType::Pointer pThisGeometry)
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->RemoveGeometry(pThisGeometry, ThisIndex);
+        mpParentModelPart->RemoveGeometry(pThisGeometry);
         return;
     }
 
-    RemoveGeometry(pThisGeometry, ThisIndex);
+    RemoveGeometry(pThisGeometry);
 }
 
 
