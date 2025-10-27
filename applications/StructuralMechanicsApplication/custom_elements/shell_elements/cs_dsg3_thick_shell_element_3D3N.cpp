@@ -1014,12 +1014,17 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(
         const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
         double zeta1, zeta2, zeta3, weight;
         MatrixType B(strain_size, system_size);
+        MatrixType Bm(strain_size, system_size);
+        MatrixType B_bs_smoothed(strain_size, system_size);
+        CalculateSmoothedBendingShearB(B_bs_smoothed, area, local_coords_1, local_coords_2, local_coords_3); // constant for all points
+
         for (SizeType i_point = 0; i_point < r_integration_points.size(); ++i_point) {
             zeta1 = r_integration_points[i_point].X();
             zeta2 = r_integration_points[i_point].Y();
             zeta3 = r_integration_points[i_point].Z();
 
-            CalculateBbendingShearTriangle(B, area, local_coords_1, local_coords_2, local_coords_3);
+            CalculateBmTriangle(Bm, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
+            noalias(B) = Bm + B_bs_smoothed;
 
             // We compute the strain at the integration point
             noalias(gen_strain_vector) = prod(B, nodal_values);
@@ -1086,13 +1091,19 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(
 
         const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
         double zeta1, zeta2, zeta3, weight;
+
         MatrixType B(strain_size, system_size);
+        MatrixType Bm(strain_size, system_size);
+        MatrixType B_bs_smoothed(strain_size, system_size);
+        CalculateSmoothedBendingShearB(B_bs_smoothed, area, local_coords_1, local_coords_2, local_coords_3); // constant for all points
+
         for (SizeType i_point = 0; i_point < r_integration_points.size(); ++i_point) {
             zeta1 = r_integration_points[i_point].X();
             zeta2 = r_integration_points[i_point].Y();
             zeta3 = r_integration_points[i_point].Z();
 
-            CalculateBbendingShearTriangle(B, area, local_coords_1, local_coords_2, local_coords_3);
+            CalculateBmTriangle(Bm, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
+            noalias(B) = Bm + B_bs_smoothed;
 
             // We compute the strain at the integration point
             noalias(gen_strain_vector) = prod(B, nodal_values);
