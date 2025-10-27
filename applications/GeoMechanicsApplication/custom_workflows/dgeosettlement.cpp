@@ -59,8 +59,8 @@ struct StringHash {
 
 void ExtractModelPartNames(const auto& process_list,
                            std::unordered_set<std::string, StringHash, std::equal_to<>>& domain_condition_names,
-                           const std::string_view& root_name,
-                           const std::string&      prefix)
+                           std::string_view root_name,
+                           std::string_view prefix)
 {
     for (const auto& process : process_list) {
         if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
