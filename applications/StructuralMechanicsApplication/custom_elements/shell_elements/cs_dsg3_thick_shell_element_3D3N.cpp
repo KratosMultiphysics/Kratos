@@ -1150,6 +1150,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::save(
     int IntMethod = int(GetIntegrationMethod());
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("pCoordinateTransformation", mpCoordinateTransformation);
 }
 
 /***********************************************************************************/
@@ -1164,6 +1165,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::load(
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("pCoordinateTransformation", mpCoordinateTransformation);
 }
 
 /***********************************************************************************/
