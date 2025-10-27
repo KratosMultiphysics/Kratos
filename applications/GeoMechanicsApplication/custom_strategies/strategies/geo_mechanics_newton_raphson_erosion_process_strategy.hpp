@@ -304,7 +304,11 @@ private:
                 // check this if statement, I don't understand the check for pipe erosion
                 if ((!p_open_pipe_element->GetValue(PIPE_EROSION) || current_height > eq_height) &&
                     current_height < MaxPipeHeight) {
-                    p_open_pipe_element->SetValue(PIPE_HEIGHT, current_height + pipe_height_increment);
+                    if (p_open_pipe_element->GetValue(PIPE_HEIGHT) < r_prop[PIPE_HEIGHT] - mPipeHeightAccuracy) {
+                        p_open_pipe_element->SetValue(PIPE_HEIGHT, r_prop[PIPE_HEIGHT]);
+                    } else {
+                        p_open_pipe_element->SetValue(PIPE_HEIGHT, current_height + pipe_height_increment);
+                    }
                     equilibrium = false;
                 }
 
