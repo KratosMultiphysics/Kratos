@@ -224,10 +224,7 @@ public:
         const double Area,
         const array_3& r_coord_1, 
         const array_3& r_coord_2, 
-        const array_3& r_coord_3,
-        const double area_coord_1,
-        const double area_coord_2,
-        const double area_coord_3
+        const array_3& r_coord_3
     );
 
     /**
@@ -239,10 +236,7 @@ public:
         const double Area,
         const array_3& r_coord_1, 
         const array_3& r_coord_2, 
-        const array_3& r_coord_3,
-        const double area_coord_1,
-        const double area_coord_2,
-        const double area_coord_3
+        const array_3& r_coord_3
     );
 
     /**
@@ -259,14 +253,6 @@ public:
         const double area_coord_1,
         const double area_coord_2,
         const double area_coord_3
-    );
-
-    /**
-     * @brief This method computes the Strain-Displacement matrix B, used to relate nodal displacements to strains
-     * using the 3 subtriangles of the element
-     */
-    void CalculateB(
-        MatrixType &rB
     );
 
     /**
@@ -404,17 +390,6 @@ public:
 
         return integration_points;
     }
-
-    /**
-     * @brief This method finalizes the corotational calculations, rotating LHS and RHS to global system
-     */
-    void FinalizeCorotationalCalculations(
-        const Vector& rLocalNodalValues,
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const bool RHS_required,
-        const bool LHS_required
-    );
 
     /**
      * @brief This method computes the initial center of the element

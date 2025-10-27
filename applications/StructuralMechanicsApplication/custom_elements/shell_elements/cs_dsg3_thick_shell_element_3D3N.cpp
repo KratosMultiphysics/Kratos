@@ -351,10 +351,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateSmoothedBendingShear
     const double Area,
     const array_3& r_coord_1, 
     const array_3& r_coord_2, 
-    const array_3& r_coord_3,
-    const double zeta1,
-    const double zeta2,
-    const double zeta3
+    const array_3& r_coord_3
 )
 {
     
@@ -377,9 +374,9 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateSmoothedBendingShear
     const double area_2 = CalculateArea(initial_center, r_coord_2, r_coord_3);
     const double area_3 = CalculateArea(initial_center, r_coord_3, r_coord_1);
 
-    CalculateBbendingShearTriangle(B1, area_1, initial_center, r_coord_1, r_coord_2, zeta1, zeta2, zeta3);
-    CalculateBbendingShearTriangle(B2, area_2, initial_center, r_coord_2, r_coord_3, zeta1, zeta2, zeta3);
-    CalculateBbendingShearTriangle(B3, area_3, initial_center, r_coord_3, r_coord_1, zeta1, zeta2, zeta3);
+    CalculateBbendingShearTriangle(B1, area_1, initial_center, r_coord_1, r_coord_2);
+    CalculateBbendingShearTriangle(B2, area_2, initial_center, r_coord_2, r_coord_3);
+    CalculateBbendingShearTriangle(B3, area_3, initial_center, r_coord_3, r_coord_1);
 
     const double w1 = area_1 / Area;
     const double w2 = area_2 / Area;
@@ -409,10 +406,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateBbendingShearTriangl
     const double Area,
     const array_3& r_local_coord_1,
     const array_3& r_local_coord_2,
-    const array_3& r_local_coord_3,
-    const double area_coords_1,
-    const double area_coords_2,
-    const double area_coords_3
+    const array_3& r_local_coord_3
 )
 {
     KRATOS_TRY
@@ -711,17 +705,6 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetNodalValuesVector(
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateB(
-    MatrixType &rB
-)
-{
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <bool IS_COROTATIONAL>
 void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
     MatrixType& rLHS,
     VectorType& rRHS,
@@ -773,6 +756,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
     MatrixType B(strain_size, system_size);
     MatrixType Bm(strain_size, system_size);
     MatrixType B_bs_smoothed(strain_size, system_size);
+    CalculateSmoothedBendingShearB(B_bs_smoothed, area, local_coords_1, local_coords_2, local_coords_3); // constant for all points
 
     for (SizeType i_point = 0; i_point < r_integration_points.size(); ++i_point) {
         zeta1 = r_integration_points[i_point].X();
@@ -780,7 +764,6 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
         zeta3 = r_integration_points[i_point].Z();
         weight = r_integration_points[i_point].Weight();
 
-        CalculateSmoothedBendingShearB(B_bs_smoothed, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
         CalculateBmTriangle(Bm, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
 
         noalias(B) = Bm + B_bs_smoothed;
@@ -882,6 +865,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
     MatrixType B(strain_size, system_size);
     MatrixType Bm(strain_size, system_size);
     MatrixType B_bs_smoothed(strain_size, system_size);
+    CalculateSmoothedBendingShearB(B_bs_smoothed, area, local_coords_1, local_coords_2, local_coords_3); // constant for all points
 
     for (SizeType i_point = 0; i_point < r_integration_points.size(); ++i_point) {
         zeta1 = r_integration_points[i_point].X();
@@ -889,7 +873,6 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
         zeta3 = r_integration_points[i_point].Z();
         weight = r_integration_points[i_point].Weight();
 
-        CalculateSmoothedBendingShearB(B_bs_smoothed, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
         CalculateBmTriangle(Bm, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
 
         noalias(B) = Bm + B_bs_smoothed;
@@ -985,19 +968,6 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeNonLinearIteration(
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeCorotationalCalculations(
-        const Vector& rLocalNodalValues,
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const bool RHS_required,
-        const bool LHS_required)
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <bool IS_COROTATIONAL>
 void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1049,7 +1019,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(
             zeta2 = r_integration_points[i_point].Y();
             zeta3 = r_integration_points[i_point].Z();
 
-            CalculateBbendingShearTriangle(B, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
+            CalculateBbendingShearTriangle(B, area, local_coords_1, local_coords_2, local_coords_3);
 
             // We compute the strain at the integration point
             noalias(gen_strain_vector) = prod(B, nodal_values);
@@ -1094,10 +1064,9 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(
         CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
 
         array_3 local_coords_1, local_coords_2, local_coords_3, center;
-        noalias(center) = GetInitialCenter();
-        noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition() - center);
-        noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition() - center);
-        noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition() - center);
+        noalias(local_coords_1) = prod(rotation_matrix, r_geometry[0].GetInitialPosition());
+        noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition());
+        noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition());
         const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
 
         VectorType nodal_values(system_size);
@@ -1123,7 +1092,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(
             zeta2 = r_integration_points[i_point].Y();
             zeta3 = r_integration_points[i_point].Z();
 
-            CalculateBbendingShearTriangle(B, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
+            CalculateBbendingShearTriangle(B, area, local_coords_1, local_coords_2, local_coords_3);
 
             // We compute the strain at the integration point
             noalias(gen_strain_vector) = prod(B, nodal_values);
