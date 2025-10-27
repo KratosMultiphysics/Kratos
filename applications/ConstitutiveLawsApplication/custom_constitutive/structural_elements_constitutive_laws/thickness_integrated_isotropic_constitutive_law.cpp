@@ -395,7 +395,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
         Matrix F(subprop_dimension, subprop_dimension); // 2x2
         double weight, z_coord, z_coord2, aux_weight, aux_weight2, detF;
 
-        const double h_max = rValues.GetElementGeometry().MaxEdgeLength();
+        const double h_max = GetMaxReferenceEdgeLength(rValues.GetElementGeometry());
         const double alpha = 0.1;
         const double thickness = r_material_properties[THICKNESS];
         const double t_square = thickness * thickness;
