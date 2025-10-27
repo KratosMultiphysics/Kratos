@@ -1872,7 +1872,7 @@ Begin SubModelPart TopWaterPressure
   End SubModelPartNodes
 End SubModelPart 
 
-Begin SubModelPart Bottom1
+Begin SubModelPart Bottom
   Begin SubModelPartNodes
     1
     4
@@ -5205,7 +5205,7 @@ Begin Table 4 X LINE_LOAD_Y
    1.0000000000 -20000.0000000000 
 End Table
 
-Begin SubModelPart LineLoad4
+Begin SubModelPart LineLoad
   Begin SubModelPartTables
     4
   End SubModelPartTables
@@ -5838,22 +5838,3 @@ Begin SubModelPart Head_line4
     170
   End SubModelPartElements
 End SubModelPart 
-
-Begin Table 5 X LINE_LOAD_Y
-   0.0000000000 -20000.0000000000 
-   1.0000000000 -20000.0000000000 
-End Table
-
-Begin SubModelPart LineLoad5
-  Begin SubModelPartTables
-    5
-  End SubModelPartTables
-  Begin SubModelPartNodes
-    2
-    3
-    104
-  End SubModelPartNodes
-  Begin SubModelPartConditions
-    171
-  End SubModelPartConditions
-End SubModelPart

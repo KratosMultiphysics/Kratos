@@ -54,11 +54,11 @@
     "problem_domain_sub_model_part_list": ["Soil-0"],
     "processes_sub_model_part_list"   : ["gravity",
                                          "TopWaterPressure",
-                                         "Bottom1",
+                                         "Bottom",
                                          "BottomWaterPressure",
                                          "LeftSide",
                                          "RightSide",
-                                         "LineLoad4"],
+                                         "LineLoad"],
     "body_domain_sub_model_part_list" : ["Soil-0"],
     "move_mesh_flag"                  : false
   },
@@ -118,7 +118,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyVectorConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.Bottom1",
+          "model_part_name"        : "PorousDomain.Bottom",
           "variable_name"          : "DISPLACEMENT",
           "active"                 : [true, true, true],
           "is_fixed"               : [true, true, true],
@@ -189,7 +189,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyVectorConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.LineLoad4",
+          "model_part_name"        : "PorousDomain.LineLoad",
           "variable_name"          : "LINE_LOAD",
           "active"                 : [false, true, false],
           "value"                  : [0.0, 0.0, 0.0],
