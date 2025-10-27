@@ -185,30 +185,28 @@
         }
       },
       {
-        "python_module"            : "apply_normal_load_table_process",
-        "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name"             : "ApplyNormalLoadTableProcess",
+        "python_module": "apply_normal_load_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name": "ApplyNormalLoadTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.PhreaticLineContactStress2",
-          "variable_name"          : "NORMAL_CONTACT_STRESS",
-          "active"                 : [true, false],
-          "value"                  : [0.0, 0.0],
-          "table"                  : [0, 0],
-          "fluid_pressure_type"    : "Hydrostatic",
-          "gravity_direction"      : 1,
-          "reference_coordinate"   : 50,
-          "specific_weight"        : 10000
-        }
-      },{
-        "python_module"            : "apply_vector_constraint_table_process",
-        "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name"             : "ApplyVectorConstraintTableProcess",
-        "Parameters": {
-          "model_part_name"        : "PorousDomain.LineLoad4",
-          "variable_name"          : "LINE_LOAD",
-          "active"                 : [false, true, false],
-          "value"                  : [0.0, 0.0, 0.0],
-          "table"                  : [0, 4, 0]
+          "model_part_name": "PorousDomain.PhreaticLineContactStress2",
+          "variable_name": "NORMAL_CONTACT_STRESS",
+          "active": [
+            true,
+            false
+          ],
+          "value": [
+            0.0,
+            0.0
+          ],
+          "table": [
+            0,
+            0
+          ],
+          "fluid_pressure_type": "Hydrostatic",
+          "gravity_direction": 1,
+          "reference_coordinate": 50,
+          "specific_weight": 10000
         }
       }
     ],
