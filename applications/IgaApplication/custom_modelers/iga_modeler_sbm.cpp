@@ -270,9 +270,6 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
             << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
         if (type == "element") {
-            // Get the mesh sizes from the iga model part
-            const Vector& knot_span_sizes = rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
-
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Elements().size() > 0)
                 id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
