@@ -84,8 +84,6 @@ public:
 
     void Execute() override;
 
-    [[nodiscard]] std::string Info() const;
-
     ///@}
 private:
     ///@}

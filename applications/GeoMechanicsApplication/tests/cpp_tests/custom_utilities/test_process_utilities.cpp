@@ -10,6 +10,7 @@
 //  Main authors:    Gennady Markelov
 //
 
+#include "custom_operations/activate_model_part_operation.h"
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
@@ -17,7 +18,6 @@
 #include "custom_utilities/process_utilities.h"
 #include "testing/testing.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "custom_operations/activate_model_part_operation.h"
 
 namespace Kratos::Testing
 {
@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
 }
 
 struct NamedFactory {
-    std::string name;
+    std::string                                                    name;
     std::function<void(Kratos::Model&, const Kratos::Parameters&)> factory;
 };
 
@@ -131,11 +131,9 @@ static const std::vector<NamedFactory> kProcessFactories = {
 }}};
 
 static const std::vector<NamedFactory> kOperationFactories = {
-    {"ActivateModelPartOperation",
-     [](Model& rModel, const Parameters& rSettings) {
-         return std::make_unique<Kratos::ActivateModelPartOperation>(rModel, rSettings);
-    }}
-};
+    {"ActivateModelPartOperation", [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::ActivateModelPartOperation>(rModel, rSettings);
+}}};
 
 static std::vector<NamedFactory> GetAllFactories()
 {
