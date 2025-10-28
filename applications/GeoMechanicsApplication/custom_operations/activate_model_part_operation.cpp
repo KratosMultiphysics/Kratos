@@ -16,6 +16,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "custom_utilities/process_utilities.h"
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
@@ -28,8 +29,9 @@ namespace Kratos
 {
 
 ActivateModelPartOperation::ActivateModelPartOperation(Model& rModel, const Parameters& rSettings)
-    : Operation(), mpModelPart(&rModel.GetModelPart(rSettings["model_part_name"].GetString()))
+    : Operation()
 {
+    mrModelParts = ProcessUtilities::GetModelPartsFromSettings(rModel, rSettings, Info());
 }
 
 Operation::Pointer ActivateModelPartOperation::Create(Model& rModel, Parameters Settings) const
@@ -41,16 +43,20 @@ void ActivateModelPartOperation::Execute()
 {
     KRATOS_TRY
 
-    // Activate the elements of the model part
-    VariableUtils().SetFlag(ACTIVE, true, mpModelPart->Elements());
+    for (const auto& r_model_part : mrModelParts) {
+        // Activate the elements of the model part
+        VariableUtils().SetFlag(ACTIVE, true, r_model_part.get().Elements());
 
-    // Activate the nodes of the model part
-    VariableUtils().SetFlag(ACTIVE, true, mpModelPart->Nodes());
+        // Activate the nodes of the model part
+        VariableUtils().SetFlag(ACTIVE, true, r_model_part.get().Nodes());
 
-    // Activate the conditions of the model part
-    VariableUtils().SetFlag(ACTIVE, true, mpModelPart->Conditions());
+        // Activate the conditions of the model part
+        VariableUtils().SetFlag(ACTIVE, true, r_model_part.get().Conditions());
+    }
 
     KRATOS_CATCH("")
 }
+
+std::string ActivateModelPartOperation::Info() const { return "ActivateModelPartOperation"; }
 
 } // namespace Kratos
