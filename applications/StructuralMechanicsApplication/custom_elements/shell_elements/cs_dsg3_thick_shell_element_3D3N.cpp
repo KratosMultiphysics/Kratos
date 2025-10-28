@@ -759,6 +759,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
     const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
     double zeta1, zeta2, zeta3, weight;
     MatrixType B(strain_size, system_size);
+    MatrixType temporal(strain_size, system_size);
     MatrixType Bm(strain_size, system_size);
     MatrixType B_bs_smoothed(strain_size, system_size);
     CalculateSmoothedBendingShearB(B_bs_smoothed, area, local_coords_1, local_coords_2, local_coords_3); // constant for all points
@@ -783,7 +784,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
         noalias(gen_constitutive_matrix) = cl_values.GetConstitutiveMatrix();
 
         // We integrate the LHS and RHS
-        noalias(rLHS) += weight * prod(trans(B), Matrix(prod(gen_constitutive_matrix, B)));
+        noalias(temporal) = prod(gen_constitutive_matrix, B);
+        noalias(rLHS) += weight * prod(trans(B), temporal);
         noalias(rRHS) -= weight * prod(trans(B), gen_stress_vector);
 
     }
@@ -852,6 +854,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLeftHandSide(
     const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
     double zeta1, zeta2, zeta3, weight;
     MatrixType B(strain_size, system_size);
+    MatrixType temporal(strain_size, system_size);
     MatrixType Bm(strain_size, system_size);
     MatrixType B_bs_smoothed(strain_size, system_size);
     CalculateSmoothedBendingShearB(B_bs_smoothed, area, local_coords_1, local_coords_2, local_coords_3); // constant for all points
@@ -875,8 +878,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLeftHandSide(
         noalias(gen_constitutive_matrix) = cl_values.GetConstitutiveMatrix();
 
         // We integrate the LHS and RHS
-        noalias(rLHS) += weight * prod(trans(B), Matrix(prod(gen_constitutive_matrix, B)));
-
+        noalias(temporal) = prod(gen_constitutive_matrix, B);
+        noalias(rLHS) += weight * prod(trans(B), temporal);
     }
     if constexpr (is_corotational) {
         this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
