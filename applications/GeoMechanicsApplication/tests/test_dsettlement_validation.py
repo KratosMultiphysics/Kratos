@@ -1,5 +1,4 @@
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
-from KratosMultiphysics.GeoMechanicsApplication import run_multiple_stages
 from KratosMultiphysics.GeoMechanicsApplication import unit_conversions
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
@@ -609,7 +608,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         n_stages = 5
         project_parameters_filenames = [
-            f"ProjectParameters_stage{i+1}.json" for i in range(n_stages)
+            f"..\common\ProjectParameters_stage{i+1}.json" for i in range(n_stages)
         ]
         status = run_geo_settlement.run_stages(
             project_path, project_parameters_filenames
@@ -985,7 +984,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         n_stages = 5
         project_parameters_filenames = [
-            f"ProjectParameters_stage{i+1}.json" for i in range(n_stages)
+            f"..\common\ProjectParameters_stage{i+1}.json" for i in range(n_stages)
         ]
         status = run_geo_settlement.run_stages(
             project_path, project_parameters_filenames
