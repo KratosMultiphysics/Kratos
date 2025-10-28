@@ -687,13 +687,18 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetNodalValuesVector(
             mpCoordinateTransformation->CreateLocalCoordinateSystem(), Vector());
     } else { // Linear
         IndexType index = 0;
+        array_3 displacement;
+        array_3 rotation;
         for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
-            rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_X);
-            rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
-            rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
-            rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(ROTATION_X);
-            rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(ROTATION_Y);
-            rNodalValues[index++] = r_geometry[i].FastGetSolutionStepValue(ROTATION_Z);
+            noalias(displacement) = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+            noalias(rotation) = r_geometry[i].FastGetSolutionStepValue(ROTATION);
+
+            rNodalValues[index++] = displacement[0];
+            rNodalValues[index++] = displacement[1];
+            rNodalValues[index++] = displacement[2];
+            rNodalValues[index++] = rotation[0];
+            rNodalValues[index++] = rotation[1];
+            rNodalValues[index++] = rotation[2];
         }
         RotateRHSToLocal(rNodalValues, rT);
     }
