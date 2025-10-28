@@ -147,8 +147,8 @@ void IgaModelerSbm::GetGeometryList(
                         the second "node.Id()" is the last condition of that loop. (Essential for multiple inner loops)
                     */
                     const auto& r_geometry = rElem.GetGeometry();
-                    KRATOS_ERROR_IF(r_geometry.PointsNumber() < 2)
-                        << "Surrogate loop element " << rElem.Id() << " has <2 geometry points." << std::endl;
+                    KRATOS_ERROR_IF(r_geometry.PointsNumber() != 2)
+                        << "Surrogate loop element " << rElem.Id() << " must have 2 geometry points." << std::endl;
 
                     // First/last condition IDs encoded as the first two geometry nodes
                     const IndexType first_condition_id = r_geometry[0].Id();
@@ -279,7 +279,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
 
             this->CreateElements(
                 geometries.ptr_begin(), geometries.ptr_end(),
-                rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
+                rModelPart, name, id, PropertiesPointerType());
         }
         else if (type == "condition") {
             // Get the mesh sizes from the iga model part
@@ -689,8 +689,7 @@ void IgaModelerSbm::CreateElements(
     ModelPart& rModelPart,
     std::string& rElementName,
     SizeType& rIdCounter,
-    PropertiesPointerType pProperties,
-    const Vector KnotSpanSizes) const
+    PropertiesPointerType pProperties) const
 {
     KRATOS_ERROR_IF(!KratosComponents<Element>::Has(rElementName))
         << rElementName << " not registered." << std::endl;
@@ -711,9 +710,6 @@ void IgaModelerSbm::CreateElements(
     {
         new_element_list.push_back(
             rReferenceElement.Create(rIdCounter, (*it), pProperties));
-
-        // Set knot span sizes to the condition
-        new_element_list.GetContainer()[count]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
 
         for (SizeType i = 0; i < (*it)->size(); ++i) {
             rModelPart.Nodes().push_back((*it)->pGetPoint(i));

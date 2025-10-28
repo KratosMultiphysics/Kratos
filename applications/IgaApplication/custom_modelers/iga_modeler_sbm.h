@@ -196,8 +196,7 @@ private:
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties,
-        const Vector KnotSpanSizes) const;
+        PropertiesPointerType pProperties) const;
 
     /// Creates conditions from geometries
     void CreateConditions(
