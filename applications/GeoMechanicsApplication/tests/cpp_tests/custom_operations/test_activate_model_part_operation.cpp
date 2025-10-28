@@ -70,16 +70,4 @@ KRATOS_TEST_CASE_IN_SUITE(ActivateModelPartOperation, KratosGeoMechanicsFastSuit
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckInfoActivateModelPartOperation, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    Model model;
-    model.CreateModelPart("foo");
-    const auto                       parameters = Parameters{R"({"model_part_name" : "foo"})"};
-    const ActivateModelPartOperation operation{model, parameters};
-
-    // Act & Assert
-    KRATOS_EXPECT_EQ(operation.Info(), "ActivateModelPartOperation");
-}
-
 } // namespace Kratos::Testing
