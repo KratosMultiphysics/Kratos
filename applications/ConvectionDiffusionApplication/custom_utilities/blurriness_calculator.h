@@ -141,7 +141,11 @@ namespace Kratos
             {
                 std::vector<double> layer_integrals(mNumLayers, 0.); // Defined as \int{ (rho_h - rho_step)^2 dQ } , dQ = u * dS
                 std::vector<double> layer_flows(mNumLayers, 0.);     // Velocity flows of each layer
-                double area = 0.0, max_diff = 0.;
+
+                std::vector<double> areas(mNumLayers, 0.0);
+                std::vector<double> element_areas(mNumLayers, 0.0);
+                std::vector<unsigned int> n_elements_layers(mNumLayers, 0.0);
+                unsigned int n_elements = mModelPartVector[m]->NumberOfConditions();
 
                 ModelPart &r_model_part = *(mModelPartVector[m]);
                 const unsigned number_of_conditions = r_model_part.NumberOfConditions();
@@ -160,7 +164,7 @@ namespace Kratos
                     r_geometry.DeterminantOfJacobian(detJ_vector, integration_method);
                     Matrix NContainer = r_geometry.ShapeFunctionsValues(integration_method);
 
-                    // Check at which layer this condition belongs to
+                    // // Check at which layer this condition belongs to
                     double condition_center_z = r_geometry.Center()[2];
                     unsigned ith_interface = mNumLayers; // Initialize it with an impossible value
                     for (unsigned i = 0; i < mNumLayers; i++)
@@ -173,6 +177,8 @@ namespace Kratos
                     }
                     KRATOS_ERROR_IF(ith_interface == mNumLayers)
                         << "Unable to find layer for condition with Id = " << it_cond->Id() << " with center at z = " << condition_center_z << std::endl;
+                    element_areas[ith_interface] += r_geometry.Area();
+                    n_elements_layers[ith_interface] += 1;
 
                     // Perform the layer integral
                     for (unsigned g = 0; g < r_number_integration_points; g++)
@@ -187,6 +193,20 @@ namespace Kratos
                                 gauss_point_global[d] += node_global_pos[d] * NContainer(g, n);
                             }
                         }
+
+                        // Check at which layer this condition belongs to
+                        // double gauss_coord_z = gauss_point_global[2];
+                        // unsigned ith_interface = mNumLayers; // Initialize it with an impossible value
+                        // for (unsigned i = 0; i < mNumLayers; i++)
+                        // {
+                        //     if (gauss_coord_z <= mInterfacesPositions[i + 1])
+                        //     {
+                        //         ith_interface = i;
+                        //         break;
+                        //     }
+                        // }
+                        // KRATOS_ERROR_IF(ith_interface == mNumLayers)
+                        //     << "Unable to find layer for gauss point with z = " << gauss_coord_z << std::endl;
 
                         // Find the element containing this gauss point
                         array_1d<double, 3> gauss_point_local;
@@ -207,12 +227,11 @@ namespace Kratos
                         double step_sol_error, normal_vel;
                         InterpolateAtPosition(p_elem, gauss_point_local, normal_vec, step_sol_error, normal_vel);
                         double err_abs = abs(step_sol_error);
-                        max_diff = (err_abs >  max_diff) ? err_abs : max_diff;
 
                         double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
-                        area += Weight;
                         layer_flows[ith_interface] += Weight * normal_vel / scale_factor;
                         layer_integrals[ith_interface] += Weight * step_sol_error * step_sol_error * normal_vel / scale_factor;
+                        areas[ith_interface] += Weight;
 
                         // Divide by its scale factor
                         // layer_flows[ith_interface] /= scale_factor;
@@ -221,13 +240,10 @@ namespace Kratos
                 }
 
                 // Compute blurriness for this model part
-                double exact_area = M_PI * pow(.5e-3, 2);
-                double error = abs(exact_area - area) / exact_area;
+                // double exact_area = M_PI * pow(.5e-3, 2);
+                // double error = abs(exact_area - area) / exact_area;
 
-                std::cout << "Numerical dimensionless values:" << std::endl;
-                std::cout << "Area = " << area << " (rel err ~ " << error << ")" << std::endl;
-                std::cout << "Max step sol err = " << max_diff << std::endl;
-
+                std::cout << "\nModel part " << m + 1 << std::endl;
                 for (unsigned i = 0; i < mNumLayers; i++)
                 {
                     layer_integrals[i] = abs(layer_integrals[i]);
@@ -238,6 +254,9 @@ namespace Kratos
                     std::cout << "  - ui = " << mLayersDensityValues[i] << std::endl;
                     std::cout << "  - qi = " << layer_flows[i] << std::endl;
                     std::cout << "  - layer integral = " << layer_integrals[i] << std::endl;
+                    std::cout << "  - area_i = " << areas[i] << std::endl;
+                    std::cout << "  - element_areas = " << element_areas[i] << std::endl;
+                    std::cout << "  - n_elements_layers = " << n_elements_layers[i] << " / " << n_elements << std::endl;
                 }
 
                 // Compute total velocity flux and normalize the surface integral values
@@ -254,8 +273,8 @@ namespace Kratos
                 {
                     asymptotic_sol_value += mLayersDensityValues[i] * layer_flows[i] / total_flow;
                 }
-                std::cout << "qt = " << total_flow << std::endl;
-                std::cout << "u_inf = " << asymptotic_sol_value << std::endl;
+                std::cout << "  qt = " << total_flow << std::endl;
+                std::cout << "  u_inf = " << asymptotic_sol_value << std::endl;
 
                 // Set blurriness to 0
                 for (unsigned i = 0; i < mNumLayers; i++)
@@ -361,7 +380,6 @@ namespace Kratos
                 {
                     nodal_normal_velocity += (nodal_vel[d]) * normal_vec[d];
                 }
-
                 double shape_function_value = r_geometry.ShapeFunctionValue(n, p_pos_local);
                 step_func_error += nodal_step_func_error * shape_function_value;
                 normal_velocity += nodal_normal_velocity * shape_function_value;

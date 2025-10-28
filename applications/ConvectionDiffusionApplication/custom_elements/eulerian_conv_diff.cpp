@@ -160,7 +160,6 @@ namespace Kratos
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
 
             // discontinuity-capturing diffusion
-
             if (shock_capturing_active && norm_vel > std::numeric_limits<double>::epsilon()){
                 this->CalculateNonlinearDiffusionMatrix(Variables, h, vel_gauss, k_nonlinear_contribution);
                 noalias(Variables.nonlinear_diffusion_matrix) += k_nonlinear_contribution * Variables.specific_heat * Variables.density;
@@ -222,7 +221,7 @@ namespace Kratos
         rVariables.conductivity = 0.0;
         rVariables.specific_heat = 0.0;
         rVariables.density = 0.0;
-        rVariables.beta = 0.0;
+        rVariables.beta = 1.0;
         rVariables.div_v = 0.0;
         rVariables.gradient_of_phi = ZeroVector(TDim);
         rVariables.nonlinear_diffusion_matrix = ZeroMatrix(TDim, TDim);

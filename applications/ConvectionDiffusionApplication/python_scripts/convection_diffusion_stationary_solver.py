@@ -70,8 +70,9 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_solver.Convection
     def _CreateScheme(self):
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = 1.0
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 1.0
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STATIONARY] = True
+
         shock_capturing_settings = self.settings["shock_capturing_settings"]
         sc_intensity = shock_capturing_settings["shock_capturing_intensity"].GetDouble()
         anisotropic_diffusion = shock_capturing_settings["use_anisotropic_diffusion"].GetBool()
