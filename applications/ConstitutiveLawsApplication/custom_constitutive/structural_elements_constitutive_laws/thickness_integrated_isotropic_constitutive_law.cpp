@@ -494,12 +494,17 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
         // Reset some values
         rValues.SetMaterialProperties(r_material_properties);
         r_strain_vector.resize(VoigtSize, false);
-        r_stress_vector.resize(VoigtSize, false);
-        r_constitutive_matrix.resize(VoigtSize, VoigtSize, false);
         noalias(r_strain_vector) = generalized_strain_vector;
-        noalias(r_stress_vector) = generalized_stress_vector;
-        noalias(r_constitutive_matrix) = generalized_constitutive_matrix;
-
+        
+        if (flag_compute_stress) {
+            r_stress_vector.resize(VoigtSize, false);
+            noalias(r_stress_vector) = generalized_stress_vector;
+        }
+        
+        if (flag_compute_constitutive_tensor) {
+            r_constitutive_matrix.resize(VoigtSize, VoigtSize, false);
+            noalias(r_constitutive_matrix) = generalized_constitutive_matrix;
+        }
     }
     KRATOS_CATCH("CalculateMaterialResponseCauchy")
 }
