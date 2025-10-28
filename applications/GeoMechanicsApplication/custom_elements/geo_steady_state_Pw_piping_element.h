@@ -139,6 +139,17 @@ public:
         }
     }
 
+    bool CheckForPrimaryErosion(const PropertiesType& rProp, const GeometryType& rGeom)
+    {
+        auto critGradient = rProp[PIPE_CRITICAL_GRADIENT];
+        if (critGradient > std::numeric_limits<double>::epsilon()) {
+            // JDN is this abs correct here? Is it not directional ?
+            auto dhdx = std::abs(CalculateHeadGradient(rProp, rGeom));
+            return dhdx > critGradient;
+        }
+        return false;
+    }
+
     double CalculateEquilibriumPipeHeight(const PropertiesType& rProp, const GeometryType& rGeom, double)
     {
         // calculate head gradient over element ( now without abs in CalculateHeadGradient )
