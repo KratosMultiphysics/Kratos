@@ -19,7 +19,6 @@
 #include "mapping_application_variables.h"
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
-//#include "utilities/variable_utils.h"
 
 // External includes
 #include <unordered_set>
@@ -69,20 +68,20 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     std::vector<Condition::Pointer> destination_integration_points;
 
      // Determine whether we project or not the origin nodes coordinates to the plane of the panel mesh 
-    const bool project_origin_nodes_to_destination_domain_panel_solver = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["project_origin_nodes_to_destination_domain_panel_solver"].GetBool();
+    const bool project_origin_nodes_to_destination_domain = mLocalMapperSettings["destination_solver_settings"]["project_origin_nodes_to_destination_domain"].GetBool();
     // Determine whether we map structural displacements to panels angle of attack or not
-    const bool map_structural_displacements_to_panels_angles_of_attack = mLocalMapperSettings["aerodynamic_panel_solver_settings"]["map_structural_displacements_to_panels_angles_of_attack"].GetBool();
+    const bool map_displacements_to_rotations = mLocalMapperSettings["destination_solver_settings"]["map_displacements_to_rotations"].GetBool();
 
     // Obtain the polynomial degree and calculate number of polynomial terms
     const unsigned int poly_degree = mLocalMapperSettings["additional_polynomial_degree"].GetInt();
-    IndexType n_polynomial = CalculateNumberOfPolynomialTermsFromDegree(poly_degree, project_origin_nodes_to_destination_domain_panel_solver);
+    IndexType n_polynomial = CalculateNumberOfPolynomialTermsFromDegree(poly_degree, project_origin_nodes_to_destination_domain);
 
     // Determine whether the origin and destination domain are IGA discretizations or not
     const bool is_origin_iga = mLocalMapperSettings["is_origin_iga"].GetBool();
     const bool is_destination_iga = mLocalMapperSettings["is_destination_iga"].GetBool();
 
     // Throw an error iF the destination domain is discretized with IBRA
-    if (is_destination_iga == true ){KRATOS_ERROR << "This mapper is not available when the destination domain is discretized with IBRA" << std::endl;}
+    KRATOS_ERROR_IF(is_destination_iga)<< "This mapper is not available when the destination domain is discretized with IBRA" << std::endl;
 
     // Remember that in the IgaApplication, conditions are represented geometrically by integrtion points
     auto collect_conditions = [](const ModelPart& model_part, auto& integration_points_vector) {
@@ -119,12 +118,34 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     // Allocate mapping matrix
     this->mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(n_destination, n_origin);
 
+    // Read string from settings
+    std::string rbf_string = mLocalMapperSettings["radial_basis_function_type"].GetString();
+    std::transform(rbf_string.begin(), rbf_string.end(), rbf_string.begin(), ::tolower);
+
+    // Convert to enum using a local static map
+    static const std::unordered_map<std::string, RBFShapeFunctionsUtility::RBFType> rbf_type_map = {
+        {"inverse_multiquadric", RBFShapeFunctionsUtility::RBFType::InverseMultiquadric},
+        {"gaussian",             RBFShapeFunctionsUtility::RBFType::Gaussian},
+        {"thin_plate_spline",    RBFShapeFunctionsUtility::RBFType::ThinPlateSpline},
+        {"wendland_c2",          RBFShapeFunctionsUtility::RBFType::WendlandC2}
+    };
+
+    auto it = rbf_type_map.find(rbf_string);
+    if (it == rbf_type_map.end()) {
+        KRATOS_ERROR << "Unrecognized RBF type: " << rbf_string << std::endl;
+    }
+
+    // Now rbf_type is an enum
+    RBFShapeFunctionsUtility::RBFType rbf_type = it->second;
+
     // Compute shape parameter
-    const std::string rbf_type = mLocalMapperSettings["radial_basis_function_type"].GetString();
     double rbf_shape_parameter = 0.1; // default shape parameter
-    if (rbf_type == "inverse_multiquadric" || rbf_type == "gaussian") {
+    if (rbf_type == RBFShapeFunctionsUtility::RBFType::InverseMultiquadric || rbf_type == RBFShapeFunctionsUtility::RBFType::Gaussian) 
+    {
         rbf_shape_parameter = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(origin_coords);
-    } else if (rbf_type == "wendland_c2") {
+    }
+    else if (rbf_type == RBFShapeFunctionsUtility::RBFType::WendlandC2) 
+    {
         rbf_shape_parameter = RBFShapeFunctionsUtility::CalculateWendlandC2SupportRadius(origin_coords, 2.5);
     }
 
@@ -133,13 +154,13 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     // Build origin interpolation matrix and invert it
     const IndexType origin_interpolation_matrix_size = n_origin + n_polynomial;
     DenseMatrixType inverse_origin_interpolation_matrix(origin_interpolation_matrix_size, origin_interpolation_matrix_size);
-    CreateAndInvertOriginRBFMatrix(inverse_origin_interpolation_matrix, origin_coords, project_origin_nodes_to_destination_domain_panel_solver,
+    CreateAndInvertOriginRBFMatrix(inverse_origin_interpolation_matrix, origin_coords, project_origin_nodes_to_destination_domain,
         poly_degree, rbf_type, rbf_scale_factor, rbf_shape_parameter);
 
     // Build destination interpolation matrix (considering distances between origin and destination interpolation points)
     DenseMatrixType destination_interpolation_matrix(n_destination, n_origin + n_polynomial);
-    CreateDestinationRBFMatrix(destination_interpolation_matrix, origin_coords, destination_coords, project_origin_nodes_to_destination_domain_panel_solver, poly_degree,
-        rbf_type, map_structural_displacements_to_panels_angles_of_attack, rbf_shape_parameter);
+    CreateDestinationRBFMatrix(destination_interpolation_matrix, origin_coords, destination_coords, project_origin_nodes_to_destination_domain, poly_degree,
+        rbf_type, map_displacements_to_rotations, rbf_shape_parameter);
     
     // Compute the mapping matrix
     DenseMatrixType dense_mapping = prod(destination_interpolation_matrix, inverse_origin_interpolation_matrix);
@@ -279,7 +300,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateAndInvertOrigin
     const DenseMatrixType& rOriginCoords,
     bool ProjectToAerodynamicPanels,
     IndexType Poly_Degree,
-    const std::string& RBFType,
+    RBFShapeFunctionsUtility::RBFType RBF_Type,
     double Factor,
     double eps)
 {
@@ -315,7 +336,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateAndInvertOrigin
             double dz = ProjectToAerodynamicPanels ? 0.0 : rOriginCoords(i,2) - rOriginCoords(j,2);
             double r = std::sqrt(dx*dx + dy*dy + dz*dz);
 
-            double k = RBFShapeFunctionsUtility::EvaluateRBF(r, eps, RBFType); 
+            double k = RBFShapeFunctionsUtility::EvaluateRBF(r, eps, RBF_Type); 
 
             rInvCMatrix(i + n_polynomial, j + n_polynomial) = k;
             rInvCMatrix(j + n_polynomial, i + n_polynomial) = k; // symmetry
@@ -375,8 +396,8 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateDestinationRBFM
     const DenseMatrixType& rDestinationCoords,
     bool ProjectToAerodynamicPanels, 
     IndexType Poly_Degree, 
-    const std::string& RBFType, 
-    bool ReturnAOAMatrix,
+    RBFShapeFunctionsUtility::RBFType RBF_Type, 
+    bool map_displacements_to_rotations,
     double rbf_shape_parameter)
 {
     const IndexType n_origin = rOriginCoords.size1();
@@ -393,7 +414,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateDestinationRBFM
 
         // === Polynomial block ===
         std::vector<double> poly_vals(n_polynomial, 0.0);
-        if (!ReturnAOAMatrix) {
+        if (!map_displacements_to_rotations) {
             poly_vals = EvaluatePolynomialBasis(dest_point, Poly_Degree, ProjectToAerodynamicPanels);
         } else {
             // Slope/AOA mode: constant derivative in x as per Fortran [0, -1, 0]
@@ -425,9 +446,9 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateDestinationRBFM
             const double distance_2 = dx * dx + dy * dy + dz * dz;
 
             double value = 0.0;
-            if (!ReturnAOAMatrix) {
+            if (!map_displacements_to_rotations) {
                 const double r = std::sqrt(distance_2);
-                value = RBFShapeFunctionsUtility::EvaluateRBF(r, rbf_shape_parameter, RBFType);
+                value = RBFShapeFunctionsUtility::EvaluateRBF(r, rbf_shape_parameter, RBF_Type);
             } else {
                 // slope / angle of attack version: -dK/dx = -2*dx*(1 + log(r^2))
                 const double dkdx = 2.0 * dx * (1.0 + std::log(distance_2));
@@ -452,7 +473,7 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIga(
     const IndexType n_nodes = rOriginModelPart.GetRootModelPart().NumberOfNodes();
 
     // Build full N matrix (GP x nodes)
-    DenseMatrixType N = ZeroMatrix(n_gp, n_nodes);
+    SparseMatrixType N = ZeroMatrix(n_gp, n_nodes);
     for (IndexType i_gp = 0; i_gp < n_gp; ++i_gp) {
         auto p_geometry = rOriginIntegrationPoints[i_gp]->pGetGeometry();
         const auto& shape_functions_values = p_geometry->ShapeFunctionsValues();
@@ -478,7 +499,7 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIga(
     }
 
     // Build reduced N matrix with just the control points belonging to the coupling interface 
-    DenseMatrixType N_reduced(n_gp, valid_columns.size());
+    SparseMatrixType N_reduced(n_gp, valid_columns.size());
     for (IndexType i = 0; i < n_gp; ++i) {
         for (IndexType j = 0; j < valid_columns.size(); ++j) {
             N_reduced(i, j) = N(i, valid_columns[j]);

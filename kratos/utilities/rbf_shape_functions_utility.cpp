@@ -21,42 +21,32 @@
 
 namespace Kratos
 {
-
     double RBFShapeFunctionsUtility::EvaluateRBF(
         const double x,
         const double h,
-        const std::string& rRBFType)
+        RBFType rbf_type)
     {
-        std::string rbf_type = rRBFType;
-        // Convert to lower case
-        std::transform(rbf_type.begin(), rbf_type.end(), rbf_type.begin(), ::tolower);
-
-       // Evaluate according to the specified RBF type
-       if (rbf_type == "inverse_multiquadric") {
-            const double q = x * h;
-            return 1 / std::sqrt(1 + std::pow(q, 2));
-        } 
-        else if (rbf_type == "gaussian") {
-            const double q = x / h;
-            return std::exp(-0.5 * std::pow(q, 2));
-        }
-        else if (rbf_type == "thin_plate_spline") {
-            if (std::abs(x) < 1.0e-12) {
-                return 0.000;
-            } else {
-                return std::pow(x, 2) * std::log(std::pow(x, 2)); // Thin Plate Spline formula
+         switch (rbf_type)
+        {
+            case RBFType::InverseMultiquadric: {
+                const double q = x * h;
+                return 1.0 / std::sqrt(1.0 + q*q);
             }
-        }
-        else if (rbf_type == "wendland_c2"){ // Extracted from: Review of coupling methods for non-matching meshes (https://doi.org/10.1016/j.cma.2006.03.017)
-            const double q = x / h;
-            if (q < 1.0) {
-                return std::pow(1.0 - q, 4) * (4.0 * q + 1.0);
-            } else {
+            case RBFType::Gaussian: {
+                const double q = x / h;
+                return std::exp(-0.5 * q*q);
+            }
+            case RBFType::ThinPlateSpline: {
+                if (std::abs(x) < 1.0e-12) return 0.0;
+                return x*x * std::log(x*x);
+            }
+            case RBFType::WendlandC2: {
+                const double q = x / h;
+                if (q < 1.0) return std::pow(1.0 - q, 4) * (4.0*q + 1.0);
                 return 0.0;
             }
-        }
-        else {
-            KRATOS_ERROR_IF(true) << "Error: Unrecognized RBF type: " << rbf_type << std::endl;
+            default:
+                throw std::runtime_error("Unrecognized RBF type");
         }
     }
 
@@ -85,10 +75,10 @@ namespace Kratos
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
                 const double norm_xij = norm_2(row(rPoints,i_pt) - row(rPoints,j_pt));
-                A(i_pt,j_pt) = EvaluateRBF(norm_xij,h, "inverse_multiquadric");
+                A(i_pt,j_pt) = EvaluateRBF(norm_xij,h, RBFShapeFunctionsUtility::RBFType::InverseMultiquadric);
             }
             const double norm_X =  norm_2(rX - row(rPoints,i_pt));
-            Phi[i_pt] = EvaluateRBF(norm_X, h, "inverse_multiquadric");
+            Phi[i_pt] = EvaluateRBF(norm_X, h, RBFShapeFunctionsUtility::RBFType::InverseMultiquadric);
         }
 
         // Obtain the RBF shape functions (N)
@@ -147,7 +137,7 @@ namespace Kratos
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
                 norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt));
-                A(i_pt,j_pt) = EvaluateRBF(norm_xij, h, "inverse_multiquadric");
+                A(i_pt,j_pt) = EvaluateRBF(norm_xij, h, RBFShapeFunctionsUtility::RBFType::InverseMultiquadric);
             }
         }
 
@@ -159,7 +149,7 @@ namespace Kratos
         // Interpolate solution
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             const double norm_xi = norm_2(rX-row(rPoints,i_pt));
-            const double Phi = EvaluateRBF(norm_xi, h, "inverse_multiquadric");
+            const double Phi = EvaluateRBF(norm_xi, h, RBFShapeFunctionsUtility::RBFType::InverseMultiquadric);
             interpolation += Phi*rN[i_pt];
         }
 

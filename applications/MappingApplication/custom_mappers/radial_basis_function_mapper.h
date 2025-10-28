@@ -188,18 +188,18 @@ private:
     double CalculateScaleFactor(DenseMatrixType& rOriginCoords);
 
     // This function calculates the number of polynomial terms from the degree
-    IndexType CalculateNumberOfPolynomialTermsFromDegree(IndexType PolyDegree, bool ProjectToAerodynamicPanels);
+    IndexType CalculateNumberOfPolynomialTermsFromDegree(IndexType PolyDegree, bool project_origin_nodes_to_destination_domain);
     
     // Evaluate the polynomial required for the radial basis function interpolation
-    std::vector<double> EvaluatePolynomialBasis(const array_1d<double, 3>& rCoords, unsigned int degree, bool ProjectToPanelsPlane) const;
+    std::vector<double> EvaluatePolynomialBasis(const array_1d<double, 3>& rCoords, unsigned int degree, bool project_origin_nodes_to_destination_domain) const;
 
     // Create and invert the coefficient matrix of the spline C. This depends only on the positions of the origin support points 
-    void CreateAndInvertOriginRBFMatrix(DenseMatrixType& rInvCMatrix, const DenseMatrixType& rOriginCoords, bool ProjectToAerodynamicPanels,
-        IndexType Poly_Degree, const std::string& RBFType, double Factor = 1.0, double eps = 1.0);
+    void CreateAndInvertOriginRBFMatrix(DenseMatrixType& rInvCMatrix, const DenseMatrixType& rOriginCoords, bool project_origin_nodes_to_destination_domain,
+        IndexType Poly_Degree, RBFShapeFunctionsUtility::RBFType RBF_Type, double Factor = 1.0, double eps = 1.0);
 
     // Compute Aij splining matrix, relating origin and destination interpolation points
     void CreateDestinationRBFMatrix(DenseMatrixType& rAMatrix, const DenseMatrixType& rOriginCoords, const DenseMatrixType& rDestinationCoords,
-        bool ProjectToAerodynamicPanels, IndexType Poly_Degree, const std::string& RBFType, bool ReturnAOAMatrix, double rbf_shape_parameter);
+        bool project_origin_nodes_to_destination_domain, IndexType Poly_Degree, RBFShapeFunctionsUtility::RBFType RBF_Type, bool map_displacements_to_rotations, double rbf_shape_parameter);
     
     // For IGA, compute the mapping matrix mapping from origin control points to destination nodes
     std::unique_ptr<TMappingMatrixType> ComputeMappingMatrixIga(const TMappingMatrixType& rMappingMatrixGP, const std::vector<Condition::Pointer>& rOriginIntegrationPoints,
@@ -214,9 +214,9 @@ private:
             "is_destination_slave"          : true,
             "is_origin_iga"             : false,
             "is_destination_iga"             : false,
-            "aerodynamic_panel_solver_settings": {
-                "project_origin_nodes_to_destination_domain_panel_solver": false,
-                "map_structural_displacements_to_panels_angles_of_attack": false
+            "destination_solver_settings": {
+                "project_origin_nodes_to_destination_domain": false,
+                "map_displacements_to_rotations": false
             }
         })");
     }

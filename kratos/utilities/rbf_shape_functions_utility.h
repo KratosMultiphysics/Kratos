@@ -49,6 +49,13 @@ public:
     /// Kratos core QR decomposition type
     using KratosCoreQRType = DenseHouseholderQRDecomposition<DenseSpace>;
 
+    enum class RBFType {
+        InverseMultiquadric,
+        Gaussian,
+        ThinPlateSpline,
+        WendlandC2
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -71,7 +78,7 @@ public:
     static double EvaluateRBF(
         const double x,
         const double h,
-        const std::string& rRBFType);
+        RBFType rbf_type);
 
     /**
      * @brief Calculates the RBF shape function values
