@@ -11,7 +11,7 @@ A schematic can be found in the figure below:
 The test is performed in 5 stages:
 1. A K0 stage with a linear elastic model, with a Young's modulus of 1 [GPa] and a Poisson's ratio of 0.2.
 2. A settlement stage with abc model (100 days or 8640000 seconds). The keywords "reset_displacement" is set to true here, such that the total displacements start counting from the start of this stage.
-3. Another settlement stage (8.64 seconds), the same uniform load and also the same material as previous stage is applied. The time-step is 0.001 days (8.64 seconds), such that there is horizontal stress distribution by the abc model. 
+3. Another settlement stage (8.64 seconds), the same material as previous stage is applied. The time-step is 0.001 days (8.64 seconds), such that there is horizontal stress distribution by the abc model. 
 4. A second settlement stage (1 day) with a uniform surface load of 20 [kPa] applied in the negative Y direction to the top of the model.
 5. A second settlement stage, such that the total time reaches 10000 days (or 864000000 seconds). The same uniform surface load of 20 [kPa] is applied in the negative Y direction. The time-step is > 0.001 days, such that there is no horizontal stress distribution by the abc model.
 

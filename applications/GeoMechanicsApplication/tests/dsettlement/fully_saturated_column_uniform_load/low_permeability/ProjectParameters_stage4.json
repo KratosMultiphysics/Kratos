@@ -37,7 +37,7 @@
     "displacement_absolute_tolerance" : 1.0E-9,
     "min_iterations"                  : 6,
     "max_iterations"                  : 30,
-    "number_cycles"                   : 100,
+    "number_cycles"                   : 5,
     "reduction_factor"                : 0.5,
     "increase_factor"                 : 2.0,
     "calculate_reactions"             : true,
@@ -120,8 +120,8 @@
         "Parameters": {
           "model_part_name"        : "PorousDomain.Bottom",
           "variable_name"          : "DISPLACEMENT",
-          "active"                 : [true, true, true],
-          "is_fixed"               : [true, true, true],
+          "active"                 : [true, true, false],
+          "is_fixed"               : [true, true, false],
           "value"                  : [0.0, 0.0, 0.0],
           "table"                  : [0, 0, 0]
         }
@@ -151,8 +151,8 @@
         "Parameters": {
           "model_part_name"        : "PorousDomain.LeftSide",
           "variable_name"          : "DISPLACEMENT",
-          "active"                 : [true, false, true],
-          "is_fixed"               : [true, false, true],
+          "active"                 : [true, false, false],
+          "is_fixed"               : [true, false, false],
           "value"                  : [0.0, 0.0, 0.0],
           "table"                  : [0, 0, 0]
         }
@@ -164,8 +164,8 @@
         "Parameters": {
           "model_part_name"        : "PorousDomain.RightSide",
           "variable_name"          : "DISPLACEMENT",
-          "active"                 : [true, false, true],
-          "is_fixed"               : [true, false, true],
+          "active"                 : [true, false, false],
+          "is_fixed"               : [true, false, false],
           "value"                  : [0.0, 0.0, 0.0],
           "table"                  : [0, 0, 0]
         }
