@@ -51,16 +51,14 @@
       "solver_type"                   : "LinearSolversApplication.sparse_lu",
       "scaling"                       : true
     },
-    "problem_domain_sub_model_part_list": ["Soil-0"],
-    "processes_sub_model_part_list"   : ["gravity",
-                                         "TopWaterPressure",
+    "problem_domain_sub_model_part_list": ["Soil"],
+    "processes_sub_model_part_list"   : ["Soil",
+                                         "Top",
                                          "Bottom",
-                                         "BottomWaterPressure",
                                          "LeftSide",
                                          "RightSide",
-                                         "K0_model_part",
                                          "Head_line"],
-    "body_domain_sub_model_part_list" : ["Soil-0"],
+    "body_domain_sub_model_part_list" : ["Soil"],
     "move_mesh_flag": false
   },
   "output_processes": {
@@ -101,7 +99,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyScalarConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.TopWaterPressure",
+          "model_part_name"        : "PorousDomain.Top",
           "variable_name"          : "WATER_PRESSURE",
           "is_fixed"               : true,
           "table"                  : 0,
@@ -132,7 +130,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyScalarConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.BottomWaterPressure",
+          "model_part_name"        : "PorousDomain.Bottom",
           "variable_name"          : "WATER_PRESSURE",
           "is_fixed"               : true,
           "table"                  : 0,
@@ -197,7 +195,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyVectorConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.gravity",
+          "model_part_name"        : "PorousDomain.Soil",
           "variable_name"          : "VOLUME_ACCELERATION",
           "active"                 : [false, true, false],
           "value"                  : [0.0, -9.81, 0.0],
@@ -211,7 +209,7 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyK0ProcedureProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.K0_model_part",
+          "model_part_name"        : "PorousDomain.Soil",
           "variable_name"          : "CAUCHY_STRESS_TENSOR"
         }
       }
