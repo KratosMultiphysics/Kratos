@@ -658,32 +658,6 @@ private:
         KRATOS_CATCH("")
     }
 
-    // void MassNormalizeEigenvectors(DenseMatrixType& rEigenvectors)
-    // {
-    //     const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
-    //     const std::size_t num_modes = rEigenvectors.size1(); // rows = modes
-    //     const std::size_t num_dofs  = rEigenvectors.size2(); // columns = DOFs
-
-    //     DenseVectorType tmp(num_dofs); // temporary vector for M*phi
-
-    //     for (std::size_t j = 0; j < num_modes; ++j)
-    //     {
-    //         // Extract row j into phi_j
-    //         DenseVectorType phi_j(num_dofs);
-    //         for (std::size_t i = 0; i < num_dofs; ++i)
-    //             phi_j[i] = rEigenvectors(j, i);
-
-    //         // Compute modal mass: phi_j^T * M * phi_j
-    //         TSparseSpace::Mult(rMassMatrix, phi_j, tmp);       // tmp = M * phi_j
-    //         double modal_mass = TSparseSpace::Dot(phi_j, tmp); // phi_j^T * (M * phi_j)
-
-    //         // Scale phi_j so modal mass = 1
-    //         double scale = 1.0 / std::sqrt(modal_mass);
-    //         for (std::size_t i = 0; i < num_dofs; ++i)
-    //             rEigenvectors(j, i) = phi_j[i] * scale;
-    //     }
-    // }
-
     void MassNormalizeEigenvectors(DenseMatrixType& rEigenvectors)
     {
         const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
