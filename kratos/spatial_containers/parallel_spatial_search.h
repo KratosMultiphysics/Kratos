@@ -711,6 +711,7 @@ private:
             }
 
             // Checking that is properly cleaned
+        #ifdef KRATOS_DEBUG
             for (auto& p_partial_result : r_results_vector) {
                 auto& r_partial_result = *p_partial_result;
                 // Check that the number of results is 0 or 1
@@ -721,6 +722,7 @@ private:
                     KRATOS_ERROR_IF(mrDataCommunicator.SumAll(number_of_local_results) == 0) << "Local results also removed in result " << r_partial_result.GetGlobalIndex() << std::endl;
                 }
             }
+        #endif
         }
     }
 
