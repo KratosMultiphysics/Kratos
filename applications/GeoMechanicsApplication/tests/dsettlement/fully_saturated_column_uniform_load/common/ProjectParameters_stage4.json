@@ -1,8 +1,8 @@
 {
   "problem_data": {
     "problem_name"                    : "mesh",
-    "start_time"                      : 8640008.64,
-    "end_time"                        : 8726400,
+    "start_time"                      : 8640000.0,
+    "end_time"                        : 8640001.0,
     "echo_level"                      : 1,
     "parallel_type"                   : "OpenMP",
     "number_of_threads"               : 1
@@ -19,7 +19,7 @@
       "materials_filename"            : "MaterialParameters_abc.json"
     },
     "time_stepping": {
-      "time_step"                     : 8640.0,
+      "time_step"                     : 1.0,
       "max_delta_time_factor"         : 1000000000
     },
     "buffer_size"                     : 2,
