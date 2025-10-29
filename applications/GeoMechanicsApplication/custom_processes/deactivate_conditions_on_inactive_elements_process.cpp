@@ -40,4 +40,9 @@ void DeactivateConditionsOnInactiveElements::Execute()
     KRATOS_CATCH("")
 }
 
+std::string DeactivateConditionsOnInactiveElements::Info() const
+{
+    return "DeactivateConditionsOnInactiveElements";
+}
+
 } // namespace Kratos
