@@ -667,8 +667,7 @@ private:
         DenseVectorType phi_j(num_dofs); 
         DenseVectorType tmp(num_dofs);   
 
-        for (std::size_t j = 0; j < num_modes; ++j)
-        {
+        for (std::size_t j = 0; j < num_modes; ++j){
             // copy row j -> phi_j
             std::copy_n(&rEigenvectors(j, 0), num_dofs, phi_j.begin());
 

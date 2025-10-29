@@ -101,13 +101,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
              double,
              bool,
              bool>(),
-                py::arg("model_part"),
-                py::arg("scheme"),
-                py::arg("builder_and_solver"),
-                py::arg("mass_matrix_diagonal_value"),
-                py::arg("stiffness_matrix_diagonal_value"),
-                py::arg("compute_modal_decomposition")=false,
-                py::arg("normalize_eigenvectors_with_mass_matrix")=false)
+             py::arg("model_part"),
+             py::arg("scheme"),
+             py::arg("builder_and_solver"),
+             py::arg("mass_matrix_diagonal_value"),
+             py::arg("stiffness_matrix_diagonal_value"),
+             py::arg("compute_modal_decomposition")=false,
+             py::arg("normalize_eigenvectors_with_mass_matrix")=false)
             ;
 
     // Prebuckling Strategy
