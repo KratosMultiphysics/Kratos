@@ -75,8 +75,10 @@ namespace Kratos
             std::vector<ModelPart *> model_part_vector,
             const std::vector<double> &interfaces_positions,
             const std::vector<double> &interfaces_density_values,
+            const Variable<double>& scalar_container,
             const double& u0,
-            const double& r0) : mMainModelPart(model_part), mModelPartVector(model_part_vector), mIsBlurrinessComputed(false), mU0(u0), mR0(r0)
+            const double& r0
+            ) : mMainModelPart(model_part), mModelPartVector(model_part_vector), mIsBlurrinessComputed(false), mScalarVariable(scalar_container), mU0(u0), mR0(r0)
         {
             // Check that the dimensions are correct
             KRATOS_ERROR_IF(interfaces_positions.size() != interfaces_density_values.size() + 1)
@@ -117,7 +119,8 @@ namespace Kratos
             ModelPart &model_part,
             std::vector<ModelPart *> model_part_vector,
             const std::vector<double> &interfaces_positions,
-            const std::vector<double> &interfaces_density_values): BlurrinessCalculator(model_part, model_part_vector, interfaces_positions, interfaces_density_values, 1.0, 1.0){}
+            const std::vector<double> &interfaces_density_values,
+            const Variable<double>& scalar_container): BlurrinessCalculator(model_part, model_part_vector, interfaces_positions, interfaces_density_values, scalar_container, 1.0, 1.0){}
 
         /// Turn back information as a string.
         std::string Info() const
@@ -149,7 +152,7 @@ namespace Kratos
 
                 ModelPart &r_model_part = *(mModelPartVector[m]);
                 const unsigned number_of_conditions = r_model_part.NumberOfConditions();
-#pragma omp parallel for schedule(dynamic)
+// #pragma omp parallel for schedule(dynamic)
                 for (unsigned c = 0; c < number_of_conditions; c++)
                 {
                     ModelPart::ConditionsContainerType::iterator it_cond = r_model_part.ConditionsBegin() + c;
@@ -224,18 +227,21 @@ namespace Kratos
                         for (unsigned d = 0; d < 3; d++)
                             normal_vec[d] /= norm;
 
-                        double step_sol_error, normal_vel;
-                        InterpolateAtPosition(p_elem, gauss_point_local, normal_vec, step_sol_error, normal_vel);
-                        double err_abs = abs(step_sol_error);
+                        double scalar_value, normal_vel;
+                        InterpolateAtPosition(p_elem, gauss_point_local, normal_vec, scalar_value, normal_vel);
+                        double err_abs = abs(scalar_value);
+                        double step_sol_error = scalar_value - mLayersDensityValues[ith_interface];
 
                         double Weight = r_integrations_points[g].Weight() * detJ_vector[g];
                         layer_flows[ith_interface] += Weight * normal_vel / scale_factor;
                         layer_integrals[ith_interface] += Weight * step_sol_error * step_sol_error * normal_vel / scale_factor;
                         areas[ith_interface] += Weight;
 
-                        // Divide by its scale factor
-                        // layer_flows[ith_interface] /= scale_factor;
-                        // layer_integrals[ith_interface] /= scale_factor;
+                        // std::cout << "Gauss point global: " << gauss_point_global << std::endl;
+                        // std::cout << "Normal vector: " << normal_vec << std::endl;
+                        // std::cout << "Normal vel: " << normal_vel << std::endl;
+                        // std::cout << "scalar_value: " << scalar_value << std::endl;
+                        // std::cout << "step_sol_error: " << step_sol_error << std::endl;
                     }
                 }
 
@@ -244,19 +250,22 @@ namespace Kratos
                 // double error = abs(exact_area - area) / exact_area;
 
                 std::cout << "\nModel part " << m + 1 << std::endl;
+                double total_area = 0.0;
                 for (unsigned i = 0; i < mNumLayers; i++)
                 {
                     layer_integrals[i] = abs(layer_integrals[i]);
                     layer_flows[i] = abs(layer_flows[i]);
+                    
 
                     // Print info
-                    std::cout << "Layer " << i << ":" << std::endl;
-                    std::cout << "  - ui = " << mLayersDensityValues[i] << std::endl;
-                    std::cout << "  - qi = " << layer_flows[i] << std::endl;
-                    std::cout << "  - layer integral = " << layer_integrals[i] << std::endl;
-                    std::cout << "  - area_i = " << areas[i] << std::endl;
-                    std::cout << "  - element_areas = " << element_areas[i] << std::endl;
-                    std::cout << "  - n_elements_layers = " << n_elements_layers[i] << " / " << n_elements << std::endl;
+                    total_area += element_areas[i];
+                    std::cout << "  Layer " << i << ":" << std::endl;
+                    std::cout << "    - ui = " << mLayersDensityValues[i] << std::endl;
+                    std::cout << "    - qi = " << layer_flows[i] << std::endl;
+                    std::cout << "    - layer integral = " << layer_integrals[i] << std::endl;
+                    std::cout << "    - areas_i = " << areas[i] << std::endl;
+                    std::cout << "    - element_areas = " << element_areas[i] << std::endl;
+                    std::cout << "    - n_elements_layers = " << n_elements_layers[i] << " / " << n_elements << std::endl;
                 }
 
                 // Compute total velocity flux and normalize the surface integral values
@@ -273,8 +282,9 @@ namespace Kratos
                 {
                     asymptotic_sol_value += mLayersDensityValues[i] * layer_flows[i] / total_flow;
                 }
-                std::cout << "  qt = " << total_flow << std::endl;
+                std::cout << "  \n  qt = " << total_flow << std::endl;
                 std::cout << "  u_inf = " << asymptotic_sol_value << std::endl;
+                std::cout << "  sum(element_areas) = " << total_area << std::endl;
 
                 // Set blurriness to 0
                 for (unsigned i = 0; i < mNumLayers; i++)
@@ -295,11 +305,11 @@ namespace Kratos
                     mBlurriness[m][i] = std::sqrt(mBlurriness[m][i]);
 
                     // Print info
-                    std::cout << "Interface " << i << ":" << std::endl;
-                    std::cout << "  - norm_factor = " << norm_factor << std::endl;
-                    std::cout << "  - num / qi = " << layer_integrals[i] + layer_integrals[i + 1] << std::endl;
-                    std::cout << "  - blurriness^2 = " << mBlurriness[m][i] * mBlurriness[m][i] << std::endl;
-                    std::cout << "  - blurriness = " << mBlurriness[m][i] << std::endl;
+                    std::cout << "  Interface " << i << ":" << std::endl;
+                    std::cout << "    - norm_factor = " << norm_factor << std::endl;
+                    std::cout << "    - num / qi = " << layer_integrals[i] + layer_integrals[i + 1] << std::endl;
+                    std::cout << "    - blurriness^2 = " << mBlurriness[m][i] * mBlurriness[m][i] << std::endl;
+                    std::cout << "    - blurriness = " << mBlurriness[m][i] << std::endl;
                 }
 
             }
@@ -328,6 +338,8 @@ namespace Kratos
         bool mIsBlurrinessComputed;
         const double mU0; // Velocity scale
         const double mR0; // Length scale
+
+        const Variable<double>& mScalarVariable;
 
         /// Default constructor.
         BlurrinessCalculator() = delete;
@@ -363,9 +375,9 @@ namespace Kratos
         /// @param normal_vec Normal vector of the condition
         /// @param step_function_error Interpolated value of the step solution error, i.e. rho_h - rho_step
         /// @param normal_velocity Interpolated value of the normal velocity, i.e. \vec{u} \cdot \hat{n}, where \hat{n} is the normal vector of the condition
-        void InterpolateAtPosition(Element::Pointer p_elem, const array_1d<double, 3> &p_pos_local, const array_1d<double, 3> &normal_vec, double &step_func_error, double &normal_velocity)
+        void InterpolateAtPosition(Element::Pointer p_elem, const array_1d<double, 3> &p_pos_local, const array_1d<double, 3> &normal_vec, double &scalar_value, double &normal_velocity)
         {
-            step_func_error = 0.0;
+            scalar_value = 0.0;
             normal_velocity = 0.0;
 
             Geometry<Node> &r_geometry = p_elem->GetGeometry();
@@ -373,7 +385,7 @@ namespace Kratos
 
             for (unsigned n = 0; n < NumNodes; n++)
             {
-                double nodal_step_func_error = r_geometry[n].FastGetSolutionStepValue(STEP_SOLUTION_ERROR); // rho_h - rho_step
+                double nodal_scalar_value = r_geometry[n].FastGetSolutionStepValue(mScalarVariable); // rho_h - rho_step
                 double nodal_normal_velocity = 0.0;
                 array_1d<double, 3> nodal_vel = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
                 for (unsigned d = 0; d < 3; d++)
@@ -381,7 +393,7 @@ namespace Kratos
                     nodal_normal_velocity += (nodal_vel[d]) * normal_vec[d];
                 }
                 double shape_function_value = r_geometry.ShapeFunctionValue(n, p_pos_local);
-                step_func_error += nodal_step_func_error * shape_function_value;
+                scalar_value += nodal_scalar_value * shape_function_value;
                 normal_velocity += nodal_normal_velocity * shape_function_value;
             }
         }
