@@ -127,7 +127,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyExcavationProcess, ApplyExcavationProcess::Pointer, Process>(
         m, "ApplyExcavationProcess")
-        .def(py::init<ModelPart&, const Parameters&>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<ApplyWriteScalarProcess, ApplyWriteScalarProcess::Pointer, Process>(
         m, "ApplyWriteScalarProcess")
@@ -175,7 +175,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyCPhiReductionProcess, ApplyCPhiReductionProcess::Pointer, Process>(
         m, "ApplyCPhiReductionProcess")
-        .def(py::init<ModelPart&, const Parameters>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<CalculateIncrementalMotionProcess, CalculateIncrementalMotionProcess::Pointer, Process>(
         m, "CalculateIncrementalMotionProcess")
@@ -187,7 +187,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyFinalStressesOfPreviousStageToInitialState, ApplyFinalStressesOfPreviousStageToInitialState::Pointer, Process>(
         m, "ApplyFinalStressesOfPreviousStageToInitialState")
-        .def(py::init<ModelPart&, const Parameters&>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<ApplyInitialUniformStressField, ApplyInitialUniformStressField::Pointer, Process>(
         m, "ApplyInitialUniformStressField")
