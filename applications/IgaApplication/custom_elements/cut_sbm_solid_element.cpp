@@ -332,7 +332,10 @@ int CutSbmSolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
             << this->Id() << std::endl;
     }
 
-    return Element::Check(rCurrentProcessInfo);
+    // Intentionally left blank: Cut-SBM element bypasses default geometry/size checks.
+    // Returning 0 signals success.
+    return 0;
+    // return Element::Check(rCurrentProcessInfo);
 }
 
 

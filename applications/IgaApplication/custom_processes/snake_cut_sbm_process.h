@@ -15,6 +15,7 @@
 
 // System includes
 #include <utility>
+#include <unordered_map>
 #include <vector>
 
 // Project includes
@@ -26,6 +27,8 @@
 #include "snake_sbm_process.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
 #include "includes/global_pointer_variables.h"
+
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -61,6 +64,91 @@ public:
     typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceType;
     using ProjectionSegment = std::pair<CoordinatesArrayType, CoordinatesArrayType>;
     using NodePointerVector = GlobalPointersVector<NodeType>;
+
+    using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
+    using SparseMatrixType = SparseSpaceType::MatrixType;
+
+    struct KnotSpanIdsCSR
+    {
+        // Metadata (as in your previous struct)
+        SizeType NumberOfSpansX = 0;
+        SizeType NumberOfSpansY = 0;
+        double MinU = 0.0, MaxU = 0.0;
+        double MinV = 0.0, MaxV = 0.0;
+        double SpanSizeX = 0.0, SpanSizeY = 0.0;
+
+        // Sparse topology and counts per nonzero
+        SparseMatrixType Occupancy;          // CSR, (i,j) value = count of node ids in that cell
+
+        // Compact payload: for each nonzero k, node ids are stored in [pool[nnz_off[k]], ..., length nnz_len[k]]
+        std::vector<SizeType> nnz_off;       // offsets into pool, size = nnz
+        std::vector<SizeType> nnz_len;       // lengths per nnz,  size = nnz
+        std::vector<IndexType> pool;         // flat contiguous storage of node ids
+    };
+
+    struct IdsView {
+        const IndexType* data = nullptr;
+        SizeType size = 0;
+    };
+
+    // Return the CSR "k" index for entry (i,j), or static_cast<SizeType>(-1) if not found.
+    static inline SizeType FindNnzIndex(const SparseMatrixType& A, SizeType i, SizeType j)
+    {
+        if (i >= A.size1() || j >= A.size2()) return static_cast<SizeType>(-1);
+
+        const auto& rp = A.index1_data();   // row_ptr, size = size1+1
+        const auto& ci = A.index2_data();   // col_ind, size = nnz
+
+        if (rp.size() < A.size1() + 1) return static_cast<SizeType>(-1);
+        SizeType b = rp[i];
+        SizeType e = rp[i + 1];
+
+        // guard rails against corrupted/unfinalized structure
+        const SizeType nnz = static_cast<SizeType>(ci.size());
+        if (b > e) return static_cast<SizeType>(-1);
+        if (b > nnz) b = nnz;
+        if (e > nnz) e = nnz;
+
+        const auto first = ci.begin() + b;
+        const auto last  = ci.begin() + e;
+        const auto it = std::lower_bound(first, last, j);
+        if (it != last && *it == j) return static_cast<SizeType>(it - ci.begin());
+        return static_cast<SizeType>(-1);
+    }
+
+
+    // Pack temporary per-cell vectors into the compact pool and set offsets/lengths.
+    // Also sorts and unique-erases each list.
+    static inline void CommitPayload(std::vector<std::vector<IndexType>>& tmp,
+                                    KnotSpanIdsCSR& out)
+    {
+        out.nnz_off.resize(tmp.size());
+        out.nnz_len.resize(tmp.size());
+
+        for (SizeType k = 0; k < tmp.size(); ++k) {
+            auto& v = tmp[k];
+            std::sort(v.begin(), v.end());
+            v.erase(std::unique(v.begin(), v.end()), v.end());
+
+            out.nnz_off[k] = static_cast<SizeType>(out.pool.size());
+            out.nnz_len[k] = static_cast<SizeType>(v.size());
+            out.pool.insert(out.pool.end(), v.begin(), v.end());
+        }
+    }
+
+    // Access node ids for a given nonzero k
+    static inline IdsView CellIdsByK(const KnotSpanIdsCSR& S, const SizeType k)
+    {
+        return IdsView{ S.pool.data() + S.nnz_off[k], S.nnz_len[k] };
+    }
+
+    // Access node ids for a given cell (i,j). Returns empty view if cell empty.
+    static inline IdsView CellIds(const KnotSpanIdsCSR& S, const SizeType i, const SizeType j)
+    {
+        const SizeType k = FindNnzIndex(S.Occupancy, i, j);
+        if (k == static_cast<SizeType>(-1)) return {};
+        return CellIdsByK(S, k);
+    }
 
     ///@name Type Definitions
     ///@{
@@ -98,6 +186,14 @@ public:
 
     void ExecuteBeforeSolutionLoop() override
     {};
+
+    KnotSpanIdsCSR CreateSkinNodesPerKnotSpanMatrix(
+        const ModelPart& rSkinSubModelPart,
+        const ModelPart& rSurrogateSubModelPart) const;
+
+    KnotSpanIdsCSR CreateSkinConditionsPerKnotSpanMatrix(
+        const ModelPart& rSkinSubModelPart,
+        const SnakeCutSbmProcess::KnotSpanIdsCSR& rReferenceMatrix) const;
 
     const Parameters GetDefaultParameters() const override
     {
@@ -154,6 +250,8 @@ struct IntegrationParameters
     SizeType  NumberOfShapeFunctionsDerivatives;
     IntegrationInfo CurveIntegrationInfo;
     const Vector&           KnotSpanSizes;          // <- now const
+    const KnotSpanIdsCSR* pSkinNodesPerSpan = nullptr;
+    const KnotSpanIdsCSR* pSkinConditionsPerSpan = nullptr;
     IntegrationParameters(
         SizeType                    n_derivatives,
         const IntegrationInfo&      info,
@@ -201,16 +299,14 @@ private:
 
     template <bool TIsInnerLoop>
     void SetSurrogateToSkinProjections(
-        const ModelPart& rSurrogateSubModelPart, 
+        const ModelPart& rSurrogateSubModelPart,
         const ModelPart& rSkinSubModelPart,
-        BinSearchParameters& rBinSearchParameters, 
-        BinSearchParameters& rBinSearchInterfaceParameters);
+        const KnotSpanIdsCSR& rSkinNodesPerSpan);
     
     void AssestProjectionsFeasibility(
         const ModelPart& rSkinSubModelPart,
         Node::Pointer pSurrogateNode1, 
-        Node::Pointer pSurrogateNode2,
-        BinSearchParameters& rBinSearchInterfaceParameters);
+        Node::Pointer pSurrogateNode2);
 
     void FindClosestTruePointToSurrogateVertexByNurbs();
 
@@ -547,31 +643,7 @@ bool ProjectPointToUV(
     return true;
 }
 
-/** Sample a 3D geometry edge at n samples, project to UV, return ordered UV points. */
-std::vector<array_1d<double,3>> SampleEdgeToUV(
-    const GeometryType& rEdge3D,
-    const NurbsSurfaceType& rSurface,
-    const std::size_t n_samples = 9) const
-{
-    std::vector<array_1d<double,3>> uv;
-    uv.reserve(n_samples);
 
-    const double t0 = 0;//rEdge3D.DomainInterval().GetT0();
-    const double t1 = 1;//rEdge3D.DomainInterval().GetT1();
-
-    for (std::size_t i=0; i<n_samples; ++i) {
-        const double t = (n_samples==1)? 0.5 : (t0 + (t1-t0)*(double)i/(double)(n_samples-1));
-        CoordinatesArrayType loc(3,0.0); loc[0]=t;
-        array_1d<double,3> X;
-        rEdge3D.GlobalCoordinates(X, loc);
-
-        array_1d<double,3> uv_i;
-        const bool ok = ProjectPointToUV(rSurface, X, uv_i);
-        KRATOS_ERROR_IF_NOT(ok) << "SampleEdgeToUV: projection to (u,v) failed.\n";
-        uv.push_back(uv_i); // [u,v,*]
-    }
-    return uv;
-}
 
 /** Collect skin points between two condition IDs, project them to UV (inclusive). */
 template <bool TIsInnerLoop>
@@ -615,8 +687,6 @@ std::vector<array_1d<double,3>> CollectSkinUVBetween(
 }
 
 
-// Reuse your alias: NurbsCurveGeometryType = NurbsCurveGeometry<2, PointerVector<Node>>
-// (Working-space dimension = 2 for UV curves)
 
 /** Chord-length parametrization on [0,1] for UV points. */
 std::vector<double> ChordLengthParams01_UV(const std::vector<array_1d<double,3>>& UV) const
@@ -674,258 +744,6 @@ array_1d<double,3> SolveUV_P1_LeastSquares(
     return P1;
 }
 
-/** Build a quadratic UV NURBS (degree 2) with three UV control nodes (weights = 1). */
-typename NurbsCurveGeometryType::Pointer MakeQuadraticNurbsUV(
-    const array_1d<double,3>& UV0,
-    const array_1d<double,3>& UV1,
-    const array_1d<double,3>& UV2) const
-{
-    PointerVector<Node> ctrl;
-    ctrl.reserve(3);
-    // Create virtual nodes (Z=0)
-    Node::Pointer n0 = Node::Pointer(new Node(1, array_1d<double,3>({UV0[0],UV0[1],0.0})));
-    Node::Pointer n1 = Node::Pointer(new Node(1, array_1d<double,3>({UV1[0],UV1[1],0.0})));
-    Node::Pointer n2 = Node::Pointer(new Node(1, array_1d<double,3>({UV2[0],UV2[1],0.0})));
-    ctrl.push_back(n0); ctrl.push_back(n1); ctrl.push_back(n2);
-
-    Vector knots(6);  knots[0]=knots[1]=knots[2]=0.0; knots[3]=knots[4]=knots[5]=1.0;
-    Vector w(3);      w[0]=w[1]=w[2]=1.0;
-    const unsigned degree = 2;
-    return typename NurbsCurveGeometryType::Pointer(
-        new NurbsCurveGeometryType(ctrl, degree, knots, w));
-}
-
-/** Fit a quadratic UV curve between two skin conditions using all real points in-between. */
-template <bool TIsInnerLoop>
-typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinConditions(
-    const ModelPart& rSkinSubModelPart,
-    const NurbsSurfaceType& rSurface,
-    IndexType id_cond_1,
-    IndexType id_cond_2) const
-{
-    // UV samples along the true skin between the two conditions
-    auto UV = CollectSkinUVBetween<TIsInnerLoop>(rSkinSubModelPart, rSurface, id_cond_1, id_cond_2);
-    KRATOS_ERROR_IF(UV.size()<2) << "FitUV_BetweenSkinConditions: not enough points.\n";
-
-    // Ensure endpoints are exactly the first and last
-    array_1d<double,3> UV0 = UV.front();
-    array_1d<double,3> UV2 = UV.back();
-    auto t = ChordLengthParams01_UV(UV);
-    array_1d<double,3> UV1 = SolveUV_P1_LeastSquares(UV0, UV2, UV, t);
-
-    return MakeQuadraticNurbsUV(UV0, UV1, UV2);
-}
-
-/** Build a quadratic UV curve from a generic 3D edge (sample→project→LS in UV). */
-typename NurbsCurveGeometryType::Pointer MakeUV_From3DEdge(
-    const GeometryType& rEdge3D,
-    const NurbsSurfaceType& rSurface,
-    const std::size_t n_samples = 9) const
-{
-    auto UV = SampleEdgeToUV(rEdge3D, rSurface, n_samples);
-    array_1d<double,3> UV0 = UV.front();
-    array_1d<double,3> UV2 = UV.back();
-    auto t = ChordLengthParams01_UV(UV);
-    array_1d<double,3> UV1 = SolveUV_P1_LeastSquares(UV0, UV2, UV, t);
-    return MakeQuadraticNurbsUV(UV0, UV1, UV2);
-}
-
-/** Evaluate UV on a UV curve at param s in [0,1]. */
-inline array_1d<double,3> UV_on_curve(const NurbsCurveGeometryType& rC, const double s) const
-{
-    CoordinatesArrayType loc(3,0.0); loc[0]=s;
-    array_1d<double,3> uv; uv.clear(); uv.resize(3,false);
-    rC.GlobalCoordinates(uv, loc); // uv[0]=u, uv[1]=v
-    uv[2]=0.0;
-    return uv;
-}
-
-/** Coons UV mapping: UV(ξ,η) from four UV boundary curves (quadratic NURBS). */
-array_1d<double,3> CoonsUV(
-    const double xi, const double eta,
-    const NurbsCurveGeometryType& B0,  // bottom  (η=0)  : UV(ξ,0)
-    const NurbsCurveGeometryType& L0,  // left    (ξ=0)  : UV(0,η)
-    const NurbsCurveGeometryType& L1,  // right   (ξ=1)  : UV(1,η)
-    const NurbsCurveGeometryType& B1)  // top     (η=1)  : UV(ξ,1)
-    const
-{
-    const array_1d<double,3> b0 = UV_on_curve(B0, xi);
-    const array_1d<double,3> b1 = UV_on_curve(B1, xi);
-    const array_1d<double,3> l0 = UV_on_curve(L0, eta);
-    const array_1d<double,3> l1 = UV_on_curve(L1, eta);
-
-    const array_1d<double,3> P00 = UV_on_curve(L0, 0.0);
-    const array_1d<double,3> P01 = UV_on_curve(L0, 1.0);
-    const array_1d<double,3> P10 = UV_on_curve(L1, 0.0);
-    const array_1d<double,3> P11 = UV_on_curve(L1, 1.0);
-
-    const double om_x = 1.0 - xi;
-    const double om_e = 1.0 - eta;
-
-    // Transfinite interpolation in UV
-    array_1d<double,3> UV =
-          om_x * l0 + xi * l1
-        + om_e * b0 + eta * b1
-        - om_x * om_e * P00
-        - xi   * om_e * P10
-        - xi   * eta  * P11
-        - om_x * eta  * P01;
-
-    UV[2]=0.0;
-    return UV;
-}
-
-/** FD derivative of the UV-Coons map: ∂(u,v)/∂ξ or ∂(u,v)/∂η. */
-array_1d<double,3> CoonsUV_DerivativeFD(
-    const double xi, const double eta, const bool wrtXi,
-    const NurbsCurveGeometryType& B0,
-    const NurbsCurveGeometryType& L0,
-    const NurbsCurveGeometryType& L1,
-    const NurbsCurveGeometryType& B1,
-    const double h = 1e-6) const
-{
-    const double s1 = std::max(0.0, std::min(1.0, (wrtXi? xi+h : xi)));
-    const double s2 = std::max(0.0, std::min(1.0, (wrtXi? xi-h : xi)));
-    const double t1 = std::max(0.0, std::min(1.0, (wrtXi? eta   : eta+h)));
-    const double t2 = std::max(0.0, std::min(1.0, (wrtXi? eta   : eta-h)));
-
-    const array_1d<double,3> UVp = CoonsUV(s1,t1, B0,L0,L1,B1);
-    const array_1d<double,3> UVm = CoonsUV(s2,t2, B0,L0,L1,B1);
-    array_1d<double,3> d = (UVp - UVm) * (0.5 / h);
-    d[2]=0.0; return d;
-}
-
-/** Gauss on [0,1] from your existing helper GaussLegendreOnUnitInterval(Order,...) */
-
-// --- Main: build IntegrationPoint<2>(u,v, w_uv = w_ξ w_η |det J_uv|) ---
-IntegrationPointsArrayType CreateCoonsPatchGaussPointsUV(
-    const std::size_t Order,
-    const NurbsCurveGeometryType& B0,
-    const NurbsCurveGeometryType& L0,
-    const NurbsCurveGeometryType& L1,
-    const NurbsCurveGeometryType& B1) const
-{
-    IntegrationPointsArrayType gp_list;
-    gp_list.reserve(Order*Order);
-
-    std::vector<double> xi, w; GaussLegendreOnUnitInterval(Order, xi, w);
-
-    for (std::size_t i=0; i<Order; ++i)
-    for (std::size_t j=0; j<Order; ++j)
-    {
-        const double x  = xi[i];
-        const double e  = xi[j];
-        const double wi = w[i]*w[j];
-
-        // UV at (x,e)
-        const array_1d<double,3> UV = CoonsUV(x,e, B0,L0,L1,B1);
-
-        // ∂(u,v)/∂ξ and ∂(u,v)/∂η (2x2 Jacobian)
-        const array_1d<double,3> dXi  = CoonsUV_DerivativeFD(x,e,true , B0,L0,L1,B1);
-        const array_1d<double,3> dEta = CoonsUV_DerivativeFD(x,e,false, B0,L0,L1,B1);
-
-        // det J_uv = du/dξ * dv/dη - du/dη * dv/dξ
-        const double du_dxi  = dXi[0],  dv_dxi  = dXi[1];
-        const double du_deta = dEta[0], dv_deta = dEta[1];
-        const double detJ = std::abs(du_dxi*dv_deta - du_deta*dv_dxi);
-
-        // Store local UV + weight_uv
-        gp_list.emplace_back( IntegrationPoint<2>( UV[0], UV[1], wi * detJ ) );
-    }
-    return gp_list;
-}
-
-inline void EvalUVCurveAndTangent(
-    const NurbsCurveGeometryType& rCurve,
-    const double s,                        // s in [0,1]
-    array_1d<double,3>& rUV,              // [u,v,0]
-    array_1d<double,3>& rUV_tangent) const// [du/ds, dv/ds, 0]
-{
-    CoordinatesArrayType loc(3,0.0);
-    loc[0] = std::min(1.0, std::max(0.0, s));
-
-    rCurve.GlobalCoordinates(rUV, loc);
-    std::vector<array_1d<double,3>> deriv(2, ZeroVector(3));
-    rCurve.GlobalSpaceDerivatives(deriv, loc, 1); // deriv[1] = first derivative wrt s
-    rUV_tangent = deriv[1];
-
-    // Enforce 2D (z=0)
-    rUV[2] = 0.0;
-    rUV_tangent[2] = 0.0;
-}
-
-IntegrationPointsArrayType
-CreateCoonsPatchGaussPointsUV_Analytic(
-    const std::size_t Order,
-    const NurbsCurveGeometryType& rB0, // UV curve along η=0    : B0(ξ)
-    const NurbsCurveGeometryType& rL0, // UV curve along ξ=0    : L0(η)
-    const NurbsCurveGeometryType& rL1, // UV curve along ξ=1    : L1(η)
-    const NurbsCurveGeometryType& rB1) // UV curve along η=1    : B1(ξ)
-    const
-{
-    IntegrationPointsArrayType gp_list;
-    gp_list.reserve(Order*Order);
-
-    // Precompute Gauss nodes/weights on [0,1]
-    std::vector<double> xi, w;
-    GaussLegendreOnUnitInterval(Order, xi, w);
-
-    // Corner UV points (for the bilinear correction)
-    array_1d<double,3> P00, P01, P10, P11, tmp;
-    array_1d<double,3> ttmp;
-    EvalUVCurveAndTangent(rL0, 0.0, P00, tmp); // (ξ=0,η=0)
-    EvalUVCurveAndTangent(rL0, 1.0, P01, tmp); // (ξ=0,η=1)
-    EvalUVCurveAndTangent(rL1, 0.0, P10, tmp); // (ξ=1,η=0)
-    EvalUVCurveAndTangent(rL1, 1.0, P11, tmp); // (ξ=1,η=1)
-
-    for (std::size_t i=0; i<Order; ++i)
-    for (std::size_t j=0; j<Order; ++j)
-    {
-        const double X  = xi[i];      // ξ
-        const double E  = xi[j];      // η
-        const double wi = w[i]*w[j];
-
-        // Boundary values and first derivatives
-        array_1d<double,3> b0, b0_x; EvalUVCurveAndTangent(rB0, X, b0, b0_x);   // B0(ξ), dB0/dξ
-        array_1d<double,3> b1, b1_x; EvalUVCurveAndTangent(rB1, X, b1, b1_x);   // B1(ξ), dB1/dξ
-        array_1d<double,3> l0, l0_e; EvalUVCurveAndTangent(rL0, E, l0, l0_e);   // L0(η), dL0/dη
-        array_1d<double,3> l1, l1_e; EvalUVCurveAndTangent(rL1, E, l1, l1_e);   // L1(η), dL1/dη
-
-        const double omX = 1.0 - X;
-        const double omE = 1.0 - E;
-
-        // Coons UV value (not strictly needed by CreateQuadraturePointGeometries, but useful)
-        array_1d<double,3> UV =
-              omX * l0 + X * l1
-            + omE * b0 + E * b1
-            - omX*omE * P00
-            - X   *omE * P10
-            - X   *E   * P11
-            - omX*E   * P01;
-        UV[2]=0.0;
-
-        // Analytic partials in UV
-        array_1d<double,3> UV_xi =
-              (-l0 + l1)
-            + omE * b0_x + E * b1_x
-            + omE * P00 - omE * P10 - E * P11 + E * P01;
-
-        array_1d<double,3> UV_eta =
-              omX * l0_e + X * l1_e
-            + (-b0 + b1)
-            + omX * P00 + X * P10 - X * P11 - omX * P01;
-
-        // 2×2 Jacobian determinant in UV
-        const double du_dxi  = UV_xi[0],  dv_dxi  = UV_xi[1];
-        const double du_deta = UV_eta[0], dv_deta = UV_eta[1];
-        const double detJ_uv = std::abs(du_dxi * dv_deta - du_deta * dv_dxi);
-
-        // Store local (u,v) and weight = wξ wη |detJ_uv|
-        gp_list.emplace_back( IntegrationPoint<2>( UV[0], UV[1], wi * detJ_uv ) );
-    }
-
-    return gp_list;
-}
 
 
 // ================================================================
@@ -1149,21 +967,21 @@ typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
 
 
 inline double Orientation(
-    const Node& p, const Node& q, const Node& r)
+    const Node::Pointer& p, const Node::Pointer& q, const Node::Pointer& r)
 {
-    return (q.X() - p.X()) * (r.Y() - p.Y()) -
-           (q.Y() - p.Y()) * (r.X() - p.X());
+    return (q->X() - p->X()) * (r->Y() - p->Y()) -
+           (q->Y() - p->Y()) * (r->X() - p->X());
 }
 
 inline bool OnSegment(
-    const Node& p, const Node& q, const Node& r)
+    const Node::Pointer& p, const Node::Pointer& q, const Node::Pointer& r)
 {
-    return (std::min(p.X(), r.X()) <= q.X() && q.X() <= std::max(p.X(), r.X()) &&
-            std::min(p.Y(), r.Y()) <= q.Y() && q.Y() <= std::max(p.Y(), r.Y()));
+    return (std::min(p->X(), r->X()) <= q->X() && q->X() <= std::max(p->X(), r->X()) &&
+            std::min(p->Y(), r->Y()) <= q->Y() && q->Y() <= std::max(p->Y(), r->Y()));
 }
 
 inline bool SegmentsIntersect(
-    const Node& A, const Node& B, const Node& C, const Node& D)
+    const Node::Pointer& A, const Node::Pointer& B, const Node::Pointer& C, const Node::Pointer& D)
 {
     double o1 = Orientation(A, B, C);
     double o2 = Orientation(A, B, D);
@@ -1190,11 +1008,12 @@ IndexType FindClosestNodeInLayer(
     const ModelPart& rSkinSubModelPart);
 
 IndexType FindClosestNodeInLayerWithDirection(
-    const DynamicBinsPointerType& rStartPoint,
-    BinSearchParameters& rSearchParameters,
+    const array_1d<double,3>& rStartPoint,
     const std::string& rLayer,
     const ModelPart& rSkinSubModelPart,
-    const Vector& rTangentDirection);
+    const Vector& rKnotSpanSizes,
+    const KnotSpanIdsCSR& rSkinConditionsPerSpan,
+    const Vector& rDirection);
 
         
 }; // Class SnakeCutSbmProcess

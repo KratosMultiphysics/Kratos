@@ -23,9 +23,7 @@
 #include "custom_strategies/custom_strategies/eigensolver_nitsche_stabilization_strategy.hpp"
 // Schemes
 #include "custom_strategies/custom_schemes/eigensolver_nitsche_stabilization_scheme.hpp"
-#include "custom_strategies/custom_schemes/iga_contact_scheme.hpp"
 // Criterias
-#include "custom_strategies/custom_convergence_criteria/active_set_criteria.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -55,13 +53,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Custom scheme types
     typedef EigensolverNitscheStabilizationScheme< SparseSpaceType, LocalSpaceType > EigensolverNitscheStabilizationSchemeType;
-    typedef IgaContactScheme< SparseSpaceType, LocalSpaceType > IgaContactSchemeType;
 
     // Custom criteria types
 
-    using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
     using BaseSolvingStrategyType = ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
-    typedef ActiveSetCriteria< SparseSpaceType, LocalSpaceType > ActiveSetCriteriaType;
 
     // ********************************************************************************
     // STRATEGIES
@@ -85,11 +80,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< EigensolverNitscheStabilizationSchemeType,typename EigensolverNitscheStabilizationSchemeType::Pointer, BaseSchemeType>(m,"EigensolverNitscheStabilizationScheme")
         .def(py::init<>() )
         ;
-
-    py::class_< IgaContactSchemeType,typename IgaContactSchemeType::Pointer, BaseSchemeType>(m,"IgaContactScheme")
-        .def(py::init<>() )
-        ;
-
     
     // ********************************************************************************
     // CRITERIA
@@ -104,14 +94,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //     .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
     //     .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool>())
     //     ;
-
-    // Displacement and lagrange multiplier Convergence Criterion
-    py::class_< ActiveSetCriteriaType, typename ActiveSetCriteriaType::Pointer,
-        ConvergenceCriteriaType >
-        (m, "ActiveSetCriteria")
-        .def(py::init<>())
-        .def(py::init<Parameters>())
-        ;
 }
 
 }  // namespace Python.

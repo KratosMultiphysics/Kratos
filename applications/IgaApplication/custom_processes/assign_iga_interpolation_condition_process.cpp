@@ -212,6 +212,132 @@ inline double ProjectOnCurve(const ParamCurve& C, const CoordinatesArrayType& xq
     return t;
 }
 
+// Build Vandermonde V_ij = t_i^j
+inline void BuildVandermonde1D(const std::vector<double>& t, std::size_t deg,
+                               std::vector<std::vector<double>>& V) {
+    const std::size_t n = t.size();
+    V.assign(n, std::vector<double>(deg+1, 1.0));
+    for (std::size_t i=0;i<n;++i)
+        for (std::size_t j=1;j<=deg;++j)
+            V[i][j] = V[i][j-1]*t[i];
+}
+
+// Solve dense linear system A x = b (small m ~ O(10)) by Gaussian elimination with partial pivoting
+inline bool SolveDense(std::vector<std::vector<double>>& A, std::vector<double>& b) {
+    const std::size_t m = A.size();
+    for (std::size_t k=0;k<m;++k) {
+        // pivot
+        std::size_t p = k;
+        for (std::size_t i=k+1;i<m;++i) if (std::abs(A[i][k]) > std::abs(A[p][k])) p = i;
+        if (std::abs(A[p][k]) < 1e-18) return false;
+        if (p != k) { std::swap(A[p], A[k]); std::swap(b[p], b[k]); }
+        // eliminate
+        const double akk = A[k][k];
+        for (std::size_t i=k+1;i<m;++i) {
+            const double f = A[i][k]/akk;
+            if (f==0.0) continue;
+            for (std::size_t j=k;j<m;++j) A[i][j] -= f*A[k][j];
+            b[i] -= f*b[k];
+        }
+    }
+    // back-substitution
+    for (int i=int(m)-1;i>=0;--i) {
+        double s = b[i];
+        for (std::size_t j=i+1;j<m;++j) s -= A[i][j]*b[j];
+        b[i] = s / A[i][i];
+    }
+    return true;
+}
+
+// Constrained LSQ: minimize ||V a - y||_2^2 s.t. C a = d
+inline std::vector<double> SolveConstrainedLSQ(
+    const std::vector<std::vector<double>>& V,
+    const std::vector<double>& y,
+    const std::vector<std::vector<double>>& C,
+    const std::vector<double>& d)
+{
+    const std::size_t n = V.size();
+    const std::size_t m = V[0].size();
+    const std::size_t c = C.size();
+
+    // Form normal KKT system:
+    // [ 2 V^T V   C^T ] [ a ] = [ 2 V^T y ]
+    // [   C        0  ] [ λ ]   [   d     ]
+    std::vector<std::vector<double>> M(m+c, std::vector<double>(m+c, 0.0));
+    std::vector<double> rhs(m+c, 0.0);
+
+    // 2 V^T V and 2 V^T y
+    for (std::size_t i=0;i<m;++i) {
+        for (std::size_t j=0;j<m;++j) {
+            double s = 0.0;
+            for (std::size_t k=0;k<n;++k) s += V[k][i]*V[k][j];
+            M[i][j] = 2.0*s;
+        }
+        double sy = 0.0;
+        for (std::size_t k=0;k<n;++k) sy += V[k][i]*y[k];
+        rhs[i] = 2.0*sy;
+    }
+    // C and C^T
+    for (std::size_t i=0;i<c;++i) {
+        for (std::size_t j=0;j<m;++j) {
+            M[m+i][j] = C[i][j];
+            M[j][m+i] = C[i][j];
+        }
+        rhs[m+i] = d[i];
+    }
+
+    // Solve KKT
+    if (!SolveDense(M, rhs)) return std::vector<double>(m, 0.0);
+
+    // First m entries are a
+    return std::vector<double>(rhs.begin(), rhs.begin()+static_cast<long>(m));
+}
+
+// Evaluate polynomial a_0 + a_1 t + ... + a_p t^p and its Horner derivative if needed
+inline double EvalPoly(const std::vector<double>& a, double t) {
+    double v = 0.0;
+    for (int j=int(a.size())-1;j>=0;--j) v = v*t + a[j];
+    return v;
+}
+
+// Fit a scalar poly of degree p to all points, enforcing endpoints
+inline double PolyFitConstrainedEval(
+    const std::vector<double>& t,      // parameters (all samples)
+    const std::vector<double>& v,      // values (all samples)
+    double tq,                         // query parameter
+    std::size_t p,                     // degree
+    bool enforce_endpoints = true)
+{
+    // Collapse duplicates (relative tol)
+    std::vector<double> tu, vu;
+    CollapseDuplicates(t, v, tu, vu);
+    if (tu.empty()) return 0.0;
+    if (tu.size()==1) return vu.front();
+
+    // Degree clamp
+    p = std::min<std::size_t>(p, tu.size()-1);
+
+    // Vandermonde
+    std::vector<std::vector<double>> V;
+    BuildVandermonde1D(tu, p, V);
+
+    // Constraints: P(t0)=v0, P(tn)=vn
+    std::vector<std::vector<double>> C;
+    std::vector<double> d;
+    if (enforce_endpoints) {
+        C.assign(2, std::vector<double>(p+1, 1.0));
+        for (std::size_t j=1;j<=p;++j) { C[0][j] = C[0][j-1]*tu.front(); }
+        for (std::size_t j=1;j<=p;++j) { C[1][j] = C[1][j-1]*tu.back();  }
+        d = { vu.front(), vu.back() };
+    }
+
+    const std::vector<double> a = enforce_endpoints
+        ? SolveConstrainedLSQ(V, vu, C, d)
+        : SolveConstrainedLSQ(V, vu, {}, {}); // falls back to unconstrained normal eq via KKT
+
+    return EvalPoly(a, tq);
+}
+
 
 // Local polynomial interpolation of degree p using p+1 closest nodes (Newton form).
 double PolyInterpDegreeP(
@@ -470,14 +596,26 @@ void AssignIgaInterpolationConditionProcess::AssignInterpolatedValuesToCondition
             // Build (t_nodes, nodal_values)
             if (all_nodes_have_value) {
                 // Collapse duplicates on t
-                std::vector<double> t_unique, v_unique;
-                CollapseDuplicates(t_nodes, nodal_values, t_unique, v_unique);
+                // std::vector<double> t_unique, v_unique;
+                // CollapseDuplicates(t_nodes, nodal_values, t_unique, v_unique);
                 
-                // Degree p from parameters, clamped
-                std::size_t p = t_unique.size()-1;
+                // // Degree p from parameters, clamped
+                // std::size_t p = t_unique.size()-1;
 
-                const double interpolated_value = PolyInterpDegreeP(t_unique, v_unique, t_center, p);
+                // const double interpolated_value = PolyInterpDegreeP(t_unique, v_unique, t_center, p);
+                // r_condition.SetValue(*p_variable, interpolated_value);
+                
+                // Use all samples with LSQ and enforce endpoints
+                std::size_t p = round(t_nodes.size()/3)+1; // choose degree; or read from parameters
+                if (mParameters.Has("poly_degree")) {
+                    p = static_cast<std::size_t>(mParameters["poly_degree"].GetInt());
+                }
+
+                const double interpolated_value =
+                    PolyFitConstrainedEval(t_nodes, nodal_values, t_center, p, /*enforce_endpoints=*/true);
+
                 r_condition.SetValue(*p_variable, interpolated_value);
+
             }
 
         }

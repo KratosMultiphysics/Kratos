@@ -104,16 +104,21 @@ void GapSbmLoadSolidCondition::InitializeSbmMemberVariables()
 
     mpSkinProjectionNode = &r_geometry.GetValue(NEIGHBOUR_NODES)[0];
 
+    // Vector temp = r_geometry.GetValue(TEMP_INTERPOLATION_NODES_ID);
+    // this->SetValue(TEMP_INTERPOLATION_NODES_ID, temp);
+
     mTrueNormal = mpSkinProjectionNode->GetValue(NORMAL);
     std::string loopIdentifier = mpSkinProjectionNode->GetValue(IDENTIFIER);
 
     if (loopIdentifier == "inner")
         mTrueNormal = -mTrueNormal;
+    
+    mTrueNormal /= norm_2(mTrueNormal);
         
     mDistanceVectorSkin.resize(3);
     noalias(mDistanceVectorSkin) = mpSkinProjectionNode->Coordinates() - r_surrogate_geometry.Center().Coordinates();
 
-    // mDistanceVectorSkin = mDistanceVectorGap*1.1;
+    // mDistanceVectorSkin = mDistanceVectorGap;//*1.1;
     // mTrueNormal= mNormalPhysicalSpace;
 
     this->SetValue(PROJECTION_NODE_COORDINATES, mpSkinProjectionNode->Coordinates());
