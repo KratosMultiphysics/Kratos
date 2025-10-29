@@ -54,11 +54,9 @@ void FluidCouplingCondition::InitializeMemberVariables()
 
     // Estimate basis function order from number of control points and dimension (as in SupportFluidCondition)
     const auto& rDN_De_A = r_geometry_patchA.ShapeFunctionsLocalGradients(r_geometry_patchA.GetDefaultIntegrationMethod());
-    const unsigned int dim = rDN_De_A.empty() ? 2 : rDN_De_A[0].size2();
-    // store dimension for later use (e.g., in ApplyConstitutiveLaw)
-    mDim = dim;
+    mDim = rDN_De_A.empty() ? 2 : rDN_De_A[0].size2();
     const SizeType n_ctrl = rDN_De_A.empty() ? r_geometry_patchA.PointsNumber() : rDN_De_A[0].size1();
-    if (dim == 3) {
+    if (mDim == 3) {
         mBasisFunctionsOrder = static_cast<IndexType>(std::cbrt(static_cast<double>(n_ctrl)) - 1.0);
     } else {
         mBasisFunctionsOrder = static_cast<IndexType>(std::sqrt(static_cast<double>(n_ctrl)) - 1.0);
@@ -126,8 +124,7 @@ void FluidCouplingCondition::CalculateLeftHandSide(
     // Each node: mDim velocity components + 1 pressure
     const GeometryType::ShapeFunctionsGradientsType& rDN_De_A_all =
         r_patch_A.ShapeFunctionsLocalGradients(r_patch_A.GetDefaultIntegrationMethod());
-    const unsigned int dim = rDN_De_A_all[0].size2();
-    const SizeType dofs_per_node = dim + 1;
+    const SizeType dofs_per_node = mDim + 1;
     const SizeType total_size = dofs_per_node * (n_patch_A + n_patch_B);
 
     KRATOS_ERROR_IF(total_size == 0) << "FluidCouplingCondition found empty geometry." << std::endl;
@@ -231,8 +228,8 @@ void FluidCouplingCondition::CalculateLeftHandSide(
     Matrix DN_DX_A = rDN_De_A[0];
     Matrix DN_DX_B = rDN_De_B[0];
 
-    Matrix B_A(3, n_patch_A*dim, 0.0), B_B(3, n_patch_B*dim, 0.0);
-    CalculateB(B_A, DN_DX_A); // same shape as in SupportFluidCondition
+    Matrix B_A(3, n_patch_A*mDim, 0.0), B_B(3, n_patch_B*mDim, 0.0);
+    CalculateB(B_A, DN_DX_A);
     CalculateB(B_B, DN_DX_B);
 
     // constitutive law A
@@ -253,58 +250,31 @@ void FluidCouplingCondition::CalculateLeftHandSide(
     normal_A[0]=mNormalPhysicalSpaceA[0]; 
     normal_A[1]=mNormalPhysicalSpaceA[1];
 
+    const auto& r_geometry_A = GetGeometry();
+    const auto& r_geometry_B = GetGeometryMirror();
 
+    const SizeType number_of_control_points_A = r_geometry_A.size();
+    const SizeType number_of_control_points_B = r_geometry_B.size();
 
+    const SizeType number_of_control_points = number_of_control_points_A + number_of_control_points_B;
 
-
-
-
-
-
-
-
-
-    // ANDREA's CODE:
-    const auto& r_surrogate_geometry_plus = GetGeometry();
-    const auto& r_surrogate_geometry_minus = GetGeometryMirror();
-
-    const SizeType number_of_control_points_plus = r_surrogate_geometry_plus.size();
-    const SizeType number_of_control_points_minus = r_surrogate_geometry_minus.size();
-
-    const SizeType number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
-
-    const SizeType mat_size_plus = number_of_control_points_plus * mDim;
-    const SizeType mat_size_minus = number_of_control_points_minus * mDim;
+    const SizeType mat_size_A = number_of_control_points_A * mDim;
+    const SizeType mat_size_B = number_of_control_points_B * mDim;
 
     // reading integration points and local gradients
     const double integration_weight = weight;
 
     // // compute Taylor expansion contribution: H_sum_vec
-    Vector N_sum_vec_plus = row(N_patch_A, 0); 
-    Vector N_sum_vec_minus = row(N_patch_B, 0);
-
-    Matrix grad_N_sum_plus = rDN_De_A[0]; 
-    Matrix grad_N_sum_minus = rDN_De_B[0];
-
-
-    // compute the B matrix
-    Matrix B_sum_plus = ZeroMatrix(mDim,mat_size_plus);
-    CalculateB(B_sum_plus, grad_N_sum_plus);
-
-    Matrix B_sum_minus = ZeroMatrix(mDim,mat_size_minus);
-    CalculateB(B_sum_minus, grad_N_sum_minus);
-
-    // compute the DB product
-    Matrix DB_sum_plus = prod(r_D_A, B_sum_plus);
-    Matrix DB_sum_minus = prod(r_D_B, B_sum_minus);
+    Vector N_vec_A = row(N_patch_A, 0); 
+    Vector N_vec_B = row(N_patch_B, 0);
 
     // INTEGRATION BY PARTS -[[w]] {{tau n}}
     //-----------------------------------------------------
-    const SizeType shift_dof = mat_size_plus + number_of_control_points_plus; // shift for minus side DOFs
+    const SizeType shift_dof = mat_size_A + number_of_control_points_A; // shift for minus side DOFs
     // -w_plus * (sigma_plus + sigma_minus) /2
-    for (IndexType i = 0; i < number_of_control_points_plus; i++) {
+    for (IndexType i = 0; i < number_of_control_points_A; i++) {
         // FIRST TERM: -w_plus * sigma_plus /2
-        for (IndexType j = 0; j < number_of_control_points_plus; j++) {
+        for (IndexType j = 0; j < number_of_control_points_A; j++) {
             
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int id1 = 2*idim;
@@ -315,20 +285,20 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     const int jglob_DB = 2*j+jdim;
                     const int jglob = 3*j+jdim;
 
-                    rLeftHandSideMatrix(iglob, jglob) -= 0.5 * N_sum_vec_plus(i)
-                                                    * (DB_sum_plus(id1, jglob_DB)* normal_A[0] + DB_sum_plus(id2, jglob_DB)* normal_A[1]) 
+                    rLeftHandSideMatrix(iglob, jglob) -= 0.5 * N_vec_A(i)
+                                                    * (DB_A(id1, jglob_DB)* normal_A[0] + DB_A(id2, jglob_DB)* normal_A[1]) 
                                                     * integration_weight;
                 }
                 // pressure -w_plus * ((-p_plus n_A) /2
                 const int jpressure = 3*j + 2;
-                rLeftHandSideMatrix(iglob, jpressure) += 0.5 * N_sum_vec_plus(i) * N_sum_vec_plus(j) 
+                rLeftHandSideMatrix(iglob, jpressure) += 0.5 * N_vec_A(i) * N_vec_A(j) 
                                                 * normal_A[idim] 
                                                 * integration_weight;
             }
         }
 
         // SECOND TERM: -w_plus * sigma_minus /2
-        for (IndexType j = 0; j < number_of_control_points_minus; j++) {
+        for (IndexType j = 0; j < number_of_control_points_B; j++) {
             
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int id1 = 2*idim;
@@ -339,13 +309,13 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     const int jloc = 2*j+jdim;
                     const int jglob = 3*j+jdim + shift_dof;
 
-                    rLeftHandSideMatrix(iglob, jglob) -= 0.5 * N_sum_vec_plus(i)
-                                                    * (DB_sum_minus(id1, jloc)* normal_A[0] + DB_sum_minus(id2, jloc)* normal_A[1]) 
+                    rLeftHandSideMatrix(iglob, jglob) -= 0.5 * N_vec_A(i)
+                                                    * (DB_B(id1, jloc)* normal_A[0] + DB_B(id2, jloc)* normal_A[1]) 
                                                     * integration_weight;
                 }
                 // pressure -w_plus * ((-p_minus n_B) /2
                 const int jpressure = 3*j + 2 + shift_dof;
-                rLeftHandSideMatrix(iglob, jpressure) += 0.5 * N_sum_vec_plus(i) * N_sum_vec_minus(j) 
+                rLeftHandSideMatrix(iglob, jpressure) += 0.5 * N_vec_A(i) * N_vec_B(j) 
                                                 * normal_A[idim] 
                                                 * integration_weight;
             }
@@ -353,9 +323,9 @@ void FluidCouplingCondition::CalculateLeftHandSide(
     }
 
     // +w_minus * (sigma_plus + sigma_minus) /2
-    for (IndexType i = 0; i < number_of_control_points_minus; i++) {
+    for (IndexType i = 0; i < number_of_control_points_B; i++) {
         // FIRST TERM: +w_minus * sigma_plus /2
-        for (IndexType j = 0; j < number_of_control_points_plus; j++) {
+        for (IndexType j = 0; j < number_of_control_points_A; j++) {
             
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int id1 = 2*idim;
@@ -366,20 +336,20 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     const int jglob_DB = 2*j+jdim;
                     const int jglob = 3*j+jdim;
 
-                    rLeftHandSideMatrix(iglob, jglob) += 0.5 * N_sum_vec_minus(i)
-                                                    * (DB_sum_plus(id1, jglob_DB)* normal_A[0] + DB_sum_plus(id2, jglob_DB)* normal_A[1]) 
+                    rLeftHandSideMatrix(iglob, jglob) += 0.5 * N_vec_B(i)
+                                                    * (DB_A(id1, jglob_DB)* normal_A[0] + DB_A(id2, jglob_DB)* normal_A[1]) 
                                                     * integration_weight;
                 }
                 // pressure +w_minus * ((-p_plus n_A) /2
                 const int jpressure = 3*j + 2;
-                rLeftHandSideMatrix(iglob, jpressure) -= 0.5 * N_sum_vec_minus(i) * N_sum_vec_plus(j) 
+                rLeftHandSideMatrix(iglob, jpressure) -= 0.5 * N_vec_B(i) * N_vec_A(j) 
                                                 * normal_A[idim] 
                                                 * integration_weight;
             }
         }
 
         // SECOND TERM: +w_minus * sigma_minus /2
-        for (IndexType j = 0; j < number_of_control_points_minus; j++) {
+        for (IndexType j = 0; j < number_of_control_points_B; j++) {
             
             for (IndexType idim = 0; idim < 2; idim++) {
                 const int id1 = 2*idim;
@@ -390,13 +360,13 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     const int jloc = 2*j+jdim;
                     const int jglob = 3*j+jdim + shift_dof;
 
-                    rLeftHandSideMatrix(iglob, jglob) += 0.5 * N_sum_vec_minus(i)
-                                                    * (DB_sum_minus(id1, jloc)* normal_A[0] + DB_sum_minus(id2, jloc)* normal_A[1]) 
+                    rLeftHandSideMatrix(iglob, jglob) += 0.5 * N_vec_B(i)
+                                                    * (DB_B(id1, jloc)* normal_A[0] + DB_B(id2, jloc)* normal_A[1]) 
                                                     * integration_weight;
                 }
                 // pressure +w_minus * ((-p_minus n_B) /2
                 const int jpressure = 3*j + 2 + shift_dof;
-                rLeftHandSideMatrix(iglob, jpressure) -= 0.5 * N_sum_vec_minus(i) * N_sum_vec_minus(j) 
+                rLeftHandSideMatrix(iglob, jpressure) -= 0.5 * N_vec_B(i) * N_vec_B(j) 
                                                 * normal_A[idim] 
                                                 * integration_weight;
             }
@@ -410,18 +380,18 @@ void FluidCouplingCondition::CalculateLeftHandSide(
 
     // ASSEMBLE
     //-----------------------------------------------------
-    for (IndexType i = 0; i < number_of_control_points_plus; i++) {
+    for (IndexType i = 0; i < number_of_control_points_A; i++) {
         for (IndexType idim = 0; idim < 2; idim++) {
             const int iglob = 3*i+idim;
             const int iglob_DB = 2*i+idim;
 
             Vector tau_w_n_A = ZeroVector(3);
-            tau_w_n_A[0] = (DB_sum_plus(0, iglob_DB)* normal_A[0] + DB_sum_plus(2, iglob_DB)* normal_A[1]);
-            tau_w_n_A[1] = (DB_sum_plus(2, iglob_DB)* normal_A[0] + DB_sum_plus(1, iglob_DB)* normal_A[1]);
+            tau_w_n_A[0] = (DB_A(0, iglob_DB)* normal_A[0] + DB_A(2, iglob_DB)* normal_A[1]);
+            tau_w_n_A[1] = (DB_A(2, iglob_DB)* normal_A[0] + DB_A(1, iglob_DB)* normal_A[1]);
 
-            for (IndexType j = 0; j < number_of_control_points_plus; j++) {
+            for (IndexType j = 0; j < number_of_control_points_A; j++) {
                 // PENALTY TERM
-                rLeftHandSideMatrix(iglob, 3*j+idim) += N_sum_vec_plus(i)*N_sum_vec_plus(j)* penalty_integration;
+                rLeftHandSideMatrix(iglob, 3*j+idim) += N_vec_A(i)*N_vec_A(j)* penalty_integration;
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int jglob = 3*j+jdim;
@@ -429,20 +399,20 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*tau_w_n_A[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_vec_A(j)*tau_w_n_A[jdim] * integration_weight;
                 }
                 // pressure (q term) -> + q_A n_A (u_A) * 0.5
                 const int ipressure = 3*i + 2;
                 const int jglob = 3*j+idim;
-                rLeftHandSideMatrix(ipressure, jglob) += 0.5*mNitschePenalty*N_sum_vec_plus(i) * normal_A[idim]
-                                                    * N_sum_vec_plus(j) * integration_weight;
+                rLeftHandSideMatrix(ipressure, jglob) += 0.5*mNitschePenalty*N_vec_A(i) * normal_A[idim]
+                                                    * N_vec_A(j) * integration_weight;
 
             }
 
             // minus side
-            for (IndexType j = 0; j < number_of_control_points_minus; j++) {
+            for (IndexType j = 0; j < number_of_control_points_B; j++) {
                 // PENALTY TERM
-                rLeftHandSideMatrix(iglob, 3*j+shift_dof+idim) -= N_sum_vec_plus(i)*N_sum_vec_minus(j)* penalty_integration;
+                rLeftHandSideMatrix(iglob, 3*j+shift_dof+idim) -= N_vec_A(i)*N_vec_B(j)* penalty_integration;
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int jglob = 3*j+jdim + shift_dof;
@@ -450,30 +420,30 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*tau_w_n_A[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_vec_B(j)*tau_w_n_A[jdim] * integration_weight;
                 }
                 // pressure (q term) -> + q_A n_A (u_B) * 0.5
                 const int ipressure = 3*i + 2;
                 const int jglob = 3*j+idim + shift_dof;
-                rLeftHandSideMatrix(ipressure, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(i) * normal_A[idim]
-                                                    * N_sum_vec_minus(j) * integration_weight;
+                rLeftHandSideMatrix(ipressure, jglob) -= 0.5*mNitschePenalty*N_vec_A(i) * normal_A[idim]
+                                                    * N_vec_B(j) * integration_weight;
             }
         }
     }
 
     // minus side
-    for (IndexType i = 0; i < number_of_control_points_minus; i++) {
+    for (IndexType i = 0; i < number_of_control_points_B; i++) {
         for (IndexType idim = 0; idim < 2; idim++) {
             const int iloc = 2*i+idim;
             const int iglob = 3*i+idim + shift_dof;
 
             Vector tau_w_n_B = ZeroVector(3);
-            tau_w_n_B[0] = (DB_sum_minus(0, iloc)* normal_A[0] + DB_sum_minus(2, iloc)* normal_A[1]);
-            tau_w_n_B[1] = (DB_sum_minus(2, iloc)* normal_A[0] + DB_sum_minus(1, iloc)* normal_A[1]);
+            tau_w_n_B[0] = (DB_B(0, iloc)* normal_A[0] + DB_B(2, iloc)* normal_A[1]);
+            tau_w_n_B[1] = (DB_B(2, iloc)* normal_A[0] + DB_B(1, iloc)* normal_A[1]);
 
-            for (IndexType j = 0; j < number_of_control_points_plus; j++) {
+            for (IndexType j = 0; j < number_of_control_points_A; j++) {
                 // PENALTY TERM
-                rLeftHandSideMatrix(iglob, 3*j+idim) -= N_sum_vec_minus(i)*N_sum_vec_plus(j)* penalty_integration;
+                rLeftHandSideMatrix(iglob, 3*j+idim) -= N_vec_B(i)*N_vec_A(j)* penalty_integration;
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int jglob = 3*j+jdim;
@@ -481,20 +451,20 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*tau_w_n_B[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_vec_A(j)*tau_w_n_B[jdim] * integration_weight;
                 }
                 // pressure (q term) -> - q_B n_B (u_A) * 0.5
                 const int ipressure = 3*i + 2 + shift_dof;
                 const int jglob = 3*j+idim;
-                rLeftHandSideMatrix(ipressure, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(i) * normal_A[idim]
-                                                    * N_sum_vec_plus(j) * integration_weight;
+                rLeftHandSideMatrix(ipressure, jglob) += 0.5*mNitschePenalty*N_vec_B(i) * normal_A[idim]
+                                                    * N_vec_A(j) * integration_weight;
 
             }
 
             // minus side
-            for (IndexType j = 0; j < number_of_control_points_minus; j++) {
+            for (IndexType j = 0; j < number_of_control_points_B; j++) {
                 // PENALTY TERM
-                rLeftHandSideMatrix(iglob, 3*j+shift_dof+idim) += N_sum_vec_minus(i)*N_sum_vec_minus(j)* penalty_integration;
+                rLeftHandSideMatrix(iglob, 3*j+shift_dof+idim) += N_vec_B(i)*N_vec_B(j)* penalty_integration;
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int jglob = 3*j+jdim + shift_dof;
@@ -502,13 +472,13 @@ void FluidCouplingCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*tau_w_n_B[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_vec_B(j)*tau_w_n_B[jdim] * integration_weight;
                 }
                 // pressure (q term) -> - q_B n_B (u_B) * 0.5
                 const int ipressure = 3*i + 2 + shift_dof;
                 const int jglob = 3*j+idim + shift_dof;
-                rLeftHandSideMatrix(ipressure, jglob) -= 0.5*mNitschePenalty*N_sum_vec_minus(i) * normal_A[idim]
-                                                    * N_sum_vec_minus(j) * integration_weight;
+                rLeftHandSideMatrix(ipressure, jglob) -= 0.5*mNitschePenalty*N_vec_B(i) * normal_A[idim]
+                                                    * N_vec_B(j) * integration_weight;
             }
         }
     }
