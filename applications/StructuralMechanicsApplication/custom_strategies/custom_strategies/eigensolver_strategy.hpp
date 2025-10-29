@@ -20,6 +20,8 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -658,24 +660,33 @@ private:
         KRATOS_CATCH("")
     }
 
+    /// Normalize the eigenmodes with respect to the mass matrix
     void MassNormalizeEigenvectors(DenseMatrixType& rEigenvectors)
     {
         const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
-        const std::size_t num_modes = rEigenvectors.size1(); // rows = modes
-        const std::size_t num_dofs  = rEigenvectors.size2(); // cols = DOFs
+        const std::size_t num_modes = rEigenvectors.size1();
+        const std::size_t num_dofs  = rEigenvectors.size2();
 
-        DenseVectorType phi_j(num_dofs); 
-        DenseVectorType tmp(num_dofs);   
+        DenseVectorType phi_j(num_dofs);
+        DenseVectorType tmp(num_dofs);
 
-        for (std::size_t j = 0; j < num_modes; ++j){
-            // copy row j -> phi_j
-            std::copy_n(&rEigenvectors(j, 0), num_dofs, phi_j.begin());
+        // Pre-build a simple index container (0..num_dofs-1) to use with block_for_each
+        std::vector<std::size_t> indices(num_dofs);
+        std::iota(indices.begin(), indices.end(), 0u);
+
+        for (std::size_t j = 0; j < num_modes; ++j) {
+            // copy row j -> phi_j in parallel using block_for_each
+            block_for_each(indices, [&](std::size_t i){
+                phi_j[i] = rEigenvectors(j, i);
+            });
 
             // tmp = M * phi_j
             TSparseSpace::Mult(rMassMatrix, phi_j, tmp);
 
-            // modal_mass = phi_j^T * tmp
-            double modal_mass = std::inner_product(phi_j.begin(), phi_j.end(), tmp.begin(), 0.0);
+            // Compute modal_mass = phi_j^T * tmp using SumReduction (no atomics)
+            const double modal_mass = block_for_each<SumReduction<double>>(indices, [&](std::size_t i){
+                return phi_j[i] * tmp[i];
+            });
 
             if (!(modal_mass > 0.0)) {
                 KRATOS_WARNING("MassNormalizeEigenvectors")
@@ -685,11 +696,10 @@ private:
 
             const double scale = 1.0 / std::sqrt(modal_mass);
 
-            // scale and write back into rEigenvectors row j
-            // use transform on phi_j to produce scaled values directly into matrix row
-            std::transform(phi_j.begin(), phi_j.end(),
-                        &rEigenvectors(j, 0),
-                        [scale](const typename DenseVectorType::value_type& v){ return v * scale; });
+            // scale and write back into rEigenvectors in parallel
+            block_for_each(indices, [&](std::size_t i){
+                rEigenvectors(j, i) = phi_j[i] * scale;
+            });
         }
     }
 
