@@ -675,8 +675,8 @@ private:
         std::iota(indices.begin(), indices.end(), 0u);
 
         for (std::size_t j = 0; j < num_modes; ++j) {
-            // copy row j -> phi_j in parallel using block_for_each
-            block_for_each(indices, [&](std::size_t i){
+             // copy row j -> phi_j in parallel using IndexPartition
+            IndexPartition<std::size_t>(num_dofs).for_each([&](std::size_t i){
                 phi_j[i] = rEigenvectors(j, i);
             });
 
@@ -696,8 +696,8 @@ private:
 
             const double scale = 1.0 / std::sqrt(modal_mass);
 
-            // scale and write back into rEigenvectors in parallel
-            block_for_each(indices, [&](std::size_t i){
+           // scale and write back into rEigenvectors in parallel
+            IndexPartition<std::size_t>(num_dofs).for_each([&](std::size_t i){
                 rEigenvectors(j, i) = phi_j[i] * scale;
             });
         }
