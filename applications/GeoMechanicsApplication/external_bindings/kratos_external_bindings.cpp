@@ -29,8 +29,7 @@ EXPORT int CALL_CONV execute_flow_analysis(Kratos::KratosExecute* instance,
     const Kratos::KratosExecute::CriticalHeadInfo critical_head_info(
         minCriticalHead, maxCriticalHead, stepCriticalHead);
     const Kratos::KratosExecute::CallBackFunctions call_back_functions(
-        logCallback ? logCallback : nullptr, reportProgress ? reportProgress : nullptr,
-        reportTextualProgress ? reportTextualProgress : nullptr,
+        logCallback, reportProgress, reportTextualProgress,
         shouldCancel ? shouldCancel : []() { return false; });
 
     return instance->ExecuteFlowAnalysis(workingDirectory, projectFile, critical_head_info,
