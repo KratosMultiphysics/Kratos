@@ -108,10 +108,7 @@ void InterfaceCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMa
                                                            const Geometry<Node>&,
                                                            const Vector&)
 {
-    mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{
-        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]), rMaterialProperties[GEO_COHESION],
-        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
-        rMaterialProperties[GEO_TENSILE_STRENGTH]};
+    mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{rMaterialProperties};
 
     mRelativeDisplacementVectorFinalized =
         HasInitialState() ? GetInitialState().GetInitialStrainVector() : ZeroVector{GetStrainSize()};
