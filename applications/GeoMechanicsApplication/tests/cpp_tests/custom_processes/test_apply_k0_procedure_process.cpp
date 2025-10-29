@@ -70,8 +70,9 @@ Vector ApplyK0ProcedureOnStubElement(const Properties::Pointer& rProperties, con
     p_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, {rInitialStressVector},
                                             r_model_part.GetProcessInfo());
 
-    const auto              k0_settings = Parameters{};
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    auto k0_settings = Parameters{};
+    k0_settings.AddString("model_part_name", "main");
+    ApplyK0ProcedureProcess process{model, k0_settings};
 
     // Act
     process.ExecuteFinalizeSolutionStep();
@@ -80,6 +81,47 @@ Vector ApplyK0ProcedureOnStubElement(const Properties::Pointer& rProperties, con
     std::vector<Vector> actual_stress_vector;
     p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stress_vector,
                                             r_model_part.GetProcessInfo());
+
+    return actual_stress_vector[0];
+}
+
+Vector ApplyK0ProcedureOnStubElementsInMultipleModelParts(const Properties::Pointer& rProperties,
+                                                          const Vector& rInitialStressVector)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("model_part_1");
+    auto  p_element    = make_intrusive<StubElementForK0ProcedureTest>();
+    p_element->SetProperties(rProperties);
+    r_model_part.AddElement(p_element);
+
+    auto& r_model_part_2 = model.CreateModelPart("model_part_2");
+    auto  p_element_2    = make_intrusive<StubElementForK0ProcedureTest>();
+    p_element_2->SetProperties(rProperties);
+    r_model_part_2.AddElement(p_element_2);
+
+    p_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, {rInitialStressVector},
+                                            r_model_part.GetProcessInfo());
+    p_element_2->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, {rInitialStressVector},
+                                              r_model_part_2.GetProcessInfo());
+
+    auto k0_settings = Parameters{};
+    k0_settings.AddStringArray("model_part_name_list", {"model_part_1", "model_part_2"});
+    ApplyK0ProcedureProcess process{model, k0_settings};
+
+    // Act
+    process.ExecuteFinalizeSolutionStep();
+
+    // Assert
+    std::vector<Vector> actual_stress_vector;
+    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stress_vector,
+                                            r_model_part.GetProcessInfo());
+
+    std::vector<Vector> actual_stress_vector_2;
+    p_element_2->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_stress_vector_2,
+                                              r_model_part.GetProcessInfo());
+
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_stress_vector[0], actual_stress_vector_2[0],
+                                       Testing::Defaults::relative_tolerance);
 
     return actual_stress_vector[0];
 }
@@ -117,6 +159,41 @@ bool ElementConsidersDiagonalEntriesOnlyAndNoShear(const Element& rElement)
 namespace Kratos::Testing
 {
 
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrowsWhenNoModelPartIsDefined, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto  k0_settings = Parameters{};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{model, k0_settings}),
+                                      "Please specify 'model_part_name' or "
+                                      "'model_part_name_list' for ApplyK0ProcedureProcess")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrows_WhenListAndSingularModelPartAreBothSpecified,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto  k0_settings = Parameters{};
+    k0_settings.AddString("model_part_name", "dummy");
+    k0_settings.AddStringArray("model_part_name_list", {"dummy"});
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (ApplyK0ProcedureProcess{model, k0_settings}),
+        "The parameters 'model_part_name' and "
+        "'model_part_name_list' are mutually exclusive for ApplyK0ProcedureProcess")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureConstructorThrows_WhenModelPartListIsEmpty, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto  k0_settings = Parameters{};
+    k0_settings.AddStringArray("model_part_name_list", {});
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{model, k0_settings}),
+                                      "The parameters 'model_part_name_list' needs to contain at "
+                                      "least one model part name for ApplyK0ProcedureProcess")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUseStandardProcedureFlagIsNotDefined,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -124,8 +201,9 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUs
     auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings; // 'use_standard_procedure' is not defined, assume it to be true
+    k0_settings.AddString("model_part_name", "dummy");
 
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    ApplyK0ProcedureProcess process{model, k0_settings};
     process.ExecuteInitialize();
 
     KRATOS_EXPECT_TRUE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
@@ -138,8 +216,9 @@ KRATOS_TEST_CASE_IN_SUITE(AllElementsConsiderDiagonalEntriesOnlyAndNoShearWhenUs
     auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings{R"({"use_standard_procedure": true})"};
+    k0_settings.AddString("model_part_name", "dummy");
 
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    ApplyK0ProcedureProcess process{model, k0_settings};
     process.ExecuteInitialize();
 
     KRATOS_EXPECT_TRUE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
@@ -152,8 +231,9 @@ KRATOS_TEST_CASE_IN_SUITE(NoneOfElementsConsiderDiagonalEntriesOnlyAndNoShearWhe
     auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings{R"({"use_standard_procedure": false})"};
+    k0_settings.AddString("model_part_name", "dummy");
 
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    ApplyK0ProcedureProcess process{model, k0_settings};
     process.ExecuteInitialize();
 
     KRATOS_EXPECT_FALSE(ElementConsidersDiagonalEntriesOnlyAndNoShear(r_model_part.Elements()[0]))
@@ -166,8 +246,9 @@ KRATOS_TEST_CASE_IN_SUITE(UseStandardProcedureFlagIsInEffectDuringProcessExecuti
     auto& r_model_part = PrepareTestModelPart(model);
 
     Parameters k0_settings{R"({"use_standard_procedure": true})"};
+    k0_settings.AddString("model_part_name", "dummy");
 
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    ApplyK0ProcedureProcess process{model, k0_settings};
     process.ExecuteInitialize(); // start considering diagonal entries only and no shear
     process.ExecuteFinalize();   // stop considering diagonal entries only and no shear
 
@@ -185,6 +266,25 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC, KratosGeoMecha
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    Vector expected_stress_vector{4};
+    expected_stress_vector <<= -5.0, -10.0, -5.0, 0.0;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC_MultipleModelParts, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_NC, 0.5);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 1);
+    Vector initial_stress_vector{4};
+    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+
+    // Act
+    const auto actual_stress_vector =
+        ApplyK0ProcedureOnStubElementsInMultipleModelParts(p_properties, initial_stress_vector);
 
     // Assert
     Vector expected_stress_vector{4};
@@ -420,8 +520,9 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     p_element->SetProperties(std::make_shared<Properties>());
     r_model_part.AddElement(p_element);
 
-    const auto              k0_settings = Parameters{};
-    ApplyK0ProcedureProcess process{r_model_part, k0_settings};
+    auto k0_settings = Parameters{};
+    k0_settings.AddString("model_part_name", "main");
+    ApplyK0ProcedureProcess process{model, k0_settings};
 
     auto mock_constitutive_law = std::make_shared<MockIncrementalLinearElasticLaw>();
     p_element->GetProperties().SetValue(CONSTITUTIVE_LAW, mock_constitutive_law);
@@ -516,9 +617,23 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfModelPartHasElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_modelpart = model.CreateModelPart("dummy");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{r_modelpart, {}}.Check()),
+    model.CreateModelPart("dummy");
+
+    auto k0_settings = Parameters{};
+    k0_settings.AddString("model_part_name", "dummy");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{model, k0_settings}.Check()),
                                       "ApplyK0ProcedureProces has no elements in modelpart dummy")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoK0ProcedureProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    model.CreateModelPart("dummy");
+    const ApplyK0ProcedureProcess process{model, {R"({"model_part_name" : "dummy"})"}};
+
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyK0ProcedureProcess");
+}
 } // namespace Kratos::Testing

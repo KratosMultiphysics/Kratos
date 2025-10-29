@@ -246,15 +246,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateOutputData(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
-    {
-        KRATOS_TRY
-
-        //TODO: Think about creating a datavalue container in here that we can access from outside.
-
-        KRATOS_CATCH("")
-    }
-
     int Check() const override
     {
         KRATOS_TRY
