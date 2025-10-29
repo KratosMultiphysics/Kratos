@@ -91,12 +91,14 @@ public:
         BuilderAndSolverPointerType pBuilderAndSolver,
         double MassMatrixDiagonalValue,
         double StiffnessMatrixDiagonalValue,
-        bool ComputeModalDecomposition = false
+        bool ComputeModalDecomposition = false,
+        bool NormalizeEigenvectorsWithMassMatrix = false
         )
         : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
             mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
             mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
-            mComputeModalDecompostion(ComputeModalDecomposition)
+            mComputeModalDecompostion(ComputeModalDecomposition),
+            mNormalizeEigenvectorsWithMassMatrix(NormalizeEigenvectorsWithMassMatrix)
     {
         KRATOS_TRY
 
@@ -450,6 +452,10 @@ public:
             this->ReconstructSlaveSolution(Eigenvectors);
         }
 
+        if (mNormalizeEigenvectorsWithMassMatrix){
+            MassNormalizeEigenvectors(Eigenvectors);
+        }
+
         this->AssignVariables(Eigenvalues,Eigenvectors);
 
 
@@ -578,6 +584,8 @@ private:
 
     bool mComputeModalDecompostion = false;
 
+    bool mNormalizeEigenvectorsWithMassMatrix = false; 
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -648,6 +656,68 @@ private:
         }
 
         KRATOS_CATCH("")
+    }
+
+    // void MassNormalizeEigenvectors(DenseMatrixType& rEigenvectors)
+    // {
+    //     const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
+    //     const std::size_t num_modes = rEigenvectors.size1(); // rows = modes
+    //     const std::size_t num_dofs  = rEigenvectors.size2(); // columns = DOFs
+
+    //     DenseVectorType tmp(num_dofs); // temporary vector for M*phi
+
+    //     for (std::size_t j = 0; j < num_modes; ++j)
+    //     {
+    //         // Extract row j into phi_j
+    //         DenseVectorType phi_j(num_dofs);
+    //         for (std::size_t i = 0; i < num_dofs; ++i)
+    //             phi_j[i] = rEigenvectors(j, i);
+
+    //         // Compute modal mass: phi_j^T * M * phi_j
+    //         TSparseSpace::Mult(rMassMatrix, phi_j, tmp);       // tmp = M * phi_j
+    //         double modal_mass = TSparseSpace::Dot(phi_j, tmp); // phi_j^T * (M * phi_j)
+
+    //         // Scale phi_j so modal mass = 1
+    //         double scale = 1.0 / std::sqrt(modal_mass);
+    //         for (std::size_t i = 0; i < num_dofs; ++i)
+    //             rEigenvectors(j, i) = phi_j[i] * scale;
+    //     }
+    // }
+
+    void MassNormalizeEigenvectors(DenseMatrixType& rEigenvectors)
+    {
+        const SparseMatrixType& rMassMatrix = this->GetMassMatrix();
+        const std::size_t num_modes = rEigenvectors.size1(); // rows = modes
+        const std::size_t num_dofs  = rEigenvectors.size2(); // cols = DOFs
+
+        DenseVectorType phi_j(num_dofs); 
+        DenseVectorType tmp(num_dofs);   
+
+        for (std::size_t j = 0; j < num_modes; ++j)
+        {
+            // copy row j -> phi_j
+            std::copy_n(&rEigenvectors(j, 0), num_dofs, phi_j.begin());
+
+            // tmp = M * phi_j
+            TSparseSpace::Mult(rMassMatrix, phi_j, tmp);
+
+            // modal_mass = phi_j^T * tmp
+            double modal_mass = std::inner_product(phi_j.begin(), phi_j.end(), tmp.begin(), 0.0);
+
+            if (!(modal_mass > 0.0)) {
+                KRATOS_WARNING("MassNormalizeEigenvectors")
+                    << "Modal mass for mode " << j << " is non-positive (" << modal_mass << "). Skipping normalization.\n";
+                continue;
+            }
+
+            const double scale = 1.0 / std::sqrt(modal_mass);
+
+            // scale and write back into rEigenvectors row j
+            // use transform on phi_j to produce scaled values directly into matrix row
+            std::transform(phi_j.begin(), phi_j.end(),
+                        &rEigenvectors(j, 0),
+                        [scale](const typename DenseVectorType::value_type& v){ return v * scale; });
+        }
     }
 
     /// Apply Dirichlet boundary conditions without modifying dof pattern.
