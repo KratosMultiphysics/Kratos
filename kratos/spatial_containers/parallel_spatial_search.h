@@ -250,14 +250,11 @@ public:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         const double Radius,
-        ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        ResultContainerVectorType& rResults
         )
     {
         // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
+        rResults.Clear();
 
         // Retrieving parameters
         const int allocation_size = mSettings["allocation_size"].GetInt();
