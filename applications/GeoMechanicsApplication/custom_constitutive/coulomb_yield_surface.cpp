@@ -14,6 +14,7 @@
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "includes/serializer.h"
 
+#include "utilities/math_utils.h"
 #include <boost/numeric/ublas/assignment.hpp>
 #include <cmath>
 
@@ -59,6 +60,40 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAvera
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
     }
     return result;
+}
+
+void CoulombYieldSurface::UpdateSurfaceProperties(double InitialFrictionAngle,
+                                                  double FrictionAngleStrengthFactor,
+                                                  double InitialCohesion,
+                                                  double CohesionStrengthFactor,
+                                                  double InitialDilatancyAngle,
+                                                  double DilatancyAngleStrengthFactor,
+                                                  double kappa)
+{
+    mFrictionAngle =
+        this->CalculateUpdatedFrictionAngle(InitialFrictionAngle, FrictionAngleStrengthFactor, kappa);
+    mCohesion = this->CalculateUpdatedCohesion(InitialCohesion, CohesionStrengthFactor, kappa);
+    mDilatationAngle =
+        this->CalculateUpdatedDilatancyAngle(InitialDilatancyAngle, DilatancyAngleStrengthFactor, kappa);
+}
+
+double CoulombYieldSurface::CalculateUpdatedFrictionAngle(double InitialFrictionAngle,
+                                                          double StrengthFactor,
+                                                          double kappa) const
+{
+    return MathUtils<>::DegreesToRadians(InitialFrictionAngle + StrengthFactor * kappa);
+}
+
+double CoulombYieldSurface::CalculateUpdatedCohesion(double InitialCohesion, double StrengthFactor, double kappa) const
+{
+    return InitialCohesion + StrengthFactor * kappa;
+}
+
+double CoulombYieldSurface::CalculateUpdatedDilatancyAngle(double InitialDilatancyAngle,
+                                                           double StrengthFactor,
+                                                           double kappa) const
+{
+    return MathUtils<>::DegreesToRadians(InitialDilatancyAngle + StrengthFactor * kappa);
 }
 
 void CoulombYieldSurface::save(Serializer& rSerializer) const
