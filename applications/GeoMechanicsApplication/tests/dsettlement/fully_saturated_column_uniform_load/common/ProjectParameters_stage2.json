@@ -29,7 +29,7 @@
     "block_builder"                   : true,
     "solution_type"                   : "static",
     "scheme_type"                     : "load_stepping",
-    "reset_displacements"             : true,
+    "reset_displacements"             : false,
     "strategy_type"                   : "line_search",
     "convergence_criterion"           : "displacement_criterion",
     "displacement_relative_tolerance" : 0.001,
