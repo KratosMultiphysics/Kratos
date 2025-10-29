@@ -11,6 +11,7 @@
 //
 
 #include "custom_operations/activate_model_part_operation.h"
+#include "custom_operations/deactivate_model_part_operation.h"
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
@@ -126,11 +127,16 @@ static const std::vector<NamedFactory> ProcessesAndOperations = {
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyFinalStressesOfPreviousStageToInitialState>(rModel, rSettings);
 }},
-    {"ApplyCPhiReductionProcess", [](Model& rModel, const Parameters& rSettings) {
+    {"ApplyCPhiReductionProcess",
+     [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyCPhiReductionProcess>(rModel, rSettings);
 }},
-{"ActivateModelPartOperation", [](Model& rModel, const Parameters& rSettings) {
+    {"ActivateModelPartOperation",
+     [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ActivateModelPartOperation>(rModel, rSettings);
+}},
+    {"DeactivateModelPartOperation", [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::DeactivateModelPartOperation>(rModel, rSettings);
 }}};
 
 INSTANTIATE_TEST_SUITE_P(ProcessAndOperationUtilitiesTests, ModelPartsTest, ::testing::ValuesIn(ProcessesAndOperations));
