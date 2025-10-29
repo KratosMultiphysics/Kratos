@@ -113,7 +113,7 @@ TEST_P(ModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
             param.name);
 }
 
-static const std::vector<NamedFactory> kProcessFactories = {
+static const std::vector<NamedFactory> ProcessesAndOperations = {
     {"ApplyExcavationProcess",
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyExcavationProcess>(rModel, rSettings);
@@ -128,20 +128,11 @@ static const std::vector<NamedFactory> kProcessFactories = {
 }},
     {"ApplyCPhiReductionProcess", [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyCPhiReductionProcess>(rModel, rSettings);
-}}};
-
-static const std::vector<NamedFactory> kOperationFactories = {
-    {"ActivateModelPartOperation", [](Model& rModel, const Parameters& rSettings) {
+}},
+{"ActivateModelPartOperation", [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ActivateModelPartOperation>(rModel, rSettings);
 }}};
 
-static std::vector<NamedFactory> GetAllFactories()
-{
-    std::vector<NamedFactory> all = kProcessFactories;
-    all.insert(all.end(), kOperationFactories.begin(), kOperationFactories.end());
-    return all;
-}
-
-INSTANTIATE_TEST_SUITE_P(ProcessAndOperationUtilitiesTests, ModelPartsTest, ::testing::ValuesIn(GetAllFactories()));
+INSTANTIATE_TEST_SUITE_P(ProcessAndOperationUtilitiesTests, ModelPartsTest, ::testing::ValuesIn(ProcessesAndOperations));
 
 } // namespace Kratos::Testing
