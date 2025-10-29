@@ -331,14 +331,11 @@ public:
     void SearchNearest(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        ResultContainerVectorType& rResults
         )
     {
         // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
+        rResults.Clear();
 
         // Get the maximum radius
         const auto global_bb = GetGlobalBoundingBox();
@@ -418,14 +415,11 @@ public:
     void SearchIsInside(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        ResultContainerVectorType& rResults,
-        const bool ClearSolution = true
+        ResultContainerVectorType& rResults
         )
     {
         // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
+        rResults.Clear();
 
         // The local bounding box
         const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
