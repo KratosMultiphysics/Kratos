@@ -546,7 +546,7 @@ private:
 
     typename TSearchObject::Pointer mpSearchObject = nullptr;   /// The pointer to the base search considered
     Kratos::unique_ptr<PointVector> mpPointVector = nullptr;    /// The point vector considered in the search trees
-    std::vector<double> mGlobalBoundingBoxes;                   /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
+    std::vector<BoundingBox<Point>> mGlobalBoundingBoxes;       /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
     const DataCommunicator& mrDataCommunicator;                 /// The data communicator
     Parameters mSettings;                                       /// The settings considered
     std::vector<std::string> mSubDataCommunicatorNames;         /// The names of the sub data communicators (ONLY USED IN HETEROGENEOUS SEARCHES)

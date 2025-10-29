@@ -86,8 +86,9 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::Initiali
     const int world_size = GetWorldSize();
 
     // Set up the global bounding boxes
-    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*world_size) {
-        mGlobalBoundingBoxes.resize(6*world_size);
+    std::vector<double> global_bounding_boxes(6*world_size);
+    if (mGlobalBoundingBoxes.size() != static_cast<std::size_t>(world_size)) {
+        mGlobalBoundingBoxes.resize(world_size);
     }
 
     // Set up the local bounding boxes
@@ -109,7 +110,20 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::Initiali
     }
 
     // Gather all bounding boxes
-    mrDataCommunicator.AllGather(local_bounding_box, mGlobalBoundingBoxes);
+    mrDataCommunicator.AllGather(local_bounding_box, global_bounding_boxes);
+
+    // Translate to BoundingBox type
+    for (int i = 0; i < world_size; ++i) {
+        auto& r_bb = mGlobalBoundingBoxes[i];
+        auto& r_min_point = r_bb.GetMinPoint();
+        auto& r_max_point = r_bb.GetMaxPoint();
+        r_max_point[0] = global_bounding_boxes[6 * i + 0];
+        r_min_point[0] = global_bounding_boxes[6 * i + 1];
+        r_max_point[1] = global_bounding_boxes[6 * i + 2];
+        r_min_point[1] = global_bounding_boxes[6 * i + 3];
+        r_max_point[2] = global_bounding_boxes[6 * i + 4];
+        r_min_point[2] = global_bounding_boxes[6 * i + 5];
+    }
 }
 
 /***********************************************************************************/
@@ -120,14 +134,8 @@ std::vector<int> ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunicatio
 {
     std::vector<int> ranks;
     const int world_size = GetWorldSize();
-    std::array<double, 6> local_bb;
-    const auto it_begin = mGlobalBoundingBoxes.begin();
     for (int i = 0; i < world_size; ++i) {
-        auto vec_it = it_begin + 6 * i;
-        for (unsigned int j = 0; j < 6; ++j, ++vec_it) {
-            local_bb[j] = *vec_it;
-        }
-        if (SearchUtilities::PointIsInsideBoundingBox(local_bb, rCoords)) {
+        if (SearchUtilities::PointIsInsideBoundingBox(mGlobalBoundingBoxes[i], rCoords)) {
             ranks.push_back(i);
         }
     }
@@ -146,16 +154,10 @@ std::vector<int> ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunicatio
 {
     std::vector<int> ranks;
     const int world_size = GetWorldSize();
-    std::array<double, 6> local_bb;
-    std::vector<double> bb_tolerance(mGlobalBoundingBoxes.size());
+    std::vector<BoundingBox<Point>> bb_tolerance(mGlobalBoundingBoxes.size());
     SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(mGlobalBoundingBoxes, Tolerance, bb_tolerance);
-    const auto it_begin = bb_tolerance.begin();
     for (int i = 0; i < world_size; ++i) {
-        auto vec_it = it_begin + 6 * i;
-        for (unsigned int j = 0; j < 6; ++j, ++vec_it) {
-            local_bb[j] = *vec_it;
-        }
-        if (SearchUtilities::PointIsInsideBoundingBox(local_bb, rCoords)) {
+        if (SearchUtilities::PointIsInsideBoundingBox(bb_tolerance[i], rCoords)) {
             ranks.push_back(i);
         }
     }
