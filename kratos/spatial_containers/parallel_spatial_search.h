@@ -656,7 +656,7 @@ private:
      * @param rLambda Lambda to be considered as a criteria
      */
     template<class TLambda>
-    void KeepOnlyGivenLambdaResult(
+    void KeepOnlySmallestLambdaResult(
         ResultContainerVectorType& rResults,
         const TLambda& rLambda
         )

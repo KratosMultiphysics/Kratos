@@ -301,7 +301,7 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnly
         rResultsVector.GetDistances(results);
         return results;
     };
-    KeepOnlyGivenLambdaResult(rResults, distance_lambda);
+    KeepOnlySmallestLambdaResult(rResults, distance_lambda);
 }
 
 /***********************************************************************************/
@@ -315,7 +315,7 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnly
         rResultsVector.GetResultRank(results);
         return results;
     };
-    KeepOnlyGivenLambdaResult(rResults, rank_lambda);
+    KeepOnlySmallestLambdaResult(rResults, rank_lambda);
 }
 
 /***********************************************************************************/
