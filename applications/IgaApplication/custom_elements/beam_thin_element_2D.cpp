@@ -84,17 +84,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void BeamThinElement2D::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-    {
-        // ConstitutiveLaw::Parameters constitutive_law_parameters(
-        //     GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        // for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-        //     mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
-        //         constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
-        // }
-    }
-
     ///@}
     ///@name Assembly
     ///@{

@@ -1,6 +1,16 @@
-#if !defined(KRATOS_BEAM_THICK_ELEMENT_2D_H_INCLUDED )
-#define  KRATOS_BEAM_THICK_ELEMENT_2D_H_INCLUDED
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ricky Aristio
+//
 
+#pragma once
 
 // System includes
 
@@ -231,8 +241,6 @@ public:
             rCurrentProcessInfo, true, true);
     }
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
     /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
@@ -440,5 +448,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS__BEAM_THICK_ELEMENT_2D_H_INCLUDED  defined
