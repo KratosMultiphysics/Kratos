@@ -710,8 +710,8 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 },
             ]
             make_stress_over_y_plot(
-                output_stage_4,
-                unit_conversions.days_to_seconds(100.0) + 1.0,
+                output_stage_5,
+                unit_conversions.days_to_seconds(100.1) + 1.0,
                 ref_y_coordinates,
                 left_side_corner_node_ids,
                 ref_data,
@@ -1088,8 +1088,8 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 },
             ]
             make_stress_over_y_plot(
-                output_stage_4,
-                unit_conversions.days_to_seconds(100.0) + 1.0,
+                output_stage_5,
+                unit_conversions.days_to_seconds(100.1) + 1.0,
                 ref_y_coordinates,
                 left_side_corner_node_ids,
                 ref_data,
