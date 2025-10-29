@@ -368,6 +368,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         NonConvergedSolutionsGathering = self.general_rom_manager_parameters["store_nonconverged_fom_solutions"].GetBool()
+        RemoveFixedDoFs = self.general_rom_manager_parameters["ROM"]["remove_fixed_dofs"].GetBool()
         for Id, mu in enumerate(mu_train):
             fom_in_database, _ = self.data_base.check_if_in_database("FOM", mu)
             nonconverged_fom_in_database, _ = self.data_base.check_if_in_database("NonconvergedFOM", mu)
@@ -390,29 +391,48 @@ class RomManager(object):
                             BasisOutputProcess = process
                     SnapshotsMatrix = BasisOutputProcess._GetSnapshotsMatrix() #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
                     self.data_base.add_to_database("FOM", mu, SnapshotsMatrix)
+                    if RemoveFixedDoFs:
+                        FixityConfig = BasisOutputProcess._GetFixityConfiguration()
+                        self.data_base.add_to_database("Fixity", mu, FixityConfig)
                 if NonConvergedSolutionsGathering:
                     self.data_base.add_to_database("NonconvergedFOM", mu, simulation.GetNonconvergedSolutions())
 
 
 
     def _LaunchComputeSolutionBasis(self, mu_train):
+        RemoveFixedDoFs = self.general_rom_manager_parameters["ROM"]["remove_fixed_dofs"].GetBool()
+        if RemoveFixedDoFs:
+            # Check that all fixity configs are equal and retrieve it
+            fixity_config_list = self.data_base.check_constant_fixity_and_get_list(mu_train)
+        else:
+            fixity_config_list = []
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         if not in_database:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             if self.general_rom_manager_parameters["ROM"]["use_non_converged_sols"].GetBool():
-                u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')) #TODO this might be too large for single opeartion, add partitioned svd
+                snapshots_matrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='NonconvergedFOM')
             else:
-                u,sigma = BasisOutputProcess._ComputeSVD(self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM'))
-            BasisOutputProcess._PrintRomBasis(u, sigma) #Calling the RomOutput Process for creating the RomParameter.json
+                snapshots_matrix = self.data_base.get_snapshots_matrix_from_database(mu_train, table_name='FOM')
+            if RemoveFixedDoFs:
+                # Apply remove fixed components from snapshots_matrix before computing its SVD
+                BasisOutputProcess._ApplyFixityOnSnapshotsMatrix(fixity_config_list,snapshots_matrix)
+            u,sigma = BasisOutputProcess._ComputeSVD(snapshots_matrix) #TODO the case for non-converged might be too large for single opeartion, add partitioned svd
+            BasisOutputProcess._PrintRomBasis(u, sigma, fixity_config_list) #Calling the RomOutput Process for creating the RomParameter.json
             self.data_base.add_to_database("RightBasis", mu_train, u )
             self.data_base.add_to_database("SingularValues_Solution", mu_train, sigma )
         else:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis),
+                                              self.data_base.get_single_numpy_from_database(hash_sigma),
+                                              fixity_config_list) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
 
     def _LoadSolutionBasis(self, mu_train):
+        if self.general_rom_manager_parameters["ROM"]["remove_fixed_dofs"].GetBool():
+            fixity_config_list = self.data_base.check_constant_fixity_and_get_list(mu_train)
+        else:
+            fixity_config_list = []
         in_database, hash_basis = self.data_base.check_if_in_database("RightBasis", mu_train)
         basis_directory = self.data_base.database_root_directory.parent
         basis_path = basis_directory / 'RightBasisMatrix.npy'
@@ -427,7 +447,9 @@ class RomManager(object):
         else:
             BasisOutputProcess = self.InitializeDummySimulationForBasisOutputProcess()
             _ , hash_sigma = self.data_base.check_if_in_database("SingularValues_Solution", mu_train)
-            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis), self.data_base.get_single_numpy_from_database(hash_sigma) ) #this updates the RomParameters.json
+            BasisOutputProcess._PrintRomBasis(self.data_base.get_single_numpy_from_database(hash_basis),
+                                              self.data_base.get_single_numpy_from_database(hash_sigma),
+                                              fixity_config_list) #this updates the RomParameters.json
         self.GenerateDatabaseSummary()
 
 
@@ -924,6 +946,7 @@ class RomManager(object):
                 "snapshots_control_type": "step",                          // "step", "time"
                 "snapshots_interval": 1,
                 "print_singular_values": false,
+                "remove_fixed_dofs": false,
                 "use_non_converged_sols" : false,
                 "galerkin_rom_bns_settings": {
                     "monotonicity_preserving": false
@@ -1047,7 +1070,8 @@ class RomManager(object):
             "rom_basis_output_folder",
             "nodal_unknowns",
             "snapshots_interval",
-            "print_singular_values"
+            "print_singular_values",
+            "remove_fixed_dofs"
         ]
 
         for key in keys_to_copy:
@@ -1087,7 +1111,8 @@ class RomManager(object):
                     "rom_basis_output_name": "RomParameters",
                     "rom_basis_output_folder": "rom_data",
                     "svd_truncation_tolerance": 1e-3,
-                    "print_singular_values": false
+                    "print_singular_values": false,
+                    "remove_fixed_dofs": false
                 }
             }""")
         return rom_training_parameters
