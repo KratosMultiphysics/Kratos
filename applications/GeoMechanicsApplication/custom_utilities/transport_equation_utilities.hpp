@@ -101,23 +101,36 @@ public:
                                               double        RelativePermeability,
                                               double        IntegrationCoefficient);
 
-    template <unsigned int TDim, unsigned int TNumNodes>
-    static inline BoundedMatrix<double, TNumNodes * TDim, TNumNodes> CalculateCouplingMatrix(
-        const Matrix& rB, const Vector& rVoigtVector, const Vector& rNp, double BiotCoefficient, double BishopCoefficient, double IntegrationCoefficient)
+    template <typename TMatrixType>
+    static inline void CalculateCouplingMatrix(TMatrixType&  rCouplingMatrix,
+                                               const Matrix& rB,
+                                               const Vector& rVoigtVector,
+                                               const Vector& rNp,
+                                               double        BiotCoefficient,
+                                               double        BishopCoefficient,
+                                               double        IntegrationCoefficient)
     {
-        return CalculateCouplingMatrix(rB, rVoigtVector, rNp, BiotCoefficient, BishopCoefficient,
-                                       IntegrationCoefficient);
+        const double multiplier =
+            PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient * BishopCoefficient * IntegrationCoefficient;
+
+        Vector temp_vector(rB.size2());
+        noalias(temp_vector) = prod(trans(rB), rVoigtVector);
+        KRATOS_ERROR_IF(rCouplingMatrix.size1() != rB.size2())
+            << " Inconsistent sizes: rCouplingMatrix.size1(): " << rCouplingMatrix.size1()
+            << " rB.size2(): " << rB.size2() << std::endl;
+        noalias(rCouplingMatrix) = multiplier * outer_prod(temp_vector, rNp);
     }
 
-    static inline Matrix CalculateCouplingMatrix(const Matrix& rB,
-                                                 const Vector& rVoigtVector,
-                                                 const Vector& rNp,
-                                                 double        BiotCoefficient,
-                                                 double        BishopCoefficient,
-                                                 double        IntegrationCoefficient)
+    template <unsigned int TDim, unsigned int TNumNodes>
+    static BoundedMatrix<double, TNumNodes * TDim, TNumNodes> CalculateCouplingMatrix(const Matrix& rB,
+                                                                                      const Vector& rVoigtVector,
+                                                                                      const Vector& rNp,
+                                                                                      double BiotCoefficient,
+                                                                                      double BishopCoefficient,
+                                                                                      double IntegrationCoefficient)
     {
         return PORE_PRESSURE_SIGN_FACTOR * BiotCoefficient * BishopCoefficient *
-               outer_prod(Vector(prod(trans(rB), rVoigtVector)), rNp) * IntegrationCoefficient;
+               IntegrationCoefficient * outer_prod(Vector(prod(trans(rB), rVoigtVector)), rNp);
     }
 
     template <unsigned int TNumNodes>

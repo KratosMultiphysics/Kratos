@@ -12,28 +12,59 @@
 //
 
 #include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_utilities/constitutive_law_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <cmath>
 
+namespace
+{
+
+using namespace Kratos;
+
+CoulombYieldSurface::KappaDependentFunction MakeConstantFunction(double Value)
+{
+    return [Value](double /* unused kappa */) { return Value; };
+}
+
+} // namespace
+
 namespace Kratos
 {
 
-CoulombYieldSurface::CoulombYieldSurface(double FrictionAngleInRad, double Cohesion, double DilatationAngleInRad)
-    : mFrictionAngle{FrictionAngleInRad}, mCohesion{Cohesion}, mDilatationAngle{DilatationAngleInRad}
+CoulombYieldSurface::CoulombYieldSurface()
 {
+    mMaterialProperties[GEO_FRICTION_ANGLE]  = 0.0;
+    mMaterialProperties[GEO_COHESION]        = 0.0;
+    mMaterialProperties[GEO_DILATANCY_ANGLE] = 0.0;
+
+    InitializeKappaDependentFunctions();
 }
 
-double CoulombYieldSurface::GetFrictionAngleInRadians() const { return mFrictionAngle; }
+CoulombYieldSurface::CoulombYieldSurface(Properties MaterialProperties)
+    : mMaterialProperties{std::move(MaterialProperties)}
+{
+    InitializeKappaDependentFunctions();
+}
 
-double CoulombYieldSurface::GetCohesion() const { return mCohesion; }
+double CoulombYieldSurface::GetFrictionAngleInRadians() const
+{
+    return mFrictionAngleCalculator(mKappa);
+}
 
-double CoulombYieldSurface::GetDilatationAngleInRadians() const { return mDilatationAngle; }
+double CoulombYieldSurface::GetCohesion() const { return mCohesionCalculator(mKappa); }
+
+double CoulombYieldSurface::GetDilatancyAngleInRadians() const
+{
+    return mDilatancyAngleCalculator(mKappa);
+}
 
 double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
-    return rSigmaTau[1] + rSigmaTau[0] * std::sin(mFrictionAngle) - mCohesion * std::cos(mFrictionAngle);
+    return rSigmaTau[1] + rSigmaTau[0] * std::sin(GetFrictionAngleInRadians()) -
+           GetCohesion() * std::cos(GetFrictionAngleInRadians());
 }
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
@@ -43,17 +74,18 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) co
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const
 {
-    Vector result(2);
+    const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
+    Vector     result(2);
     switch (AveragingType) {
         using enum CoulombAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
-        result <<= -(1.0 - 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 - std::sin(mDilatationAngle)) / 4.0;
+        result <<= -(1.0 - 3.0 * sin_psi) / 4.0, (3.0 - sin_psi) / 4.0;
         break;
     case NO_AVERAGING:
-        result <<= std::sin(mDilatationAngle), 1.0;
+        result <<= sin_psi, 1.0;
         break;
     case HIGHEST_PRINCIPAL_STRESSES:
-        result <<= (1.0 + 3.0 * std::sin(mDilatationAngle)) / 4.0, (3.0 + std::sin(mDilatationAngle)) / 4.0;
+        result <<= (1.0 + 3.0 * sin_psi) / 4.0, (3.0 + sin_psi) / 4.0;
         break;
     default:
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
@@ -61,18 +93,32 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAvera
     return result;
 }
 
+void CoulombYieldSurface::InitializeKappaDependentFunctions()
+{
+    // At present, we only support properties that are independent of kappa
+    mFrictionAngleCalculator =
+        MakeConstantFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(mMaterialProperties));
+    mCohesionCalculator = MakeConstantFunction(ConstitutiveLawUtilities::GetCohesion(mMaterialProperties));
+    mDilatancyAngleCalculator =
+        MakeConstantFunction(MathUtils<>::DegreesToRadians(mMaterialProperties[GEO_DILATANCY_ANGLE]));
+}
+
 void CoulombYieldSurface::save(Serializer& rSerializer) const
 {
-    rSerializer.save("FrictionAngle", mFrictionAngle);
-    rSerializer.save("Cohesion", mCohesion);
-    rSerializer.save("DilatationAngle", mDilatationAngle);
+    rSerializer.save("Kappa", mKappa);
+    rSerializer.save("MaterialProperties", mMaterialProperties);
+
+    // Members `mFrictionAngleCalculator`, `mCohesionCalculator`, and `mDilatancyAngleCalculator`
+    // will be reconstructed using data from `mMaterialProperties`. No additional serialization is
+    // needed.
 }
 
 void CoulombYieldSurface::load(Serializer& rSerializer)
 {
-    rSerializer.load("FrictionAngle", mFrictionAngle);
-    rSerializer.load("Cohesion", mCohesion);
-    rSerializer.load("DilatationAngle", mDilatationAngle);
+    rSerializer.load("Kappa", mKappa);
+    rSerializer.load("MaterialProperties", mMaterialProperties);
+
+    InitializeKappaDependentFunctions();
 }
 
 } // Namespace Kratos

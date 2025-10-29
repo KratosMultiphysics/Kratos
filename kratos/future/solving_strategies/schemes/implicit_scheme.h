@@ -1162,20 +1162,6 @@ public:
     }
 
     /**
-     * @brief Auxiliary function to output auxiliary linear system data
-     * @warning Must be defined in derived classes
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
-     */
-    virtual void CalculateOutputData(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
-    {
-        KRATOS_TRY
-
-        //TODO: Think about creating a datavalue container in here that we can access from outside.
-
-        KRATOS_CATCH("")
-    }
-
-    /**
      * @brief Liberate internal storage
      */
     virtual void Clear()

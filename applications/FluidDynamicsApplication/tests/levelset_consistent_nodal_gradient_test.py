@@ -37,7 +37,7 @@ class ConsistentLevelsetNodalGradientTest(KratosUnittest.TestCase):
                 node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,
                     -4.0*node.X + 2.0*node.Y )
 
-        KratosCFD.CalulateLevelsetConsistentNodalGradientProcess(model_part).Execute()
+        KratosCFD.CalculateLevelsetConsistentNodalGradientProcess(model_part).Execute()
 
         node = (model_part.Nodes)[3]
         self.assertAlmostEqual(node.GetValue(KratosMultiphysics.PRESSURE_GRADIENT_X), -4.0)

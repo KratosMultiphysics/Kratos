@@ -95,12 +95,9 @@ Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
 
 namespace Kratos
 {
-CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(double FrictionAngleInRadians,
-                                                           double Cohesion,
-                                                           double DilatancyAngleInRadians,
-                                                           double TensileStrength)
-    : mCoulombYieldSurface{FrictionAngleInRadians, Cohesion, DilatancyAngleInRadians},
-      mTensionCutOff{TensileStrength}
+
+CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties)
+    : mCoulombYieldSurface{rMaterialProperties}, mTensionCutOff{rMaterialProperties[GEO_TENSILE_STRENGTH]}
 {
 }
 
@@ -118,8 +115,8 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
                                                      const Vector&     rTrialSigmaTau,
                                                      CoulombYieldSurface::CoulombAveragingType AveragingType) const
 {
-    const auto apex =
-        CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
+    const auto apex = CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(),
+                                    mCoulombYieldSurface.GetCohesion());
 
     if (IsStressAtTensionApexReturnZone(rTrialSigmaTau, mTensionCutOff.GetTensileStrength(), apex)) {
         return ReturnStressAtTensionApexReturnZone(mTensionCutOff.GetTensileStrength());
