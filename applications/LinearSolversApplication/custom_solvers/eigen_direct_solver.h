@@ -7,15 +7,13 @@
 //  Author: Thomas Oberbichler
 */
 
-#if !defined(KRATOS_EIGEN_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 
 // Project includes
-#include "includes/define.h"
 #include "custom_utilities/ublas_wrapper.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "includes/ublas_complex_interface.h"
@@ -203,5 +201,3 @@ inline std::ostream &operator<<(
 }
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_EIGEN_SOLVER_H_INCLUDED)
