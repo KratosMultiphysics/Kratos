@@ -684,7 +684,8 @@ private:
             TSparseSpace::Mult(rMassMatrix, phi_j, tmp);
 
             // Compute modal_mass = phi_j^T * tmp using SumReduction (no atomics)
-            const double modal_mass = block_for_each<SumReduction<double>>(indices, [&](std::size_t i){
+            const double modal_mass = IndexPartition<std::size_t>(indices.size()).for_each<SumReduction<double>>([&](std::size_t k)->double {
+                const std::size_t i = indices[k];   
                 return phi_j[i] * tmp[i];
             });
 
