@@ -265,7 +265,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_ReturnsTheExpectedLeftHandSideA
                                        Defaults::relative_tolerance)
 }
 
-void CommonChecksForLineAndDomainElements(intrusive_ptr<Element> pElement, const ProcessInfo& dummy_process_info = ProcessInfo{})
+void CommonChecksForLineAndDomainElements(intrusive_ptr<Element> pElement,
+                                          const ProcessInfo&     dummy_process_info = ProcessInfo{})
 {
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(pElement->Check(dummy_process_info),
                                       "DENSITY_WATER does not exist in the material properties at "
@@ -522,7 +523,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_IntegrationMethod, KratosGeoMec
     KRATOS_EXPECT_EQ(p_integration_method, expected_integration_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInputForSurfaceElement, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInputForSurfaceElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     using enum CalculationContribution;

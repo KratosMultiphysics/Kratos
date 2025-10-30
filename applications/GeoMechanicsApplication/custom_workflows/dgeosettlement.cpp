@@ -155,8 +155,8 @@ void KratosGeoSettlement::InitializeProcessFactory()
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
                                 MakeCreatorFor<ApplyVectorConstraintTableProcess>());
     mProcessFactory->AddCreator("SetParameterFieldProcess", MakeCreatorFor<SetParameterFieldProcess>());
-    mProcessFactory->AddCreator("ApplyExcavationProcess", MakeCreatorFor<ApplyExcavationProcess>());
-    mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorFor<ApplyK0ProcedureProcess>());
+    mProcessFactory->AddCreator("ApplyExcavationProcess", MakeCreatorWithModelFor<ApplyExcavationProcess>());
+    mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorWithModelFor<ApplyK0ProcedureProcess>());
     mProcessFactory->AddCreator("GeoExtrapolateIntegrationPointValuesToNodesProcess",
                                 MakeCreatorFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
     mProcessFactory->AddCreator("FixWaterPressuresAbovePhreaticLineProcess",
@@ -213,10 +213,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
 
         for (const auto& process : processes) {
             process->ExecuteInitialize();
-        }
-
-        for (const auto& process : processes) {
-            process->ExecuteBeforeSolutionLoop();
         }
 
         if (mpTimeLoopExecutor) {
@@ -371,6 +367,9 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
 
     FindNeighbourElementsOfConditionsProcess{GetComputationalModelPart()}.Execute();
     DeactivateConditionsOnInactiveElements{GetComputationalModelPart()}.Execute();
+
+    GetComputationalModelPart().GetProcessInfo()[START_TIME] = GetStartTimeFrom(rProjectParameters);
+    GetComputationalModelPart().GetProcessInfo()[END_TIME]   = GetEndTimeFrom(rProjectParameters);
 
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;

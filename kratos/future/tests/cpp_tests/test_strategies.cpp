@@ -19,7 +19,6 @@
 #include "constraints/linear_master_slave_constraint.h"
 #include "containers/model.h"
 #include "includes/define.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "testing/testing.h"
 
@@ -90,8 +89,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyEliminationBuild, KratosCoreFastSuite)
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.5, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -151,8 +148,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyBlockBuild, KratosCoreFastSuite)
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.5, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -224,8 +219,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintEliminationBuild, Krat
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.5, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -297,8 +290,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintBlockBuild, KratosCore
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.5, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -369,8 +360,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintEliminationBuil
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 4.0/3.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 5.0/3.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -441,8 +430,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintBlockBuild, Kra
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 4.0/3.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 5.0/3.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -522,8 +509,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsEliminationBu
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.5, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -603,8 +588,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsBlockBuild, K
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 3.5, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 3.0, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -690,8 +673,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsEliminationBuild, Krat
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 2.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -777,8 +758,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsBlockBuild, KratosCore
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 2.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -844,8 +823,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintElimination
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 0.125, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 0.125, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), -0.125, 1.0e-12);
-#else
-    true;
 #endif
 }
 
@@ -911,8 +888,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintBlockBuild,
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 0.125, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(3).FastGetSolutionStepValue(DISTANCE), 0.125, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(4).FastGetSolutionStepValue(DISTANCE), -0.125, 1.0e-12);
-#else
-    true;
 #endif
 }
 
