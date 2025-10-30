@@ -175,49 +175,6 @@ PairingIndex ProjectOnLine(const GeometryType& rGeometry,
     KRATOS_CATCH("")
 }
 
-PairingIndex ProjectOnLineHermitian(const GeometryType& rGeometry,
-                                    const Point& rPointToProject,
-                                    const double LocalCoordTol,
-                                    Vector& rHermitianShapeFunctionValues,
-                                    Vector& rHermitianShapeFunctionValuesDer,
-                                    double& rProjectionDistance,
-                                    Point& rProjectionOfPoint)
-{
-    rProjectionDistance = std::abs(GeometricalProjectionUtilities::FastProjectOnLine(rGeometry, rPointToProject, rProjectionOfPoint));
-    array_1d<double, 3> local_coords;
-    PairingIndex pairing_index = PairingIndex::Unspecified;
-
-    if (rGeometry.IsInside(rProjectionOfPoint, local_coords, 1e-14)) {
-        pairing_index = PairingIndex::Line_Inside;
-        HermitianShapeFunctionsValues(rHermitianShapeFunctionValues, rHermitianShapeFunctionValuesDer, local_coords);
-    } 
-
-    return pairing_index;
-}
-
-void HermitianShapeFunctionsValues (Vector& rHermitianShapeFunctions, 
-                                    Vector& rHermitianShapeFunctionsDer, 
-                                    const array_1d<double, 3>& rCoordinates) 
-{
-    if(rHermitianShapeFunctions.size() != 4) {
-        rHermitianShapeFunctions.resize(4, false);
-    }
-
-    rHermitianShapeFunctions[0] =  0.25 * ( 1.0 - rCoordinates[0]) * ( 1.0 - rCoordinates[0]) * ( 2.0 + rCoordinates[0]);
-    rHermitianShapeFunctions[1] =  0.125 * ( 1.0 - rCoordinates[0]) * ( 1.0 - rCoordinates[0]) * ( 1.0 + rCoordinates[0]);
-    rHermitianShapeFunctions[2] =  0.25 * ( 1.0 + rCoordinates[0]) * ( 1.0 + rCoordinates[0]) * ( 2.0 - rCoordinates[0]);
-    rHermitianShapeFunctions[3] =  -0.125  * ( 1.0 + rCoordinates[0]) * ( 1.0 + rCoordinates[0]) * ( 1.0 - rCoordinates[0]);
-
-    if(rHermitianShapeFunctionsDer.size() != 4) {
-        rHermitianShapeFunctionsDer.resize(4, false);
-    }
-
-    rHermitianShapeFunctionsDer[0] = -(3 / 2) * ( 1.0 - rCoordinates[0] ) * ( 1.0 + rCoordinates[0] ); 
-    rHermitianShapeFunctionsDer[1] = -0.25 * ( 1.0 - rCoordinates[0] ) * ( 1.0 + 3 * rCoordinates[0]) ;
-    rHermitianShapeFunctionsDer[2] = (3 / 2) * ( 1.0 + rCoordinates[0] ) * ( 1.0 - rCoordinates[0] );
-    rHermitianShapeFunctionsDer[3] = -0.25 * ( 1.0 + rCoordinates[0] ) * ( 1.0 - 3 * rCoordinates[0]) ;    
-}
-
 PairingIndex ProjectOnSurface(const GeometryType& rGeometry,
                      const Point& rPointToProject,
                      const double LocalCoordTol,

@@ -178,9 +178,6 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
 
-    ///@}
-    virtual void ComputeRotationMatrixInterfaceObject() { KRATOS_ERROR << "Base class function called! This is used only in Beam Mapper InterfaceInfo." << std::endl;  }
-
 protected:
     ///@name Protected member Variables
     ///@{

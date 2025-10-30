@@ -76,10 +76,10 @@ void BeamMapperInterfaceInfo::ProcessSearchResultForApproximation(const Interfac
             local_coords[0] = 1.0;
 
         bool ComputeApproximation = 0;
-         std::ignore = ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation); // Kust to get eq_ids
+        std::ignore = ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation); // Kust to get eq_ids
 
         p_geom->ShapeFunctionsValues(linear_shape_function_values, local_coords);
-        ProjectionUtilities::HermitianShapeFunctionsValues(hermitian_shape_function_values, hermitian_shape_function_derivatives_values, local_coords);
+        BeamMapperUtilities::HermitianShapeFunctionsValues(hermitian_shape_function_values, hermitian_shape_function_derivatives_values, local_coords);
         mClosestProjectionDistance = proj_dist_nodes;
         mNodeIds = eq_ids;
 
@@ -140,7 +140,7 @@ void BeamMapperInterfaceInfo::SaveSearchResult(const InterfaceObject& rInterface
     // Linear shape functions
     pairing_index_linear = ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation);
     // Hermitian shape functions
-    std::ignore = ProjectionUtilities::ProjectOnLineHermitian(*p_geom, point_to_proj, mLocalCoordTol, hermitian_shape_function_values, hermitian_shape_function_derivatives_values, proj_dist, projection_point);
+    std::ignore = BeamMapperUtilities::ProjectOnLineHermitian(*p_geom, point_to_proj, mLocalCoordTol, hermitian_shape_function_values, hermitian_shape_function_derivatives_values, proj_dist, projection_point);
     const bool is_full_projection = (pairing_index_linear == ProjectionUtilities::PairingIndex::Line_Inside);
     
     if (is_full_projection) {
@@ -306,6 +306,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(const Var
     {   
         if( r_local_sys->HasInterfaceInfo())
         {
+            auto beam_sys = dynamic_cast<BeamMapperLocalSystem*>(r_local_sys.get());
+            KRATOS_ERROR_IF_NOT(beam_sys) << "Expected BeamMapperLocalSystem!" << std::endl;
+
             MatrixType rotation_matrix_G_B(3, 3);
             VectorType translation_vector_B_P(3);
             VectorType linear_shape_values(2);
@@ -314,7 +317,7 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(const Var
             GeometryType r_geom;
             NodePointerType p_node;
 
-            r_local_sys->CalculateRotationMatrixInterfaceInfos(rotation_matrix_G_B,
+            beam_sys->CalculateRotationMatrixInterfaceInfos(rotation_matrix_G_B,
                                                                translation_vector_B_P,
                                                                linear_shape_values,
                                                                hermitian_shape_values,
@@ -466,6 +469,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsCorotation
     {   
         if( r_local_sys->HasInterfaceInfo())
         {
+            auto beam_sys = dynamic_cast<BeamMapperLocalSystem*>(r_local_sys.get());
+            KRATOS_ERROR_IF_NOT(beam_sys) << "Expected BeamMapperLocalSystem!" << std::endl;
+
             MatrixType rotation_matrix_G_B(3, 3);
             VectorType translation_vector_B_P(3);
             VectorType linear_shape_values(2);
@@ -474,7 +480,7 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsCorotation
             GeometryType r_geom;
             NodePointerType p_node;
 
-            r_local_sys->CalculateRotationMatrixInterfaceInfos(rotation_matrix_G_B,
+            beam_sys->CalculateRotationMatrixInterfaceInfos(rotation_matrix_G_B,
                                                                translation_vector_B_P,
                                                                linear_shape_values,
                                                                hermitian_shape_values,
@@ -683,7 +689,7 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsCorotation
             // For conservative mapping
             VectorType rotation_of_section(3);
             GetRotationVector(matrix_product, rotation_of_section);
-            r_local_sys->SaveRotationVectorValue(rotation_of_section);
+            beam_sys->SaveRotationVectorValue(rotation_of_section);
 
             IndexType c = 0;
             for( const auto& var_ext : var_comps )
@@ -707,6 +713,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsInverse(co
     {   
         if( r_local_sys->HasInterfaceInfo())
         {           
+            auto beam_sys = dynamic_cast<BeamMapperLocalSystem*>(r_local_sys.get());
+            KRATOS_ERROR_IF_NOT(beam_sys) << "Expected BeamMapperLocalSystem!" << std::endl;
+
             MatrixType rotation_matrix_G_B(3, 3);
             VectorType translation_vector_B_P(3);
             VectorType linear_shape_values(2);
@@ -715,7 +724,7 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsInverse(co
             GeometryType r_geom; // beam line
             NodePointerType p_node; // surface node
 
-            r_local_sys->CalculateRotationMatrixInterfaceInfos(rotation_matrix_G_B,
+            beam_sys->CalculateRotationMatrixInterfaceInfos(rotation_matrix_G_B,
                                                                translation_vector_B_P,
                                                                linear_shape_values,
                                                                hermitian_shape_values,
@@ -739,7 +748,7 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeamsInverse(co
             }
             VectorType rotation_vector_of_section(3);
             MatrixType rotation_matrix_of_section(3, 3);
-            r_local_sys->GetValue(rotation_vector_of_section);
+            beam_sys->GetValue(rotation_vector_of_section);
 
             double angle = norm_2(rotation_vector_of_section);
             if (angle != 0.0){
@@ -904,6 +913,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeOriginForcesAndMoments(con
     {   
         if( r_local_sys->HasInterfaceInfo())
         {
+            auto beam_sys = dynamic_cast<BeamMapperLocalSystem*>(r_local_sys.get());
+            KRATOS_ERROR_IF_NOT(beam_sys) << "Expected BeamMapperLocalSystem!" << std::endl;
+
             MatrixType rotation_matrix_G_B(3, 3);
             VectorType translation_vector_B_P(3);
             VectorType linear_shape_values(2);
@@ -912,7 +924,7 @@ void BeamMapper<TSparseSpace, TDenseSpace>::InitializeOriginForcesAndMoments(con
             GeometryType r_geom; // beam line
             NodePointerType p_node; // surface node
 
-            r_local_sys->CalculateRotationMatrixInterfaceInfos(rotation_matrix_G_B,
+            beam_sys->CalculateRotationMatrixInterfaceInfos(rotation_matrix_G_B,
                                                                translation_vector_B_P,
                                                                linear_shape_values,
                                                                hermitian_shape_values,

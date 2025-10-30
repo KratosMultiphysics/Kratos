@@ -206,17 +206,17 @@ public:
     virtual void PrintData(std::ostream& rOStream) const {}
 
     ///@}
-    virtual void CalculateRotationMatrixInterfaceInfos(MatrixType& rRotationMatrix_B,
-                                                       VectorType& rTranslationVector_G_B,
-                                                       VectorType& rLinearShapeValues,
-                                                       VectorType& rHermitianShapeValues,
-                                                       VectorType& rHermitianDerShapeValues,
-                                                       GeometryType& rGeometry,
-                                                       NodePointerType& pNode){ KRATOS_ERROR << "Base class function called! This function is used only for the Beam Mapper. " << std::endl;}
+    // virtual void CalculateRotationMatrixInterfaceInfos(MatrixType& rRotationMatrix_B,
+    //                                                    VectorType& rTranslationVector_G_B,
+    //                                                    VectorType& rLinearShapeValues,
+    //                                                    VectorType& rHermitianShapeValues,
+    //                                                    VectorType& rHermitianDerShapeValues,
+    //                                                    GeometryType& rGeometry,
+    //                                                    NodePointerType& pNode){ KRATOS_ERROR << "Base class function called! This function is used only for the Beam Mapper. " << std::endl;}
     
-    virtual void SaveRotationVectorValue(const VectorType& rRotationVector) { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    // virtual void SaveRotationVectorValue(const VectorType& rRotationVector) { KRATOS_ERROR << "Base class function called!" << std::endl; }
     
-    virtual void GetValue(VectorType& rRotVectorValue) { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    // virtual void GetValue(VectorType& rRotVectorValue) { KRATOS_ERROR << "Base class function called!" << std::endl; }
 
 protected:
     ///@name Protected Life Cycle
