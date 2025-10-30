@@ -147,8 +147,6 @@ void PatchSubdivisionModeler::SetupModelPart()
         static_cast<int>(mEchoLevel),
         1e-12,
         prefix,
-        "internal_boundaries",
-        "external_boundaries",
         coupling_condition_name);
     intersection_process.Execute();
 
