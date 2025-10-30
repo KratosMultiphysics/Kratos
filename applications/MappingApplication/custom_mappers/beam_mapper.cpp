@@ -830,9 +830,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& 
             const double tmp12 = rRotationVector(0) * rRotationVector(1);
             const double tmp13 = rRotationVector(0) * rRotationVector(2);
             const double tmp23 = rRotationVector(1) * rRotationVector(2);
-            if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
-                if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
-                    if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
+            if (std::abs(tmp12) < EPS || std::abs(tmp12 - product12) < std::abs(tmp12 + product12))
+                if (std::abs(tmp13) < EPS || std::abs(tmp13 - product13) < std::abs(tmp13 + product13))
+                    if (std::abs(tmp23) < EPS || std::abs(tmp23 - product23) < std::abs(tmp23 + product23)) {
                         rRotationVector(0) *= pi;
                         rRotationVector(1) *= pi;
                         rRotationVector(2) *= pi;
@@ -846,9 +846,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& 
             const double tmp12 = rRotationVector[0] * rRotationVector[1];
             const double tmp13 = rRotationVector[0] * rRotationVector[2];
             const double tmp23 = rRotationVector[1] * rRotationVector[2];
-            if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
-                if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
-                    if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
+            if (std::abs(tmp12) < EPS || std::abs(tmp12 - product12) < std::abs(tmp12 + product12))
+                if (std::abs(tmp13) < EPS || std::abs(tmp13 - product13) < std::abs(tmp13 + product13))
+                    if (std::abs(tmp23) < EPS || std::abs(tmp23 - product23) < std::abs(tmp23 + product23)) {
                         rRotationVector(0) *= pi;
                         rRotationVector(1) *= pi;
                         rRotationVector(2) *= pi;
@@ -862,9 +862,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& 
             const double tmp12 = rRotationVector(0) * rRotationVector(1);
             const double tmp13 = rRotationVector(0) * rRotationVector(2);
             const double tmp23 = rRotationVector(1) * rRotationVector(2);
-            if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
-                if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
-                    if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
+            if (std::abs(tmp12) < EPS || std::abs(tmp12 - product12) < std::abs(tmp12 + product12))
+                if (std::abs(tmp13) < EPS || std::abs(tmp13 - product13) < std::abs(tmp13 + product13))
+                    if (std::abs(tmp23) < EPS || std::abs(tmp23 - product23) < std::abs(tmp23 + product23)) {
                         rRotationVector(0) *= pi;
                         rRotationVector(1) *= pi;
                         rRotationVector(2) *= pi;
@@ -878,9 +878,9 @@ void BeamMapper<TSparseSpace, TDenseSpace>::GetRotationVector(const MatrixType& 
             const double tmp12 = rRotationVector(0) * rRotationVector(1);
             const double tmp13 = rRotationVector(0) * rRotationVector(2);
             const double tmp23 = rRotationVector(1) * rRotationVector(2);
-            if (fabs(tmp12) < EPS || fabs(tmp12 - product12) < fabs(tmp12 + product12))
-                if (fabs(tmp13) < EPS || fabs(tmp13 - product13) < fabs(tmp13 + product13))
-                    if (fabs(tmp23) < EPS || fabs(tmp23 - product23) < fabs(tmp23 + product23)) {
+            if (std::abs(tmp12) < EPS || std::abs(tmp12 - product12) < std::abs(tmp12 + product12))
+                if (std::abs(tmp13) < EPS || std::abs(tmp13 - product13) < std::abs(tmp13 + product13))
+                    if (std::abs(tmp23) < EPS || std::abs(tmp23 - product23) < std::abs(tmp23 + product23)) {
                         rRotationVector(0) *= pi;
                         rRotationVector(1) *= pi;
                         rRotationVector(2) *= pi;
