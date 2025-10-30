@@ -1869,13 +1869,11 @@ public:
      * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
-     * @param rConverged A boolean indicating whether the computation has converged
-     * @return The vector containing the local coordinates of the point
+     * @return A boolean indicating whether the computation has converged
      */
-    virtual CoordinatesArrayType& PointLocalCoordinates(
+    virtual bool ComputePointLocalCoordinates(
         CoordinatesArrayType& rResult,
-        const CoordinatesArrayType& rPoint,
-        bool& rConverged
+        const CoordinatesArrayType& rPoint
         ) const
     {
         KRATOS_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
@@ -1892,7 +1890,7 @@ public:
         static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
         static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
 
-        rConverged = false;
+        bool is_converged = false;
 
         //Newton iteration:
         for(std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++) {
@@ -1916,12 +1914,12 @@ public:
             }
 
             if(norm2DXi < MaxTolerancePointLocalCoordinates) {
-                rConverged = true;
+                is_converged = true;
                 break;
             }
         }
 
-        return rResult;
+        return is_converged;
 
     }
 
@@ -1936,8 +1934,8 @@ public:
             const CoordinatesArrayType& rPoint
             ) const
     {
-        bool tmp;
-        return PointLocalCoordinates(rResult, rPoint, tmp);
+        ComputePointLocalCoordinates(rResult, rPoint);
+        return rResult;
     }
 
     ///@}
@@ -1961,12 +1959,9 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const
     {
-        bool converged = false;
-
-        PointLocalCoordinates(
+        bool converged = ComputePointLocalCoordinates(
             rResult,
-            rPointGlobalCoordinates,
-            converged);
+            rPointGlobalCoordinates);
 
         if (!converged) {
             return false;

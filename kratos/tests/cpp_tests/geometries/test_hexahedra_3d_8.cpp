@@ -295,9 +295,7 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8PointLocalCoordinatesNotConverged, KratosC
 
     Point PointOutside(0.017500000000000002, 0.0, 0.0);
     Point LocalCoords;
-    bool converged;
-
-    p_geom->PointLocalCoordinates(LocalCoords, PointOutside, converged);
+    bool converged = p_geom->ComputePointLocalCoordinates(LocalCoords, PointOutside);
     KRATOS_EXPECT_FALSE(converged);
 }
 
