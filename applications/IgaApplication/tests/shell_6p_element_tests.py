@@ -34,7 +34,7 @@ class Shell6pElementTests(KratosUnittest.TestCase):
         shell_properties.SetValue(KM.THICKNESS, 0.1)
         shell_properties.SetValue(KM.YOUNG_MODULUS, 200000000)
         shell_properties.SetValue(KM.POISSON_RATIO, 0)
-        shell_properties.SetValue(KM.CONSTITUTIVE_LAW, SMA.LinearElasticPlaneStress2DLaw())
+        shell_properties.SetValue(KM.CONSTITUTIVE_LAW, SMA.LinearElastic3DLaw())
 
         # create a nurbs surface
         surface = create_geometry(model_part)

@@ -49,7 +49,7 @@ protected:
         * The default constructor
         * @param Dimension: The size of working space dimension
         */
-        KinematicVariables(SizeType Dimension)
+        KinematicVariables(std::size_t Dimension)
         {
             noalias(a_ab_covariant) = ZeroVector(Dimension);
             noalias(b_ab_covariant) = ZeroVector(Dimension);
@@ -76,7 +76,7 @@ protected:
         /**
         * @param StrainSize: The size of the strain vector in Voigt notation
         */
-        ConstitutiveVariables(SizeType StrainSize)
+        ConstitutiveVariables(std::size_t StrainSize)
         {
             StrainVector = ZeroVector(StrainSize);
             StressVector = ZeroVector(StrainSize);
@@ -113,7 +113,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Shell6pElement);
 
     /// Size types
-    typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
     // GometryType
@@ -185,8 +184,8 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 6;
+        const std::size_t number_of_nodes = GetGeometry().size();
+        const std::size_t mat_size = number_of_nodes * 6;
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);
@@ -208,8 +207,8 @@ public:
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 6; //
+        const std::size_t number_of_nodes = GetGeometry().size();
+        const std::size_t mat_size = number_of_nodes * 6; //
 
         VectorType right_hand_side_vector;
 
@@ -234,8 +233,8 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 6;
+        const std::size_t number_of_nodes = GetGeometry().size();
+        const std::size_t mat_size = number_of_nodes * 6;
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);
@@ -392,6 +391,51 @@ private:
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
+    // curvilinear coordinate zeta (theta3)
+    double mZeta;
+
+    /// @brief Informations regarding the Gauss-quadrature in thickness direction
+    struct GaussQuadratureThickness
+    {
+        unsigned int num_GP_thickness;
+        Vector integration_weight_thickness;
+        Vector zeta;
+
+        // The default constructor
+        GaussQuadratureThickness(){}
+        // constructor
+        GaussQuadratureThickness(const unsigned int& rNumGPThickness)
+        {
+            num_GP_thickness = rNumGPThickness;
+            integration_weight_thickness = ZeroVector(rNumGPThickness);
+            zeta = ZeroVector(rNumGPThickness);
+
+            if (rNumGPThickness == 2)
+            {
+                integration_weight_thickness(0) = 1.0;
+                zeta(0) = -sqrt(1.0 / 3.0);
+                integration_weight_thickness(1) = 1.0;
+                zeta(1) = sqrt(1.0 / 3.0);
+            }
+            else if (rNumGPThickness == 3)
+            {
+                integration_weight_thickness(0) = 5.0 / 9.0;
+                zeta(0) = -sqrt(3.0 / 5.0);
+                integration_weight_thickness(1) = 8.0/9.0;
+                zeta(1) = 0.0;
+                integration_weight_thickness(2) = 5.0 / 9.0;
+                zeta(2) = sqrt(3.0 / 5.0);
+            }
+            else
+            {
+                KRATOS_ERROR << "Desired number of Gauss-Points unlogical or not implemented. You can choose 3 Gauss-Points." << std::endl;
+            }   
+        }
+    };
+
+    // Specified the number of Gauss-Points over the thickness 
+    GaussQuadratureThickness mGaussIntegrationThickness = GaussQuadratureThickness(2);
+
     ///@}
     ///@name Operations
     ///@{
@@ -403,7 +447,7 @@ private:
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-    ) const;
+    );
 
     /// Initialize Operations
     void InitializeMaterial();
@@ -425,16 +469,16 @@ private:
     void CalculateB(
         const IndexType IntegrationPointIndex,
         Matrix& rB,
-        double zeta, //
+        double zeta,
         Matrix& DN_De_Jn,
         Matrix& J_inv,
         Matrix& dn,
         const KinematicVariables& rActualKinematic) const;
 
-    void CalculateBGeo(
+    void CalculateBGeometric(
         const IndexType IntegrationPointIndex,
         Matrix& rB,
-        double zeta, //
+        double zeta,
         Matrix& DN_De_Jn,
         Matrix& J_inv,
         Matrix& dn,
@@ -449,7 +493,7 @@ private:
         Matrix& dn,
         double& area) const;
 
-    void CalculateBDrill( //
+    void CalculateBDrill(
         const IndexType IntegrationPointIndex,
         Matrix& rBd,
         Matrix& DN_De_Jn,
@@ -476,13 +520,12 @@ private:
     void CalculateConstitutiveVariables(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rActualMetric,
-        ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
-        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
+        ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const;
 
-    inline void CalculateAndAddK(                  //added
+    inline void CalculateAndAddK(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& rKm,
         const Matrix& rKd,                                                                                                               
@@ -494,7 +537,7 @@ private:
         const Matrix& rB,
         const Matrix& rD) const;
     
-    inline void CalculateAndAddKmBd(                //added                                                  
+    inline void CalculateAndAddKmBd(                                             
         MatrixType& rKd,
         const MatrixType& rBd) const;
 
