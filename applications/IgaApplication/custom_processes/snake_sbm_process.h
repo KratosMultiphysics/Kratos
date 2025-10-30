@@ -20,6 +20,12 @@
 #include "processes/process.h"
 #include "geometries/nurbs_curve_geometry.h"
 
+#include <algorithm>
+#include <cmath>
+
+#include <queue>
+#include <utility>
+
 
 namespace Kratos
 {
@@ -89,9 +95,12 @@ public:
 
         return default_parameters;
     }
-    
-private:
 
+protected:
+    /**
+    * @brief Creates the initial snake coordinates for 2D skin.
+    */
+    void CreateTheSnakeCoordinates();
     Model* mpModel = nullptr;
     Parameters mThisParameters;
     IndexType mEchoLevel;
@@ -103,7 +112,6 @@ private:
     ModelPart* mpSkinModelPartInnerInitial = nullptr; 
     ModelPart* mpSkinModelPartOuterInitial = nullptr; 
     ModelPart* mpSkinModelPart = nullptr; 
-
 
     using PointType = Node;
     using PointTypePointer = Node::Pointer;
@@ -119,9 +127,74 @@ private:
     using CoordinatesArrayType = Geometry<PointType>::CoordinatesArrayType;
 
     /**
-    * @brief Creates the initial snake coordinates for 2D skin.
-    */
-    void CreateTheSnakeCoordinates();
+     * @brief 
+     * 
+     * @param rPointP 
+     * @param rPointQ 
+     * @param rPointR 
+     * @return double 
+     */
+    static double Orientation(
+        const Node& rPointP,
+        const Node& rPointQ,
+        const Node& rPointR)
+    {
+        return (rPointQ.X() - rPointP.X()) * (rPointR.Y() - rPointP.Y()) -
+               (rPointQ.Y() - rPointP.Y()) * (rPointR.X() - rPointP.X());
+    }
+
+    /**
+     * @brief 
+     * 
+     * @param rPointP 
+     * @param rPointQ 
+     * @param rPointR 
+     * @return true 
+     * @return false 
+     */
+    static bool OnSegment(
+        const Node& rPointP,
+        const Node& rPointQ,
+        const Node& rPointR)
+    {
+        return (std::min(rPointP.X(), rPointR.X()) <= rPointQ.X() && rPointQ.X() <= std::max(rPointP.X(), rPointR.X()) &&
+                std::min(rPointP.Y(), rPointR.Y()) <= rPointQ.Y() && rPointQ.Y() <= std::max(rPointP.Y(), rPointR.Y()));
+    }
+
+    /**
+     * @brief 
+     * 
+     * @param rPointA 
+     * @param rPointB 
+     * @param rPointC 
+     * @param rPointD 
+     * @return true 
+     * @return false 
+     */
+    static bool SegmentsIntersect(
+        const Node& rPointA,
+        const Node& rPointB,
+        const Node& rPointC,
+        const Node& rPointD)
+    {
+        const double orientation_1 = Orientation(rPointA, rPointB, rPointC);
+        const double orientation_2 = Orientation(rPointA, rPointB, rPointD);
+        const double orientation_3 = Orientation(rPointC, rPointD, rPointA);
+        const double orientation_4 = Orientation(rPointC, rPointD, rPointB);
+
+        if (orientation_1 * orientation_2 < 0.0 && orientation_3 * orientation_4 < 0.0) {
+            return true;
+        }
+
+        if (std::abs(orientation_1) < 1e-14 && OnSegment(rPointA, rPointC, rPointB)) return true;
+        if (std::abs(orientation_2) < 1e-14 && OnSegment(rPointA, rPointD, rPointB)) return true;
+        if (std::abs(orientation_3) < 1e-14 && OnSegment(rPointC, rPointA, rPointD)) return true;
+        if (std::abs(orientation_4) < 1e-14 && OnSegment(rPointC, rPointB, rPointD)) return true;
+
+        return false;
+    }
+
+private:
 
     /**
      * @brief Create a The Snake Coordinates object
@@ -287,6 +360,119 @@ private:
         const std::vector<std::vector<int>> & rKnotSpanUV,
         const std::vector<int> &rNumberKnotSpansUV
         ); 
+
+    
+    /**
+     * @brief Remove the islands surrogate domain disconnected from the main one
+     * 
+     * @tparam TIsInnerLoop 
+     * @param grid 
+     */
+    template <bool TIsInnerLoop>
+    static void KeepLargestZeroIsland(std::vector<std::vector<int>>& grid) {
+        const int R = static_cast<int>(grid.size());
+        if (R == 0) return;
+        const int C = static_cast<int>(grid[0].size());
+        if (C == 0) return;
+
+        // Label map: -1 = unvisited/non-zero, 0..K = component id for zero components
+        std::vector<std::vector<int>> label(R, std::vector<int>(C, -1));
+        std::vector<int> comp_size;  // comp_size[comp_id] = size
+
+        static const int dr8[8] = {-1,-1,-1, 0, 0, 1, 1, 1};
+        static const int dc8[8] = {-1, 0, 1,-1, 1,-1, 0, 1};
+
+        // Use a snapshot to avoid chain reactions during this pass
+        const auto original = grid;
+
+        if constexpr (TIsInnerLoop)
+        {
+            for (int r = 0; r < R; ++r) {
+                for (int c = 0; c < C; ++c) {
+                    if (original[r][c] != 0) continue;
+
+                    bool hasZeroNeighbor = false;
+                    for (int k = 0; k < 8; ++k) {
+                        int nr = r + dr8[k], nc = c + dc8[k];
+                        if (0 <= nr && nr < R && 0 <= nc && nc < C &&
+                            original[nr][nc] == 0) {
+                            hasZeroNeighbor = true;
+                            break;
+                        }
+                    }
+                    if (!hasZeroNeighbor) {
+                        grid[r][c] = 1; // isolated 0 → 1
+                    }
+                }
+            }
+        }
+    
+
+        // 4-neighborhood
+        const int dr[4] = {-1, 1, 0, 0};
+        const int dc[4] = { 0, 0,-1, 1};
+
+        int comp_id = 0;
+        int largest_id = -1;
+        int largest_size = 0;
+
+        for (int r = 0; r < R; ++r) {
+            for (int c = 0; c < C; ++c) {
+                if (grid[r][c] == 0 && label[r][c] == -1) {
+                    // BFS to label this zero-component
+                    std::queue<std::pair<int,int>> q;
+                    q.push({r, c});
+                    label[r][c] = comp_id;
+                    int size = 0;
+
+                    while (!q.empty()) {
+                        auto [cr, cc] = q.front(); q.pop();
+                        ++size;
+
+                        for (int k = 0; k < 4; ++k) {
+                            int nr = cr + dr[k], nc = cc + dc[k];
+                            if (0 <= nr && nr < R && 0 <= nc && nc < C &&
+                                grid[nr][nc] == 0 && label[nr][nc] == -1) {
+                                label[nr][nc] = comp_id;
+                                q.push({nr, nc});
+                            }
+                        }
+                    }
+
+                    comp_size.push_back(size);
+                    // Track largest; if tie, keep first encountered
+                    if (size > largest_size) {
+                        largest_size = size;
+                        largest_id = comp_id;
+                    }
+                    ++comp_id;
+                }
+            }
+        }
+
+        if (largest_id == -1) return; // no zeros at all
+
+        // Flip all zeros that are NOT in the largest component to 1
+        if constexpr (TIsInnerLoop) {
+            for (int r = 0; r < R; ++r) {
+                for (int c = 0; c < C; ++c) {
+                    if (grid[r][c] == 0 && label[r][c] != largest_id) {
+                        grid[r][c] = 1;
+                    }
+                }
+            }
+        } 
+        else { 
+            for (int r = 0; r < R; ++r) {
+                for (int c = 0; c < C; ++c) {
+                    if (grid[r][c] == 0 && label[r][c] == largest_id) {
+                        grid[r][c] = 1;
+                    }
+                }
+            }
+        }
+    }
+
 
 }; // Class SnakeSbmProcess
 
