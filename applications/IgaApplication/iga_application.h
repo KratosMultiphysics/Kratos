@@ -26,6 +26,8 @@
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
+// Gap-SBM solid element
+#include "custom_elements/gap_sbm_solid_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -138,6 +140,7 @@ private:
     const LaplacianElement mLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
+    const GapSbmSolidElement mGapSbmSolidElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
