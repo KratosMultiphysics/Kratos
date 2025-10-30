@@ -39,9 +39,9 @@ void SbmFluidConditionDirichlet::CalculateAll(
     KRATOS_TRY
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const std::size_t number_of_nodes = r_geometry.size();
 
-    const SizeType mat_size = number_of_nodes * (mDim+1);
+    const std::size_t mat_size = number_of_nodes * (mDim+1);
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size,mat_size,false);
@@ -143,7 +143,6 @@ void SbmFluidConditionDirichlet::CalculateAll(
                     rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0, i) * traction(idim) * integration_weight;
                     
                     // skew-symmetric Nitsche term
-                    // rLeftHandSideMatrix(3*j+jdim, 3*i+idim) += mHsum(0, i) * traction(idim) * integration_weight;
                     rLeftHandSideMatrix(3*i+idim, 3*j+jdim) += mHsum(0, j) * traction_nitsche_w(jdim) * integration_weight;
                 }
 
@@ -185,15 +184,6 @@ void SbmFluidConditionDirichlet::CalculateAll(
     // Get the projection node velocity
     const Vector u_D = mpProjectionNode->GetValue(VELOCITY);
 
-    // Vector u_D = ZeroVector(2);
-    // // double x = r_geometry.Center().X(); 
-    // // double y = r_geometry.Center().Y();
-    // double x = mpProjectionNode->X(); 
-    // double y = mpProjectionNode->Y();
-    // double current_time = rCurrentProcessInfo[TIME];
-    // u_D[0] = cosh(x) * sinh(y) * std::exp(-current_time)*current_time*current_time;
-    // u_D[1] = -sinh(x) * cosh(y) * std::exp(-current_time)*current_time*current_time;
-
     for (IndexType i = 0; i < number_of_nodes; i++) {
 
         for (IndexType idim = 0; idim < 2; idim++) {
@@ -214,7 +204,6 @@ void SbmFluidConditionDirichlet::CalculateAll(
             for (IndexType jdim = 0; jdim < mDim; jdim++) {
                 rRightHandSideVector[3*i+idim] += u_D[jdim] * traction(jdim) * integration_weight;
             }
-
             // Nitsche term --> q term
             rRightHandSideVector[3*i+mDim] -= u_D[idim] * H(0,i)*mNormalParameterSpace[idim] * integration_weight;
 
@@ -262,7 +251,7 @@ void SbmFluidConditionDirichlet::InitializeMemberVariables()
 void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const std::size_t number_of_nodes = r_geometry.size();
 
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
@@ -311,24 +300,14 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
         }
         mHsum(0,i) = H_taylor_term + H(0,i);
     }
-
-    // Store projection node coordinates for post-processing/inspection
-    Vector projection_coords(3);
-    projection_coords[0] = mpProjectionNode->X();
-    projection_coords[1] = mpProjectionNode->Y();
-    projection_coords[2] = mpProjectionNode->Z();
-    this->SetValue(PROJECTION_NODE_COORDINATES, projection_coords);
-
-    // Store projection node id
-    this->SetValue(PROJECTION_NODE_ID, mpProjectionNode->Id());
 }
 
 void SbmFluidConditionDirichlet::CalculateB(
         Matrix& rB, 
         const ShapeDerivativesType& r_DN_DX) const
 {
-    const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * 2; // Only 2 DOFs per node in 2D
+    const std::size_t number_of_control_points = GetGeometry().size();
+    const std::size_t mat_size = number_of_control_points * 2; // Only 2 DOFs per node in 2D
 
     // Resize B matrix to 3 rows (strain vector size) and appropriate number of columns
     if (rB.size1() != 3 || rB.size2() != mat_size)
@@ -353,7 +332,7 @@ void SbmFluidConditionDirichlet::ApplyConstitutiveLaw(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiveVariables) const
 {
-    const SizeType number_of_nodes = GetGeometry().size();
+    const std::size_t number_of_nodes = GetGeometry().size();
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=rValues.GetOptions();
@@ -414,7 +393,7 @@ int SbmFluidConditionDirichlet::Check(const ProcessInfo& rCurrentProcessInfo) co
 void SbmFluidConditionDirichlet::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
-    const SizeType number_of_control_points = GetGeometry().size();
+    const std::size_t number_of_control_points = GetGeometry().size();
     const unsigned int LocalSize = (mDim + 1) * number_of_control_points;
 
     if (rResult.size() != LocalSize)
@@ -438,7 +417,7 @@ void SbmFluidConditionDirichlet::GetDofList(
 {
     KRATOS_TRY;
 
-    const SizeType number_of_control_points = GetGeometry().size();
+    const std::size_t number_of_control_points = GetGeometry().size();
 
     rElementalDofList.resize(0);
     rElementalDofList.reserve((mDim + 1) * number_of_control_points);
@@ -456,8 +435,8 @@ void SbmFluidConditionDirichlet::GetDofList(
 void SbmFluidConditionDirichlet::GetSolutionCoefficientVector(
         Vector& rValues) const
 {
-    const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * mDim;
+    const std::size_t number_of_control_points = GetGeometry().size();
+    const std::size_t mat_size = number_of_control_points * mDim;
 
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
@@ -478,58 +457,6 @@ double SbmFluidConditionDirichlet::ComputeTaylorTerm(double derivative, double d
     return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));    
 }
 
-
-// void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-// {
-//     const auto& r_geometry = GetGeometry();
-//     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-
-//     double sol_on_surrogate = 0.0;
-
-//     for (IndexType i = 0; i < r_geometry.size(); ++i)
-//     {
-//         double output_solution_step_value = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
-//         sol_on_surrogate += r_N(0, i) * output_solution_step_value;
-//     }      
-
-//     double rOutput = 0;
-//     Matrix integration_point_list_on_true_boundary  = this->GetValue(INTEGRATION_POINTS);
-//     Vector integration_weight_list_on_true_boundary = this->GetValue(INTEGRATION_WEIGHTS);
-    
-//     std::ofstream output_file("txt_files/results_on_true_boundary.txt", std::ios::app);
-//     output_file << std::scientific << std::setprecision(14); // Set precision to 10^-14
-//     // Loop over the number of skin boundary integration points
-//     for (int i_gauss = 0; i_gauss < integration_weight_list_on_true_boundary.size(); i_gauss++){
-//         // For each of them we compute the solution at the true boundary reversing the Taylor expansion
-//         const Vector& curr_gauss_point_on_true = row(integration_point_list_on_true_boundary, i_gauss);
-//         Vector d = curr_gauss_point_on_true - r_geometry.Center();
-
-//         double solution_on_true = 0.0; 
-
-//         for (IndexType i = 0; i < r_geometry.size(); ++i) {
-//             double output_solution_step_value = r_geometry[i].GetSolutionStepValue(TEMPERATURE);
-
-//             double H_taylor_term = 0.0; // Reset for each node
-//             for (int n = 1; n <= mBasisFunctionsOrder; n++) {
-//                 // Retrieve the appropriate derivative for the term
-//                 Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
-//                 for (int k = 0; k <= n; k++) {
-//                     int n_k = n - k;
-//                     double derivative = shapeFunctionDerivatives(i,k); 
-//                     // Compute the Taylor term for this derivative
-//                     H_taylor_term += ComputeTaylorTerm(derivative, d[0], n_k, d[1], k);
-//                 }
-//             }
-
-//             solution_on_true += (r_N(0,i) + H_taylor_term) * output_solution_step_value;
-//         } 
-//         output_file << solution_on_true << " "<< integration_weight_list_on_true_boundary[i_gauss] << " " 
-//                     << curr_gauss_point_on_true[0] << " " << curr_gauss_point_on_true[1]  << " " << curr_gauss_point_on_true[2]  << " "
-//                     << r_geometry.Center().X() << " " << r_geometry.Center().Y() << " " << r_geometry.Center().Z() 
-//                     << std::endl;
-//     }
-//     output_file.close();
-// }
 
 void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {

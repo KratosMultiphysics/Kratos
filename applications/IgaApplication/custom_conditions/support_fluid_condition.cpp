@@ -38,7 +38,7 @@ void SupportFluidCondition::CalculateAll(
     KRATOS_TRY
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const std::size_t number_of_nodes = r_geometry.size();
 
     // Integration
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
@@ -47,7 +47,7 @@ void SupportFluidCondition::CalculateAll(
     Matrix DN_DX(number_of_nodes,mDim);
     noalias(DN_DX) = DN_De[0]; // prod(DN_De[point_number],InvJ0);
 
-    const SizeType mat_size = number_of_nodes * (mDim+1);
+    const std::size_t mat_size = number_of_nodes * (mDim+1);
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size,mat_size,false);
@@ -117,9 +117,11 @@ void SupportFluidCondition::CalculateAll(
     stress_old(1, 0) = r_stress_vector[2];      stress_old(1, 1) = r_stress_vector[1];         
     Vector traction_current_iteration = prod(stress_old, n_tensor); 
 
+    Matrix DB_contribution_w = ZeroMatrix(2, 2);
+    Matrix DB_contribution = ZeroMatrix(2, 2);
+    
     for (IndexType i = 0; i < number_of_nodes; i++) {
         for (IndexType idim = 0; idim < 2; idim++) {
-            Matrix DB_contribution_w = ZeroMatrix(2, 2);
             DB_contribution_w(0, 0) = DB_voigt(0, 2*i+idim);
             DB_contribution_w(0, 1) = DB_voigt(2, 2*i+idim);
             DB_contribution_w(1, 0) = DB_voigt(2, 2*i+idim);
@@ -133,7 +135,6 @@ void SupportFluidCondition::CalculateAll(
                 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     // Extract the 2x2 block for the control point i from the DB_voigt.
-                    Matrix DB_contribution = ZeroMatrix(2, 2);
                     DB_contribution(0, 0) = DB_voigt(0, 2*j+jdim);
                     DB_contribution(0, 1) = DB_voigt(2, 2*j+jdim);
                     DB_contribution(1, 0) = DB_voigt(2, 2*j+jdim);
@@ -215,29 +216,6 @@ void SupportFluidCondition::CalculateAll(
 
         }
     }
-
-
-    // // Subtract K * [u; p] using current nodal values (previous iteration)
-    // Vector rhs_from_trampa = ZeroVector(mat_size); //resetting RHS
-    // {
-    //     const auto& r_geom = GetGeometry();
-    //     const SizeType n = r_geom.size();
-    //     const SizeType block_size = mDim + 1;
-    //     VectorType current_values(n * block_size);
-
-    //     SizeType k = 0;
-    //     for (IndexType a = 0; a < n; ++a) {
-    //         const auto& vel = r_geom[a].FastGetSolutionStepValue(VELOCITY);
-    //         current_values[k++] = vel[0];
-    //         current_values[k++] = vel[1];
-    //         current_values[k++] = r_geom[a].FastGetSolutionStepValue(PRESSURE);
-    //     }
-    //     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, current_values);
-    // }
-
-
-
-
     KRATOS_CATCH("")
 }
 
@@ -273,8 +251,8 @@ void SupportFluidCondition::CalculateB(
         Matrix& rB, 
         const ShapeDerivativesType& r_DN_DX) const
 {
-    const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * 2; // Only 2 DOFs per node in 2D
+    const std::size_t number_of_control_points = GetGeometry().size();
+    const std::size_t mat_size = number_of_control_points * 2; // Only 2 DOFs per node in 2D
 
     // Resize B matrix to 3 rows (strain vector size) and appropriate number of columns
     if (rB.size1() != 3 || rB.size2() != mat_size)
@@ -299,7 +277,7 @@ void SupportFluidCondition::ApplyConstitutiveLaw(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiveVariables) const
 {
-    const SizeType number_of_nodes = GetGeometry().size();
+    const std::size_t number_of_nodes = GetGeometry().size();
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=rValues.GetOptions();
@@ -346,7 +324,7 @@ int SupportFluidCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
 void SupportFluidCondition::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
-    const SizeType number_of_control_points = GetGeometry().size();
+    const std::size_t number_of_control_points = GetGeometry().size();
     const unsigned int LocalSize = (mDim + 1) * number_of_control_points;
 
     if (rResult.size() != LocalSize)
@@ -370,7 +348,7 @@ void SupportFluidCondition::GetDofList(
 {
     KRATOS_TRY;
 
-    const SizeType number_of_control_points = GetGeometry().size();
+    const std::size_t number_of_control_points = GetGeometry().size();
 
     rElementalDofList.resize(0);
     rElementalDofList.reserve((mDim+1) * number_of_control_points);
@@ -389,8 +367,8 @@ void SupportFluidCondition::GetDofList(
 void SupportFluidCondition::GetSolutionCoefficientVector(
         Vector& rValues) const
 {
-    const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * mDim;
+    const std::size_t number_of_control_points = GetGeometry().size();
+    const std::size_t mat_size = number_of_control_points * mDim;
 
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
@@ -404,101 +382,6 @@ void SupportFluidCondition::GetSolutionCoefficientVector(
         rValues[index + 1] = velocity[1];
         if (mDim > 3) rValues[index + 2] = velocity[2];
     }
-}
-
-void SupportFluidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-#pragma omp critical
-{
-    const auto& r_geom = GetGeometry();
-    const SizeType n = r_geom.size();
-
-    // 1) Dati di quadratura (GI_GAUSS_1) e funzioni di forma
-    const auto& r_ip   = r_geom.IntegrationPoints(this->GetIntegrationMethod());
-    const auto& r_dnde = r_geom.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const Matrix& H    = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
-    const Matrix& DN_DX = r_dnde[0];
-
-    // 2) Normale e |J| per misura di linea (2D)
-    array_1d<double,3> n_par = - r_geom.Normal(0, this->GetIntegrationMethod());
-    n_par /= MathUtils<double>::Norm(n_par);
-
-    GeometryType::JacobiansType J0;
-    r_geom.Jacobian(J0, this->GetIntegrationMethod());
-    Matrix J = ZeroMatrix(3,3);
-    J(0,0)=J0[0](0,0); J(0,1)=J0[0](0,1);
-    J(1,0)=J0[0](1,0); J(1,1)=J0[0](1,1);
-    J(2,2)=1.0;
-
-    array_1d<double,3> t_par;
-    r_geom.Calculate(LOCAL_TANGENT, t_par);
-    Vector det_vec = prod(J, t_par);
-    det_vec[2]=0.0;
-    const double detJ = norm_2(det_vec);
-    const double w = r_ip[0].Weight() * std::abs(detJ);
-
-    // 3) Costitutivo al GP (B*u -> strain-rate), stress (solo viscoso)
-    Matrix B(3, n*mDim, 0.0);
-    CalculateB(B, DN_DX);
-
-    ConstitutiveLaw::Parameters Values(r_geom, GetProperties(), rCurrentProcessInfo);
-    ConstitutiveVariables cv(3);
-    Vector u_coeff(n*mDim);
-    GetSolutionCoefficientVector(u_coeff);
-    Vector strain = prod(B, u_coeff);
-
-    Values.SetStrainVector(strain);
-    Values.SetStressVector(cv.StressVector);
-    Values.SetConstitutiveMatrix(cv.D);
-    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
-
-    const Vector& sigma_voigt = Values.GetStressVector(); // τ in Voigt (xx, yy, xy)
-    // 2x2 da Voigt
-    Matrix tau = ZeroMatrix(2,2);
-    tau(0,0)=sigma_voigt[0]; tau(1,1)=sigma_voigt[1];
-    tau(0,1)=sigma_voigt[2]; tau(1,0)=sigma_voigt[2];
-
-    // 4) Pressione al GP (interpolazione)
-    double p_gp = 0.0;
-    for (SizeType a=0; a<n; ++a)
-        p_gp += H(0,a) * r_geom[a].GetSolutionStepValue(PRESSURE);
-
-    // 5) Normale (2D)
-    array_1d<double,2> n2; n2[0]=n_par[0]; n2[1]=n_par[1];
-
-    // 6) Tractions
-    array_1d<double,2> t_visc = ZeroVector(2);
-    t_visc[0] = tau(0,0)*n2[0] + tau(0,1)*n2[1];
-    t_visc[1] = tau(1,0)*n2[0] + tau(1,1)*n2[1];
-
-    array_1d<double,2> t_pres = ZeroVector(2);
-    t_pres[0] = -p_gp * n2[0];
-    t_pres[1] = -p_gp * n2[1];
-
-    array_1d<double,2> t_tot = t_visc + t_pres;
-
-    // 7) Coordinate del GP (qui uso il centro geometrico della condizione)
-    const auto center = r_geom.Center();
-
-    // 8) Salva risultati per il post-process (1 GP -> 1 riga)
-    //    [0] w, [1] fx_tot, [2] fy_tot, [3] fx_visc, [4] fy_visc, [5] fx_pres, [6] fy_pres,
-    //    [7] nx, [8] ny, [9] x_gp, [10] y_gp
-    Matrix results(1, 11, 0.0);
-    results(0,0)  = w;
-    results(0,1)  = t_tot[0];
-    results(0,2)  = t_tot[1];
-    results(0,3)  = t_visc[0];
-    results(0,4)  = t_visc[1];
-    results(0,5)  = t_pres[0];
-    results(0,6)  = t_pres[1];
-    results(0,7)  = n2[0];
-    results(0,8)  = n2[1];
-    results(0,9)  = center.X();
-    results(0,10) = center.Y();
-
-    // Usa una chiave diversa da quella del cilindro per non confonderli
-    this->SetValue(RESULTS_ON_TRUE_BOUNDARY, results);
-}
 }
 
 } // Namespace Kratos
