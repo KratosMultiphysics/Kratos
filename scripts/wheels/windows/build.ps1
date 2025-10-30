@@ -1,7 +1,7 @@
 param([System.String]$cotire="OFF")
 
 $pythons = "38", "39", "310", "311", "312", "313"
-$env:kratos_version = "10.3.0"
+$env:kratos_version = "10.3.2"
 
 $kratosRoot = "c:\kratos\kratos"
 $env:kratos_root = $kratosRoot
@@ -37,7 +37,7 @@ function build_core_wheel ($pythonLocation, $prefixLocation) {
 
     cd $wheelRoot
 
-    & $pythonLocation setup.py bdist_wheel
+    & $pythonLocation -m build
 
     cp "$($wheelRoot)\dist\*" $wheelOutDir
     
@@ -49,7 +49,7 @@ function build_application_wheel ($pythonPath, $app) {
     setup_wheel_dir
     cp "$($kratosRoot)\applications\$($app)\$($app).json" "$($wheelRoot)\wheel.json"
     cd $wheelRoot
-    & $pythonPath setup.py bdist_wheel #pythonpath
+    & $pythonPath -m build #pythonpath
     cp "$($wheelRoot)\dist\*" $wheelOutDir
     cd c:\
     rm -r $wheelRoot

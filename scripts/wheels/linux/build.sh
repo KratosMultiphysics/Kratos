@@ -1,6 +1,6 @@
 #!/bin/bash
 PYTHONS=("38" "39" "310" "311" "312" "313")
-export KRATOS_VERSION="10.2.3"
+export KRATOS_VERSION="10.3.1"
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
@@ -31,11 +31,11 @@ build_core_wheel () {
 
     cd $WHEEL_ROOT
 
-    $PYTHON_LOCATION setup.py bdist_wheel
+    $PYTHON_LOCATION -m build
 
     cd ${WHEEL_ROOT}/dist
 
-    auditwheel repair *.whl
+    # auditwheel repair *.whl
 
     mkdir $CORE_LIB_DIR
     unzip -j wheelhouse/KratosMultiphysics* 'KratosMultiphysics.libs/*' -d $CORE_LIB_DIR
@@ -52,11 +52,11 @@ build_application_wheel () {
     cp ${KRATOS_ROOT}/applications/${1}/${1}.json ${WHEEL_ROOT}/wheel.json
     cd $WHEEL_ROOT
 
-    $PYTHON_LOCATION setup.py bdist_wheel
+    $PYTHON_LOCATION -m build
 
-    auditwheel repair dist/*.whl
+    # auditwheel repair dist/*.whl
 
-    optimize_wheel
+    # optimize_wheel
 
     cp ${WHEEL_ROOT}/wheelhouse/* ${WHEEL_OUT}/
 
@@ -70,7 +70,7 @@ build_kratos_all_wheel () {
     cp ${KRATOS_ROOT}/kratos/KratosMultiphysics-all.json ${WHEEL_ROOT}/wheel.json
     cp ${KRATOS_ROOT}/scripts/wheels/linux/setup_kratos_all.py ${WHEEL_ROOT}/setup.py
     cd ${WHEEL_ROOT}
-    $PYTHON_LOCATION setup.py bdist_wheel
+    $PYTHON_LOCATION -m build
     cp dist/* ${WHEEL_OUT}/
 
     cd
