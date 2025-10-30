@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
@@ -43,21 +41,42 @@ class KratosBeamMapping(CoSimulationDataTransferOperator):
 
         if self.solver_name_beam == from_solver_name and self.solver_name_surface == to_solver_name:
             inverse_map = False
-            if not from_model_part_name == self.model_part_name_beam:
-                raise Exception("wrong input")
-            if not to_model_part_name == self.model_part_name_surface:
-                raise Exception("wrong input")
+
+            if from_model_part_name != self.model_part_name_beam:
+                raise Exception(
+                    f"Invalid 'from_model_part_name' for beam→surface mapping.\n"
+                    f"Expected: '{self.model_part_name_beam}', but got: '{from_model_part_name}'."
+                )
+
+            if to_model_part_name != self.model_part_name_surface:
+                raise Exception(
+                    f"Invalid 'to_model_part_name' for beam→surface mapping.\n"
+                    f"Expected: '{self.model_part_name_surface}', but got: '{to_model_part_name}'."
+                )
+
+            
         elif self.solver_name_surface == from_solver_name and self.solver_name_beam == to_solver_name:
             inverse_map = True
-            if not to_model_part_name == self.model_part_name_beam:
-                raise Exception("wrong input")
-            if not from_model_part_name == self.model_part_name_surface:
-                raise Exception("wrong input")
+
+            if to_model_part_name != self.model_part_name_beam:
+                raise Exception(
+                    f"Invalid 'to_model_part_name' for surface→beam mapping.\n"
+                    f"Expected: '{self.model_part_name_beam}', but got: '{to_model_part_name}'."
+                )
+
+            if from_model_part_name != self.model_part_name_surface:
+                raise Exception(
+                    f"Invalid 'from_model_part_name' for surface→beam mapping.\n"
+                    f"Expected: '{self.model_part_name_surface}', but got: '{from_model_part_name}'."
+                )
         else:
-            raise Exception("Wrong Input!")
+            raise Exception(
+                f"Invalid solver combination.\n"
+                f"from_solver_name: '{from_solver_name}', to_solver_name: '{to_solver_name}'\n"
+                f"Expected either (beam→surface) or (surface→beam)."
+            )
 
         if self.beam_mapper == None:
-            print("Creating Beam-Mapper")
             if inverse_map:
                 origin_model_part = to_solver_data.GetModelPart() # beam
                 destination_model_part = from_solver_data.GetModelPart() # surface
@@ -95,7 +114,7 @@ class KratosBeamMapping(CoSimulationDataTransferOperator):
             "type": "kratos_beam_mapping",
             "echo_level": 0
         }""")
-        #this_defaults.AddMissingParameters(super(KratosBeamMapping, cls)._GetDefaultParameterss())
+        this_defaults.AddMissingParameters(super(KratosBeamMapping, cls)._GetDefaultParameterss())
         return this_defaults
 
     @classmethod
