@@ -2,7 +2,7 @@
   "problem_data": {
     "problem_name"                    : "mesh",
     "start_time"                      : -1.0,
-    "end_time"                        : 0,
+    "end_time"                        : 0.0,
     "echo_level"                      : 1,
     "parallel_type"                   : "OpenMP",
     "number_of_threads"               : 1
@@ -30,7 +30,7 @@
     "block_builder"                   : true,
     "solution_type"                   : "static",
     "scheme_type"                     : "Backward_Euler",
-    "reset_displacements"             : true,
+    "reset_displacements"             : false,
     "strategy_type"                   : "line_search",
     "convergence_criterion"           : "displacement_criterion",
     "displacement_relative_tolerance" : 0.001,
@@ -140,7 +140,6 @@
           "model_part_name"        : "PorousDomain.Soil",
           "variable_name"          : "WATER_PRESSURE",
           "is_fixed"               : false,
-          "value"                  : 0.0,
           "table"                  : 0,
           "fluid_pressure_type"    : "Phreatic_Multi_Line",
           "gravity_direction"      : 1,

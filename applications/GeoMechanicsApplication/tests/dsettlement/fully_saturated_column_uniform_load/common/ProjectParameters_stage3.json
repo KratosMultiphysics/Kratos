@@ -12,8 +12,7 @@
     "model_part_name"                 : "PorousDomain",
     "domain_size"                     : 2,
     "model_import_settings": {
-      "input_type"                    : "mdpa",
-      "input_filename"                : "mesh"
+      "input_type"                    : "use_input_model_part"
     },
     "material_import_settings": {
       "materials_filename"            : "MaterialParameters_abc.json"
@@ -190,7 +189,7 @@
         "process_name"             : "GeoExtrapolateIntegrationPointValuesToNodesProcess",
         "Parameters": {
           "model_part_name"        : "PorousDomain",
-          "list_of_variables"      : ["TOTAL_STRESS_TENSOR", "CAUCHY_STRESS_TENSOR"]
+          "list_of_variables"      : ["CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR"]
         }
       }
     ]

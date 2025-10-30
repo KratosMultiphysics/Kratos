@@ -12,8 +12,7 @@
     "model_part_name"                 : "PorousDomain",
     "domain_size"                     : 2,
     "model_import_settings"           : {
-      "input_type"                    : "mdpa",
-      "input_filename"                : "mesh"
+      "input_type"                    : "use_input_model_part"
     },
     "material_import_settings": {
       "materials_filename"            : "MaterialParameters_abc.json"
@@ -47,7 +46,6 @@
     "min_alpha"                       : 0.1,
     "max_alpha"                       : 2.0,
     "line_search_tolerance"           : 0.5,
-    "rotation_dofs"                   : true,
     "linear_solver_settings": {
       "solver_type"                   : "LinearSolversApplication.sparse_lu",
       "scaling"                       : true
@@ -193,7 +191,7 @@
           "variable_name"          : "LINE_LOAD",
           "active"                 : [false,true,false],
           "value"                  : [0.0, 0.0, 0.0],
-          "table"                  : [0, 4, 0]
+          "table"                  : [0, 1, 0]
         }
       }
     ],

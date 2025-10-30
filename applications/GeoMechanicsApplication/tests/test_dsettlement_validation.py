@@ -627,7 +627,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
             top_node_ids = [2, 3, 104]
             make_settlement_history_plot(
-                (output_stage_2, output_stage_3, output_stage_4, output_stage_5),
+                (output_stage_3, output_stage_4, output_stage_5),
                 top_node_ids,
                 project_path / "ref_settlement_data.txt",
                 project_path / "test_case_2_settlement_plot.svg",
@@ -747,12 +747,12 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         # Check some results
         actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_stage_3, [104]
+            "TOTAL_DISPLACEMENT", unit_conversions.days_to_seconds(100), output_stage_3, [104]
         )[0][1]
         self.assertAlmostEqual(actual_settlement_after_one_hundred_days, -1.70997, 4)
 
         actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [104]
+            "TOTAL_DISPLACEMENT", unit_conversions.days_to_seconds(10000), output_stage_5, [104]
         )[0][1]
         self.assertTrue(
             abs((-8.63753 - actual_settlement_after_ten_thousand_days) / -8.63753) < 0.01
@@ -1005,7 +1005,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
             top_node_ids = [2, 3, 104]
             make_settlement_history_plot(
-                (output_stage_2, output_stage_3, output_stage_4, output_stage_5),
+                (output_stage_3, output_stage_4, output_stage_5),
                 top_node_ids,
                 project_path / "ref_settlement_data.txt",
                 project_path / "test_case_4_settlement_plot.svg",
@@ -1125,14 +1125,14 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         # Check some results
         actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_stage_3, [104]
+            "TOTAL_DISPLACEMENT", unit_conversions.days_to_seconds(100), output_stage_3, [104]
         )[0][1]
         self.assertAlmostEqual(
             actual_settlement_after_one_hundred_days, -0.495277, 4
         )  # Regression value
 
         actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [104]
+            "TOTAL_DISPLACEMENT", unit_conversions.days_to_seconds(10000), output_stage_5, [104]
         )[0][1]
         # Assert the value to be within 1% of the analytical solution
         self.assertTrue(

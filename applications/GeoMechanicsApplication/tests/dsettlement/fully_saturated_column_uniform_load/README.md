@@ -10,10 +10,10 @@ A schematic can be found in the figure below:
 
 The test is performed in 5 stages:
 1. A K0 stage with a linear elastic model, with a Young's modulus of 1 [GPa] and a Poisson's ratio of 0.2.
-2. A conversion stage to the abc model (Time step 1 second such that there is horizontal stress distribution by the abc model). Keyword ignore_undrained remains true, such that water pressures remain hydrostatic.
-3. A settlement stage (100 days or 8640000 seconds), the abc is applied, but the keyword ignore_undrained is set false such that settlement may influence water pressures. The keyword "reset_displacement" is set to true here, such that the total displacements start counting from the start of this stage.
-4. A loading stage (1 second) with a uniform surface load of 20 [kPa] applied in the negative Y direction to the top of the model. Horizontal stress distribution takes place.
-5. A second settlement stage, such that the total time reaches 10000 days (or 864000000 seconds). The uniform surface load of 20 [kPa] in the negative Y direction remains active. The time-step is > 0.001 days, such that there is no horizontal stress distribution by the abc model.
+2. A conversion stage to the abc model (Time step 1 second such that there is horizontal stress redistribution by the abc model). Keyword `IGNORE_UNDRAINED` remains `true`, such that water pressures remain hydrostatic.
+3. A settlement stage (100 days or 8640000 seconds), the abc is applied, but the keyword `IGNORE_UNDRAINED` is set to `false` such that settlement may influence water pressures. The keyword `reset_displacement` is set to `true` here, such that the total displacements start counting from the start of this stage.
+4. A loading stage (1 second) with a uniform surface load of 20 [kPa] applied in the negative Y direction to the top of the model. Horizontal stress redistribution takes place.
+5. A second settlement stage, such that the total time reaches 10000 days (or 864000000 seconds). The uniform surface load of 20 [kPa] in the negative Y direction remains active. The time-step is > 0.001 days, such that there is no horizontal stress redistribution by the abc model.
 
 The following common conditions hold for all stages:
   - Displacements on the bottom are fixed in all directions.
