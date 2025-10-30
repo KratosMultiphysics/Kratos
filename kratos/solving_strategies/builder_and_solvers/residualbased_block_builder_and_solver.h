@@ -87,6 +87,7 @@ public:
 
     /// Definition of the flags
     KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
+    KRATOS_DEFINE_LOCAL_FLAG( CONSTANT_CONSTRAINTS );
 
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolver);
@@ -122,8 +123,7 @@ public:
     typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
 
     /// DoF types definition
-    typedef Node NodeType;
-    typedef typename NodeType::DofType DofType;
+    typedef typename Node::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
     ///@}
@@ -984,6 +984,7 @@ public:
         mInactiveSlaveDofs.clear();
         mT.resize(0,0,false);
         mConstantVector.resize(0,false);
+        mConstraintsAssembled = false;
     }
 
     /**
@@ -1012,6 +1013,7 @@ public:
             "name"                                 : "block_builder_and_solver",
             "block_builder"                        : true,
             "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal",
+            "constant_constraints"                 : false,
             "silent_warnings"                      : false
         })");
 
@@ -1121,6 +1123,7 @@ protected:
 
     SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL; /// We identify the scaling considered for the dirichlet dofs
     Flags mOptions;                                                              /// Some flags used internally
+    bool mConstraintsAssembled = false;                                          /// Flag to check if the constraints have been assembled
 
     ///@}
     ///@name Protected Operators
@@ -1274,6 +1277,9 @@ protected:
 
             mT.set_filled(indices.size() + 1, nnz);
 
+            // Reset flag
+            mConstraintsAssembled = false;
+
             Timer::Stop("ConstraintsRelationMatrixStructure");
         }
     }
@@ -1282,70 +1288,76 @@ protected:
     {
         KRATOS_TRY
 
-        TSparseSpace::SetToZero(mT);
-        TSparseSpace::SetToZero(mConstantVector);
+        // If the constraints were not assembled or if we do not want to consider constant constraints
+        if (!mConstraintsAssembled || mOptions.IsNot(CONSTANT_CONSTRAINTS)) {
+            TSparseSpace::SetToZero(mT);
+            TSparseSpace::SetToZero(mConstantVector);
 
-        // The current process info
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            // The current process info
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // Contributions to the system
-        Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
-        Vector constant_vector = LocalSystemVectorType(0);
+            // Contributions to the system
+            Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
+            Vector constant_vector = LocalSystemVectorType(0);
 
-        // Vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType slave_equation_ids, master_equation_ids;
+            // Vector containing the localization in the system of the different terms
+            Element::EquationIdVectorType slave_equation_ids, master_equation_ids;
 
-        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
 
-        // We clear the set
-        mInactiveSlaveDofs.clear();
+            // We clear the set
+            mInactiveSlaveDofs.clear();
 
-        #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
-        {
-            std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
+            #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
+            {
+                std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
 
-            #pragma omp for schedule(guided, 512)
-            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-                auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-                it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                #pragma omp for schedule(guided, 512)
+                for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                    auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
-                // If the constraint is active
-                if (it_const->IsActive()) {
-                    it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+                    // If the constraint is active
+                    if (it_const->IsActive()) {
+                        it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
 
-                    for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
-                        const IndexType i_global = slave_equation_ids[i];
+                        for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
+                            const IndexType i_global = slave_equation_ids[i];
 
-                        // Assemble matrix row
-                        AssembleRowContribution(mT, transformation_matrix, i_global, i, master_equation_ids);
+                            // Assemble matrix row
+                            AssembleRowContribution(mT, transformation_matrix, i_global, i, master_equation_ids);
 
-                        // Assemble constant vector
-                        const double constant_value = constant_vector[i];
-                        double& r_value = mConstantVector[i_global];
-                        AtomicAdd(r_value, constant_value);
+                            // Assemble constant vector
+                            const double constant_value = constant_vector[i];
+                            double& r_value = mConstantVector[i_global];
+                            AtomicAdd(r_value, constant_value);
+                        }
+                    } else { // Taking into account inactive constraints
+                        auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                     }
-                } else { // Taking into account inactive constraints
-                    auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
+                }
+
+                // We merge all the sets in one thread
+                #pragma omp critical
+                {
+                    mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
                 }
             }
 
-            // We merge all the sets in one thread
-            #pragma omp critical
-            {
-                mInactiveSlaveDofs.insert(auxiliar_inactive_slave_dofs.begin(), auxiliar_inactive_slave_dofs.end());
+            // Setting the master dofs into the T and C system
+            for (auto eq_id : mMasterIds) {
+                mConstantVector[eq_id] = 0.0;
+                mT(eq_id, eq_id) = 1.0;
             }
-        }
 
-        // Setting the master dofs into the T and C system
-        for (auto eq_id : mMasterIds) {
-            mConstantVector[eq_id] = 0.0;
-            mT(eq_id, eq_id) = 1.0;
-        }
+            // Setting inactive slave dofs in the T and C system
+            for (auto eq_id : mInactiveSlaveDofs) {
+                mConstantVector[eq_id] = 0.0;
+                mT(eq_id, eq_id) = 1.0;
+            }
 
-        // Setting inactive slave dofs in the T and C system
-        for (auto eq_id : mInactiveSlaveDofs) {
-            mConstantVector[eq_id] = 0.0;
-            mT(eq_id, eq_id) = 1.0;
+            // Mark constraints as assembled
+            mConstraintsAssembled = true;
         }
 
         KRATOS_CATCH("")
@@ -1587,6 +1599,7 @@ protected:
             mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
         }
         mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
+        mOptions.Set(CONSTANT_CONSTRAINTS, ThisParameters["constant_constraints"].GetBool());
     }
 
     ///@}
@@ -1691,6 +1704,8 @@ private:
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(0));
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::CONSTANT_CONSTRAINTS(Kratos::Flags::Create(1));
 
 ///@}
 
