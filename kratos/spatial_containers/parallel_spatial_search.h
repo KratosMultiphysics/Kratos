@@ -450,7 +450,12 @@ public:
             IndexType global_position;
         };
         const bool is_distributed = mrDataCommunicator.IsDistributed();
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
+
+        // Defining the maximum number of threads
+        const int number_threads = is_distributed ? 1 : ParallelUtilities::GetNumThreads();
+
+        // Performing the search in parallel
+        IndexPartition<IndexType>(total_number_of_points, number_threads).for_each(TLS(),[this, &is_distributed, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
@@ -462,7 +467,12 @@ public:
             ResultType local_result;
             const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
             LocalSearchIsInside(rTLS.point, local_result, rank);
+            int min_found_rank = std::numeric_limits<int>::max();
             if (local_result.GetIsObjectFound()) {
+                min_found_rank = rank;
+            }
+            const int min_rank = mrDataCommunicator.MinAll(min_found_rank);
+            if (min_rank == rank && local_result.GetIsObjectFound()) {
                 r_point_result.AddResult(local_result);
             }
         });
@@ -472,11 +482,6 @@ public:
         Timer::Start("ParallelSpatialSearch::SynchronizeAll");
         rResults.SynchronizeAll(mrDataCommunicator);
         Timer::Stop("ParallelSpatialSearch::SynchronizeAll");
-
-        // Remove the non lowest rank results
-        Timer::Start("ParallelSpatialSearch::KeepOnlyLowestRankResult");
-        KeepOnlyLowestRankResult(rResults);
-        Timer::Stop("ParallelSpatialSearch::KeepOnlyLowestRankResult");
     }
 
     ///@}
@@ -651,92 +656,10 @@ private:
         );
 
     /**
-     * @brief This method removes tle solutions according to a given lambda
-     * @param rResults Results to be simplified
-     * @param rLambda Lambda to be considered as a criteria
-     */
-    template<class TLambda>
-    void KeepOnlySmallestLambdaResult(
-        ResultContainerVectorType& rResults,
-        const TLambda& rLambda
-        )
-    {
-        // MPI only
-        if (mrDataCommunicator.IsDistributed()) {
-            // Getting current rank
-            const int rank = mrDataCommunicator.Rank();
-
-            // The values
-            const auto all_values = rLambda(rResults);
-
-            // The ranks
-            std::vector<std::vector<int>> all_ranks;
-            rResults.GetResultRank(all_ranks);
-
-            // Retrieve the solution
-            auto& r_results_vector = rResults.GetContainer();
-            for (std::size_t i = 0; i < r_results_vector.size(); ++i) {
-                auto& p_partial_result = r_results_vector[i];
-                auto& r_partial_result = *p_partial_result;
-                // Then must have at least one solution, but just filter if at least 2
-                const std::size_t number_of_global_results = r_partial_result.NumberOfGlobalResults();
-                if (number_of_global_results > 1) {
-                    // The values
-                    const auto& r_values = all_values[i];
-
-                    // The indexes
-                    std::vector<int> ranks = all_ranks[i];
-                    std::vector<int>& r_ranks = all_ranks[i];
-
-                    // Find the index of the minimum value
-                    auto it_min_distance = std::min_element(r_values.begin(), r_values.end());
-
-                    // Check if the values vector is not empty
-                    if (it_min_distance != r_values.end()) {
-                        // Calculate the position
-                        const IndexType pos = std::distance(r_values.begin(), it_min_distance);
-                        if (rank == ranks[pos]) {
-                            KRATOS_ERROR_IF(r_partial_result.NumberOfLocalResults() > 1) << "The rank criteria to filter results assumes that one rank only holds one local result. This is not true for " << r_partial_result.GetGlobalIndex() << " in rank " << rank << std::endl;
-                        }
-
-                        // Remove the index from the ranks vector
-                        ranks.erase(ranks.begin() + pos);
-
-                        // Remove all results but the closest one
-                        r_partial_result.RemoveResultsFromRanksList(ranks, r_ranks, mrDataCommunicator);
-                    } else {
-                        KRATOS_ERROR << "Distances vector is empty." << std::endl;
-                    }
-                }
-            }
-
-            // Checking that is properly cleaned
-        #ifdef KRATOS_DEBUG
-            for (auto& p_partial_result : r_results_vector) {
-                auto& r_partial_result = *p_partial_result;
-                // Check that the number of results is 0 or 1
-                KRATOS_ERROR_IF(r_partial_result.NumberOfGlobalResults() > 1) << "Cleaning has not been done properly. Number of results: " << r_partial_result.NumberOfGlobalResults() << std::endl;
-                // Check that is not empty locally
-                if (r_partial_result.NumberOfGlobalResults() == 1) {
-                    const unsigned int number_of_local_results = r_partial_result.NumberOfLocalResults();
-                    KRATOS_ERROR_IF(mrDataCommunicator.SumAll(number_of_local_results) == 0) << "Local results also removed in result " << r_partial_result.GetGlobalIndex() << std::endl;
-                }
-            }
-        #endif
-        }
-    }
-
-    /**
      * @brief This method removes the solutions if there are not the closest
      * @param rResults Results to be simplified
      */
     void KeepOnlyClosestResult(ResultContainerVectorType& rResults);
-
-    /**
-     * @brief This method removes the solutions not in the lowest rank
-     * @param rResults Results to be simplified
-     */
-    void KeepOnlyLowestRankResult(ResultContainerVectorType& rResults);
 
     /**
      * @brief Generates a string by appending integer ranks to a base name.
