@@ -12,8 +12,6 @@
 #pragma once
 
 // System includes
-#include <array>
-#include <vector>
 
 // External includes
 
@@ -65,8 +63,8 @@ private:
 
     // Performs input validation, parameter normalization, logging, subdivision,
     // and writes global PARAMETER_SPACE_CORNERS. Returns the target ModelPart.
-    ModelPart& InitializeSetup_(
-        Parameters& r_parameters,
+    ModelPart& InitializeSetup(
+        Parameters& rParameters,
         Parameters& rGeometryBaseOut,
         Parameters& rAnalysisBaseOut,
         std::vector<std::string>& rAnalysisTargetsOut,
@@ -75,36 +73,47 @@ private:
     // Processes a single patch (subdomain). Builds/upgrades geometry and analysis,
     // sets per-patch values (corners, spans, orders), classifies BREP edges,
     // duplicates/filters condition entries as needed, and merges into the parent.
-    void ProcessPatch_(
-        std::size_t i_patch,
-        const RectType& rect,
-        const Parameters& geometry_base,
-        const Parameters& analysis_base,
-        const std::vector<std::string>& analysis_target_submodel_parts,
-        const std::unordered_map<std::string, std::vector<std::string>>& condition_name_to_model_parts,
-        ModelPart& r_parent_model_part,
-        const std::string& prefix);
+    void ProcessPatch(
+        std::size_t iPatch,
+        const RectType& rRect,
+        const Parameters& rGeometryBase,
+        const Parameters& rAnalysisBase,
+        const std::vector<std::string>& rAnalysisTargetSubmodelParts,
+        const std::unordered_map<std::string, std::vector<std::string>>& rConditionNameToModelParts,
+        ModelPart& rParentModelPart,
+        const std::string& rPrefix);
         
     void GenerateSubdivision();
 
     // Returns true if the skin model part (by name) is fully contained
     // within the rectangular patch in physical XY space derived from
     // the given rect (parameter-space) and the base geometry extents.
-    bool IsSkinFullyInsidePatch_(
+    bool IsSkinFullyInsidePatch(
         const std::string& rSkinModelPartName,
-        const RectType& rect,
-        const Parameters& geometry_base) const;
+        const RectType& rRect,
+        const Parameters& rGeometryBase) const;
 
     std::vector<RectangleType> mSubdomains;
     std::vector<RefinementRegionData> mRefinementRegions;
     Model* mpModel = nullptr;
 
-    /// Build (or refresh) a global "ConvectionDiffusionDomain" submodelpart under the given root
-    /// by collecting the elements from every submodelpart whose name starts with "Patch".
-    /// Also ensures the nodes used by those elements are members of the global submodelpart.
-    void BuildGlobalSubModelParts(
-        ModelPart& r_parent_model_part,
-        const std::vector<std::string>& rTargetNames) const;
+    // (removed) BuildGlobalSubModelParts: unused in PatchSubdivisionModeler
+
+    // Classify BREP edges of a patch as external/internal and append external entry to list
+    void ClassifyAndAppendBrepEdges(
+        const Vector& rPatchLowerUvw,
+        const Vector& rPatchUpperUvw,
+        const Vector& rBaseLowerUvw,
+        const Vector& rBaseUpperUvw,
+        ModelPart& rPatchModelPart,
+        Parameters& rExtTemplate,
+        Parameters& rIntTemplate,
+        Parameters& rReducedList) const;
+
+    // Build final element_condition_list for SBM patches based on body-fitted list and original list
+    Parameters BuildSbmElementConditionList(
+        const Parameters& rOriginalConditionList,
+        const Parameters& rBodyFittedReduced) const;
 
 };
 

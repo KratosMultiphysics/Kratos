@@ -12,14 +12,14 @@
 #pragma once
 
 #include "processes/process.h"
-#include "includes/model_part.h"
-#include "geometries/geometry.h"
 #include "integration/integration_info.h"
+#include "includes/properties.h"
+
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/brep_curve_on_surface.h"
 #include "geometries/brep_surface.h"
 #include "geometries/nurbs_surface_geometry.h"
-#include "includes/properties.h"
+
 
 namespace Kratos {
 
@@ -34,9 +34,6 @@ public:
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointerType;
     typedef typename Properties::Pointer PropertiesPointerType;
-
-    // typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceGeometryType;
-    // typedef typename NurbsSurfaceGeometryType::Pointer NurbsSurfaceGeometryPointerType;
 
     // Param curve in UV space controlled by Nodes (Nodes store (u,v,0))
     using ParamCurveType        = NurbsCurveGeometry<2, PointerVector<Node>>;
@@ -58,27 +55,36 @@ public:
     // - internal_sub/external_sub: submodel part names used inside each patch
     PatchIntersectionProcess(
         ModelPart& rModelPart,
-        int echo_level = 0,
-        double tolerance = 1e-12,
-        std::string patch_prefix = "Patch",
-        std::string internal_sub = "internal_boundaries",
-        std::string external_sub = "external_boundaries",
-        std::string coupling_condition_name = "LaplacianCouplingCondition");
+        int EchoLevel = 0,
+        double Tolerance = 1e-12,
+        std::string PatchPrefix = "Patch",
+        std::string CouplingConditionName = "LaplacianCouplingCondition");
 
     void Execute() override;
 
 private:
+    // Local patch data used during intersection computation
+    struct PatchBox {
+        ModelPart* pPatch{nullptr};
+        std::string name;
+        double u0{}, u1{}, v0{}, v1{};
+        int    nu{1}, nv{1};   // estimated number of spans
+        double du{0.0}, dv{0.0}; // span sizes
+    };
     using GeometriesArray   = GeometryType::GeometriesArrayType;
 
     ModelPart&   mrModelPart;
     int          mEchoLevel{0};
     double       mTol{1e-12};
     std::string  mPatchPrefix{"Patch"};
-    std::string  mInternalSubName{"internal_boundaries"};
-    std::string  mExternalSubName{"external_boundaries"};
     std::string  mCouplingConditionName{"LaplacianCouplingCondition"};
 
     void ComputeIntersections();
+
+    // Helpers
+    static bool IsClose(double a, double b, double tol = 1e-12);
+    static std::vector<double> MakeBreaks(double a, double b, double s, int nHint);
+    static std::vector<double> UnionBreaks(const std::vector<double>& rA, const std::vector<double>& rB);
 
     // Create body-fitted conditions (quadrature-point geometries) on a set of
     // parametric sub-intervals along an existing BREP edge.
@@ -110,15 +116,15 @@ private:
         const std::vector<GeometryPointerType>& rBrepCurves,
         ModelPart& rTargetSubModelPart,
         const std::string& rConditionName,
-        SizeType ip_per_span = -1 /*optional: if >0, uses GRID with that many IP/span*/);
+        SizeType ipPerSpan = -1 /*optional: if >0, uses GRID with that many IP/span*/);
 
     void CreateConditionsFromBrepCurvesWithMirroredNeighbours(
         const std::vector<GeometryPointerType>& rBrepCurvesPrimary,
         const std::vector<GeometryPointerType>& rBrepCurvesMirror,
         ModelPart& rTargetSubModelPart,
         const std::string& rConditionName,
-        SizeType ip_per_span,          // force same #IPs on both sides
-        SizeType deriv_order,          // usually 1 for interface lines
+        SizeType ipPerSpan,          // force same #IPs on both sides
+        SizeType derivOrder,         // usually 1 for interface lines
         const Vector& rEffectiveKnotSpanSizes
     );
 

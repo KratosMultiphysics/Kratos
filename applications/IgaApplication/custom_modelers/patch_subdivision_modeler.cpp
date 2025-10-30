@@ -103,7 +103,7 @@ void PatchSubdivisionModeler::SetupModelPart()
     std::unordered_map<std::string, std::vector<std::string>> condition_name_to_model_parts;
 
     // Centralized validation, logging, subdivision, and global corners write.
-    ModelPart& r_model_part = InitializeSetup_(
+    ModelPart& r_model_part = InitializeSetup(
         r_parameters,
         geometry_base,
         analysis_base,
@@ -124,7 +124,7 @@ void PatchSubdivisionModeler::SetupModelPart()
     // One call per subdomain
     for (std::size_t i_patch = 0; i_patch < mSubdomains.size(); ++i_patch) {
         const auto& rect = mSubdomains[i_patch];
-        ProcessPatch_(
+        ProcessPatch(
             i_patch,
             rect,
             geometry_base,
@@ -170,22 +170,19 @@ void PatchSubdivisionModeler::SetupModelPart()
     std::sort(targets.begin(), targets.end());
     targets.erase(std::unique(targets.begin(), targets.end()), targets.end());
 
-    // Create unique sub_model_parts for each analysis target
-    // this->BuildGlobalSubModelParts(r_model_part, targets);
-
 }
 
 // Validates inputs, prepares defaults, gathers analysis targets,
 // logs, generates subdivision, and writes PARAMETER_SPACE_CORNERS on the main ModelPart.
-ModelPart& PatchSubdivisionModeler::InitializeSetup_(
-    Parameters& r_parameters,
+ModelPart& PatchSubdivisionModeler::InitializeSetup(
+    Parameters& rParameters,
     Parameters& rGeometryBaseOut,
     Parameters& rAnalysisBaseOut,
     std::vector<std::string>& rAnalysisTargetsOut,
     std::unordered_map<std::string, std::vector<std::string>>& rCondNameToPartsOut)
 {
     // Required: model part name
-    const std::string& model_part_name = r_parameters["model_part_name"].GetString();
+    const std::string& model_part_name = rParameters["model_part_name"].GetString();
     KRATOS_ERROR_IF(model_part_name.empty())
         << "PatchSubdivisionModeler: \"model_part_name\" must be specified." << std::endl;
 
@@ -205,21 +202,21 @@ ModelPart& PatchSubdivisionModeler::InitializeSetup_(
     }
 
     // Echo level
-    const int echo_level_input = r_parameters["echo_level"].GetInt();
+    const int echo_level_input = rParameters["echo_level"].GetInt();
     mEchoLevel = static_cast<SizeType>(echo_level_input);
 
     // Presence flags for geometry/analysis blocks
     const bool has_geometry_params =
-        r_parameters.Has("geometry_parameters") &&
-        r_parameters["geometry_parameters"].Has("model_part_name");
+        rParameters.Has("geometry_parameters") &&
+        rParameters["geometry_parameters"].Has("model_part_name");
 
     const bool has_analysis_params =
-        r_parameters.Has("analysis_parameters") &&
-        r_parameters["analysis_parameters"].Has("analysis_model_part_name");
+        rParameters.Has("analysis_parameters") &&
+        rParameters["analysis_parameters"].Has("analysis_model_part_name");
 
     // Copy base parameter blocks as working templates
-    if (has_geometry_params) rGeometryBaseOut = r_parameters["geometry_parameters"];
-    if (has_analysis_params) rAnalysisBaseOut = r_parameters["analysis_parameters"];
+    if (has_geometry_params) rGeometryBaseOut = rParameters["geometry_parameters"];
+    if (has_analysis_params) rAnalysisBaseOut = rParameters["analysis_parameters"];
 
     // Small utility: set default vector if missing or empty
     const auto assign_default_vector = [](Parameters& p, const std::string& key, const Vector& def) {
@@ -230,8 +227,8 @@ ModelPart& PatchSubdivisionModeler::InitializeSetup_(
 
     // Ensure geometry base has consistent UVW/XYZ bounds defaults
     if (has_geometry_params) {
-        const Vector base_lower_uvw = r_parameters["base_domain"]["lower_point_uvw"].GetVector();
-        const Vector base_upper_uvw = r_parameters["base_domain"]["upper_point_uvw"].GetVector();
+        const Vector base_lower_uvw = rParameters["base_domain"]["lower_point_uvw"].GetVector();
+        const Vector base_upper_uvw = rParameters["base_domain"]["upper_point_uvw"].GetVector();
 
         if (!rGeometryBaseOut.Has("model_part_name") ||
             rGeometryBaseOut["model_part_name"].GetString().empty()) {
@@ -268,54 +265,52 @@ ModelPart& PatchSubdivisionModeler::InitializeSetup_(
         rAnalysisTargetsOut.swap(targets);
     }
 
-    // Verbose logging (unchanged semantics)
+    // Verbose logging (unchanged semantics) // TO BE DELETED FOR PR
     if (mEchoLevel > 2) {
-        KRATOS_INFO("PatchSubdivisionModeler")
+        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
             << "SetupModelPart for model part '" << model_part_name << "'" << std::endl;
-        KRATOS_INFO("PatchSubdivisionModeler")
+        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
             << "  echo_level ............: " << mEchoLevel << std::endl;
 
-        const auto& base_lower = r_parameters["base_domain"]["lower_point_uvw"].GetVector();
-        const auto& base_upper = r_parameters["base_domain"]["upper_point_uvw"].GetVector();
-        KRATOS_INFO("PatchSubdivisionModeler")
+        const auto& base_lower = rParameters["base_domain"]["lower_point_uvw"].GetVector();
+        const auto& base_upper = rParameters["base_domain"]["upper_point_uvw"].GetVector();
+        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
             << "  base_domain UV ........: [" << base_lower[0] << ", " << base_upper[0]
             << "] x [" << base_lower[1] << ", " << base_upper[1] << "]" << std::endl;
 
-        const auto& refinement_array = r_parameters["refinement_regions"];
-        KRATOS_INFO("PatchSubdivisionModeler")
+        const auto& refinement_array = rParameters["refinement_regions"];
+        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
             << "  refinement_regions ....: " << refinement_array.size() << std::endl;
         for (IndexType i = 0; i < refinement_array.size(); ++i) {
             const auto& lower = refinement_array[i]["lower_point_uvw"].GetVector();
             const auto& upper = refinement_array[i]["upper_point_uvw"].GetVector();
-            KRATOS_INFO("PatchSubdivisionModeler")
+            KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
                 << "    - region " << i + 1 << " -> [" << lower[0] << ", " << upper[0]
                 << "] x [" << lower[1] << ", " << upper[1] << "]" << std::endl;
         }
 
-        KRATOS_INFO("PatchSubdivisionModeler")
+        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
             << "  geometry_parameters ...: " << (has_geometry_params ? "provided" : "not provided") << std::endl;
         if (has_geometry_params)
-            KRATOS_INFO("PatchSubdivisionModeler") << rGeometryBaseOut.PrettyPrintJsonString() << std::endl;
+            KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2) << rGeometryBaseOut.PrettyPrintJsonString() << std::endl;
 
-        KRATOS_INFO("PatchSubdivisionModeler")
+        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
             << "  analysis_parameters ...: " << (has_analysis_params ? "provided" : "not provided") << std::endl;
         if (has_analysis_params)
-            KRATOS_INFO("PatchSubdivisionModeler") << rAnalysisBaseOut.PrettyPrintJsonString() << std::endl;
+            KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2) << rAnalysisBaseOut.PrettyPrintJsonString() << std::endl;
     }
 
     // Build subdomains based on inputs
     GenerateSubdivision();
 
-    if (mEchoLevel > 0) {
-        KRATOS_INFO("PatchSubdivisionModeler")
-            << "Generated " << mSubdomains.size() << " subdomains" << std::endl;
+    KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 0)
+        << "Generated " << mSubdomains.size() << " subdomains" << std::endl;
 
-        if (mEchoLevel > 1) {
-            for (std::size_t i = 0; i < mSubdomains.size(); ++i) {
-                const auto& rect = mSubdomains[i];
-                KRATOS_INFO("PatchSubdivisionModeler")
-                    << "  Subdomain " << i + 1 << ": " << RectangleToString(rect) << std::endl;
-            }
+    if (mEchoLevel > 1) {
+        for (std::size_t i = 0; i < mSubdomains.size(); ++i) {
+            const auto& rect = mSubdomains[i];
+            KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 1)
+                << "  Subdomain " << i + 1 << ": " << RectangleToString(rect) << std::endl;
         }
     }
 
@@ -328,11 +323,9 @@ ModelPart& PatchSubdivisionModeler::InitializeSetup_(
         data[2] = rect[V_MIN]; data[3] = rect[V_MAX];
         rectangles_data.push_back(std::move(data));
     }
-    if (mEchoLevel > 2) {
-        KRATOS_INFO("PatchSubdivisionModeler")
-            << "Assigning " << rectangles_data.size()
-            << " rectangles to PARAMETER_SPACE_CORNERS" << std::endl;
-    }
+    KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+        << "Assigning " << rectangles_data.size()
+        << " rectangles to PARAMETER_SPACE_CORNERS" << std::endl;
     r_model_part.SetValue(PARAMETER_SPACE_CORNERS, rectangles_data);
 
     return r_model_part;
@@ -340,37 +333,35 @@ ModelPart& PatchSubdivisionModeler::InitializeSetup_(
 
 // Handles one subdomain: builds geometry and analysis for a single patch,
 // applies overrides (knot spans, polynomial order), classifies BREP edges,
-void PatchSubdivisionModeler::ProcessPatch_(
-    std::size_t i_patch,
-    const RectType& rect,
-    const Parameters& geometry_base,
-    const Parameters& analysis_base,
-    const std::vector<std::string>& analysis_target_submodel_parts,
-    const std::unordered_map<std::string, std::vector<std::string>>& condition_name_to_model_parts,
-    ModelPart& r_parent_model_part,
-    const std::string& prefix)
+void PatchSubdivisionModeler::ProcessPatch(
+    std::size_t iPatch,
+    const RectType& rRect,
+    const Parameters& rGeometryBase,
+    const Parameters& rAnalysisBase,
+    const std::vector<std::string>& rAnalysisTargetSubmodelParts,
+    const std::unordered_map<std::string, std::vector<std::string>>& rConditionNameToModelParts,
+    ModelPart& rParentModelPart,
+    const std::string& rPrefix)
 {
     // Patch naming
-    const std::string patch_suffix = prefix + std::to_string(i_patch + 1);
-    ModelPart& r_patch_model_part = r_parent_model_part.HasSubModelPart(patch_suffix)
-        ? r_parent_model_part.GetSubModelPart(patch_suffix)
-        : r_parent_model_part.CreateSubModelPart(patch_suffix);
-    const std::string patch_full_name = r_patch_model_part.FullName(); // HEREEEEE
+    const std::string patch_suffix = rPrefix + std::to_string(iPatch + 1);
+    ModelPart& r_patch_model_part = rParentModelPart.HasSubModelPart(patch_suffix)
+        ? rParentModelPart.GetSubModelPart(patch_suffix)
+        : rParentModelPart.CreateSubModelPart(patch_suffix);
+    const std::string patch_full_name = r_patch_model_part.FullName();
 
-    if (mEchoLevel > 2) {
-        KRATOS_INFO("PatchSubdivisionModeler")
-            << "-- Debug: entering patch loop for " << patch_full_name << std::endl;
-    }
+    KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+        << "-- Debug: entering patch loop for " << patch_full_name << std::endl;
 
     // Identify matching refinement region (if any)
     const RefinementRegionData* p_refinement_region = nullptr;
     {
         const double tol = 1e-12;
         for (const auto& r_region : mRefinementRegions) {
-            if ((rect[U_MIN] >= r_region.Rectangle[U_MIN] - tol) &&
-                (rect[U_MAX] <= r_region.Rectangle[U_MAX] + tol) &&
-                (rect[V_MIN] >= r_region.Rectangle[V_MIN] - tol) &&
-                (rect[V_MAX] <= r_region.Rectangle[V_MAX] + tol)) {
+            if ((rRect[U_MIN] >= r_region.Rectangle[U_MIN] - tol) &&
+                (rRect[U_MAX] <= r_region.Rectangle[U_MAX] + tol) &&
+                (rRect[V_MIN] >= r_region.Rectangle[V_MIN] - tol) &&
+                (rRect[V_MAX] <= r_region.Rectangle[V_MAX] + tol)) {
                 p_refinement_region = &r_region;
                 break;
             }
@@ -378,34 +369,30 @@ void PatchSubdivisionModeler::ProcessPatch_(
     }
 
     // SBM is applicable only if a refinement region matched AND skin data is configured
-    const bool has_skin_data = geometry_base.Has("skin_model_part_name") &&
-                               (geometry_base.Has("skin_model_part_outer_initial_name") ||
-                                geometry_base.Has("skin_model_part_inner_initial_name"));
+    const bool has_skin_data = rGeometryBase.Has("skin_model_part_name") &&
+                               (rGeometryBase.Has("skin_model_part_outer_initial_name") ||
+                                rGeometryBase.Has("skin_model_part_inner_initial_name"));
     
     // Check if the inner skin (if provided) is fully inside this patch
     bool skin_fully_inside = true;
-    if (geometry_base.Has("skin_model_part_inner_initial_name")) {
-        const std::string inner_skin_name = geometry_base["skin_model_part_inner_initial_name"].GetString();
-        skin_fully_inside = IsSkinFullyInsidePatch_(inner_skin_name, rect, geometry_base);
-        if (mEchoLevel > 2) {
-            KRATOS_INFO("PatchSubdivisionModeler")
-                << "  Skin containment (inner='" << inner_skin_name << "'): "
-                << (skin_fully_inside ? "inside" : "outside") << std::endl;
-        }
+    if (rGeometryBase.Has("skin_model_part_inner_initial_name")) {
+        const std::string inner_skin_name = rGeometryBase["skin_model_part_inner_initial_name"].GetString();
+        skin_fully_inside = IsSkinFullyInsidePatch(inner_skin_name, rRect, rGeometryBase);
+        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+            << "  Skin containment (inner='" << inner_skin_name << "'): "
+            << (skin_fully_inside ? "inside" : "outside") << std::endl;
     }
 
     bool use_sbm_for_this_patch = (p_refinement_region != nullptr) && has_skin_data && skin_fully_inside;
 
-    if (mEchoLevel > 2) {
-        KRATOS_INFO("PatchSubdivisionModeler")
-            << "Creating/Updating patch '" << patch_full_name << "' from subdomain "
-            << RectangleToString(rect) << std::endl;
-        KRATOS_INFO("PatchSubdivisionModeler")
-            << "  Patch classification ....: " << (use_sbm_for_this_patch ? "refined" : "body-fitted") << std::endl;
-        if (!has_skin_data && p_refinement_region != nullptr) {
-            KRATOS_INFO("PatchSubdivisionModeler")
-                << "  Note: missing skin_model_part definitions -> surrogate workflow disabled." << std::endl;
-        }
+    KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+        << "Creating/Updating patch '" << patch_full_name << "' from subdomain "
+        << RectangleToString(rRect) << std::endl;
+    KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+        << "  Patch classification ....: " << (use_sbm_for_this_patch ? "refined" : "body-fitted") << std::endl;
+    if (!has_skin_data && p_refinement_region != nullptr) {
+        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+            << "  Note: missing skin_model_part definitions -> surrogate workflow disabled." << std::endl;
     }
 
     // Snapshot geometry IDs before generation (to detect new ones)
@@ -416,23 +403,23 @@ void PatchSubdivisionModeler::ProcessPatch_(
     }
 
     // Clone base geometry parameters, scope to this patch
-    Parameters patch_geometry = geometry_base.Clone();
+    Parameters patch_geometry = rGeometryBase.Clone();
     patch_geometry["model_part_name"].SetString(patch_full_name);
 
     // Assign UVW bounds for the patch
     Vector patch_lower_uvw = patch_geometry["lower_point_uvw"].GetVector();
     Vector patch_upper_uvw = patch_geometry["upper_point_uvw"].GetVector();
-    patch_lower_uvw[0] = rect[U_MIN]; patch_upper_uvw[0] = rect[U_MAX];
-    patch_lower_uvw[1] = rect[V_MIN]; patch_upper_uvw[1] = rect[V_MAX];
+    patch_lower_uvw[0] = rRect[U_MIN]; patch_upper_uvw[0] = rRect[U_MAX];
+    patch_lower_uvw[1] = rRect[V_MIN]; patch_upper_uvw[1] = rRect[V_MAX];
     patch_geometry["lower_point_uvw"].SetVector(patch_lower_uvw);
     patch_geometry["upper_point_uvw"].SetVector(patch_upper_uvw);
 
     // Map UVW fractions into XYZ using base box and base UVW
-    const auto& base_lower_xyz = geometry_base["lower_point_xyz"].GetVector();
-    const auto& base_upper_xyz = geometry_base["upper_point_xyz"].GetVector();
-    const auto& base_lower_uvw = geometry_base["lower_point_uvw"].GetVector();
-    const auto& base_upper_uvw = geometry_base["upper_point_uvw"].GetVector();
-    const auto& base_spans    = geometry_base["number_of_knot_spans"].GetVector();
+    const auto& base_lower_xyz = rGeometryBase["lower_point_xyz"].GetVector();
+    const auto& base_upper_xyz = rGeometryBase["upper_point_xyz"].GetVector();
+    const auto& base_lower_uvw = rGeometryBase["lower_point_uvw"].GetVector();
+    const auto& base_upper_uvw = rGeometryBase["upper_point_uvw"].GetVector();
+    const auto& base_spans    = rGeometryBase["number_of_knot_spans"].GetVector();
 
     const double base_u_length = base_upper_uvw[0] - base_lower_uvw[0];
     const double base_v_length = base_upper_uvw[1] - base_lower_uvw[1];
@@ -440,10 +427,10 @@ void PatchSubdivisionModeler::ProcessPatch_(
     Vector patch_lower_xyz = patch_geometry["lower_point_xyz"].GetVector();
     Vector patch_upper_xyz = patch_geometry["upper_point_xyz"].GetVector();
 
-    const double u_fraction_min = (rect[U_MIN] - base_lower_uvw[0]) / base_u_length;
-    const double u_fraction_max = (rect[U_MAX] - base_lower_uvw[0]) / base_u_length;
-    const double v_fraction_min = (rect[V_MIN] - base_lower_uvw[1]) / base_v_length;
-    const double v_fraction_max = (rect[V_MAX] - base_lower_uvw[1]) / base_v_length;
+    const double u_fraction_min = (rRect[U_MIN] - base_lower_uvw[0]) / base_u_length;
+    const double u_fraction_max = (rRect[U_MAX] - base_lower_uvw[0]) / base_u_length;
+    const double v_fraction_min = (rRect[V_MIN] - base_lower_uvw[1]) / base_v_length;
+    const double v_fraction_max = (rRect[V_MAX] - base_lower_uvw[1]) / base_v_length;
 
     // Keep Z as-is, interpolate X and Y
     patch_lower_xyz[0] = base_lower_xyz[0] + u_fraction_min * (base_upper_xyz[0] - base_lower_xyz[0]);
@@ -473,8 +460,8 @@ void PatchSubdivisionModeler::ProcessPatch_(
     Vector patch_spans = patch_geometry["number_of_knot_spans"].GetVector();
     const int base_span_u = static_cast<int>(base_spans[0]);
     const int base_span_v = static_cast<int>(base_spans[1]);
-    const double u_ratio  = (rect[U_MAX] - rect[U_MIN]) / base_u_length;
-    const double v_ratio  = (rect[V_MAX] - rect[V_MIN]) / base_v_length;
+    const double u_ratio  = (rRect[U_MAX] - rRect[U_MIN]) / base_u_length;
+    const double v_ratio  = (rRect[V_MAX] - rRect[V_MIN]) / base_v_length;
     patch_spans[0] = std::max(1, static_cast<int>(std::round(u_ratio * base_span_u)));
     patch_spans[1] = std::max(1, static_cast<int>(std::round(v_ratio * base_span_v)));
 
@@ -506,23 +493,12 @@ void PatchSubdivisionModeler::ProcessPatch_(
     }
 
     // Write PARAMETER_SPACE_CORNERS for this patch (vector and matrix forms)
-    {
-        std::vector<Vector> patch_parameter_corners(2);
-        patch_parameter_corners[0].resize(2);
-        patch_parameter_corners[1].resize(2);
-        patch_parameter_corners[0][0] = patch_lower_uvw[0];
-        patch_parameter_corners[0][1] = patch_upper_uvw[0];
-        patch_parameter_corners[1][0] = patch_lower_uvw[1];
-        patch_parameter_corners[1][1] = patch_upper_uvw[1];
-        r_patch_model_part.SetValue(PARAMETER_SPACE_CORNERS, patch_parameter_corners);
-
-        Matrix patch_parameter_corners_matrix(2, 2, 0.0);
-        patch_parameter_corners_matrix(0,0) = patch_lower_uvw[0];
-        patch_parameter_corners_matrix(0,1) = patch_upper_uvw[0];
-        patch_parameter_corners_matrix(1,0) = patch_lower_uvw[1];
-        patch_parameter_corners_matrix(1,1) = patch_upper_uvw[1];
-        r_patch_model_part.SetValue(PATCH_PARAMETER_SPACE_CORNERS, patch_parameter_corners_matrix);
-    }
+    Matrix patch_parameter_corners_matrix(2, 2, 0.0);
+    patch_parameter_corners_matrix(0,0) = patch_lower_uvw[0];
+    patch_parameter_corners_matrix(0,1) = patch_upper_uvw[0];
+    patch_parameter_corners_matrix(1,0) = patch_lower_uvw[1];
+    patch_parameter_corners_matrix(1,1) = patch_upper_uvw[1];
+    r_patch_model_part.SetValue(PATCH_PARAMETER_SPACE_CORNERS, patch_parameter_corners_matrix);
 
     // Polynomial order override from refinement region, if any
     if (p_refinement_region && p_refinement_region->HasPolynomialOrder) {
@@ -535,13 +511,11 @@ void PatchSubdivisionModeler::ProcessPatch_(
         patch_geometry["polynomial_order"].SetVector(patch_order);
     }
 
-    if (mEchoLevel > 0) {
-        KRATOS_INFO("PatchSubdivisionModeler")
-            << "  Divisions (u, v) .......: ["
-            << static_cast<int>(patch_spans[0]) << ", "
-            << static_cast<int>(patch_spans[1]) << "]"
-            << (use_sbm_for_this_patch ? " [refined]" : "") << std::endl;
-    }
+    KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 1)
+        << "  Divisions (u, v) .......: ["
+        << static_cast<int>(patch_spans[0]) << ", "
+        << static_cast<int>(patch_spans[1]) << "]"
+        << (use_sbm_for_this_patch ? " [refined]" : "") << std::endl;
 
     // Generate geometry for this patch
     {
@@ -551,26 +525,9 @@ void PatchSubdivisionModeler::ProcessPatch_(
         geometry_modeler.SetupModelPart();
     }
 
-    // Detect newly created geometries for BREP classification
-    std::vector<ModelPart::IndexType> new_patch_geometry_ids;
-    {
-        std::vector<ModelPart::IndexType> patch_geometry_ids_after;
-        patch_geometry_ids_after.reserve(r_patch_model_part.NumberOfGeometries());
-        for (const auto& r_geom : r_patch_model_part.Geometries()) {
-            patch_geometry_ids_after.push_back(r_geom.Id());
-        }
-        for (const auto id : patch_geometry_ids_after) {
-            if (std::find(patch_geometry_ids_before.begin(), patch_geometry_ids_before.end(), id) ==
-                patch_geometry_ids_before.end()) {
-                new_patch_geometry_ids.push_back(id);
-            }
-        }
-        std::sort(patch_geometry_ids_after.begin(), patch_geometry_ids_after.end());
-    }
-
     // If analysis parameters exist, build per-patch analysis parameters and run IGA modeler
-    if (analysis_base.Has("analysis_model_part_name")) {
-        Parameters patch_analysis = analysis_base.Clone();
+    if (rAnalysisBase.Has("analysis_model_part_name")) {
+        Parameters patch_analysis = rAnalysisBase.Clone();
         patch_analysis["analysis_model_part_name"].SetString(patch_full_name);
 
         // Rebuild element_condition_list for this patch:
@@ -581,12 +538,11 @@ void PatchSubdivisionModeler::ProcessPatch_(
             Parameters condition_list = patch_analysis["element_condition_list"];
             Parameters reduced("[]");
 
-            // --- keep elements as-is (ensure geometry_type)
+            // --- keep elements as-is
             for (IndexType i = 0; i < condition_list.size(); ++i) {
                 const Parameters e = condition_list[i];
                 if (e.Has("type") && e["type"].IsString() && e["type"].GetString() == "element") {
                     Parameters elem = e.Clone();
-                    if (!elem.Has("geometry_type")) elem.AddEmptyValue("geometry_type").SetString("GeometrySurface");
                     reduced.Append(elem);
                 }
             }
@@ -598,25 +554,21 @@ void PatchSubdivisionModeler::ProcessPatch_(
             auto has_mp = [](const Parameters& c)->bool {
                 return c.Has("iga_model_part") && c["iga_model_part"].IsString();
             };
-            auto to_lower = [](std::string s){ std::transform(s.begin(), s.end(), s.begin(),
-                                        [](unsigned char ch){ return static_cast<char>(std::tolower(ch)); }); return s; };
 
             Parameters ext_tmpl, int_tmpl;
             bool has_ext = false, has_int = false;
 
-            // heuristic by name contains "outer/external" vs "inner/internal", else by first/second occurrence
+            // boundary_role if provided ("external" or "internal")
             for (IndexType i = 0; i < condition_list.size(); ++i) {
                 const Parameters c = condition_list[i];
-                if (!is_edge_cond(c) || !has_mp(c)) continue;
-                const std::string mp = c["iga_model_part"].GetString();
-                const std::string l  = to_lower(mp);
-                if (!has_ext && (l.find("outer") != std::string::npos || l.find("external") != std::string::npos)) {
-                    ext_tmpl = c.Clone(); has_ext = true; continue;
-                }
-                if (!has_int && (l.find("inner") != std::string::npos || l.find("internal") != std::string::npos)) {
-                    int_tmpl = c.Clone(); has_int = true; continue;
+                if (!is_edge_cond(c)) continue;
+                if (c.Has("boundary_role") && c["boundary_role"].IsString()) {
+                    const std::string role = c["boundary_role"].GetString();
+                    if (!has_ext && role == "external") { ext_tmpl = c.Clone(); has_ext = true; }
+                    else if (!has_int && role == "internal") { int_tmpl = c.Clone(); has_int = true; }
                 }
             }
+
             // positional fallback if keywords not found
             for (IndexType i = 0; (i < condition_list.size()) && (!has_ext || !has_int); ++i) {
                 const Parameters c = condition_list[i];
@@ -628,115 +580,16 @@ void PatchSubdivisionModeler::ProcessPatch_(
             if (!has_ext && has_int)  { ext_tmpl = int_tmpl.Clone(); has_ext = true; }
             if (!has_int && has_ext)  { int_tmpl = ext_tmpl.Clone(); has_int = true; }
 
-            // --- classify edges once per patch (do NOT sort IDs, keep creation order)
-            const auto is_close = [](double a, double b) {
-                constexpr double tol = 1e-10;
-                return std::abs(a - b) <= tol * (1.0 + std::max(std::abs(a), std::abs(b)));
-            };
-            const bool is_bottom_external = is_close(patch_lower_uvw[1], base_lower_uvw[1]);
-            const bool is_top_external    = is_close(patch_upper_uvw[1], base_upper_uvw[1]);
-            const bool is_right_external  = is_close(patch_upper_uvw[0], base_upper_uvw[0]);
-            const bool is_left_external   = is_close(patch_lower_uvw[0], base_lower_uvw[0]);
+            // Classify patch edges and append external entry to reduced list
+            ClassifyAndAppendBrepEdges(
+                patch_lower_uvw, patch_upper_uvw,
+                base_lower_uvw, base_upper_uvw,
+                r_patch_model_part,
+                ext_tmpl, int_tmpl,
+                reduced);
 
-            ModelPart::IndexType surface_id = 0;
-            std::vector<ModelPart::IndexType> brep_ids;
-            brep_ids.reserve(r_patch_model_part.NumberOfGeometries());
-            for (const auto& r_geom : r_patch_model_part.Geometries()) {
-                const int ws_dim = r_geom.WorkingSpaceDimension(); // 2 for surface, 1 for edge
-                if (ws_dim >= 2 && surface_id == 0) { surface_id = r_geom.Id(); continue; }
-                brep_ids.push_back(r_geom.Id());
-            }
-
-            std::vector<ModelPart::IndexType> external_ids, internal_ids;
-            for (std::size_t edge_idx = 0; edge_idx < brep_ids.size(); ++edge_idx) {
-                const auto id = brep_ids[edge_idx];
-                bool ext = false;
-                switch (edge_idx) {
-                    case 0: ext = is_bottom_external; break;
-                    case 1: ext = is_right_external;  break;
-                    case 2: ext = is_top_external;    break;
-                    case 3: ext = is_left_external;   break;
-                    default: ext = false;             break;
-                }
-                (ext ? external_ids : internal_ids).push_back(id);
-            }
-
-            const auto set_brep_ids = [](Parameters& p, const std::vector<ModelPart::IndexType>& ids){
-                if (p.Has("brep_ids")) p.RemoveValue("brep_ids");
-                if (!ids.empty()) {
-                    Vector v(static_cast<int>(ids.size()));
-                    for (std::size_t i = 0; i < ids.size(); ++i) v[i] = static_cast<double>(ids[i]);
-                    p.AddEmptyValue("brep_ids").SetVector(v);
-                }
-            };
-
-            if (!external_ids.empty()) {
-                Parameters ext = ext_tmpl.Clone();
-                if (!ext.Has("geometry_type")) ext.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
-                // keep whatever condition "name" and order the external template specified
-                set_brep_ids(ext, external_ids);
-                // optionally normalize model part name:
-                // ext["iga_model_part"].SetString("external_boundaries");
-                reduced.Append(ext);
-            }
-
-            if (!internal_ids.empty()) {
-                Parameters in = int_tmpl.Clone();
-                if (!in.Has("geometry_type")) in.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
-                // keep internal template "name" and order (can differ from external)
-                set_brep_ids(in, internal_ids);
-            }
-
-            
             if (use_sbm_for_this_patch) {
-                // For SBM patches: start from the computed body-fitted list (reduced)
-                // and append only the original conditions that have sbm_parameters.
-                Parameters reduced_sbm_first_stage("[]");
-                for (IndexType i = 0; i < reduced.size(); ++i) {
-                    reduced_sbm_first_stage.Append(reduced[i]);
-                }
-
-                auto is_cond_1 = [](const Parameters& c)->bool {
-                    return c.Has("type") && c["type"].IsString() && c["type"].GetString() == "condition";
-                };
-
-                // condition_list contains the original per-analysis list from inputs
-                for (IndexType i = 0; i < condition_list.size(); ++i) {
-                    Parameters e = condition_list[i].Clone();
-                    if (!is_cond_1(e)) continue;
-                    if (!e.Has("sbm_parameters")) continue;
-                    if (!e.Has("geometry_type")) e.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
-                    reduced_sbm_first_stage.Append(e);
-                }
-                patch_analysis["element_condition_list"] = reduced_sbm_first_stage;
-                
-                Parameters full_list = reduced_sbm_first_stage;
-
-                // SBM patch: keep elements and only conditions with sbm_parameters or non-empty brep_ids
-                Parameters reduced_sbm("[]");
-
-                auto is_cond = [](const Parameters& c)->bool {
-                    return c.Has("type") && c["type"].IsString() && c["type"].GetString() == "condition";
-                };
-
-                for (IndexType i = 0; i < full_list.size(); ++i) {
-                    Parameters e = full_list[i].Clone();
-                    if (e.Has("type") && e["type"].IsString() && e["type"].GetString() == "element") {
-                        if (!e.Has("geometry_type")) e.AddEmptyValue("geometry_type").SetString("GeometrySurface");
-                        reduced_sbm.Append(e);
-                        continue;
-                    }
-                    if (!is_cond(e)) continue;
-                    const bool has_sbm = e.Has("sbm_parameters");
-                    bool has_brep = false;
-                    if (e.Has("brep_ids") && e["brep_ids"].IsArray()) {
-                        has_brep = (e["brep_ids"].size() > 0);
-                    }
-                    if (has_sbm || has_brep) {
-                        if (!e.Has("geometry_type")) e.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
-                        reduced_sbm.Append(e);
-                    }
-                }
+                Parameters reduced_sbm = BuildSbmElementConditionList(condition_list, reduced);
                 patch_analysis["element_condition_list"] = reduced_sbm;
             } else {
                 // body-fitted patch
@@ -745,16 +598,15 @@ void PatchSubdivisionModeler::ProcessPatch_(
             
         }
 
-        // Run IGA modeler for this patch
+        // Run IGA modeler sbm for this patch
         {
-            KRATOS_INFO_IF("PatchSubdivisionModeler::  \n", mEchoLevel > 1)
+            KRATOS_INFO_IF("PatchSubdivisionModeler::  \n", mEchoLevel > 2)
                 << patch_analysis << std::endl;
-            IgaModelerSbm iga_modeler(*mpModel, patch_analysis);
-            iga_modeler.SetupModelPart();
+            IgaModelerSbm iga_modeler_sbm(*mpModel, patch_analysis);
+            iga_modeler_sbm.SetupModelPart();
         }
         
     } else {
-        // Original behavior: analysis parameters missing is an error at this point
         KRATOS_ERROR << "PatchSubdivisionModeler: missing analysis parameters in input." << std::endl;
     }
 
@@ -774,10 +626,8 @@ void PatchSubdivisionModeler::GenerateSubdivision()
 
     RectangleType base_rect{base_lower[0], base_upper[0], base_lower[1], base_upper[1]};
 
-    if (mEchoLevel > 2) {
-        KRATOS_INFO("PatchSubdivisionModeler")
-            << "GenerateSubdivision -> base rectangle: " << RectangleToString(base_rect) << std::endl;
-    }
+    KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+        << "GenerateSubdivision -> base rectangle: " << RectangleToString(base_rect) << std::endl;
 
     std::set<double> u_breaks{base_rect[U_MIN], base_rect[U_MAX]};
     std::set<double> v_breaks{base_rect[V_MIN], base_rect[V_MAX]};
@@ -790,16 +640,16 @@ void PatchSubdivisionModeler::GenerateSubdivision()
         RectangleType region{ref_lower[0], ref_upper[0], ref_lower[1], ref_upper[1]};
         RectangleType clipped = ClipRectangle(region, base_rect);
         if (mEchoLevel > 2) {
-            KRATOS_INFO("PatchSubdivisionModeler")
+            KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
                 << "  Refinement region " << i + 1 << " requested: " << RectangleToString(region) << std::endl;
             if (!HasPositiveArea(clipped)) {
-                KRATOS_INFO("PatchSubdivisionModeler")
+                KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
                     << "    -> skipped (no overlap with base domain)." << std::endl;
             } else if (clipped != region) {
-                KRATOS_INFO("PatchSubdivisionModeler")
+                KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
                     << "    -> clipped to: " << RectangleToString(clipped) << std::endl;
             } else {
-                KRATOS_INFO("PatchSubdivisionModeler")
+                KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
                     << "    -> used as provided." << std::endl;
             }
         }
@@ -851,14 +701,14 @@ void PatchSubdivisionModeler::GenerateSubdivision()
         for (const double value : u_values) {
             u_stream << value << " ";
         }
-        KRATOS_INFO("PatchSubdivisionModeler") << u_stream.str() << std::endl;
+        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2) << u_stream.str() << std::endl;
 
         std::ostringstream v_stream;
         v_stream << "  v-breaks: ";
         for (const double value : v_values) {
             v_stream << value << " ";
         }
-        KRATOS_INFO("PatchSubdivisionModeler") << v_stream.str() << std::endl;
+        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2) << v_stream.str() << std::endl;
     }
 
     for (std::size_t i = 0; i + 1 < u_values.size(); ++i) {
@@ -868,51 +718,41 @@ void PatchSubdivisionModeler::GenerateSubdivision()
                 v_values[j], v_values[j + 1]
             };
 
-            if (mEchoLevel > 2) {
-                KRATOS_INFO("PatchSubdivisionModeler")
-                    << "  Candidate cell: " << RectangleToString(rect) << std::endl;
-            }
+            KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+                << "  Candidate cell: " << RectangleToString(rect) << std::endl;
             if (!HasPositiveArea(rect)) {
-                if (mEchoLevel > 2) {
-                    KRATOS_INFO("PatchSubdivisionModeler")
-                        << "    -> discarded (zero area)." << std::endl;
-                }
+                KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+                    << "    -> discarded (zero area)." << std::endl;
                 continue;
             }
 
             rect = ClipRectangle(rect, base_rect);
             if (!HasPositiveArea(rect)) {
-                if (mEchoLevel > 2) {
-                    KRATOS_INFO("PatchSubdivisionModeler")
-                        << "    -> discarded after clipping (outside base domain)." << std::endl;
-                }
+                KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+                    << "    -> discarded after clipping (outside base domain)." << std::endl;
                 continue;
             }
 
-            if (mEchoLevel > 2) {
-                KRATOS_INFO("PatchSubdivisionModeler")
-                    << "    -> accepted: " << RectangleToString(rect) << std::endl;
-            }
+            KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+                << "    -> accepted: " << RectangleToString(rect) << std::endl;
             mSubdomains.push_back(rect);
         }
     }
 
-    if (mEchoLevel > 2) {
-        KRATOS_INFO("PatchSubdivisionModeler")
-            << "GenerateSubdivision -> total accepted subdomains: " << mSubdomains.size() << std::endl;
-    }
+    KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
+        << "GenerateSubdivision -> total accepted subdomains: " << mSubdomains.size() << std::endl;
 }
 
-bool PatchSubdivisionModeler::IsSkinFullyInsidePatch_(
+bool PatchSubdivisionModeler::IsSkinFullyInsidePatch(
     const std::string& rSkinModelPartName,
-    const RectType& rect,
-    const Parameters& geometry_base) const
+    const RectType& rRect,
+    const Parameters& rGeometryBase) const
 {
     // physical == parameter space: use (u,v) directly
-    const double patch_min_u = rect[U_MIN];
-    const double patch_max_u = rect[U_MAX];
-    const double patch_min_v = rect[V_MIN];
-    const double patch_max_v = rect[V_MAX];
+    const double patch_min_u = rRect[U_MIN];
+    const double patch_max_u = rRect[U_MAX];
+    const double patch_min_v = rRect[V_MIN];
+    const double patch_max_v = rRect[V_MAX];
 
     const ModelPart& r_skin_mp = mpModel->GetModelPart(rSkinModelPartName);
     if (r_skin_mp.NumberOfGeometries() == 0) {
@@ -926,7 +766,7 @@ bool PatchSubdivisionModeler::IsSkinFullyInsidePatch_(
     double skin_max_v = std::numeric_limits<double>::lowest();
 
     const int samples_per_curve = 100; // few points are enough
-    for (const auto& rGeom : r_skin_mp.Geometries()) {
+    for (const auto& r_geom : r_skin_mp.Geometries()) {
         // Assume curve-like geometry with local dimension 1, parameter t in [0,1]
         for (int s = 0; s <= samples_per_curve; ++s) {
             const double t = static_cast<double>(s) / samples_per_curve;
@@ -934,7 +774,7 @@ bool PatchSubdivisionModeler::IsSkinFullyInsidePatch_(
             array_1d<double,3> local;
             local[0] = t; local[1] = 0.0; local[2] = 0.0;
             array_1d<double,3> global;
-            rGeom.GlobalCoordinates(global, local); // returns (x,y,*) == (u,v,*)
+            r_geom.GlobalCoordinates(global, local); // returns (x,y,*) == (u,v,*)
 
             const double u = global[0];
             const double v = global[1];
@@ -953,98 +793,116 @@ bool PatchSubdivisionModeler::IsSkinFullyInsidePatch_(
     return inside_u && inside_v;
 }
 
-void PatchSubdivisionModeler::BuildGlobalSubModelParts(ModelPart& r_parent_model_part, const std::vector<std::string>& rTargetNames) const
+
+void PatchSubdivisionModeler::ClassifyAndAppendBrepEdges(
+    const Vector& rPatchLowerUvw,
+    const Vector& rPatchUpperUvw,
+    const Vector& rBaseLowerUvw,
+    const Vector& rBaseUpperUvw,
+    ModelPart& rPatchModelPart,
+    Parameters& rExtTemplate,
+    Parameters& rIntTemplate,
+    Parameters& rReducedList) const
 {
-    ModelPart& r_root = r_parent_model_part; // your main "IgaModelPart"
+    const auto is_close = [](double a, double b) {
+        constexpr double tol = 1e-10;
+        return std::abs(a - b) <= tol * (1.0 + std::max(std::abs(a), std::abs(b)));
+    };
+    const bool is_bottom_external = is_close(rPatchLowerUvw[1], rBaseLowerUvw[1]);
+    const bool is_top_external    = is_close(rPatchUpperUvw[1], rBaseUpperUvw[1]);
+    const bool is_right_external  = is_close(rPatchUpperUvw[0], rBaseUpperUvw[0]);
+    const bool is_left_external   = is_close(rPatchLowerUvw[0], rBaseLowerUvw[0]);
 
-    for (const std::string& target_name : rTargetNames) {
-        // Create/get the global submodelpart for this target
-        ModelPart& r_global = r_root.HasSubModelPart(target_name)
-            ? r_root.GetSubModelPart(target_name)
-            : r_root.CreateSubModelPart(target_name);
-
-        // Clear previous memberships (does not delete entities from the root)
-        r_global.Elements().clear();
-        r_global.Conditions().clear();
-        r_global.Nodes().clear();
-
-        std::size_t added_elems = 0;
-        std::size_t added_conds = 0;
-        std::size_t added_nodes = 0;
-
-        // Loop all Patch* submodel parts
-        for (auto& rPatch : r_root.SubModelParts()) {
-            const std::string& patch_name = rPatch.Name();
-            if (patch_name.rfind("Patch", 0) != 0) continue; // only Patch*
-
-            // Each patch should have a submodelpart with this target name
-            if (!rPatch.HasSubModelPart(target_name)) {
-                KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
-                    << "Patch '" << patch_name << "' has no '" << target_name << "' — skipping.\n";
-                continue;
-            }
-
-            ModelPart& r_src = rPatch.GetSubModelPart(target_name);
-            if (r_src.NumberOfGeometries() > 0) {
-                r_global.AddGeometries(r_src.GeometriesBegin(), r_src.GeometriesEnd());
-            }
-
-            // 1) Nodes (prefer direct copy; otherwise harvest from elems/conds)
-            if (r_src.NumberOfNodes() > 0) {
-                r_global.AddNodes(r_src.NodesBegin(), r_src.NodesEnd());
-                added_nodes += r_src.NumberOfNodes();
-            } else {
-                // Fallback: gather nodes from geometries (avoid duplicates)
-                std::set<ModelPart::IndexType> seen_ids;
-                for (const auto& rElem : r_src.Elements()) {
-                    const auto& g = rElem.GetGeometry();
-                    for (std::size_t i = 0; i < g.size(); ++i) {
-                        const auto pN = g.pGetPoint(i);
-                        if (pN && seen_ids.insert(pN->Id()).second) {
-                            r_global.Nodes().push_back(pN);
-                        }
-                    }
-                }
-                for (const auto& rCond : r_src.Conditions()) {
-                    const auto& g = rCond.GetGeometry();
-                    for (std::size_t i = 0; i < g.size(); ++i) {
-                        const auto pN = g.pGetPoint(i);
-                        if (pN && seen_ids.insert(pN->Id()).second) {
-                            r_global.Nodes().push_back(pN);
-                        }
-                    }
-                }
-                added_nodes += seen_ids.size();
-            }
-            // 2) Elements
-            if (r_src.NumberOfElements() > 0) {
-                r_global.AddElements(r_src.ElementsBegin(), r_src.ElementsEnd());
-                added_elems += r_src.NumberOfElements();
-            }
-            // 3) Conditions
-            if (r_src.NumberOfConditions() > 0) {
-                r_global.AddConditions(r_src.ConditionsBegin(), r_src.ConditionsEnd());
-                added_conds += r_src.NumberOfConditions();
-            }
-
-
-            KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 2)
-                << "Collected from '" << rPatch.FullName() << "' into global '"
-                << r_global.FullName() << "': elems=" << r_src.NumberOfElements()
-                << ", conds=" << r_src.NumberOfConditions()
-                << ", nodes~=" << r_src.NumberOfNodes() << "\n";
-        }
-
-        KRATOS_INFO_IF("PatchSubdivisionModeler", mEchoLevel > 0)
-            << "[Global '" << target_name << "'] SubModelPart '" << r_global.FullName()
-            << "' now has " << r_global.NumberOfElements() << " elements, "
-            << r_global.NumberOfConditions() << " conditions and "
-            << r_global.NumberOfNodes() << " nodes (inserted ~"
-            << added_elems << " elems, ~" << added_conds << " conds, ~"
-            << added_nodes << " nodes).\n";
-
+    ModelPart::IndexType surface_id = 0;
+    std::vector<ModelPart::IndexType> brep_ids;
+    brep_ids.reserve(rPatchModelPart.NumberOfGeometries());
+    for (const auto& r_geom : rPatchModelPart.Geometries()) {
+        const int ws_dim = r_geom.WorkingSpaceDimension();
+        if (ws_dim >= 2 && surface_id == 0) { surface_id = r_geom.Id(); continue; }
+        brep_ids.push_back(r_geom.Id());
     }
 
+    std::vector<ModelPart::IndexType> external_ids, internal_ids;
+    for (std::size_t edge_idx = 0; edge_idx < brep_ids.size(); ++edge_idx) {
+        const auto id = brep_ids[edge_idx];
+        bool ext = false;
+        switch (edge_idx) {
+            case 0: ext = is_bottom_external; break;
+            case 1: ext = is_right_external;  break;
+            case 2: ext = is_top_external;    break;
+            case 3: ext = is_left_external;   break;
+            default: ext = false;             break;
+        }
+        (ext ? external_ids : internal_ids).push_back(id);
+    }
+
+    const auto set_brep_ids = [](Parameters& p, const std::vector<ModelPart::IndexType>& ids){
+        if (p.Has("brep_ids")) p.RemoveValue("brep_ids");
+        if (!ids.empty()) {
+            Vector v(static_cast<int>(ids.size()));
+            for (std::size_t i = 0; i < ids.size(); ++i) v[i] = static_cast<double>(ids[i]);
+            p.AddEmptyValue("brep_ids").SetVector(v);
+        }
+    };
+
+    if (!external_ids.empty()) {
+        Parameters ext = rExtTemplate.Clone();
+        if (!ext.Has("geometry_type")) ext.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
+        set_brep_ids(ext, external_ids);
+        rReducedList.Append(ext);
+    }
+
+    if (!internal_ids.empty()) {
+        Parameters in = rIntTemplate.Clone();
+        if (!in.Has("geometry_type")) in.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
+        set_brep_ids(in, internal_ids);
+        // note: internal list is not appended here in original logic
+    }
+}
+
+Parameters PatchSubdivisionModeler::BuildSbmElementConditionList(
+    const Parameters& rOriginalConditionList,
+    const Parameters& rBodyFittedReduced) const
+{
+    // Stage 1: start from body-fitted reduced and append original conditions that have sbm_parameters
+    Parameters reduced_sbm_first_stage("[]");
+    for (IndexType i = 0; i < rBodyFittedReduced.size(); ++i) {
+        reduced_sbm_first_stage.Append(rBodyFittedReduced[i]);
+    }
+
+    auto is_cond = [](const Parameters& c)->bool {
+        return c.Has("type") && c["type"].IsString() && c["type"].GetString() == "condition";
+    };
+
+    for (IndexType i = 0; i < rOriginalConditionList.size(); ++i) {
+        Parameters e = rOriginalConditionList[i].Clone();
+        if (!is_cond(e)) continue;
+        if (!e.Has("sbm_parameters")) continue;
+        if (!e.Has("geometry_type")) e.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
+        reduced_sbm_first_stage.Append(e);
+    }
+
+    // Stage 2: keep elements and only conditions with sbm_parameters or non-empty brep_ids
+    Parameters reduced_sbm("[]");
+    for (IndexType i = 0; i < reduced_sbm_first_stage.size(); ++i) {
+        Parameters e = reduced_sbm_first_stage[i].Clone();
+        if (e.Has("type") && e["type"].IsString() && e["type"].GetString() == "element") {
+            if (!e.Has("geometry_type")) e.AddEmptyValue("geometry_type").SetString("GeometrySurface");
+            reduced_sbm.Append(e);
+            continue;
+        }
+        if (!is_cond(e)) continue;
+        const bool has_sbm = e.Has("sbm_parameters");
+        bool has_brep = false;
+        if (e.Has("brep_ids") && e["brep_ids"].IsArray()) {
+            has_brep = (e["brep_ids"].size() > 0);
+        }
+        if (has_sbm || has_brep) {
+            if (!e.Has("geometry_type")) e.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
+            reduced_sbm.Append(e);
+        }
+    }
+    return reduced_sbm;
 }
 
 } // namespace Kratos

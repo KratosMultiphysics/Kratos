@@ -11,36 +11,22 @@
 
 #include "iga_application_variables.h"
 #include "custom_processes/patch_intersection_process.h"
-
-#include "includes/kratos_components.h"
 #include "includes/variables.h"
 #include "integration/integration_point_utilities.h"
 
-#include <algorithm>
-#include <limits>
-
 namespace Kratos {
 
-// --------- small local helpers ---------
-namespace {
-
-struct PatchBox {
-    ModelPart* pPatch{nullptr};
-    std::string name;
-    double u0{}, u1{}, v0{}, v1{};
-    int    nu{1}, nv{1};   // estimated number of spans
-    double du{0.0}, dv{0.0}; // span sizes
-};
-
-inline bool IsClose(double a, double b, double tol = 1e-12) {
+// Kratos-style private static helpers
+bool PatchIntersectionProcess::IsClose(double a, double b, double tol)
+{
     return std::abs(a - b) <= tol * (1.0 + std::max(std::abs(a), std::abs(b)));
 }
 
-// Build [a,b] with step s (inclusive ends). Uses n_hint to avoid drift.
-inline std::vector<double> MakeBreaks(double a, double b, double s, int n_hint) {
+std::vector<double> PatchIntersectionProcess::MakeBreaks(double a, double b, double s, int nHint)
+{
     std::vector<double> r;
     if (s <= 0.0) { r.push_back(a); r.push_back(b); return r; }
-    const int n = std::max(1, n_hint);
+    const int n = std::max(1, nHint);
     r.reserve(n + 1);
     r.push_back(a);
     for (int i = 1; i < n; ++i) {
@@ -57,53 +43,46 @@ inline std::vector<double> MakeBreaks(double a, double b, double s, int n_hint) 
     return u;
 }
 
-inline std::vector<double> UnionBreaks(const std::vector<double>& A, const std::vector<double>& B) {
-    std::vector<double> out; out.reserve(A.size() + B.size());
+std::vector<double> PatchIntersectionProcess::UnionBreaks(const std::vector<double>& rA, const std::vector<double>& rB)
+{
+    std::vector<double> out; out.reserve(rA.size() + rB.size());
     std::size_t i = 0, j = 0;
-    while (i < A.size() || j < B.size()) {
-        const double a = (i < A.size() ? A[i] : std::numeric_limits<double>::infinity());
-        const double b = (j < B.size() ? B[j] : std::numeric_limits<double>::infinity());
+    while (i < rA.size() || j < rB.size()) {
+        const double a = (i < rA.size() ? rA[i] : std::numeric_limits<double>::infinity());
+        const double b = (j < rB.size() ? rB[j] : std::numeric_limits<double>::infinity());
         double pick;
-        if (a < b && (j == B.size() || !IsClose(a, b, 1e-10))) { pick = a; ++i; }
-        else if (j < B.size() && (i == A.size() || !IsClose(a, b, 1e-10))) { pick = b; ++j; }
+        if (a < b && (j == rB.size() || !IsClose(a, b, 1e-10))) { pick = a; ++i; }
+        else if (j < rB.size() && (i == rA.size() || !IsClose(a, b, 1e-10))) { pick = b; ++j; }
         else { pick = a; ++i; ++j; } // equal within tol
         if (out.empty() || !IsClose(out.back(), pick, 1e-10)) out.push_back(pick);
     }
     return out;
 }
 
-} // namespace
-
 
 PatchIntersectionProcess::PatchIntersectionProcess(
     ModelPart& rModelPart,
-    int echo_level,
-    double tolerance,
-    std::string patch_prefix,
-    std::string internal_sub,
-    std::string external_sub,
-    std::string coupling_condition_name)
+    int EchoLevel,
+    double Tolerance,
+    std::string PatchPrefix,
+    std::string CouplingConditionName)
     : mrModelPart(rModelPart)
-    , mEchoLevel(echo_level)
-    , mTol(tolerance)
-    , mPatchPrefix(std::move(patch_prefix))
-    , mInternalSubName(std::move(internal_sub))
-    , mExternalSubName(std::move(external_sub))
-    , mCouplingConditionName(std::move(coupling_condition_name))
+    , mEchoLevel(EchoLevel)
+    , mTol(Tolerance)
+    , mPatchPrefix(std::move(PatchPrefix))
+    , mCouplingConditionName(std::move(CouplingConditionName))
 {
-    if (mEchoLevel > 2) {
-        std::cout << "[PatchIntersectionProcess] ctor\n"
-                  << "  patch_prefix     : " << mPatchPrefix     << "\n"
-                  << "  internal_sub     : " << mInternalSubName << "\n"
-                  << "  external_sub     : " << mExternalSubName << "\n"
-                  << "  tol              : " << mTol             << "\n"
-                  << "  echo_level       : " << mEchoLevel       << "\n"
-                  << "  coupling_cond    : " << mCouplingConditionName << std::endl;
-    }
+    KRATOS_INFO_IF("PatchIntersectionProcess", mEchoLevel > 2)
+        << "[PatchIntersectionProcess]\n"
+        << "  patch_prefix     : " << mPatchPrefix << "\n"
+        << "  tol              : " << mTol << "\n"
+        << "  echo_level       : " << mEchoLevel << "\n"
+        << "  coupling_cond    : " << mCouplingConditionName << std::endl;
 }
 
 void PatchIntersectionProcess::Execute() {
-    if (mEchoLevel > 2) std::cout << "[PatchIntersectionProcess] Execute()" << std::endl;
+    KRATOS_INFO_IF("PatchIntersectionProcess", mEchoLevel > 2)
+        << "[PatchIntersectionProcess] Execute()" << std::endl;
     ComputeIntersections();
 }
 
@@ -202,11 +181,11 @@ void PatchIntersectionProcess::ComputeIntersections()
 
 
             // Vertical adjacency: A.u1 == B.u0 or A.u0 == B.u1, with V-overlap
-            const bool A_right_B_left = std::abs(A.u1 - B.u0) <= mTol;
-            const bool A_left_B_right = std::abs(A.u0 - B.u1) <= mTol;
+            const bool a_right_b_left = std::abs(A.u1 - B.u0) <= mTol;
+            const bool a_left_b_right = std::abs(A.u0 - B.u1) <= mTol;
             const bool v_overlap      = (std::max(A.v0, B.v0) < std::min(A.v1, B.v1) - mTol);
 
-            if ((A_right_B_left || A_left_B_right) && v_overlap) {
+            if ((a_right_b_left || a_left_b_right) && v_overlap) {
                 KRATOS_INFO_IF("\n PatchIntersectionProcess", mEchoLevel > 2)
                     << "  Vertical overlap " << v_overlap << std::endl;
 
@@ -234,8 +213,8 @@ void PatchIntersectionProcess::ComputeIntersections()
                     << "    Union of breaks (V): " << union_breaks_v << std::endl;
 
                 // Fixed u on both patches along the common vertical edge
-                const double u_fixed_A = A_right_B_left ? A.u1 : A.u0;
-                const double u_fixed_B = A_right_B_left ? B.u0 : B.u1;
+                const double u_fixed_a = a_right_b_left ? A.u1 : A.u0;
+                const double u_fixed_b = a_right_b_left ? B.u0 : B.u1;
 
                 // -- surfaces on each patch (geom id 1 is the surface)
                 auto p_brep_surf_A = A.pPatch->pGetGeometry(1);
@@ -281,20 +260,20 @@ void PatchIntersectionProcess::ComputeIntersections()
                     if (v1 <= v0 + mTol) continue; // skip degenerate
 
                     // Endpoints on A and B (same v-interval, different fixed u)
-                    Point A0(u_fixed_A, v0, 0.0);
-                    Point A1(u_fixed_A, v1, 0.0);
-                    Point B0(u_fixed_B, v0, 0.0);
-                    Point B1(u_fixed_B, v1, 0.0);
+                    Point A0(u_fixed_a, v0, 0.0);
+                    Point A1(u_fixed_a, v1, 0.0);
+                    Point B0(u_fixed_b, v0, 0.0);
+                    Point B1(u_fixed_b, v1, 0.0);
 
-                    const bool flip_A = A_right_B_left;
-                    const bool flip_B = A_left_B_right;
+                    const bool flip_b = a_right_b_left;
+                    const bool flip_a = a_left_b_right;
 
                     // Create Brep on A
-                    CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart, flip_A);
+                    CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart, flip_a);
                     breps_A.push_back(mrModelPart.pGetGeometry(next_id));
 
                     // Create Brep on B
-                    CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart, flip_B);
+                    CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart, flip_b);
                     breps_B.push_back(mrModelPart.pGetGeometry(next_id));
                 }
 
@@ -312,15 +291,12 @@ void PatchIntersectionProcess::ComputeIntersections()
             }
 
 
-
-
-
             // Horizontal adjacency: A.v1 == B.v0 or A.v0 == B.v1, with U-overlap
-            const bool A_top_B_bot = std::abs(A.v1 - B.v0) <= mTol;
-            const bool A_bot_B_top = std::abs(A.v0 - B.v1) <= mTol;
+            const bool a_top_b_bot = std::abs(A.v1 - B.v0) <= mTol;
+            const bool a_bot_b_top = std::abs(A.v0 - B.v1) <= mTol;
             const bool u_overlap   = (std::max(A.u0, B.u0) < std::min(A.u1, B.u1) - mTol);
 
-            if ((A_top_B_bot || A_bot_B_top) && u_overlap) {
+            if ((a_top_b_bot || a_bot_b_top) && u_overlap) {
                 KRATOS_INFO_IF("\n PatchIntersectionProcess", mEchoLevel > 2)
                     << "  Horizontal overlap " << u_overlap << std::endl;
 
@@ -348,8 +324,8 @@ void PatchIntersectionProcess::ComputeIntersections()
                     << "    Union of breaks (U): " << union_breaks_u << std::endl;
 
                 // Fixed v on both patches along the common horizontal edge
-                const double v_fixed_A = A_top_B_bot ? A.v1 : A.v0;
-                const double v_fixed_B = A_top_B_bot ? B.v0 : B.v1; // opposite side of B
+                const double v_fixed_a = a_top_b_bot ? A.v1 : A.v0;
+                const double v_fixed_b = a_top_b_bot ? B.v0 : B.v1; // opposite side of B
 
                 // -- surfaces on each patch (geom id 1 is the surface)
                 auto p_brep_surf_A = A.pPatch->pGetGeometry(1);
@@ -395,20 +371,20 @@ void PatchIntersectionProcess::ComputeIntersections()
                     if (u1 <= u0 + mTol) continue; // skip degenerate
 
                     // Endpoints on A and B (same u-interval, different fixed v)
-                    Point A0(u0, v_fixed_A, 0.0);
-                    Point A1(u1, v_fixed_A, 0.0);
-                    Point B0(u0, v_fixed_B, 0.0);
-                    Point B1(u1, v_fixed_B, 0.0);
+                    Point A0(u0, v_fixed_a, 0.0);
+                    Point A1(u1, v_fixed_a, 0.0);
+                    Point B0(u0, v_fixed_b, 0.0);
+                    Point B1(u1, v_fixed_b, 0.0);
 
-                    const bool flip_A = A_bot_B_top;
-                    const bool flip_B = A_top_B_bot;
+                    const bool flip_b = a_bot_b_top;
+                    const bool flip_a = a_top_b_bot;
 
                     // Create Brep on A
-                    CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart, flip_A);
+                    CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart, flip_a);
                     breps_A.push_back(mrModelPart.pGetGeometry(next_id));
 
                     // Create Brep on B
-                    CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart, flip_B);
+                    CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart, flip_b);
                     breps_B.push_back(mrModelPart.pGetGeometry(next_id));
                 }
 
@@ -428,9 +404,6 @@ void PatchIntersectionProcess::ComputeIntersections()
         }
     }
 }
-
-
-
 
 
 void PatchIntersectionProcess::CreateAndAddBrepCurve(
@@ -496,8 +469,8 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
     const std::vector<GeometryPointerType>& rBrepCurvesMirror,
     ModelPart& rTargetSubModelPart,
     const std::string& rConditionName,
-    SizeType ip_per_span,     // <- interpreted as points per SEGMENT here
-    SizeType deriv_order,
+    SizeType IpPerSpan,     // <- interpreted as points per SEGMENT here
+    SizeType DerivOrder,
     const Vector& rEffectiveKnotSpanSizes)
 {
     KRATOS_ERROR_IF(rBrepCurvesPrimary.size() != rBrepCurvesMirror.size())
@@ -540,14 +513,14 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
 
         // Build Gauss nodes on [t0,t1]
         IPArray ips;
-        ips.reserve(ip_per_span);
+        ips.reserve(IpPerSpan);
         const double length = t1 - t0;
         const double abs_length = std::abs(length);
         KRATOS_ERROR_IF(abs_length < std::numeric_limits<double>::epsilon())
             << "Degenerate Brep curve interval detected (length ~ 0)." << std::endl;
-        const auto& gauss_entries = gauss_nodes_weights(static_cast<int>(ip_per_span));
+        const auto& gauss_entries = gauss_nodes_weights(static_cast<int>(IpPerSpan));
 
-        for (SizeType i = 0; i < ip_per_span; ++i) {
+        for (SizeType i = 0; i < IpPerSpan; ++i) {
             const double xi = gauss_entries[i][0];
             const double wi = gauss_entries[i][1];
             const double t = t0 + length * xi;
@@ -569,11 +542,11 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
 
         IntegrationInfo infoPrim = pPrim->GetDefaultIntegrationInfo();
         infoPrim.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
-        pPrim->CreateQuadraturePointGeometries(qpPrim, deriv_order, ips_shared, infoPrim);
+        pPrim->CreateQuadraturePointGeometries(qpPrim, DerivOrder, ips_shared, infoPrim);
 
         IntegrationInfo infoMir  = pMir->GetDefaultIntegrationInfo();
         infoMir.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
-        pMir->CreateQuadraturePointGeometries(qpMir , deriv_order, ips_shared, infoMir);
+        pMir->CreateQuadraturePointGeometries(qpMir , DerivOrder, ips_shared, infoMir);
 
         // Now counts MUST match (we generated from the same ips_shared)
         KRATOS_ERROR_IF(qpPrim.size() != qpMir.size())
@@ -591,15 +564,9 @@ void PatchIntersectionProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbo
             array_1d<double, 3> normal_mirror = pGeomMir->Normal(0, integration_method);
             
             // Be sure they have opposite orientation (flip mirrored if needed)
-            if (MathUtils<double>::Dot(normal_primary, normal_mirror) > 0.0) {
-
-                KRATOS_ERROR << "normals are not perpendicular: n*n = "<< MathUtils<double>::Dot(normal_primary, normal_mirror) << std::endl;
-                // array_1d<double, 3> tangent_parameter_space;
-                // pGeomMir->Calculate(LOCAL_TANGENT, tangent_parameter_space);
-                // tangent_parameter_space[0] *= -1.0;
-                // tangent_parameter_space[1] *= -1.0;
-                // pGeomMir->Assign(LOCAL_TANGENT, tangent_parameter_space);
-            }
+            KRATOS_ERROR_IF(MathUtils<double>::Dot(normal_primary, normal_mirror) > 0.0)
+                << "normals are not perpendicular: n*n = "
+                << MathUtils<double>::Dot(normal_primary, normal_mirror) << std::endl;
 
             Condition::Pointer pCond = rRefCond.Create(next_id++, pGeomPrim, PropertiesPointerType());
             pCond->SetValue(KNOT_SPAN_SIZES, rEffectiveKnotSpanSizes);
