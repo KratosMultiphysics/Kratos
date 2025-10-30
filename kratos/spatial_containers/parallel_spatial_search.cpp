@@ -296,70 +296,26 @@ void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::LocalSea
 template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
 void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnlyClosestResult(ResultContainerVectorType& rResults)
 {
-    // MPI only
-    if (mrDataCommunicator.IsDistributed()) {
-        // Getting current rank
-        const int rank = mrDataCommunicator.Rank();
+    auto distance_lambda = [](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<double>> {
+        std::vector<std::vector<double>> results;
+        rResultsVector.GetDistances(results);
+        return results;
+    };
+    KeepOnlySmallestLambdaResult(rResults, distance_lambda);
+}
 
-        // The values
-        std::vector<std::vector<double>> all_distances;
-        rResults.GetDistances(all_distances);
+/***********************************************************************************/
+/***********************************************************************************/
 
-        // The ranks
-        std::vector<std::vector<int>> all_ranks;
-        rResults.GetResultRank(all_ranks);
-
-        // Retrieve the solution
-        auto& r_results_vector = rResults.GetContainer();
-        for (std::size_t i = 0; i < r_results_vector.size(); ++i) {
-            auto& p_partial_result = r_results_vector[i];
-            auto& r_partial_result = *p_partial_result;
-            // Then must have at least one solution, but just filter if at least 2
-            const std::size_t number_of_global_results = r_partial_result.NumberOfGlobalResults();
-            if (number_of_global_results > 1) {
-                // The values
-                const auto& r_values = all_distances[i];
-
-                // The indexes
-                std::vector<int> ranks = all_ranks[i];
-                std::vector<int>& r_ranks = all_ranks[i];
-
-                // Find the index of the minimum value
-                auto it_min_distance = std::min_element(r_values.begin(), r_values.end());
-
-                // Check if the values vector is not empty
-                if (it_min_distance != r_values.end()) {
-                    // Calculate the position
-                    const IndexType pos = std::distance(r_values.begin(), it_min_distance);
-                    if (rank == ranks[pos]) {
-                        KRATOS_ERROR_IF(r_partial_result.NumberOfLocalResults() > 1) << "The rank criteria to filter results assumes that one rank only holds one local result. This is not true for " << r_partial_result.GetGlobalIndex() << " in rank " << rank << std::endl;
-                    }
-
-                    // Remove the index from the ranks vector
-                    ranks.erase(ranks.begin() + pos);
-
-                    // Remove all results but the closest one
-                    r_partial_result.RemoveResultsFromRanksList(ranks, r_ranks, mrDataCommunicator);
-                } else {
-                    KRATOS_ERROR << "Distances vector is empty." << std::endl;
-                }
-            }
-        }
-
-        // Checking that is properly cleaned
-    #ifdef KRATOS_DEBUG
-        for (auto& p_partial_result : r_results_vector) {
-            auto& r_partial_result = *p_partial_result;
-            // Check that the number of results is 0 or 1
-            KRATOS_ERROR_IF(r_partial_result.NumberOfGlobalResults() > 1) << "Cleaning has not been done properly. Number of results: " << r_partial_result.NumberOfGlobalResults() << std::endl;
-            // Check that is not empty locally
-            if (r_partial_result.NumberOfGlobalResults() == 1) {
-                const unsigned int number_of_local_results = r_partial_result.NumberOfLocalResults();
-                KRATOS_ERROR_IF(mrDataCommunicator.SumAll(number_of_local_results) == 0) << "Local results also removed in result " << r_partial_result.GetGlobalIndex() << std::endl;
-            }
-        }
-    #endif
-    }
+template<class TSearchObject, SpatialSearchCommunication TSpatialSearchCommunication>
+void ParallelSpatialSearch<TSearchObject, TSpatialSearchCommunication>::KeepOnlyLowestRankResult(ResultContainerVectorType& rResults)
+{
+    auto rank_lambda = [](ResultContainerVectorType& rResultsVector) -> std::vector<std::vector<int>> {
+        std::vector<std::vector<int>> results;
+        rResultsVector.GetResultRank(results);
+        return results;
+    };
+    KeepOnlySmallestLambdaResult(rResults, rank_lambda);
 }
 
 /***********************************************************************************/
