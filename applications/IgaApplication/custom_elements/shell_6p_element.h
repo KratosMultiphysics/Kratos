@@ -1,6 +1,17 @@
-#if !defined(KRATOS_SHELL_RM_ELEMENT_H_INCLUDED )
-#define  KRATOS_SHELL_RM_ELEMENT_H_INCLUDED
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
+//
+//  Main authors:    Ricky Aristio
+//                   Maram Alkhlaifat
+//
 
+#pragma once
 
 // System includes
 
@@ -326,11 +337,11 @@ public:
     * @param rValues The values obtained int the integration points
     * @param rCurrentProcessInfo the current process info instance
     */
-    // void CalculateOnIntegrationPoints(
-    //     const Variable<array_1d<double, 3>>& rVariable,
-    //     std::vector<array_1d<double, 3>>& rOutput,
-    //     const ProcessInfo& rCurrentProcessInfo
-    // ) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     ///@}
     ///@name Check
@@ -611,16 +622,16 @@ private:
     ///@name Geometrical Functions
     ///@{
 
-    void CalculateHessian(
-        Matrix& Hessian,
-        const Matrix& rDDN_DDe) const;
+    // void CalculateHessian(
+    //     Matrix& Hessian,
+    //     const Matrix& rDDN_DDe) const;
 
-    void CalculateSecondDerivativesOfBaseVectors(
-        const Matrix& rDDDN_DDDe,
-        array_1d<double, 3>& rDDa1_DD11,
-        array_1d<double, 3>& rDDa1_DD12,
-        array_1d<double, 3>& rDDa2_DD21,
-        array_1d<double, 3>& rDDa2_DD22) const;
+    // void CalculateSecondDerivativesOfBaseVectors(
+    //     const Matrix& rDDDN_DDDe,
+    //     array_1d<double, 3>& rDDa1_DD11,
+    //     array_1d<double, 3>& rDDa1_DD12,
+    //     array_1d<double, 3>& rDDa2_DD21,
+    //     array_1d<double, 3>& rDDa2_DD22) const;
 
     ///@}
     ///@name Serialization
@@ -654,5 +665,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MESHLESS_SHELL_RM_ELEMENT_H_INCLUDED  defined
