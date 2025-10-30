@@ -209,7 +209,10 @@ public:
             IndexType global_position;
         };
         const bool is_distributed = mrDataCommunicator.IsDistributed();
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
+        const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
+
+        // Performing the search in parallel
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &rank, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
@@ -219,7 +222,6 @@ public:
 
             // Search
             std::vector<ResultType> results;
-            const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
             LocalSearchInRadius(rTLS.point, Radius, results, rank, allocation_size);
             for (auto& r_result : results) {
                 r_point_result.AddResult(r_result);
@@ -288,7 +290,10 @@ public:
             IndexType global_position;
         };
         const bool is_distributed = mrDataCommunicator.IsDistributed();
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
+        const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
+
+        // Performing the search in parallel
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &rank, &search_info, &rResults, &Radius, &allocation_size](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
@@ -298,7 +303,6 @@ public:
 
             // Result of search
             ResultType local_result;
-            const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
             LocalSearchNearestInRadius(rTLS.point, Radius, local_result, rank, allocation_size);
             if (local_result.GetIsObjectFound()) {
                 r_point_result.AddResult(local_result);
@@ -371,7 +375,10 @@ public:
             IndexType global_position;
         };
         const bool is_distributed = mrDataCommunicator.IsDistributed();
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
+        const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
+
+        // Performing the search in parallel
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &rank, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
@@ -381,7 +388,6 @@ public:
 
             // Result of search
             ResultType local_result;
-            const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
             LocalSearchNearest(rTLS.point, local_result, rank);
             if (local_result.GetIsObjectFound()) {
                 r_point_result.AddResult(local_result);
@@ -450,7 +456,10 @@ public:
             IndexType global_position;
         };
         const bool is_distributed = mrDataCommunicator.IsDistributed();
-        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &is_distributed, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
+        const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
+
+        // Performing the search in parallel
+        IndexPartition<IndexType>(total_number_of_points).for_each(TLS(),[this, &rank, &search_info, &rResults](std::size_t i_point, TLS& rTLS) {
             rTLS.point[0] = search_info.PointCoordinates[i_point * 3 + 0];
             rTLS.point[1] = search_info.PointCoordinates[i_point * 3 + 1];
             rTLS.point[2] = search_info.PointCoordinates[i_point * 3 + 2];
@@ -460,7 +469,6 @@ public:
 
             // Result of search
             ResultType local_result;
-            const int rank = is_distributed ? mrDataCommunicator.Rank() : 0;
             LocalSearchIsInside(rTLS.point, local_result, rank);
             if (local_result.GetIsObjectFound()) {
                 r_point_result.AddResult(local_result);
