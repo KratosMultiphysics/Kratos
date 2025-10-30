@@ -670,10 +670,6 @@ private:
         DenseVectorType phi_j(num_dofs);
         DenseVectorType tmp(num_dofs);
 
-        // Pre-build a simple index container (0..num_dofs-1) to use with block_for_each
-        std::vector<std::size_t> indices(num_dofs);
-        std::iota(indices.begin(), indices.end(), 0u);
-
         for (std::size_t j = 0; j < num_modes; ++j) {
              // copy row j -> phi_j in parallel using IndexPartition
             IndexPartition<std::size_t>(num_dofs).for_each([&](std::size_t i){
@@ -684,8 +680,7 @@ private:
             TSparseSpace::Mult(rMassMatrix, phi_j, tmp);
 
             // Compute modal_mass = phi_j^T * tmp using SumReduction (no atomics)
-            const double modal_mass = IndexPartition<std::size_t>(indices.size()).for_each<SumReduction<double>>([&](std::size_t k)->double {
-                const std::size_t i = indices[k];   
+            const double modal_mass = IndexPartition<std::size_t>(num_dofs).for_each<SumReduction<double>>([&](std::size_t i)->double {
                 return phi_j[i] * tmp[i];
             });
 
