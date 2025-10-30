@@ -19,7 +19,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "utilities/math_utils.h"
 
 // Application includes
 #include "iga_application_variables.h"
@@ -57,7 +56,7 @@ protected:
         * The default constructor
         * @param Dimension: The size of working space dimension
         */
-        KinematicVariables(SizeType Dimension)
+        KinematicVariables(std::size_t Dimension)
         {
             a_11_covariant = 0.0;
             b_11_covariant = 0.0;
@@ -95,7 +94,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BeamThinElement2D);
 
     /// Size types
-    typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
     // GometryType
@@ -168,8 +166,8 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 2;
+        const std::size_t number_of_nodes = GetGeometry().size();
+        const std::size_t mat_size = number_of_nodes * 2;
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);
@@ -191,8 +189,8 @@ public:
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 2;
+        const std::size_t number_of_nodes = GetGeometry().size();
+        const std::size_t mat_size = number_of_nodes * 2;
 
         VectorType right_hand_side_vector;
 
@@ -217,8 +215,8 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 2;
+        const std::size_t number_of_nodes = GetGeometry().size();
+        const std::size_t mat_size = number_of_nodes * 2;
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);

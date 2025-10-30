@@ -32,7 +32,7 @@ namespace Kratos
 
         const GeometryType& r_geometry = GetGeometry();
 
-        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+        const std::size_t r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         // Prepare memory
         if (m_A_11_covariant_vector.size() != r_number_of_integration_points)
@@ -42,14 +42,11 @@ namespace Kratos
         if (m_dL_vector.size() != r_number_of_integration_points)
             m_dL_vector.resize(r_number_of_integration_points);
 
-        KinematicVariables kinematic_variables(
-            GetGeometry().WorkingSpaceDimension());
+        KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
 
         for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
         {
-            CalculateKinematics(
-                point_number,
-                kinematic_variables);
+            CalculateKinematics(point_number, kinematic_variables);
             
             m_A_11_covariant_vector[point_number] = kinematic_variables.a_11_covariant;
             m_B_11_covariant_vector[point_number] = kinematic_variables.b_11_covariant;
@@ -68,9 +65,9 @@ namespace Kratos
 
         const GeometryType& r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
-        const auto& r_N = r_geometry.ShapeFunctionsValues();
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
-        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+        const std::size_t r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         //Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_number_of_integration_points)
@@ -98,21 +95,19 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const auto& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
 
         // definition of problem size
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const std::size_t number_of_nodes = r_geometry.size();
+        const std::size_t mat_size = number_of_nodes * 3;
 
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
             // Compute Kinematics and Metric
-            KinematicVariables kinematic_variables(
-                GetGeometry().WorkingSpaceDimension());
-            CalculateKinematics(
-                point_number,
-                kinematic_variables);
+            KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
+            
+            CalculateKinematics(point_number, kinematic_variables);
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters(
@@ -134,18 +129,9 @@ namespace Kratos
             Vector BMembrane = ZeroVector(mat_size);
             Vector BCurvature = ZeroVector(mat_size);
             Vector BShear = ZeroVector(mat_size);
-            CalculateBMembrane(
-                point_number,
-                BMembrane,
-                kinematic_variables);
-            CalculateBCurvature(
-                point_number,
-                BCurvature,
-                kinematic_variables);
-            CalculateBShear(
-                point_number,
-                BShear,
-                kinematic_variables);
+            CalculateBMembrane(point_number, BMembrane, kinematic_variables);
+            CalculateBCurvature(point_number, BCurvature, kinematic_variables);
+            CalculateBShear(point_number, BShear, kinematic_variables);
 
             double integration_weight =
                 r_integration_points[point_number].Weight()
@@ -193,8 +179,8 @@ namespace Kratos
         KinematicVariables& rKinematicVariables
     ) const
     {
-        const auto& r_geometry = GetGeometry();
-        const auto& r_N = r_geometry.ShapeFunctionsValues();
+        const GeometryType& r_geometry = GetGeometry();
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
         const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, IntegrationPointIndex);
 
         for (IndexType i = 0; i < r_geometry.size(); i++)
@@ -217,7 +203,7 @@ namespace Kratos
         noalias(rKinematicVariables.a2) = rKinematicVariables.a2_tilde / rKinematicVariables.dL;
 
         //GetCovariantMetric
-        rKinematicVariables.a_11_covariant = pow(rKinematicVariables.a1[0], 2) + pow(rKinematicVariables.a1[1], 2);
+        rKinematicVariables.a_11_covariant = std::pow(rKinematicVariables.a1[0], 2) + std::pow(rKinematicVariables.a1[1], 2);
 
         array_1d<double, 2> H = ZeroVector(2);
         CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
@@ -248,9 +234,9 @@ namespace Kratos
         double E = this->GetProperties().GetValue(YOUNG_MODULUS);
         double nu = this->GetProperties().GetValue(POISSON_RATIO);
 
-        rThisConstitutiveVariablesMembrane.ConstitutiveValue = E * cross_area / pow(rActualKinematic.dL, 4);
-        rThisConstitutiveVariablesCurvature.ConstitutiveValue = E * cross_area * pow(thickness, 2)/ (12.0 * pow(rActualKinematic.dL, 4));
-        rThisConstitutiveVariablesShear.ConstitutiveValue = (E / (2.0 * (1 + nu)))* (5.0 / 6.0) * cross_area / (pow(rActualKinematic.dL, 2));
+        rThisConstitutiveVariablesMembrane.ConstitutiveValue = E * cross_area / std::pow(rActualKinematic.dL, 4);
+        rThisConstitutiveVariablesCurvature.ConstitutiveValue = E * cross_area * std::pow(thickness, 2)/ (12.0 * std::pow(rActualKinematic.dL, 4));
+        rThisConstitutiveVariablesShear.ConstitutiveValue = (E / (2.0 * (1 + nu)))* (5.0 / 6.0) * cross_area / (std::pow(rActualKinematic.dL, 2));
 
         // //Local Cartesian Forces and Moments
         rThisConstitutiveVariablesMembrane.StressValue = rThisConstitutiveVariablesMembrane.ConstitutiveValue * rThisConstitutiveVariablesMembrane.StrainValue;
@@ -263,13 +249,12 @@ namespace Kratos
         Vector& rB,
         const KinematicVariables& rActualKinematic) const
     {
-        const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 3;
+        const std::size_t number_of_control_points = GetGeometry().size();
+        const std::size_t mat_size = number_of_control_points * 3;
 
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-        if (rB.size() != mat_size)
-            rB.resize(mat_size);
+        if (rB.size() != mat_size) rB.resize(mat_size);
         noalias(rB) = ZeroVector(mat_size);
 
         for (IndexType i = 0; i < number_of_control_points; i++)
@@ -288,16 +273,15 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const auto& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetGeometry();
 
-        const auto& r_N = GetGeometry().ShapeFunctionsValues();
+        const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-        const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 3;
+        const std::size_t number_of_control_points = GetGeometry().size();
+        const std::size_t mat_size = number_of_control_points * 3;
 
-        if (rB.size() != mat_size)
-            rB.resize(mat_size);
+        if (rB.size() != mat_size) rB.resize(mat_size);
         noalias(rB) = ZeroVector(mat_size);
 
         array_1d<double, 2> H = ZeroVector(2);
@@ -329,14 +313,13 @@ namespace Kratos
         Vector& rB,
         const KinematicVariables& rActualKinematic) const
     {
-        const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 3;
+        const std::size_t number_of_control_points = GetGeometry().size();
+        const std::size_t mat_size = number_of_control_points * 3;
 
-        const auto& r_N = GetGeometry().ShapeFunctionsValues();
+        const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-        if (rB.size() != mat_size)
-            rB.resize(mat_size);
+        if (rB.size() != mat_size) rB.resize(mat_size);
         noalias(rB) = ZeroVector(mat_size);
 
         for (IndexType i = 0; i < number_of_control_points; i++)
@@ -371,8 +354,8 @@ namespace Kratos
         Vector& rValues,
         int Step) const
     {
-        const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 3;
+        const std::size_t number_of_control_points = GetGeometry().size();
+        const std::size_t mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -391,8 +374,8 @@ namespace Kratos
         Vector& rValues,
         int Step) const
     {
-        const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 3;
+        const std::size_t number_of_control_points = GetGeometry().size();
+        const std::size_t mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -410,8 +393,8 @@ namespace Kratos
         Vector& rValues,
         int Step) const
     {
-        const SizeType number_of_control_points = GetGeometry().size();
-        const SizeType mat_size = number_of_control_points * 3;
+        const std::size_t number_of_control_points = GetGeometry().size();
+        const std::size_t mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -432,7 +415,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const SizeType number_of_control_points = GetGeometry().size();
+        const std::size_t number_of_control_points = GetGeometry().size();
 
         if (rResult.size() != 3 * number_of_control_points)
             rResult.resize(3 * number_of_control_points, false);
@@ -454,7 +437,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const SizeType number_of_control_points = GetGeometry().size();
+        const std::size_t number_of_control_points = GetGeometry().size();
 
         rElementalDofList.resize(0);
         rElementalDofList.reserve(3 * number_of_control_points);
@@ -493,7 +476,7 @@ namespace Kratos
         array_1d<double, 2>& Hessian,
         const Matrix& rDDN_DDe) const
     {
-        const SizeType number_of_points = GetGeometry().size();
+        const std::size_t number_of_points = GetGeometry().size();
 
         for (IndexType k = 0; k < number_of_points; k++)
         {

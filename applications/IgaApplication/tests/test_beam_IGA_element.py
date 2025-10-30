@@ -19,7 +19,7 @@ def GetFilePath(fileName):
 @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class BeamIGAElementTests(KratosUnittest.TestCase):
 
-    def solve_cantilever_Bernoulli(create_geometry):
+    def solve_cantilever_thin_beam_element(create_geometry):
         model = KM.Model()
         model_part = model.CreateModelPart('Model')
 
@@ -100,7 +100,7 @@ class BeamIGAElementTests(KratosUnittest.TestCase):
 
         return curve
 
-    def solve_cantilever_Timoshenko(create_geometry):
+    def solve_cantilever_thick_beam_element(create_geometry):
         model = KM.Model()
         model_part = model.CreateModelPart('Model')
 
@@ -181,7 +181,7 @@ class BeamIGAElementTests(KratosUnittest.TestCase):
 
         return curve
 
-    def testCantileverBernoulliTwoQuadraticSpan(self):
+    def testCantileverThinBeamTwoQuadraticSpan(self):
         def create_geometry(model_part):
             node1 = model_part.CreateNewNode(1, 0.0,  0.0, 0)
             node2 = model_part.CreateNewNode(2, 2.5, 0.0, 0)
@@ -205,8 +205,8 @@ class BeamIGAElementTests(KratosUnittest.TestCase):
 
             return curve
 
-        # Bernoulli beam test
-        curve_1 = BeamIGAElementTests.solve_cantilever_Bernoulli(create_geometry)
+        # Thin beam test
+        curve_1 = BeamIGAElementTests.solve_cantilever_thin_beam_element(create_geometry)
 
         for node in curve_1:
             self.assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_X), 0)
@@ -216,8 +216,8 @@ class BeamIGAElementTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(curve_1[2].Y, -0.01125)
         self.assertAlmostEqual(curve_1[3].Y, -0.01875)
 
-        # #Timoshenko beam test
-        curve_2 = BeamIGAElementTests.solve_cantilever_Timoshenko(create_geometry)
+        # Thick beam test
+        curve_2 = BeamIGAElementTests.solve_cantilever_thick_beam_element(create_geometry)
 
         for node in curve_2:
             KratosUnittest.TestCase().assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_X), 0)
