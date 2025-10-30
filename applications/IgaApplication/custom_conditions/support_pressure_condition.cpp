@@ -106,10 +106,10 @@ void SupportPressureCondition::CalculateRightHandSide(
 
         Matrix grad_u(mDim, mDim); // grad_u(i,j) = du_i/dx_j
 
-        // grad_u(0, 0) = sinh(x) * sinh(y);     // ∂u_x / ∂x
-        // grad_u(0, 1) = cosh(x) * cosh(y);     // ∂u_x / ∂y
-        // grad_u(1, 0) = -cosh(x) * cosh(y);    // ∂u_y / ∂x
-        // grad_u(1, 1) = -sinh(x) * sinh(y);     // ∂u_y / ∂y
+        grad_u(0, 0) = sinh(x) * sinh(y);     // ∂u_x / ∂x
+        grad_u(0, 1) = cosh(x) * cosh(y);     // ∂u_x / ∂y
+        grad_u(1, 0) = -cosh(x) * cosh(y);    // ∂u_y / ∂x
+        grad_u(1, 1) = -sinh(x) * sinh(y);     // ∂u_y / ∂y
 
         // grad_u(0, 0) = 3.0 * x * x;      // ∂u_x / ∂x
         // grad_u(0, 1) = 0.0;              // ∂u_x / ∂y
@@ -121,10 +121,10 @@ void SupportPressureCondition::CalculateRightHandSide(
         // grad_u(1, 0) = -2.0 * y;     // ∂u_y / ∂x
         // grad_u(1, 1) = -2.0 * x;     // ∂u_y / ∂y
 
-        grad_u(0, 0) = sinh(x) * sinh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_x / ∂x
-        grad_u(0, 1) = cosh(x) * cosh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_x / ∂y
-        grad_u(1, 0) = -cosh(x) * cosh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_y / ∂x
-        grad_u(1, 1) = -sinh(x) * sinh(y) * std::exp(-current_time)*current_time*current_time;     // ∂u_y / ∂y
+        // grad_u(0, 0) = sinh(x) * sinh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_x / ∂x
+        // grad_u(0, 1) = cosh(x) * cosh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_x / ∂y
+        // grad_u(1, 0) = -cosh(x) * cosh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_y / ∂x
+        // grad_u(1, 1) = -sinh(x) * sinh(y) * std::exp(-current_time)*current_time*current_time;     // ∂u_y / ∂y
 
         Matrix sym_grad_u(mDim, mDim); // ε(u) = 0.5*(∇u + ∇u^T)
         for (IndexType i = 0; i < mDim; ++i) {

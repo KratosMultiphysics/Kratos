@@ -37,11 +37,11 @@ void LaplacianCouplingCondition::InitializeMemberVariables()
     KRATOS_ERROR_IF(norm_2(r_geometry_patchA.Center()-r_geometry_patchB.Center()) > 1e-12)
         << "LaplacianCouplingCondition found non matching geometries." << std::endl;
 
-    mNormalParameterSpaceA = r_geometry_patchA.Normal(0, GetIntegrationMethod());
+    mNormalParameterSpaceA = -r_geometry_patchA.Normal(0, GetIntegrationMethod());
     mNormalParameterSpaceA /= MathUtils<double>::Norm(mNormalParameterSpaceA);
     mNormalPhysicalSpaceA = mNormalParameterSpaceA;
 
-    mNormalParameterSpaceB = r_geometry_patchB.Normal(0, GetIntegrationMethod());
+    mNormalParameterSpaceB = -r_geometry_patchB.Normal(0, GetIntegrationMethod());
     mNormalParameterSpaceB /= MathUtils<double>::Norm(mNormalParameterSpaceB);
     mNormalPhysicalSpaceB = mNormalParameterSpaceB;
 
@@ -138,8 +138,8 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
     double penalty_factor;
     double nitsche_penalty_free = 1.0;
     if (GetProperties().Has(PENALTY_FACTOR)) {
-        penalty_factor = -1.0; // GetProperties()[PENALTY_FACTOR];
-        // penalty_factor = 10.0; 
+        // penalty_factor = -1.0; // GetProperties()[PENALTY_FACTOR];
+        penalty_factor = 100.0; 
         if (penalty_factor <= 0.0) {
             penalty_factor = 0.0;
             nitsche_penalty_free = -1.0; // does not matter this sign

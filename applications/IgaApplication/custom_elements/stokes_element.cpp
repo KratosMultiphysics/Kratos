@@ -165,6 +165,13 @@ void StokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vector
     // Add Second-Order stabilization terms from VMS
     this->AddSecondOrderStabilizationTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,mTauOne,rN,DN_DX,GaussWeight,r_D);
 
+    // // Add corresponding RHS: -K * [u;p] (previous iteration values)
+    // {
+    //     VectorType current_values;
+    //     GetFirstDerivativesVector(current_values, 0); // VELOCITY_X, VELOCITY_Y, PRESSURE per node
+    //     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, current_values);
+    // }
+
 }
 
 void StokesElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
@@ -375,7 +382,7 @@ void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMa
         CalculateBDerivativeDy(B_derivative_y, DDN_DDe);
 
         // Computed using the Gauss Points in the same knot span
-        Vector divergence_of_sigma = this->GetValue(DIVERGENCE_STRESS);
+        Vector divergence_of_sigma = this->GetValue(RECOVERED_STRESS);
 
         // initilize the div(sigma) matrix 2x(2n)
         Vector div_sigma_1 = ZeroVector(mDim*number_of_points);

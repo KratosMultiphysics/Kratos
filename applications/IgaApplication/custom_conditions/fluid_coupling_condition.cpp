@@ -41,11 +41,11 @@ void FluidCouplingCondition::InitializeMemberVariables()
     KRATOS_ERROR_IF(norm_2(r_geometry_patchA.Center()-r_geometry_patchB.Center()) > 1e-12)
         << "FluidCouplingCondition found non matching geometries." << std::endl;
 
-    mNormalParameterSpaceA = r_geometry_patchA.Normal(0, GetIntegrationMethod());
+    mNormalParameterSpaceA = -r_geometry_patchA.Normal(0, GetIntegrationMethod());
     mNormalParameterSpaceA /= MathUtils<double>::Norm(mNormalParameterSpaceA);
     mNormalPhysicalSpaceA = mNormalParameterSpaceA;
 
-    mNormalParameterSpaceB = r_geometry_patchB.Normal(0, GetIntegrationMethod());
+    mNormalParameterSpaceB = -r_geometry_patchB.Normal(0, GetIntegrationMethod());
     mNormalParameterSpaceB /= MathUtils<double>::Norm(mNormalParameterSpaceB);
     mNormalPhysicalSpaceB = mNormalParameterSpaceB;
 

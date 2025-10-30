@@ -48,7 +48,9 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingNitscheCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mCutSbmLaplacianInterfaceCondition(0, Condition::GeometryType::Pointer(
+    , mLaplacianCouplingCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mFluidCouplingCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -104,7 +106,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("CouplingPenaltyCondition", mCouplingPenaltyCondition)
     KRATOS_REGISTER_CONDITION("CouplingLagrangeCondition", mCouplingLagrangeCondition)
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
-    KRATOS_REGISTER_CONDITION("CutSbmLaplacianInterfaceCondition", mCutSbmLaplacianInterfaceCondition)
+    KRATOS_REGISTER_CONDITION("LaplacianCouplingCondition", mLaplacianCouplingCondition)
+    KRATOS_REGISTER_CONDITION("FluidCouplingCondition", mFluidCouplingCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
@@ -127,6 +130,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerSbm", mNurbsGeometryModelerSbm);
     KRATOS_REGISTER_MODELER("ImportNurbsSbmModeler", mImportNurbsSbmModeler);
     KRATOS_REGISTER_MODELER("PatchSubdivisionModeler", mPatchSubdivisionModeler);
+    KRATOS_REGISTER_MODELER("MultipatchModeler", mMultipatchModeler);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
@@ -203,6 +207,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_U)
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_V)
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)
+    KRATOS_REGISTER_VARIABLE(PATCH_PARAMETER_SPACE_CORNERS)
     KRATOS_REGISTER_VARIABLE(PARAMETER_SPACE_CORNERS)
     KRATOS_REGISTER_VARIABLE(RESULTS_ON_TRUE_BOUNDARY)
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_COORDINATES)
