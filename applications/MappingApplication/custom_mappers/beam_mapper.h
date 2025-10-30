@@ -348,9 +348,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    /// Destructor.
-    ~BeamMapper() override = default;
-
     ///@}
     ///@name Operations
     ///@{

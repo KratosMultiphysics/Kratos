@@ -1,8 +1,6 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
-data_comm = KM.DataCommunicator.GetDefault()
+import beam_mapper_test_case
 import mapper_test_case
 from math import cos
 import math
@@ -13,7 +11,7 @@ import json
 def GetFilePath(file_name):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), file_name)
 
-class BladeMappingTests(mapper_test_case.BeamMapperTestCase):
+class BladeMappingTests(beam_mapper_test_case.BeamMapperTestCase):
     '''This class contains basic tests for mapping on real geometries
     In this case it is a remodeled NREL Phase VI wind turbine blade
     It also serves as a showcase on how to use the Mapper in FSI
@@ -214,7 +212,7 @@ def GetRotationVector(rotation_matrix):
                     rotation_vector[1] *= M_PI
                     rotation_vector[2] *= M_PI
                     return rotation_vector
-        assert(false)
+        assert(False)
     
     tmp = angle / 2.0 / math.sin(angle)
     rotation_vector[0] = -(rotation_matrix[1][2] - rotation_matrix[2][1]) * tmp

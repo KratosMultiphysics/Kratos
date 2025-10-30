@@ -53,12 +53,11 @@ void BeamMapperInterfaceInfo::ProcessSearchResultForApproximation(const Interfac
         node.Z() = node.Z0();
     }
 
-    (void)GeometricalProjectionUtilities::FastProjectOnLine(*(p_geom), point_to_proj, projection_point);
+    std::ignore = GeometricalProjectionUtilities::FastProjectOnLine(*(p_geom), point_to_proj, projection_point);
     
     Point min_distance_to_nodes;
-    double distance_to_node1, distance_to_node2;
-    distance_to_node1 = norm_2(projection_point - (*p_geom)[0]);
-    distance_to_node2 = norm_2(projection_point - (*p_geom)[1]);
+    double distance_to_node1 = norm_2(projection_point - (*p_geom)[0]);
+    double distance_to_node2 = norm_2(projection_point - (*p_geom)[1]);
     
     if(distance_to_node1 < distance_to_node2)
         proj_dist_nodes = distance_to_node1;
@@ -77,7 +76,7 @@ void BeamMapperInterfaceInfo::ProcessSearchResultForApproximation(const Interfac
             local_coords[0] = 1.0;
 
         bool ComputeApproximation = 0;
-        (void)ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation); // Kust to get eq_ids
+         std::ignore = ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation); // Kust to get eq_ids
 
         p_geom->ShapeFunctionsValues(linear_shape_function_values, local_coords);
         ProjectionUtilities::HermitianShapeFunctionsValues(hermitian_shape_function_values, hermitian_shape_function_derivatives_values, local_coords);
@@ -141,7 +140,7 @@ void BeamMapperInterfaceInfo::SaveSearchResult(const InterfaceObject& rInterface
     // Linear shape functions
     pairing_index_linear = ProjectionUtilities::ProjectOnLine(*p_geom, point_to_proj, mLocalCoordTol, linear_shape_function_values, eq_ids, proj_dist, ComputeApproximation);
     // Hermitian shape functions
-    (void)ProjectionUtilities::ProjectOnLineHermitian(*p_geom, point_to_proj, mLocalCoordTol, hermitian_shape_function_values, hermitian_shape_function_derivatives_values, proj_dist, projection_point);
+    std::ignore = ProjectionUtilities::ProjectOnLineHermitian(*p_geom, point_to_proj, mLocalCoordTol, hermitian_shape_function_values, hermitian_shape_function_derivatives_values, proj_dist, projection_point);
     const bool is_full_projection = (pairing_index_linear == ProjectionUtilities::PairingIndex::Line_Inside);
     
     if (is_full_projection) {
