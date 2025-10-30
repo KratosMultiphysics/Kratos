@@ -12,9 +12,8 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "test_Transient_Case_B1_2D3N_stage2"
-        },
+            "input_type":       "use_input_model_part"
+		},
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters_stage2.json"
         },
@@ -28,7 +27,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           true,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Transient_Groundwater_Flow",
         "scheme_type":                        "Backward_Euler",

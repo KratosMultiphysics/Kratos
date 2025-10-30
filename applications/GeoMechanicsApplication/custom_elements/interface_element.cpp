@@ -12,6 +12,7 @@
 //
 #include "interface_element.h"
 
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
@@ -202,10 +203,12 @@ int InterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
             << "Number of integration points (" << mIntegrationScheme->GetNumberOfIntegrationPoints()
             << ") and constitutive laws (" << mConstitutiveLaws.size() << ") do not match.\n";
 
-        for (const auto& r_constitutive_law : mConstitutiveLaws) {
-            error = r_constitutive_law->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
-            if (error != 0) return error;
-        }
+        const auto r_properties  = GetProperties();
+        const auto expected_size = mpStressStatePolicy->GetVoigtSize();
+        ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
+
+        error = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, GetGeometry(), rCurrentProcessInfo);
+        return error;
     }
 
     return 0;
@@ -298,8 +301,7 @@ std::vector<Vector> InterfaceElement::CalculateTractionsAtIntegrationPoints(cons
     };
     auto result = std::vector<Vector>{};
     result.reserve(rRelativeDisplacements.size());
-    std::transform(rRelativeDisplacements.begin(), rRelativeDisplacements.end(),
-                   mConstitutiveLaws.begin(), std::back_inserter(result), calculate_traction);
+    std::ranges::transform(rRelativeDisplacements, mConstitutiveLaws, std::back_inserter(result), calculate_traction);
 
     return result;
 }

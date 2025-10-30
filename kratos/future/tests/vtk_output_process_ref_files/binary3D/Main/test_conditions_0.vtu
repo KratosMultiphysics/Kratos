@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<VTKFile byte_order="LittleEndian" header_type="UInt64" type="UnstructuredGrid" version="0.1">
+   <UnstructuredGrid>
+      <Piece NumberOfCells="4" NumberOfPoints="10">
+         <Points>
+            <DataArray Name="Position" NumberOfComponents="3" format="binary" type="Float64">
+              8AAAAAAAAAAAAAAAAAAAAAAAAAAAAPA/AAAAAAAA8D8AAAAAAAAAAAAAAAAAAPA/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAPA/AAAAAAAA8D8AAAAAAAAAQAAAAAAAAPA/AAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAA=
+            </DataArray>
+         </Points>
+         <Cells>
+            <DataArray Name="connectivity" NumberOfComponents="1" format="binary" type="Int32">
+              MAAAAAAAAAAAAAAAAQAAAAIAAAACAAAAAwAAAAQAAAAHAAAACAAAAAkAAAAFAAAABgAAAAcAAAA=
+            </DataArray>
+            <DataArray Name="offsets" NumberOfComponents="1" format="binary" type="Int32">
+              EAAAAAAAAAADAAAABgAAAAkAAAAMAAAA
+            </DataArray>
+            <DataArray Name="types" NumberOfComponents="1" format="binary" type="UInt8">
+              BAAAAAAAAAAFBQUF
+            </DataArray>
+         </Cells>
+         <PointData/>
+         <CellData>
+            <DataArray Name="DENSITY" NumberOfComponents="1" format="binary" type="Float64">
+              IAAAAAAAAAAAAAAAAAAAAKabxCCwchFAppvEILByIUB56SYxCCwqQA==
+            </DataArray>
+            <DataArray Name="YOUNG_MODULUS" NumberOfComponents="1" format="binary" type="Float64">
+              IAAAAAAAAAAAAAAAAAAAAOf7qfHSTRVA5/up8dJNJUDa+X5qvPQvQA==
+            </DataArray>
+            <DataArray Name="KRATOS_ID" NumberOfComponents="1" format="binary" type="Int32">
+              EAAAAAAAAAABAAAAAgAAAAMAAAAEAAAA
+            </DataArray>
+         </CellData>
+      </Piece>
+   </UnstructuredGrid>
+</VTKFile>

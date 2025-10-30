@@ -101,6 +101,7 @@ import test_import_obj_modeler
 import test_vectorized_interpolation
 import test_clean_up_problematic_triangles_modeler
 import test_tetrahedral_mesh_orientation_check
+import test_nd_data
 import test_tensor_adaptors
 
 # Import modules required for sequential orchestrator test
@@ -230,7 +231,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vectorized_interpolation.TestVectorizedInterpolation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_clean_up_problematic_triangles_modeler.TestCleanUpProblematicTrianglesModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tetrahedral_mesh_orientation_check.TestTetrahedralMeshOrientationCheck]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TestVariableTensorAdaptors]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nd_data.TestNDData]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TestTensorAdaptors]))
 
 
     if sympy_available:
@@ -249,3 +251,10 @@ def AssembleTestSuites():
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
+
+    # run future tests
+    if hasattr(KratosMultiphysics, "Future"):
+        import KratosMultiphysics.KratosUnittest as kratos_unittest
+        with kratos_unittest.WorkFolderScope("../future/tests", __file__, True):
+            from test_KratosFutureCore import AssembleTestSuites as AssembleFutureTestSuites
+            KratosUnittest.runTests(AssembleFutureTestSuites())

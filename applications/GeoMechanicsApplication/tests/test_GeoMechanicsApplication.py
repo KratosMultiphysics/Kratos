@@ -40,7 +40,7 @@ from test_strain_measures import KratosGeoMechanicsStrainMeasureTests
 from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
 from test_transient_thermal_validation import KratosGeoMechanicsTransientThermalValidationTests
 from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
-from test_time_integration import KratosGeoMechanicsTimeIntegrationTests
+from test_avoid_small_end_step import KratosGeoMechanicsAvoidSmallEndStepTests
 from c_phi_reduction_process import KratosGeoMechanicsCPhiReductionProcess
 from test_partial_saturation import KratosGeoMechanicsPartialSaturation
 
@@ -69,6 +69,7 @@ from test_set_moving_load_process import KratosGeoMechanicsSetMovingLoadProcessT
 from moving_column_with_fixed_pressure_above_phreatic_line import KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine
 from test_surface_interface_elements import KratosGeoMechanicsSurfaceInterfaceElementTests
 from test_dsettlement_validation import  KratosGeoMechanicsDSettlementValidationTests
+from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -122,7 +123,9 @@ def AssembleTestSuites():
                         KratosGeoMechanicsHydraulicHeads,
                         KratosGeoMechanicsSetMovingLoadProcessTests,
                         KratosGeoMechanicsSurfaceInterfaceElementTests,
-    ]
+                        KratosGeoMechanicsAvoidSmallEndStepTests,
+                        KratosGeoMechanicsDirichletUConstantTests,
+                        ]
 
     night_test_cases = [
                         KratosGeoMechanicsSettlementWorkflowCppRoute,
@@ -134,7 +137,6 @@ def AssembleTestSuites():
                         TestSellmeijersRule,
                         TestElementaryGroundWaterFlow,
                         KratosGeoMechanicsTransientThermalTests,
-                        KratosGeoMechanicsTimeIntegrationTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
                         KratosGeoMechanicsTransientPressurePointFluxTests,
                         KratosGeoMechanicsPartialSaturation,
