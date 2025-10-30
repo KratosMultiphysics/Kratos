@@ -25,7 +25,7 @@ def solve_cantilever(create_geometry):
 
     shell_properties = model_part.GetProperties()[1]
     shell_properties.SetValue(KM.THICKNESS, 0.1)
-    shell_properties.SetValue(KM.YOUNG_MODULUS, 200000000)
+    shell_properties.SetValue(KM.YOUNG_MODULUS, 100000)
     shell_properties.SetValue(KM.POISSON_RATIO, 0)
     shell_properties.SetValue(KM.CONSTITUTIVE_LAW, SMA.LinearElasticPlaneStress2DLaw())
 
@@ -56,7 +56,7 @@ def solve_cantilever(create_geometry):
 "kappa_12"
                            ],
         "applied_actuation_value": [
-0.000000005,
+0.50,
 0.00,
 0.00,
 0.00,
@@ -83,9 +83,9 @@ def solve_cantilever(create_geometry):
     KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)
     KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, model_part)
 
-    delta = 1e-6
+    
     print(model_part)
-
+    delta = 1e-6
     for element in model_part.Elements:
         lhs = KM.Matrix()
         ref_rhs = KM.Vector()
@@ -96,9 +96,8 @@ def solve_cantilever(create_geometry):
         if element.Id < 100:
             element.CalculateLocalSystem(lhs, ref_rhs, model_part.ProcessInfo)
 
-            print("ref_rhs")
-            print(ref_rhs)
-
+            print("ref_rhs\n:", ref_rhs)
+            print("-" * 40)
 
 
             # adjoint calculation
@@ -107,6 +106,29 @@ def solve_cantilever(create_geometry):
             adjoint_element.Initialize(model_part.ProcessInfo)
             adjoint_element.InitializeNonLinearIteration(model_part.ProcessInfo)
             adjoint_element.CalculateLeftHandSide(adjoint_sensitivities, model_part.ProcessInfo)
+            # adjoint_element.CalculateSensitivityMatrix(adjoint_sensitivities, model_part.ProcessInfo)
+            
+
+            # compare LHS and adjoint sensitivities without dumping full matrices
+            diff_threshold = 0.0001
+            large_differences = []
+            if lhs.Size1() != adjoint_sensitivities.Size1() or lhs.Size2() != adjoint_sensitivities.Size2():
+                raise RuntimeError("lhs and adjoint_sensitivities have different shapes")
+
+            for i in range(lhs.Size1()):
+                for j in range(lhs.Size2()):
+                    diff = abs(lhs[i, j] - adjoint_sensitivities[i, j])
+                    if diff > diff_threshold:
+                        large_differences.append((i, j, lhs[i, j], adjoint_sensitivities[i, j], diff))
+
+            if large_differences:
+                print(f"Entries with |lhs - adjoint_sensitivities| > {diff_threshold}:")
+                for row, col, lhs_val, adj_val, diff in large_differences:
+                    print(f"  row {row}, col {col}: lhs={lhs_val}, adjoint={adj_val}, diff={diff}")
+            else:
+                print(f"No entries differ by more than {diff_threshold}")
+
+            #####
 
             perturbed_rhs = KM.Vector()
             # for i, node in enumerate(element.GetGeometry()):
@@ -133,8 +155,9 @@ def solve_cantilever(create_geometry):
 
                 # for i in range(27):
                 #     print(sensitivities[i], adjoint_sensitivities[i * 3, i])
-
+            print("nodes in ACTIVE_MP:", model["ACTIVE_MP"].Nodes)
             for node in model["ACTIVE_MP"].Nodes:
+                print("perturbing node: ", node,"  - node id:", node.Id)
                 node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) + delta)
                 element.InitializeNonLinearIteration(model_part.ProcessInfo)
                 element.CalculateLocalSystem(lhs, perturbed_rhs, model_part.ProcessInfo)
@@ -147,9 +170,12 @@ def solve_cantilever(create_geometry):
                 # rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_2)); 31
                 # rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_12)); 32
 
+                # 9 nodes * 3 dofs + 6 actuation dofs = 33 total dofs
+                # 27 + 0 for ALPHA because of zero indexing
+                print("sensitivities versus adjoint sensitivity:  -------------------")
                 for i in range(33):
                     print(sensitivities[i], adjoint_sensitivities[27, i])
-
+                print("-" * 40)
                 node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) - delta)
 
 
@@ -183,8 +209,8 @@ def create_geometry(model_part):
     knots_u = KM.Vector(4)
     knots_u[0] = 0.0
     knots_u[1] = 0.0
-    knots_u[2] = 5.0
-    knots_u[3] = 5.0
+    knots_u[2] = 1.0
+    knots_u[3] = 1.0
 
     knots_v = KM.Vector(4)
     knots_v[0] = 0.0

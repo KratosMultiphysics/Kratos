@@ -494,6 +494,13 @@ protected:
         KRATOS_CATCH("")
     }
 
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "ActiveAdjointFiniteDifferenceElement #" << Id();
+        return buffer.str();
+    }
+
     ///@}
     ///@name Member Variables
     ///@{

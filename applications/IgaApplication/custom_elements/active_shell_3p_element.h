@@ -187,7 +187,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType mat_size = number_of_nodes * 3 + 6;
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);
@@ -210,7 +210,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType mat_size = number_of_nodes * 3 + 6;
 
         VectorType right_hand_side_vector;
 
@@ -236,7 +236,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType mat_size = number_of_nodes * 3 + 6; // +6 for the actuation dofs
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);
