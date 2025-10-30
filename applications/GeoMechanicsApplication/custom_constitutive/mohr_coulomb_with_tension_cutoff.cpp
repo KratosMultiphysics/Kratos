@@ -164,11 +164,7 @@ void MohrCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMateria
                                                       const Geometry<Node>&,
                                                       const Vector&)
 {
-    mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{
-        ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties),
-        ConstitutiveLawUtilities::GetCohesion(rMaterialProperties),
-        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
-        rMaterialProperties[GEO_TENSILE_STRENGTH]};
+    mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{rMaterialProperties};
 }
 
 void MohrCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Parameters& rValues)

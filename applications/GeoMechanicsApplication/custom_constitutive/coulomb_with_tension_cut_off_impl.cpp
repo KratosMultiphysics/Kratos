@@ -95,12 +95,9 @@ Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
 
 namespace Kratos
 {
-CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(double FrictionAngleInRadians,
-                                                           double Cohesion,
-                                                           double DilatancyAngleInRadians,
-                                                           double TensileStrength)
-    : mCoulombYieldSurface{FrictionAngleInRadians, Cohesion, DilatancyAngleInRadians},
-      mTensionCutOff{TensileStrength}
+
+CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties)
+    : mCoulombYieldSurface{rMaterialProperties}, mTensionCutOff{rMaterialProperties[GEO_TENSILE_STRENGTH]}
 {
 }
 
