@@ -2,7 +2,7 @@
 // execution/prefer_only.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -65,17 +65,16 @@ namespace detail {
 template <typename InnerProperty, typename = void>
 struct prefer_only_is_preferable
 {
-  static constexpr bool is_preferable = false;
+  ASIO_STATIC_CONSTEXPR(bool, is_preferable = false);
 };
 
 template <typename InnerProperty>
 struct prefer_only_is_preferable<InnerProperty,
-    enable_if_t<
+    typename enable_if<
       InnerProperty::is_preferable
-    >
-  >
+    >::type>
 {
-  static constexpr bool is_preferable = true;
+  ASIO_STATIC_CONSTEXPR(bool, is_preferable = true);
 };
 
 template <typename InnerProperty, typename = void>
@@ -85,10 +84,9 @@ struct prefer_only_polymorphic_query_result_type
 
 template <typename InnerProperty>
 struct prefer_only_polymorphic_query_result_type<InnerProperty,
-    void_t<
+    typename void_type<
       typename InnerProperty::polymorphic_query_result_type
-    >
-  >
+    >::type>
 {
   typedef typename InnerProperty::polymorphic_query_result_type
     polymorphic_query_result_type;
@@ -105,14 +103,14 @@ struct prefer_only_property
   }
 };
 
-#if defined(ASIO_HAS_WORKING_EXPRESSION_SFINAE)
+#if defined(ASIO_HAS_DECLTYPE) \
+  && defined(ASIO_HAS_WORKING_EXPRESSION_SFINAE)
 
 template <typename InnerProperty>
 struct prefer_only_property<InnerProperty,
-    void_t<
+    typename void_type<
       decltype(asio::declval<const InnerProperty>().value())
-    >
-  >
+    >::type>
 {
   InnerProperty property;
 
@@ -121,15 +119,17 @@ struct prefer_only_property<InnerProperty,
   {
   }
 
-  constexpr auto value() const
-    noexcept(noexcept(asio::declval<const InnerProperty>().value()))
+  ASIO_CONSTEXPR auto value() const
+    ASIO_NOEXCEPT_IF((
+      noexcept(asio::declval<const InnerProperty>().value())))
     -> decltype(asio::declval<const InnerProperty>().value())
   {
     return property.value();
   }
 };
 
-#else // defined(ASIO_HAS_WORKING_EXPRESSION_SFINAE)
+#else // defined(ASIO_HAS_DECLTYPE)
+      //   && defined(ASIO_HAS_WORKING_EXPRESSION_SFINAE)
 
 struct prefer_only_memfns_base
 {
@@ -158,12 +158,11 @@ char prefer_only_value_memfn_helper(
 
 template <typename InnerProperty>
 struct prefer_only_property<InnerProperty,
-    enable_if_t<
+    typename enable_if<
       sizeof(prefer_only_value_memfn_helper<InnerProperty>(0)) != 1
         && !is_same<typename InnerProperty::polymorphic_query_result_type,
           void>::value
-    >
-  >
+    >::type>
 {
   InnerProperty property;
 
@@ -172,14 +171,15 @@ struct prefer_only_property<InnerProperty,
   {
   }
 
-  constexpr typename InnerProperty::polymorphic_query_result_type
+  ASIO_CONSTEXPR typename InnerProperty::polymorphic_query_result_type
   value() const
   {
     return property.value();
   }
 };
 
-#endif // defined(ASIO_HAS_WORKING_EXPRESSION_SFINAE)
+#endif // defined(ASIO_HAS_DECLTYPE)
+       //   && defined(ASIO_HAS_WORKING_EXPRESSION_SFINAE)
 
 } // namespace detail
 
@@ -189,9 +189,9 @@ struct prefer_only :
   detail::prefer_only_polymorphic_query_result_type<InnerProperty>,
   detail::prefer_only_property<InnerProperty>
 {
-  static constexpr bool is_requirable = false;
+  ASIO_STATIC_CONSTEXPR(bool, is_requirable = false);
 
-  constexpr prefer_only(const InnerProperty& p)
+  ASIO_CONSTEXPR prefer_only(const InnerProperty& p)
     : detail::prefer_only_property<InnerProperty>(p)
   {
   }
@@ -199,33 +199,35 @@ struct prefer_only :
 #if defined(ASIO_HAS_DEDUCED_STATIC_QUERY_TRAIT) \
   && defined(ASIO_HAS_SFINAE_VARIABLE_TEMPLATES)
   template <typename T>
-  static constexpr
+  static ASIO_CONSTEXPR
   typename traits::static_query<T, InnerProperty>::result_type
   static_query()
-    noexcept(traits::static_query<T, InnerProperty>::is_noexcept)
+    ASIO_NOEXCEPT_IF((
+      traits::static_query<T, InnerProperty>::is_noexcept))
   {
     return traits::static_query<T, InnerProperty>::value();
   }
 
   template <typename E, typename T = decltype(prefer_only::static_query<E>())>
-  static constexpr const T static_query_v
+  static ASIO_CONSTEXPR const T static_query_v
     = prefer_only::static_query<E>();
 #endif // defined(ASIO_HAS_DEDUCED_STATIC_QUERY_TRAIT)
        //   && defined(ASIO_HAS_SFINAE_VARIABLE_TEMPLATES)
 
   template <typename Executor, typename Property>
-  friend constexpr
-  prefer_result_t<const Executor&, const InnerProperty&>
+  friend ASIO_CONSTEXPR
+  typename prefer_result<const Executor&, const InnerProperty&>::type
   prefer(const Executor& ex, const prefer_only<Property>& p,
-      enable_if_t<
+      typename enable_if<
         is_same<Property, InnerProperty>::value
-      >* = 0,
-      enable_if_t<
+      >::type* = 0,
+      typename enable_if<
         can_prefer<const Executor&, const InnerProperty&>::value
-      >* = 0)
+      >::type* = 0)
 #if !defined(ASIO_MSVC) \
   && !defined(__clang__) // Clang crashes if noexcept is used here.
-    noexcept(is_nothrow_prefer<const Executor&, const InnerProperty&>::value)
+    ASIO_NOEXCEPT_IF((
+      is_nothrow_prefer<const Executor&, const InnerProperty&>::value))
 #endif // !defined(ASIO_MSVC)
        //   && !defined(__clang__)
   {
@@ -233,18 +235,19 @@ struct prefer_only :
   }
 
   template <typename Executor, typename Property>
-  friend constexpr
-  query_result_t<const Executor&, const InnerProperty&>
+  friend ASIO_CONSTEXPR
+  typename query_result<const Executor&, const InnerProperty&>::type
   query(const Executor& ex, const prefer_only<Property>& p,
-      enable_if_t<
+      typename enable_if<
         is_same<Property, InnerProperty>::value
-      >* = 0,
-      enable_if_t<
+      >::type* = 0,
+      typename enable_if<
         can_query<const Executor&, const InnerProperty&>::value
-      >* = 0)
+      >::type* = 0)
 #if !defined(ASIO_MSVC) \
   && !defined(__clang__) // Clang crashes if noexcept is used here.
-    noexcept(is_nothrow_query<const Executor&, const InnerProperty&>::value)
+    ASIO_NOEXCEPT_IF((
+      is_nothrow_query<const Executor&, const InnerProperty&>::value))
 #endif // !defined(ASIO_MSVC)
        //   && !defined(__clang__)
   {
@@ -262,7 +265,7 @@ const T prefer_only<InnerProperty>::static_query_v;
 } // namespace execution
 
 template <typename T, typename InnerProperty>
-struct is_applicable_property<T, execution::prefer_only<InnerProperty>>
+struct is_applicable_property<T, execution::prefer_only<InnerProperty> >
   : is_applicable_property<T, InnerProperty>
 {
 };
@@ -273,7 +276,7 @@ namespace traits {
   || !defined(ASIO_HAS_SFINAE_VARIABLE_TEMPLATES)
 
 template <typename T, typename InnerProperty>
-struct static_query<T, execution::prefer_only<InnerProperty>> :
+struct static_query<T, execution::prefer_only<InnerProperty> > :
   static_query<T, const InnerProperty&>
 {
 };
@@ -285,16 +288,16 @@ struct static_query<T, execution::prefer_only<InnerProperty>> :
 
 template <typename T, typename InnerProperty>
 struct prefer_free_default<T, execution::prefer_only<InnerProperty>,
-    enable_if_t<
+    typename enable_if<
       can_prefer<const T&, const InnerProperty&>::value
-    >
-  >
+    >::type>
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept =
-    is_nothrow_prefer<const T&, const InnerProperty&>::value;
+  ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  ASIO_STATIC_CONSTEXPR(bool, is_noexcept =
+    (is_nothrow_prefer<const T&, const InnerProperty&>::value));
 
-  typedef prefer_result_t<const T&, const InnerProperty&> result_type;
+  typedef typename prefer_result<const T&,
+      const InnerProperty&>::type result_type;
 };
 
 #endif // !defined(ASIO_HAS_DEDUCED_PREFER_FREE_TRAIT)
@@ -303,16 +306,16 @@ struct prefer_free_default<T, execution::prefer_only<InnerProperty>,
 
 template <typename T, typename InnerProperty>
 struct query_free<T, execution::prefer_only<InnerProperty>,
-    enable_if_t<
+    typename enable_if<
       can_query<const T&, const InnerProperty&>::value
-    >
-  >
+    >::type>
 {
-  static constexpr bool is_valid = true;
-  static constexpr bool is_noexcept =
-    is_nothrow_query<const T&, const InnerProperty&>::value;
+  ASIO_STATIC_CONSTEXPR(bool, is_valid = true);
+  ASIO_STATIC_CONSTEXPR(bool, is_noexcept =
+    (is_nothrow_query<const T&, const InnerProperty&>::value));
 
-  typedef query_result_t<const T&, const InnerProperty&> result_type;
+  typedef typename query_result<const T&,
+      const InnerProperty&>::type result_type;
 };
 
 #endif // !defined(ASIO_HAS_DEDUCED_QUERY_FREE_TRAIT)

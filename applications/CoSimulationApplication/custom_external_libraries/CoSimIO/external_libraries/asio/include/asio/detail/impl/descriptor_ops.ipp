@@ -2,7 +2,7 @@
 // detail/impl/descriptor_ops.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -69,24 +69,18 @@ int close(int d, state_type& state, asio::error_code& ec)
         ::fcntl(d, F_SETFL, flags & ~O_NONBLOCK);
 #else // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
       ioctl_arg_type arg = 0;
-      if ((state & possible_dup) == 0)
-      {
-        result = ::ioctl(d, FIONBIO, &arg);
-        get_last_error(ec, result < 0);
-      }
-      if ((state & possible_dup) != 0
 # if defined(ENOTTY)
-          || ec.value() == ENOTTY
-# endif // defined(ENOTTY)
-# if defined(ENOTCAPABLE)
-          || ec.value() == ENOTCAPABLE
-# endif // defined(ENOTCAPABLE)
-        )
+      result = ::ioctl(d, FIONBIO, &arg);
+      get_last_error(ec, result < 0);
+      if (ec.value() == ENOTTY)
       {
         int flags = ::fcntl(d, F_GETFL, 0);
         if (flags >= 0)
           ::fcntl(d, F_SETFL, flags & ~O_NONBLOCK);
       }
+# else // defined(ENOTTY)
+      ::ioctl(d, FIONBIO, &arg);
+# endif // defined(ENOTTY)
 #endif // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
       state &= ~non_blocking;
 
@@ -113,35 +107,26 @@ bool set_user_non_blocking(int d, state_type& state,
   if (result >= 0)
   {
     int flag = (value ? (result | O_NONBLOCK) : (result & ~O_NONBLOCK));
-    result = (flag != result) ? ::fcntl(d, F_SETFL, flag) : 0;
+    result = ::fcntl(d, F_SETFL, flag);
     get_last_error(ec, result < 0);
   }
 #else // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
   ioctl_arg_type arg = (value ? 1 : 0);
-  int result = 0;
-  if ((state & possible_dup) == 0)
-  {
-    result = ::ioctl(d, FIONBIO, &arg);
-    get_last_error(ec, result < 0);
-  }
-  if ((state & possible_dup) != 0
+  int result = ::ioctl(d, FIONBIO, &arg);
+  get_last_error(ec, result < 0);
 # if defined(ENOTTY)
-      || ec.value() == ENOTTY
-# endif // defined(ENOTTY)
-# if defined(ENOTCAPABLE)
-      || ec.value() == ENOTCAPABLE
-# endif // defined(ENOTCAPABLE)
-    )
+  if (ec.value() == ENOTTY)
   {
     result = ::fcntl(d, F_GETFL, 0);
     get_last_error(ec, result < 0);
     if (result >= 0)
     {
       int flag = (value ? (result | O_NONBLOCK) : (result & ~O_NONBLOCK));
-      result = (flag != result) ? ::fcntl(d, F_SETFL, flag) : 0;
+      result = ::fcntl(d, F_SETFL, flag);
       get_last_error(ec, result < 0);
     }
   }
+# endif // defined(ENOTTY)
 #endif // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
 
   if (result >= 0)
@@ -185,35 +170,26 @@ bool set_internal_non_blocking(int d, state_type& state,
   if (result >= 0)
   {
     int flag = (value ? (result | O_NONBLOCK) : (result & ~O_NONBLOCK));
-    result = (flag != result) ? ::fcntl(d, F_SETFL, flag) : 0;
+    result = ::fcntl(d, F_SETFL, flag);
     get_last_error(ec, result < 0);
   }
 #else // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
   ioctl_arg_type arg = (value ? 1 : 0);
-  int result = 0;
-  if ((state & possible_dup) == 0)
-  {
-    result = ::ioctl(d, FIONBIO, &arg);
-    get_last_error(ec, result < 0);
-  }
-  if ((state & possible_dup) != 0
+  int result = ::ioctl(d, FIONBIO, &arg);
+  get_last_error(ec, result < 0);
 # if defined(ENOTTY)
-      || ec.value() == ENOTTY
-# endif // defined(ENOTTY)
-# if defined(ENOTCAPABLE)
-      || ec.value() == ENOTCAPABLE
-# endif // defined(ENOTCAPABLE)
-    )
+  if (ec.value() == ENOTTY)
   {
     result = ::fcntl(d, F_GETFL, 0);
     get_last_error(ec, result < 0);
     if (result >= 0)
     {
       int flag = (value ? (result | O_NONBLOCK) : (result & ~O_NONBLOCK));
-      result = (flag != result) ? ::fcntl(d, F_SETFL, flag) : 0;
+      result = ::fcntl(d, F_SETFL, flag);
       get_last_error(ec, result < 0);
     }
   }
+# endif // defined(ENOTTY)
 #endif // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
 
   if (result >= 0)

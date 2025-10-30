@@ -2,7 +2,7 @@
 // executor_work_guard.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -49,13 +49,13 @@ public:
   /**
    * Stores a copy of @c e and calls <tt>on_work_started()</tt> on it.
    */
-  explicit executor_work_guard(const executor_type& e) noexcept;
+  explicit executor_work_guard(const executor_type& e) ASIO_NOEXCEPT;
 
   /// Copy constructor.
-  executor_work_guard(const executor_work_guard& other) noexcept;
+  executor_work_guard(const executor_work_guard& other) ASIO_NOEXCEPT;
 
   /// Move constructor.
-  executor_work_guard(executor_work_guard&& other) noexcept;
+  executor_work_guard(executor_work_guard&& other) ASIO_NOEXCEPT;
 
   /// Destructor.
   /**
@@ -65,17 +65,17 @@ public:
   ~executor_work_guard();
 
   /// Obtain the associated executor.
-  executor_type get_executor() const noexcept;
+  executor_type get_executor() const ASIO_NOEXCEPT;
 
   /// Whether the executor_work_guard object owns some outstanding work.
-  bool owns_work() const noexcept;
+  bool owns_work() const ASIO_NOEXCEPT;
 
   /// Indicate that the work is no longer outstanding.
   /**
    * Unless the object has already been reset, or is in a moved-from state,
    * calls <tt>on_work_finished()</tt> on the stored executor.
    */
-  void reset() noexcept;
+  void reset() ASIO_NOEXCEPT;
 };
 
 #endif // defined(GENERATING_DOCUMENTATION)
@@ -86,21 +86,21 @@ public:
 
 template <typename Executor>
 class executor_work_guard<Executor,
-    enable_if_t<
+    typename enable_if<
       is_executor<Executor>::value
-    >>
+    >::type>
 {
 public:
   typedef Executor executor_type;
 
-  explicit executor_work_guard(const executor_type& e) noexcept
+  explicit executor_work_guard(const executor_type& e) ASIO_NOEXCEPT
     : executor_(e),
       owns_(true)
   {
     executor_.on_work_started();
   }
 
-  executor_work_guard(const executor_work_guard& other) noexcept
+  executor_work_guard(const executor_work_guard& other) ASIO_NOEXCEPT
     : executor_(other.executor_),
       owns_(other.owns_)
   {
@@ -108,12 +108,14 @@ public:
       executor_.on_work_started();
   }
 
-  executor_work_guard(executor_work_guard&& other) noexcept
-    : executor_(static_cast<Executor&&>(other.executor_)),
+#if defined(ASIO_HAS_MOVE)
+  executor_work_guard(executor_work_guard&& other) ASIO_NOEXCEPT
+    : executor_(ASIO_MOVE_CAST(Executor)(other.executor_)),
       owns_(other.owns_)
   {
     other.owns_ = false;
   }
+#endif // defined(ASIO_HAS_MOVE)
 
   ~executor_work_guard()
   {
@@ -121,17 +123,17 @@ public:
       executor_.on_work_finished();
   }
 
-  executor_type get_executor() const noexcept
+  executor_type get_executor() const ASIO_NOEXCEPT
   {
     return executor_;
   }
 
-  bool owns_work() const noexcept
+  bool owns_work() const ASIO_NOEXCEPT
   {
     return owns_;
   }
 
-  void reset() noexcept
+  void reset() ASIO_NOEXCEPT
   {
     if (owns_)
     {
@@ -152,17 +154,17 @@ private:
 
 template <typename Executor>
 class executor_work_guard<Executor,
-    enable_if_t<
+    typename enable_if<
       !is_executor<Executor>::value
-    >,
-    enable_if_t<
+    >::type,
+    typename enable_if<
       execution::is_executor<Executor>::value
-    >>
+    >::type>
 {
 public:
   typedef Executor executor_type;
 
-  explicit executor_work_guard(const executor_type& e) noexcept
+  explicit executor_work_guard(const executor_type& e) ASIO_NOEXCEPT
     : executor_(e),
       owns_(true)
   {
@@ -170,7 +172,7 @@ public:
           execution::outstanding_work.tracked));
   }
 
-  executor_work_guard(const executor_work_guard& other) noexcept
+  executor_work_guard(const executor_work_guard& other) ASIO_NOEXCEPT
     : executor_(other.executor_),
       owns_(other.owns_)
   {
@@ -181,19 +183,21 @@ public:
     }
   }
 
-  executor_work_guard(executor_work_guard&& other) noexcept
-    : executor_(static_cast<Executor&&>(other.executor_)),
+#if defined(ASIO_HAS_MOVE)
+  executor_work_guard(executor_work_guard&& other) ASIO_NOEXCEPT
+    : executor_(ASIO_MOVE_CAST(Executor)(other.executor_)),
       owns_(other.owns_)
   {
     if (owns_)
     {
       new (&work_) work_type(
-          static_cast<work_type&&>(
+          ASIO_MOVE_CAST(work_type)(
             *static_cast<work_type*>(
               static_cast<void*>(&other.work_))));
       other.owns_ = false;
     }
   }
+#endif //  defined(ASIO_HAS_MOVE)
 
   ~executor_work_guard()
   {
@@ -201,17 +205,17 @@ public:
       static_cast<work_type*>(static_cast<void*>(&work_))->~work_type();
   }
 
-  executor_type get_executor() const noexcept
+  executor_type get_executor() const ASIO_NOEXCEPT
   {
     return executor_;
   }
 
-  bool owns_work() const noexcept
+  bool owns_work() const ASIO_NOEXCEPT
   {
     return owns_;
   }
 
-  void reset() noexcept
+  void reset() ASIO_NOEXCEPT
   {
     if (owns_)
     {
@@ -224,15 +228,16 @@ private:
   // Disallow assignment.
   executor_work_guard& operator=(const executor_work_guard&);
 
-  typedef decay_t<
-      prefer_result_t<
+  typedef typename decay<
+      typename prefer_result<
         const executor_type&,
         execution::outstanding_work_t::tracked_t
-      >
-    > work_type;
+      >::type
+    >::type work_type;
 
   executor_type executor_;
-  aligned_storage_t<sizeof(work_type), alignment_of<work_type>::value> work_;
+  typename aligned_storage<sizeof(work_type),
+      alignment_of<work_type>::value>::type work_;
   bool owns_;
 };
 
@@ -247,9 +252,9 @@ private:
 template <typename Executor>
 ASIO_NODISCARD inline executor_work_guard<Executor>
 make_work_guard(const Executor& ex,
-    constraint_t<
+    typename constraint<
       is_executor<Executor>::value || execution::is_executor<Executor>::value
-    > = 0)
+    >::type = 0)
 {
   return executor_work_guard<Executor>(ex);
 }
@@ -265,9 +270,9 @@ template <typename ExecutionContext>
 ASIO_NODISCARD inline
 executor_work_guard<typename ExecutionContext::executor_type>
 make_work_guard(ExecutionContext& ctx,
-    constraint_t<
+    typename constraint<
       is_convertible<ExecutionContext&, execution_context&>::value
-    > = 0)
+    >::type = 0)
 {
   return executor_work_guard<typename ExecutionContext::executor_type>(
       ctx.get_executor());
@@ -284,15 +289,15 @@ make_work_guard(ExecutionContext& ctx,
 template <typename T>
 ASIO_NODISCARD inline
 executor_work_guard<
-    typename constraint_t<
+    typename constraint<
       !is_executor<T>::value
         && !execution::is_executor<T>::value
         && !is_convertible<T&, execution_context&>::value,
       associated_executor<T>
-    >::type>
+    >::type::type>
 make_work_guard(const T& t)
 {
-  return executor_work_guard<associated_executor_t<T>>(
+  return executor_work_guard<typename associated_executor<T>::type>(
       associated_executor<T>::get(t));
 }
 
@@ -310,13 +315,13 @@ make_work_guard(const T& t)
  */
 template <typename T, typename Executor>
 ASIO_NODISCARD inline
-executor_work_guard<associated_executor_t<T, Executor>>
+executor_work_guard<typename associated_executor<T, Executor>::type>
 make_work_guard(const T& t, const Executor& ex,
-    constraint_t<
+    typename constraint<
       is_executor<Executor>::value || execution::is_executor<Executor>::value
-    > = 0)
+    >::type = 0)
 {
-  return executor_work_guard<associated_executor_t<T, Executor>>(
+  return executor_work_guard<typename associated_executor<T, Executor>::type>(
       associated_executor<T, Executor>::get(t, ex));
 }
 
@@ -333,24 +338,24 @@ make_work_guard(const T& t, const Executor& ex,
  * ctx.get_executor())</tt>.
  */
 template <typename T, typename ExecutionContext>
-ASIO_NODISCARD inline executor_work_guard<
-  associated_executor_t<T, typename ExecutionContext::executor_type>>
+ASIO_NODISCARD inline executor_work_guard<typename associated_executor<T,
+  typename ExecutionContext::executor_type>::type>
 make_work_guard(const T& t, ExecutionContext& ctx,
-    constraint_t<
+    typename constraint<
       !is_executor<T>::value
-    > = 0,
-    constraint_t<
+    >::type = 0,
+    typename constraint<
       !execution::is_executor<T>::value
-    > = 0,
-    constraint_t<
+    >::type = 0,
+    typename constraint<
       !is_convertible<T&, execution_context&>::value
-    > = 0,
-    constraint_t<
+    >::type = 0,
+    typename constraint<
       is_convertible<ExecutionContext&, execution_context&>::value
-    > = 0)
+    >::type = 0)
 {
-  return executor_work_guard<
-    associated_executor_t<T, typename ExecutionContext::executor_type>>(
+  return executor_work_guard<typename associated_executor<T,
+    typename ExecutionContext::executor_type>::type>(
       associated_executor<T, typename ExecutionContext::executor_type>::get(
         t, ctx.get_executor()));
 }

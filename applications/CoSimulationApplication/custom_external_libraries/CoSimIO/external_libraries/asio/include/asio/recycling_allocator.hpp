@@ -2,7 +2,7 @@
 // recycling_allocator.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -44,27 +44,27 @@ public:
   };
 
   /// Default constructor.
-  constexpr recycling_allocator() noexcept
+  ASIO_CONSTEXPR recycling_allocator() ASIO_NOEXCEPT
   {
   }
 
   /// Converting constructor.
   template <typename U>
-  constexpr recycling_allocator(
-      const recycling_allocator<U>&) noexcept
+  ASIO_CONSTEXPR recycling_allocator(
+      const recycling_allocator<U>&) ASIO_NOEXCEPT
   {
   }
 
   /// Equality operator. Always returns true.
-  constexpr bool operator==(
-      const recycling_allocator&) const noexcept
+  ASIO_CONSTEXPR bool operator==(
+      const recycling_allocator&) const ASIO_NOEXCEPT
   {
     return true;
   }
 
   /// Inequality operator. Always returns false.
-  constexpr bool operator!=(
-      const recycling_allocator&) const noexcept
+  ASIO_CONSTEXPR bool operator!=(
+      const recycling_allocator&) const ASIO_NOEXCEPT
   {
     return false;
   }
@@ -105,27 +105,27 @@ public:
   };
 
   /// Default constructor.
-  constexpr recycling_allocator() noexcept
+  ASIO_CONSTEXPR recycling_allocator() ASIO_NOEXCEPT
   {
   }
 
   /// Converting constructor.
   template <typename U>
-  constexpr recycling_allocator(
-      const recycling_allocator<U>&) noexcept
+  ASIO_CONSTEXPR recycling_allocator(
+      const recycling_allocator<U>&) ASIO_NOEXCEPT
   {
   }
 
   /// Equality operator. Always returns true.
-  constexpr bool operator==(
-      const recycling_allocator&) const noexcept
+  ASIO_CONSTEXPR bool operator==(
+      const recycling_allocator&) const ASIO_NOEXCEPT
   {
     return true;
   }
 
   /// Inequality operator. Always returns false.
-  constexpr bool operator!=(
-      const recycling_allocator&) const noexcept
+  ASIO_CONSTEXPR bool operator!=(
+      const recycling_allocator&) const ASIO_NOEXCEPT
   {
     return false;
   }

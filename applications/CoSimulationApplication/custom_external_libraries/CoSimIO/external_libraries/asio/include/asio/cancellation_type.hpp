@@ -2,7 +2,7 @@
 // cancellation_type.hpp
 // ~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -51,7 +51,7 @@ enum cancellation_type
 /// Portability typedef.
 typedef cancellation_type cancellation_type_t;
 
-#else // defined(GENERATING_DOCUMENTATION)
+#elif defined(ASIO_HAS_ENUM_CLASS)
 
 enum class cancellation_type : unsigned int
 {
@@ -64,13 +64,30 @@ enum class cancellation_type : unsigned int
 
 typedef cancellation_type cancellation_type_t;
 
-#endif // defined(GENERATING_DOCUMENTATION)
+#else // defined(ASIO_HAS_ENUM_CLASS)
+
+namespace cancellation_type {
+
+enum cancellation_type_t
+{
+  none = 0,
+  terminal = 1,
+  partial = 2,
+  total = 4,
+  all = 0xFFFFFFFF
+};
+
+} // namespace cancellation_type
+
+typedef cancellation_type::cancellation_type_t cancellation_type_t;
+
+#endif // defined(ASIO_HAS_ENUM_CLASS)
 
 /// Negation operator.
 /**
  * @relates cancellation_type
  */
-inline constexpr bool operator!(cancellation_type_t x)
+inline ASIO_CONSTEXPR bool operator!(cancellation_type_t x)
 {
   return static_cast<unsigned int>(x) == 0;
 }
@@ -79,7 +96,7 @@ inline constexpr bool operator!(cancellation_type_t x)
 /**
  * @relates cancellation_type
  */
-inline constexpr cancellation_type_t operator&(
+inline ASIO_CONSTEXPR cancellation_type_t operator&(
     cancellation_type_t x, cancellation_type_t y)
 {
   return static_cast<cancellation_type_t>(
@@ -90,7 +107,7 @@ inline constexpr cancellation_type_t operator&(
 /**
  * @relates cancellation_type
  */
-inline constexpr cancellation_type_t operator|(
+inline ASIO_CONSTEXPR cancellation_type_t operator|(
     cancellation_type_t x, cancellation_type_t y)
 {
   return static_cast<cancellation_type_t>(
@@ -101,7 +118,7 @@ inline constexpr cancellation_type_t operator|(
 /**
  * @relates cancellation_type
  */
-inline constexpr cancellation_type_t operator^(
+inline ASIO_CONSTEXPR cancellation_type_t operator^(
     cancellation_type_t x, cancellation_type_t y)
 {
   return static_cast<cancellation_type_t>(
@@ -112,7 +129,7 @@ inline constexpr cancellation_type_t operator^(
 /**
  * @relates cancellation_type
  */
-inline constexpr cancellation_type_t operator~(cancellation_type_t x)
+inline ASIO_CONSTEXPR cancellation_type_t operator~(cancellation_type_t x)
 {
   return static_cast<cancellation_type_t>(~static_cast<unsigned int>(x));
 }

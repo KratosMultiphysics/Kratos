@@ -2,7 +2,7 @@
 // detail/impl/socket_ops.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -40,10 +40,6 @@
 # endif // defined(ASIO_HAS_PTHREADS)
 #endif // defined(ASIO_WINDOWS) || defined(__CYGWIN__)
        // || defined(__MACH__) && defined(__APPLE__)
-
-#if defined(_MSC_VER) && (_MSC_VER >= 1800)
-# include <malloc.h>
-#endif // defined(_MSC_VER) && (_MSC_VER >= 1800)
 
 #include "asio/detail/push_options.hpp"
 
@@ -343,24 +339,7 @@ int close(socket_type s, state_type& state,
         ::fcntl(s, F_SETFL, flags & ~O_NONBLOCK);
 # else // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
       ioctl_arg_type arg = 0;
-      if ((state & possible_dup) == 0)
-      {
-        result = ::ioctl(s, FIONBIO, &arg);
-        get_last_error(ec, result < 0);
-      }
-      if ((state & possible_dup) != 0
-#  if defined(ENOTTY)
-          || ec.value() == ENOTTY
-#  endif // defined(ENOTTY)
-#  if defined(ENOTCAPABLE)
-          || ec.value() == ENOTCAPABLE
-#  endif // defined(ENOTCAPABLE)
-        )
-      {
-        int flags = ::fcntl(s, F_GETFL, 0);
-        if (flags >= 0)
-          ::fcntl(s, F_SETFL, flags & ~O_NONBLOCK);
-      }
+      ::ioctl(s, FIONBIO, &arg);
 # endif // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
 #endif // defined(ASIO_WINDOWS) || defined(__CYGWIN__)
       state &= ~non_blocking;
@@ -396,36 +375,14 @@ bool set_user_non_blocking(socket_type s,
   if (result >= 0)
   {
     int flag = (value ? (result | O_NONBLOCK) : (result & ~O_NONBLOCK));
-    result = (flag != result) ? ::fcntl(s, F_SETFL, flag) : 0;
+    result = ::fcntl(s, F_SETFL, flag);
     get_last_error(ec, result < 0);
   }
-#else // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#else
   ioctl_arg_type arg = (value ? 1 : 0);
-  int result = 0;
-  if ((state & possible_dup) == 0)
-  {
-    result = ::ioctl(s, FIONBIO, &arg);
-    get_last_error(ec, result < 0);
-  }
-  if ((state & possible_dup) != 0
-# if defined(ENOTTY)
-      || ec.value() == ENOTTY
-# endif // defined(ENOTTY)
-# if defined(ENOTCAPABLE)
-      || ec.value() == ENOTCAPABLE
-# endif // defined(ENOTCAPABLE)
-    )
-  {
-    result = ::fcntl(s, F_GETFL, 0);
-    get_last_error(ec, result < 0);
-    if (result >= 0)
-    {
-      int flag = (value ? (result | O_NONBLOCK) : (result & ~O_NONBLOCK));
-      result = (flag != result) ? ::fcntl(s, F_SETFL, flag) : 0;
-      get_last_error(ec, result < 0);
-    }
-  }
-#endif // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+  int result = ::ioctl(s, FIONBIO, &arg);
+  get_last_error(ec, result < 0);
+#endif
 
   if (result >= 0)
   {
@@ -472,36 +429,14 @@ bool set_internal_non_blocking(socket_type s,
   if (result >= 0)
   {
     int flag = (value ? (result | O_NONBLOCK) : (result & ~O_NONBLOCK));
-    result = (flag != result) ? ::fcntl(s, F_SETFL, flag) : 0;
+    result = ::fcntl(s, F_SETFL, flag);
     get_last_error(ec, result < 0);
   }
-#else // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+#else
   ioctl_arg_type arg = (value ? 1 : 0);
-  int result = 0;
-  if ((state & possible_dup) == 0)
-  {
-    result = ::ioctl(s, FIONBIO, &arg);
-    get_last_error(ec, result < 0);
-  }
-  if ((state & possible_dup) != 0
-# if defined(ENOTTY)
-      || ec.value() == ENOTTY
-# endif // defined(ENOTTY)
-# if defined(ENOTCAPABLE)
-      || ec.value() == ENOTCAPABLE
-# endif // defined(ENOTCAPABLE)
-    )
-  {
-    result = ::fcntl(s, F_GETFL, 0);
-    get_last_error(ec, result < 0);
-    if (result >= 0)
-    {
-      int flag = (value ? (result | O_NONBLOCK) : (result & ~O_NONBLOCK));
-      result = (flag != result) ? ::fcntl(s, F_SETFL, flag) : 0;
-      get_last_error(ec, result < 0);
-    }
-  }
-#endif // defined(__SYMBIAN32__) || defined(__EMSCRIPTEN__)
+  int result = ::ioctl(s, FIONBIO, &arg);
+  get_last_error(ec, result < 0);
+#endif
 
   if (result >= 0)
   {
@@ -2586,11 +2521,9 @@ const char* inet_ntop(int af, const void* src, char* dest, size_t length,
         || if_indextoname(static_cast<unsigned>(scope_id), if_name + 1) == 0)
 #if defined(ASIO_HAS_SNPRINTF)
       snprintf(if_name + 1, sizeof(if_name) - 1, "%lu", scope_id);
-#elif defined(ASIO_HAS_SECURE_RTL)
-      sprintf_s(if_name + 1, sizeof(if_name) -1, "%lu", scope_id);
-#else // defined(ASIO_HAS_SECURE_RTL)
+#else // defined(ASIO_HAS_SNPRINTF)
       sprintf(if_name + 1, "%lu", scope_id);
-#endif // defined(ASIO_HAS_SECURE_RTL)
+#endif // defined(ASIO_HAS_SNPRINTF)
     strcat(dest, if_name);
   }
   return result;

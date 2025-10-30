@@ -19,7 +19,7 @@ namespace CoSimIO {
 namespace Internals {
 
 template<class TSocketType>
-BaseSocketCommunication<TSocketType>::~BaseSocketCommunication()
+BaseSocketCommunication<TSocketType>::~BaseSocketCommunication<TSocketType>()
 {
     CO_SIM_IO_TRY
 

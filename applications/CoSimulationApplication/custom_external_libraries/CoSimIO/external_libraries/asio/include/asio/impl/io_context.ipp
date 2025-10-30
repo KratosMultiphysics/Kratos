@@ -2,7 +2,7 @@
 // impl/io_context.ipp
 // ~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,7 +16,6 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include "asio/detail/config.hpp"
-#include "asio/config.hpp"
 #include "asio/io_context.hpp"
 #include "asio/detail/concurrency_hint.hpp"
 #include "asio/detail/limits.hpp"
@@ -35,20 +34,14 @@
 namespace asio {
 
 io_context::io_context()
-  : execution_context(config_from_concurrency_hint()),
-    impl_(add_impl(new impl_type(*this, false)))
+  : impl_(add_impl(new impl_type(*this,
+          ASIO_CONCURRENCY_HINT_DEFAULT, false)))
 {
 }
 
 io_context::io_context(int concurrency_hint)
-  : execution_context(config_from_concurrency_hint(concurrency_hint)),
-    impl_(add_impl(new impl_type(*this, false)))
-{
-}
-
-io_context::io_context(const execution_context::service_maker& initial_services)
-  : execution_context(initial_services),
-    impl_(add_impl(new impl_type(*this, false)))
+  : impl_(add_impl(new impl_type(*this, concurrency_hint == 1
+          ? ASIO_CONCURRENCY_HINT_1 : concurrency_hint, false)))
 {
 }
 
@@ -72,6 +65,13 @@ io_context::count_type io_context::run()
   return s;
 }
 
+#if !defined(ASIO_NO_DEPRECATED)
+io_context::count_type io_context::run(asio::error_code& ec)
+{
+  return impl_.run(ec);
+}
+#endif // !defined(ASIO_NO_DEPRECATED)
+
 io_context::count_type io_context::run_one()
 {
   asio::error_code ec;
@@ -79,6 +79,13 @@ io_context::count_type io_context::run_one()
   asio::detail::throw_error(ec);
   return s;
 }
+
+#if !defined(ASIO_NO_DEPRECATED)
+io_context::count_type io_context::run_one(asio::error_code& ec)
+{
+  return impl_.run_one(ec);
+}
+#endif // !defined(ASIO_NO_DEPRECATED)
 
 io_context::count_type io_context::poll()
 {
@@ -88,6 +95,13 @@ io_context::count_type io_context::poll()
   return s;
 }
 
+#if !defined(ASIO_NO_DEPRECATED)
+io_context::count_type io_context::poll(asio::error_code& ec)
+{
+  return impl_.poll(ec);
+}
+#endif // !defined(ASIO_NO_DEPRECATED)
+
 io_context::count_type io_context::poll_one()
 {
   asio::error_code ec;
@@ -95,6 +109,13 @@ io_context::count_type io_context::poll_one()
   asio::detail::throw_error(ec);
   return s;
 }
+
+#if !defined(ASIO_NO_DEPRECATED)
+io_context::count_type io_context::poll_one(asio::error_code& ec)
+{
+  return impl_.poll_one(ec);
+}
+#endif // !defined(ASIO_NO_DEPRECATED)
 
 void io_context::stop()
 {
@@ -122,11 +143,31 @@ io_context::service::~service()
 
 void io_context::service::shutdown()
 {
+#if !defined(ASIO_NO_DEPRECATED)
+  shutdown_service();
+#endif // !defined(ASIO_NO_DEPRECATED)
 }
 
-void io_context::service::notify_fork(io_context::fork_event)
+#if !defined(ASIO_NO_DEPRECATED)
+void io_context::service::shutdown_service()
 {
 }
+#endif // !defined(ASIO_NO_DEPRECATED)
+
+void io_context::service::notify_fork(io_context::fork_event ev)
+{
+#if !defined(ASIO_NO_DEPRECATED)
+  fork_service(ev);
+#else // !defined(ASIO_NO_DEPRECATED)
+  (void)ev;
+#endif // !defined(ASIO_NO_DEPRECATED)
+}
+
+#if !defined(ASIO_NO_DEPRECATED)
+void io_context::service::fork_service(io_context::fork_event)
+{
+}
+#endif // !defined(ASIO_NO_DEPRECATED)
 
 } // namespace asio
 

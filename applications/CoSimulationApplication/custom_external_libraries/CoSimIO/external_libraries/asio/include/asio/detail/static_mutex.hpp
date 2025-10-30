@@ -2,7 +2,7 @@
 // detail/static_mutex.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -23,8 +23,10 @@
 # include "asio/detail/win_static_mutex.hpp"
 #elif defined(ASIO_HAS_PTHREADS)
 # include "asio/detail/posix_static_mutex.hpp"
-#else
+#elif defined(ASIO_HAS_STD_MUTEX_AND_CONDVAR)
 # include "asio/detail/std_static_mutex.hpp"
+#else
+# error Only Windows and POSIX are supported!
 #endif
 
 namespace asio {
@@ -39,7 +41,7 @@ typedef win_static_mutex static_mutex;
 #elif defined(ASIO_HAS_PTHREADS)
 typedef posix_static_mutex static_mutex;
 # define ASIO_STATIC_MUTEX_INIT ASIO_POSIX_STATIC_MUTEX_INIT
-#else
+#elif defined(ASIO_HAS_STD_MUTEX_AND_CONDVAR)
 typedef std_static_mutex static_mutex;
 # define ASIO_STATIC_MUTEX_INIT ASIO_STD_STATIC_MUTEX_INIT
 #endif

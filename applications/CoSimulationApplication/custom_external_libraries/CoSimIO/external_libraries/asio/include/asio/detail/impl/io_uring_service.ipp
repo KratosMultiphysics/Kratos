@@ -2,7 +2,7 @@
 // detail/impl/io_uring_service.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -35,21 +35,15 @@ namespace detail {
 io_uring_service::io_uring_service(asio::execution_context& ctx)
   : execution_context_service_base<io_uring_service>(ctx),
     scheduler_(use_service<scheduler>(ctx)),
-    mutex_(config(ctx).get("reactor", "registration_locking", true),
-        config(ctx).get("reactor", "registration_locking_spin_count", 0)),
+    mutex_(ASIO_CONCURRENCY_HINT_IS_LOCKING(
+          REACTOR_REGISTRATION, scheduler_.concurrency_hint())),
     outstanding_work_(0),
     submit_sqes_op_(this),
     pending_sqes_(0),
     pending_submit_sqes_op_(false),
     shutdown_(false),
-    io_locking_(config(ctx).get("reactor", "io_locking", true)),
-    io_locking_spin_count_(
-        config(ctx).get("reactor", "io_locking_spin_count", 0)),
     timeout_(),
     registration_mutex_(mutex_.enabled()),
-    registered_io_objects_(
-        config(ctx).get("reactor", "preallocated_io_objects", 0U),
-        io_locking_, io_locking_spin_count_),
     reactor_(use_service<reactor>(ctx)),
     reactor_data_(),
     event_fd_(-1)
@@ -441,16 +435,15 @@ void io_uring_service::run(long usec, op_queue<operation>& ops)
     ? ::io_uring_peek_cqe(&ring_, &cqe)
     : ::io_uring_wait_cqe(&ring_, &cqe);
 
-  if (local_ops > 0)
+  if (result == 0 && usec > 0)
   {
-    if (result != 0 || ::io_uring_cqe_get_data(cqe) != &ts)
+    if (::io_uring_cqe_get_data(cqe) != &ts)
     {
       mutex::scoped_lock lock(mutex_);
       if (::io_uring_sqe* sqe = get_sqe())
       {
         ++local_ops;
         ::io_uring_prep_timeout_remove(sqe, reinterpret_cast<__u64>(&ts), 0);
-        ::io_uring_sqe_set_data(sqe, &ts);
         submit_sqes();
       }
     }
@@ -458,41 +451,37 @@ void io_uring_service::run(long usec, op_queue<operation>& ops)
 
   bool check_timers = false;
   int count = 0;
-  while (result == 0 || local_ops > 0)
+  while (result == 0)
   {
-    if (result == 0)
+    if (void* ptr = ::io_uring_cqe_get_data(cqe))
     {
-      if (void* ptr = ::io_uring_cqe_get_data(cqe))
+      if (ptr == this)
       {
-        if (ptr == this)
-        {
-          // The io_uring service was interrupted.
-        }
-        else if (ptr == &timer_queues_)
-        {
-          check_timers = true;
-        }
-        else if (ptr == &timeout_)
-        {
-          check_timers = true;
-          timeout_.tv_sec = 0;
-          timeout_.tv_nsec = 0;
-        }
-        else if (ptr == &ts)
-        {
-          --local_ops;
-        }
-        else
-        {
-          io_queue* io_q = static_cast<io_queue*>(ptr);
-          io_q->set_result(cqe->res);
-          ops.push(io_q);
-        }
+        // The io_uring service was interrupted.
       }
-      ::io_uring_cqe_seen(&ring_, cqe);
-      ++count;
+      else if (ptr == &timer_queues_)
+      {
+        check_timers = true;
+      }
+      else if (ptr == &timeout_)
+      {
+        check_timers = true;
+        timeout_.tv_sec = 0;
+        timeout_.tv_nsec = 0;
+      }
+      else if (ptr == &ts)
+      {
+        --local_ops;
+      }
+      else
+      {
+        io_queue* io_q = static_cast<io_queue*>(ptr);
+        io_q->set_result(cqe->res);
+        ops.push(io_q);
+      }
     }
-    result = (count < complete_batch_size || local_ops > 0)
+    ::io_uring_cqe_seen(&ring_, cqe);
+    result = (++count < complete_batch_size || local_ops > 0)
       ? ::io_uring_peek_cqe(&ring_, &cqe) : -EAGAIN;
   }
 
@@ -618,7 +607,9 @@ void io_uring_service::register_with_reactor()
 io_uring_service::io_object* io_uring_service::allocate_io_object()
 {
   mutex::scoped_lock registration_lock(registration_mutex_);
-  return registered_io_objects_.alloc(io_locking_, io_locking_spin_count_);
+  return registered_io_objects_.alloc(
+      ASIO_CONCURRENCY_HINT_IS_LOCKING(
+        REACTOR_IO, scheduler_.concurrency_hint()));
 }
 
 void io_uring_service::free_io_object(io_uring_service::io_object* io_obj)
@@ -903,8 +894,8 @@ void io_uring_service::io_queue::do_complete(void* owner, operation* base,
   }
 }
 
-io_uring_service::io_object::io_object(bool locking, int spin_count)
-  : mutex_(locking, spin_count)
+io_uring_service::io_object::io_object(bool locking)
+  : mutex_(locking)
 {
 }
 

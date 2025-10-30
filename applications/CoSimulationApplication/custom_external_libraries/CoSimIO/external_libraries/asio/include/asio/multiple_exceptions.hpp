@@ -2,7 +2,7 @@
 // multiple_exceptions.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -21,6 +21,9 @@
 
 namespace asio {
 
+#if defined(ASIO_HAS_STD_EXCEPTION_PTR) \
+  || defined(GENERATING_DOCUMENTATION)
+
 /// Exception thrown when there are multiple pending exceptions to rethrow.
 class multiple_exceptions
   : public std::exception
@@ -28,11 +31,11 @@ class multiple_exceptions
 public:
   /// Constructor.
   ASIO_DECL multiple_exceptions(
-      std::exception_ptr first) noexcept;
+      std::exception_ptr first) ASIO_NOEXCEPT;
 
   /// Obtain message associated with exception.
   ASIO_DECL virtual const char* what() const
-    noexcept;
+    ASIO_NOEXCEPT_OR_NOTHROW;
 
   /// Obtain a pointer to the first exception.
   ASIO_DECL std::exception_ptr first_exception() const;
@@ -40,6 +43,9 @@ public:
 private:
   std::exception_ptr first_;
 };
+
+#endif // defined(ASIO_HAS_STD_EXCEPTION_PTR)
+       //   || defined(GENERATING_DOCUMENTATION)
 
 } // namespace asio
 

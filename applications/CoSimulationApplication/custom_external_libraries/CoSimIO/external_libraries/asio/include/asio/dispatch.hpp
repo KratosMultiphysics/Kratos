@@ -2,7 +2,7 @@
 // dispatch.hpp
 // ~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -69,10 +69,11 @@ namespace asio {
  * @code void() @endcode
  */
 template <ASIO_COMPLETION_TOKEN_FOR(void()) NullaryToken>
-inline auto dispatch(NullaryToken&& token)
-  -> decltype(
+ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(NullaryToken, void()) dispatch(
+    ASIO_MOVE_ARG(NullaryToken) token)
+  ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
     async_initiate<NullaryToken, void()>(
-      declval<detail::initiate_dispatch>(), token))
+        declval<detail::initiate_dispatch>(), token)))
 {
   return async_initiate<NullaryToken, void()>(
       detail::initiate_dispatch(), token);
@@ -142,15 +143,17 @@ inline auto dispatch(NullaryToken&& token)
  */
 template <typename Executor,
     ASIO_COMPLETION_TOKEN_FOR(void()) NullaryToken
-      = default_completion_token_t<Executor>>
-inline auto dispatch(const Executor& ex,
-    NullaryToken&& token = default_completion_token_t<Executor>(),
-    constraint_t<
+      ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(Executor)>
+ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(NullaryToken, void()) dispatch(
+    const Executor& ex,
+    ASIO_MOVE_ARG(NullaryToken) token
+      ASIO_DEFAULT_COMPLETION_TOKEN(Executor),
+    typename constraint<
       execution::is_executor<Executor>::value || is_executor<Executor>::value
-    > = 0)
-  -> decltype(
+    >::type = 0)
+  ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
     async_initiate<NullaryToken, void()>(
-      declval<detail::initiate_dispatch_with_executor<Executor>>(), token))
+        declval<detail::initiate_dispatch_with_executor<Executor> >(), token)))
 {
   return async_initiate<NullaryToken, void()>(
       detail::initiate_dispatch_with_executor<Executor>(ex), token);
@@ -172,17 +175,19 @@ inline auto dispatch(const Executor& ex,
  */
 template <typename ExecutionContext,
     ASIO_COMPLETION_TOKEN_FOR(void()) NullaryToken
-      = default_completion_token_t<typename ExecutionContext::executor_type>>
-inline auto dispatch(ExecutionContext& ctx,
-    NullaryToken&& token = default_completion_token_t<
-      typename ExecutionContext::executor_type>(),
-    constraint_t<
-      is_convertible<ExecutionContext&, execution_context&>::value
-    > = 0)
-  -> decltype(
+      ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(
+        typename ExecutionContext::executor_type)>
+ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(NullaryToken, void()) dispatch(
+    ExecutionContext& ctx,
+    ASIO_MOVE_ARG(NullaryToken) token
+      ASIO_DEFAULT_COMPLETION_TOKEN(
+        typename ExecutionContext::executor_type),
+    typename constraint<is_convertible<
+      ExecutionContext&, execution_context&>::value>::type = 0)
+  ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
     async_initiate<NullaryToken, void()>(
-      declval<detail::initiate_dispatch_with_executor<
-        typename ExecutionContext::executor_type>>(), token))
+        declval<detail::initiate_dispatch_with_executor<
+          typename ExecutionContext::executor_type> >(), token)))
 {
   return async_initiate<NullaryToken, void()>(
       detail::initiate_dispatch_with_executor<

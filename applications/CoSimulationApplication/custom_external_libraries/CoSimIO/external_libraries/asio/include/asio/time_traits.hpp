@@ -2,7 +2,7 @@
 // time_traits.hpp
 // ~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -17,8 +17,6 @@
 
 #include "asio/detail/socket_types.hpp" // Must come before posix_time.
 
-#if !defined(ASIO_NO_DEPRECATED)
-
 #if defined(ASIO_HAS_BOOST_DATE_TIME) \
   || defined(GENERATING_DOCUMENTATION)
 
@@ -28,11 +26,11 @@
 
 namespace asio {
 
-/// (Deprecated) Time traits suitable for use with the deadline timer.
+/// Time traits suitable for use with the deadline timer.
 template <typename Time>
 struct time_traits;
 
-/// (Deprecated) Time traits specialised for posix_time.
+/// Time traits specialised for posix_time.
 template <>
 struct time_traits<boost::posix_time::ptime>
 {
@@ -84,7 +82,5 @@ struct time_traits<boost::posix_time::ptime>
 
 #endif // defined(ASIO_HAS_BOOST_DATE_TIME)
        // || defined(GENERATING_DOCUMENTATION)
-
-#endif // !defined(ASIO_NO_DEPRECATED)
 
 #endif // ASIO_TIME_TRAITS_HPP

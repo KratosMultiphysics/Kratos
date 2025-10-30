@@ -16,6 +16,11 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include "asio/detail/config.hpp"
-#include <limits>
+
+#if defined(ASIO_HAS_BOOST_LIMITS)
+# include <boost/limits.hpp>
+#else // defined(ASIO_HAS_BOOST_LIMITS)
+# include <limits>
+#endif // defined(ASIO_HAS_BOOST_LIMITS)
 
 #endif // ASIO_DETAIL_LIMITS_HPP

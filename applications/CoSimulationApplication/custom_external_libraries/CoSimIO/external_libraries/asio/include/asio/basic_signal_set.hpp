@@ -2,7 +2,7 @@
 // basic_signal_set.hpp
 // ~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -134,10 +134,10 @@ public:
    */
   template <typename ExecutionContext>
   explicit basic_signal_set(ExecutionContext& context,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(0, 0, context)
   {
   }
@@ -180,10 +180,10 @@ public:
    */
   template <typename ExecutionContext>
   basic_signal_set(ExecutionContext& context, int signal_number_1,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(0, 0, context)
   {
     asio::error_code ec;
@@ -239,10 +239,10 @@ public:
   template <typename ExecutionContext>
   basic_signal_set(ExecutionContext& context, int signal_number_1,
       int signal_number_2,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(0, 0, context)
   {
     asio::error_code ec;
@@ -308,10 +308,10 @@ public:
   template <typename ExecutionContext>
   basic_signal_set(ExecutionContext& context, int signal_number_1,
       int signal_number_2, int signal_number_3,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(0, 0, context)
   {
     asio::error_code ec;
@@ -334,7 +334,7 @@ public:
   }
 
   /// Get the executor associated with the object.
-  const executor_type& get_executor() noexcept
+  const executor_type& get_executor() ASIO_NOEXCEPT
   {
     return impl_.get_executor();
   }
@@ -573,7 +573,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the completion handler will not be invoked from within this function.
    * On immediate completion, invocation of the handler will be performed in a
-   * manner equivalent to using asio::async_immediate().
+   * manner equivalent to using asio::post().
    *
    * @par Completion Signature
    * @code void(asio::error_code, int) @endcode
@@ -590,12 +590,15 @@ public:
    */
   template <
     ASIO_COMPLETION_TOKEN_FOR(void (asio::error_code, int))
-      SignalToken = default_completion_token_t<executor_type>>
-  auto async_wait(
-      SignalToken&& token = default_completion_token_t<executor_type>())
-    -> decltype(
+      SignalToken ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
+  ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(SignalToken,
+      void (asio::error_code, int))
+  async_wait(
+      ASIO_MOVE_ARG(SignalToken) token
+        ASIO_DEFAULT_COMPLETION_TOKEN(executor_type))
+    ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
       async_initiate<SignalToken, void (asio::error_code, int)>(
-        declval<initiate_async_wait>(), token))
+          declval<initiate_async_wait>(), token)))
   {
     return async_initiate<SignalToken, void (asio::error_code, int)>(
         initiate_async_wait(this), token);
@@ -603,8 +606,8 @@ public:
 
 private:
   // Disallow copying and assignment.
-  basic_signal_set(const basic_signal_set&) = delete;
-  basic_signal_set& operator=(const basic_signal_set&) = delete;
+  basic_signal_set(const basic_signal_set&) ASIO_DELETED;
+  basic_signal_set& operator=(const basic_signal_set&) ASIO_DELETED;
 
   class initiate_async_wait
   {
@@ -616,13 +619,13 @@ private:
     {
     }
 
-    const executor_type& get_executor() const noexcept
+    const executor_type& get_executor() const ASIO_NOEXCEPT
     {
       return self_->get_executor();
     }
 
     template <typename SignalHandler>
-    void operator()(SignalHandler&& handler) const
+    void operator()(ASIO_MOVE_ARG(SignalHandler) handler) const
     {
       // If you get an error on the following line it means that your handler
       // does not meet the documented type requirements for a SignalHandler.

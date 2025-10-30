@@ -2,7 +2,7 @@
 // is_applicable_property.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -30,11 +30,11 @@ struct is_applicable_property_trait : false_type
 
 template <typename T, typename Property>
 struct is_applicable_property_trait<T, Property,
-  void_t<
-    enable_if_t<
+  typename void_type<
+    typename enable_if<
       !!Property::template is_applicable_property_v<T>
-    >
-  >> : true_type
+    >::type
+  >::type> : true_type
 {
 };
 
@@ -51,7 +51,7 @@ struct is_applicable_property :
 #if defined(ASIO_HAS_VARIABLE_TEMPLATES)
 
 template <typename T, typename Property>
-constexpr const bool is_applicable_property_v
+ASIO_CONSTEXPR const bool is_applicable_property_v
   = is_applicable_property<T, Property>::value;
 
 #endif // defined(ASIO_HAS_VARIABLE_TEMPLATES)

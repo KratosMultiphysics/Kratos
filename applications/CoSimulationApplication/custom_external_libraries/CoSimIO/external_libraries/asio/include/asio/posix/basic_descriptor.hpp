@@ -2,7 +2,7 @@
 // posix/basic_descriptor.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -20,7 +20,6 @@
 #if defined(ASIO_HAS_POSIX_STREAM_DESCRIPTOR) \
   || defined(GENERATING_DOCUMENTATION)
 
-#include <utility>
 #include "asio/any_io_executor.hpp"
 #include "asio/async_result.hpp"
 #include "asio/detail/handler_type_requirements.hpp"
@@ -36,6 +35,10 @@
 #else // defined(ASIO_HAS_IO_URING_AS_DEFAULT)
 # include "asio/detail/reactive_descriptor_service.hpp"
 #endif // defined(ASIO_HAS_IO_URING_AS_DEFAULT)
+
+#if defined(ASIO_HAS_MOVE)
+# include <utility>
+#endif // defined(ASIO_HAS_MOVE)
 
 #include "asio/detail/push_options.hpp"
 
@@ -107,10 +110,10 @@ public:
    */
   template <typename ExecutionContext>
   explicit basic_descriptor(ExecutionContext& context,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(0, 0, context)
   {
   }
@@ -154,9 +157,9 @@ public:
   template <typename ExecutionContext>
   basic_descriptor(ExecutionContext& context,
       const native_handle_type& native_descriptor,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value
-      > = 0)
+      >::type = 0)
     : impl_(0, 0, context)
   {
     asio::error_code ec;
@@ -165,6 +168,7 @@ public:
     asio::detail::throw_error(ec, "assign");
   }
 
+#if defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Move-construct a descriptor from another.
   /**
    * This constructor moves a descriptor from one object to another.
@@ -176,7 +180,7 @@ public:
    * constructed using the @c basic_descriptor(const executor_type&)
    * constructor.
    */
-  basic_descriptor(basic_descriptor&& other) noexcept
+  basic_descriptor(basic_descriptor&& other) ASIO_NOEXCEPT
     : impl_(std::move(other.impl_))
   {
   }
@@ -216,10 +220,10 @@ public:
    */
   template <typename Executor1>
   basic_descriptor(basic_descriptor<Executor1>&& other,
-      constraint_t<
+      typename constraint<
         is_convertible<Executor1, Executor>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(std::move(other.impl_))
   {
   }
@@ -236,18 +240,19 @@ public:
    * constructor.
    */
   template <typename Executor1>
-  constraint_t<
+  typename constraint<
     is_convertible<Executor1, Executor>::value,
     basic_descriptor&
-  > operator=(basic_descriptor<Executor1> && other)
+  >::type operator=(basic_descriptor<Executor1> && other)
   {
     basic_descriptor tmp(std::move(other));
     impl_ = std::move(tmp.impl_);
     return *this;
   }
+#endif // defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Get the executor associated with the object.
-  const executor_type& get_executor() noexcept
+  const executor_type& get_executor() ASIO_NOEXCEPT
   {
     return impl_.get_executor();
   }
@@ -660,7 +665,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the completion handler will not be invoked from within this function.
    * On immediate completion, invocation of the handler will be performed in a
-   * manner equivalent to using asio::async_immediate().
+   * manner equivalent to using asio::post().
    *
    * @par Completion Signature
    * @code void(asio::error_code) @endcode
@@ -696,12 +701,15 @@ public:
    */
   template <
       ASIO_COMPLETION_TOKEN_FOR(void (asio::error_code))
-        WaitToken = default_completion_token_t<executor_type>>
-  auto async_wait(wait_type w,
-      WaitToken&& token = default_completion_token_t<executor_type>())
-    -> decltype(
+        WaitToken ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
+  ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(WaitToken,
+      void (asio::error_code))
+  async_wait(wait_type w,
+      ASIO_MOVE_ARG(WaitToken) token
+        ASIO_DEFAULT_COMPLETION_TOKEN(executor_type))
+    ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
       async_initiate<WaitToken, void (asio::error_code)>(
-        declval<initiate_async_wait>(), token, w))
+          declval<initiate_async_wait>(), token, w)))
   {
     return async_initiate<WaitToken, void (asio::error_code)>(
         initiate_async_wait(this), token, w);
@@ -726,8 +734,8 @@ protected:
 
 private:
   // Disallow copying and assignment.
-  basic_descriptor(const basic_descriptor&) = delete;
-  basic_descriptor& operator=(const basic_descriptor&) = delete;
+  basic_descriptor(const basic_descriptor&) ASIO_DELETED;
+  basic_descriptor& operator=(const basic_descriptor&) ASIO_DELETED;
 
   class initiate_async_wait
   {
@@ -739,13 +747,13 @@ private:
     {
     }
 
-    const executor_type& get_executor() const noexcept
+    const executor_type& get_executor() const ASIO_NOEXCEPT
     {
       return self_->get_executor();
     }
 
     template <typename WaitHandler>
-    void operator()(WaitHandler&& handler, wait_type w) const
+    void operator()(ASIO_MOVE_ARG(WaitHandler) handler, wait_type w) const
     {
       // If you get an error on the following line it means that your handler
       // does not meet the documented type requirements for a WaitHandler.

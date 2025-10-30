@@ -2,7 +2,7 @@
 // basic_file.hpp
 // ~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -21,7 +21,6 @@
   || defined(GENERATING_DOCUMENTATION)
 
 #include <string>
-#include <utility>
 #include "asio/any_io_executor.hpp"
 #include "asio/async_result.hpp"
 #include "asio/detail/cstdint.hpp"
@@ -39,6 +38,10 @@
 #elif defined(ASIO_HAS_IO_URING)
 # include "asio/detail/io_uring_file_service.hpp"
 #endif
+
+#if defined(ASIO_HAS_MOVE)
+# include <utility>
+#endif // defined(ASIO_HAS_MOVE)
 
 #include "asio/detail/push_options.hpp"
 
@@ -109,10 +112,10 @@ public:
    */
   template <typename ExecutionContext>
   explicit basic_file(ExecutionContext& context,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(0, 0, context)
   {
   }
@@ -154,10 +157,10 @@ public:
   template <typename ExecutionContext>
   explicit basic_file(ExecutionContext& context,
       const char* path, file_base::flags open_flags,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(0, 0, context)
   {
     asio::error_code ec;
@@ -203,10 +206,10 @@ public:
   template <typename ExecutionContext>
   explicit basic_file(ExecutionContext& context,
       const std::string& path, file_base::flags open_flags,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(0, 0, context)
   {
     asio::error_code ec;
@@ -249,10 +252,10 @@ public:
    */
   template <typename ExecutionContext>
   basic_file(ExecutionContext& context, const native_handle_type& native_file,
-      constraint_t<
+      typename constraint<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(0, 0, context)
   {
     asio::error_code ec;
@@ -261,6 +264,7 @@ public:
     asio::detail::throw_error(ec, "assign");
   }
 
+#if defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Move-construct a basic_file from another.
   /**
    * This constructor moves a file from one object to another.
@@ -271,7 +275,7 @@ public:
    * @note Following the move, the moved-from object is in the same state as if
    * constructed using the @c basic_file(const executor_type&) constructor.
    */
-  basic_file(basic_file&& other) noexcept
+  basic_file(basic_file&& other) ASIO_NOEXCEPT
     : impl_(std::move(other.impl_))
   {
   }
@@ -308,10 +312,10 @@ public:
    */
   template <typename Executor1>
   basic_file(basic_file<Executor1>&& other,
-      constraint_t<
+      typename constraint<
         is_convertible<Executor1, Executor>::value,
         defaulted_constraint
-      > = defaulted_constraint())
+      >::type = defaulted_constraint())
     : impl_(std::move(other.impl_))
   {
   }
@@ -327,18 +331,19 @@ public:
    * constructed using the @c basic_file(const executor_type&) constructor.
    */
   template <typename Executor1>
-  constraint_t<
+  typename constraint<
     is_convertible<Executor1, Executor>::value,
     basic_file&
-  > operator=(basic_file<Executor1>&& other)
+  >::type operator=(basic_file<Executor1>&& other)
   {
     basic_file tmp(std::move(other));
     impl_ = std::move(tmp.impl_);
     return *this;
   }
+#endif // defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Get the executor associated with the object.
-  const executor_type& get_executor() noexcept
+  const executor_type& get_executor() ASIO_NOEXCEPT
   {
     return impl_.get_executor();
   }
@@ -810,8 +815,8 @@ protected:
 
 private:
   // Disallow copying and assignment.
-  basic_file(const basic_file&) = delete;
-  basic_file& operator=(const basic_file&) = delete;
+  basic_file(const basic_file&) ASIO_DELETED;
+  basic_file& operator=(const basic_file&) ASIO_DELETED;
 };
 
 } // namespace asio

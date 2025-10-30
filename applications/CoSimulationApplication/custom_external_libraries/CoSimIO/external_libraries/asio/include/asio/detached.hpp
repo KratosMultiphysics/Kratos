@@ -2,7 +2,7 @@
 // detached.hpp
 // ~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2024 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -38,8 +38,8 @@ namespace asio {
 class detached_t
 {
 public:
-  /// Constructor.
-  constexpr detached_t()
+  /// Constructor. 
+  ASIO_CONSTEXPR detached_t()
   {
   }
 
@@ -52,7 +52,7 @@ public:
     typedef detached_t default_completion_token_type;
 
     /// Construct the adapted executor from the inner executor type.
-    executor_with_default(const InnerExecutor& ex) noexcept
+    executor_with_default(const InnerExecutor& ex) ASIO_NOEXCEPT
       : InnerExecutor(ex)
     {
     }
@@ -61,9 +61,9 @@ public:
     /// that to construct the adapted executor.
     template <typename OtherExecutor>
     executor_with_default(const OtherExecutor& ex,
-        constraint_t<
+        typename constraint<
           is_convertible<OtherExecutor, InnerExecutor>::value
-        > = 0) noexcept
+        >::type = 0) ASIO_NOEXCEPT
       : InnerExecutor(ex)
     {
     }
@@ -71,21 +71,25 @@ public:
 
   /// Type alias to adapt an I/O object to use @c detached_t as its
   /// default completion token type.
+#if defined(ASIO_HAS_ALIAS_TEMPLATES) \
+  || defined(GENERATING_DOCUMENTATION)
   template <typename T>
   using as_default_on_t = typename T::template rebind_executor<
-      executor_with_default<typename T::executor_type>>::other;
+      executor_with_default<typename T::executor_type> >::other;
+#endif // defined(ASIO_HAS_ALIAS_TEMPLATES)
+       //   || defined(GENERATING_DOCUMENTATION)
 
   /// Function helper to adapt an I/O object to use @c detached_t as its
   /// default completion token type.
   template <typename T>
-  static typename decay_t<T>::template rebind_executor<
-      executor_with_default<typename decay_t<T>::executor_type>
+  static typename decay<T>::type::template rebind_executor<
+      executor_with_default<typename decay<T>::type::executor_type>
     >::other
-  as_default_on(T&& object)
+  as_default_on(ASIO_MOVE_ARG(T) object)
   {
-    return typename decay_t<T>::template rebind_executor<
-        executor_with_default<typename decay_t<T>::executor_type>
-      >::other(static_cast<T&&>(object));
+    return typename decay<T>::type::template rebind_executor<
+        executor_with_default<typename decay<T>::type::executor_type>
+      >::other(ASIO_MOVE_CAST(T)(object));
   }
 };
 
@@ -94,7 +98,11 @@ public:
 /**
  * See the documentation for asio::detached_t for a usage example.
  */
-ASIO_INLINE_VARIABLE constexpr detached_t detached;
+#if defined(ASIO_HAS_CONSTEXPR) || defined(GENERATING_DOCUMENTATION)
+constexpr detached_t detached;
+#elif defined(ASIO_MSVC)
+__declspec(selectany) detached_t detached;
+#endif
 
 } // namespace asio
 
