@@ -659,21 +659,12 @@ class ConvectionDiffusionSolver(PythonSolver):
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         convection_diffusion_scheme = self._GetScheme()
-        # builder_and_solver = self._GetBuilderAndSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         if not computing_model_part.IsDistributed():
-            # return KratosMultiphysics.ResidualBasedLinearStrategy(
-            #     computing_model_part,
-            #     convection_diffusion_scheme,
-            #     builder_and_solver,
-            #     self.settings["compute_reactions"].GetBool(),
-            #     self.settings["reform_dofs_at_each_step"].GetBool(),
-            #     False,
-            #     self.settings["move_mesh_flag"].GetBool())
-            linear_solver = KratosMultiphysics.Future.SkylineLUFactorizationSolver()
-            return KratosMultiphysics.Future.LinearStrategy(
+            return KratosMultiphysics.ResidualBasedLinearStrategy(
                 computing_model_part,
                 convection_diffusion_scheme,
-                linear_solver,
+                builder_and_solver,
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 False,
