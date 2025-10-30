@@ -105,7 +105,8 @@ private:
     /**
      * \brief Remove cloned conditions as they are not executed
      */
-    void RemoveClonedConditions();
+    void                      RemoveClonedConditions();
+    [[nodiscard]] std::string Info() const override;
 
     ///@}
 };

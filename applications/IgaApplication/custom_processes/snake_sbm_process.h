@@ -18,6 +18,7 @@
 #include "includes/model_part.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "processes/process.h"
+#include "geometries/nurbs_curve_geometry.h"
 
 
 namespace Kratos
@@ -82,7 +83,8 @@ public:
             "echo_level" : 0,
             "lambda_inner" : 0.5,
             "lambda_outer" : 0.5,
-            "number_of_inner_loops": 0
+            "number_of_inner_loops": 0,
+            "number_initial_points_if_importing_nurbs": 5000
         })" );
 
         return default_parameters;
@@ -96,6 +98,7 @@ private:
     double mLambdaInner;
     double mLambdaOuter;
     std::size_t mNumberOfInnerLoops;
+    int mNumberInitialPointsIfImportingNurbs;
     ModelPart* mpIgaModelPart = nullptr; 
     ModelPart* mpSkinModelPartInnerInitial = nullptr; 
     ModelPart* mpSkinModelPartOuterInitial = nullptr; 
@@ -110,6 +113,10 @@ private:
     using DistanceIterator = std::vector<double>::iterator;
     using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
     using DynamicBinsPointerType = DynamicBins::PointerType;
+
+    using SizeType = std::size_t;
+    using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
+    using CoordinatesArrayType = Geometry<PointType>::CoordinatesArrayType;
 
     /**
     * @brief Creates the initial snake coordinates for 2D skin.
@@ -133,7 +140,8 @@ private:
         const double Lambda,
         IndexType EchoLevel,
         ModelPart& rIgaModelPart,
-        ModelPart& rSkinModelPart 
+        ModelPart& rSkinModelPart,
+        const int NumberInitialPointsIfImportingNurbs
         );
 
     /**
@@ -156,6 +164,31 @@ private:
         ModelPart& rSkinModelPart, 
         std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable
         );
+    
+    /**
+     * @brief Performs a single step in the snake algorithm for 2D models with NURBS geometries.
+     * 
+     * @param IdMatrixKnotSpansAvailable ID of the matrix tracking available knot spans.
+     * @param rKnotSpansUV  Knot spans in UV coordinates.
+     * @param rConditionCoord  XY coordinates of control points.
+     * @param rKnotStepUV  Step size in UV space.
+     * @param rStartingPosition Starting position in UV space.
+     * @param rLocalCoords Local Coords of the point in the NURBS curve geometry.
+     * @param rpCurve Pointer of the NURBS curve geometry.
+     * @param rSkinModelPart The skin model part to be updated.
+     * @param rKnotSpansAvailable  Knot spans available for the snake.
+     */
+    static void SnakeStepNurbs(
+            const int IdMatrixKnotSpansAvailable, 
+            const std::vector<std::vector<int>> rKnotSpansUV, 
+            const std::vector<std::vector<double>>& rConditionCoord, 
+            const Vector rKnotStepUV, 
+            const Vector rStartingPosition,
+            const std::vector<double> rLocalCoords,
+            const NurbsCurveGeometryPointerType &rpCurve,
+            ModelPart& rSkinModelPart, 
+            std::vector<std::vector<std::vector<int>>> &rKnotSpansAvailable
+            );
 
     /**
      * @brief Checks if a point is inside the given skin boundary.
@@ -201,6 +234,7 @@ private:
      * @param rNumberKnotSpans 
      * @param rKnotVectorU 
      * @param rKnotVectorV 
+     * @param rStartingPositionUV
      * @param rKnotSpansAvailable 
      * @param rSurrogateModelPartInner 
      */
@@ -211,6 +245,7 @@ private:
         const std::vector<int>& rNumberKnotSpans,
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV,
+        const Vector& rStartingPositionUV,
         std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartInner
         );

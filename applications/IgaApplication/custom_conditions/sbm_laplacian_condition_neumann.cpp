@@ -39,71 +39,20 @@ void SbmLaplacianConditionNeumann::CalculateLocalSystem(
 {
     KRATOS_TRY
     
-    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
-    const auto& r_unknown_var = p_settings->GetUnknownVariable();
+    const std::size_t mat_size = GetGeometry().size() * 1;
 
-    const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
-    if (rRightHandSideVector.size() != number_of_nodes) {
-        rRightHandSideVector.resize(number_of_nodes, false);
-    }
-    if (rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes) {
-        rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
-    }
+    if (rRightHandSideVector.size() != mat_size)
+        rRightHandSideVector.resize(mat_size);
+    noalias(rRightHandSideVector) = ZeroVector(mat_size);
 
-    noalias(rRightHandSideVector) = ZeroVector(number_of_nodes);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes, number_of_nodes);
+    if (rLeftHandSideMatrix.size1() != mat_size)
+        rLeftHandSideMatrix.resize(mat_size, mat_size);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    // Integration
-    const auto& r_integration_points = r_geometry.IntegrationPoints();
-    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+    CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+
+    CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
     
-    // Initialize DN_DX
-    Matrix DN_DX(number_of_nodes,mDim);
-
-    // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
-    noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[0],InvJ0);
-    
-    const Matrix& H = r_geometry.ShapeFunctionsValues();
-
-    // compute gradient Taylor expansion contribution: grad_H_sum
-    Matrix grad_H_sum = ZeroMatrix(3, number_of_nodes);
-    ComputeGradientTaylorExpansionContribution(grad_H_sum);
-    
-    // dot product grad cdot n
-    Matrix H_grad_N_dot_n = ZeroMatrix(1, number_of_nodes);
-    noalias(row(H_grad_N_dot_n, 0)) = row(grad_H_sum, 0) * mTrueNormal[0] + row(grad_H_sum, 1) * mTrueNormal[1] + row(grad_H_sum, 2) * mTrueNormal[2];
-
-    Matrix DN_dot_n_tilde = ZeroMatrix(1, number_of_nodes);
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
-        // grad N cdot n_tilde
-        for (IndexType idim = 0; idim < mDim; idim++) {
-            DN_dot_n_tilde(0, i)  += DN_DX(i, idim) * mNormalParameterSpace[idim];
-        } 
-    }
-    
-    // Assembly
-    // compute Neumann contributions
-    noalias(rLeftHandSideMatrix) += prod(trans(H), H_grad_N_dot_n) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]) ;
-    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n_tilde)                           * r_integration_points[0].Weight() ; // * std::abs(DetJ0) ;
-    
-    Vector t_N(number_of_nodes);
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
-        t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
-    }
-    // Neumann Contributions
-    noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
-
-    Vector temp(number_of_nodes);
-    // RHS = ExtForces - K*temp;
-    for (IndexType i = 0; i < number_of_nodes; i++) {
-        temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
-    }
-    // RHS -= K*temp
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-
     KRATOS_CATCH("")
 
 }
@@ -198,7 +147,7 @@ void SbmLaplacianConditionNeumann::CalculateLeftHandSide(
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
     const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const std::size_t number_of_nodes = r_geometry.PointsNumber();
 
     if (rLeftHandSideMatrix.size1() != number_of_nodes || rLeftHandSideMatrix.size2() != number_of_nodes) {
         rLeftHandSideMatrix.resize(number_of_nodes, number_of_nodes, false);
@@ -246,7 +195,9 @@ void SbmLaplacianConditionNeumann::CalculateRightHandSide(
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    const auto& r_unknown_var = p_settings->GetUnknownVariable();
+    const std::size_t number_of_nodes = r_geometry.PointsNumber();
     if (rRightHandSideVector.size() != number_of_nodes) {
         rRightHandSideVector.resize(number_of_nodes, false);
     }
@@ -265,12 +216,24 @@ void SbmLaplacianConditionNeumann::CalculateRightHandSide(
     }
     // Neumann Contributions
     noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
+
+    // --- Corresponding RHS ---
+    Matrix left_hand_side = ZeroMatrix(number_of_nodes);
+    CalculateLeftHandSide(left_hand_side,rCurrentProcessInfo);
+    Vector temp(number_of_nodes);
+    // RHS = ExtForces - K*temp;
+    for (IndexType i = 0; i < number_of_nodes; i++) {
+        temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
+    }
+    // RHS -= K*temp
+    noalias(rRightHandSideVector) -= prod(left_hand_side,temp);
+
 }
 
 void SbmLaplacianConditionNeumann::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
 {
     const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const std::size_t number_of_nodes = r_geometry.PointsNumber();
     const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
 
     // Compute all the derivatives of the basis functions involved
@@ -384,7 +347,7 @@ void SbmLaplacianConditionNeumann::EquationIdVector(
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const std::size_t number_of_nodes = r_geometry.size();
 
     if (rResult.size() !=  number_of_nodes)
         rResult.resize(number_of_nodes, false);
@@ -403,7 +366,7 @@ void SbmLaplacianConditionNeumann::GetDofList(
     const auto& r_unknown_var = p_settings->GetUnknownVariable();
     
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const std::size_t number_of_nodes = r_geometry.size();
 
     rElementalDofList.resize(0);
     rElementalDofList.reserve(number_of_nodes);

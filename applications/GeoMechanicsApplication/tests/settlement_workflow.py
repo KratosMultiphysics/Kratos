@@ -10,6 +10,9 @@ import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as GeoMechanicsApplication
 
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
+
 import test_helper
 
 
@@ -97,7 +100,7 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
 
 
     def check_displacements(self):
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
 
         for item in self.expected_displacements:
             time = item["time"]
@@ -117,7 +120,7 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
         node_ids = [sub_item["node"] for sub_item in expected_stress_item["expected_values"]]
         expected_nodal_stresses = [sub_item[stress_tensor_name] for sub_item in expected_stress_item["expected_values"]]
 
-        actual_nodal_stresses = test_helper.GiDOutputFileReader.nodal_values_at_time(stress_tensor_name, time, output_data, node_ids)
+        actual_nodal_stresses = GiDOutputFileReader.nodal_values_at_time(stress_tensor_name, time, output_data, node_ids)
 
         self.assertEqual(len(actual_nodal_stresses), len(expected_nodal_stresses))
         for actual_total_stress, expected_total_stress in zip(actual_nodal_stresses, expected_nodal_stresses):
@@ -126,7 +129,7 @@ class KratosGeoMechanicsSettlementWorkflow(KratosUnittest.TestCase):
 
 
     def check_nodal_stresses(self):
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
 
         for item in self.expected_stresses:
             actual_data = reader.read_output_from(os.path.join(self.test_path, item["output_filename"]))
@@ -143,7 +146,7 @@ class KratosGeoMechanicsSettlementWorkflowPyRoute(KratosGeoMechanicsSettlementWo
 
 
     def test_d_settlement_workflow(self):
-        test_helper.run_stages(self.test_path, self.number_of_stages)
+        run_multiple_stages.run_stages(self.test_path, self.number_of_stages)
 
         self.check_displacements()
         self.check_nodal_stresses()

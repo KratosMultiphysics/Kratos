@@ -33,12 +33,20 @@ public:
                                                                 const array_1d<double, 3>& rNewValues,
                                                                 IndexType SolutionStepIndex = 0);
 
-    static void AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(const ModelPart::NodesContainerType& rNodes,
-                                                                       const Variable<array_1d<double, 3>>& rDestinationVariable,
-                                                                       const array_1d<double, 3>& rNewValues,
-                                                                       IndexType SolutionStepIndex = 0);
+    static void AssignUpdatedVectorVariableToNodes(const ModelPart::NodesContainerType& rNodes,
+                                                   const Variable<array_1d<double, 3>>& rDestinationVariable,
+                                                   const array_1d<double, 3>& rNewValues,
+                                                   IndexType SolutionStepIndex = 0);
 
     static std::map<IndexType, IndexType> CreateGlobalToLocalNodeIndexMap(const PointerVector<Node>& rNodes);
+
+    template <class TValueType>
+    static void ThreadSafeNodeWrite(Node& rNode, const Variable<TValueType>& Var, const TValueType Value)
+    {
+        rNode.SetLock();
+        rNode.FastGetSolutionStepValue(Var) = Value;
+        rNode.UnSetLock();
+    }
 };
 
 } // namespace Kratos

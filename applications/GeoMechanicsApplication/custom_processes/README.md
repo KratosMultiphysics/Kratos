@@ -122,13 +122,29 @@ The process is defined as follows in "ProjectParameters.json" (also found in som
       "process_name": "ApplyK0ProcedureProcess",
       "Parameters": {
         "model_part_name": "PorousDomain.porous_computational_model_part",
-        "variable_name": "CAUCHY_STRESS_TENSOR",
         "use_standard_procedure": true
       }
     }
   ]
 }
 ```
+Next to specifying a single model part, it is also possible to provide a list:
+```json
+{
+  "auxiliary_process_list": [
+    {
+      "python_module": "apply_k0_procedure_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "ApplyK0ProcedureProcess",
+      "Parameters": {
+        "model_part_name_list": ["PorousDomain.Clay", "PorousDomain.Sand"],
+        "use_standard_procedure": true
+      }
+    }
+  ]
+}
+```
+
 The "apply_k0_procedure_process" needs the following material parameter input to be added in the "MaterialParameters.json".
 ```json
 {
