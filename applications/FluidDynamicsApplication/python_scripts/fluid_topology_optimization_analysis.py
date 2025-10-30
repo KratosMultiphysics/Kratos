@@ -114,14 +114,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 self.adjoint_solver = self._CreateSolver(True)
         return self.adjoint_solver
     
-    def _GetTopologyOptimizationStageSolver(self, force_adjont = False):
+    def _GetTopologyOptimizationStageSolver(self, force_adjoint = False):
         """
         This methods returns the current topology optimization stage solver
         iF force_adjoint --> return adjoint_solver
         If topology_optimization_stage != 2 (<=> EVERYTHING BUT NOT ADJ STAGE) --> return physics_solver
         If topology_optimization_stage == 2 (<=>  ADJ STAGE) --> return adjoint_solver
         """
-        if (self.IsAdjointStage() or (force_adjont)): # ADJ
+        if (self.IsAdjointStage() or (force_adjoint)): # ADJ
             return self.adjoint_solver
         else: # NS
             return self.physics_solver
@@ -155,7 +155,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return ["gravity",
                 "initial_conditions_process_list",
                 "boundary_conditions_process_list",
-                "adjoint_boundary_conditions_process_list"
+                "adjoint_boundary_conditions_process_list",
                 "auxiliar_process_list"]
 
     def Run(self):
@@ -804,7 +804,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         mask = self._GetOptimizationDomainNodesMask()
         resistance_derivative_wrt_design_projected = self.resistance_derivative_wrt_design_base * self.design_parameter_projected_derivatives
         self.resistance_derivative_wrt_design = resistance_derivative_wrt_design_projected
-        # self.resistance_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(resistance_derivative_wrt_design_projected)
     
     def _UpdateResistanceVariable(self):
         self._GetSolver()._UpdateResistanceVariable(self.resistance)
@@ -1526,7 +1525,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                                             )
             remesh_param = KratosMultiphysics.Parameters("""{ }""")
             if (self.dim == 2):
-                self.local_hessian = KratosMMG.ComputeHessianSolMetricProcess2D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
+                self.local_hessian = KratosW.ComputeHessianSolMetricProcess2D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
                 self.mmg_process = KratosMMG.MmgProcess2D(main_mp, remesh_param)
             elif (self.dim == 3):
                 self.local_hessian = KratosMMG.ComputeHessianSolMetricProcess3D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
