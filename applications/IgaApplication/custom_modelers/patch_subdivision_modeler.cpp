@@ -10,7 +10,6 @@
 //  Main authors:    Nicolò Antonelli
 
 // System includes
-#include <limits>
 
 // External includes
 
@@ -186,7 +185,7 @@ ModelPart& PatchSubdivisionModeler::InitializeSetup(
 
     ModelPart& r_model_part = mpModel->GetModelPart(model_part_name);
 
-    // Ensure DOMAIN_SIZE is set on the root process info (some solvers set it later).
+    // Ensure DOMAIN_SIZE is set on the root process info.
     // For surface IGA in this modeler, default to 2 if unset/zero.
     {
         auto& r_process_info = r_model_part.GetProcessInfo();
@@ -201,7 +200,7 @@ ModelPart& PatchSubdivisionModeler::InitializeSetup(
 
     // Echo level
     const int echo_level_input = rParameters["echo_level"].GetInt();
-    mEchoLevel = static_cast<SizeType>(echo_level_input);
+    mEchoLevel = static_cast<std::size_t>(echo_level_input);
 
     // Presence flags for geometry/analysis blocks
     const bool has_geometry_params =
@@ -596,7 +595,7 @@ void PatchSubdivisionModeler::ProcessPatch(
             
         }
 
-        // Run IGA modeler sbm for this patch
+        // Run iga_modeler_sbm for this patch
         {
             KRATOS_INFO_IF("PatchSubdivisionModeler::  \n", mEchoLevel > 2)
                 << patch_analysis << std::endl;
