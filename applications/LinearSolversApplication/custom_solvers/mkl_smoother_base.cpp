@@ -16,6 +16,7 @@
 // Project includes
 #include "custom_solvers/mkl_smoother_base.hpp" // MKLSmootherBase
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
+#include "custom_utilities/mkl_utilities.h"
 
 // STL includes
 #include <optional> // std::optional
@@ -48,6 +49,8 @@ template <class TSparse, class TDense>
 MKLSmootherBase<TSparse,TDense>::MKLSmootherBase()
     : mpImpl(new Impl)
 {
+    // Ensure the number of threads in MKL is the same considered for other operations
+    MKLUtilities::SetMKLThreadCount(0);
 }
 
 
@@ -62,6 +65,10 @@ void MKLSmootherBase<TSparse,TDense>::InitializeSolutionStep(SparseMatrix& rLhs,
                                                              Vector&)
 {
     KRATOS_TRY
+
+    // Check thread consistency
+    MKLUtilities::CheckThreadNumber(0);
+
     mpImpl->mMaybeRowExtents.emplace(rLhs.index1_data().size());
     mpImpl->mMaybeColumnIndices.emplace(rLhs.index2_data().size());
 
