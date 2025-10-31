@@ -314,4 +314,68 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryIsSameType, KratosCoreFastSuite) {
     KRATOS_EXPECT_FALSE(Registry::GetItem("variables.all.VELOCITY").IsSameType(test_double));
 }
 
+namespace RegistryTestNamespace {
+    class _Boo {};      // Normal class name
+    class _Boo2 {};     // Class name with number
+    class _Boo2L {};    // Class name with number and suffix
+
+    template<class T, int D> class _FooCT {};
+    template<class T> class _FooC {};
+    template<int D> class _FooT {};
+
+    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerClassValue, KratosCoreFastSuite) {
+
+        _FooCT<_Boo, 2> foo_instance;
+
+        auto demangled_name = Registry::GetDemangledName(typeid(foo_instance).name());
+
+        KRATOS_EXPECT_EQ(demangled_name, "_FooCT<_Boo,2>");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerClassValueWithNumberClassName, KratosCoreFastSuite) {
+
+        _FooCT<_Boo2, 2> foo_instance;
+
+        auto demangled_name = Registry::GetDemangledName(typeid(foo_instance).name());
+
+        KRATOS_EXPECT_EQ(demangled_name, "_FooCT<_Boo2,2>");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerClassValueWithNumberAndSuffixClassName, KratosCoreFastSuite) {
+
+        _FooCT<_Boo2L, 2> foo_instance;
+
+        auto demangled_name = Registry::GetDemangledName(typeid(foo_instance).name());
+
+        KRATOS_EXPECT_EQ(demangled_name, "_FooCT<_Boo2L,2>");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerClassOnly, KratosCoreFastSuite) {
+
+        _FooC<_Boo> foo_instance;
+
+        auto demangled_name = Registry::GetDemangledName(typeid(foo_instance).name());
+
+        KRATOS_EXPECT_EQ(demangled_name, "_FooC<_Boo>");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerValueOnly, KratosCoreFastSuite) {
+
+        _FooT<2> foo_instance;
+
+        auto demangled_name = Registry::GetDemangledName(typeid(foo_instance).name());
+
+        KRATOS_EXPECT_EQ(demangled_name, "_FooT<2>");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(RegistryNameDemanglerTemplateHell, KratosCoreFastSuite) {
+
+        _FooCT<_FooCT<_FooC<_Boo2>,3ull>,2L> foo_instance;
+
+        auto demangled_name = Registry::GetDemangledName(typeid(foo_instance).name());
+
+        KRATOS_EXPECT_EQ(demangled_name, "_FooCT<_FooCT<_FooC<_Boo2>,3>,2>");
+    }
+}
+
 }  // namespace Kratos::Testing.
