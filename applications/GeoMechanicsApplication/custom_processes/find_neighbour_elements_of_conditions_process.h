@@ -41,6 +41,7 @@ public:
     ~FindNeighbourElementsOfConditionsProcess() override = default;
 
     void                      Execute() override;
+    void                      ExecuteInitialize() override;
     [[nodiscard]] std::string Info() const override;
     void                      PrintData(std::ostream& rOStream) const override;
 
