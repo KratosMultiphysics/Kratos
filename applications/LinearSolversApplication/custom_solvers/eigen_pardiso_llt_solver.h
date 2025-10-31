@@ -20,7 +20,6 @@
 #include "spaces/ublas_space.h"
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
-#include "utilities/parallel_utilities.h"
 #include "custom_utilities/mkl_utilities.h"
 
 namespace Kratos {

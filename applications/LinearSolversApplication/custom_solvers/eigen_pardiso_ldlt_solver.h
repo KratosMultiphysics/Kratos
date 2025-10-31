@@ -20,7 +20,7 @@
 #include "spaces/ublas_space.h"
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
-#include "utilities/parallel_utilities.h"
+#include "custom_utilities/mkl_utilities.h"
 
 namespace Kratos {
 
@@ -43,14 +43,30 @@ public:
 
     void Initialize(Parameters settings)
     {
+        // Set default parameters
+        if (!settings.Has("num_threads_mkl")) {
+            settings.AddEmptyValue("num_threads_mkl").SetString("consistent"); // Default to 0 (consistent)
+        }
+
+        // Configure number of threads for MKL Pardiso solver
+        if (settings["num_threads_mkl"].IsNumber()) {
+            mNumberOfMKLThreads = settings["num_threads_mkl"].GetInt();
+        } else if (settings["num_threads_mkl"].GetString() == "minimal") {
+            mNumberOfMKLThreads = static_cast<int>(MKLUtilities::MKLThreadSetting::Minimal);
+        } else if (settings["num_threads_mkl"].GetString() == "consistent") {
+            mNumberOfMKLThreads = static_cast<int>(MKLUtilities::MKLThreadSetting::Consistent);
+        } else {
+            KRATOS_ERROR << "Invalid value for 'num_threads_mkl': " << settings["num_threads_mkl"].GetString() << ". Accepted values are 'minimal', 'consistent', or an integer." << std::endl;
+        }
+
         // Ensure the number of threads in MKL is the same considered for other operations
-        EnsureMKLThreadConsistency();
+        MKLUtilities::SetMKLThreadCount(mNumberOfMKLThreads);
     }
 
     bool Compute(Eigen::Map<const SparseMatrix> a)
     {
         // Check thread consistency
-        CheckThreadConsistency();
+        MKLUtilities::CheckThreadNumber(mNumberOfMKLThreads);
 
         // Actually compute
         m_solver.compute(a);
@@ -63,7 +79,7 @@ public:
     bool Solve(Eigen::Ref<const Vector> b, Eigen::Ref<Vector> x) const
     {
         // Check thread consistency
-        CheckThreadConsistency();
+        MKLUtilities::CheckThreadNumber(mNumberOfMKLThreads);
         
         // Actually solve
         x = m_solver.solve(b);
@@ -84,38 +100,12 @@ public:
     }
 
 private:
+    ///@name Private Member Variables
+    ///@{
 
-    /**
-     * @brief Checks the consistency between the maximum number of threads configured in MKL and the application's thread count.
-     * @details This method compares the maximum number of threads configured in MKL (mkl_get_max_threads()) with the number of threads currently used by the application (ParallelUtilities::GetNumThreads()).
-     * - If MKL threads > Application threads: A warning is issued, indicating that MKL is configured to use more threads than the application allows. The method returns false, signaling to the caller that the MKL thread count needs to be adjusted (reduced).
-     * - If MKL threads <= Application threads: The thread count is considered consistent. No action is taken, and the method returns true.
-     * @note This method only performs the check and warning; it does NOT modify the MKL thread count.** The caller is responsible for applying the necessary adjustment if the check returns false.
-     * @return true if MKL's thread count is consistent (less than or equal to the application's) or false if it is inconsistent (MKL thread count is greater).
-     */
-    static bool CheckThreadConsistency()
-    {
-        const int number_of_threads_mkl = mkl_get_max_threads();
-        const int number_of_threads_used = ParallelUtilities::GetNumThreads();
-        if (number_of_threads_mkl > number_of_threads_used) {
-            KRATOS_WARNING("EigenPardisoLDLTSolver") << "Setting the number of threads in MKL to adapt to ParallelUtilities::GetNumThreads(): " << number_of_threads_used << " instead of " << number_of_threads_mkl << std::endl;
-            return false;
-        }
-        return true;
-    }
-    
-    /**
-    * @brief Ensures that MKL's thread count does not exceed the application's configured thread count.
-    * @details Calls CheckThreadConsistency(). If the check returns false (indicating MKL threads > Application threads), it reduces MKL's thread count to match the application's count via mkl_set_num_threads().
-    * This method effectively performs the correction identified by CheckThreadConsistency().
-    */
-    static void EnsureMKLThreadConsistency()
-    {
-        if (!CheckThreadConsistency()) {
-            const int number_of_threads_used = ParallelUtilities::GetNumThreads();
-            mkl_set_num_threads(number_of_threads_used);
-        }
-    }
+    int mNumberOfMKLThreads = 0; /// Number of threads to be used by MKL Pardiso solver
+
+    ///@}
 };
 
 } // namespace Kratos

@@ -16,6 +16,7 @@
 // Project includes
 #include "custom_solvers/mkl_smoother_base.hpp" // MKLSmootherBase
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
+#include "custom_utilities/mkl_utilities.h"
 
 // STL includes
 #include <optional> // std::optional
@@ -49,7 +50,7 @@ MKLSmootherBase<TSparse,TDense>::MKLSmootherBase()
     : mpImpl(new Impl)
 {
     // Ensure the number of threads in MKL is the same considered for other operations
-    EnsureMKLThreadConsistency();
+    MKLUtilities::SetMKLThreadCount(0);
 }
 
 
@@ -66,7 +67,7 @@ void MKLSmootherBase<TSparse,TDense>::InitializeSolutionStep(SparseMatrix& rLhs,
     KRATOS_TRY
 
     // Check thread consistency
-    CheckThreadConsistency();
+    MKLUtilities::CheckThreadNumber(0);
 
     mpImpl->mMaybeRowExtents.emplace(rLhs.index1_data().size());
     mpImpl->mMaybeColumnIndices.emplace(rLhs.index2_data().size());
@@ -176,27 +177,6 @@ MKLSmootherBase<TSparse,TDense>::MakeSystemView(const SparseMatrix& rLhs,
     );
 
     KRATOS_CATCH("")
-}
-
-template <class TSparse, class TDense>
-bool MKLSmootherBase<TSparse,TDense>::CheckThreadConsistency()
-{
-    const int number_of_threads_mkl = mkl_get_max_threads();
-    const int number_of_threads_used = ParallelUtilities::GetNumThreads();
-    if (number_of_threads_mkl > number_of_threads_used) {
-        KRATOS_WARNING("MKLSmootherBase") << "Setting the number of threads in MKL to adapt to ParallelUtilities::GetNumThreads(): " << number_of_threads_used << " instead of " << number_of_threads_mkl << std::endl;
-        return false;
-    }
-    return true;
-}
-
-template <class TSparse, class TDense>
-void MKLSmootherBase<TSparse,TDense>::EnsureMKLThreadConsistency()
-{
-    if (!CheckThreadConsistency()) {
-        const int number_of_threads_used = ParallelUtilities::GetNumThreads();
-        mkl_set_num_threads(number_of_threads_used);
-    }
 }
 
 
