@@ -45,9 +45,8 @@ CoulombYieldSurface::KappaDependentFunction MakeFrictionAngleCalculator(const Pr
         return MakeConstantFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties));
     }
 
-    KRATOS_ERROR << "Cannot create a kappa-dependent function for the friction angle: unknown "
-                    "hardening type '"
-                 << hardening_type << "'\n";
+    KRATOS_ERROR << "Cannot create a kappa-dependent function for the friction angle of material "
+                 << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
 }
 
 CoulombYieldSurface::KappaDependentFunction MakeCohesionCalculator(const Properties& rMaterialProperties)
@@ -58,9 +57,8 @@ CoulombYieldSurface::KappaDependentFunction MakeCohesionCalculator(const Propert
         return MakeConstantFunction(ConstitutiveLawUtilities::GetCohesion(rMaterialProperties));
     }
 
-    KRATOS_ERROR << "Cannot create a kappa-dependent function for the cohesion: unknown "
-                    "hardening type '"
-                 << hardening_type << "'\n";
+    KRATOS_ERROR << "Cannot create a kappa-dependent function for the cohesion of material "
+                 << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
 }
 
 CoulombYieldSurface::KappaDependentFunction MakeDilatancyAngleCalculator(const Properties& rMaterialProperties)
@@ -71,9 +69,8 @@ CoulombYieldSurface::KappaDependentFunction MakeDilatancyAngleCalculator(const P
         return MakeConstantFunction(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]));
     }
 
-    KRATOS_ERROR << "Cannot create a kappa-dependent function for the dilatancy angle: unknown "
-                    "hardening type '"
-                 << hardening_type << "'\n";
+    KRATOS_ERROR << "Cannot create a kappa-dependent function for the dilatancy angle of material "
+                 << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
 }
 
 } // namespace
