@@ -29,6 +29,19 @@ CoulombYieldSurface::KappaDependentFunction MakeConstantFunction(double Value)
     return [Value](double /* unused kappa */) { return Value; };
 }
 
+CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForFrictionAngle(const Properties& rMaterialProperties)
+{
+    const auto hardening_type = rMaterialProperties[GEO_COULOMB_HARDENING_TYPE];
+
+    if (hardening_type == "None") {
+        return MakeConstantFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties));
+    }
+
+    KRATOS_ERROR << "Cannot create a kappa-dependent function for the friction angle: unknown "
+                    "hardening type '"
+                 << hardening_type << "'\n";
+}
+
 } // namespace
 
 namespace Kratos
@@ -36,9 +49,10 @@ namespace Kratos
 
 CoulombYieldSurface::CoulombYieldSurface()
 {
-    mMaterialProperties[GEO_FRICTION_ANGLE]  = 0.0;
-    mMaterialProperties[GEO_COHESION]        = 0.0;
-    mMaterialProperties[GEO_DILATANCY_ANGLE] = 0.0;
+    mMaterialProperties[GEO_COULOMB_HARDENING_TYPE] = "None";
+    mMaterialProperties[GEO_FRICTION_ANGLE]         = 0.0;
+    mMaterialProperties[GEO_COHESION]               = 0.0;
+    mMaterialProperties[GEO_DILATANCY_ANGLE]        = 0.0;
 
     InitializeKappaDependentFunctions();
 }
@@ -46,6 +60,11 @@ CoulombYieldSurface::CoulombYieldSurface()
 CoulombYieldSurface::CoulombYieldSurface(Properties MaterialProperties)
     : mMaterialProperties{std::move(MaterialProperties)}
 {
+    // For backward compatibility, if no hardening type is given, we assume no hardening at all
+    if (!mMaterialProperties.Has(GEO_COULOMB_HARDENING_TYPE)) {
+        mMaterialProperties[GEO_COULOMB_HARDENING_TYPE] = "None";
+    }
+
     InitializeKappaDependentFunctions();
 }
 
@@ -96,8 +115,7 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAvera
 void CoulombYieldSurface::InitializeKappaDependentFunctions()
 {
     // At present, we only support properties that are independent of kappa
-    mFrictionAngleCalculator =
-        MakeConstantFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(mMaterialProperties));
+    mFrictionAngleCalculator = MakeKappaDependentFunctionForFrictionAngle(mMaterialProperties);
     mCohesionCalculator = MakeConstantFunction(ConstitutiveLawUtilities::GetCohesion(mMaterialProperties));
     mDilatancyAngleCalculator =
         MakeConstantFunction(MathUtils<>::DegreesToRadians(mMaterialProperties[GEO_DILATANCY_ANGLE]));
