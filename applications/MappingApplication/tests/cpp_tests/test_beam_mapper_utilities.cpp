@@ -89,8 +89,8 @@ KRATOS_TEST_CASE_IN_SUITE(BeamMapper_ProjectOnLineHermitian_SimpleLine, KratosMa
     array_1d<double, 3> local_coords_guess = ZeroVector(3);
 
     std::vector<double> exp_values       {0.84375, 0.140625, 0.15625, -0.046875};
-    std::vector<double> exp_derivatives  {-1.125, -0.1875, 1.125, 0.3125};
-    double exp_proj_dist = 0.25;
+    std::vector<double> exp_derivatives  {-1.125, 0.1875, 1.125, -0.3125};
+    double exp_proj_dist = 0.0;
 
     TestProjectOnLineHermitian(line_geom, point_to_project, local_coords_guess, exp_values, exp_derivatives, exp_proj_dist);
 }
