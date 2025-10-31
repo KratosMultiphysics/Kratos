@@ -31,14 +31,17 @@ CoulombYieldSurface::KappaDependentFunction MakeConstantFunction(double Value)
 
 std::string GetCoulombHardeningTypeFrom(const Properties& rMaterialProperties)
 {
-    return rMaterialProperties[GEO_COULOMB_HARDENING_TYPE];
+    auto result   = rMaterialProperties[GEO_COULOMB_HARDENING_TYPE];
+    auto to_lower = [](auto character) { return std::tolower(character); };
+    std::ranges::transform(result, result.begin(), to_lower);
+    return result;
 }
 
-CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForFrictionAngle(const Properties& rMaterialProperties)
+CoulombYieldSurface::KappaDependentFunction MakeFrictionAngleCalculator(const Properties& rMaterialProperties)
 {
     const auto hardening_type = GetCoulombHardeningTypeFrom(rMaterialProperties);
 
-    if (hardening_type == "None") {
+    if (hardening_type == "none") {
         return MakeConstantFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties));
     }
 
@@ -47,11 +50,11 @@ CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForFrictio
                  << hardening_type << "'\n";
 }
 
-CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForCohesion(const Properties& rMaterialProperties)
+CoulombYieldSurface::KappaDependentFunction MakeCohesionCalculator(const Properties& rMaterialProperties)
 {
     const auto hardening_type = GetCoulombHardeningTypeFrom(rMaterialProperties);
 
-    if (hardening_type == "None") {
+    if (hardening_type == "none") {
         return MakeConstantFunction(ConstitutiveLawUtilities::GetCohesion(rMaterialProperties));
     }
 
@@ -60,11 +63,11 @@ CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForCohesio
                  << hardening_type << "'\n";
 }
 
-CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForDilatancyAngle(const Properties& rMaterialProperties)
+CoulombYieldSurface::KappaDependentFunction MakeDilatancyAngleCalculator(const Properties& rMaterialProperties)
 {
     const auto hardening_type = GetCoulombHardeningTypeFrom(rMaterialProperties);
 
-    if (hardening_type == "None") {
+    if (hardening_type == "none") {
         return MakeConstantFunction(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]));
     }
 
@@ -145,10 +148,9 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAvera
 
 void CoulombYieldSurface::InitializeKappaDependentFunctions()
 {
-    // At present, we only support properties that are independent of kappa
-    mFrictionAngleCalculator  = MakeKappaDependentFunctionForFrictionAngle(mMaterialProperties);
-    mCohesionCalculator       = MakeKappaDependentFunctionForCohesion(mMaterialProperties);
-    mDilatancyAngleCalculator = MakeKappaDependentFunctionForDilatancyAngle(mMaterialProperties);
+    mFrictionAngleCalculator  = MakeFrictionAngleCalculator(mMaterialProperties);
+    mCohesionCalculator       = MakeCohesionCalculator(mMaterialProperties);
+    mDilatancyAngleCalculator = MakeDilatancyAngleCalculator(mMaterialProperties);
 }
 
 void CoulombYieldSurface::save(Serializer& rSerializer) const
