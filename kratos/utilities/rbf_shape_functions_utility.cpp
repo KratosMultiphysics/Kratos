@@ -21,39 +21,6 @@
 
 namespace Kratos
 {
-    double RBFShapeFunctionsUtility::EvaluateRBF(
-        const double x,
-        const double h,
-        RBFType rbf_type)
-    {
-         switch (rbf_type)
-        {
-            case RBFType::InverseMultiquadric: {
-                const double q = x * h;
-                return 1.0 / std::sqrt(1.0 + q*q);
-            }
-            case RBFType::Multiquadric: {
-                const double q = x / h;
-                return std::sqrt(1.0 + q*q);
-            }
-            case RBFType::Gaussian: {
-                const double q = x / h;
-                return std::exp(-0.5 * q*q);
-            }
-            case RBFType::ThinPlateSpline: {
-                if (std::abs(x) < 1.0e-12) return 0.0;
-                return x*x * std::log(x*x);
-            }
-            case RBFType::WendlandC2: {
-                const double q = x / h;
-                if (q < 1.0) return std::pow(1.0 - q, 4) * (4.0*q + 1.0);
-                return 0.0;
-            }
-            default:
-                throw std::runtime_error("Unrecognized RBF type");
-        }
-    }
-
     void RBFShapeFunctionsUtility::CalculateShapeFunctions(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
@@ -75,14 +42,17 @@ namespace Kratos
         Matrix A = ZeroMatrix(n_points,n_points);
         Vector Phi = ZeroVector(n_points);
 
+        // Create an inverse multiquadric operation
+        InverseMultiquadric inverse_multiquadric_operation{h};
+
         // Build the RBF interpolation matrix and RBF interpolated vector
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
                 const double norm_xij = norm_2(row(rPoints,i_pt) - row(rPoints,j_pt));
-                A(i_pt,j_pt) = EvaluateRBF(norm_xij,h, RBFShapeFunctionsUtility::RBFType::InverseMultiquadric);
+                A(i_pt,j_pt) = inverse_multiquadric_operation(norm_xij);
             }
             const double norm_X =  norm_2(rX - row(rPoints,i_pt));
-            Phi[i_pt] = EvaluateRBF(norm_X, h, RBFShapeFunctionsUtility::RBFType::InverseMultiquadric);
+            Phi[i_pt] = inverse_multiquadric_operation(norm_X);
         }
 
         // Obtain the RBF shape functions (N)
@@ -137,11 +107,14 @@ namespace Kratos
         Matrix A = ZeroMatrix(n_points,n_points);
         double norm_xij;
 
+        // Create an inverse multiquadric operation
+        InverseMultiquadric inverse_multiquadric_operation{h};
+
         // Build the RBF interpolation matrix and RBF interpolated vector
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
                 norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt));
-                A(i_pt,j_pt) = EvaluateRBF(norm_xij, h, RBFShapeFunctionsUtility::RBFType::InverseMultiquadric);
+                A(i_pt,j_pt) = inverse_multiquadric_operation(norm_xij);
             }
         }
 
@@ -153,7 +126,7 @@ namespace Kratos
         // Interpolate solution
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             const double norm_xi = norm_2(rX-row(rPoints,i_pt));
-            const double Phi = EvaluateRBF(norm_xi, h, RBFShapeFunctionsUtility::RBFType::InverseMultiquadric);
+            const double Phi = inverse_multiquadric_operation(norm_xi);
             interpolation += Phi*rN[i_pt];
         }
 
