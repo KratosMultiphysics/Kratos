@@ -667,21 +667,21 @@ private:
         const std::size_t num_modes = rEigenvectors.size1();
         const std::size_t num_dofs  = rEigenvectors.size2();
 
-        DenseVectorType phi_j(num_dofs);
+        DenseVectorType phi(num_dofs);
         DenseVectorType tmp(num_dofs);
 
         for (std::size_t j = 0; j < num_modes; ++j) {
-             // copy row j -> phi_j in parallel using IndexPartition
+             // copy row j -> phi
             IndexPartition<std::size_t>(num_dofs).for_each([&](std::size_t i){
-                phi_j[i] = rEigenvectors(j, i);
+                phi[i] = rEigenvectors(j, i);
             });
 
             // tmp = M * phi_j
-            TSparseSpace::Mult(rMassMatrix, phi_j, tmp);
+            TSparseSpace::Mult(rMassMatrix, phi, tmp);
 
-            // Compute modal_mass = phi_j^T * tmp using SumReduction (no atomics)
+            // Compute modal_mass = phi^T * tmp
             const double modal_mass = IndexPartition<std::size_t>(num_dofs).for_each<SumReduction<double>>([&](std::size_t i)->double {
-                return phi_j[i] * tmp[i];
+                return phi[i] * tmp[i];
             });
 
             if (!(modal_mass > 0.0)) {
@@ -692,9 +692,9 @@ private:
 
             const double scale = 1.0 / std::sqrt(modal_mass);
 
-           // scale and write back into rEigenvectors in parallel
+           // scale and write back into rEigenvectors 
             IndexPartition<std::size_t>(num_dofs).for_each([&](std::size_t i){
-                rEigenvectors(j, i) = phi_j[i] * scale;
+                rEigenvectors(j, i) = phi[i] * scale;
             });
         }
     }
