@@ -316,7 +316,7 @@ private:
         BoundedMatrix<TDataType, 2, 2>& rVMatrix
         )
     {
-        // If the off-diagonal element is approximately zero, the matrix is already diagonal
+        // If the trace (sum of diagonal elements) is approximately zero, handle as a special case
         if (std::abs(rInputMatrix(0, 0) + rInputMatrix(1, 1)) < ZeroTolerance) {
             noalias(rSMatrix) = rInputMatrix;      // S is just the original matrix
             noalias(rUMatrix) = IdentityMatrix(2); // U is identity
