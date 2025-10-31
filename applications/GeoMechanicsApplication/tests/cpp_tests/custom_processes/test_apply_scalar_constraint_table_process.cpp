@@ -134,7 +134,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyScalarConstraintTableProcess, KratosGeoM
     auto  table        = std::make_shared<Table<double>>();
     auto& r_model_part = SetupModelPart(table, model);
 
-    const Parameters                  parameters(R"(
+    const Parameters                        parameters(R"(
       {
           "model_part_name": "Main",
           "variable_name":   "DISPLACEMENT_X",
