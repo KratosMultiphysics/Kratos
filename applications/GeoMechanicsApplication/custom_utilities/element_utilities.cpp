@@ -36,8 +36,8 @@ void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   
 {
     // 1D
     if (Prop[RETENTION_LAW] == "PressureFilterLaw") {
-        const double equivalent_radius_square = Prop[CROSS_AREA] / Globals::Pi;
-        rPermeabilityMatrix(0, 0)             = equivalent_radius_square * 0.125;
+        const auto equivalent_radius_square = Prop[CROSS_AREA] / Globals::Pi;
+        rPermeabilityMatrix(0, 0)           = equivalent_radius_square * 0.125;
     } else {
         rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
     }
@@ -181,8 +181,8 @@ std::vector<Vector> GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoin
 
     auto result = std::vector<Vector>{};
     result.reserve(rIntegrationPoints.size());
-    std::ranges::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(result),
-                   evaluate_shape_function_values);
+    std::ranges::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(),
+                           std::back_inserter(result), evaluate_shape_function_values);
 
     return result;
 }
