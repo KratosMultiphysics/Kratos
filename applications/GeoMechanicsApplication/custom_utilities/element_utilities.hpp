@@ -16,7 +16,6 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/kratos_export_api.h"
-#include "utilities/math_utils.h"
 
 // Application includes
 #include "geo_aliases.h"
@@ -193,22 +192,9 @@ public:
      * @param Geom: The geometry studied
      * @return Radius: The radius of axisymmetry
      */
-
     static double CalculateRadius(const Vector& N, const GeometryType& Geom);
 
     static double CalculateAxisymmetricCircumference(const Vector& N, const GeometryType& Geom);
-
-    static void CalculateExtrapolationMatrixTriangle(Matrix& rExtrapolationMatrix,
-                                                     const GeometryData::IntegrationMethod& rIntegrationMethod);
-
-    static void CalculateExtrapolationMatrixQuad(Matrix& rExtrapolationMatrix,
-                                                 const GeometryData::IntegrationMethod& rIntegrationMethod);
-
-    static void CalculateExtrapolationMatrixTetra(Matrix& rExtrapolationMatrix,
-                                                  const GeometryData::IntegrationMethod& rIntegrationMethod);
-
-    static void CalculateExtrapolationMatrixHexa(Matrix& rExtrapolationMatrix,
-                                                 const GeometryData::IntegrationMethod& rIntegrationMethod);
 
     static Vector CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom,
                                                                 const Properties&   rProp);
