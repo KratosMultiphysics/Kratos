@@ -123,13 +123,6 @@ public:
 
     static Matrix FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension);
 
-    static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
-                              const BoundedMatrix<double, 2, 2>& rInputMatrix,
-                              double&                            rInputMatrixDet);
-
-    static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
-                              const BoundedMatrix<double, 2, 2>& rInputMatrix);
-
     template <typename MatrixType1, typename MatrixType2>
     static inline void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUUBlockMatrix)
     {
