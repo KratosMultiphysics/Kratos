@@ -101,6 +101,30 @@ protected:
     * @brief Creates the initial snake coordinates for 2D skin.
     */
     void CreateTheSnakeCoordinates();
+
+    /**
+     * @brief Create a The Snake Coordinates object
+     * 
+     * @tparam TIsInnerLoop 
+     * @param rIgaModelPart 
+     * @param rSkinModelPartInitial 
+     * @param rSkinModelPart 
+     * @param NumberOfInnerLoops 
+     * @param Lambda 
+     */
+    template <bool TIsInnerLoop>
+    static void CreateTheSnakeCoordinates(
+        const ModelPart& rSkinModelPartInitial,
+        const std::size_t NumberOfInnerLoops,
+        const double Lambda,
+        IndexType EchoLevel,
+        ModelPart& rIgaModelPart,
+        ModelPart& rSkinModelPart,
+        const int NumberInitialPointsIfImportingNurbs,
+        bool RemoveIslands = false
+        );
+
+
     Model* mpModel = nullptr;
     Parameters mThisParameters;
     IndexType mEchoLevel;
@@ -121,8 +145,6 @@ protected:
     using DistanceIterator = std::vector<double>::iterator;
     using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
     using DynamicBinsPointerType = DynamicBins::PointerType;
-
-    using SizeType = std::size_t;
     using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
     using CoordinatesArrayType = Geometry<PointType>::CoordinatesArrayType;
 
@@ -196,26 +218,6 @@ protected:
 
 private:
 
-    /**
-     * @brief Create a The Snake Coordinates object
-     * 
-     * @tparam TIsInnerLoop 
-     * @param rIgaModelPart 
-     * @param rSkinModelPartInitial 
-     * @param rSkinModelPart 
-     * @param NumberOfInnerLoops 
-     * @param Lambda 
-     */
-    template <bool TIsInnerLoop>
-    static void CreateTheSnakeCoordinates(
-        const ModelPart& rSkinModelPartInitial,
-        const std::size_t NumberOfInnerLoops,
-        const double Lambda,
-        IndexType EchoLevel,
-        ModelPart& rIgaModelPart,
-        ModelPart& rSkinModelPart,
-        const int NumberInitialPointsIfImportingNurbs
-        );
 
     /**
      * @brief Performs a single step in the snake algorithm for 2D models.
@@ -369,110 +371,7 @@ private:
      * @param grid 
      */
     template <bool TIsInnerLoop>
-    static void KeepLargestZeroIsland(std::vector<std::vector<int>>& grid) {
-        const int R = static_cast<int>(grid.size());
-        if (R == 0) return;
-        const int C = static_cast<int>(grid[0].size());
-        if (C == 0) return;
-
-        // Label map: -1 = unvisited/non-zero, 0..K = component id for zero components
-        std::vector<std::vector<int>> label(R, std::vector<int>(C, -1));
-        std::vector<int> comp_size;  // comp_size[comp_id] = size
-
-        static const int dr8[8] = {-1,-1,-1, 0, 0, 1, 1, 1};
-        static const int dc8[8] = {-1, 0, 1,-1, 1,-1, 0, 1};
-
-        // Use a snapshot to avoid chain reactions during this pass
-        const auto original = grid;
-
-        if constexpr (TIsInnerLoop)
-        {
-            for (int r = 0; r < R; ++r) {
-                for (int c = 0; c < C; ++c) {
-                    if (original[r][c] != 0) continue;
-
-                    bool hasZeroNeighbor = false;
-                    for (int k = 0; k < 8; ++k) {
-                        int nr = r + dr8[k], nc = c + dc8[k];
-                        if (0 <= nr && nr < R && 0 <= nc && nc < C &&
-                            original[nr][nc] == 0) {
-                            hasZeroNeighbor = true;
-                            break;
-                        }
-                    }
-                    if (!hasZeroNeighbor) {
-                        grid[r][c] = 1; // isolated 0 → 1
-                    }
-                }
-            }
-        }
-    
-
-        // 4-neighborhood
-        const int dr[4] = {-1, 1, 0, 0};
-        const int dc[4] = { 0, 0,-1, 1};
-
-        int comp_id = 0;
-        int largest_id = -1;
-        int largest_size = 0;
-
-        for (int r = 0; r < R; ++r) {
-            for (int c = 0; c < C; ++c) {
-                if (grid[r][c] == 0 && label[r][c] == -1) {
-                    // BFS to label this zero-component
-                    std::queue<std::pair<int,int>> q;
-                    q.push({r, c});
-                    label[r][c] = comp_id;
-                    int size = 0;
-
-                    while (!q.empty()) {
-                        auto [cr, cc] = q.front(); q.pop();
-                        ++size;
-
-                        for (int k = 0; k < 4; ++k) {
-                            int nr = cr + dr[k], nc = cc + dc[k];
-                            if (0 <= nr && nr < R && 0 <= nc && nc < C &&
-                                grid[nr][nc] == 0 && label[nr][nc] == -1) {
-                                label[nr][nc] = comp_id;
-                                q.push({nr, nc});
-                            }
-                        }
-                    }
-
-                    comp_size.push_back(size);
-                    // Track largest; if tie, keep first encountered
-                    if (size > largest_size) {
-                        largest_size = size;
-                        largest_id = comp_id;
-                    }
-                    ++comp_id;
-                }
-            }
-        }
-
-        if (largest_id == -1) return; // no zeros at all
-
-        // Flip all zeros that are NOT in the largest component to 1
-        if constexpr (TIsInnerLoop) {
-            for (int r = 0; r < R; ++r) {
-                for (int c = 0; c < C; ++c) {
-                    if (grid[r][c] == 0 && label[r][c] != largest_id) {
-                        grid[r][c] = 1;
-                    }
-                }
-            }
-        } 
-        else { 
-            for (int r = 0; r < R; ++r) {
-                for (int c = 0; c < C; ++c) {
-                    if (grid[r][c] == 0 && label[r][c] == largest_id) {
-                        grid[r][c] = 1;
-                    }
-                }
-            }
-        }
-    }
-
+    static void KeepLargestZeroIsland(std::vector<std::vector<int>>& grid);
 
 }; // Class SnakeSbmProcess
 

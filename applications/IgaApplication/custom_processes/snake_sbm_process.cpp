@@ -84,7 +84,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     IndexType EchoLevel,
     ModelPart& rIgaModelPart,
     ModelPart& rSkinModelPart,
-    const int NumberInitialPointsIfImportingNurbs) 
+    const int NumberInitialPointsIfImportingNurbs,
+    bool RemoveIslands) 
 { 
     KRATOS_ERROR_IF(rIgaModelPart.GetValue(KNOT_VECTOR_U).size() == 0) << "::[SnakeSbmProcess]::" 
                 << "The iga model part has KNOT_VECTOR_U of size 0" << std::endl;
@@ -230,7 +231,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         // number of sampling points per curve side
         const int number_initial_points_if_importing_nurbs = NumberInitialPointsIfImportingNurbs; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
-        const SizeType n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
+        const std::size_t n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
 
         // Reorder curves to form a single closed loop: each curve's start must match previous curve's end (within tol)
         const double tol = 1e-7;
@@ -309,7 +310,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                 //needed for the call to the assign_vector_variable_to_nodes_process
                 // compute normal at the node coords
                 std::vector<CoordinatesArrayType> global_space_derivatives;
-                SizeType derivative_order = 2;
+                std::size_t derivative_order = 2;
                 CoordinatesArrayType new_point_local_coord = ZeroVector(3); //first point at local coord zero
                 p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
                 CoordinatesArrayType tangent_vector = global_space_derivatives[1];
@@ -355,7 +356,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                 // Create two nodes and two conditions for each skin condition
                 // compute normal at the node coords
                 std::vector<CoordinatesArrayType> global_space_derivatives;
-                SizeType derivative_order = 2;
+                std::size_t derivative_order = 2;
                 CoordinatesArrayType new_point_local_coord = ZeroVector(3); //first point at local coord zero
                 p_curve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
                 CoordinatesArrayType tangent_vector = global_space_derivatives[1];
@@ -486,8 +487,11 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             KRATOS_INFO_IF("::[SnakeSbmProcess]::", !is_inner) << "Outer :: Ending MarkKnotSpansAvailable" << std::endl;
         }
 
-        auto& plane = knot_spans_available[i]; 
-        KeepLargestZeroIsland<TIsInnerLoop>(plane);
+        if (RemoveIslands)
+        {
+            auto& plane = knot_spans_available[i]; 
+            KeepLargestZeroIsland<TIsInnerLoop>(plane);
+        }
         
         if (is_inner) {
             CreateSurrogateBuondaryFromSnakeInner(id_inner_loop, r_skin_sub_model_part, points_bin, n_knot_spans_uv, 
@@ -719,7 +723,7 @@ void SnakeSbmProcess::SnakeStepNurbs(
         
         // compute normal and tangent informations at the local coord of the point 
         std::vector<CoordinatesArrayType> global_space_derivatives;
-        SizeType derivative_order = 2;
+        std::size_t derivative_order = 2;
         CoordinatesArrayType new_point_local_coord = ZeroVector(3);
         new_point_local_coord[0] = rLocalCoords[1];
         rpCurve->GlobalSpaceDerivatives(global_space_derivatives, new_point_local_coord, derivative_order);
@@ -1333,6 +1337,112 @@ bool SnakeSbmProcess::IsInside(
             rKnotSpanUV[1][0] < 0 || rKnotSpanUV[1][0] >= NumberKnotSpansUV[1] ||
             rKnotSpanUV[0][1] < 0 || rKnotSpanUV[0][1] >= NumberKnotSpansUV[0] ||
             rKnotSpanUV[1][1] < 0 || rKnotSpanUV[1][1] >= NumberKnotSpansUV[1]); 
+}
+
+template <bool TIsInnerLoop>
+void SnakeSbmProcess::KeepLargestZeroIsland(std::vector<std::vector<int>>& grid) 
+{
+    const int R = static_cast<int>(grid.size());
+    if (R == 0) return;
+    const int C = static_cast<int>(grid[0].size());
+    if (C == 0) return;
+
+    // Label map: -1 = unvisited/non-zero, 0..K = component id for zero components
+    std::vector<std::vector<int>> label(R, std::vector<int>(C, -1));
+    std::vector<int> comp_size;  // comp_size[comp_id] = size
+
+    static const int dr8[8] = {-1,-1,-1, 0, 0, 1, 1, 1};
+    static const int dc8[8] = {-1, 0, 1,-1, 1,-1, 0, 1};
+
+    // Use a snapshot to avoid chain reactions during this pass
+    const auto original = grid;
+
+    if constexpr (TIsInnerLoop)
+    {
+        for (int r = 0; r < R; ++r) {
+            for (int c = 0; c < C; ++c) {
+                if (original[r][c] != 0) continue;
+
+                bool hasZeroNeighbor = false;
+                for (int k = 0; k < 8; ++k) {
+                    int nr = r + dr8[k], nc = c + dc8[k];
+                    if (0 <= nr && nr < R && 0 <= nc && nc < C &&
+                        original[nr][nc] == 0) {
+                        hasZeroNeighbor = true;
+                        break;
+                    }
+                }
+                if (!hasZeroNeighbor) {
+                    grid[r][c] = 1; // isolated 0 → 1
+                }
+            }
+        }
+    }
+
+
+    // 4-neighborhood
+    const int dr[4] = {-1, 1, 0, 0};
+    const int dc[4] = { 0, 0,-1, 1};
+
+    int comp_id = 0;
+    int largest_id = -1;
+    int largest_size = 0;
+
+    for (int r = 0; r < R; ++r) {
+        for (int c = 0; c < C; ++c) {
+            if (grid[r][c] == 0 && label[r][c] == -1) {
+                // BFS to label this zero-component
+                std::queue<std::pair<int,int>> q;
+                q.push({r, c});
+                label[r][c] = comp_id;
+                int size = 0;
+
+                while (!q.empty()) {
+                    auto [cr, cc] = q.front(); q.pop();
+                    ++size;
+
+                    for (int k = 0; k < 4; ++k) {
+                        int nr = cr + dr[k], nc = cc + dc[k];
+                        if (0 <= nr && nr < R && 0 <= nc && nc < C &&
+                            grid[nr][nc] == 0 && label[nr][nc] == -1) {
+                            label[nr][nc] = comp_id;
+                            q.push({nr, nc});
+                        }
+                    }
+                }
+
+                comp_size.push_back(size);
+                // Track largest; if tie, keep first encountered
+                if (size > largest_size) {
+                    largest_size = size;
+                    largest_id = comp_id;
+                }
+                ++comp_id;
+            }
+        }
+    }
+
+    if (largest_id == -1) return; // no zeros at all
+
+    // Flip all zeros that are NOT in the largest component to 1
+    if constexpr (TIsInnerLoop) {
+        for (int r = 0; r < R; ++r) {
+            for (int c = 0; c < C; ++c) {
+                if (grid[r][c] == 0 && label[r][c] != largest_id) {
+                    grid[r][c] = 1;
+                }
+            }
+        }
+    } 
+    else { 
+        for (int r = 0; r < R; ++r) {
+            for (int c = 0; c < C; ++c) {
+                if (grid[r][c] == 0 && label[r][c] == largest_id) {
+                    grid[r][c] = 1;
+                }
+            }
+        }
+    }
 }
 
 }  // namespace Kratos.
