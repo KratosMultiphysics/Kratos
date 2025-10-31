@@ -97,21 +97,21 @@ Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType
 
 void GeoElementUtilities::InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
                                         const BoundedMatrix<double, 2, 2>& rInputMatrix,
-                                        double&                            InputMatrixDet)
+                                        double&                            rInputMatrixDet)
 {
     KRATOS_TRY
 
-    InputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0);
+    rInputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0);
 
     constexpr auto numerical_limit = std::numeric_limits<double>::epsilon();
-    if (InputMatrixDet < numerical_limit) {
+    if (rInputMatrixDet < numerical_limit) {
         KRATOS_ERROR << "determinant zero or negative" << std::endl;
     }
 
-    rInvertedMatrix(0, 0) = rInputMatrix(1, 1) / InputMatrixDet;
-    rInvertedMatrix(0, 1) = -rInputMatrix(0, 1) / InputMatrixDet;
-    rInvertedMatrix(1, 0) = -rInputMatrix(1, 0) / InputMatrixDet;
-    rInvertedMatrix(1, 1) = rInputMatrix(0, 0) / InputMatrixDet;
+    rInvertedMatrix(0, 0) = rInputMatrix(1, 1) / rInputMatrixDet;
+    rInvertedMatrix(0, 1) = -rInputMatrix(0, 1) / rInputMatrixDet;
+    rInvertedMatrix(1, 0) = -rInputMatrix(1, 0) / rInputMatrixDet;
+    rInvertedMatrix(1, 1) = rInputMatrix(0, 0) / rInputMatrixDet;
 
     KRATOS_CATCH("")
 }

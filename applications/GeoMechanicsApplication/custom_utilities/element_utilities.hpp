@@ -125,7 +125,7 @@ public:
 
     static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
                               const BoundedMatrix<double, 2, 2>& rInputMatrix,
-                              double&                            InputMatrixDet);
+                              double&                            rInputMatrixDet);
 
     static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
                               const BoundedMatrix<double, 2, 2>& rInputMatrix);
