@@ -60,6 +60,19 @@ CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForCohesio
                  << hardening_type << "'\n";
 }
 
+CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForDilatancyAngle(const Properties& rMaterialProperties)
+{
+    const auto hardening_type = GetCoulombHardeningTypeFrom(rMaterialProperties);
+
+    if (hardening_type == "None") {
+        return MakeConstantFunction(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]));
+    }
+
+    KRATOS_ERROR << "Cannot create a kappa-dependent function for the dilatancy angle: unknown "
+                    "hardening type '"
+                 << hardening_type << "'\n";
+}
+
 } // namespace
 
 namespace Kratos
@@ -133,10 +146,9 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAvera
 void CoulombYieldSurface::InitializeKappaDependentFunctions()
 {
     // At present, we only support properties that are independent of kappa
-    mFrictionAngleCalculator = MakeKappaDependentFunctionForFrictionAngle(mMaterialProperties);
-    mCohesionCalculator      = MakeKappaDependentFunctionForCohesion(mMaterialProperties);
-    mDilatancyAngleCalculator =
-        MakeConstantFunction(MathUtils<>::DegreesToRadians(mMaterialProperties[GEO_DILATANCY_ANGLE]));
+    mFrictionAngleCalculator  = MakeKappaDependentFunctionForFrictionAngle(mMaterialProperties);
+    mCohesionCalculator       = MakeKappaDependentFunctionForCohesion(mMaterialProperties);
+    mDilatancyAngleCalculator = MakeKappaDependentFunctionForDilatancyAngle(mMaterialProperties);
 }
 
 void CoulombYieldSurface::save(Serializer& rSerializer) const
