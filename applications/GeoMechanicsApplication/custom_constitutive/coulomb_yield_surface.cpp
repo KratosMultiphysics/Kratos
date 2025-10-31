@@ -29,9 +29,14 @@ CoulombYieldSurface::KappaDependentFunction MakeConstantFunction(double Value)
     return [Value](double /* unused kappa */) { return Value; };
 }
 
+std::string GetCoulombHardeningTypeFrom(const Properties& rMaterialProperties)
+{
+    return rMaterialProperties[GEO_COULOMB_HARDENING_TYPE];
+}
+
 CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForFrictionAngle(const Properties& rMaterialProperties)
 {
-    const auto hardening_type = rMaterialProperties[GEO_COULOMB_HARDENING_TYPE];
+    const auto hardening_type = GetCoulombHardeningTypeFrom(rMaterialProperties);
 
     if (hardening_type == "None") {
         return MakeConstantFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties));
@@ -44,7 +49,7 @@ CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForFrictio
 
 CoulombYieldSurface::KappaDependentFunction MakeKappaDependentFunctionForCohesion(const Properties& rMaterialProperties)
 {
-    const auto hardening_type = rMaterialProperties[GEO_COULOMB_HARDENING_TYPE];
+    const auto hardening_type = GetCoulombHardeningTypeFrom(rMaterialProperties);
 
     if (hardening_type == "None") {
         return MakeConstantFunction(ConstitutiveLawUtilities::GetCohesion(rMaterialProperties));
