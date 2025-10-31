@@ -481,10 +481,10 @@ public:
         rResults.SynchronizeAll(mrDataCommunicator);
         Timer::Stop("ParallelSpatialSearch::SynchronizeAll");
 
-        // Remove the non lowest rank results
-        Timer::Start("ParallelSpatialSearch::KeepOnlyLowestRankResult");
-        KeepOnlyLowestRankResult(rResults);
-        Timer::Stop("ParallelSpatialSearch::KeepOnlyLowestRankResult");
+        // Remove the non closest results
+        Timer::Start("ParallelSpatialSearch::KeepOnlyClosestResult");
+        KeepOnlyClosestResult(rResults);
+        Timer::Stop("ParallelSpatialSearch::KeepOnlyClosestResult");
     }
 
     ///@}
@@ -739,12 +739,6 @@ private:
      * @param rResults Results to be simplified
      */
     void KeepOnlyClosestResult(ResultContainerVectorType& rResults);
-
-    /**
-     * @brief This method removes the solutions not in the lowest rank
-     * @param rResults Results to be simplified
-     */
-    void KeepOnlyLowestRankResult(ResultContainerVectorType& rResults);
 
     /**
      * @brief Generates a string by appending integer ranks to a base name.
