@@ -27,13 +27,13 @@ namespace BeamMapperUtilities
     using GeometryType = Geometry<Node>;
 
     /// Compute Hermitian shape functions and derivatives
-    void HermitianShapeFunctionsValues(
+    void KRATOS_API(MAPPING_APPLICATION) HermitianShapeFunctionsValues(
         Vector& rHermitianShapeFunctions, 
         Vector& rHermitianShapeFunctionsDer, 
         const array_1d<double, 3>& rCoordinates);
 
     /// Project a point onto a beam line using Hermitian shape functions
-    ProjectionUtilities::PairingIndex ProjectOnLineHermitian(
+    ProjectionUtilities::PairingIndex KRATOS_API(MAPPING_APPLICATION) ProjectOnLineHermitian(
         const GeometryType& rGeometry,
         const Point& rPointToProject,
         const double LocalCoordTol,
