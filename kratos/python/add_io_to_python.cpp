@@ -11,29 +11,26 @@
 //                   Riccardo Rossi
 //
 
-// #define JSON_INCLUDED
-
 // System includes
 
 // External includes
 
 // Project includes
+#include "python/add_io_to_python.h"
 #include "includes/define_python.h"
 #include "includes/io.h"
-
 #include "includes/model_part_io.h"
+
+// Outputs
+#include "includes/gid_io.h"
 #include "includes/reorder_consecutive_model_part_io.h"
 #include "input_output/stl_io.h"
 #include "input_output/obj_io.h"
-#include "includes/gid_io.h"
-#include "python/add_io_to_python.h"
-#include "containers/flags.h"
-
-// Outputs
 #include "input_output/vtk_output.h"
 #include "input_output/unv_output.h"
 #include "input_output/cad_json_input.h"
 #include "input_output/vtu_output.h"
+#include "input_output/ensight_output.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
@@ -243,6 +240,13 @@ void  AddIOToPython(pybind11::module& m)
     vtu_output.attr("NODES") = VtuOutput::NODES;
     vtu_output.attr("CONDITIONS") = VtuOutput::CONDITIONS;
     vtu_output.attr("ELEMENTS") = VtuOutput::ELEMENTS;
+
+    py::class_<EnSightOutput, EnSightOutput::Pointer, IO>(m, "EnSightOutput")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def("PrintOutput", &EnSightOutput::PrintOutput, py::arg("output_filename")="")
+    .def_static("GetDefaultParameters", &EnSightOutput::GetDefaultParameters)
+    ;
 }
 }  // namespace Kratos::Python.
 
