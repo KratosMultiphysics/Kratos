@@ -124,11 +124,11 @@ public:
     static Matrix FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension);
 
     static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
-                              const BoundedMatrix<double, 2, 2>& InputMatrix,
+                              const BoundedMatrix<double, 2, 2>& rInputMatrix,
                               double&                            InputMatrixDet);
 
     static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
-                              const BoundedMatrix<double, 2, 2>& InputMatrix);
+                              const BoundedMatrix<double, 2, 2>& rInputMatrix);
 
     template <typename MatrixType1, typename MatrixType2>
     static inline void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUUBlockMatrix)
@@ -176,25 +176,15 @@ public:
         AddVectorAtPosition(rPBlockVector, rRightHandSideVector, offset);
     }
 
-    static void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double, 2, 2>& DN_DeContainer);
-
-    static void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double, 3, 3>& DN_DeContainer);
-
-    static void CalculateNewtonCotesShapeFunctions(BoundedMatrix<double, 3, 3>& NContainer);
-
-    static void CalculateEquallyDistributedPointsLineShapeFunctions3N(Matrix& NContainer);
-
-    static void CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(GeometryData::ShapeFunctionsGradientsType& DN_DeContainer);
-
     /**
      * Calculates the radius of axisymmetry
-     * @param N: The Gauss Point shape function
-     * @param Geom: The geometry studied
+     * @param rN: The Gauss Point shape function
+     * @param rGeometry: The geometry studied
      * @return Radius: The radius of axisymmetry
      */
-    static double CalculateRadius(const Vector& N, const GeometryType& Geom);
+    static double CalculateRadius(const Vector& rN, const GeometryType& rGeometry);
 
-    static double CalculateAxisymmetricCircumference(const Vector& N, const GeometryType& Geom);
+    static double CalculateAxisymmetricCircumference(const Vector& rN, const GeometryType& rGeometry);
 
     static Vector CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom,
                                                                 const Properties&   rProp);

@@ -96,168 +96,73 @@ Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType
 }
 
 void GeoElementUtilities::InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
-                                        const BoundedMatrix<double, 2, 2>& InputMatrix,
+                                        const BoundedMatrix<double, 2, 2>& rInputMatrix,
                                         double&                            InputMatrixDet)
 {
     KRATOS_TRY
 
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
+    InputMatrixDet = rInputMatrix(0, 0) * rInputMatrix(1, 1) - rInputMatrix(0, 1) * rInputMatrix(1, 0);
 
-    InputMatrixDet = InputMatrix(0, 0) * InputMatrix(1, 1) - InputMatrix(0, 1) * InputMatrix(1, 0);
-
+    constexpr auto numerical_limit = std::numeric_limits<double>::epsilon();
     if (InputMatrixDet < numerical_limit) {
         KRATOS_ERROR << "determinant zero or negative" << std::endl;
     }
 
-    rInvertedMatrix(0, 0) = InputMatrix(1, 1) / InputMatrixDet;
-    rInvertedMatrix(0, 1) = -InputMatrix(0, 1) / InputMatrixDet;
-    rInvertedMatrix(1, 0) = -InputMatrix(1, 0) / InputMatrixDet;
-    rInvertedMatrix(1, 1) = InputMatrix(0, 0) / InputMatrixDet;
+    rInvertedMatrix(0, 0) = rInputMatrix(1, 1) / InputMatrixDet;
+    rInvertedMatrix(0, 1) = -rInputMatrix(0, 1) / InputMatrixDet;
+    rInvertedMatrix(1, 0) = -rInputMatrix(1, 0) / InputMatrixDet;
+    rInvertedMatrix(1, 1) = rInputMatrix(0, 0) / InputMatrixDet;
 
     KRATOS_CATCH("")
 }
 
 void GeoElementUtilities::InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
-                                        const BoundedMatrix<double, 2, 2>& InputMatrix)
+                                        const BoundedMatrix<double, 2, 2>& rInputMatrix)
 {
-    KRATOS_TRY
-
-    double InputMatrixDet;
-
-    InvertMatrix2(rInvertedMatrix, InputMatrix, InputMatrixDet);
-
-    KRATOS_CATCH("")
+    double input_matrix_det;
+    InvertMatrix2(rInvertedMatrix, rInputMatrix, input_matrix_det);
 }
 
-void GeoElementUtilities::CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double, 2, 2>& DN_DeContainer)
+double GeoElementUtilities::CalculateRadius(const Vector& rN, const GeometryType& rGeometry)
 {
-    // Line 2-noded
-    //  nodes:
-    //  0------------1
-    const unsigned int        NumNodes = 2;
-    const std::vector<double> Xi{-1.0, 1.0};
+    auto radius = 0.0;
 
-    noalias(DN_DeContainer) = ZeroMatrix(NumNodes, NumNodes);
-
-    for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
-        DN_DeContainer(integrationPoint, 0) = -0.5;
-        DN_DeContainer(integrationPoint, 1) = 0.5;
-    }
-}
-
-void GeoElementUtilities::CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double, 3, 3>& DN_DeContainer)
-{
-    // Line 3-noded
-    //  nodes:
-    //  0------2------1
-    const unsigned int        NumNodes = 3;
-    const std::vector<double> Xi{-1.0, 0.0, 1.0};
-
-    noalias(DN_DeContainer) = ZeroMatrix(NumNodes, NumNodes);
-
-    for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
-        DN_DeContainer(integrationPoint, 0) = Xi[integrationPoint] - 0.5;
-        DN_DeContainer(integrationPoint, 1) = Xi[integrationPoint] + 0.5;
-        DN_DeContainer(integrationPoint, 2) = -Xi[integrationPoint] * 2.0;
-    }
-}
-
-void GeoElementUtilities::CalculateNewtonCotesShapeFunctions(BoundedMatrix<double, 3, 3>& NContainer)
-{
-    // Line 3-noded
-    //  nodes:
-    //  0------2------1
-    const unsigned int NumNodes = 3;
-
-    for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint) {
-        for (unsigned int node = 0; node < NumNodes; ++node) {
-            NContainer(integrationPoint, node) = (integrationPoint == node ? 1.0 : 0.0);
-        }
-    }
-}
-
-void GeoElementUtilities::CalculateEquallyDistributedPointsLineShapeFunctions3N(Matrix& NContainer)
-{
-    // Line 3-noded
-    //  nodes:
-    //  0------2------1
-    const unsigned int        NumNodes = 3;
-    const std::vector<double> Xi{-1.0 / 3.0, 1.0 / 3.0};
-
-    if (NContainer.size1() != Xi.size() || NContainer.size2() != NumNodes)
-        NContainer.resize(Xi.size(), NumNodes, false);
-
-    for (unsigned int integrationPoint = 0; integrationPoint < Xi.size(); ++integrationPoint) {
-        const double& X                 = Xi[integrationPoint];
-        NContainer(integrationPoint, 0) = -0.5 * (1.0 - X) * X;
-        NContainer(integrationPoint, 1) = 0.5 * (1.0 + X) * X;
-        NContainer(integrationPoint, 2) = (1.0 + X) * (1.0 - X);
-    }
-}
-
-void GeoElementUtilities::CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(GeometryData::ShapeFunctionsGradientsType& DN_DeContainer)
-{
-    // Line 3-noded
-    //  nodes:
-    //  0------2------1
-    const unsigned int        NumNodes = 3;
-    const std::vector<double> Xi{-1.0 / 3.0, 1.0 / 3.0};
-
-    if (DN_DeContainer.size() != Xi.size()) DN_DeContainer.resize(Xi.size());
-
-    for (unsigned int integrationPoint = 0; integrationPoint < Xi.size(); ++integrationPoint) {
-        if (DN_DeContainer[integrationPoint].size1() != NumNodes ||
-            DN_DeContainer[integrationPoint].size2() != 1)
-            DN_DeContainer[integrationPoint].resize(NumNodes, 1);
-
-        DN_DeContainer[integrationPoint](0, 0) = Xi[integrationPoint] - 0.5;
-        DN_DeContainer[integrationPoint](1, 0) = Xi[integrationPoint] + 0.5;
-        DN_DeContainer[integrationPoint](2, 0) = -Xi[integrationPoint] * 2.0;
-    }
-}
-
-double GeoElementUtilities::CalculateRadius(const Vector& N, const GeometryType& Geom)
-{
-    double Radius = 0.0;
-
-    for (unsigned int iNode = 0; iNode < Geom.size(); ++iNode) {
+    for (unsigned int node = 0; node < rGeometry.size(); ++node) {
         // Displacement from the reference to the current configuration
-        const array_1d<double, 3>& CurrentPosition = Geom[iNode].Coordinates();
-        Radius += CurrentPosition[0] * N[iNode];
+        const array_1d<double, 3>& current_position = rGeometry[node].Coordinates();
+        radius += current_position[0] * rN[node];
     }
 
-    return Radius;
+    return radius;
 }
 
-double GeoElementUtilities::CalculateAxisymmetricCircumference(const Vector& N, const GeometryType& Geom)
+double GeoElementUtilities::CalculateAxisymmetricCircumference(const Vector& rN, const GeometryType& rGeometry)
 {
-    const double Radius        = CalculateRadius(N, Geom);
-    const double Circumference = 2.0 * Globals::Pi * Radius;
-    return Circumference;
+    return 2.0 * Globals::Pi * CalculateRadius(rN, rGeometry);
 }
 
 Vector GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom,
                                                                           const Properties&   rProp)
 {
-    const auto NumericalLimit = std::numeric_limits<double>::epsilon();
+    constexpr auto numerical_limit = std::numeric_limits<double>::epsilon();
     // Defining necessary variables
 
     Vector nodal_hydraulic_heads(rGeom.PointsNumber());
     for (unsigned int node = 0; node < rGeom.PointsNumber(); ++node) {
         array_1d<double, 3> node_volume_acceleration;
         noalias(node_volume_acceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
-        const double g = norm_2(node_volume_acceleration);
-        if (g > NumericalLimit) {
-            const double FluidWeight = g * rProp[DENSITY_WATER];
+        const auto g = norm_2(node_volume_acceleration);
+        if (g > numerical_limit) {
+            const auto fluid_weight = g * rProp[DENSITY_WATER];
 
-            array_1d<double, 3> NodeCoordinates;
-            noalias(NodeCoordinates) = rGeom[node].Coordinates();
-            array_1d<double, 3> NodeVolumeAccelerationUnitVector;
-            noalias(NodeVolumeAccelerationUnitVector) = node_volume_acceleration / g;
+            array_1d<double, 3> node_coordinates;
+            noalias(node_coordinates) = rGeom[node].Coordinates();
+            array_1d<double, 3> node_volume_acceleration_unit_vector;
+            noalias(node_volume_acceleration_unit_vector) = node_volume_acceleration / g;
 
-            const double WaterPressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
-            nodal_hydraulic_heads[node] = -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector) -
-                                          PORE_PRESSURE_SIGN_FACTOR * WaterPressure / FluidWeight;
+            const auto water_pressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
+            nodal_hydraulic_heads[node] = -inner_prod(node_coordinates, node_volume_acceleration_unit_vector) -
+                                          PORE_PRESSURE_SIGN_FACTOR * water_pressure / fluid_weight;
         } else {
             nodal_hydraulic_heads[node] = 0.0;
         }
@@ -276,7 +181,7 @@ std::vector<Vector> GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoin
 
     auto result = std::vector<Vector>{};
     result.reserve(rIntegrationPoints.size());
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(result),
+    std::ranges::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(result),
                    evaluate_shape_function_values);
 
     return result;
