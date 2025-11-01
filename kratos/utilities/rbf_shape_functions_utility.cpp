@@ -21,20 +21,6 @@
 
 namespace Kratos
 {
-
-    double RBFShapeFunctionsUtility::EvaluateRBF(
-        const double x,
-        const double h)
-    {
-        // Evaluate Inverse multiquadric
-        const double q = x*h;
-        return 1/std::sqrt(1+std::pow(q,2));
-
-        // Evaluate Gaussian function
-        // const double q = x/h;
-        // return std::exp(-0.5*std::pow(q,2));
-    }
-
     void RBFShapeFunctionsUtility::CalculateShapeFunctions(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
@@ -56,14 +42,17 @@ namespace Kratos
         Matrix A = ZeroMatrix(n_points,n_points);
         Vector Phi = ZeroVector(n_points);
 
+        // Create an inverse multiquadric operation
+        InverseMultiquadric inverse_multiquadric_operation{h};
+
         // Build the RBF interpolation matrix and RBF interpolated vector
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
-                const double norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt));
-                A(i_pt,j_pt) = EvaluateRBF(norm_xij,h);
+                const double norm_xij = norm_2(row(rPoints,i_pt) - row(rPoints,j_pt));
+                A(i_pt,j_pt) = inverse_multiquadric_operation(norm_xij);
             }
-            const double norm_X =  norm_2(rX-row(rPoints,i_pt));
-            Phi[i_pt] = EvaluateRBF(norm_X,h);
+            const double norm_X =  norm_2(rX - row(rPoints,i_pt));
+            Phi[i_pt] = inverse_multiquadric_operation(norm_X);
         }
 
         // Obtain the RBF shape functions (N)
@@ -118,11 +107,14 @@ namespace Kratos
         Matrix A = ZeroMatrix(n_points,n_points);
         double norm_xij;
 
+        // Create an inverse multiquadric operation
+        InverseMultiquadric inverse_multiquadric_operation{h};
+
         // Build the RBF interpolation matrix and RBF interpolated vector
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
                 norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt));
-                A(i_pt,j_pt) = EvaluateRBF(norm_xij,h);
+                A(i_pt,j_pt) = inverse_multiquadric_operation(norm_xij);
             }
         }
 
@@ -134,7 +126,7 @@ namespace Kratos
         // Interpolate solution
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             const double norm_xi = norm_2(rX-row(rPoints,i_pt));
-            const double Phi = EvaluateRBF(norm_xi,h);
+            const double Phi = inverse_multiquadric_operation(norm_xi);
             interpolation += Phi*rN[i_pt];
         }
 
@@ -164,6 +156,27 @@ namespace Kratos
         d /= n_points;
         KRATOS_ERROR_IF(d < 1.0e-12) << "Nearest neighbours distance is close to zero. Check that the cloud points are not overlapping." << std::endl;
         return 1/(0.815*d);// Shape parameter (Only for inverted multiquadratic)
+    }
+
+    // Extracted from: Review of coupling methods for non-matching meshes (https://doi.org/10.1016/j.cma.2006.03.017)
+    double RBFShapeFunctionsUtility::CalculateWendlandC2SupportRadius(const Matrix& rPoints, const double k = 2.5)
+    {
+        const std::size_t n_points = rPoints.size1();
+        KRATOS_ERROR_IF(n_points < 2) << "At least two points are required to estimate spacing." << std::endl;
+
+        double total_distance = 0.0;
+        std::size_t count = 0;
+
+        for (std::size_t i = 0; i < n_points; ++i) {
+            for (std::size_t j = i + 1; j < n_points; ++j) {
+                const double distance = norm_2(row(rPoints, i) - row(rPoints, j));
+                total_distance += distance;
+                ++count;
+            }
+        }
+
+        const double average_spacing = total_distance / count;
+        return k * average_spacing; // Support radius for Wendland C2
     }
 
 }  // namespace Kratos.

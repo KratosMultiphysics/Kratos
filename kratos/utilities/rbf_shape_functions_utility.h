@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Sebastian Ares de Parga
+//  Main authors:    Sebastian Ares de Parga, Juan I. Camarotti
 //
 
 #if !defined(KRATOS_rbf_shape_functions_utility_H_INCLUDED)
@@ -49,6 +49,14 @@ public:
     /// Kratos core QR decomposition type
     using KratosCoreQRType = DenseHouseholderQRDecomposition<DenseSpace>;
 
+    enum class RBFType {
+        InverseMultiquadric,
+        Multiquadric,
+        Gaussian,
+        ThinPlateSpline,
+        WendlandC2
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -61,16 +69,53 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Calculate the RBF value
-     * This function evaluates the Gaussian RBF for a norm
-     * @param x Norm of RBF argument (i.e. norm of radial vector)
-     * @param h Gaussian radius
-     * @return double The RBF value
-     */
-    static double EvaluateRBF(
-        const double x,
-        const double h);
+    /// Inverse Multiquadric RBF
+    struct InverseMultiquadric{
+        double h;                      
+        double operator()(double r) const {
+            const double q = h * r;
+            return 1.0 / std::sqrt(1.0 + q * q);
+        }
+    };
+
+    /// Multiquadric RBF
+    struct Multiquadric{
+        double h;                      
+        double operator()(double r) const {
+            const double q = r / h;
+            return std::sqrt(1.0 + q * q);
+        }
+    };
+
+    /// Gaussian RBF
+    struct Gaussian{
+        double h;                      
+        double operator()(double r) const {
+            const double q = r / h;
+            return std::exp(-0.5 * q * q);
+        }
+    };
+
+    /// Thin Plate Spline RBF
+    struct ThinPlateSpline {
+        double operator()(double r) const {
+            if (r < 1.0e-12)
+                return 0.0; 
+            const double r2 = r * r;
+            return r2 * std::log(r2);
+        }
+    };
+
+    /// Wendland C2 RBF
+    struct WendlandC2 {
+        double h;                      
+        double operator()(double r) const {
+            const double q = r / h;
+            if (q >= 1.0)
+                return 0.0;
+            return std::pow(1.0 - q, 4) * (4.0 * q + 1.0); // (1-q)^4 * (4q+1)
+        }
+    };
 
     /**
      * @brief Calculates the RBF shape function values
@@ -119,14 +164,16 @@ public:
         Vector& rN,
         Vector& rY);
 
+    static double CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints);
+
+    static double CalculateWendlandC2SupportRadius(const Matrix& rPoints, const double k);
+
     ///@}
 private:
     ///@name Unaccessible methods
     ///@{
 
     RBFShapeFunctionsUtility(){};
-
-    static double CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints);
 
     ///@}
 };
