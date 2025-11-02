@@ -139,9 +139,9 @@
                     "fluid_pressure_type": "Phreatic_Multi_Line",
                     "gravity_direction": 1,
                     "out_of_plane_direction": 2,
-                    "x_coordinates": [0, 1],
-                    "y_coordinates": [40, 40],
-                    "z_coordinates": [0, 0],
+                    "x_coordinates": [0.0, 1.0],
+                    "y_coordinates": [40.0, 40.0],
+                    "z_coordinates": [0.0, 0.0],
                     "specific_weight": 10000
                 }
             },
@@ -157,9 +157,9 @@
                     "fluid_pressure_type": "Phreatic_Multi_Line",
                     "gravity_direction": 1,
                     "out_of_plane_direction": 2,
-                    "x_coordinates": [0, 1],
-                    "y_coordinates": [40, 40],
-                    "z_coordinates": [0, 0],
+                    "x_coordinates": [0.0, 1.0],
+                    "y_coordinates": [40.0, 40.0],
+                    "z_coordinates": [0.0, 0.0],
                     "specific_weight": 10000
                 }
             }
@@ -197,9 +197,9 @@
                 "process_name": "FixWaterPressuresAbovePhreaticLineProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.SoilExcludingBoundary",
-                    "x_coordinates": [0, 1],
-                    "y_coordinates": [40, 40],
-                    "z_coordinates": [0, 0]
+                    "x_coordinates": [0.0, 1.0],
+                    "y_coordinates": [40.0, 40.0],
+                    "z_coordinates": [0.0, 0.0]
                 }
             },
             {
