@@ -142,7 +142,7 @@
                     "x_coordinates": [0.0, 1.0],
                     "y_coordinates": [40.0, 40.0],
                     "z_coordinates": [0.0, 0.0],
-                    "specific_weight": 10000
+                    "specific_weight": 10000.0
                 }
             },
             {
@@ -160,7 +160,7 @@
                     "x_coordinates": [0.0, 1.0],
                     "y_coordinates": [40.0, 40.0],
                     "z_coordinates": [0.0, 0.0],
-                    "specific_weight": 10000
+                    "specific_weight": 10000.0
                 }
             }
         ],
