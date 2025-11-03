@@ -1187,7 +1187,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
             if (check_next_point) {
                 // Check i+1 point using isPointInsideSkinBoundary
                 Point knot_span_center_point = Point(rStartingPositionUV[0] + (i + 0.5)*knot_step_u, rStartingPositionUV[1] + (j + 0.5)*knot_step_v, 0.0);
-                // FIXME:
+                // FIXME: 
                 // auto p_center_point = Kratos::make_shared<>();
                 bool is_exiting = false;
                 node1_i = i; node1_j = j;   
