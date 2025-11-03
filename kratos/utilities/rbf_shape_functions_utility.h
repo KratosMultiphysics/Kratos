@@ -132,7 +132,7 @@ public:
         const double h,
         Vector& rN,
         DenseQRPointerType pDenseQR = nullptr,
-        const RBFType rbf_type = RBFType::InverseMultiquadric);
+        const RBFType RBFType = RBFType::InverseMultiquadric);
 
     /**
      * @brief Calculates the RBF shape function values
@@ -147,7 +147,7 @@ public:
         const array_1d<double,3>& rX,
         Vector& rN,
         DenseQRPointerType pDenseQR = nullptr,
-        const RBFType rbf_type = RBFType::InverseMultiquadric);
+        const RBFType RBFType = RBFType::InverseMultiquadric);
 
     /**
      * @brief Calculates the RBF shape function values
@@ -165,7 +165,7 @@ public:
         const double h,
         Vector& rN,
         Vector& rY,
-        const RBFType rbf_type = RBFType::InverseMultiquadric);
+        const RBFType RBFType = RBFType::InverseMultiquadric);
 
     static double CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints);
 
@@ -220,19 +220,6 @@ private:
 
         return h;
     }
-
-    static std::function<double(double)> CreatePhi(const RBFType type, const double h) {
-        switch (type) {
-            case RBFType::InverseMultiquadric: { InverseMultiquadric f{h}; return [f](double r){return f(r);}; }
-            case RBFType::Multiquadric:       { Multiquadric f{h};       return [f](double r){return f(r);}; }
-            case RBFType::Gaussian:           { Gaussian f{h};           return [f](double r){return f(r);}; }
-            case RBFType::ThinPlateSpline:    { ThinPlateSpline f{};     return [f](double r){return f(r);}; }
-            case RBFType::WendlandC2:         { WendlandC2 f{h};         return [f](double r){return f(r);}; }
-        }
-        InverseMultiquadric f{h};
-        return [f](double r){return f(r);};
-    }
-
     ///@}
 };
 
