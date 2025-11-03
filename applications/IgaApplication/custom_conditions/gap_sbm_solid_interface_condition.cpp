@@ -25,8 +25,11 @@ namespace Kratos
 void GapSbmSolidInterfaceCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
+    KRATOS_WATCH("1")
     InitializeMemberVariables();
+    KRATOS_WATCH("2")
     InitializeSbmMemberVariables();
+    KRATOS_WATCH("3")
 }
 
 
@@ -52,7 +55,9 @@ void GapSbmSolidInterfaceCondition::InitializeMemberVariables()
     // // Compute class memeber variables
     const auto& r_geometry = GetGeometry();
 
+    KRATOS_WATCH("a1")
     const auto& r_surrogate_geometry = GetGeometryPlus();
+    KRATOS_WATCH("a2")
     const auto& r_DN_De = r_surrogate_geometry.ShapeFunctionsLocalGradients(r_surrogate_geometry.GetDefaultIntegrationMethod());
     
     // Initialize DN_DX

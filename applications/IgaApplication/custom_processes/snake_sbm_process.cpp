@@ -24,7 +24,7 @@ SnakeSbmProcess::SnakeSbmProcess(
     mpModel(&rModel),
     mThisParameters(ThisParameters)
 {
-    mThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+    mThisParameters.AddMissingParameters(this->GetDefaultParameters());
 
     mEchoLevel = mThisParameters["echo_level"].GetInt();
     mLambdaInner = mThisParameters["lambda_inner"].GetDouble();
@@ -84,7 +84,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     IndexType EchoLevel,
     ModelPart& rIgaModelPart,
     ModelPart& rSkinModelPart,
-    const int NumberInitialPointsIfImportingNurbs) 
+    const int NumberInitialPointsIfImportingNurbs,
+    bool RemoveIslands) 
 { 
     KRATOS_ERROR_IF(rIgaModelPart.GetValue(KNOT_VECTOR_U).size() == 0) << "::[SnakeSbmProcess]::" 
                 << "The iga model part has KNOT_VECTOR_U of size 0" << std::endl;
@@ -276,6 +277,13 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             << "[SnakeSbmProcess] The ordered NURBS curves do not form a closed loop (last end != first start)." << std::endl;
 
         bool new_inner_loop = true;
+
+        //Create vertices sub model part
+        std::string interface_sub_model_part_name = "interface_vertices";
+        ModelPart& r_skin_interface_sub_model_part = r_skin_sub_model_part.HasSubModelPart(interface_sub_model_part_name) ? 
+                                                    r_skin_sub_model_part.GetSubModelPart(interface_sub_model_part_name) : r_skin_sub_model_part.CreateSubModelPart(interface_sub_model_part_name);
+
+                                                         
         for (IndexType i_ordered = 0; i_ordered < n_boundary_curves; i_ordered++) 
         {
             const IndexType i_boundary_curve = ordered_indices[i_ordered];
@@ -287,18 +295,19 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             CoordinatesArrayType first_point_coords(3);
             Vector first_point_local_coord = ZeroVector(3);
             p_curve->GlobalCoordinates(first_point_coords, first_point_local_coord);
+
+            std::string layer_name = p_curve->GetValue(IDENTIFIER);
+            ModelPart& r_skin_layer_sub_model_part = r_skin_sub_model_part.HasSubModelPart(layer_name) ? 
+                                                     r_skin_sub_model_part.GetSubModelPart(layer_name) : r_skin_sub_model_part.CreateSubModelPart(layer_name);
+
             // check the first point of the curve
             if (new_inner_loop) 
             {
                 Node::Pointer node = new Node(first_node_id, first_point_coords[0], first_point_coords[1], first_point_coords[2]);
 
                 // Create two nodes and two conditions for each skin condition
-                std::string layer_name = p_curve->GetValue(IDENTIFIER);
 
                 //needed for the call to the assign_vector_variable_to_nodes_process
-                ModelPart& r_skin_layer_sub_model_part = r_skin_sub_model_part.HasSubModelPart(layer_name) ? 
-                                                         r_skin_sub_model_part.GetSubModelPart(layer_name) : r_skin_sub_model_part.CreateSubModelPart(layer_name);
-
                 // compute normal at the node coords
                 std::vector<CoordinatesArrayType> global_space_derivatives;
                 std::size_t derivative_order = 2;
@@ -313,8 +322,28 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
                 node->SetValue(NORMAL, normal_vector);
                 node->SetValue(LOCAL_TANGENT, tangent_vector);
+
+                // compute the curvature
+                CoordinatesArrayType curve_first_derivative_vector = global_space_derivatives[1];
+                CoordinatesArrayType curve_second_derivative_vector = global_space_derivatives[2];
+
+                double curvature = norm_2(MathUtils<double>::CrossProduct(curve_first_derivative_vector, curve_second_derivative_vector)) / pow(norm_2(curve_first_derivative_vector), 3);
+                node->SetValue(CURVATURE, curvature);
         
                 r_skin_layer_sub_model_part.AddNode(node);
+                
+                // add to the interface sub model part
+                r_skin_interface_sub_model_part.AddNode(node);
+                // cut sbm modifications 
+                std::string condition_name = p_curve->GetValue(CONDITION_NAME);
+                auto connected_layers = node->GetValue(CONNECTED_LAYERS);
+                auto connected_condition_names = node->GetValue(CONNECTED_CONDITIONS);
+                connected_layers.push_back(layer_name);
+                connected_condition_names.push_back(condition_name);
+
+                node->SetValue(CONNECTED_LAYERS, connected_layers);
+                node->SetValue(CONNECTED_CONDITIONS, connected_condition_names);
+
                 new_inner_loop = false;
             } else 
             {
@@ -325,13 +354,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
 
                 // Create two nodes and two conditions for each skin condition
-                std::string layer_name = p_curve->GetValue(IDENTIFIER);
-
-                //needed for the call to the assign_vector_variable_to_nodes_process
-                ModelPart& r_skin_layer_sub_model_part = r_skin_sub_model_part.HasSubModelPart(layer_name) ? 
-                                                        r_skin_sub_model_part.GetSubModelPart(layer_name) : r_skin_sub_model_part.CreateSubModelPart(layer_name);
-
-                
                 // compute normal at the node coords
                 std::vector<CoordinatesArrayType> global_space_derivatives;
                 std::size_t derivative_order = 2;
@@ -346,7 +368,16 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
                 r_last_node.SetValue(NORMAL, normal_vector);
                 r_last_node.SetValue(LOCAL_TANGENT, tangent_vector);
-                r_skin_layer_sub_model_part.AddNode(&r_last_node);
+                
+                // cut sbm modifications 
+                std::string condition_name = p_curve->GetValue(CONDITION_NAME);
+                auto connected_layers = r_last_node.GetValue(CONNECTED_LAYERS);
+                auto connected_condition_names = r_last_node.GetValue(CONNECTED_CONDITIONS);
+                connected_layers.push_back(layer_name);
+                connected_condition_names.push_back(condition_name);
+
+                r_last_node.SetValue(CONNECTED_LAYERS, connected_layers);
+                r_last_node.SetValue(CONNECTED_CONDITIONS, connected_condition_names);
             }
             // add the specified number of points
             Vector second_point_local_coord = ZeroVector(3);
@@ -390,7 +421,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                 std::vector<double> local_coords{first_point_local_coord[0], second_point_local_coord[0]};
                 
                 SnakeStepNurbs(id_matrix_knot_spans_available, knot_span_uv, xy_coord_i_cond, knot_step_uv, starting_pos_uv, local_coords,
-                                p_curve, r_skin_sub_model_part, knot_spans_available);
+                                p_curve, r_skin_layer_sub_model_part, knot_spans_available);
                 
                 first_point_local_coord = second_point_local_coord;
                 first_point_coords = second_point_coords;
@@ -398,9 +429,27 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             // check the last point of the curve
             if (norm_2(second_point_coords - r_skin_sub_model_part.GetNode(first_node_id)) < 1e-15)
             {
+                Node& r_last_node = r_skin_sub_model_part.GetNode(first_node_id);
+
+                // cut sbm modifications 
+                std::string layer_name = p_curve->GetValue(IDENTIFIER);
+                std::string condition_name = p_curve->GetValue(CONDITION_NAME);
+                auto connected_layers = r_last_node.GetValue(CONNECTED_LAYERS);
+                auto connected_condition_names = r_last_node.GetValue(CONNECTED_CONDITIONS);
+                connected_layers.push_back(layer_name);
+                connected_condition_names.push_back(condition_name);
+
+                r_last_node.SetValue(CONNECTED_LAYERS, connected_layers);
+                r_last_node.SetValue(CONNECTED_CONDITIONS, connected_condition_names);
+
                 first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
                 new_inner_loop = true;
                 id_matrix_knot_spans_available++;
+            } else // cut sbm modifications
+            {
+                const int last_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes();
+                Node& r_last_node = r_skin_sub_model_part.GetNode(last_node_id);
+                r_skin_interface_sub_model_part.AddNode(&r_last_node);
             }
         }
     }
@@ -436,6 +485,12 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         if (EchoLevel >  0) {
             KRATOS_INFO_IF("::[SnakeSbmProcess]::", is_inner) << "Inner :: Ending MarkKnotSpansAvailable" << std::endl;
             KRATOS_INFO_IF("::[SnakeSbmProcess]::", !is_inner) << "Outer :: Ending MarkKnotSpansAvailable" << std::endl;
+        }
+
+        if (RemoveIslands)
+        {
+            auto& plane = knot_spans_available[i]; 
+            KeepLargestZeroIsland<TIsInnerLoop>(plane);
         }
         
         if (is_inner) {
@@ -681,6 +736,22 @@ void SnakeSbmProcess::SnakeStepNurbs(
         node->SetValue(NORMAL, normal_vector);
         node->SetValue(LOCAL_TANGENT, tangent_vector);
 
+        // compute the curvature
+        CoordinatesArrayType curve_first_derivative_vector = global_space_derivatives[1];
+        CoordinatesArrayType curve_second_derivative_vector = global_space_derivatives[2];
+
+        double curvature = norm_2(MathUtils<double>::CrossProduct(curve_first_derivative_vector, curve_second_derivative_vector)) / pow(norm_2(curve_first_derivative_vector), 3);
+        node->SetValue(CURVATURE, curvature);
+
+        //cut sbm modifications
+        auto connected_layers = node->GetValue(CONNECTED_LAYERS);
+        auto connected_condition_names = node->GetValue(CONNECTED_CONDITIONS);
+        connected_layers.push_back(layer_name);
+        connected_condition_names.push_back(condition_name);
+
+        node->SetValue(CONNECTED_LAYERS, connected_layers);
+        node->SetValue(CONNECTED_CONDITIONS, connected_condition_names);
+
         skin_layer_sub_model_part.AddNode(node);
 
         Properties::Pointer p_cond_prop = rSkinModelPart.pGetProperties(0);
@@ -704,35 +775,66 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
     
     // Get the closest Condition the initial_skin_model_part_in.Conditions
     IndexType id_1 = p_nearest_point->Id();
-    auto nearest_condition_1 = rSkinModelPart.GetCondition(id_1);
-    // Check if the condition is the first one and therefore the previous one does not exist
-    IndexType id_2 = id_1 - 1;
-    if (id_1 == rSkinModelPart.ConditionsBegin()->Id()) {
-        int number_conditions = rSkinModelPart.NumberOfConditions();
-        id_2 = id_1 + number_conditions - 1; 
+    const IndexType first_condition_id = rSkinModelPart.ConditionsBegin()->Id();
+    const IndexType number_conditions = rSkinModelPart.NumberOfConditions();
+
+    auto compute_cross_product_z = [&](IndexType condition_id) {
+        const auto& r_primary_condition = rSkinModelPart.GetCondition(condition_id);
+
+        IndexType previous_condition_id;
+        if (condition_id == first_condition_id) {
+            previous_condition_id = static_cast<IndexType>(first_condition_id + number_conditions - 1);
+        } else {
+            previous_condition_id = condition_id - 1;
+        }
+        const auto& r_previous_condition = rSkinModelPart.GetCondition(previous_condition_id);
+
+        const auto& r_candidate_point_1 = r_primary_condition.GetGeometry()[1].Coordinates();
+        const auto& r_candidate_point_2 = r_previous_condition.GetGeometry()[0].Coordinates();
+
+        array_1d<double,3> v_1;
+        array_1d<double,3> v_2;
+
+        if (MathUtils<double>::Norm(r_candidate_point_1 - rPoint1) > MathUtils<double>::Norm(r_candidate_point_2 - rPoint1)) {
+            // Need to invert the order to preserve the positivity of the area
+            v_1 = r_candidate_point_2 - rPoint1;
+            v_2 = r_primary_condition.GetGeometry()[0] - rPoint1;
+        } else {
+            v_1 = r_primary_condition.GetGeometry()[0] - rPoint1;
+            v_2 = r_candidate_point_1 - rPoint1;
+        }
+
+        array_1d<double,3> cross_product;
+        MathUtils<double>::CrossProduct(cross_product, v_1, v_2);
+        return cross_product[2];
+    };
+
+    const double cross_product_main_z = compute_cross_product_z(id_1);
+
+    IndexType id_2;
+    if (id_1 == first_condition_id) {
+        id_2 = static_cast<IndexType>(first_condition_id + number_conditions - 1);
+    } else {
+        id_2 = id_1 - 1;
     }
-    auto nearest_condition_2 = rSkinModelPart.GetCondition(id_2);
-    // The two candidates nodes
-    const auto& r_coords_candidate_point_1 = nearest_condition_1.GetGeometry()[1].Coordinates();
-    const auto& r_coords_candidate_point_2 = nearest_condition_2.GetGeometry()[0].Coordinates();
-    
-    array_1d<double,3> v_1;
-    array_1d<double,3> v_2;
 
-    if (MathUtils<double>::Norm(r_coords_candidate_point_1-rPoint1) > MathUtils<double>::Norm(r_coords_candidate_point_2-rPoint1)){
-        // Need to invert the order to preserve the positivity of the area
-        v_1 = r_coords_candidate_point_2 - rPoint1;
-        v_2 = nearest_condition_1.GetGeometry()[0] - rPoint1;
-    } else 
-    {
-        v_1 = nearest_condition_1.GetGeometry()[0] - rPoint1;
-        v_2 = r_coords_candidate_point_1 - rPoint1;
+    const double cross_product_previous_z = compute_cross_product_z(id_2);
+
+    if (cross_product_main_z * cross_product_previous_z < 0.0) {
+        const auto& r_condition_main = rSkinModelPart.GetCondition(id_1);
+        const auto& r_condition_previous = rSkinModelPart.GetCondition(id_2);
+
+        Node temp_point(0, rPoint1.X(), rPoint1.Y(), rPoint1.Z());
+        const Node& r_main_second_node = r_condition_main.GetGeometry()[1];
+        const Node& r_prev_first_node = r_condition_previous.GetGeometry()[0];
+        const Node& r_prev_second_node = r_condition_previous.GetGeometry()[1];
+
+        if (SegmentsIntersect(temp_point, r_main_second_node, r_prev_first_node, r_prev_second_node)) {
+            return cross_product_previous_z > 0.0;
+        }
     }
 
-    array_1d<double,3> cross_product;
-    MathUtils<double>::CrossProduct(cross_product, v_1, v_2);
-
-    return cross_product[2] > 0;
+    return cross_product_main_z > 0.0;
 }
 
 
@@ -1002,8 +1104,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
     }
 
     // Create "fictituos element" to store starting and ending condition id for each surrogate boundary loop
-    IndexType elem_id = rSurrogateModelPartInner.GetRootModelPart().NumberOfElements()+1;
-
+    IndexType elem_id = rSurrogateModelPartInner.NumberOfElements()+1;
     IndexType id_surrogate_last_condition = id_surrogate_condition-1;
     std::vector<ModelPart::IndexType> elem_nodes{id_surrogate_first_condition, id_surrogate_last_condition};
     rSurrogateModelPartInner.CreateNewElement("Element2D2N", elem_id, elem_nodes, p_cond_prop);
@@ -1236,6 +1337,112 @@ bool SnakeSbmProcess::IsInside(
             rKnotSpanUV[1][0] < 0 || rKnotSpanUV[1][0] >= NumberKnotSpansUV[1] ||
             rKnotSpanUV[0][1] < 0 || rKnotSpanUV[0][1] >= NumberKnotSpansUV[0] ||
             rKnotSpanUV[1][1] < 0 || rKnotSpanUV[1][1] >= NumberKnotSpansUV[1]); 
+}
+
+template <bool TIsInnerLoop>
+void SnakeSbmProcess::KeepLargestZeroIsland(std::vector<std::vector<int>>& grid) 
+{
+    const int R = static_cast<int>(grid.size());
+    if (R == 0) return;
+    const int C = static_cast<int>(grid[0].size());
+    if (C == 0) return;
+
+    // Label map: -1 = unvisited/non-zero, 0..K = component id for zero components
+    std::vector<std::vector<int>> label(R, std::vector<int>(C, -1));
+    std::vector<int> comp_size;  // comp_size[comp_id] = size
+
+    static const int dr8[8] = {-1,-1,-1, 0, 0, 1, 1, 1};
+    static const int dc8[8] = {-1, 0, 1,-1, 1,-1, 0, 1};
+
+    // Use a snapshot to avoid chain reactions during this pass
+    const auto original = grid;
+
+    if constexpr (TIsInnerLoop)
+    {
+        for (int r = 0; r < R; ++r) {
+            for (int c = 0; c < C; ++c) {
+                if (original[r][c] != 0) continue;
+
+                bool hasZeroNeighbor = false;
+                for (int k = 0; k < 8; ++k) {
+                    int nr = r + dr8[k], nc = c + dc8[k];
+                    if (0 <= nr && nr < R && 0 <= nc && nc < C &&
+                        original[nr][nc] == 0) {
+                        hasZeroNeighbor = true;
+                        break;
+                    }
+                }
+                if (!hasZeroNeighbor) {
+                    grid[r][c] = 1; // isolated 0 → 1
+                }
+            }
+        }
+    }
+
+
+    // 4-neighborhood
+    const int dr[4] = {-1, 1, 0, 0};
+    const int dc[4] = { 0, 0,-1, 1};
+
+    int comp_id = 0;
+    int largest_id = -1;
+    int largest_size = 0;
+
+    for (int r = 0; r < R; ++r) {
+        for (int c = 0; c < C; ++c) {
+            if (grid[r][c] == 0 && label[r][c] == -1) {
+                // BFS to label this zero-component
+                std::queue<std::pair<int,int>> q;
+                q.push({r, c});
+                label[r][c] = comp_id;
+                int size = 0;
+
+                while (!q.empty()) {
+                    auto [cr, cc] = q.front(); q.pop();
+                    ++size;
+
+                    for (int k = 0; k < 4; ++k) {
+                        int nr = cr + dr[k], nc = cc + dc[k];
+                        if (0 <= nr && nr < R && 0 <= nc && nc < C &&
+                            grid[nr][nc] == 0 && label[nr][nc] == -1) {
+                            label[nr][nc] = comp_id;
+                            q.push({nr, nc});
+                        }
+                    }
+                }
+
+                comp_size.push_back(size);
+                // Track largest; if tie, keep first encountered
+                if (size > largest_size) {
+                    largest_size = size;
+                    largest_id = comp_id;
+                }
+                ++comp_id;
+            }
+        }
+    }
+
+    if (largest_id == -1) return; // no zeros at all
+
+    // Flip all zeros that are NOT in the largest component to 1
+    if constexpr (TIsInnerLoop) {
+        for (int r = 0; r < R; ++r) {
+            for (int c = 0; c < C; ++c) {
+                if (grid[r][c] == 0 && label[r][c] != largest_id) {
+                    grid[r][c] = 1;
+                }
+            }
+        }
+    } 
+    else { 
+        for (int r = 0; r < R; ++r) {
+            for (int c = 0; c < C; ++c) {
+                if (grid[r][c] == 0 && label[r][c] == largest_id) {
+                    grid[r][c] = 1;
+                }
+            }
+        }
+    }
 }
 
 }  // namespace Kratos.

@@ -20,6 +20,12 @@
 #include "processes/process.h"
 #include "geometries/nurbs_curve_geometry.h"
 
+#include <algorithm>
+#include <cmath>
+
+#include <queue>
+#include <utility>
+
 
 namespace Kratos
 {
@@ -89,35 +95,8 @@ public:
 
         return default_parameters;
     }
-    
-private:
 
-    Model* mpModel = nullptr;
-    Parameters mThisParameters;
-    IndexType mEchoLevel;
-    double mLambdaInner;
-    double mLambdaOuter;
-    std::size_t mNumberOfInnerLoops;
-    int mNumberInitialPointsIfImportingNurbs;
-    ModelPart* mpIgaModelPart = nullptr; 
-    ModelPart* mpSkinModelPartInnerInitial = nullptr; 
-    ModelPart* mpSkinModelPartOuterInitial = nullptr; 
-    ModelPart* mpSkinModelPart = nullptr; 
-
-
-    using PointType = Node;
-    using PointTypePointer = Node::Pointer;
-    using PointVector = std::vector<PointType::Pointer>;
-    using PointIterator = std::vector<PointType::Pointer>::iterator;
-    using DistanceVector = std::vector<double>;
-    using DistanceIterator = std::vector<double>::iterator;
-    using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-    using DynamicBinsPointerType = DynamicBins::PointerType;
-
-    using SizeType = std::size_t;
-    using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
-    using CoordinatesArrayType = Geometry<PointType>::CoordinatesArrayType;
-
+protected:
     /**
     * @brief Creates the initial snake coordinates for 2D skin.
     */
@@ -141,8 +120,104 @@ private:
         IndexType EchoLevel,
         ModelPart& rIgaModelPart,
         ModelPart& rSkinModelPart,
-        const int NumberInitialPointsIfImportingNurbs
+        const int NumberInitialPointsIfImportingNurbs,
+        bool RemoveIslands = false
         );
+
+
+    Model* mpModel = nullptr;
+    Parameters mThisParameters;
+    IndexType mEchoLevel;
+    double mLambdaInner;
+    double mLambdaOuter;
+    std::size_t mNumberOfInnerLoops;
+    int mNumberInitialPointsIfImportingNurbs;
+    ModelPart* mpIgaModelPart = nullptr; 
+    ModelPart* mpSkinModelPartInnerInitial = nullptr; 
+    ModelPart* mpSkinModelPartOuterInitial = nullptr; 
+    ModelPart* mpSkinModelPart = nullptr; 
+
+    using PointType = Node;
+    using PointTypePointer = Node::Pointer;
+    using PointVector = std::vector<PointType::Pointer>;
+    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using DistanceVector = std::vector<double>;
+    using DistanceIterator = std::vector<double>::iterator;
+    using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+    using DynamicBinsPointerType = DynamicBins::PointerType;
+    using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
+    using CoordinatesArrayType = Geometry<PointType>::CoordinatesArrayType;
+
+    /**
+     * @brief 
+     * 
+     * @param rPointP 
+     * @param rPointQ 
+     * @param rPointR 
+     * @return double 
+     */
+    static double Orientation(
+        const Node& rPointP,
+        const Node& rPointQ,
+        const Node& rPointR)
+    {
+        return (rPointQ.X() - rPointP.X()) * (rPointR.Y() - rPointP.Y()) -
+               (rPointQ.Y() - rPointP.Y()) * (rPointR.X() - rPointP.X());
+    }
+
+    /**
+     * @brief 
+     * 
+     * @param rPointP 
+     * @param rPointQ 
+     * @param rPointR 
+     * @return true 
+     * @return false 
+     */
+    static bool OnSegment(
+        const Node& rPointP,
+        const Node& rPointQ,
+        const Node& rPointR)
+    {
+        return (std::min(rPointP.X(), rPointR.X()) <= rPointQ.X() && rPointQ.X() <= std::max(rPointP.X(), rPointR.X()) &&
+                std::min(rPointP.Y(), rPointR.Y()) <= rPointQ.Y() && rPointQ.Y() <= std::max(rPointP.Y(), rPointR.Y()));
+    }
+
+    /**
+     * @brief 
+     * 
+     * @param rPointA 
+     * @param rPointB 
+     * @param rPointC 
+     * @param rPointD 
+     * @return true 
+     * @return false 
+     */
+    static bool SegmentsIntersect(
+        const Node& rPointA,
+        const Node& rPointB,
+        const Node& rPointC,
+        const Node& rPointD)
+    {
+        const double orientation_1 = Orientation(rPointA, rPointB, rPointC);
+        const double orientation_2 = Orientation(rPointA, rPointB, rPointD);
+        const double orientation_3 = Orientation(rPointC, rPointD, rPointA);
+        const double orientation_4 = Orientation(rPointC, rPointD, rPointB);
+
+        if (orientation_1 * orientation_2 < 0.0 && orientation_3 * orientation_4 < 0.0) {
+            return true;
+        }
+
+        if (std::abs(orientation_1) < 1e-14 && OnSegment(rPointA, rPointC, rPointB)) return true;
+        if (std::abs(orientation_2) < 1e-14 && OnSegment(rPointA, rPointD, rPointB)) return true;
+        if (std::abs(orientation_3) < 1e-14 && OnSegment(rPointC, rPointA, rPointD)) return true;
+        if (std::abs(orientation_4) < 1e-14 && OnSegment(rPointC, rPointB, rPointD)) return true;
+
+        return false;
+    }
+
+private:
+
 
     /**
      * @brief Performs a single step in the snake algorithm for 2D models.
@@ -287,6 +362,16 @@ private:
         const std::vector<std::vector<int>> & rKnotSpanUV,
         const std::vector<int> &rNumberKnotSpansUV
         ); 
+
+    
+    /**
+     * @brief Remove the islands surrogate domain disconnected from the main one
+     * 
+     * @tparam TIsInnerLoop 
+     * @param grid 
+     */
+    template <bool TIsInnerLoop>
+    static void KeepLargestZeroIsland(std::vector<std::vector<int>>& grid);
 
 }; // Class SnakeSbmProcess
 

@@ -48,36 +48,6 @@ namespace Kratos
 ///@{
 class KRATOS_API(IGA_APPLICATION) GapSbmSolidElement : public Element
 {
-protected:
-    /**
-     * Internal variables used in the kinematic calculations
-     */
-    struct ConstitutiveVariables
-    {
-        ConstitutiveLaw::StrainVectorType StrainVector;
-        ConstitutiveLaw::StressVectorType StressVector;
-        ConstitutiveLaw::VoigtSizeMatrixType D;
-
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         */
-        ConstitutiveVariables(const SizeType StrainSize)
-        {
-            if (StrainVector.size() != StrainSize)
-                StrainVector.resize(StrainSize);
-
-            if (StressVector.size() != StrainSize)
-                StressVector.resize(StrainSize);
-
-            if (D.size1() != StrainSize || D.size2() != StrainSize)
-                D.resize(StrainSize, StrainSize);
-
-            noalias(StrainVector) = ZeroVector(StrainSize);
-            noalias(StressVector) = ZeroVector(StrainSize);
-            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
-        }
-    };
 
 public:
 
@@ -219,7 +189,7 @@ public:
     }
 
     ///@}
-/**
+    /**
     * @brief Calculate a double Variable on the Element Constitutive Law
     * @param rVariable The variable we want to get
     * @param rValues The values obtained int the integration points
@@ -265,6 +235,33 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    struct ConstitutiveVariables
+    {
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const std::size_t StrainSize)
+        {
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
     void InitializeMaterial();
 
     /**
@@ -276,7 +273,7 @@ protected:
      * @param rConstitutiVariables 
      */
     void ApplyConstitutiveLaw(
-        SizeType matSize, 
+        std::size_t matSize, 
         Vector& rStrain, 
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiveVariables);
@@ -329,7 +326,7 @@ protected:
     ///@{
 
     ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
-    SizeType mDim; /// The dimension of the element (2D or 3D)
+    std::size_t mDim; /// The dimension of the element (2D or 3D)
     // sbm variables
     Vector mDistanceVector;
     IndexType mBasisFunctionsOrder;
