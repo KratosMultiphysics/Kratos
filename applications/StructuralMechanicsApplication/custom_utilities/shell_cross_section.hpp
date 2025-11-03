@@ -1407,6 +1407,3 @@ inline std::ostream& operator << (std::ostream& rOStream, ShellCrossSection& rTh
 ///@}
 
 }
-
-
-#endif // SHELL_CROSS_SECTION_H_INCLUDED
