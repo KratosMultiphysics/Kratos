@@ -395,7 +395,8 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
 
 void KratosExecute::WriteCriticalHeadResultToFile() const
 {
-    const auto path_to_critical_head_file = std::filesystem::path{mWorkingDirectory} / "criticalHead.json";
+    const auto path_to_critical_head_file =
+        std::filesystem::path{mWorkingDirectory} / "criticalHead.json";
 
     KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0)
         << "Writing result to: " << path_to_critical_head_file.generic_string() << std::endl;
