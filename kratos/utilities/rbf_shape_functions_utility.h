@@ -131,7 +131,8 @@ public:
         const array_1d<double,3>& rX,
         const double h,
         Vector& rN,
-        DenseQRPointerType pDenseQR = nullptr);
+        DenseQRPointerType pDenseQR = nullptr,
+        const RBFType rbf_type = RBFType::InverseMultiquadric);
 
     /**
      * @brief Calculates the RBF shape function values
@@ -145,7 +146,8 @@ public:
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         Vector& rN,
-        DenseQRPointerType pDenseQR = nullptr);
+        DenseQRPointerType pDenseQR = nullptr,
+        const RBFType rbf_type = RBFType::InverseMultiquadric);
 
     /**
      * @brief Calculates the RBF shape function values
@@ -162,7 +164,8 @@ public:
         const array_1d<double,3>& rX,
         const double h,
         Vector& rN,
-        Vector& rY);
+        Vector& rY,
+        const RBFType rbf_type = RBFType::InverseMultiquadric);
 
     static double CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints);
 
@@ -174,6 +177,61 @@ private:
     ///@{
 
     RBFShapeFunctionsUtility(){};
+
+    static double CalculateShapeParameter(const Matrix& rPoints, const RBFType rbf_type)
+    {
+        double h = 1.0;
+
+        switch (rbf_type) {
+            case RBFType::InverseMultiquadric:
+            {
+                h = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(rPoints);
+                break;
+            }
+            case RBFType::Multiquadric:
+            {
+                // Same shape parameter as the InverseMultiquadric could be used
+                h = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(rPoints);
+                break;
+            }
+            case RBFType::Gaussian:
+            {
+                // Same shape parameter as the InverseMultiquadric could be used
+                h = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(rPoints);
+                break;
+            }
+            case RBFType::ThinPlateSpline:
+            {
+                // TPS does not require any shape parameter
+                break;
+            }
+            case RBFType::WendlandC2:
+            {
+                const double k = 1.0;
+                h = RBFShapeFunctionsUtility::CalculateWendlandC2SupportRadius(rPoints, k);
+                break;
+            }
+            default:
+            {
+                h = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(rPoints);
+                break;
+            }
+        }
+
+        return h;
+    }
+
+    static std::function<double(double)> CreatePhi(const RBFType type, const double h) {
+        switch (type) {
+            case RBFType::InverseMultiquadric: { InverseMultiquadric f{h}; return [f](double r){return f(r);}; }
+            case RBFType::Multiquadric:       { Multiquadric f{h};       return [f](double r){return f(r);}; }
+            case RBFType::Gaussian:           { Gaussian f{h};           return [f](double r){return f(r);}; }
+            case RBFType::ThinPlateSpline:    { ThinPlateSpline f{};     return [f](double r){return f(r);}; }
+            case RBFType::WendlandC2:         { WendlandC2 f{h};         return [f](double r){return f(r);}; }
+        }
+        InverseMultiquadric f{h};
+        return [f](double r){return f(r);};
+    }
 
     ///@}
 };

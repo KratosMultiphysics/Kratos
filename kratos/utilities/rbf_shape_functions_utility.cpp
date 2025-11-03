@@ -26,7 +26,8 @@ namespace Kratos
         const array_1d<double,3>& rX,
         const double h,
         Vector& rN,
-        DenseQRPointerType pDenseQR)
+        DenseQRPointerType pDenseQR,
+        const RBFType rbf_type)
     {
         KRATOS_TRY;
 
@@ -42,17 +43,16 @@ namespace Kratos
         Matrix A = ZeroMatrix(n_points,n_points);
         Vector Phi = ZeroVector(n_points);
 
-        // Create an inverse multiquadric operation
-        InverseMultiquadric inverse_multiquadric_operation{h};
+        const auto phi = CreatePhi(rbf_type, h);
 
         // Build the RBF interpolation matrix and RBF interpolated vector
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
                 const double norm_xij = norm_2(row(rPoints,i_pt) - row(rPoints,j_pt));
-                A(i_pt,j_pt) = inverse_multiquadric_operation(norm_xij);
+                A(i_pt,j_pt) = phi(norm_xij);
             }
             const double norm_X =  norm_2(rX - row(rPoints,i_pt));
-            Phi[i_pt] = inverse_multiquadric_operation(norm_X);
+            Phi[i_pt] = phi(norm_X);
         }
 
         // Obtain the RBF shape functions (N)
@@ -75,11 +75,13 @@ namespace Kratos
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         Vector& rN,
-        DenseQRPointerType pDenseQR)
+        DenseQRPointerType pDenseQR,
+        const RBFType rbf_type)
     {
         KRATOS_TRY;
 
-        const double h = CalculateInverseMultiquadricShapeParameter(rPoints);
+        double h = CalculateShapeParameter(rPoints, rbf_type);
+
         CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);
 
         KRATOS_CATCH("");
@@ -90,7 +92,8 @@ namespace Kratos
         const array_1d<double,3>& rX,
         const double h,
         Vector& rN,
-        Vector& rY)
+        Vector& rY,
+        const RBFType rbf_type)
     {
         double interpolation = 0;
         KRATOS_TRY;
@@ -107,14 +110,13 @@ namespace Kratos
         Matrix A = ZeroMatrix(n_points,n_points);
         double norm_xij;
 
-        // Create an inverse multiquadric operation
-        InverseMultiquadric inverse_multiquadric_operation{h};
+        const auto phi = CreatePhi(rbf_type, h);
 
         // Build the RBF interpolation matrix and RBF interpolated vector
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
                 norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt));
-                A(i_pt,j_pt) = inverse_multiquadric_operation(norm_xij);
+                A(i_pt,j_pt) = phi(norm_xij);
             }
         }
 
@@ -126,7 +128,7 @@ namespace Kratos
         // Interpolate solution
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             const double norm_xi = norm_2(rX-row(rPoints,i_pt));
-            const double Phi = inverse_multiquadric_operation(norm_xi);
+            const double Phi = phi(norm_xi);
             interpolation += Phi*rN[i_pt];
         }
 
