@@ -8,7 +8,7 @@
           "name": "SmallStrainUDSM2DPlaneStrainLaw"
         },
         "Variables": {
-          "IGNORE_UNDRAINED": false,
+          "IGNORE_UNDRAINED": true,
           "BIOT_COEFFICIENT": 1,
           "DENSITY_SOLID": 2242.609582059123,
           "DENSITY_WATER": 1019.367991845056,
