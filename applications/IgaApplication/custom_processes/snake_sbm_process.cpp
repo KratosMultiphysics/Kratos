@@ -155,6 +155,9 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             matrix.push_back(row); 
         }
         knot_spans_available.push_back(matrix);
+
+        // create one Skin subModelPart for each loop
+        r_skin_sub_model_part.CreateSubModelPart(std::to_string(i)); 
     }
     
     // Optimized Snake -> for inner loops
@@ -169,18 +172,20 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     }
             
     if (rSkinModelPartInitial.NumberOfConditions()> 0) {
-        
-        // CREATE FIRST NODE FOR SKIN SUB MODEL PART
-        auto initial_condition = rSkinModelPartInitial.ConditionsBegin();
-        const double x_true_boundary0 = initial_condition->GetGeometry()[0].X();
-        const double y_true_boundary0 = initial_condition->GetGeometry()[0].Y();
-        
-        const int id_new_node = rSkinModelPart.GetRootModelPart().NumberOfNodes()+1; 
-        r_skin_sub_model_part.CreateNewNode(id_new_node, x_true_boundary0, y_true_boundary0, 0.0);
 
-        for (auto &i_cond : rSkinModelPartInitial.Conditions()) {  
+        ModelPart* p_skin_sub_model_part_loop = nullptr;
+        
+        for (auto &i_cond : rSkinModelPartInitial.Conditions()) {
             if (new_inner_loop) {
+                const std::string loop_sub_model_part_name = std::to_string(id_matrix_knot_spans_available);
+                p_skin_sub_model_part_loop = r_skin_sub_model_part.pGetSubModelPart(loop_sub_model_part_name);
                 id_first_node = i_cond.GetGeometry()[0].Id();
+
+                const double x_true_boundary0_loop = i_cond.GetGeometry()[0].X();
+                const double y_true_boundary0_loop = i_cond.GetGeometry()[0].Y();
+                const int id_new_node = rSkinModelPart.GetRootModelPart().NumberOfNodes()+1; 
+
+                p_skin_sub_model_part_loop->CreateNewNode(id_new_node, x_true_boundary0_loop, y_true_boundary0_loop, 0.0);
                 new_inner_loop = false;
             }
             // Collect the coordinates of the points of the i_cond
@@ -218,7 +223,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             }
             
             SnakeStep(id_matrix_knot_spans_available, knot_span_uv, xy_coord_i_cond, knot_step_uv, starting_pos_uv, 
-                        r_skin_sub_model_part, knot_spans_available);
+                        *p_skin_sub_model_part_loop, knot_spans_available);
             
             if (i_cond.GetGeometry()[1].Id() == id_first_node) {
                 id_matrix_knot_spans_available++;
@@ -476,11 +481,13 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         KRATOS_INFO_IF("::[SnakeSbmProcess]::", !is_inner) << "Outer :: Starting MarkKnotSpansAvailable" << std::endl;
     }
 
-    for (IndexType i = 0; i < NumberOfLoops; i++) {
-        IndexType id_inner_loop = i;
+    for (IndexType id_inner_loop = 0; id_inner_loop < NumberOfLoops; id_inner_loop++) {
         // Mark the knot_spans_available's for inner and outer loops
-        MarkKnotSpansAvailable(id_inner_loop, points_bin, r_skin_sub_model_part, Lambda, 
-                                n_knot_spans_uv, knot_step_uv, starting_pos_uv, knot_spans_available);  
+        const std::string loop_sub_model_part_name = std::to_string(id_inner_loop);
+        auto p_skin_sub_model_part_loop = r_skin_sub_model_part.pGetSubModelPart(loop_sub_model_part_name);
+
+        MarkKnotSpansAvailable(id_inner_loop, points_bin, *p_skin_sub_model_part_loop, Lambda, 
+                                n_knot_spans_uv, knot_step_uv, starting_pos_uv, knot_spans_available);       
     
         if (EchoLevel >  0) {
             KRATOS_INFO_IF("::[SnakeSbmProcess]::", is_inner) << "Inner :: Ending MarkKnotSpansAvailable" << std::endl;
@@ -489,19 +496,19 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
         if (RemoveIslands)
         {
-            auto& plane = knot_spans_available[i]; 
+            auto& plane = knot_spans_available[id_inner_loop]; 
             KeepLargestZeroIsland<TIsInnerLoop>(plane);
         }
         
         if (is_inner) {
-            CreateSurrogateBuondaryFromSnakeInner(id_inner_loop, r_skin_sub_model_part, points_bin, n_knot_spans_uv, 
+            CreateSurrogateBuondaryFromSnakeInner(id_inner_loop, *p_skin_sub_model_part_loop, points_bin, n_knot_spans_uv, 
                                                     knot_vector_u, knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
             
             if (EchoLevel >  0)
                 KRATOS_INFO("::[SnakeSbmProcess]::") << "Inner :: Snake process has finished" << std::endl;
         }
         else {
-            CreateSurrogateBuondaryFromSnakeOuter (id_inner_loop, r_skin_sub_model_part, points_bin, n_knot_spans_uv, knot_vector_u,
+            CreateSurrogateBuondaryFromSnakeOuter(id_inner_loop, *p_skin_sub_model_part_loop, points_bin, n_knot_spans_uv, knot_vector_u,
                                                     knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
             
             if (EchoLevel >  0)
@@ -779,30 +786,14 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
     const IndexType number_conditions = rSkinModelPart.NumberOfConditions();
 
     auto compute_cross_product_z = [&](IndexType condition_id) {
-        const auto& r_primary_condition = rSkinModelPart.GetCondition(condition_id);
-
-        IndexType previous_condition_id;
-        if (condition_id == first_condition_id) {
-            previous_condition_id = static_cast<IndexType>(first_condition_id + number_conditions - 1);
-        } else {
-            previous_condition_id = condition_id - 1;
-        }
-        const auto& r_previous_condition = rSkinModelPart.GetCondition(previous_condition_id);
-
-        const auto& r_candidate_point_1 = r_primary_condition.GetGeometry()[1].Coordinates();
-        const auto& r_candidate_point_2 = r_previous_condition.GetGeometry()[0].Coordinates();
+        const auto& r_condition = rSkinModelPart.GetCondition(condition_id);
+        const auto& r_third_point = r_condition.GetGeometry()[1].Coordinates();
 
         array_1d<double,3> v_1;
         array_1d<double,3> v_2;
 
-        if (MathUtils<double>::Norm(r_candidate_point_1 - rPoint1) > MathUtils<double>::Norm(r_candidate_point_2 - rPoint1)) {
-            // Need to invert the order to preserve the positivity of the area
-            v_1 = r_candidate_point_2 - rPoint1;
-            v_2 = r_primary_condition.GetGeometry()[0] - rPoint1;
-        } else {
-            v_1 = r_primary_condition.GetGeometry()[0] - rPoint1;
-            v_2 = r_candidate_point_1 - rPoint1;
-        }
+        v_1 = r_condition.GetGeometry()[0] - rPoint1;
+        v_2 = r_third_point - rPoint1;
 
         array_1d<double,3> cross_product;
         MathUtils<double>::CrossProduct(cross_product, v_1, v_2);
