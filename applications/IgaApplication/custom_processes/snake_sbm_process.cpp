@@ -164,6 +164,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     int id_matrix_knot_spans_available = 0;
     IndexType id_first_node;
     bool new_inner_loop = true;
+    bool is_skin_nurbs = false;
     
     if (EchoLevel >  0)
     {
@@ -173,12 +174,12 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             
     if (rSkinModelPartInitial.NumberOfConditions()> 0) {
 
-        ModelPart* p_skin_sub_model_part_loop = nullptr;
+        auto p_skin_sub_model_part_loop = &(r_skin_sub_model_part.GetSubModelPart("0"));
         
         for (auto &i_cond : rSkinModelPartInitial.Conditions()) {
             if (new_inner_loop) {
                 const std::string loop_sub_model_part_name = std::to_string(id_matrix_knot_spans_available);
-                p_skin_sub_model_part_loop = r_skin_sub_model_part.pGetSubModelPart(loop_sub_model_part_name);
+                p_skin_sub_model_part_loop = &(r_skin_sub_model_part.GetSubModelPart(loop_sub_model_part_name));
                 id_first_node = i_cond.GetGeometry()[0].Id();
 
                 const double x_true_boundary0_loop = i_cond.GetGeometry()[0].X();
@@ -233,6 +234,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     }
     else if (rSkinModelPartInitial.Geometries().size()>0) // if the skin model part is defined by nurbs geometries
     {
+        is_skin_nurbs = true;
         // number of sampling points per curve side
         const int number_initial_points_if_importing_nurbs = NumberInitialPointsIfImportingNurbs; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
@@ -287,7 +289,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         std::string interface_sub_model_part_name = "interface_vertices";
         ModelPart& r_skin_interface_sub_model_part = r_skin_sub_model_part.HasSubModelPart(interface_sub_model_part_name) ? 
                                                     r_skin_sub_model_part.GetSubModelPart(interface_sub_model_part_name) : r_skin_sub_model_part.CreateSubModelPart(interface_sub_model_part_name);
-
                                                          
         for (IndexType i_ordered = 0; i_ordered < n_boundary_curves; i_ordered++) 
         {
@@ -303,7 +304,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
             std::string layer_name = p_curve->GetValue(IDENTIFIER);
             ModelPart& r_skin_layer_sub_model_part = r_skin_sub_model_part.HasSubModelPart(layer_name) ? 
-                                                     r_skin_sub_model_part.GetSubModelPart(layer_name) : r_skin_sub_model_part.CreateSubModelPart(layer_name);
+                                                     r_skin_sub_model_part.GetSubModelPart(layer_name) : 
+                                                     r_skin_sub_model_part.CreateSubModelPart(layer_name);
 
             // check the first point of the curve
             if (new_inner_loop) 
@@ -484,10 +486,14 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     for (IndexType id_inner_loop = 0; id_inner_loop < NumberOfLoops; id_inner_loop++) {
         // Mark the knot_spans_available's for inner and outer loops
         const std::string loop_sub_model_part_name = std::to_string(id_inner_loop);
-        auto p_skin_sub_model_part_loop = r_skin_sub_model_part.pGetSubModelPart(loop_sub_model_part_name);
+        auto p_skin_sub_model_part_loop = &(r_skin_sub_model_part.GetSubModelPart(loop_sub_model_part_name));
 
-        MarkKnotSpansAvailable(id_inner_loop, points_bin, *p_skin_sub_model_part_loop, Lambda, 
-                                n_knot_spans_uv, knot_step_uv, starting_pos_uv, knot_spans_available);       
+        if (is_skin_nurbs)
+            MarkKnotSpansAvailable(id_inner_loop, points_bin, r_skin_sub_model_part, Lambda, 
+                n_knot_spans_uv, knot_step_uv, starting_pos_uv, knot_spans_available);   
+        else
+            MarkKnotSpansAvailable(id_inner_loop, points_bin, *p_skin_sub_model_part_loop, Lambda, 
+                                    n_knot_spans_uv, knot_step_uv, starting_pos_uv, knot_spans_available);       
     
         if (EchoLevel >  0) {
             KRATOS_INFO_IF("::[SnakeSbmProcess]::", is_inner) << "Inner :: Ending MarkKnotSpansAvailable" << std::endl;
@@ -501,14 +507,22 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         }
         
         if (is_inner) {
-            CreateSurrogateBuondaryFromSnakeInner(id_inner_loop, *p_skin_sub_model_part_loop, points_bin, n_knot_spans_uv, 
-                                                    knot_vector_u, knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
+            if (is_skin_nurbs)
+                CreateSurrogateBuondaryFromSnakeInner(id_inner_loop, r_skin_sub_model_part, points_bin, n_knot_spans_uv, 
+                    knot_vector_u, knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
+            else
+                CreateSurrogateBuondaryFromSnakeInner(id_inner_loop, *p_skin_sub_model_part_loop, points_bin, n_knot_spans_uv, 
+                                                        knot_vector_u, knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
             
             if (EchoLevel >  0)
                 KRATOS_INFO("::[SnakeSbmProcess]::") << "Inner :: Snake process has finished" << std::endl;
         }
         else {
-            CreateSurrogateBuondaryFromSnakeOuter(id_inner_loop, *p_skin_sub_model_part_loop, points_bin, n_knot_spans_uv, knot_vector_u,
+            if (is_skin_nurbs)
+                CreateSurrogateBuondaryFromSnakeOuter(id_inner_loop, r_skin_sub_model_part, points_bin, n_knot_spans_uv, knot_vector_u,
+                                                    knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
+            else
+                CreateSurrogateBuondaryFromSnakeOuter(id_inner_loop, *p_skin_sub_model_part_loop, points_bin, n_knot_spans_uv, knot_vector_u,
                                                     knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
             
             if (EchoLevel >  0)
@@ -724,9 +738,6 @@ void SnakeSbmProcess::SnakeStepNurbs(
 
         std::string layer_name = rpCurve->GetValue(IDENTIFIER);
         std::string condition_name = rpCurve->GetValue(CONDITION_NAME);
-
-        ModelPart& skin_layer_sub_model_part = rSkinModelPart.HasSubModelPart(layer_name) ? 
-                                            rSkinModelPart.GetSubModelPart(layer_name) : rSkinModelPart.CreateSubModelPart(layer_name);
         
         // compute normal and tangent informations at the local coord of the point 
         std::vector<CoordinatesArrayType> global_space_derivatives;
@@ -759,7 +770,7 @@ void SnakeSbmProcess::SnakeStepNurbs(
         node->SetValue(CONNECTED_LAYERS, connected_layers);
         node->SetValue(CONNECTED_CONDITIONS, connected_condition_names);
 
-        skin_layer_sub_model_part.AddNode(node);
+        rSkinModelPart.AddNode(node);
 
         Properties::Pointer p_cond_prop = rSkinModelPart.pGetProperties(0);
         Condition::Pointer p_cond = rSkinModelPart.CreateNewCondition("LineCondition2D2N", idNode1, {{idNode1, idNode2}}, p_cond_prop );
