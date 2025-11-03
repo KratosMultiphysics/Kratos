@@ -13,6 +13,47 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 
 
+def _report_matrix_diff(reference_matrix, comparison_matrix, diff_threshold=1e-4,
+                        reference_label="lhs", comparison_label="adjoint_LHS"):
+    """Print matrix entries whose absolute difference exceeds diff_threshold."""
+    if reference_matrix.Size1() != comparison_matrix.Size1() or reference_matrix.Size2() != comparison_matrix.Size2():
+        raise RuntimeError(f"{reference_label} and {comparison_label} have different shapes")
+
+    large_differences = []
+    for row in range(reference_matrix.Size1()):
+        for col in range(reference_matrix.Size2()):
+            diff = abs(reference_matrix[row, col] - comparison_matrix[row, col])
+            if diff > diff_threshold:
+                large_differences.append((row, col, reference_matrix[row, col], comparison_matrix[row, col], diff))
+
+    if large_differences:
+        print(f"Entries with |{reference_label} - {comparison_label}| > {diff_threshold}:")
+        for row, col, ref_val, cmp_val, diff in large_differences:
+            print(f"  row {row}, col {col}: {reference_label}={ref_val}, {comparison_label}={cmp_val}, diff={diff}")
+    else:
+        print(f"{reference_label.upper()} vs {comparison_label.upper()} - No entries differ by more than {diff_threshold}")
+
+
+def _report_vector_diff(reference_vector, comparison_vector, diff_threshold=1e-4,
+                        reference_label="primal_rhs", comparison_label="adjoint_rhs"):
+    """Print vector entries whose absolute difference exceeds diff_threshold."""
+    if reference_vector.Size() != comparison_vector.Size():
+        raise RuntimeError(f"{reference_label} and {comparison_label} have different sizes")
+
+    large_differences = []
+    for idx in range(reference_vector.Size()):
+        diff = abs(reference_vector[idx] - comparison_vector[idx])
+        if diff > diff_threshold:
+            large_differences.append((idx, reference_vector[idx], comparison_vector[idx], diff))
+
+    if large_differences:
+        print(f"Entries with |{reference_label} - {comparison_label}| > {diff_threshold}:")
+        for idx, ref_val, cmp_val, diff in large_differences:
+            print(f"  index {idx}: {reference_label}={ref_val}, {comparison_label}={cmp_val}, diff={diff}")
+    else:
+        print(f"{reference_label.upper()} vs {comparison_label.upper()} - No entries differ by more than {diff_threshold}")
+
+
 def solve_cantilever(create_geometry):
     model = KM.Model()
     model_part = model.CreateModelPart('Model')
@@ -41,6 +82,7 @@ def solve_cantilever(create_geometry):
     for i in range(0, len(quadrature_point_geometries)):
         model_part.CreateNewElement('ActiveShell3pElement', element_id, quadrature_point_geometries[i], shell_properties)
         model_part.CreateNewElement('ActiveAdjointFiniteDifferenceBaseElement', element_id + 100, quadrature_point_geometries[i], shell_properties)
+        model_part.CreateNewElement('Shell3pElement', element_id + 1000, quadrature_point_geometries[i], shell_properties)
         element_id += 1
 
 
@@ -114,94 +156,47 @@ def solve_cantilever(create_geometry):
             # adjoint_element.CalculateSensitivityMatrix(adjoint_LHS, model_part.ProcessInfo)
             
 
-            ########################
-            # compare LHS and adjoint sensitivities without dumping full matrices
-            diff_threshold = 0.0001
-            large_differences = []
-            if lhs.Size1() != adjoint_LHS.Size1() or lhs.Size2() != adjoint_LHS.Size2():
-                raise RuntimeError("lhs and adjoint_LHS have different shapes")
+            #normal Shell3pElement
+            Shell3p_element: KM.Element = model_part.GetElement(element.Id + 1000)
+            Shell3p_LHS = KM.Matrix()
+            Shell3p_element.Initialize(model_part.ProcessInfo)
+            Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            Shell3p_element.CalculateLeftHandSide(Shell3p_LHS, model_part.ProcessInfo)
 
-            for i in range(lhs.Size1()):
-                for j in range(lhs.Size2()):
-                    diff = abs(lhs[i, j] - adjoint_LHS[i, j])
-                    if diff > diff_threshold:
-                        large_differences.append((i, j, lhs[i, j], adjoint_LHS[i, j], diff))
+            print("size Shell3p_LHS:", Shell3p_LHS.Size1(), Shell3p_LHS.Size2())
 
-            if large_differences:
-                print(f"Entries with |lhs - adjoint_LHS| > {diff_threshold}:")
-                for row, col, lhs_val, adj_val, diff in large_differences:
-                    print(f"  row {row}, col {col}: lhs={lhs_val}, adjoint={adj_val}, diff={diff}")
-            else:
-                print(f"LHS - No entries differ by more than {diff_threshold}")
-        
-        
-            # compare primal RHS and adjoint RHS component-wise
-            rhs_diff_threshold = 0.0001
-            rhs_large_differences = []
-            if primal_rhs.Size() != adjoint_rhs.Size():
-                raise RuntimeError("primal_rhs and adjoint_rhs have different sizes")
+            _report_matrix_diff(lhs, adjoint_LHS, diff_threshold=1e-4,
+                                reference_label="lhs", comparison_label="adjoint_LHS")
 
-            for i in range(primal_rhs.Size()):
-                rhs_diff = abs(primal_rhs[i] - adjoint_rhs[i])
-                if rhs_diff > rhs_diff_threshold:
-                    rhs_large_differences.append((i, primal_rhs[i], adjoint_rhs[i], rhs_diff))
-
-            if rhs_large_differences:
-                print(f"Entries with |primal_rhs - adjoint_rhs| > {rhs_diff_threshold}:")
-                for idx, primal_val, adjoint_val, rhs_diff in rhs_large_differences:
-                    print(f"  index {idx}: primal={primal_val}, adjoint={adjoint_val}, diff={rhs_diff}")
-            else:
-                print(f"RHS - No entries differ by more than {rhs_diff_threshold}")
-            #########################
+            _report_vector_diff(primal_rhs, adjoint_rhs, diff_threshold=1e-4,
+                                reference_label="primal_rhs", comparison_label="adjoint_rhs")
 
 
             perturbed_rhs = KM.Vector()
-            # for i, node in enumerate(element.GetGeometry()):
+            shell3p_reference_rhs = KM.Vector()
+            Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_reference_rhs, model_part.ProcessInfo)
+            shell3p_rhs = KM.Vector()
 
-                # # print(node)
+            for node_idx, node in enumerate(element.GetGeometry()):
+                node.X += delta
 
-                # node.X += delta
-
-                # # node.SetSolutionStepValue(KM.DISPLACEMENT_X, node.GetSolutionStepValue(KM.DISPLACEMENT_X) + delta)
-
-                # # print(node.GetSolutionStepValue(KM.DISPLACEMENT_X))
-
-                # element.InitializeNonLinearIteration(model_part.ProcessInfo)
-                # element.CalculateLocalSystem(lhs, perturbed_rhs, model_part.ProcessInfo)
-                # sensitivities = (perturbed_rhs - primal_rhs) / delta
-                # # node.SetSolutionStepValue(KM.DISPLACEMENT_X, node.GetSolutionStepValue(KM.DISPLACEMENT_X) - delta)
-
-                # node.X -= delta
-
-                # print("perturbed")
-                # print(perturbed_rhs)
-
-                #         # print(sensitivities)
-
-                # for i in range(27):
-                #     print(sensitivities[i], adjoint_LHS[i * 3, i])
-            print("nodes in ACTIVE_MP:", model["ACTIVE_MP"].Nodes)
-            for node in model["ACTIVE_MP"].Nodes:
-                print("perturbing node: ", node,"  - node id:", node.Id)
-                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) + delta)
                 element.InitializeNonLinearIteration(model_part.ProcessInfo)
                 element.CalculateLocalSystem(lhs, perturbed_rhs, model_part.ProcessInfo)
                 sensitivities = (perturbed_rhs - primal_rhs) / delta
 
-                # rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_ALPHA)); 27
-                # rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_BETA)); 28
-                # rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_GAMMA)); 29
-                # rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_1)); 30
-                # rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_2)); 31
-                # rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_12)); 32
+                Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
+                Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_rhs, model_part.ProcessInfo)
+                shell3p_sensitivities = (shell3p_rhs - shell3p_reference_rhs) / delta
 
-                # 9 nodes * 3 dofs + 6 actuation dofs = 33 total dofs
-                # 27 + 0 for ALPHA because of zero indexing
-                print("sensitivities versus adjoint sensitivity:  -------------------")
-                for i in range(33):
-                    print(sensitivities[i], adjoint_LHS[i, 27])  #27,i
-                print("-" * 40)
-                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) - delta)
+                node.X -= delta
+
+                print(f"perturbed node {node_idx + 1}")
+                print(perturbed_rhs)
+
+                max_dofs = min(27, sensitivities.Size(), shell3p_sensitivities.Size())
+                for dof_idx in range(max_dofs):
+                    print(sensitivities[dof_idx], shell3p_sensitivities[dof_idx], adjoint_LHS[dof_idx * 3, dof_idx])
+
 
 
 
