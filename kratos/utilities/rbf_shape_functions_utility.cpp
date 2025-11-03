@@ -141,7 +141,6 @@ namespace Kratos
 
         // Initialize the RBF interpolation matrix and RBF interpolated vector
         Matrix A = ZeroMatrix(n_points,n_points);
-        double norm_xij;
 
         // Build the RBF interpolation matrix and RBF interpolated vector
         switch (RBFType) {
