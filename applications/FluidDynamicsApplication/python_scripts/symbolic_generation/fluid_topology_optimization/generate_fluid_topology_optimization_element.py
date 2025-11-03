@@ -344,15 +344,17 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
                 stab_norm_a_adj += v_ns_gauss[i]**2
             stab_norm_a_adj = sympy.sqrt(stab_norm_a_adj)
             tau1_denominator_adj += stab_c2*rho*stab_norm_a_adj/h # convection contribution to tau_1
-            tau2_factor_adj += stab_c2*rho*stab_norm_a_adj*h # convection contribution to tau_2
+            tau2_factor_adj      += stab_c2*rho*stab_norm_a_adj*h # convection contribution to tau_2
+            # The stabilization should be the same for primal and adjoint since the filter is the same. 
+            # Therefore the following lines have been commented.
             # grad(U) ADJOINT RESISTANCE STABILIZATION
-            stab_norm_gradU_adj = 0.0
-            for i in range(0,dim):
-                for j in range(0,dim):
-                    stab_norm_gradU_adj += grad_v_ns[i,j]**2
-            stab_norm_gradU_adj = sympy.sqrt(stab_norm_gradU_adj)
-            tau1_denominator_adj += stab_c3*rho*stab_norm_gradU_adj # convection contribution to tau_1
-            tau2_factor_adj += stab_c3*rho*stab_norm_gradU_adj*h*h # convection contribution to tau_2
+            # stab_norm_gradU_adj = 0.0
+            # for i in range(0,dim):
+            #     for j in range(0,dim):
+            #         stab_norm_gradU_adj += grad_v_ns[i,j]**2
+            # stab_norm_gradU_adj = sympy.sqrt(stab_norm_gradU_adj)
+            # tau1_denominator_adj += stab_c3*rho*stab_norm_gradU_adj # convection contribution to tau_1
+            # tau2_factor_adj += stab_c3*rho*stab_norm_gradU_adj*h*h # convection contribution to tau_2
         # Definition of TAU1 & TAU2
         tau1_adj = 1.0/tau1_denominator_adj         # Stabilization parameter 1
         tau2_adj = mu + tau2_factor_adj/stab_c1     # Stabilization parameter 2
@@ -386,8 +388,13 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv_stab_adj += -alpha*velocity_adj_subscale.transpose()*w_adj_gauss # stab resistance residual
         rv_stab_adj +=  pressure_adj_subscale*div_w_adj
         if (convective_term):
-            rv_stab_adj += -rho*velocity_adj_subscale.transpose()*(grad_w_adj*v_ns_gauss) # 1st stab convective residual: convective term
-            rv_stab_adj += -rho*w_adj_gauss.transpose()*(grad_v_ns.transpose()*velocity_adj_subscale)  # 2nd stab convective residual: adjoint resistance term
+            #SIGN - WAS DONE TO STAB THE ADJ, BUT WAS UNCOHERENT WITH STABILIZED NS ADJOINT 
+            # without - the adjoint should be the adjoint of the stabilized version!
+            # the stabilizing filter is set to be the same of the primal but evaluated in adjoint test functions
+            # rv_stab_adj += -rho*velocity_adj_subscale.transpose()*(grad_w_adj*v_ns_gauss) # 1st stab convective residual: convective term
+            # rv_stab_adj += -rho*w_adj_gauss.transpose()*(grad_v_ns.transpose()*velocity_adj_subscale)  # 2nd stab convective residual: adjoint resistance term
+            rv_stab_adj += rho*velocity_adj_subscale.transpose()*(grad_w_adj*v_ns_gauss) 
+            # rv_stab_adj += rho*div_v_ns*velocity_adj_subscale.transpose()*w_adj_gauss
         rv_adj += rv_stab_adj # save STABILIZATION residual into TOTAL element residual
     # END HANDLE STABILIZATION
 
