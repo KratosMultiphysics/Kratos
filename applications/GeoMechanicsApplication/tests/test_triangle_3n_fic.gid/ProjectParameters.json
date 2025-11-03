@@ -27,7 +27,6 @@
         "compute_reactions":                  true,
         "move_mesh_flag":                     true,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    true,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
@@ -90,7 +89,7 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","NODAL_CAUCHY_STRESS_TENSOR"],
+                        "nodal_results":       ["DISPLACEMENT","CAUCHY_STRESS_TENSOR"],
                         "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR"]
                     },
                     "point_data_configuration":  []
@@ -134,6 +133,15 @@
             "active":          [true,true,true],
             "value":           [0.0,-10000,0.0],
             "table":           [0,0,0]
+        }
+    }],
+    "auxiliary_process_list": [{
+        "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain",
+            "list_of_variables": ["CAUCHY_STRESS_TENSOR"]
         }
     }]
     }

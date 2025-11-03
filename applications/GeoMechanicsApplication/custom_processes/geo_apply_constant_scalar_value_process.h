@@ -8,15 +8,18 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Richard Faasse
 //
 
 #pragma once
 
-#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
+
+class ModelPart;
+class Parameters;
 
 ///@name Kratos Classes
 ///@{
@@ -32,56 +35,26 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoApplyConstantScalarValueProcess : public Process
 {
 public:
-    KRATOS_DEFINE_LOCAL_FLAG(VARIABLE_IS_FIXED);
-
     KRATOS_CLASS_POINTER_DEFINITION(GeoApplyConstantScalarValueProcess);
 
-    GeoApplyConstantScalarValueProcess(Model& rModel, Parameters ThisParameters);
-    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, Parameters ThisParameters);
-    GeoApplyConstantScalarValueProcess(ModelPart&              rModelPart,
-                                       const Variable<double>& rVariable,
-                                       const double            DoubleValue,
-                                       const Flags             Options);
-    GeoApplyConstantScalarValueProcess(ModelPart&           rModelPart,
-                                       const Variable<int>& rVariable,
-                                       const int            IntValue,
-                                       const Flags          options);
-
-    GeoApplyConstantScalarValueProcess(ModelPart&            rModelPart,
-                                       const Variable<bool>& rVariable,
-                                       const bool            BoolValue,
-                                       const Flags           options);
-
+    GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Parameters& rParameters);
     ~GeoApplyConstantScalarValueProcess() override = default;
 
-    void             ExecuteInitialize() override;
-    void             ExecuteFinalize() override;
-    const Parameters GetDefaultParameters() const override;
-
-    [[nodiscard]] std::string Info() const override { return "GeoApplyConstantScalarValueProcess"; }
+    void                      ExecuteInitialize() override;
+    void                      ExecuteInitializeSolutionStep() override;
+    void                      ExecuteFinalize() override;
+    [[nodiscard]] std::string Info() const override;
 
 protected:
-    ModelPart&  mrModelPart;          /// Reference to the model part.
-    std::string mVariableName;        /// Name of the variable.
-    double      mDoubleValue = 0.0;   /// Double value.
-    int         mIntValue    = 0;     /// Integer value.
-    bool        mBoolValue   = false; /// Boolean value.
+    ModelPart&  mrModelPart;
+    std::string mVariableName;
 
 private:
-    template <class TVarType>
-    void InternalApplyValue(const TVarType& rVariable, const bool ToBeFixed, const typename TVarType::Type Value);
-
-    template <class TVarType>
-    void InternalApplyValueWithoutFixing(const TVarType& rVariable, const typename TVarType::Type Value);
+    double mDoubleValue   = 0.0;
+    int    mIntValue      = 0;
+    bool   mBoolValue     = false;
+    bool   mIsFixed       = false;
+    bool   mIsInitialized = false;
 };
-
-inline std::ostream& operator<<(std::ostream& rOStream, const GeoApplyConstantScalarValueProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 
 } // namespace Kratos.

@@ -3,7 +3,7 @@
 ## Introduction
 
 The `Scheme` class in Kratos is used to create time integration schemes. It is a base class, for which Geomechanics
-has implemented a number of flavors, subdivided in the Backward Euler and the Generalized Newmark families.
+has implemented a number of flavors, subdivided in Static, the Backward Euler and the Generalized Newmark families.
 
 ## Code Structure
 
@@ -34,14 +34,19 @@ is simplified and only shows the functions that need emphasis._
 The child classes which actually specify which variables are used in the time integration scheme (e.g.
 the `BackwardEulerUPwScheme` or the `GeneralizedNewmarkTScheme`), only fill the lists of first/second order variables.
 
-The exceptions are the `NewmarkQuasistaticUPwScheme`, which has functionality for nodal smoothing (this should be moved
-to another location) and the damped and dynamic UPw schemes. More info on these can be found in
-the [Dynamic and damped schemes](#dynamic-and-damped-schemes) section.
+The exceptions are the damped and dynamic UPw schemes. More info on these can be found in
+the [Dynamic, damped and quasistatic Generalized Newmark schemes](#dynamic-damped-and-quasistatic-generalized-newmark-schemes) section.
+
+## Static
+
+The simplest scheme is the static scheme, which does not update any time derivatives. It can be found in the
+`GeoMechanicsStaticScheme` class. This scheme is derived from the `GeoMechanicsTimeIntegrationScheme` class, such that 
+activation and deactivation of elements, conditions and nodes is handled properly.
 
 ## Backward Euler
 
-The most straight-forward scheme type is called Backward Euler. The functionality described in this section can be found
-in the `BackwardEulerScheme` class. The first and second time derivatives are simply calculated by dividing the
+A relatively straight-forward scheme type is called Backward Euler. The functionality described in this section can be 
+found in the `BackwardEulerScheme` class. The first and second time derivatives are simply calculated by dividing the
 difference in their integrated variables by the time step. This results in the following equations for the scalar and
 vector derivatives.
 
@@ -108,3 +113,20 @@ the dynamic/damped schemes.
 
 One more anomaly is the `Predict` function, currently found in the `NewmarkDynamicUPwScheme` class. This functionality
 should have its counterparts in the other classes derived from `GeneralizedNewmarkScheme` class.
+
+## Load stepping scheme
+
+For some problems, applying an external load (for example gravity-induced) all at once results in convergence issues. The load stepping scheme can be used to apply the unbalance from these loads gradually throughout a stage. 
+
+Conceptually, the right hand side, or the 'unbalance' consists of internal and external forces. Equilibrium is reached when the internal forces and external forces equilibrate, leading to a 0 unbalance:
+$$RHS = F_{external} - F_{internal}$$
+
+The idea of the load stepping scheme, is that external forces are chosen in such a way throughout the stage, that every solution step is close to equilibrium. At the end of the stage, we end up with the full external forces. This means that although the intermediate steps do not represent a physical situation, the result at the end of the stage always represents the physical situation.
+
+The following formulation is used for the $F_{external}$:
+
+$$F_{external} =   F_{0, internal} + \lambda (F_{0, external}- F_{0, internal})$$
+where $F_{0,internal}$ and $F_{0,external}$ are the sums of the respective internal and external forces at the start of the stage and $\lambda$ is the load fraction (or fraction of initial unbalance) that is applied. At this point, the fraction is tied to the current time in the stage:
+$$ \lambda = \frac{t - t_{start}}{t_{end} - t_{start}}$$,
+
+where $t$, $t_{start}$ and $t_{end}$ are the current, start and end time of the stage. Since time is used in this way for the load stepping, the scheme is a static scheme (i.e. derivatives are disregarded) and it should **_not_** be used in combination with time dependent processes. 
