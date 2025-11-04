@@ -34,7 +34,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosG
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0));
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(nodes);
     const auto p_properties = std::make_shared<Properties>();
-    auto p_element = make_intrusive<UPwSmallStrainElement<2, 3>>(1, p_geometry, p_properties, nullptr);
+    auto       element      = UPwSmallStrainElement<2, 3>(1, p_geometry, p_properties, nullptr);
 
     Vector cauchy_stress_vector(4);
     cauchy_stress_vector <<= 1000.0, 2000.0, 3000.0, 4000.0;
@@ -48,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosG
     // Act
     const std::vector<std::size_t> node_ids = {1, 2, 3};
     const auto nodal_stresses               = ExtrapolationUtilities::CalculateNodalStresses<3>(
-        node_ids, p_element->GetGeometry(), p_element->GetIntegrationMethod(), cauchy_stress_vectors);
+        node_ids, element.GetGeometry(), element.GetIntegrationMethod(), cauchy_stress_vectors);
 
     // Assert
     KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());
