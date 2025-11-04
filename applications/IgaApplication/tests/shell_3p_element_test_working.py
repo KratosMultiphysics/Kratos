@@ -180,7 +180,8 @@ def solve_cantilever(create_geometry):
 
                 # for i in range(27):
                 #     print(sensitivities[i], adjoint_LHS[i * 3, i])
-            print("nodes in ACTIVE_MP:", model["ACTIVE_MP"].Nodes)
+
+            print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
             for node in model["ACTIVE_MP"].Nodes:
                 print("perturbing node: ", node,"  - node id:", node.Id)
                 node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) + delta)
