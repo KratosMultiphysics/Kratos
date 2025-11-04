@@ -19,7 +19,9 @@
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
+#if defined(USE_EIGEN_MKL)
 #include "custom_utilities/mkl_utilities.h"
+#endif
 
 namespace Kratos::Python {
 
@@ -27,6 +29,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
+#if defined(USE_EIGEN_MKL)
     // Expose enum MKLThreadSetting
     py::enum_<MKLUtilities::MKLThreadSetting>(m, "MKLThreadSetting")
         .value("Minimal", MKLUtilities::MKLThreadSetting::Minimal)
@@ -46,6 +49,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             MKLUtilities::SetMKLThreadCount(static_cast<int>(Setting));
         }, py::arg("ThreadSetting"))
         ;
+#endif
 
 }
 
