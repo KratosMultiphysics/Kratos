@@ -14,7 +14,7 @@ import os
 
 
 def _report_matrix_diff(reference_matrix, comparison_matrix, diff_threshold=1e-4,
-                        reference_label="lhs", comparison_label="adjoint_LHS"):
+                        reference_label="primal_LHS", comparison_label="adjoint_LHS"):
     """Print matrix entries whose absolute difference exceeds diff_threshold."""
     if reference_matrix.Size1() != comparison_matrix.Size1() or reference_matrix.Size2() != comparison_matrix.Size2():
         raise RuntimeError(f"{reference_label} and {comparison_label} have different shapes")
@@ -32,6 +32,30 @@ def _report_matrix_diff(reference_matrix, comparison_matrix, diff_threshold=1e-4
             print(f"  row {row}, col {col}: {reference_label}={ref_val}, {comparison_label}={cmp_val}, diff={diff}")
     else:
         print(f"{reference_label.upper()} vs {comparison_label.upper()} - No entries differ by more than {diff_threshold}")
+
+
+def _report_matrix_diff_first_entries(reference_matrix, comparison_matrix, block_size=27,
+                                      diff_threshold=1e-4, reference_label="primal_LHS",
+                                      comparison_label="shell3p_LHS"):
+    """Print differences for the top-left block of two matrices."""
+    if reference_matrix.Size1() < block_size or reference_matrix.Size2() < block_size:
+        raise RuntimeError(f"{reference_label} is smaller than the requested block size {block_size}")
+    if comparison_matrix.Size1() < block_size or comparison_matrix.Size2() < block_size:
+        raise RuntimeError(f"{comparison_label} is smaller than the requested block size {block_size}")
+
+    large_differences = []
+    for row in range(block_size):
+        for col in range(block_size):
+            diff = abs(reference_matrix[row, col] - comparison_matrix[row, col])
+            if diff > diff_threshold:
+                large_differences.append((row, col, reference_matrix[row, col], comparison_matrix[row, col], diff))
+
+    if large_differences:
+        print(f"Entries with |{reference_label}[0:{block_size}] - {comparison_label}[0:{block_size}]| > {diff_threshold}:")
+        for row, col, ref_val, cmp_val, diff in large_differences:
+            print(f"  row {row}, col {col}: {reference_label}={ref_val}, {comparison_label}={cmp_val}, diff={diff}")
+    else:
+        print(f"{reference_label.upper()} vs {comparison_label.upper()} (first {block_size}) - No entries differ by more than {diff_threshold}")
 
 
 def _report_vector_diff(reference_vector, comparison_vector, diff_threshold=1e-4,
@@ -52,6 +76,29 @@ def _report_vector_diff(reference_vector, comparison_vector, diff_threshold=1e-4
             print(f"  index {idx}: {reference_label}={ref_val}, {comparison_label}={cmp_val}, diff={diff}")
     else:
         print(f"{reference_label.upper()} vs {comparison_label.upper()} - No entries differ by more than {diff_threshold}")
+
+
+def _report_vector_diff_first_entries(reference_vector, comparison_vector, vector_size=27,
+                                      diff_threshold=1e-4, reference_label="primal_rhs",
+                                      comparison_label="shell3p_rhs"):
+    """Print differences for the leading entries of two vectors."""
+    if reference_vector.Size() < vector_size:
+        raise RuntimeError(f"{reference_label} has fewer than {vector_size} entries")
+    if comparison_vector.Size() < vector_size:
+        raise RuntimeError(f"{comparison_label} has fewer than {vector_size} entries")
+
+    large_differences = []
+    for idx in range(vector_size):
+        diff = abs(reference_vector[idx] - comparison_vector[idx])
+        if diff > diff_threshold:
+            large_differences.append((idx, reference_vector[idx], comparison_vector[idx], diff))
+
+    if large_differences:
+        print(f"Entries with |{reference_label}[0:{vector_size}] - {comparison_label}[0:{vector_size}]| > {diff_threshold}:")
+        for idx, ref_val, cmp_val, diff in large_differences:
+            print(f"  index {idx}: {reference_label}={ref_val}, {comparison_label}={cmp_val}, diff={diff}")
+    else:
+        print(f"{reference_label.upper()} vs {comparison_label.upper()} (first {vector_size}) - No entries differ by more than {diff_threshold}")
 
 
 def solve_cantilever(create_geometry):
@@ -98,7 +145,7 @@ def solve_cantilever(create_geometry):
 "kappa_12"
                            ],
         "applied_actuation_value": [
-0.50,
+0.00,
 0.00,
 0.00,
 0.00,
@@ -129,18 +176,18 @@ def solve_cantilever(create_geometry):
     print(model_part)
     delta = 1e-6
     for element in model_part.Elements:
-        lhs = KM.Matrix()
+        primal_LHS = KM.Matrix()
         primal_rhs = KM.Vector()
 
         element.Initialize(model_part.ProcessInfo)
         element.InitializeNonLinearIteration(model_part.ProcessInfo)
 
         if element.Id < 100:
-            element.CalculateLocalSystem(lhs, primal_rhs, model_part.ProcessInfo)
+            element.CalculateLocalSystem(primal_LHS, primal_rhs, model_part.ProcessInfo)
 
             print("primal_rhs\n:", primal_rhs)
             print("-" * 40)
-            print("lhs\n:", lhs)
+            print("primal_LHS\n:", primal_LHS)
             print("-" * 40)
 
 
@@ -155,47 +202,70 @@ def solve_cantilever(create_geometry):
             adjoint_element.CalculateRightHandSide(adjoint_rhs, model_part.ProcessInfo)
             # adjoint_element.CalculateSensitivityMatrix(adjoint_LHS, model_part.ProcessInfo)
             
-
-            #normal Shell3pElement
-            Shell3p_element: KM.Element = model_part.GetElement(element.Id + 1000)
-            Shell3p_LHS = KM.Matrix()
-            Shell3p_element.Initialize(model_part.ProcessInfo)
-            Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
-            Shell3p_element.CalculateLeftHandSide(Shell3p_LHS, model_part.ProcessInfo)
-
-            print("size Shell3p_LHS:", Shell3p_LHS.Size1(), Shell3p_LHS.Size2())
-
-            _report_matrix_diff(lhs, adjoint_LHS, diff_threshold=1e-4,
-                                reference_label="lhs", comparison_label="adjoint_LHS")
+            _report_matrix_diff(primal_LHS, adjoint_LHS, diff_threshold=1e-4,
+                                reference_label="primal_LHS", comparison_label="adjoint_LHS")
 
             _report_vector_diff(primal_rhs, adjoint_rhs, diff_threshold=1e-4,
                                 reference_label="primal_rhs", comparison_label="adjoint_rhs")
 
-
-            perturbed_rhs = KM.Vector()
+            #normal Shell3pElement
+            Shell3p_element: KM.Element = model_part.GetElement(element.Id + 1000)
+            Shell3p_LHS = KM.Matrix()
             shell3p_reference_rhs = KM.Vector()
+            Shell3p_element.Initialize(model_part.ProcessInfo)
+            Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
             Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_reference_rhs, model_part.ProcessInfo)
-            shell3p_rhs = KM.Vector()
 
-            for node_idx, node in enumerate(element.GetGeometry()):
-                node.X += delta
 
-                element.InitializeNonLinearIteration(model_part.ProcessInfo)
-                element.CalculateLocalSystem(lhs, perturbed_rhs, model_part.ProcessInfo)
-                sensitivities = (perturbed_rhs - primal_rhs) / delta
+            print("size Shell3p_LHS:", Shell3p_LHS.Size1(), Shell3p_LHS.Size2())
+            _report_matrix_diff_first_entries(primal_LHS, Shell3p_LHS, block_size=27, diff_threshold=1e-4,
+                                              reference_label="primal_LHS", comparison_label="shell3p_LHS")
 
-                Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
-                Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_rhs, model_part.ProcessInfo)
-                shell3p_sensitivities = (shell3p_rhs - shell3p_reference_rhs) / delta
+            _report_vector_diff_first_entries(primal_rhs, shell3p_reference_rhs, vector_size=27,
+                                              diff_threshold=1e-4,
+                                              reference_label="primal_rhs",
+                                              comparison_label="shell3p_reference_rhs")
 
-                node.X -= delta
+            perturbed_primal_rhs = KM.Vector()
+            shell3p_perturbed_rhs = KM.Vector()
 
-                print(f"perturbed node {node_idx + 1}")
-                print(perturbed_rhs)
+            target_node_id = 9
+            target_idx = 24  # column index associated with node 9 displacement X
 
-                max_dofs = min(27, sensitivities.Size(), shell3p_sensitivities.Size())
-                for dof_idx in range(max_dofs):
-                    print(sensitivities[dof_idx], shell3p_sensitivities[dof_idx], adjoint_LHS[dof_idx * 3, dof_idx])
+            if not model_part.HasNode(target_node_id):
+                raise RuntimeError(f"Model part does not contain node {target_node_id}")
+
+            target_node = model_part.GetNode(target_node_id)
+            original_disp_x = target_node.GetSolutionStepValue(KM.DISPLACEMENT_X)
+            target_node.SetSolutionStepValue(KM.DISPLACEMENT_X, original_disp_x + delta)
+
+            element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
+
+            Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_perturbed_rhs, model_part.ProcessInfo)
+
+            fd_sensitivities = KM.Vector(perturbed_primal_rhs.Size())
+            shell3p_fd_sensitivities = KM.Vector(shell3p_perturbed_rhs.Size())
+
+            for eq_idx in range(perturbed_primal_rhs.Size()):
+                fd_sensitivities[eq_idx] = (perturbed_primal_rhs[eq_idx] - primal_rhs[eq_idx]) / delta
+
+            for eq_idx in range(shell3p_perturbed_rhs.Size()):
+                shell3p_fd_sensitivities[eq_idx] = (shell3p_perturbed_rhs[eq_idx] - shell3p_reference_rhs[eq_idx]) / delta
+
+            target_node.SetSolutionStepValue(KM.DISPLACEMENT_X, original_disp_x)
+
+            print(f"perturbed node {target_node_id} DOF DISPLACEMENT_X")
+            print("finite difference sensitivities (primal):", fd_sensitivities)
+
+            comparison_rows = min(shell3p_fd_sensitivities.Size(), fd_sensitivities.Size())
+
+            print("sensitivities comparison -------------------")
+            for eq_idx in range(comparison_rows):
+                adjoint_value = adjoint_LHS[eq_idx, target_idx]
+                print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_value)
+            print("-" * 40)
 
 
 
