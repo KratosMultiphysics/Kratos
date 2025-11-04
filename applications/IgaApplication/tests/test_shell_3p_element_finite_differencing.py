@@ -236,8 +236,8 @@ def solve_cantilever(create_geometry):
                 raise RuntimeError(f"Model part does not contain node {target_node_id}")
 
             target_node = model_part.GetNode(target_node_id)
-            original_disp_x = target_node.GetSolutionStepValue(KM.DISPLACEMENT_X)
-            target_node.SetSolutionStepValue(KM.DISPLACEMENT_X, original_disp_x + delta)
+            original_disp_x = target_node.X
+            target_node.X += delta
 
             element.InitializeNonLinearIteration(model_part.ProcessInfo)
             element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
@@ -254,7 +254,7 @@ def solve_cantilever(create_geometry):
             for eq_idx in range(shell3p_perturbed_rhs.Size()):
                 shell3p_fd_sensitivities[eq_idx] = (shell3p_perturbed_rhs[eq_idx] - shell3p_reference_rhs[eq_idx]) / delta
 
-            target_node.SetSolutionStepValue(KM.DISPLACEMENT_X, original_disp_x)
+            target_node.X = original_disp_x
 
             print(f"perturbed node {target_node_id} DOF DISPLACEMENT_X")
             print("finite difference sensitivities (primal):", fd_sensitivities)
