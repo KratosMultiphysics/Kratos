@@ -27,10 +27,10 @@ namespace Kratos
 ///@{
 void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     ModelPart& rModelPart, 
-    const Point& A_xyz, 
-    const Point& B_xyz,
-    const Point& A_uvw, 
-    const Point& B_uvw, 
+    const Point& rPointAXyz, 
+    const Point& rPointBXyz,
+    const Point& rPointAUvw, 
+    const Point& rPointBUvw, 
     const std::size_t OrderU, 
     const std::size_t OrderV, 
     const std::size_t NumKnotSpansU, 
@@ -39,8 +39,17 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
 {   
 
     // Call the CreateAndAddRegularGrid2D method of the base class NurbsGeometryModeler
-    NurbsGeometryModeler::CreateAndAddRegularGrid2D(rModelPart, A_xyz, B_xyz,
-        A_uvw, B_uvw, OrderU, OrderV, NumKnotSpansU, NumKnotSpansV, false);
+    NurbsGeometryModeler::CreateAndAddRegularGrid2D(
+        rModelPart,
+        rPointAXyz,
+        rPointBXyz,
+        rPointAUvw,
+        rPointBUvw,
+        OrderU,
+        OrderV,
+        NumKnotSpansU,
+        NumKnotSpansV,
+        false);
         
     // Create the Domain/Iga Model Part
     const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
@@ -77,8 +86,8 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         r_iga_model_part.SetValue(KNOT_SPAN_SIZES, knot_step_uv);
 
         // Create the breps for the outer sbm boundary
-        CreateBrepsSbmUtilities<Node, Point, false> CreateBrepsSbmUtilities(mEchoLevel);
-        CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, A_uvw, B_uvw, rModelPart);
+        CreateBrepsSbmUtilities<Node, Point, false> breps_sbm_utilities(mEchoLevel);
+        breps_sbm_utilities.CreateSurrogateBoundary(mpSurface, rPointAUvw, rPointBUvw, rModelPart);
 
         //TODO: This must be turned to an error once we finish the ongoing SBM BCs development
         KRATOS_WARNING("None of the 'skin_model_part_name' have not been defined ") << 
@@ -102,8 +111,8 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     }
 
     // Create the surrogate sub model parts inner and outer
-    ModelPart& surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");
-    ModelPart& surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");
+    ModelPart& r_surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");
+    ModelPart& r_surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");
     
     if (mParameters.Has("skin_model_part_name"))
         skin_model_part_name = mParameters["skin_model_part_name"].GetString();
@@ -120,9 +129,9 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
     
     // Skin model part refined after Snake Process
-    ModelPart& skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
-    skin_model_part.CreateSubModelPart("inner");
-    skin_model_part.CreateSubModelPart("outer");
+    ModelPart& r_skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
+    r_skin_model_part.CreateSubModelPart("inner");
+    r_skin_model_part.CreateSubModelPart("outer");
 
     // Create the parameters for the SnakeSbmProcess
     Kratos::Parameters snake_parameters;
@@ -147,13 +156,21 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     if (mParameters.Has("gap_approximation_order"))
         snake_parameters.AddInt("gap_approximation_order", mParameters["gap_approximation_order"].GetInt());
 
+
     // Create the surrogate_sub_model_part for inner and outer
+
     SnakeGapSbmProcess snake_sbm_process(*mpModel, snake_parameters);
     snake_sbm_process.ExecuteInitialize();
 
     // Create the breps for the outer sbm boundary
-    CreateBrepsSbmUtilities<Node, Point, true> CreateBrepsSbmUtilities(mEchoLevel);
-    CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw, r_iga_model_part);
+    CreateBrepsSbmUtilities<Node, Point, true> breps_sbm_utilities(mEchoLevel);
+    breps_sbm_utilities.CreateSurrogateBoundary(
+        mpSurface,
+        r_surrogate_sub_model_part_inner,
+        r_surrogate_sub_model_part_outer,
+        rPointAUvw,
+        rPointBUvw,
+        r_iga_model_part);
 
     snake_sbm_process.Execute();
 }
@@ -161,10 +178,10 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
 // 3D 
 void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D( 
     ModelPart& rModelPart,
-    const Point& A_xyz,
-    const Point& B_xyz,
-    const Point& A_uvw,
-    const Point& B_uvw,
+    const Point& rPointAXyz,
+    const Point& rPointBXyz,
+    const Point& rPointAUvw,
+    const Point& rPointBUvw,
     const std::size_t OrderU,
     const std::size_t OrderV,
     const std::size_t OrderW,
@@ -175,8 +192,19 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
 {   
 
     // Call the CreateAndAddRegularGrid3D method of the base class NurbsGeometryModeler
-    NurbsGeometryModeler::CreateAndAddRegularGrid3D(rModelPart, A_xyz, B_xyz,
-        A_uvw, B_uvw, OrderU, OrderV, OrderW, NumKnotSpansU, NumKnotSpansV, NumKnotSpansW, false);
+    NurbsGeometryModeler::CreateAndAddRegularGrid3D(
+        rModelPart,
+        rPointAXyz,
+        rPointBXyz,
+        rPointAUvw,
+        rPointBUvw,
+        OrderU,
+        OrderV,
+        OrderW,
+        NumKnotSpansU,
+        NumKnotSpansV,
+        NumKnotSpansW,
+        false);
              
     // Create the Domain/Iga Model Part
     const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
@@ -190,16 +218,16 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
     std::string skin_model_part_outer_initial_name = mParameters["skin_model_part_outer_initial_name"].GetString();
 
     // Create the surrogate sub model parts inner and outer
-    // ModelPart& surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");  // uncomment this line (next PR) 
-    // ModelPart& surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");  // uncomment this line (next PR)
+    // ModelPart& r_surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");  // uncomment this line (next PR) 
+    // ModelPart& r_surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");  // uncomment this line (next PR)
 
     // If there is not neither skin_inner nor skin_outer throw a warning since you are using the sbm modeler
     if (!(mParameters.Has("skin_model_part_inner_initial_name") || mParameters.Has("skin_model_part_outer_initial_name"))){
         
         // Create the breps for the outer sbm boundary
-        CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(mEchoLevel);
+        CreateBrepsSbmUtilities<Node, Point> breps_sbm_utilities_3d(mEchoLevel);
         // TODO: NEXT PR CreateSurrogateBoundary with Volume
-        // CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpVolume, A_uvw, B_uvw, rModelPart);
+        // breps_sbm_utilities_3d.CreateSurrogateBoundary(mpVolume, rPointAUvw, rPointBUvw, rModelPart);
 
         KRATOS_WARNING("None of the 'skin_model_part_name' have not been defined ") << 
                         "in the nurbs_geometry_modeler_sbm in the project paramer json" << std::endl;
@@ -221,9 +249,9 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
         : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
     
     // Skin model part refined after Snake Process
-    ModelPart& skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
-    skin_model_part.CreateSubModelPart("inner");
-    skin_model_part.CreateSubModelPart("outer");
+    ModelPart& r_skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
+    r_skin_model_part.CreateSubModelPart("inner");
+    r_skin_model_part.CreateSubModelPart("outer");
     
     
     // compute unique_knot_vector_u
@@ -280,9 +308,9 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
     // snake_sbm_process.Execute();
 
     // Create the breps for the outer sbm boundary // TODO: extend this in 3D
-    CreateBrepsSbmUtilities<Node, Point> CreateBrepsSbmUtilities(mEchoLevel);
+    CreateBrepsSbmUtilities<Node, Point> breps_sbm_utilities_3d(mEchoLevel);
     // TODO: NEXT PR CreateSurrogateBoundary with Volume
-    // CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpVolume, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw, iga_model_part);
+    // breps_sbm_utilities_3d.CreateSurrogateBoundary(mpVolume, r_surrogate_sub_model_part_inner, r_surrogate_sub_model_part_outer, rPointAUvw, rPointBUvw, r_iga_model_part);
 }
 
 
@@ -298,14 +326,13 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "upper_point_uvw": [1.0, 1.0, 0.0],
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [10, 10],
-        "lambda_inner": 0.5,
-        "lambda_outer": 0.5,
         "number_of_inner_loops": 0,
         "number_initial_points_if_importing_nurbs": 100,
         "number_internal_divisions": 1,
+        "gap_approximation_order": 0,
         "gap_element_name": "",
         "gap_interface_condition_name": "",
-        "gap_sbm_type": "standard"
+        "gap_sbm_type": "default"
     })");
 }
 
@@ -326,12 +353,13 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "number_of_inner_loops": 0,
         "number_initial_points_if_importing_nurbs": 100,
         "number_internal_divisions": 1,
-        "skin_model_part_inner_initial_name": "skin_model_part_inner_initial",
-        "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
-        "skin_model_part_name": "skin_model_part",
+        "gap_approximation_order": 0,
+        "skin_model_part_inner_initial_name": "r_skin_model_part_inner_initial",
+        "skin_model_part_outer_initial_name": "r_skin_model_part_outer_initial",
+        "skin_model_part_name": "r_skin_model_part",
         "gap_element_name": "",
         "gap_interface_condition_name": "",
-        "gap_sbm_type": "standard"
+        "gap_sbm_type": "default"
     })");
 }
 

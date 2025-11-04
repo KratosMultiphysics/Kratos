@@ -166,6 +166,10 @@ public:
     /// Destructor.
     ~SnakeGapSbmProcess() = default;
 
+    // Get the default parameters
+    const Parameters GetDefaultParameters() const override;
+    const Parameters GetValidParameters() const;
+
     ///@}
     ///@name Operations
     ///@{
@@ -193,27 +197,6 @@ public:
     KnotSpanIdsCSR CreateSkinConditionsPerKnotSpanMatrix(
         const ModelPart& rSkinSubModelPart,
         const SnakeGapSbmProcess::KnotSpanIdsCSR& rReferenceMatrix) const;
-
-    const Parameters GetDefaultParameters() const override
-    {
-        const Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name" : "",
-            "skin_model_part_inner_initial_name" : "SkinModelPartInnerInitial",
-            "skin_model_part_outer_initial_name" : "SkinModelPartOuterInitial",
-            "skin_model_part_name" : "SkinModelPart",
-            "gap_sbm_type": "standard",
-            "echo_level" : 0,
-            "lambda_inner" : 0.0,
-            "lambda_outer" : 1.0,
-            "number_of_inner_loops": 0,
-            "number_internal_divisions": 1,
-            "gap_element_name": "",
-            "gap_interface_condition_name": ""
-        })" );
-
-        return default_parameters;
-    }
 
 
 struct BinSearchParameters
@@ -268,7 +251,7 @@ private:
     ModelPart* mpGapInterfaceSubModelPart = nullptr; 
     std::string mGapElementName;
     std::string mGapInterfaceConditionName;
-    std::size_t mInternalDivision;
+    std::size_t mInternalDivisions;
     std::size_t mGapApproximationOrder;
     std::string mGapSbmType;
 
@@ -303,7 +286,6 @@ private:
     template <bool TIsInnerLoop>
     void CreateGapAndSkinQuadraturePoints(
         IntegrationParameters& rIntegrationParameters,
-        BinSearchParameters& rBinSearchParameters,
         NurbsSurfaceType::Pointer& pNurbsSurface,
         const Node::Pointer& pSurrogateNode1, 
         const Node::Pointer& pSurrogateNode2, 
@@ -823,6 +805,7 @@ bool SegmentsIntersect(
 //     const std::string& rLayer,
 //     const ModelPart& rSkinSubModelPart);
 
+template <bool TIsInnerLoop>
 IndexType FindClosestNodeInLayerWithDirection(
     const array_1d<double,3>& rStartPoint,
     const std::string& rLayer,

@@ -94,10 +94,10 @@ protected:
      **/
     void CreateAndAddRegularGrid2D(
         ModelPart& rModelPart, 
-        const Point& A_xyz, 
-        const Point& B_xyz, 
-        const Point& A_uvw, 
-        const Point& B_uvw,
+        const Point& rPointAXyz, 
+        const Point& rPointBXyz, 
+        const Point& rPointAUvw, 
+        const Point& rPointBUvw,
         const std::size_t OrderU, 
         const std::size_t OrderV, 
         const std::size_t NumKnotSpansU, 
@@ -114,10 +114,10 @@ protected:
      **/
     void CreateAndAddRegularGrid3D(
         ModelPart& rModelPart, 
-        const Point& A_xyz, 
-        const Point& B_xyz, 
-        const Point& A_uvw, 
-        const Point& B_uvw,
+        const Point& rPointAXyz, 
+        const Point& rPointBXyz, 
+        const Point& rPointAUvw, 
+        const Point& rPointBUvw,
         const std::size_t OrderU, 
         const std::size_t OrderV, 
         const std::size_t OrderW, 
