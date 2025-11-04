@@ -16,7 +16,6 @@
 // Project includes
 #include "custom_solvers/mkl_smoother_base.hpp" // MKLSmootherBase
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
-#include "custom_utilities/mkl_utilities.h"
 
 // STL includes
 #include <optional> // std::optional
@@ -63,8 +62,6 @@ void MKLSmootherBase<TSparse,TDense>::InitializeSolutionStep(SparseMatrix& rLhs,
                                                              Vector&)
 {
     KRATOS_TRY
-
-
     mpImpl->mMaybeRowExtents.emplace(rLhs.index1_data().size());
     mpImpl->mMaybeColumnIndices.emplace(rLhs.index2_data().size());
 
