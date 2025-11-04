@@ -10,6 +10,8 @@
 //  Main authors:    Gennady Markelov
 //
 
+#include "custom_operations/activate_model_part_operation.h"
+#include "custom_operations/deactivate_model_part_operation.h"
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
@@ -55,16 +57,16 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
     KRATOS_EXPECT_EQ(model_parts[1].get().Name(), "Part2");
 }
 
-struct NamedProcessFactory {
-    std::string name;
-    std::function<std::unique_ptr<Kratos::Process>(Kratos::Model&, const Kratos::Parameters&)> factory;
+struct NamedFactory {
+    std::string                                                    name;
+    std::function<void(Kratos::Model&, const Kratos::Parameters&)> factory;
 };
 
-class ProcessWithModelPartsTest : public ::testing::TestWithParam<NamedProcessFactory>
+class ModelPartsTest : public ::testing::TestWithParam<NamedFactory>
 {
 };
 
-TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_BothParametersPresent_Throws)
+TEST_P(ModelPartsTest, GetModelPartsFromSettings_BothParametersPresent_Throws)
 {
     Model model;
 
@@ -83,7 +85,7 @@ TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_BothParametersPresen
             param.name);
 }
 
-TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_MissingParameters_Throws)
+TEST_P(ModelPartsTest, GetModelPartsFromSettings_MissingParameters_Throws)
 {
     Model      model;
     Parameters settings(R"({"deactivate_soil_part": false})");
@@ -95,7 +97,7 @@ TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_MissingParameters_Th
         "Please specify 'model_part_name' or 'model_part_name_list' for " + param.name);
 }
 
-TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
+TEST_P(ModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
 {
     Model      model;
     Parameters settings(R"(
@@ -112,7 +114,7 @@ TEST_P(ProcessWithModelPartsTest, GetModelPartsFromSettings_EmptyList_Throws)
             param.name);
 }
 
-static const std::vector<NamedProcessFactory> kProcessFactories = {
+static const std::vector<NamedFactory> ProcessesAndOperations = {
     {"ApplyExcavationProcess",
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyExcavationProcess>(rModel, rSettings);
@@ -125,10 +127,18 @@ static const std::vector<NamedProcessFactory> kProcessFactories = {
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyFinalStressesOfPreviousStageToInitialState>(rModel, rSettings);
 }},
-    {"ApplyCPhiReductionProcess", [](Model& rModel, const Parameters& rSettings) {
+    {"ApplyCPhiReductionProcess",
+     [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyCPhiReductionProcess>(rModel, rSettings);
+}},
+    {"ActivateModelPartOperation",
+     [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::ActivateModelPartOperation>(rModel, rSettings);
+}},
+    {"DeactivateModelPartOperation", [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::DeactivateModelPartOperation>(rModel, rSettings);
 }}};
 
-INSTANTIATE_TEST_SUITE_P(ProcessUtilitiesTests, ProcessWithModelPartsTest, ::testing::ValuesIn(kProcessFactories));
+INSTANTIATE_TEST_SUITE_P(ProcessAndOperationUtilitiesTests, ModelPartsTest, ::testing::ValuesIn(ProcessesAndOperations));
 
 } // namespace Kratos::Testing
