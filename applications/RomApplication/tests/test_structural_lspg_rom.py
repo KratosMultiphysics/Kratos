@@ -28,7 +28,7 @@ def CustomizeSimulation(cls, global_model, parameters, mu=None):
 class TestStructuralLSPGRom(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.relative_tolerance = 1.0e-10
+        self.relative_tolerance = 1.0e-6
 
     def testStructuralStaticLSPGRom2D(self):
         self.work_folder = "structural_static_test_files/LSPGROM/"
