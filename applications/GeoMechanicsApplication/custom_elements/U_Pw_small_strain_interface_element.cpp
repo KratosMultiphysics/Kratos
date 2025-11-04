@@ -125,7 +125,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessIn
         for (const auto& element : mNeighbourElements) {
             std::vector<std::size_t> node_ids_common_with_element(1);
             std::vector<Vector>      cauchy_stresses;
-            this->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stresses, rCurrentProcessInfo);
+            element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stresses, rCurrentProcessInfo);
             const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalStresses<TNumNodes>(
                 node_ids_common_with_element, element->GetGeometry(),
                 element->GetIntegrationMethod(), cauchy_stresses);
