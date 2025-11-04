@@ -14,20 +14,12 @@
 #pragma once
 
 // System includes
-#include <utility>
-#include <unordered_map>
-#include <vector>
 
 // Project includes
-#include "containers/model.h"
 #include "includes/model_part.h"
 #include "spatial_containers/bins_dynamic.h"
-#include "processes/process.h"
-#include "geometries/nurbs_curve_geometry.h"
 #include "snake_sbm_process.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
-#include "includes/global_pointer_variables.h"
-
 #include "spaces/ublas_space.h"
 
 namespace Kratos

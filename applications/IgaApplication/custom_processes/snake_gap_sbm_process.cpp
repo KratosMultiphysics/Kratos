@@ -13,9 +13,6 @@
 // External includes
 
 // Project includes
-#include <algorithm>
-#include <cmath>
-#include <limits>
 #include "snake_gap_sbm_process.h"
 #include "integration/integration_point_utilities.h"
 #include "iga_application_variables.h"
@@ -995,7 +992,10 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     }
     else if (mGapSbmType == "default")
     {
-        if (norm_2(skin_2 - skin_1) > rIntegrationParameters.rKnotSpanSizes[0]/10 && abs(id_closest_true_node-id_closest_true_node_2)> (2*p+1) && p>1)
+        const IndexType id_diff = (id_closest_true_node > id_closest_true_node_2)
+            ? (id_closest_true_node - id_closest_true_node_2)
+            : (id_closest_true_node_2 - id_closest_true_node);
+        if (norm_2(skin_2 - skin_1) > rIntegrationParameters.rKnotSpanSizes[0]/10 && id_diff > static_cast<IndexType>(2*p+1) && p>1)
             p_nurbs_curve_skin1_skin2 = FitUV_BetweenSkinNodes_Generic<TIsInnerLoop>(
                 rSkinSubModelPart, *pNurbsSurface, id_closest_true_node, id_closest_true_node_2, p, /*ridge=*/1e-14);
     }

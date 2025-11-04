@@ -1130,7 +1130,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
     }
 
     // Create "fictituos element" to store starting and ending condition id for each surrogate boundary loop
-    IndexType elem_id = rSurrogateModelPartInner.NumberOfElements()+1;
+    IndexType elem_id = rSurrogateModelPartInner.GetRootModelPart().NumberOfElements()+1;
+
     IndexType id_surrogate_last_condition = id_surrogate_condition-1;
     std::vector<ModelPart::IndexType> elem_nodes{id_surrogate_first_condition, id_surrogate_last_condition};
     rSurrogateModelPartInner.CreateNewElement("Element2D2N", elem_id, elem_nodes, p_cond_prop);
