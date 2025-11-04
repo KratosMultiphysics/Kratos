@@ -731,14 +731,20 @@ void SnakeSbmProcess::SnakeStepNurbs(
     }
     if (!is_splitted) {
         // Call the root model part for the Ids of the node
-        auto idNode1 = rSkinModelPart.GetRootModelPart().Nodes().size();
-        auto idNode2 = idNode1+1;
-        // Create two nodes and two conditions for each skin condition
-        auto node = new Node(idNode2, rConditionCoord[0][1], rConditionCoord[1][1], 0.0);
+        auto idNode1 = (rSkinModelPart.GetRootModelPart().NodesEnd()-1)->Id();
 
         std::string layer_name = rpCurve->GetValue(IDENTIFIER);
         std::string condition_name = rpCurve->GetValue(CONDITION_NAME);
+        // check if we are jumping to the next layer. If yes we have to dublicate the skin node
+        if (!rSkinModelPart.HasNode(idNode1))
+        {
+            auto node_1 = rSkinModelPart.GetRootModelPart().pGetNode(idNode1);
+            rSkinModelPart.AddNode(node_1);
+        }
         
+        auto idNode2 = idNode1+1;
+        // Create two nodes and two conditions for each skin condition
+        auto node = new Node(idNode2, rConditionCoord[0][1], rConditionCoord[1][1], 0.0);
         // compute normal and tangent informations at the local coord of the point 
         std::vector<CoordinatesArrayType> global_space_derivatives;
         std::size_t derivative_order = 2;
