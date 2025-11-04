@@ -39,16 +39,16 @@ public:
         KRATOS_ERROR_IF_NOT(result.size2() == TNumNodes)
             << "Extrapolation matrix has unexpected number of columns: " << result.size2()
             << " (expected " << TNumNodes << ")" << std::endl;
-        rExtrapolationMatrix = result;
+        noalias(rExtrapolationMatrix) = result;
 
         KRATOS_CATCH("")
     }
 
     template <unsigned int TNumNodes>
-    static std::vector<Vector> CalculateNodalStresses(const std::vector<std::size_t>& node_ids,
-                                                      const Geometry<Node>&           rGeometry,
-                                                      const GeometryData::IntegrationMethod& rIntegrationMethod,
-                                                      std::vector<Vector>& rIntegrationPointStresses)
+    [[nodiscard]] static std::vector<Vector> CalculateNodalStresses(const std::vector<std::size_t>& node_ids,
+                                                                    const Geometry<Node>& rGeometry,
+                                                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                                                    const std::vector<Vector>& rIntegrationPointStresses)
     {
         std::vector<std::size_t> element_node_ids(TNumNodes);
         for (unsigned int i = 0; i < TNumNodes; ++i) {
