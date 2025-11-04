@@ -21,7 +21,7 @@ namespace Kratos
  * @details This class provides static methods and enumerations to handle thread management for Intel MKL operations
  * @author Vicente Mataix Ferrandiz
  */
-class MKLUtilities
+class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLUtilities
 {
 public:
     /**
