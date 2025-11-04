@@ -99,5 +99,6 @@ KRATOS_CREATE_VARIABLE(typename std::vector<Geometry<Node>::Pointer>, NEIGHBOUR_
 KRATOS_CREATE_VARIABLE(int, PROJECTION_NODE_ID)
 KRATOS_CREATE_VARIABLE(std::vector<std::string>, CONNECTED_LAYERS)
 KRATOS_CREATE_VARIABLE(std::vector<std::string>, CONNECTED_CONDITIONS)
+KRATOS_CREATE_VARIABLE(std::vector<IndexType>, INTERPOLATION_NODES_ID)
 
 } // namespace Kratos
