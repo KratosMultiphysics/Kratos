@@ -29,7 +29,8 @@ public:
     CalculateTotalMotionProcess(const CalculateTotalMotionProcess&)            = delete;
     CalculateTotalMotionProcess& operator=(const CalculateTotalMotionProcess&) = delete;
 
-    void Execute() override;
+    void                      Execute() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
     ModelPart&  mrModelPart;

@@ -316,22 +316,29 @@ private:
         BoundedMatrix<TDataType, 2, 2>& rVMatrix
         )
     {
-        const TDataType t = (rInputMatrix(0, 1) - rInputMatrix(1, 0))/(rInputMatrix(0, 0) + rInputMatrix(1, 1));
-        const TDataType c = 1.0/std::sqrt(1.0 + t*t);
-        const TDataType s = t*c;
-        BoundedMatrix<TDataType, 2, 2> r_matrix;
-        r_matrix(0, 0) =  c;
-        r_matrix(0, 1) = -s;
-        r_matrix(1, 0) =  s;
-        r_matrix(1, 1) =  c;
+        // If the trace (sum of diagonal elements) is approximately zero, handle as a special case
+        if (std::abs(rInputMatrix(0, 0) + rInputMatrix(1, 1)) < ZeroTolerance) {
+            noalias(rSMatrix) = rInputMatrix;      // S is just the original matrix
+            noalias(rUMatrix) = IdentityMatrix(2); // U is identity
+            noalias(rVMatrix) = rUMatrix;          // V is also identity
+        } else {
+            const TDataType t = (rInputMatrix(0, 1) - rInputMatrix(1, 0))/(rInputMatrix(0, 0) + rInputMatrix(1, 1));
+            const TDataType c = 1.0/std::sqrt(1.0 + t*t);
+            const TDataType s = t*c;
+            BoundedMatrix<TDataType, 2, 2> r_matrix;
+            r_matrix(0, 0) =  c;
+            r_matrix(0, 1) = -s;
+            r_matrix(1, 0) =  s;
+            r_matrix(1, 1) =  c;
 
-        BoundedMatrix<TDataType, 2, 2> m_matrix = prod(r_matrix, rInputMatrix);
+            BoundedMatrix<TDataType, 2, 2> m_matrix = prod(r_matrix, rInputMatrix);
 
-        SingularValueDecomposition2x2Symmetric(m_matrix, rUMatrix, rSMatrix, rVMatrix);
+            SingularValueDecomposition2x2Symmetric(m_matrix, rUMatrix, rSMatrix, rVMatrix);
 
-        BoundedMatrix<TDataType, 2, 2> auxiliary_matrix_m;
-        noalias(auxiliary_matrix_m) = prod(trans(r_matrix), rUMatrix);
-        noalias(rUMatrix) = auxiliary_matrix_m;
+            BoundedMatrix<TDataType, 2, 2> auxiliary_matrix_m;
+            noalias(auxiliary_matrix_m) = prod(trans(r_matrix), rUMatrix);
+            noalias(rUMatrix) = auxiliary_matrix_m;
+        }
     }
 
     /**
@@ -356,9 +363,9 @@ private:
     {
         // If the off-diagonal element is approximately zero, the matrix is already diagonal
         if (std::abs(rInputMatrix(1, 0)) < ZeroTolerance) {
-            noalias(rSMatrix) = rInputMatrix;    // S is just the original matrix
+            noalias(rSMatrix) = rInputMatrix;      // S is just the original matrix
             noalias(rUMatrix) = IdentityMatrix(2); // U is identity
-            noalias(rVMatrix) = rUMatrix;        // V is also identity
+            noalias(rVMatrix) = rUMatrix;          // V is also identity
         } else {
             // Extract elements from the symmetric 2x2 matrix
             const TDataType w = rInputMatrix(0, 0); // Top-left element
