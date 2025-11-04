@@ -77,9 +77,7 @@ class TestEigenSolverWithMassNormalizedEigenmodes(KratosUnittest.TestCase):
         eigen_val_vec = model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]
         ref_eigenvalues = ref_data["eigenvalues"]
 
-        self.assertEqual(eigen_val_vec.Size(), len(ref_eigenvalues))
-        for i in range(eigen_val_vec.Size()):
-            self.assertAlmostEqual(eigen_val_vec[i], ref_eigenvalues[i])
+        self.assertVectorAlmostEqual(eigen_val_vec, ref_eigenvalues)
 
         # Compare the eigenvectors
         for node in model_part.Nodes:
@@ -98,15 +96,7 @@ class TestEigenSolverWithMassNormalizedEigenmodes(KratosUnittest.TestCase):
                 for j in range(cols):
                     ref_mat[i, j] = ref_mat_list[i][j]
 
-            self.__CompareMatrix(eig_vec_mat, ref_mat)
-
-    def __CompareMatrix(self, mat_1, mat_2):
-        self.assertEqual(mat_1.Size1(), mat_2.Size1())
-        self.assertEqual(mat_1.Size2(), mat_2.Size2())
-
-        for i in range(mat_1.Size1()):
-            for j in range(mat_1.Size2()):
-                self.assertAlmostEqual(abs(mat_1[i,j]), abs(mat_2[i,j]))
+            self.assertMatrixAlmostEqual(eig_vec_mat, ref_mat)
 
 def SetupSystem(model_part):
     # manually creating the system to avoid extra files and because this way the manipulation of the system for the constraints is easier
