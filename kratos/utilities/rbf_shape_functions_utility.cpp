@@ -21,12 +21,30 @@
 
 namespace Kratos
 {
-    template <bool TApplyOnVector, class TOperation>
-    void BuildRBFSystem(Matrix& rMatrixTarget,
-                                  Vector* pVectorTarget,
-                                  const TOperation& rOperation,
-                                  const array_1d<double,3>* pX,
-                                  const Matrix& rPoints) noexcept
+    // 1) Matrix-only version
+    template <class TOperation>
+    void BuildRBFSystem(
+        Matrix& rMatrixTarget,
+        const TOperation& rOperation,
+        const Matrix& rPoints) noexcept
+    {
+        const std::size_t n_points = rPoints.size1();
+        for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
+            for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
+                const double norm_xij = norm_2(row(rPoints,i_pt) - row(rPoints,j_pt));
+                rMatrixTarget(i_pt,j_pt) = rOperation(norm_xij);
+            }
+        }
+    }
+
+    // 2) Matrix + vector version
+    template <class TOperation>
+    void BuildRBFSystem(
+        Matrix& rMatrixTarget,
+        Vector& rVectorTarget,
+        const TOperation& rOperation,
+        const array_1d<double,3>& rX,
+        const Matrix& rPoints) noexcept
     {
         const std::size_t n_points = rPoints.size1();
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
@@ -35,10 +53,8 @@ namespace Kratos
                 rMatrixTarget(i_pt,j_pt) = rOperation(norm_xij);
             }
 
-            if constexpr (TApplyOnVector) {
-                const double normX =  norm_2(*pX - row(rPoints,i_pt));
-                pVectorTarget->operator[](i_pt) = rOperation(normX);
-            }
+            const double normX = norm_2(rX - row(rPoints,i_pt));
+            rVectorTarget[i_pt] = rOperation(normX);
         }
     }
 
@@ -80,11 +96,11 @@ namespace Kratos
         Vector Phi = ZeroVector(n_points);
 
         switch (RBFType) {
-            case RBFType::InverseMultiquadric: BuildRBFSystem<true>(A, &Phi, RBFShapeFunctionsUtility::InverseMultiquadric {h}, &rX, rPoints);    break;
-            case RBFType::Multiquadric:        BuildRBFSystem<true>(A, &Phi, RBFShapeFunctionsUtility::Multiquadric {h}, &rX, rPoints);           break;
-            case RBFType::Gaussian:            BuildRBFSystem<true>(A, &Phi, RBFShapeFunctionsUtility::Gaussian {h}, &rX, rPoints);               break;
-            case RBFType::ThinPlateSpline:     BuildRBFSystem<true>(A, &Phi, RBFShapeFunctionsUtility::ThinPlateSpline(), &rX, rPoints);          break;
-            case RBFType::WendlandC2:          BuildRBFSystem<true>(A, &Phi, RBFShapeFunctionsUtility::WendlandC2 {h}, &rX, rPoints);             break;
+            case RBFType::InverseMultiquadric: BuildRBFSystem(A, Phi, RBFShapeFunctionsUtility::InverseMultiquadric {h}, rX, rPoints);    break;
+            case RBFType::Multiquadric:        BuildRBFSystem(A, Phi, RBFShapeFunctionsUtility::Multiquadric {h}, rX, rPoints);           break;
+            case RBFType::Gaussian:            BuildRBFSystem(A, Phi, RBFShapeFunctionsUtility::Gaussian {h}, rX, rPoints);               break;
+            case RBFType::ThinPlateSpline:     BuildRBFSystem(A, Phi, RBFShapeFunctionsUtility::ThinPlateSpline(), rX, rPoints);          break;
+            case RBFType::WendlandC2:          BuildRBFSystem(A, Phi, RBFShapeFunctionsUtility::WendlandC2 {h}, rX, rPoints);             break;
             default: KRATOS_ERROR << "Unhandled RBF operation type";
         }
 
@@ -144,11 +160,11 @@ namespace Kratos
 
         // Build the RBF interpolation matrix and RBF interpolated vector
         switch (RBFType) {
-            case RBFType::InverseMultiquadric: BuildRBFSystem<false>(A, nullptr, RBFShapeFunctionsUtility::InverseMultiquadric {h}, nullptr, rPoints);    break;
-            case RBFType::Multiquadric:        BuildRBFSystem<false>(A, nullptr, RBFShapeFunctionsUtility::Multiquadric {h}, nullptr, rPoints);           break;
-            case RBFType::Gaussian:            BuildRBFSystem<false>(A, nullptr, RBFShapeFunctionsUtility::Gaussian {h}, nullptr, rPoints);               break;
-            case RBFType::ThinPlateSpline:     BuildRBFSystem<false>(A, nullptr, RBFShapeFunctionsUtility::ThinPlateSpline(), nullptr, rPoints);          break;
-            case RBFType::WendlandC2:          BuildRBFSystem<false>(A, nullptr, RBFShapeFunctionsUtility::WendlandC2 {h}, nullptr, rPoints);             break;
+            case RBFType::InverseMultiquadric: BuildRBFSystem(A, RBFShapeFunctionsUtility::InverseMultiquadric {h}, rPoints);    break;
+            case RBFType::Multiquadric:        BuildRBFSystem(A, RBFShapeFunctionsUtility::Multiquadric {h}, rPoints);           break;
+            case RBFType::Gaussian:            BuildRBFSystem(A, RBFShapeFunctionsUtility::Gaussian {h}, rPoints);               break;
+            case RBFType::ThinPlateSpline:     BuildRBFSystem(A, RBFShapeFunctionsUtility::ThinPlateSpline(), rPoints);          break;
+            case RBFType::WendlandC2:          BuildRBFSystem(A, RBFShapeFunctionsUtility::WendlandC2 {h}, rPoints);             break;
             default: KRATOS_ERROR << "Unhandled RBF operation type";
         }
 
