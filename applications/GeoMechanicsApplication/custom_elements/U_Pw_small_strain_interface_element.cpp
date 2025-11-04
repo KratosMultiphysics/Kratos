@@ -124,11 +124,11 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessIn
     if (!mNeighbourElements.empty()) {
         for (const auto& element : mNeighbourElements) {
             std::vector<std::size_t> node_ids_common_with_element(1);
-            std::vector<Vector>      cauchcy_stresses;
-            this->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchcy_stresses, rCurrentProcessInfo);
+            std::vector<Vector>      cauchy_stresses;
+            this->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stresses, rCurrentProcessInfo);
             const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalStresses<TNumNodes>(
                 node_ids_common_with_element, element->GetGeometry(),
-                element->GetIntegrationMethod(), cauchcy_stresses);
+                element->GetIntegrationMethod(), cauchy_stresses);
             KRATOS_ERROR_IF_NOT(nodal_stresses.size() == node_ids_common_with_element.size())
                 << " vectors have different sizes" << std::endl;
         }
