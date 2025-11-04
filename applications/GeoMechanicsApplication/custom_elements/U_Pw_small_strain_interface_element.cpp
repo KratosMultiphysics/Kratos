@@ -112,8 +112,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessIn
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         r_geometry.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int VoigtSize  = TDim;
-    if ((mStressVector.size() != NumGPoints) || (mStressVector[0].size() != VoigtSize)) {
+    if (const unsigned int VoigtSize = TDim;
+        (mStressVector.size() != NumGPoints) || (mStressVector[0].size() != VoigtSize)) {
         mStressVector.resize(NumGPoints);
         for (unsigned int i = 0; i < mStressVector.size(); ++i) {
             mStressVector[i].resize(VoigtSize);
