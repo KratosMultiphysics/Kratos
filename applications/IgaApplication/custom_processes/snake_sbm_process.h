@@ -115,7 +115,6 @@ protected:
     template <bool TIsInnerLoop>
     static void CreateTheSnakeCoordinates(
         const ModelPart& rSkinModelPartInitial,
-        const std::size_t NumberOfInnerLoops,
         const std::size_t NumberOfLoops,
         const double Lambda,
         IndexType EchoLevel,
