@@ -315,6 +315,12 @@ class TestModelPartIO(KratosUnittest.TestCase):
         value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
         self.assertTrue(value)
 
+        # Writing a second time should yield the same results.
+        # (unless writing is allowed to mutate the model part because we're not const-correct ...)
+        model_part_io.WriteModelPart(model_part)
+        value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
+        self.assertTrue(value)
+
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_model_part_io_write_model_part_mesh_only(self):
         current_model = KratosMultiphysics.Model()
