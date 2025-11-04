@@ -736,22 +736,24 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateNodalStresses, KratosGe
     p_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stress_vectors, process_info);
 
     // Act
-    const std::vector<std::size_t> node_ids = {1,2,3};
+    const std::vector<std::size_t> node_ids = {1, 2, 3};
     const auto nodal_stresses = p_element->CalculateNodalStresses(node_ids, process_info);
 
     // Assert
     KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());
 
     std::vector<Vector> expected_nodal_stresses;
-    Vector expected_stress;
-    expected_stress <<= 1000, 4000, 0;
+    Vector              expected_stress(4);
+    expected_stress = cauchy_stress_vectors[0] - Vector(4, 1000.0);
     expected_nodal_stresses.push_back(expected_stress);
+    expected_stress = cauchy_stress_vectors[1];
     expected_nodal_stresses.push_back(expected_stress);
+    expected_stress = cauchy_stress_vectors[2] + Vector(4, 1000.0);
     expected_nodal_stresses.push_back(expected_stress);
 
     for (auto i = std::size_t{0}; i < nodal_stresses.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(nodal_stresses[i],
-                                           expected_nodal_stresses[i], Defaults::relative_tolerance);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(nodal_stresses[i], expected_nodal_stresses[i],
+                                           Defaults::relative_tolerance);
     }
 }
 
