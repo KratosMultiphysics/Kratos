@@ -95,9 +95,10 @@ if( USE_EIGEN_FEAST MATCHES ON )
 endif()
 
 if (USE_EIGEN_SUITESPARSE)
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
-    find_package(SuiteSparse REQUIRED)
-    target_compile_definitions(KratosLinearSolversCore PUBLIC "KRATOS_USE_EIGEN_SUITESPARSE")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindCHOLMOD.cmake")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindSPQR.cmake")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindUMFPACK.cmake")
+    add_definitions(-DKRATOS_USE_EIGEN_SUITESPARSE)
 endif()
 
 ## generate variables with the sources
@@ -147,9 +148,13 @@ endif()
 
 if (USE_EIGEN_SUITESPARSE)
     target_link_libraries(KratosLinearSolversCore PUBLIC
-                          SuiteSparse::CHOLMOD
-                          SuiteSparse::SPQR
-                          SuiteSparse::UMFPACK)
+                          ${CHOLMOD_LIBRARIES}
+                          ${SPQR_LIBRARIES}
+                          ${UMFPACK_LIBRARIES})
+    target_include_directories(KratosLinearSolversCore PUBLIC
+                               ${CHOLMOD_INCLUDES}
+                               ${SPQR_INCLUDES}
+                               ${UMFPACK_INCLUDES})
 endif()
 
 # changing the .dll suffix to .pyd

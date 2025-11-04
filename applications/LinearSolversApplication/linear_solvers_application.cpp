@@ -152,12 +152,6 @@ void KratosLinearSolversApplication::Register()
         KRATOS_REGISTER_LINEAR_SOLVER("cholmod", factory);
     }
 
-    // Complex CHOLMOD.
-    {
-        static auto factory = EigenDirectSolver<EigenCholmodSolver<complex>>::Factory();
-        KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("cholmod_complex", factory);
-    }
-
     // Real SPQR.
     {
         static auto factory = EigenDirectSolver<EigenSPQRSolver<double>>::Factory();

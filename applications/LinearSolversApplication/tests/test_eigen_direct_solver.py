@@ -131,10 +131,6 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         self.__ExecuteEigenDirectSolverTest("SPQRSolver", "spqr")
 
     @KratosUnittest.skipIf(not LinearSolversApplication.HasSuiteSparse(), "Kratos was compiled without SuiteSparse support.")
-    def test_ComplexEigenCholmod(self) -> None:
-        self.__ExecuteEigenDirectComplexSolverTest("ComplexCholmodSolver", "cholmod_complex")
-
-    @KratosUnittest.skipIf(not LinearSolversApplication.HasSuiteSparse(), "Kratos was compiled without SuiteSparse support.")
     def test_ComplexEigenUmfPack(self) -> None:
         self.__ExecuteEigenDirectComplexSolverTest("ComplexUmfPackSolver", "umfpack_complex")
 
