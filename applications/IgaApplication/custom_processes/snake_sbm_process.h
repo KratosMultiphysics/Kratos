@@ -115,7 +115,7 @@ protected:
     template <bool TIsInnerLoop>
     static void CreateTheSnakeCoordinates(
         const ModelPart& rSkinModelPartInitial,
-        const std::size_t NumberOfInnerLoops,
+        const std::size_t NumberOfLoops,
         const double Lambda,
         IndexType EchoLevel,
         ModelPart& rIgaModelPart,
@@ -218,7 +218,6 @@ protected:
 
 private:
 
-
     /**
      * @brief Performs a single step in the snake algorithm for 2D models.
      * 
@@ -233,11 +232,11 @@ private:
     static void SnakeStep(
         const int IdMatrixKnotSpansAvailable, 
         const std::vector<std::vector<int>>& rKnotSpansUV, 
-        const std::vector<std::vector<double>>& ConditionCoords, 
-        const Vector KnotStepUV, 
-        const Vector StartingPositionUV,
+        const std::vector<std::vector<double>>& rConditionCoordinates, 
+        const array_1d<double, 2>& rKnotStepUV, 
+        const array_1d<double, 2>& rStartingPositionUV,
         ModelPart& rSkinModelPart, 
-        std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable
+        std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable
         );
     
     /**
@@ -255,14 +254,14 @@ private:
      */
     static void SnakeStepNurbs(
             const int IdMatrixKnotSpansAvailable, 
-            const std::vector<std::vector<int>> rKnotSpansUV, 
+            const std::vector<std::vector<int>>& rKnotSpansUV, 
             const std::vector<std::vector<double>>& rConditionCoord, 
-            const Vector rKnotStepUV, 
-            const Vector rStartingPosition,
-            const std::vector<double> rLocalCoords,
-            const NurbsCurveGeometryPointerType &rpCurve,
+            const array_1d<double, 2>& rKnotStepUV, 
+            const array_1d<double, 2>& rStartingPosition,
+            const std::vector<double>& rLocalCoords,
+            const NurbsCurveGeometryPointerType& rpCurve,
             ModelPart& rSkinModelPart, 
-            std::vector<std::vector<std::vector<int>>> &rKnotSpansAvailable
+            std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable
             );
 
     /**
@@ -315,13 +314,13 @@ private:
      */
     static void CreateSurrogateBuondaryFromSnakeInner(
         const int IdMatrix,
-        const ModelPart& SkinModelPartInner,
+        const ModelPart& rSkinModelPartInner,
         DynamicBins& rPointsBinInner,
         const std::vector<int>& rNumberKnotSpans,
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV,
         const Vector& rStartingPositionUV,
-        std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable,
+        std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartInner
         );
 
@@ -340,13 +339,13 @@ private:
      */
     static void CreateSurrogateBuondaryFromSnakeOuter(
         const int IdMatrix,
-        const ModelPart& SkinModelPartOuter,
+        const ModelPart& rSkinModelPartOuter,
         DynamicBins& rPointsBinOuter,
         const std::vector<int>& rNumberKnotSpans,
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV,
         const Vector& rStartingPositionUV,
-        std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable,
+        std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
         );
     
@@ -371,7 +370,7 @@ private:
      * @param grid 
      */
     template <bool TIsInnerLoop>
-    static void KeepLargestZeroIsland(std::vector<std::vector<int>>& grid);
+    static void KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid);
 
 }; // Class SnakeSbmProcess
 
