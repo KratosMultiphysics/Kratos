@@ -1375,14 +1375,12 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<Vector> UPwSmallStrainElement<TDim, TNumNodes>::CalculateNodalStresses(
-    const std::vector<std::size_t>& node_ids,
-    const ProcessInfo&              rCurrentProcessInfo
-    )
+    const std::vector<std::size_t>& node_ids, const ProcessInfo& rCurrentProcessInfo)
 {
-    const auto& geometry = this->GetGeometry();
+    const auto&              r_geometry = this->GetGeometry();
     std::vector<std::size_t> element_node_ids(TNumNodes);
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        element_node_ids[i] = geometry[i].Id();
+        element_node_ids[i] = r_geometry[i].Id();
     }
 
     std::vector<Vector> integration_point_stresses;
@@ -1394,7 +1392,8 @@ std::vector<Vector> UPwSmallStrainElement<TDim, TNumNodes>::CalculateNodalStress
     std::vector<Vector> nodal_stresses(TNumNodes, ZeroVector(integration_point_stresses[0].size()));
     for (unsigned int node_index = 0; node_index < TNumNodes; ++node_index) {
         for (unsigned int gp_index = 0; gp_index < integration_point_stresses.size(); ++gp_index) {
-            nodal_stresses[node_index] += extrapolation_matrix(node_index, gp_index) * integration_point_stresses[gp_index];
+            nodal_stresses[node_index] +=
+                extrapolation_matrix(node_index, gp_index) * integration_point_stresses[gp_index];
         }
     }
 
@@ -1408,7 +1407,6 @@ std::vector<Vector> UPwSmallStrainElement<TDim, TNumNodes>::CalculateNodalStress
 
     return result;
 }
-
 
 template class UPwSmallStrainElement<2, 3>;
 template class UPwSmallStrainElement<2, 4>;

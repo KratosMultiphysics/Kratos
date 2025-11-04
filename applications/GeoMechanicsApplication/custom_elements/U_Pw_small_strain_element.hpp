@@ -122,8 +122,7 @@ public:
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
     std::vector<Vector> CalculateNodalStresses(const std::vector<std::size_t>& node_ids,
-    const ProcessInfo& rCurrentProcessInfo
-);
+                                               const ProcessInfo&              rCurrentProcessInfo);
 
     using UPwBaseElement::CalculateOnIntegrationPoints;
 
