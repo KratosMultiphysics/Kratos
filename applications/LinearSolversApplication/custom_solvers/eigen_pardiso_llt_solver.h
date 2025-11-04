@@ -65,8 +65,6 @@ public:
 
     bool Compute(Eigen::Map<const SparseMatrix> a)
     {
-        // Check thread consistency
-        MKLUtilities::CheckThreadNumber(mNumberOfMKLThreads);
 
         // Actually compute
         m_solver.compute(a);
