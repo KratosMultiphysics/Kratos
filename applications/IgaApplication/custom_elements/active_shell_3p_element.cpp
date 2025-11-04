@@ -548,8 +548,10 @@ namespace Kratos
     )
     {
         KRATOS_TRY;
-        // Rayleigh Damping Matrix: alpha*M + beta*K
 
+        KRATOS_ERROR << "Damping matrix not implemented for ActiveShell3pElement yet - not extended by the active parameters" << std::endl;
+
+        // Rayleigh Damping Matrix: alpha*M + beta*K
         // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
         double alpha = 0.0;
         if (GetProperties().Has(RAYLEIGH_ALPHA))
@@ -599,6 +601,8 @@ namespace Kratos
     )
     {
         KRATOS_TRY;
+
+        KRATOS_ERROR << "Mass matrix not implemented for ActiveShell3pElement yet - not extended by the active parameters" << std::endl;
 
         const auto& r_geometry = GetGeometry();
 

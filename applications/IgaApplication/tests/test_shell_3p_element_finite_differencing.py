@@ -187,8 +187,8 @@ def solve_cantilever(create_geometry):
 
             print("primal_rhs\n:", primal_rhs)
             print("-" * 40)
-            print("primal_LHS\n:", primal_LHS)
-            print("-" * 40)
+            # print("primal_LHS\n:", primal_LHS)
+            # print("-" * 40)
 
 
             # adjoint calculation
@@ -200,7 +200,6 @@ def solve_cantilever(create_geometry):
 
             adjoint_rhs = KM.Vector()
             adjoint_element.CalculateRightHandSide(adjoint_rhs, model_part.ProcessInfo)
-            # adjoint_element.CalculateSensitivityMatrix(adjoint_LHS, model_part.ProcessInfo)
             
             _report_matrix_diff(primal_LHS, adjoint_LHS, diff_threshold=1e-4,
                                 reference_label="primal_LHS", comparison_label="adjoint_LHS")
@@ -226,17 +225,21 @@ def solve_cantilever(create_geometry):
                                               reference_label="primal_rhs",
                                               comparison_label="shell3p_reference_rhs")
 
+
+            # Finite differencing loop over node perturbations
             perturbed_primal_rhs = KM.Vector()
             shell3p_perturbed_rhs = KM.Vector()
 
             target_node_id = 9
-            target_idx = 24  # column index associated with node 9 displacement X
 
             if not model_part.HasNode(target_node_id):
                 raise RuntimeError(f"Model part does not contain node {target_node_id}")
 
             target_node = model_part.GetNode(target_node_id)
-            original_disp_x = target_node.X
+            
+            #  node.X  #######################################
+            target_idx = 24  # column index associated with node 9 displacement X
+
             target_node.X += delta
 
             element.InitializeNonLinearIteration(model_part.ProcessInfo)
@@ -245,30 +248,67 @@ def solve_cantilever(create_geometry):
             Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
             Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_perturbed_rhs, model_part.ProcessInfo)
 
-            fd_sensitivities = KM.Vector(perturbed_primal_rhs.Size())
-            shell3p_fd_sensitivities = KM.Vector(shell3p_perturbed_rhs.Size())
+            fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
+            shell3p_fd_sensitivities = (shell3p_perturbed_rhs - shell3p_reference_rhs) / delta
 
-            for eq_idx in range(perturbed_primal_rhs.Size()):
-                fd_sensitivities[eq_idx] = (perturbed_primal_rhs[eq_idx] - primal_rhs[eq_idx]) / delta
-
-            for eq_idx in range(shell3p_perturbed_rhs.Size()):
-                shell3p_fd_sensitivities[eq_idx] = (shell3p_perturbed_rhs[eq_idx] - shell3p_reference_rhs[eq_idx]) / delta
-
-            target_node.X = original_disp_x
-
-            print(f"perturbed node {target_node_id} DOF DISPLACEMENT_X")
-            print("finite difference sensitivities (primal):", fd_sensitivities)
+            target_node.X -= delta
 
             comparison_rows = min(shell3p_fd_sensitivities.Size(), fd_sensitivities.Size())
 
-            print("sensitivities comparison -------------------")
+            print(f"perturbed node {target_node_id} Coordinate .X")
+            print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
             for eq_idx in range(comparison_rows):
-                adjoint_value = adjoint_LHS[eq_idx, target_idx]
-                print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_value)
+                print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+            print("-" * 40)
+
+            #  node.Y  #######################################
+            target_idx = 25  # column index associated with node 9 displacement Y
+
+            target_node.Y += delta
+
+            element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
+
+            Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_perturbed_rhs, model_part.ProcessInfo)
+
+            fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
+            shell3p_fd_sensitivities = (shell3p_perturbed_rhs - shell3p_reference_rhs) / delta
+
+            target_node.Y -= delta
+
+            comparison_rows = min(shell3p_fd_sensitivities.Size(), fd_sensitivities.Size())
+
+            print(f"perturbed node {target_node_id} Coordinate .Y")
+            print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
+            for eq_idx in range(comparison_rows):
+                print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
             print("-" * 40)
 
 
+            #  node.Z  #######################################
+            target_idx = 26  # column index associated with node 9 displacement Z
 
+            target_node.Z += delta
+
+            element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
+
+            Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_perturbed_rhs, model_part.ProcessInfo)
+
+            fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
+            shell3p_fd_sensitivities = (shell3p_perturbed_rhs - shell3p_reference_rhs) / delta
+
+            target_node.Z -= delta
+
+            comparison_rows = min(shell3p_fd_sensitivities.Size(), fd_sensitivities.Size())
+
+            print(f"perturbed node {target_node_id} Coordinate .Z")
+            print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
+            for eq_idx in range(comparison_rows):
+                print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+            print("-" * 40)
 
     return surface
 
