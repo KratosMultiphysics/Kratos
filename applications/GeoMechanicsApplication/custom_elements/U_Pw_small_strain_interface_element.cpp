@@ -15,9 +15,10 @@
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/extrapolation_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
-#include <custom_utilities/stress_strain_utilities.h>
 
 namespace Kratos
 {
@@ -117,6 +118,16 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessIn
         for (unsigned int i = 0; i < mStressVector.size(); ++i) {
             mStressVector[i].resize(VoigtSize);
             std::ranges::fill(mStressVector[i], 0.0);
+        }
+    }
+
+    if (!mNeighbourElements.empty()) {
+        for (const auto& element : mNeighbourElements) {
+            std::vector<std::size_t> node_ids_common_with_element;
+            std::vector<Vector>      cauchcy_stresses;
+            this->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchcy_stresses, rCurrentProcessInfo);
+            const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalStresses<TNumNodes>(
+                node_ids_common_with_element, this->GetGeometry(), this->GetIntegrationMethod(), cauchcy_stresses);
         }
     }
 

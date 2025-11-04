@@ -173,8 +173,9 @@ protected:
     };
 
     /// Member Variables
-    std::vector<double> mInitialGap;
-    std::vector<bool>   mIsOpen;
+    std::vector<double>   mInitialGap;
+    std::vector<bool>     mIsOpen;
+    std::vector<Element*> mNeighbourElements;
 
     void ModifyInactiveElementStress(const double& JointWidth, Vector& StressVector);
 
