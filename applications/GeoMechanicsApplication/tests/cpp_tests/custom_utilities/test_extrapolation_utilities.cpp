@@ -47,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosG
 
     // Act
     const std::vector<std::size_t> node_ids = {1, 2, 3};
-    const auto nodal_stresses               = ExtrapolationUtilities::CalculateNodalStresses<3U>(
+    const auto nodal_stresses               = ExtrapolationUtilities::CalculateNodalStresses<3>(
         node_ids, element.GetGeometry(), element.GetIntegrationMethod(), cauchy_stress_vectors);
 
     // Assert
