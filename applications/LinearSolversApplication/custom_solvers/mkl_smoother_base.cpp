@@ -64,8 +64,6 @@ void MKLSmootherBase<TSparse,TDense>::InitializeSolutionStep(SparseMatrix& rLhs,
 {
     KRATOS_TRY
 
-    // Check thread consistency
-    MKLUtilities::CheckThreadNumber(0);
 
     mpImpl->mMaybeRowExtents.emplace(rLhs.index1_data().size());
     mpImpl->mMaybeColumnIndices.emplace(rLhs.index2_data().size());
