@@ -67,6 +67,9 @@ public:
     using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
     using SparseMatrixType = SparseSpaceType::MatrixType;
 
+    /**
+     * @brief Compact CSR container used to associate knot spans with node or condition identifiers.
+     */
     struct KnotSpanIdsCSR
     {
         // Metadata (as in your previous struct)
@@ -85,12 +88,21 @@ public:
         std::vector<IndexType> pool;         // flat contiguous storage of node ids
     };
 
+    /**
+     * @brief Lightweight view exposing a contiguous block of identifiers.
+     */
     struct IdsView {
         const IndexType* data = nullptr;
         std::size_t size = 0;
     };
 
-    // Return the CSR "k" index for entry (i,j), or static_cast<std::size_t>(-1) if not found.
+    /**
+     * @brief Returns the CSR non-zero index for a given matrix entry.
+     * @param A Constant reference to the sparse matrix inspected.
+     * @param i Row index requested for the lookup.
+     * @param j Column index requested for the lookup.
+     * @return The flattened CSR index when the entry exists, or static_cast<std::size_t>(-1) otherwise.
+     */
     static std::size_t FindNnzIndex(const SparseMatrixType& A, std::size_t i, std::size_t j)
     {
         if (i >= A.size1() || j >= A.size2()) return static_cast<std::size_t>(-1);
@@ -116,8 +128,12 @@ public:
     }
 
 
-    // Pack temporary per-cell vectors into the compact pool and set offsets/lengths.
-    // Also sorts and unique-erases each list.
+    /**
+     * @brief Packs per-cell node identifiers into the CSR payload.
+     * @param tmp Temporary storage containing unsorted node identifiers per cell.
+     * @param out Reference to the CSR container receiving the compacted data.
+     * @details The entries are sorted and deduplicated prior to being appended to the pool.
+     */
     static void CommitPayload(std::vector<std::vector<IndexType>>& tmp,
                                     KnotSpanIdsCSR& out)
     {
@@ -135,13 +151,24 @@ public:
         }
     }
 
-    // Access node ids for a given nonzero k
+    /**
+     * @brief Provides the node identifiers associated with a CSR entry index.
+     * @param S Reference to the CSR structure storing the identifiers.
+     * @param k Flat CSR index representing the queried cell.
+     * @return Lightweight view on the node identifiers stored in the entry.
+     */
     static IdsView CellIdsByK(const KnotSpanIdsCSR& S, const std::size_t k)
     {
         return IdsView{ S.pool.data() + S.nnz_off[k], S.nnz_len[k] };
     }
 
-    // Access node ids for a given cell (i,j). Returns empty view if cell empty.
+    /**
+     * @brief Retrieves the node identifiers stored for a specific cell location.
+     * @param S Reference to the CSR structure storing the identifiers.
+     * @param i Row index of the inspected cell.
+     * @param j Column index of the inspected cell.
+     * @return Lightweight view on the node identifiers, or an empty view when the cell is empty.
+     */
     static IdsView CellIds(const KnotSpanIdsCSR& S, const std::size_t i, const std::size_t j)
     {
         const std::size_t k = FindNnzIndex(S.Occupancy, i, j);
@@ -158,76 +185,88 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
+    /**
+     * @brief Constructs the SnakeGapSbmProcess with the provided model and parameters.
+     * @param rModel Reference to the parent model instance.
+     * @param ThisParameters Parameter container describing the SBM configuration.
+     */
     SnakeGapSbmProcess(
         Model& rModel,
         Parameters ThisParameters);
 
-    /// Destructor.
+    /**
+     * @brief Defaulted destructor.
+     */
     ~SnakeGapSbmProcess() = default;
 
-    // Get the default parameters
+    /**
+     * @brief Retrieves the default parameter set for the process.
+     * @return Parameter container holding the default values.
+     */
     const Parameters GetDefaultParameters() const override;
+
+    /**
+     * @brief Retrieves the validated parameter set for the process.
+     * @return Parameter container with validated entries.
+     */
     const Parameters GetValidParameters() const;
 
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Executes the process and builds the extended gap SBM geometries.
+     */
     void Execute() override
     {   
         CreateSbmExtendedGeometries();
     };
     
+    /**
+     * @brief Prepares the process before the simulation starts.
+     */
     void ExecuteInitialize() override
     {
         SnakeSbmProcess::CreateTheSnakeCoordinates();
     };
 
+    /**
+     * @brief Initializes data required at the beginning of the solution step.
+     */
     void ExecuteInitializeSolutionStep() override
     {};
 
+    /**
+     * @brief Executes tasks required before entering the solution loop.
+     */
     void ExecuteBeforeSolutionLoop() override
     {};
 
+    /**
+     * @brief Builds a CSR matrix linking skin nodes to knot span bins.
+     * @param rSkinSubModelPart Reference to the skin model part.
+     * @param rSurrogateSubModelPart Reference to the surrogate model part used for binning.
+     * @return CSR structure collecting the node identifiers per knot span.
+     */
     KnotSpanIdsCSR CreateSkinNodesPerKnotSpanMatrix(
         const ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart) const;
 
+    /**
+     * @brief Builds a CSR matrix linking skin conditions to knot span bins.
+     * @param rSkinSubModelPart Reference to the skin model part containing the conditions.
+     * @param rReferenceMatrix Reference to the node-based CSR used as topology template.
+     * @return CSR structure collecting the condition identifiers per knot span.
+     */
     KnotSpanIdsCSR CreateSkinConditionsPerKnotSpanMatrix(
         const ModelPart& rSkinSubModelPart,
         const SnakeGapSbmProcess::KnotSpanIdsCSR& rReferenceMatrix) const;
 
 
-struct BinSearchParameters
-{
-    DynamicBins&                                   rTestBins;
-    std::size_t                                       NumberOfResults;
-    ModelPart::NodesContainerType::ContainerType   Results;
-    std::vector<double>                            ListOfDistances;
-    double                                         SearchRadius;
-
-    BinSearchParameters(
-        DynamicBins&                               rBins,
-        std::size_t                                   NumberOfResultsInput,
-        ModelPart::NodesContainerType::ContainerType ResultsInput,
-        std::vector<double>                        DistancesInput,
-        double                                     SearchRadiusInput)
-        : rTestBins(rBins)
-        , NumberOfResults(NumberOfResultsInput)
-        , Results(std::move(ResultsInput))
-        , ListOfDistances(std::move(DistancesInput))
-        , SearchRadius(SearchRadiusInput)
-    {}
-
-    void reset()
-    {
-        Results.clear();
-        ListOfDistances.clear();
-    }
-};
-
-
+/**
+ * @brief Aggregates integration settings shared across gap SBM computations.
+ */
 struct IntegrationParameters
 {
     std::size_t  NumberOfShapeFunctionsDerivatives;
@@ -235,6 +274,12 @@ struct IntegrationParameters
     const Vector&           rKnotSpanSizes;
     const KnotSpanIdsCSR* pSkinNodesPerSpan = nullptr;
     const KnotSpanIdsCSR* pSkinConditionsPerSpan = nullptr;
+    /**
+     * @brief Initializes the integration parameters container.
+     * @param NumberOfDerivatives Number of shape function derivatives required.
+     * @param rInfo Reference to the IntegrationInfo used to build quadrature.
+     * @param rKnotSpans Reference to the vector storing knot span lengths.
+     */
     IntegrationParameters(
         std::size_t                    NumberOfDerivatives,
         const IntegrationInfo&      rInfo,
@@ -275,7 +320,6 @@ private:
      * @brief Creates gap and skin quadrature point data for the supplied entities.
      * @tparam TIsInnerLoop True when processing inner loop quadrature information.
      * @param rIntegrationParameters Reference to the integration parameters container.
-     * @param rBinSearchParameters Reference to the bin search configuration.
      * @param pNurbsSurface Pointer to the NURBS surface used for projections.
      * @param pSurrogateNode1 Pointer to the first surrogate node of the pair.
      * @param pSurrogateNode2 Pointer to the second surrogate node of the pair.
@@ -316,16 +360,6 @@ private:
         const ModelPart& rSkinSubModelPart,
         Node::Pointer pSurrogateNode1, 
         Node::Pointer pSurrogateNode2);
-
-    void FindClosestTruePointToSurrogateVertexByNurbs(); // FIXME: unused; remove or implement
-
-    bool ProjectToSkinBoundary( // FIXME: unused; remove or implement
-        const ModelPart* pSkinModelPart,
-        const CoordinatesArrayType& rPoint,
-        CoordinatesArrayType& rProjectedPoint,
-        CoordinatesArrayType& rProjectedPointLocal,
-        std::vector<array_1d<double, 3>>& rCurveDerivatives,
-        int nInitialGuesses);
     
     /**
      * @brief Creates the gap conditions associated with the provided geometries.
@@ -335,7 +369,7 @@ private:
      * @param rConditionName Reference to the registered condition name.
      * @param rIdCounter Reference to the identifier counter used for new entities.
      * @param pProperties Pointer to the properties assigned to the created conditions.
-     * @param KnotSpanSizes Knot span sizes driving the quadrature creation.
+     * @param KnotSpanSizes Vector storing the knot span sizes guiding the quadrature creation.
      * @param pSurrogateReferenceGeometries Reference geometries used for the surrogate association.
      */
     void CreateConditions(
@@ -400,20 +434,18 @@ private:
             return p_trimming_curve;
         }
     
-    /// 
-    /**  
-     * @brief Return n×n Gauss points mapped on the curved quadrilateral
-     * 
-     * @param Order
-     * @param rB0
-     * @param rL0
-     * @param rL1
-     * @param rB1
-     * @param rP00
-     * @param rP01
-     * @param rP10
-     * @param rP11
-     * @return IntegrationPointsArrayType
+    /**
+     * @brief Returns Gauss points mapped on the curved quadrilateral defined by the Coons patch.
+     * @param Order Quadrature order used in each parametric direction.
+     * @param rB0 Brep curve describing the edge at eta = 0.
+     * @param rL0 Brep curve describing the edge at xi = 0.
+     * @param rL1 Brep curve describing the edge at xi = 1.
+     * @param rB1 Brep curve describing the edge at eta = 1.
+     * @param rP00 Corner point at (xi, eta) = (0,0).
+     * @param rP01 Corner point at (xi, eta) = (0,1).
+     * @param rP10 Corner point at (xi, eta) = (1,0).
+     * @param rP11 Corner point at (xi, eta) = (1,1).
+     * @return Array of integration points mapped onto the Coons surface.
      */
     IntegrationPointsArrayType CreateCoonsPatchGaussPoints(
         std::size_t                  Order,
@@ -428,12 +460,30 @@ private:
 
     // --- static utility helpers ----------------------------------
 
-    /// Global coordinates of a point on a Brep-curve at parameter t
+    /**
+     * @brief Computes the global coordinates of a point on a Brep curve at the requested parameter.
+     * @param rCurve Reference to the Brep curve geometry.
+     * @param T Parametric coordinate where the curve is evaluated.
+     * @return Global coordinates corresponding to the evaluated parameter.
+     */
     static array_1d<double,3> GlobalPoint(
         const GeometryType& rCurve,
         double               T);
 
-    /// Coons patch mapping X(ξ,η)
+    /**
+     * @brief Evaluates the Coons patch mapping at the given parametric location.
+     * @param Xi Parametric coordinate along the first direction.
+     * @param Eta Parametric coordinate along the second direction.
+     * @param rB0 Brep curve representing the edge at eta = 0.
+     * @param rL0 Brep curve representing the edge at xi = 0.
+     * @param rL1 Brep curve representing the edge at xi = 1.
+     * @param rB1 Brep curve representing the edge at eta = 1.
+     * @param rP00 Corner point at (xi, eta) = (0,0).
+     * @param rP01 Corner point at (xi, eta) = (0,1).
+     * @param rP10 Corner point at (xi, eta) = (1,0).
+     * @param rP11 Corner point at (xi, eta) = (1,1).
+     * @return Global coordinates of the Coons patch at (Xi, Eta).
+     */
     static array_1d<double,3> CoonsPoint(
         double                     Xi,
         double                     Eta,
@@ -446,20 +496,50 @@ private:
         const array_1d<double,3>&  rP10,
         const array_1d<double,3>&  rP11);
 
+    /**
+     * @brief Computes the derivative of the Coons patch with respect to xi or eta.
+     * @param Xi Parametric coordinate along the first direction.
+     * @param Eta Parametric coordinate along the second direction.
+     * @param WithRespectToXi True to differentiate with respect to xi, false for eta.
+     * @param rB0 Brep curve representing the edge at eta = 0.
+     * @param rL0 Brep curve representing the edge at xi = 0.
+     * @param rL1 Brep curve representing the edge at xi = 1.
+     * @param rB1 Brep curve representing the edge at eta = 1.
+     * @param rP00 Corner point at (xi, eta) = (0,0).
+     * @param rP01 Corner point at (xi, eta) = (0,1).
+     * @param rP10 Corner point at (xi, eta) = (1,0).
+     * @param rP11 Corner point at (xi, eta) = (1,1).
+     * @return Derivative vector evaluated at (Xi, Eta).
+     */
     static array_1d<double,3> CoonsDerivative(
         const double                 Xi,
         const double                 Eta,
         const bool                   WithRespectToXi,
-        const BrepCurveType&          rB0,   // bordo in eta=0   -> B0(ξ)
-        const BrepCurveType&          rL0,   // bordo in xi=0    -> L0(η)
-        const BrepCurveType&          rL1,   // bordo in xi=1    -> L1(η)
-        const BrepCurveType&          rB1,   // bordo in eta=1   -> B1(ξ)
+        const BrepCurveType&          rB0,
+        const BrepCurveType&          rL0,
+        const BrepCurveType&          rL1,
+        const BrepCurveType&          rB1,
         const array_1d<double,3>&    rP00,
         const array_1d<double,3>&    rP01,
         const array_1d<double,3>&    rP10,
         const array_1d<double,3>&    rP11);
 
-    /// Finite-difference derivative of CoonsPoint
+    /**
+     * @brief Approximates the Coons patch derivative by finite differences.
+     * @param Xi Parametric coordinate along the first direction.
+     * @param Eta Parametric coordinate along the second direction.
+     * @param WithRespectToXi True to differentiate with respect to xi, false for eta.
+     * @param rB0 Brep curve representing the edge at eta = 0.
+     * @param rL0 Brep curve representing the edge at xi = 0.
+     * @param rL1 Brep curve representing the edge at xi = 1.
+     * @param rB1 Brep curve representing the edge at eta = 1.
+     * @param rP00 Corner point at (xi, eta) = (0,0).
+     * @param rP01 Corner point at (xi, eta) = (0,1).
+     * @param rP10 Corner point at (xi, eta) = (1,0).
+     * @param rP11 Corner point at (xi, eta) = (1,1).
+     * @param Step Increment used for the finite difference approximation.
+     * @return Approximate derivative vector at (Xi, Eta).
+     */
     static array_1d<double,3> CoonsDerivativeFD(
         const double                     Xi,
         const double                     Eta,
@@ -475,7 +555,15 @@ private:
         double                     Step = 1.0e-8);
 
 
-/** Collect skin points between two condition IDs, project them to UV (inclusive). */
+/**
+ * @brief Collects skin nodes between two indices and projects them to the UV space.
+ * @tparam TIsInnerLoop True when traversing the inner loop orientation.
+ * @param rSkinSubModelPart Reference to the skin sub model part considered.
+ * @param rSurface Reference to the surface used for the projection.
+ * @param id_node_1 Identifier of the starting skin node.
+ * @param id_node_2 Identifier of the ending skin node.
+ * @return Ordered list of projected UV coordinates.
+ */
 template <bool TIsInnerLoop>
 std::vector<array_1d<double,3>> CollectSkinUVBetween(
     const ModelPart& rSkinSubModelPart,
@@ -493,7 +581,7 @@ std::vector<array_1d<double,3>> CollectSkinUVBetween(
 
     IndexType id = id_node_1;
 
-    int iter = 0;
+    ModelPart::SizeType iter = 0;
     while (true) {
         const auto& p_node = rSkinSubModelPart.pGetNode(id);
         array_1d<double,3> uv = p_node->Coordinates();
@@ -516,7 +604,11 @@ std::vector<array_1d<double,3>> CollectSkinUVBetween(
 
 
 
-/** Chord-length parametrization on [0,1] for UV points. */
+/**
+ * @brief Computes the chord-length parametrization on [0,1] for UV samples.
+ * @param UV Collection of UV points describing the sampled curve.
+ * @return Normalized cumulative arc-length parameters.
+ */
 std::vector<double> ChordLengthParams01_UV(const std::vector<array_1d<double,3>>& UV) const
 {
     const std::size_t n = UV.size();
@@ -567,7 +659,12 @@ std::vector<double> ChordLengthParams01_UV(const std::vector<array_1d<double,3>>
 //
 // ================================================================
 
-/** Evaluate Bernstein basis of degree p at t in [0,1]. B has size p+1. */
+/**
+ * @brief Evaluates the Bernstein basis of degree p at a parameter in [0,1].
+ * @param p Polynomial degree of the basis.
+ * @param t Parametric value where the basis is evaluated.
+ * @param B Vector storing the evaluated basis functions.
+ */
 void BernsteinBasis(const int p, const double t, std::vector<double>& B) const
 {
     const double s = std::min(1.0, std::max(0.0, t));
@@ -588,7 +685,11 @@ void BernsteinBasis(const int p, const double t, std::vector<double>& B) const
     }
 }
 
-/** Build Bézier knot vector [0...0, 1...1] with multiplicity p+1 each side. */
+/**
+ * @brief Builds a Bézier knot vector with multiplicity p+1 at the boundaries.
+ * @param p Polynomial degree of the Bézier curve.
+ * @param rKnots Vector receiving the generated knot values.
+ */
 void BuildBezierKnots(const int p, Vector& rKnots) const
 {
     const int nkn = 2*(p+1);
@@ -597,7 +698,12 @@ void BuildBezierKnots(const int p, Vector& rKnots) const
     for (int i=p+1;i<nkn;++i) rKnots[i]      = 1.0;
 }
 
-/** Tiny dense solver for symmetric positive definite (normal eq.) with ridge. */
+/**
+ * @brief Solves a symmetric positive definite linear system using a simple Cholesky factorization.
+ * @param A Reference to the system matrix, overwritten with its factorization.
+ * @param b Right-hand side vector, overwritten with the solution.
+ * @return True when the system is successfully solved.
+ */
 bool SolveSPD(std::vector<std::vector<double>>& A, std::vector<double>& b) const
 {
     // Cholesky (naive) with simple pivot guard
@@ -633,7 +739,12 @@ bool SolveSPD(std::vector<std::vector<double>>& A, std::vector<double>& b) const
     return true;
 }
 
-/** Build a UV Bézier/NURBS of degree p from control points (weights=1). */
+/**
+ * @brief Creates a UV Bézier curve of degree p from a set of control points.
+ * @param CtrlsUV Control points expressed in UV coordinates.
+ * @param p Polynomial degree of the resulting curve.
+ * @return Pointer to the constructed Bézier curve geometry.
+ */
 typename NurbsCurveGeometryType::Pointer MakeBezierUV_FromControls(
     const std::vector<array_1d<double,3>>& CtrlsUV, const int p) const
 {
@@ -657,7 +768,13 @@ typename NurbsCurveGeometryType::Pointer MakeBezierUV_FromControls(
         new NurbsCurveGeometryType(ctrl, p, knots, w));
 }
 
-/** Generic LS fit of degree p for UV samples with fixed endpoints. */
+/**
+ * @brief Performs a least-squares Bézier fit of degree p for UV samples with fixed endpoints.
+ * @param UVsamples Ordered UV samples, inclusive of both endpoints.
+ * @param p Polynomial degree of the fitted curve.
+ * @param ridge Ridge regularization magnitude applied to the normal equations.
+ * @return Pointer to the fitted Bézier curve geometry.
+ */
 typename NurbsCurveGeometryType::Pointer FitBezierUV_LS_Generic(
     const std::vector<array_1d<double,3>>& UVsamples, // ordered, inclusive
     const int p,
@@ -722,7 +839,11 @@ typename NurbsCurveGeometryType::Pointer FitBezierUV_LS_Generic(
     return MakeBezierUV_FromControls(Ctrls, p);
 }
 
-/** Reverse orientation of a UV Bézier/NURBS (any degree): returns the same geometry, reversed. */
+/**
+ * @brief Reverses the orientation of a UV Bézier curve.
+ * @param p_forward Pointer to the curve whose orientation is reversed.
+ * @return Pointer to a curve geometry with inverted control point order.
+ */
 typename NurbsCurveGeometryType::Pointer ReverseBezierUV_Generic(
     const typename NurbsCurveGeometryType::Pointer& p_forward) const
 {
@@ -742,7 +863,17 @@ typename NurbsCurveGeometryType::Pointer ReverseBezierUV_Generic(
         new NurbsCurveGeometryType(ctrl_rev, p, knots, w));
 }
 
-/** Fit between two skin conditions (inclusive) with general degree p in UV. */
+/**
+ * @brief Fits a UV Bézier curve between two skin nodes with the requested degree.
+ * @tparam TIsInnerLoop True when traversing the inner loop orientation.
+ * @param rSkinSubModelPart Reference to the skin sub model part containing the nodes.
+ * @param rSurface Reference to the surface used for UV projection.
+ * @param id_node_1 Identifier of the first node of the fitting interval.
+ * @param id_node_2 Identifier of the last node of the fitting interval.
+ * @param p Polynomial degree of the Bézier curve.
+ * @param ridge Ridge regularization applied to the fitting system.
+ * @return Pointer to the fitted Bézier curve geometry.
+ */
 template <bool TIsInnerLoop>
 typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
     const ModelPart& rSkinSubModelPart,
@@ -764,6 +895,13 @@ typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
     return FitBezierUV_LS_Generic(UV, p, ridge);
 }
 
+/**
+ * @brief Computes the orientation sign of the triangle (p, q, r).
+ * @param p Pointer to the first point.
+ * @param q Pointer to the second point.
+ * @param r Pointer to the third point.
+ * @return Signed area representing the orientation.
+ */
 double Orientation(
     const Node::Pointer& p, const Node::Pointer& q, const Node::Pointer& r)
 {
@@ -771,6 +909,13 @@ double Orientation(
            (q->Y() - p->Y()) * (r->X() - p->X());
 }
 
+/**
+ * @brief Checks whether a point lies on the segment joining two other points.
+ * @param p Pointer to the first endpoint.
+ * @param q Pointer to the point to be tested.
+ * @param r Pointer to the second endpoint.
+ * @return True when q lies within the bounding box of segment pr.
+ */
 bool OnSegment(
     const Node::Pointer& p, const Node::Pointer& q, const Node::Pointer& r)
 {
@@ -778,6 +923,14 @@ bool OnSegment(
             std::min(p->Y(), r->Y()) <= q->Y() && q->Y() <= std::max(p->Y(), r->Y()));
 }
 
+/**
+ * @brief Determines if two segments intersect in the plane.
+ * @param A Pointer to the first endpoint of the first segment.
+ * @param B Pointer to the second endpoint of the first segment.
+ * @param C Pointer to the first endpoint of the second segment.
+ * @param D Pointer to the second endpoint of the second segment.
+ * @return True when the segments intersect.
+ */
 bool SegmentsIntersect(
     const Node::Pointer& A, const Node::Pointer& B, const Node::Pointer& C, const Node::Pointer& D)
 {
@@ -786,11 +939,11 @@ bool SegmentsIntersect(
     double o3 = Orientation(C, D, A);
     double o4 = Orientation(C, D, B);
 
-    // Caso generale
+    // General case
     if (o1 * o2 < 0.0 && o3 * o4 < 0.0)
         return true;
 
-    // Collinearità (con bounding box)
+    // Collinearity (with bounding box check)
     if (std::abs(o1) < 1e-14 && OnSegment(A, C, B)) return true;
     if (std::abs(o2) < 1e-14 && OnSegment(A, D, B)) return true;
     if (std::abs(o3) < 1e-14 && OnSegment(C, A, D)) return true;
@@ -799,12 +952,17 @@ bool SegmentsIntersect(
     return false;
 }
 
-// IndexType FindClosestNodeInLayer( //FIXME: remove
-//     const DynamicBinsPointerType& rStartPoint,
-//     BinSearchParameters& rSearchParameters,
-//     const std::string& rLayer,
-//     const ModelPart& rSkinSubModelPart);
-
+/**
+ * @brief Finds the closest node belonging to the target layer by following a prescribed direction.
+ * @tparam TIsInnerLoop True when searching along the inner loop orientation.
+ * @param rStartPoint Starting point used for the directional search.
+ * @param rLayer Name of the skin layer to be matched.
+ * @param rSkinSubModelPart Reference to the skin sub model part containing the candidate nodes.
+ * @param rKnotSpanSizes Reference to the knot span sizes guiding the search.
+ * @param rSkinConditionsPerSpan CSR matrix storing skin conditions per knot span.
+ * @param rDirection Direction vector used for ray casting.
+ * @return Identifier of the closest node fulfilling the criteria.
+ */
 template <bool TIsInnerLoop>
 IndexType FindClosestNodeInLayerWithDirection(
     const array_1d<double,3>& rStartPoint,
