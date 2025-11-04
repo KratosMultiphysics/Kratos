@@ -17,7 +17,6 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/hydraulic_discharge.h"
-#include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/node_utilities.h"
 #include "custom_utilities/output_utilities.hpp"
@@ -1300,25 +1299,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariable
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix)
-{
-    KRATOS_TRY
-
-    const auto extrapolator = LinearNodalExtrapolator{};
-    const auto result       = extrapolator.CalculateElementExtrapolationMatrix(
-        this->GetGeometry(), this->GetIntegrationMethod());
-    KRATOS_ERROR_IF_NOT(result.size1() == TNumNodes)
-        << "Extrapolation matrix has unexpected number of rows: " << result.size1() << " (expected "
-        << TNumNodes << ")" << std::endl;
-    KRATOS_ERROR_IF_NOT(result.size2() == TNumNodes)
-        << "Extrapolation matrix has unexpected number of columns: " << result.size2()
-        << " (expected " << TNumNodes << ")" << std::endl;
-    rExtrapolationMatrix = result;
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 Vector UPwSmallStrainElement<TDim, TNumNodes>::GetPressureSolutionVector()
 {
     Vector result(TNumNodes);
@@ -1371,41 +1351,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
 
         mConstitutiveLawVector[integration_point]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
     }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-std::vector<Vector> UPwSmallStrainElement<TDim, TNumNodes>::CalculateNodalStresses(
-    const std::vector<std::size_t>& node_ids, const ProcessInfo& rCurrentProcessInfo)
-{
-    const auto&              r_geometry = this->GetGeometry();
-    std::vector<std::size_t> element_node_ids(TNumNodes);
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        element_node_ids[i] = r_geometry[i].Id();
-    }
-
-    std::vector<Vector> integration_point_stresses;
-    this->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, integration_point_stresses, rCurrentProcessInfo);
-
-    BoundedMatrix<double, TNumNodes, TNumNodes> extrapolation_matrix;
-    this->CalculateExtrapolationMatrix(extrapolation_matrix);
-
-    std::vector<Vector> nodal_stresses(TNumNodes, ZeroVector(integration_point_stresses[0].size()));
-    for (unsigned int node_index = 0; node_index < TNumNodes; ++node_index) {
-        for (unsigned int gp_index = 0; gp_index < integration_point_stresses.size(); ++gp_index) {
-            nodal_stresses[node_index] +=
-                extrapolation_matrix(node_index, gp_index) * integration_point_stresses[gp_index];
-        }
-    }
-
-    std::vector<Vector> result;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        std::size_t node_id = node_ids[i];
-        if (std::find(node_ids.begin(), node_ids.end(), node_id) != node_ids.end()) {
-            result.emplace_back(nodal_stresses[i]);
-        }
-    }
-
-    return result;
 }
 
 template class UPwSmallStrainElement<2, 3>;

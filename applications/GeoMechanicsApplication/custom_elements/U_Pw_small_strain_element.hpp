@@ -121,9 +121,6 @@ public:
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
-    std::vector<Vector> CalculateNodalStresses(const std::vector<std::size_t>& node_ids,
-                                               const ProcessInfo&              rCurrentProcessInfo);
-
     using UPwBaseElement::CalculateOnIntegrationPoints;
 
     std::string Info() const override
@@ -272,8 +269,6 @@ protected:
                                         std::vector<Vector>& rStrainVectors,
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
-
-    void CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix);
 
     void ResetHydraulicDischarge();
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);

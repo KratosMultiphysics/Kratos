@@ -14,6 +14,7 @@
 // Application includes
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/extrapolation_utilities.hpp"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
@@ -257,7 +258,8 @@ void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(const array
     const SizeType NumNodes = 3;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    ExtrapolationUtilities::CalculateExtrapolationMatrix<NumNodes>(
+        this->GetGeometry(), this->GetIntegrationMethod(), ExtrapolationMatrix);
 
     Matrix AuxNodalConstitutiveTensor(NumNodes, this->GetStressStatePolicy().GetVoigtSize());
     for (unsigned int i = 0; i < Dim; ++i) {
@@ -291,8 +293,8 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateGPConstitutiveTensor(const array
     const SizeType NumNodes = 4;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
+    ExtrapolationUtilities::CalculateExtrapolationMatrix<NumNodes>(
+        this->GetGeometry(), this->GetIntegrationMethod(), ExtrapolationMatrix);
     auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
@@ -316,8 +318,8 @@ void UPwSmallStrainFICElement<3, 4>::ExtrapolateGPConstitutiveTensor(const array
     const SizeType NumNodes = 4;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
+    ExtrapolationUtilities::CalculateExtrapolationMatrix<NumNodes>(
+        this->GetGeometry(), this->GetIntegrationMethod(), ExtrapolationMatrix);
     auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
@@ -341,8 +343,8 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateGPConstitutiveTensor(const array
     const SizeType NumNodes = 8;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
+    ExtrapolationUtilities::CalculateExtrapolationMatrix<NumNodes>(
+        this->GetGeometry(), this->GetIntegrationMethod(), ExtrapolationMatrix);
     auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
@@ -362,8 +364,8 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::ExtrapolateGPDtStress(const Matr
     KRATOS_TRY
 
     BoundedMatrix<double, TNumNodes, TNumNodes> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
+    ExtrapolationUtilities::CalculateExtrapolationMatrix<TNumNodes>(
+        this->GetGeometry(), this->GetIntegrationMethod(), ExtrapolationMatrix);
     BoundedMatrix<double, TNumNodes, TDim> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix, DtStressContainer);
 
@@ -542,8 +544,8 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateShapeFunctionsGradients(
     }
 
     BoundedMatrix<double, 4, 4> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
+    ExtrapolationUtilities::CalculateExtrapolationMatrix<4>(
+        this->GetGeometry(), this->GetIntegrationMethod(), ExtrapolationMatrix);
     BoundedMatrix<double, 4, 8> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix, ShapeFunctionsGradientsContainer);
 
@@ -610,8 +612,8 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateShapeFunctionsGradients(
     }
 
     BoundedMatrix<double, 8, 8> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
+    ExtrapolationUtilities::CalculateExtrapolationMatrix<8>(
+        this->GetGeometry(), this->GetIntegrationMethod(), ExtrapolationMatrix);
     BoundedMatrix<double, 8, 24> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix, ShapeFunctionsGradientsContainer);
 
