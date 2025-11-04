@@ -49,8 +49,6 @@ template <class TSparse, class TDense>
 MKLSmootherBase<TSparse,TDense>::MKLSmootherBase()
     : mpImpl(new Impl)
 {
-    // Ensure the number of threads in MKL is the same considered for other operations
-    MKLUtilities::SetMKLThreadCount(0);
 }
 
 
