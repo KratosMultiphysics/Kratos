@@ -37,7 +37,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GapSbmSolidCondition);
 
     /// Size types
-    using SizeType = std::size_t;
     using IndexType = std::size_t;
 
     ///@}
@@ -209,7 +208,7 @@ struct ConstitutiveVariables
      * The default constructor
      * @param StrainSize The size of the strain vector in Voigt notation
      */
-    ConstitutiveVariables(const SizeType StrainSize)
+    ConstitutiveVariables(const std::size_t StrainSize)
     {
         if (StrainVector.size() != StrainSize)
             StrainVector.resize(StrainSize);
@@ -267,7 +266,7 @@ void CalculateB(
  * @param rConstitutiVariables 
  */
 void ApplyConstitutiveLaw(
-        SizeType matSize, 
+        std::size_t matSize, 
         Vector& rStrain, 
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiVariables);

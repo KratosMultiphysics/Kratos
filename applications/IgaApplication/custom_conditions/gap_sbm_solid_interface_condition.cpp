@@ -10,7 +10,6 @@
 //
 //  Main authors:    Andea Gorgi
 //                  
-//
 
 // System includes
 
@@ -132,12 +131,12 @@ void GapSbmSolidInterfaceCondition::CalculateLocalSystem(
     const auto& r_surrogate_geometry_plus = GetGeometryPlus();
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
 
-    const SizeType number_of_control_points_plus = r_surrogate_geometry_plus.size();
-    const SizeType number_of_control_points_minus = r_surrogate_geometry_minus.size();
+    const std::size_t number_of_control_points_plus = r_surrogate_geometry_plus.size();
+    const std::size_t number_of_control_points_minus = r_surrogate_geometry_minus.size();
 
-    const SizeType number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
+    const std::size_t number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
 
-    const SizeType mat_size = number_of_control_points * 2;
+    const std::size_t mat_size = number_of_control_points * 2;
 
     if (rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size);
@@ -163,14 +162,14 @@ void GapSbmSolidInterfaceCondition::CalculateLeftHandSide(
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
     const auto& r_true_geometry = GetGeometry();
 
-    const SizeType number_of_control_points_plus = r_surrogate_geometry_plus.size();
-    const SizeType number_of_control_points_minus = r_surrogate_geometry_minus.size();
+    const std::size_t number_of_control_points_plus = r_surrogate_geometry_plus.size();
+    const std::size_t number_of_control_points_minus = r_surrogate_geometry_minus.size();
 
-    const SizeType number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
+    const std::size_t number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
 
-    const SizeType mat_size_plus = number_of_control_points_plus * mDim;
-    const SizeType mat_size_minus = number_of_control_points_minus * mDim;
-    const SizeType mat_size = number_of_control_points * mDim;
+    const std::size_t mat_size_plus = number_of_control_points_plus * mDim;
+    const std::size_t mat_size_minus = number_of_control_points_minus * mDim;
+    const std::size_t mat_size = number_of_control_points * mDim;
 
     // reading integration points and local gradients
     const double integration_weight = GetValue(INTEGRATION_WEIGHT);
@@ -209,7 +208,7 @@ void GapSbmSolidInterfaceCondition::CalculateLeftHandSide(
     Vector old_displacement_coefficient_vector_plus(mat_size_plus);
     GetSolutionCoefficientVectorPlus(old_displacement_coefficient_vector_plus);
     Vector old_strain_on_true_plus = prod(B_sum_plus, old_displacement_coefficient_vector_plus);
-    const SizeType strain_size_true_plus = mpConstitutiveLaw->GetStrainSize();
+    const std::size_t strain_size_true_plus = mpConstitutiveLaw->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true_plus(strain_size_true_plus);
     ApplyConstitutiveLaw(mat_size_plus, old_strain_on_true_plus, values_true_plus, this_constitutive_variables_true_plus);
 
@@ -220,7 +219,7 @@ void GapSbmSolidInterfaceCondition::CalculateLeftHandSide(
     Vector old_displacement_coefficient_vector_minus(mat_size_minus);
     GetSolutionCoefficientVectorMinus(old_displacement_coefficient_vector_minus);
     Vector old_strain_on_true_minus = prod(B_sum_minus, old_displacement_coefficient_vector_minus);
-    const SizeType strain_size_true_minus = mpConstitutiveLaw->GetStrainSize();
+    const std::size_t strain_size_true_minus = mpConstitutiveLaw->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true_minus(strain_size_true_minus);
     ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus);
 
@@ -232,7 +231,7 @@ void GapSbmSolidInterfaceCondition::CalculateLeftHandSide(
 
     // ASSEMBLE
     //-----------------------------------------------------
-    const SizeType shift_dof = mat_size_plus;
+    const std::size_t shift_dof = mat_size_plus;
     // -w_plus * (sigma_plus + sigma_minus) /2
     for (IndexType i = 0; i < number_of_control_points_plus; i++) {
         // FIRST TERM: -w_plus * sigma_plus /2
@@ -423,14 +422,14 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
     const auto& r_true_geometry = GetGeometry();
 
-    const SizeType number_of_control_points_plus = r_surrogate_geometry_plus.size();
-    const SizeType number_of_control_points_minus = r_surrogate_geometry_minus.size();
+    const std::size_t number_of_control_points_plus = r_surrogate_geometry_plus.size();
+    const std::size_t number_of_control_points_minus = r_surrogate_geometry_minus.size();
 
-    const SizeType number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
+    const std::size_t number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
 
-    const SizeType mat_size_plus = number_of_control_points_plus * mDim;
-    const SizeType mat_size_minus = number_of_control_points_minus * mDim;
-    const SizeType mat_size = number_of_control_points * mDim;
+    const std::size_t mat_size_plus = number_of_control_points_plus * mDim;
+    const std::size_t mat_size_minus = number_of_control_points_minus * mDim;
+    const std::size_t mat_size = number_of_control_points * mDim;
 
     // reading integration points and local gradients
     const double integration_weight = GetValue(INTEGRATION_WEIGHT);
@@ -469,7 +468,7 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
     Vector old_displacement_coefficient_vector_plus(mat_size_plus);
     GetSolutionCoefficientVectorPlus(old_displacement_coefficient_vector_plus);
     Vector old_strain_on_true_plus = prod(B_sum_plus, old_displacement_coefficient_vector_plus);
-    const SizeType strain_size_true_plus = mpConstitutiveLaw->GetStrainSize();
+    const std::size_t strain_size_true_plus = mpConstitutiveLaw->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true_plus(strain_size_true_plus);
     ApplyConstitutiveLaw(mat_size_plus, old_strain_on_true_plus, values_true_plus, this_constitutive_variables_true_plus);
 
@@ -484,7 +483,7 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
     Vector old_displacement_coefficient_vector_minus(mat_size_minus);
     GetSolutionCoefficientVectorMinus(old_displacement_coefficient_vector_minus);
     Vector old_strain_on_true_minus = prod(B_sum_minus, old_displacement_coefficient_vector_minus);
-    const SizeType strain_size_true_minus = mpConstitutiveLaw->GetStrainSize();
+    const std::size_t strain_size_true_minus = mpConstitutiveLaw->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true_minus(strain_size_true_minus);
     ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus);
 
@@ -509,7 +508,7 @@ void GapSbmSolidInterfaceCondition::CalculateRightHandSide(
 
     // ASSEMBLE
     //-----------------------------------------------------
-    const SizeType shift_dof = mat_size_plus;
+    const std::size_t shift_dof = mat_size_plus;
     // -w_plus * (sigma_plus + sigma_minus) /2
     for (IndexType i = 0; i < number_of_control_points_plus; i++) {
 
@@ -593,12 +592,12 @@ void GapSbmSolidInterfaceCondition::EquationIdVector(
     const auto& r_surrogate_geometry_plus = GetGeometryPlus();
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
 
-    const SizeType number_of_control_points_plus = r_surrogate_geometry_plus.size();
-    const SizeType number_of_control_points_minus = r_surrogate_geometry_minus.size();
+    const std::size_t number_of_control_points_plus = r_surrogate_geometry_plus.size();
+    const std::size_t number_of_control_points_minus = r_surrogate_geometry_minus.size();
 
-    const SizeType number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
+    const std::size_t number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
 
-    const SizeType shift_dof = number_of_control_points_plus * 2;
+    const std::size_t shift_dof = number_of_control_points_plus * 2;
 
     if (rResult.size() != 2 * number_of_control_points)
         rResult.resize(2 * number_of_control_points, false);
@@ -628,10 +627,10 @@ void GapSbmSolidInterfaceCondition::GetDofList(
     const auto& r_surrogate_geometry_plus = GetGeometryPlus();
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
 
-    const SizeType number_of_control_points_plus = r_surrogate_geometry_plus.size();
-    const SizeType number_of_control_points_minus = r_surrogate_geometry_minus.size();
+    const std::size_t number_of_control_points_plus = r_surrogate_geometry_plus.size();
+    const std::size_t number_of_control_points_minus = r_surrogate_geometry_minus.size();
 
-    const SizeType number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
+    const std::size_t number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
 
     rElementalDofList.resize(0);
     rElementalDofList.reserve(2 * number_of_control_points);
@@ -657,9 +656,9 @@ void GapSbmSolidInterfaceCondition::GetSolutionCoefficientVectorPlus(
 {
     const auto& r_surrogate_geometry_plus = GetGeometryPlus();
 
-    const SizeType number_of_control_points_plus = r_surrogate_geometry_plus.size();
+    const std::size_t number_of_control_points_plus = r_surrogate_geometry_plus.size();
 
-    const SizeType mat_size = number_of_control_points_plus * 2;
+    const std::size_t mat_size = number_of_control_points_plus * 2;
 
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
@@ -679,9 +678,9 @@ void GapSbmSolidInterfaceCondition::GetSolutionCoefficientVectorMinus(
 {
     const auto& r_surrogate_geometry_minus = GetGeometryMinus();
 
-    const SizeType number_of_control_points_minus = r_surrogate_geometry_minus.size();
+    const std::size_t number_of_control_points_minus = r_surrogate_geometry_minus.size();
 
-    const SizeType mat_size = number_of_control_points_minus * 2;
+    const std::size_t mat_size = number_of_control_points_minus * 2;
 
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
@@ -701,8 +700,8 @@ void GapSbmSolidInterfaceCondition::CalculateB(
     Matrix& rB, 
     Matrix& r_DN_DX) const
 {
-    const SizeType number_of_control_points = rGeometry.size();
-    const SizeType mat_size = number_of_control_points * 2;
+    const std::size_t number_of_control_points = rGeometry.size();
+    const std::size_t mat_size = number_of_control_points * 2;
 
     if (rB.size1() != 3 || rB.size2() != mat_size)
         rB.resize(3, mat_size);
@@ -720,7 +719,7 @@ void GapSbmSolidInterfaceCondition::CalculateB(
     }
 }
 
-void GapSbmSolidInterfaceCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+void GapSbmSolidInterfaceCondition::ApplyConstitutiveLaw(std::size_t matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                     ConstitutiveVariables& rConstitutiVariables)
 {
     // Set constitutive law flags:
@@ -744,48 +743,6 @@ void GapSbmSolidInterfaceCondition::FinalizeSolutionStep(const ProcessInfo& rCur
         GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
-    // //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
-    // //TODO: build a CalculateOnIntegrationPoints method
-    // //--------------------------------------------------------------------------------------------
-    // const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
-    // const SizeType number_of_control_points = r_surrogate_geometry.size();
-    // const SizeType mat_size = number_of_control_points * 2;
-
-    // Vector old_displacement(mat_size);
-    // GetSolutionCoefficientVector(old_displacement);
-
-    // // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-    // Matrix grad_N_sum_transposed = ZeroMatrix(3, number_of_control_points);
-    // ComputeGradientTaylorExpansionContribution(grad_N_sum_transposed);
-    // Matrix grad_N_sum = trans(grad_N_sum_transposed);
-
-    // Matrix B_sum = ZeroMatrix(mDim,mat_size);
-    // CalculateB(B_sum, grad_N_sum);
-
-    // // obtain the tangent constitutive matrix at the true position
-    // ConstitutiveLaw::Parameters values_true(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    // Vector old_displacement_coefficient_vector(mat_size);
-    // GetSolutionCoefficientVector(old_displacement_coefficient_vector);
-    // Vector old_strain_on_true = prod(B_sum, old_displacement_coefficient_vector);
-
-    // const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
-    // ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
-    // ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
-
-    // const Vector sigma = values_true.GetStressVector();
-    // Vector sigma_n(2);
-
-    // sigma_n[0] = sigma[0]*mNormalPhysicalSpace[0] + sigma[2]*mNormalPhysicalSpace[1];
-    // sigma_n[1] = sigma[2]*mNormalPhysicalSpace[0] + sigma[1]*mNormalPhysicalSpace[1];
-
-    // SetValue(NORMAL_STRESS, sigma_n);
-
-    // SetValue(CAUCHY_STRESS_XX, sigma[0]);
-    // SetValue(CAUCHY_STRESS_YY, sigma[1]);
-    // SetValue(CAUCHY_STRESS_XY, sigma[2]);
-    // //---------------------
 }
 
 void GapSbmSolidInterfaceCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
@@ -802,7 +759,7 @@ void GapSbmSolidInterfaceCondition::ComputeTaylorExpansionContribution(
     const Vector& rDistanceVector, 
     Vector& H_sum_vec)
 {
-    const SizeType number_of_control_points = rGeometry.PointsNumber();
+    const std::size_t number_of_control_points = rGeometry.PointsNumber();
     const Matrix& r_N = rGeometry.ShapeFunctionsValues();
 
     if (H_sum_vec.size() != number_of_control_points)
@@ -862,7 +819,7 @@ void GapSbmSolidInterfaceCondition::ComputeGradientTaylorExpansionContribution(
     const Vector& rDistanceVector, 
     Matrix& grad_H_sum)
 {
-    const SizeType number_of_control_points = rGeometry.PointsNumber();
+    const std::size_t number_of_control_points = rGeometry.PointsNumber();
     const auto& r_DN_De = rGeometry.ShapeFunctionsLocalGradients(rGeometry.GetDefaultIntegrationMethod());
 
     // Compute all the derivatives of the basis functions involved
