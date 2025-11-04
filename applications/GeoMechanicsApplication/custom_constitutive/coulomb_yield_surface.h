@@ -58,7 +58,6 @@ private:
     KappaDependentFunction mFrictionAngleCalculator;
     KappaDependentFunction mCohesionCalculator;
     KappaDependentFunction mDilatancyAngleCalculator;
-
 }; // Class CoulombYieldSurface
 
 } // namespace Kratos
