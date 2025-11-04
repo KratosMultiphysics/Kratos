@@ -13,11 +13,8 @@
 
 #pragma once
 
-#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
-#include "custom_utilities/stress_strain_utilities.h"
 #include "includes/kratos_export_api.h"
-#include "includes/properties.h"
 
 #include <algorithm>
 
