@@ -40,6 +40,10 @@ namespace Kratos::Future
 template <class TSparseMatrixType, class TSystemVectorType>
 struct LinearSystemContainer
 {
+
+    /// Pointer definition of LinearSystemContainer
+    KRATOS_CLASS_POINTER_DEFINITION(LinearSystemContainer);
+
     typename TSparseMatrixType::Pointer pLhs = nullptr; // Pointer to the LHS matrix
 
     typename TSystemVectorType::Pointer pRhs = nullptr; // Pointer to the RHS vector
