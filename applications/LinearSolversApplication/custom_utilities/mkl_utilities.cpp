@@ -26,7 +26,7 @@ bool MKLUtilities::CheckThreadNumber(const int NumberOfMKLThreads)
     const int number_of_threads_mkl = mkl_get_max_threads();
     if (NumberOfMKLThreads > 0) { // Manual setting
         if (number_of_threads_mkl != NumberOfMKLThreads) {
-            KRATOS_WARNING("EigenPardisoLUSolver") << "The number of threads in MKL is: " << NumberOfMKLThreads << " instead of " << number_of_threads_mkl << std::endl;
+            KRATOS_WARNING("MKL") << "The number of threads in MKL is: " << NumberOfMKLThreads << " instead of " << number_of_threads_mkl << std::endl;
             return false;
         }
         return true;
