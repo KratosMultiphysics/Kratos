@@ -714,4 +714,45 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto process_info = ProcessInfo{};
+    p_element->Initialize(process_info);
+
+    Vector cauchy_stress_vector(4);
+    cauchy_stress_vector <<= 1000.0, 2000.0, 3000.0, 4000.0;
+    std::vector<Vector> cauchy_stress_vectors;
+    cauchy_stress_vectors.push_back(cauchy_stress_vector);
+    cauchy_stress_vector += Vector(4, 1000.0);
+    cauchy_stress_vectors.push_back(cauchy_stress_vector);
+    cauchy_stress_vector += Vector(4, 1000.0);
+    cauchy_stress_vectors.push_back(cauchy_stress_vector);
+
+    p_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stress_vectors, process_info);
+
+    // Act
+    const std::vector<std::size_t> node_ids = {1,2,3};
+    const auto nodal_stresses = p_element->CalculateNodalStresses(node_ids, process_info);
+
+    // Assert
+    KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());
+
+    std::vector<Vector> expected_nodal_stresses;
+    Vector expected_stress;
+    expected_stress <<= 1000, 4000, 0;
+    expected_nodal_stresses.push_back(expected_stress);
+    expected_nodal_stresses.push_back(expected_stress);
+    expected_nodal_stresses.push_back(expected_stress);
+
+    for (auto i = std::size_t{0}; i < nodal_stresses.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(nodal_stresses[i],
+                                           expected_nodal_stresses[i], Defaults::relative_tolerance);
+    }
+}
+
 } // namespace Kratos::Testing
