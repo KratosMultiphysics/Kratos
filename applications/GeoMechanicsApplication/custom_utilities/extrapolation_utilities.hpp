@@ -45,10 +45,11 @@ public:
     }
 
     template <unsigned int TNumNodes>
-    [[nodiscard]] static std::vector<Vector> CalculateNodalStresses(const std::vector<std::size_t>& node_ids,
-                                                                    const Geometry<Node>& rGeometry,
-                                                                    const GeometryData::IntegrationMethod& rIntegrationMethod,
-                                                                    const std::vector<Vector>& rIntegrationPointStresses)
+    [[nodiscard]] static std::vector<std::optional<Vector>> CalculateNodalStresses(
+        const std::vector<std::size_t>&        node_ids,
+        const Geometry<Node>&                  rGeometry,
+        const GeometryData::IntegrationMethod& rIntegrationMethod,
+        const std::vector<Vector>&             rIntegrationPointStresses)
     {
         std::vector<std::size_t> element_node_ids(TNumNodes);
         for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -66,11 +67,13 @@ public:
             }
         }
 
-        std::vector<Vector> result;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            std::size_t node_id = node_ids[i];
-            if (std::find(node_ids.begin(), node_ids.end(), node_id) != node_ids.end()) {
+        std::vector<std::optional<Vector>> result;
+        for (unsigned int i = 0; i < node_ids.size(); ++i) {
+            if (std::find(element_node_ids.begin(), element_node_ids.end(), node_ids[i]) !=
+                element_node_ids.end()) {
                 result.emplace_back(nodal_stresses[i]);
+            } else {
+                result.emplace_back(std::nullopt);
             }
         }
 
