@@ -79,7 +79,6 @@ public:
     bool Solve(Eigen::Ref<const Vector> b, Eigen::Ref<Vector> x) const
     {
         // Check thread consistency
-        MKLUtilities::CheckThreadNumber(mNumberOfMKLThreads);
         
         // Actually solve
         x = m_solver.solve(b);
