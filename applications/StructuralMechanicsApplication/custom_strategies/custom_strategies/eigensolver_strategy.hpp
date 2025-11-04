@@ -685,14 +685,13 @@ private:
             });
             const auto global_modal_mass = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(modal_mass);
 
-
-            if (!(modal_mass > 0.0)) {
+            if (!(global_modal_mass > 0.0)) {
                 KRATOS_WARNING("MassNormalizeEigenvectors")
-                    << "Modal mass for mode " << j << " is non-positive (" << modal_mass << "). Skipping normalization.\n";
+                    << "Modal mass for mode " << j << " is non-positive (" << global_modal_mass << "). Skipping normalization.\n";
                 continue;
             }
 
-            const double scale = 1.0 / std::sqrt(modal_mass);
+            const double scale = 1.0 / std::sqrt(global_modal_mass);
 
            // scale and write back into rEigenvectors 
             IndexPartition<std::size_t>(num_dofs).for_each([&rEigenvectors, &phi, scale, j](std::size_t i){
