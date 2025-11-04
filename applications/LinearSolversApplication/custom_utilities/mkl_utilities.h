@@ -24,9 +24,10 @@ public:
      */
     enum class MKLThreadSetting
     {
-        Minimal = -1,   /// Use minimal number of threads for computation
-        Consistent = 0, /// Use consistent thread count across solver operations
-        Manual = 1      /// Manually specify the number of threads to use
+        Minimal = -2,    /// Use minimal number of threads for computation
+        Consistent = -1, /// Use consistent thread count across solver operations
+        Do_nothing = 0,  /// Do not change the number of threads
+        Manual = 1       /// Manually specify the number of threads to use
     };
 
     /**

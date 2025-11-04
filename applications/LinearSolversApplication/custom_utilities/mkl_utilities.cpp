@@ -12,10 +12,14 @@
 
 #pragma once
 
+// System includes
+
 // External includes
 #include <mkl.h>
 
 // Project includes
+#include "input_output/logger.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_utilities/mkl_utilities.h"
 
 namespace Kratos
@@ -23,10 +27,15 @@ namespace Kratos
 
 bool MKLUtilities::CheckThreadNumber(const int NumberOfMKLThreads)
 {
+    // Do nothing case
+    if (NumberOfMKLThreads == static_cast<int>(MKLThreadSetting::Do_nothing)) {
+        return true;
+    }
+
     const int number_of_threads_mkl = mkl_get_max_threads();
     if (NumberOfMKLThreads > 0) { // Manual setting
         if (number_of_threads_mkl != NumberOfMKLThreads) {
-            KRATOS_WARNING("MKL") << "The number of threads in MKL is: " << NumberOfMKLThreads << " instead of " << number_of_threads_mkl << std::endl;
+            KRATOS_WARNING("MKLUtilities") << "The number of threads in MKL is: " << NumberOfMKLThreads << " instead of " << number_of_threads_mkl << std::endl;
             return false;
         }
         return true;
@@ -35,13 +44,13 @@ bool MKLUtilities::CheckThreadNumber(const int NumberOfMKLThreads)
         if (static_cast<int>(MKLThreadSetting::Minimal) == NumberOfMKLThreads) {
             const int min_threads = std::min(number_of_threads_mkl, number_of_threads_used);
             if (number_of_threads_mkl != min_threads) {
-                KRATOS_WARNING("EigenPardisoLUSolver") << "The number of threads in MKL is: " << number_of_threads_mkl << " instead of minimal: " << min_threads << std::endl;
+                KRATOS_WARNING("MKLUtilities") << "The number of threads in MKL is: " << number_of_threads_mkl << " instead of minimal: " << min_threads << std::endl;
                 return false;
             }
             return true;
         } else if (static_cast<int>(MKLThreadSetting::Consistent) == NumberOfMKLThreads) {
             if (number_of_threads_mkl > number_of_threads_used) {
-                KRATOS_WARNING("EigenPardisoLUSolver") << "The number of threads in MKL is: " << number_of_threads_mkl << " which is greater than the number of threads used by the application: " << number_of_threads_used << std::endl;
+                KRATOS_WARNING("MKLUtilities") << "The number of threads in MKL is: " << number_of_threads_mkl << " which is greater than the number of threads used by the application: " << number_of_threads_used << std::endl;
                 return false;
             }
             return true;
@@ -57,6 +66,7 @@ bool MKLUtilities::CheckThreadNumber(const int NumberOfMKLThreads)
 
 void MKLUtilities::SetMKLThreadCount(const int NumberOfMKLThreads)
 {
+    // Check first if it is needed to set the number of threads
     if (!CheckThreadNumber(NumberOfMKLThreads)) {
         int number_of_threads_used;
         if (NumberOfMKLThreads > 0) {
