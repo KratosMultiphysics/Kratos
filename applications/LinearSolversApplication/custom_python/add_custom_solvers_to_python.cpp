@@ -253,8 +253,6 @@ void AddCustomSolversToPython(pybind11::module& m)
 
 #ifdef KRATOS_USE_EIGEN_SUITESPARSE
     register_solver<EigenCholmodSolver<double>>(m, "CholmodSolver");
-    register_solver<EigenCholmodSolver<complex>>(m, "ComplexCholmodSolver");
-
     register_solver<EigenSPQRSolver<double>>(m, "SPQRSolver");
     register_solver<EigenSPQRSolver<complex>>(m, "ComplexSPQRSolver");
 

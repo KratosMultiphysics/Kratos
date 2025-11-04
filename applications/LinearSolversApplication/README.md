@@ -21,7 +21,6 @@ The application provides the following direct sparse solvers:
 | ComplexPardisoLDLTSolver | `pardiso_ldlt_complex` | SPD*        | Complex  | Intel® MKL   |
 | ComplexPardisoLUSolver   | `pardiso_lu_complex`   | Square      | Complex  | Intel® MKL   |
 | CholmodSolver            | `cholmod`              | SPD*        | Real     | SuiteSparse  |
-| ComplexCholmodSolver     | `cholmod_complex`      | SPD*        | Complex  | SuiteSparse  |
 | UmfPackSolver            | `umfpack`              | Square      | Real     | SuiteSparse  |
 | ComplexUmfPackSolver     | `umfpack_complex`      | Square      | Complex  | SuiteSparse  |
 | SPQRSolver               | `spqr`                 | Rectangular | Real     | SuiteSparse  |
