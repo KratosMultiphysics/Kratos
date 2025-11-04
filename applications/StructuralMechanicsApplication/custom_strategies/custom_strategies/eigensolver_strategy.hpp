@@ -672,7 +672,7 @@ private:
 
         for (std::size_t j = 0; j < num_modes; ++j) {
              // copy row j -> phi
-            IndexPartition<std::size_t>(num_dofs).for_each([&](std::size_t i){
+            IndexPartition<std::size_t>(num_dofs).for_each([&phi, &rEigenvectors, j](std::size_t i){
                 phi[i] = rEigenvectors(j, i);
             });
 
@@ -680,9 +680,11 @@ private:
             TSparseSpace::Mult(rMassMatrix, phi, tmp);
 
             // Compute modal_mass = phi^T * tmp
-            const double modal_mass = IndexPartition<std::size_t>(num_dofs).for_each<SumReduction<double>>([&](std::size_t i)->double {
+            const double modal_mass = IndexPartition<std::size_t>(num_dofs).for_each<SumReduction<double>>([&phi, &tmp](std::size_t i)->double {
                 return phi[i] * tmp[i];
             });
+            const auto global_modal_mass = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(modal_mass);
+
 
             if (!(modal_mass > 0.0)) {
                 KRATOS_WARNING("MassNormalizeEigenvectors")
@@ -693,7 +695,7 @@ private:
             const double scale = 1.0 / std::sqrt(modal_mass);
 
            // scale and write back into rEigenvectors 
-            IndexPartition<std::size_t>(num_dofs).for_each([&](std::size_t i){
+            IndexPartition<std::size_t>(num_dofs).for_each([&rEigenvectors, &phi, scale, j](std::size_t i){
                 rEigenvectors(j, i) = phi[i] * scale;
             });
         }
