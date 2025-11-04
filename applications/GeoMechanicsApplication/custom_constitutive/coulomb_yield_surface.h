@@ -36,7 +36,7 @@ public:
     };
 
     CoulombYieldSurface();
-    explicit CoulombYieldSurface(Properties MaterialProperties);
+    explicit CoulombYieldSurface(const Properties& rMaterialProperties);
 
     [[nodiscard]] double GetFrictionAngleInRadians() const;
     [[nodiscard]] double GetCohesion() const;
