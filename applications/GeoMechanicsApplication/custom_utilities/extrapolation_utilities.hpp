@@ -56,7 +56,7 @@ public:
         }
 
         BoundedMatrix<double, TNumNodes, TNumNodes> extrapolation_matrix;
-        CalculateExtrapolationMatrix(rGeometry, rIntegrationMethod, extrapolation_matrix);
+        ExtrapolationUtilities::CalculateExtrapolationMatrix(rGeometry, rIntegrationMethod, extrapolation_matrix);
 
         std::vector<Vector> nodal_stresses(TNumNodes, ZeroVector(rIntegrationPointStresses[0].size()));
         for (unsigned int node_index = 0; node_index < TNumNodes; ++node_index) {
