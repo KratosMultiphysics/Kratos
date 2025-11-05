@@ -992,10 +992,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     }
     else if (mGapSbmType == "default")
     {
-        const IndexType id_diff = (id_closest_true_node > id_closest_true_node_2)
-            ? (id_closest_true_node - id_closest_true_node_2)
-            : (id_closest_true_node_2 - id_closest_true_node);
-        if (norm_2(skin_2 - skin_1) > rIntegrationParameters.rKnotSpanSizes[0]/10 && id_diff > static_cast<IndexType>(2*p+1) && p>1)
+        if (norm_2(skin_2 - skin_1) > rIntegrationParameters.rKnotSpanSizes[0]/10 && abs(id_closest_true_node-id_closest_true_node_2)> (2*p+1) && p>1)
             p_nurbs_curve_skin1_skin2 = FitUV_BetweenSkinNodes_Generic<TIsInnerLoop>(
                 rSkinSubModelPart, *pNurbsSurface, id_closest_true_node, id_closest_true_node_2, p, /*ridge=*/1e-14);
     }
@@ -1511,9 +1508,24 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
         // Helper to append ids of nonzero k
         auto append_ids_by_k = [&](const KnotSpanIdsCSR& S, std::size_t k) {
             const auto view = CellIdsByK(S, k);
-            if (view.size) {
-                candidate_ids.insert(candidate_ids.end(), view.data, view.data + view.size);
+            if (view.size == 0) {
+                return;
             }
+
+            const IndexType* const pool_begin = S.pool.data();
+            const IndexType* const pool_end = pool_begin + S.pool.size();
+            const IndexType* const first = view.data;
+            const IndexType* const last = view.data + view.size;
+
+            KRATOS_DEBUG_ERROR_IF(first < pool_begin || last > pool_end)
+                << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections detected an invalid "
+                << "pointer range for CSR entry k = " << k
+                << " (pool bounds [" << static_cast<const void*>(pool_begin) << ", "
+                << static_cast<const void*>(pool_end) << "), "
+                << "requested [" << static_cast<const void*>(first) << ", "
+                << static_cast<const void*>(last) << "))." << std::endl;
+
+            candidate_ids.insert(candidate_ids.end(), first, last);
         };
 
         const auto& S = rSkinNodesPerSpan;                 // KnotSpanIdsCSR
@@ -1526,7 +1538,9 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
                 if (iy >= S.NumberOfSpansY) continue;
 
                 const std::size_t k = FindNnzIndex(A, ix, iy);
-                if (k != static_cast<std::size_t>(-1)) append_ids_by_k(S, k);
+                if (k != static_cast<std::size_t>(-1)) {
+                    append_ids_by_k(S, k);
+                }
             }
         }
 
@@ -1559,8 +1573,8 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
         IndexType fallback_id = std::numeric_limits<IndexType>::max();
         double fallback_distance = std::numeric_limits<double>::max();
 
-        for (const IndexType candidate_id : candidate_ids) {
-            const auto& r_candidate_node = rSkinSubModelPart.GetNode(candidate_id);
+        auto evaluate_candidate = [&](const Node& r_candidate_node) {
+            const IndexType candidate_id = r_candidate_node.Id();
             const auto& candidate_layers = r_candidate_node.GetValue(CONNECTED_LAYERS);
 
             bool matches_forced = true;
@@ -1581,10 +1595,31 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
             }
 
             if ((forced_layers.empty() || matches_forced) && distance < result.Distance) {
-                result.Id = candidate_id;
+                result.Id = r_candidate_node.Id();
                 result.Distance = distance;
                 result.MatchesForcedLayers = true;
             }
+        };
+
+        for (const IndexType candidate_id : candidate_ids) {
+            evaluate_candidate(rSkinSubModelPart.GetNode(candidate_id));
+        }
+
+        auto process_fallback_nodes = [&]() {
+            const ModelPart::NodesContainerType* p_nodes = nullptr;
+            if (rSkinSubModelPart.HasSubModelPart("interface_vertices")) {
+                p_nodes = &rSkinSubModelPart.GetSubModelPart("interface_vertices").Nodes();
+            } else {
+                p_nodes = &rSkinSubModelPart.Nodes();
+            }
+
+            for (const auto& r_node : *p_nodes) {
+                evaluate_candidate(r_node);
+            }
+        };
+
+        if (candidate_ids.empty() || result.Id == std::numeric_limits<IndexType>::max()) {
+            process_fallback_nodes();
         }
 
         if (result.Id == std::numeric_limits<IndexType>::max() && fallback_id != std::numeric_limits<IndexType>::max()) {
@@ -1979,7 +2014,14 @@ IndexType SnakeGapSbmProcess::FindClosestNodeInLayerWithDirection(
     }
 
     KRATOS_ERROR << "::[SnakeGapSbmProcess]::FindClosestNodeInLayerWithDirection: no node found for layer "
-                 << rLayer << " starting from point " << rStartPoint << std::endl;
+                 << rLayer << " starting from point " << rStartPoint
+                 << ". Skin sub model part '" << rSkinSubModelPart.Name() << "' has "
+                 << rSkinSubModelPart.NumberOfNodes() << " nodes and "
+                 << rSkinSubModelPart.NumberOfConditions() << " conditions."
+                 << " Search parameters: base_ix=" << base_ix << ", base_iy=" << base_iy
+                 << ", span_size_x=" << span_size_x << ", span_size_y=" << span_size_y
+                 << ", reference_span_size=" << reference_span_size
+                 << ", direction=" << direction << std::endl;
 
     return 0;
 }
