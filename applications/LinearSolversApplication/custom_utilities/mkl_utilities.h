@@ -36,8 +36,19 @@ public:
         Manual = 1       /// Manually specify the number of threads to use
     };
 
+    /**
+     * @brief Retrieves the current number of threads configured for Intel MKL operations.
+     * @details This static method queries the Intel Math Kernel Library (MKL) to obtain the number of threads currently set for parallel computations.
+     * This value reflects the thread configuration that will be used for subsequent MKL operations in the current process.
+     * @return The number of threads currently set for MKL computations.
+     */
     static int GetNumMKLThreads();
 
+    /**
+     * @brief Sets the number of threads to be used by Intel MKL library operations.
+     * @details This static method configures the maximum number of threads that Intel MKL (Math Kernel Library) will use for parallel computations. This setting affects all subsequent MKL operations in the current process.
+     * @param NumThreads The number of threads to be used by MKL. Should be a positive integer. Typically set to the number of available CPU cores or a fraction thereof depending on the desired parallelization strategy.
+     */
     static void SetNumMKLThreads(const int NumThreads);
 
     /**
@@ -45,25 +56,24 @@ public:
      * @details This method determines whether the MKL thread configuration has already been checked or configured during the current execution. It serves as a guard to prevent redundant thread setting operations.
      * @param NumberOfMKLThreads The MKL thread setting value to check against
      * @return true if the thread number has been previously checked/set, false if it needs to be configured
-     * @note This is typically used internally by SetMKLThreadCount() to ensure thread configuration happens only once per execution
+     * @note This is typically used internally by ComputeMKLThreadCount() to ensure thread configuration happens only once per execution
      */
     static bool CheckThreadNumber(const int NumberOfMKLThreads);
 
     /**
-     * @brief Sets the number of threads for MKL (Intel Math Kernel Library) operations.
-     * @details This method configures the MKL thread count based on the specified thread setting policy.
-     * Thread count is only set once per execution (controlled by CheckThreadNumber()).
-     * The thread count is determined by the following policies:
-     * - Positive value (Manual): Uses the explicitly specified number of MKL threads
-     * - MKLThreadSetting::Minimal (-2): Uses the minimum between available MKL threads and currently used threads
-     * - MKLThreadSetting::Consistent (-1): Uses the number of threads from ParallelUtilities
-     * - MKLThreadSetting::Do_nothing (0): No thread count modification is performed
-     * - Invalid setting: Throws a KRATOS_ERROR
-     * @param NumberOfMKLThreads The thread setting value (positive integer or MKLThreadSetting enum value)
-     * @note This method modifies the global MKL thread count using mkl_set_num_threads()
-     * @note Thread count configuration is performed only once per execution to avoid conflicts
+     * @brief Computes and configures the optimal number of threads for MKL operations
+     * @details This method determines and sets the appropriate MKL thread count based on the specified threading policy.
+     * The configuration is applied only once per execution (guarded by CheckThreadNumber()) to prevent conflicts.
+     * Threading policies:
+     * - Positive integer (Manual mode): Explicitly sets the specified number of MKL threads
+     * - MKLThreadSetting::Minimal (-2): Sets threads to minimum of available MKL threads and current thread count
+     * - MKLThreadSetting::Consistent (-1): Aligns MKL threads with ParallelUtilities thread count
+     * - MKLThreadSetting::Do_nothing (0): Preserves current MKL thread configuration
+     * - Invalid values: Triggers KRATOS_ERROR exception
+     * @param NumberOfMKLThreads Thread configuration parameter (positive integer or MKLThreadSetting enum cast to int)
+     * @return The final number of threads configured for MKL operations
      */
-    static void SetMKLThreadCount(const int NumberOfMKLThreads);
+    static int ComputeMKLThreadCount(const int NumberOfMKLThreads);
 
 };
 

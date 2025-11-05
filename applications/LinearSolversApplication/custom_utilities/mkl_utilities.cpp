@@ -80,7 +80,7 @@ bool MKLUtilities::CheckThreadNumber(const int NumberOfMKLThreads)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MKLUtilities::SetMKLThreadCount(const int NumberOfMKLThreads)
+int MKLUtilities::ComputeMKLThreadCount(const int NumberOfMKLThreads)
 {
     // Check first if it is needed to set the number of threads
     if (!CheckThreadNumber(NumberOfMKLThreads)) {
@@ -95,8 +95,9 @@ void MKLUtilities::SetMKLThreadCount(const int NumberOfMKLThreads)
         } else {
             KRATOS_ERROR << "Invalid MKL thread setting: " << NumberOfMKLThreads << std::endl;
         }
-        SetNumMKLThreads(number_of_threads_used);
+        return number_of_threads_used;
     }
+    return NumberOfMKLThreads;
 }
 
 } // namespace Kratos
