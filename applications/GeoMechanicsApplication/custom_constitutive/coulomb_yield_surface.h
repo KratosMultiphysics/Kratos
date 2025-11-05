@@ -36,7 +36,7 @@ public:
     };
 
     CoulombYieldSurface();
-    explicit CoulombYieldSurface(Properties MaterialProperties);
+    explicit CoulombYieldSurface(const Properties& rMaterialProperties);
 
     [[nodiscard]] double GetFrictionAngleInRadians() const;
     [[nodiscard]] double GetCohesion() const;
@@ -58,7 +58,6 @@ private:
     KappaDependentFunction mFrictionAngleCalculator;
     KappaDependentFunction mCohesionCalculator;
     KappaDependentFunction mDilatancyAngleCalculator;
-
 }; // Class CoulombYieldSurface
 
 } // namespace Kratos
