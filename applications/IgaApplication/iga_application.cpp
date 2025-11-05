@@ -110,10 +110,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
     KRATOS_REGISTER_ELEMENT("GapSbmSolidElement", mGapSbmSolidElement)
-    KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
-    KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
     KRATOS_REGISTER_ELEMENT("NavierStokesElement", mNavierStokesElement)
-    KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
