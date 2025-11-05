@@ -42,27 +42,8 @@ public:
 
     void Initialize(Parameters settings)
     {
-        // Set default parameters
-        if (!settings.Has("num_threads_mkl")) {
-            settings.AddEmptyValue("num_threads_mkl").SetString("do_nothing"); // Default to 0 (do nothing)
-        }
-
-        // Configure number of threads for MKL Pardiso solver
-        int number_of_mkl_threads = 0;
-        if (settings["num_threads_mkl"].IsNumber()) {
-            number_of_mkl_threads = settings["num_threads_mkl"].GetInt();
-        } else if (settings["num_threads_mkl"].GetString() == "minimal") {
-            number_of_mkl_threads = static_cast<int>(MKLUtilities::MKLThreadSetting::Minimal);
-        } else if (settings["num_threads_mkl"].GetString() == "consistent") {
-            number_of_mkl_threads = static_cast<int>(MKLUtilities::MKLThreadSetting::Consistent);
-        } else if (settings["num_threads_mkl"].GetString() == "do_nothing") {
-            number_of_mkl_threads = static_cast<int>(MKLUtilities::MKLThreadSetting::Do_nothing);
-        } else {
-            KRATOS_ERROR << "Invalid value for 'num_threads_mkl': " << settings["num_threads_mkl"].GetString() << ". Accepted values are 'minimal', 'consistent', or an integer." << std::endl;
-        }
-
-        // Ensure the number of threads in MKL is the same considered for other operations
-        mNumberOfMKLThreads = MKLUtilities::ComputeMKLThreadCount(number_of_mkl_threads);
+        // Compute the number of MKL threads
+        mNumberOfMKLThreads = MKLUtilities::ComputeMKLThreadCount(settings);
     }
 
     bool Compute(Eigen::Map<const SparseMatrix> a)

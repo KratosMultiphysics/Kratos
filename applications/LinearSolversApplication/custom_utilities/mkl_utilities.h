@@ -12,6 +12,9 @@
 
 #pragma once
 
+// Project includes
+#include "includes/kratos_parameters.h"
+
 namespace Kratos
 {
 
@@ -61,6 +64,21 @@ public:
     static bool CheckThreadNumber(const int NumberOfMKLThreads);
 
     /**
+     * @brief Computes and configures the optimal number of threads for MKL operations. Version with Parameters input.
+     * @details This method determines and sets the appropriate MKL thread count based on the specified threading policy.
+     * The configuration is applied only once per execution (guarded by CheckThreadNumber()) to prevent conflicts.
+     * Threading policies:
+     * - Positive integer (Manual mode): Explicitly sets the specified number of MKL threads
+     * - MKLThreadSetting::Minimal (-2): Sets threads to minimum of available MKL threads and current thread count
+     * - MKLThreadSetting::Consistent (-1): Aligns MKL threads with ParallelUtilities thread count
+     * - MKLThreadSetting::Do_nothing (0): Preserves current MKL thread configuration
+     * - Invalid values: Triggers KRATOS_ERROR exception
+     * @param Settings The settings including the options.
+     * @return The final number of threads configured for MKL operations.
+     */
+    static int ComputeMKLThreadCount(Parameters Settings);
+
+    /**
      * @brief Computes and configures the optimal number of threads for MKL operations
      * @details This method determines and sets the appropriate MKL thread count based on the specified threading policy.
      * The configuration is applied only once per execution (guarded by CheckThreadNumber()) to prevent conflicts.
@@ -70,8 +88,8 @@ public:
      * - MKLThreadSetting::Consistent (-1): Aligns MKL threads with ParallelUtilities thread count
      * - MKLThreadSetting::Do_nothing (0): Preserves current MKL thread configuration
      * - Invalid values: Triggers KRATOS_ERROR exception
-     * @param NumberOfMKLThreads Thread configuration parameter (positive integer or MKLThreadSetting enum cast to int)
-     * @return The final number of threads configured for MKL operations
+     * @param NumberOfMKLThreads Thread configuration parameter (positive integer or MKLThreadSetting enum cast to int).
+     * @return The final number of threads configured for MKL operations.
      */
     static int ComputeMKLThreadCount(const int NumberOfMKLThreads);
 
