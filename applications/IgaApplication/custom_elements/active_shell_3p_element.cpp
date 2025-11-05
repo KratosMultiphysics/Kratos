@@ -326,7 +326,7 @@ namespace Kratos
         // KRATOS_WATCH(GetGeometry().GetGeometryParent(0))
         const Node& r_active_shell_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
 
-        mACTUATION_ALPHA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA); 
+        mACTUATION_ALPHA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA);
         mACTUATION_BETA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA); 
         mACTUATION_GAMMA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA); 
         mACTUATION_KAPPA_1 = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1); 

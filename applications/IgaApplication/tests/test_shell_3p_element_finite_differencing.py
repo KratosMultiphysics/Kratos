@@ -11,6 +11,7 @@ import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
+import math
 
 
 def _report_matrix_diff(reference_matrix, comparison_matrix, diff_threshold=1e-4,
@@ -186,8 +187,8 @@ def solve_cantilever(create_geometry):
         if element.Id < 100:
             element.CalculateLocalSystem(primal_LHS, primal_rhs, model_part.ProcessInfo)
 
-            print("primal_rhs\n:", primal_rhs)
-            print("-" * 40)
+            # print("primal_rhs\n:", primal_rhs)
+            # print("-" * 40)
             # print("primal_LHS\n:", primal_LHS)
             # print("-" * 40)
 
@@ -202,11 +203,11 @@ def solve_cantilever(create_geometry):
             adjoint_rhs = KM.Vector()
             adjoint_element.CalculateRightHandSide(adjoint_rhs, model_part.ProcessInfo)
             
-            _report_matrix_diff(primal_LHS, adjoint_LHS, diff_threshold=1e-4,
-                                reference_label="primal_LHS", comparison_label="adjoint_LHS")
+            # _report_matrix_diff(primal_LHS, adjoint_LHS, diff_threshold=1e-4,
+            #                     reference_label="primal_LHS", comparison_label="adjoint_LHS")
 
-            _report_vector_diff(primal_rhs, adjoint_rhs, diff_threshold=1e-4,
-                                reference_label="primal_rhs", comparison_label="adjoint_rhs")
+            # _report_vector_diff(primal_rhs, adjoint_rhs, diff_threshold=1e-4,
+            #                     reference_label="primal_rhs", comparison_label="adjoint_rhs")
 
             #normal Shell3pElement
             Shell3p_element: KM.Element = model_part.GetElement(element.Id + 1000)
@@ -217,14 +218,14 @@ def solve_cantilever(create_geometry):
             Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_reference_rhs, model_part.ProcessInfo)
 
 
-            print("size Shell3p_LHS:", Shell3p_LHS.Size1(), Shell3p_LHS.Size2())
-            _report_matrix_diff_first_entries(primal_LHS, Shell3p_LHS, block_size=27, diff_threshold=1e-4,
-                                              reference_label="primal_LHS", comparison_label="shell3p_LHS")
+            # print("size Shell3p_LHS:", Shell3p_LHS.Size1(), Shell3p_LHS.Size2())
+            # _report_matrix_diff_first_entries(primal_LHS, Shell3p_LHS, block_size=27, diff_threshold=1e-4,
+            #                                   reference_label="primal_LHS", comparison_label="shell3p_LHS")
 
-            _report_vector_diff_first_entries(primal_rhs, shell3p_reference_rhs, vector_size=27,
-                                              diff_threshold=1e-4,
-                                              reference_label="primal_rhs",
-                                              comparison_label="shell3p_reference_rhs")
+            # _report_vector_diff_first_entries(primal_rhs, shell3p_reference_rhs, vector_size=27,
+            #                                   diff_threshold=1e-4,
+            #                                   reference_label="primal_rhs",
+            #                                   comparison_label="shell3p_reference_rhs")
 
 
             # Finite differencing loop over node perturbations
@@ -254,13 +255,14 @@ def solve_cantilever(create_geometry):
 
             target_node.X -= delta
 
-            comparison_rows = min(shell3p_fd_sensitivities.Size(), fd_sensitivities.Size())
-
-            print(f"perturbed node {target_node_id} Coordinate .X")
-            print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
-            for eq_idx in range(comparison_rows):
-                print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-            print("-" * 40)
+            #print(f"perturbed node {target_node_id} Coordinate .X")
+            #print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
+            for eq_idx in range(28):
+                if eq_idx == 27:
+                    print(".................", fd_sensitivities[eq_idx])
+                KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
+                #print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+            # print("-" * 40)
 
             #  node.Y  #######################################
             target_idx = 25  # column index associated with node 9 displacement Y
@@ -278,11 +280,10 @@ def solve_cantilever(create_geometry):
 
             target_node.Y -= delta
 
-            comparison_rows = min(shell3p_fd_sensitivities.Size(), fd_sensitivities.Size())
-
             # print(f"perturbed node {target_node_id} Coordinate .Y")
             # print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
-            # for eq_idx in range(comparison_rows):
+            for eq_idx in range(26):
+                KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
             #     print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
             # print("-" * 40)
 
@@ -303,51 +304,52 @@ def solve_cantilever(create_geometry):
 
             target_node.Z -= delta
 
-            comparison_rows = min(shell3p_fd_sensitivities.Size(), fd_sensitivities.Size())
-
             # print(f"perturbed node {target_node_id} Coordinate .Z")
             # print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
-            # for eq_idx in range(comparison_rows):
+            for eq_idx in range(26):
+                KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=4)
             #     print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
             # print("-" * 40)
 
             #  ALPHA  #######################################
             target_idx = 27  # column index associated with Global Point - actuation variable Alpha
 
-            # There is only one node per background geometry -  the loop is redundant here but kept for generality
-            print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
-            for node in model["ACTIVE_MP"].Nodes:
-                print("perturbing node: ", node,"  - node id:", node.Id)
-                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) + delta)
-                element.InitializeNonLinearIteration(model_part.ProcessInfo)
-                element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
-                fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
-                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) - delta)
+            # # There is only one node per background geometry -  the loop is redundant here but kept for generality
+            # print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
+            # delta = 1e-7
+            # for node in model["ACTIVE_MP"].Nodes:
+            #     print("perturbing node: ", node,"  - node id:", node.Id)
+            #     node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) + delta)
+            #     element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            #     element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
+            #     fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
+            #     node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) - delta)
 
-                print("perturbed ActiveGlobalNode - Variable ALPHA")
-                print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
-                for eq_idx in range(33):
-                    print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-                print("-" * 40)
+            #     print("perturbed ActiveGlobalNode - Variable ALPHA")
+            #     print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
+            #     for eq_idx in range(33):
+            #         print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+            # #     print("-" * 40)
+            # delta = 1e-8
 
-            #  KAPPA_1  #######################################
-            target_idx = 30  # column index associated with Global Point - actuation variable Kappa_1
+            # #  KAPPA_1  #######################################
+            # target_idx = 30  # column index associated with Global Point - actuation variable Kappa_1
 
-            # There is only one node per background geometry -  the loop is redundant here but kept for generality
-            print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
-            for node in model["ACTIVE_MP"].Nodes:
-                print("perturbing node: ", node,"  - node id:", node.Id)
-                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1) + delta)
-                element.InitializeNonLinearIteration(model_part.ProcessInfo)
-                element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
-                fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
-                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1) - delta)
+            # # There is only one node per background geometry -  the loop is redundant here but kept for generality
+            # print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
+            # for node in model["ACTIVE_MP"].Nodes:
+            #     print("perturbing node: ", node,"  - node id:", node.Id)
+            #     node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1) + delta)
+            #     element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            #     element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
+            #     fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
+            #     node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1) - delta)
 
-                # print("perturbed ActiveGlobalNode - Variable KAPPA_1")
-                # print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
-                # for eq_idx in range(33):
-                #     print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-                # print("-" * 40)
+            #     # print("perturbed ActiveGlobalNode - Variable KAPPA_1")
+            #     # print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
+            #     # for eq_idx in range(33):
+            #     #     print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+            #     # print("-" * 40)
 
     return surface
 

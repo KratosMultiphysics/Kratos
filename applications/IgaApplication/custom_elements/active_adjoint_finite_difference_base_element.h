@@ -494,6 +494,11 @@ protected:
         KRATOS_CATCH("")
     }
 
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info() << std::endl;
+    }    
+
     std::string Info() const override
     {
         std::stringstream buffer;
