@@ -561,6 +561,7 @@ public:
                 N, shape_function_derivatives);
             
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurve(
+                this->WorkingSpaceDimension(), 1, 
                 data_container, nonzero_control_points,
                 global_space_derivatives[1][0], global_space_derivatives[1][1], this);
         }

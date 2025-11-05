@@ -33,17 +33,19 @@ namespace Kratos
  *        Shape functions and integration types have to be precomputed and are set from
  *        from outside.
  *        The parent pointer can provide the address to the owner of this quadrature point.
- */
-template<class TPointType, int TWorkingSpaceDimension = 3>
+ */template<class TPointType,
+    int TWorkingSpaceDimension,
+    int TLocalSpaceDimension = TWorkingSpaceDimension,
+    int TDimension = TLocalSpaceDimension>
 class QuadraturePointCurveGeometry
-    : public QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 2, 1>
+    : public QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>
 {
 public:
 
     /// Pointer definition of QuadraturePointGeometry
     KRATOS_CLASS_POINTER_DEFINITION(QuadraturePointCurveGeometry);
 
-    using BaseType = QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 2, 1>;
+    using BaseType = QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension>;
     using GeometryType = Geometry<TPointType>;
 
     using IndexType = typename GeometryType::IndexType;
@@ -62,13 +64,6 @@ public:
     using IntegrationPointsContainerType = typename GeometryType::IntegrationPointsContainerType;
     using ShapeFunctionsValuesContainerType = typename GeometryType::ShapeFunctionsValuesContainerType;
     using ShapeFunctionsLocalGradientsContainerType = typename GeometryType::ShapeFunctionsLocalGradientsContainerType;
-
-    /// using base class functions
-    using BaseType::Jacobian;
-    using BaseType::DeterminantOfJacobian;
-    using BaseType::ShapeFunctionsValues;
-    using BaseType::ShapeFunctionsLocalGradients;
-    using BaseType::InverseOfJacobian;
 
     ///@}
     ///@name Life Cycle
@@ -154,17 +149,6 @@ public:
         }
     }
 
-    /// Calculate with Vector
-    void Calculate(
-        const Variable<Vector>& rVariable,
-        Vector& rOutput) const override
-    {
-        if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT)
-        {
-            DeterminantOfJacobianParent(rOutput);
-        }
-    }
-
     ///@}
     ///@name Normal
     ///@{
@@ -188,45 +172,6 @@ public:
         normal[1] = -mLocalTangentsU;
 
         return normal;
-    }
-
-    ///@}
-
-
-    /* @brief returns the respective segment length of this
-     *        quadrature point. Length of vector always 1.
-     * @param rResult vector of results of this quadrature point.
-     */
-    Vector& DeterminantOfJacobian(
-        Vector& rResult,
-        GeometryData::IntegrationMethod ThisMethod) const override
-    {
-        if (rResult.size() != 1)
-            rResult.resize(1, false);
-
-        rResult[0] = this->DeterminantOfJacobian(0, ThisMethod);
-
-        return rResult;
-    }
-
-    /* @brief returns the respective segment length of this
-     *        quadrature point, computed on the parent of this geometry.
-     *        Required for reduced quadrature point geometries (Not all
-     *        nodes are part of this geometry - used for mapping).
-     * @param rResult vector of results of this quadrature point.
-     */
-    Vector& DeterminantOfJacobianParent(
-        Vector& rResult) const
-    {
-        if (rResult.size() != 1)
-            rResult.resize(1, false);
-
-        Matrix J;
-        this->GetGeometryParent(0).Jacobian(J, this->IntegrationPoints()[0]);
-
-        rResult[0] = norm_2(column(J, 0) * mLocalTangentsU + column(J, 1) * mLocalTangentsV);
-
-        return rResult;
     }
 
     ///@}
