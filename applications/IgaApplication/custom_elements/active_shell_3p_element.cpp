@@ -360,6 +360,9 @@ namespace Kratos
         const SizeType mat_size = u; // original system size
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
+        VectorType r_1(u, 0.0), r_2(6, 0.0);
+        MatrixType r_1_u(u, u, 0.0), r_1_alpha(u, 6, 0), r_2_u(6, u, 0.0), r_2_alpha(6, 6, 0.0);
+
         // === ColumnMatrix initialisieren ===
         MatrixType k_act_col(u, 6, 0.0);
 
@@ -433,25 +436,25 @@ namespace Kratos
             {
                 //adding membrane contributions to the stiffness matrix
                 CalculateAndAddKm(
-                    rLeftHandSideMatrix,
+                    r_1_u,
                     BMembrane,
                     constitutive_variables_membrane.ConstitutiveMatrix,
                     integration_weight);
                 //adding curvature contributions to the stiffness matrix
                 CalculateAndAddKm(
-                    rLeftHandSideMatrix,
+                    r_1_u,
                     BCurvature,
                     constitutive_variables_curvature.ConstitutiveMatrix,
                     integration_weight);
 
                 // adding  non-linear-contribution to Stiffness-Matrix
                 CalculateAndAddNonlinearKm(
-                    rLeftHandSideMatrix,
+                    r_1_u,
                     second_variations_strain,
                     constitutive_variables_membrane.StressVector,
                     integration_weight);
 
-                CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
+                CalculateAndAddNonlinearKm(r_1_u,
                     second_variations_curvature,
                     constitutive_variables_curvature.StressVector,
                     integration_weight);
@@ -469,71 +472,69 @@ namespace Kratos
                     constitutive_variables_membrane.ConstitutiveMatrix,
                     integration_weight
                 );
+            
+            // KRATOS_WATCH(number_of_nodes)
+            // KRATOS_WATCH(u)
+            // KRATOS_WATCH(mat_size)
+            // KRATOS_WATCH(rLeftHandSideMatrix)
+            // KRATOS_WATCH(k_act_diag)
+            // KRATOS_WATCH(k_act_col)
+
             }
 
             // RIGHT HAND SIDE VECTOR
             if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
             {
                 // operation performed: rRightHandSideVector -= Weight*IntForce
-                KRATOS_WATCH(BMembrane)
-                KRATOS_WATCH(rRightHandSideVector)
-                KRATOS_WATCH(constitutive_variables_membrane.StressVector)
-                noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
-                // noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
+                // KRATOS_WATCH(BMembrane)
+                // KRATOS_WATCH(constitutive_variables_membrane.StressVector)
+                // KRATOS_WATCH(rRightHandSideVector)
+
+                noalias(r_1) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
+                noalias(r_1) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
             
-                // Aktuierter Anteil: bop_act * S * fac_ele
-                // bop_act = ActuatedBMembrane, S = constitutive_variables_membrane.StressVector, fac_ele = integration_weight
+                // Actuated contribution: bop_act * S * fac_ele
+                // bop_act corresponds to ActuatedBMembrane, S to constitutive_variables_membrane.StressVector, fac_ele to integration_weight
                 noalias(f_int_act) += integration_weight * prod(ActuatedB, constitutive_variables_membrane.StressVector);
             }
         }
 
-        // === Erweiterung: Matrix und Vektor auf neue Größe bringen ===
-        if (CalculateStiffnessMatrixFlag) {
-            if (rLeftHandSideMatrix.size1() != u + 6 || rLeftHandSideMatrix.size2() != u + 6) {
-                MatrixType extended_matrix(u + 6, u + 6, 0.0);
+        // Assembly of LHS with active components
+        if (CalculateStiffnessMatrixFlag == true) {
+            if (r_1_u.size1() != u + 6 || r_1_u.size2() != u + 6) {
 
-                // Kopiere die bestehende Matrix in den linken oberen Block
+                // Copy the existing matrix into the top-left block
                 for (SizeType i = 0; i < u; ++i)
                     for (SizeType j = 0; j < u; ++j)
-                        extended_matrix(i, j) = rLeftHandSideMatrix(i, j);
+                        rLeftHandSideMatrix(i, j) = r_1_u(i, j);
 
-
-
-                // Rechte obere Ecke: k_act_col
+                // Top-right block: k_act_col
                 for (SizeType i = 0; i < u; ++i)
                     for (SizeType j = 0; j < 6; ++j)
-                        extended_matrix(i, u + j) = k_act_col(i, j);
+                        rLeftHandSideMatrix(i, u + j) = k_act_col(i, j);
                 
-                // Linke untere Ecke: k_act_col^T
+                // Bottom-left block: k_act_col^T
                 for (SizeType i = 0; i < 6; ++i)
                     for (SizeType j = 0; j < u; ++j)
-                        extended_matrix(u + i, j) = k_act_col(j, i); // Transposed
+                        rLeftHandSideMatrix(u + i, j) = k_act_col(j, i); // Transposed
 
-                // Untere rechte Ecke: k_act_diag
+                // Bottom-right block: k_act_diag
                 for (SizeType i = 0; i < 6; ++i)
                     for (SizeType j = 0; j < 6; ++j)
-                        extended_matrix(u + i, u + j) = k_act_diag(i, j);
-
-                // // Rechts unten: Identitätsmatrix (6 x 6)
-                // for (SizeType i = 0; i < 6; ++i)
-                //     extended_matrix(u + i, u + i) = 1.0;
-
-                rLeftHandSideMatrix.swap(extended_matrix);
+                        rLeftHandSideMatrix(u + i, u + j) = k_act_diag(i, j);
             }
         }
 
-        if (CalculateResidualVectorFlag) {
-            if (rRightHandSideVector.size() != u + 6) {
-                VectorType extended_vector(u + 6, 0.0);
+        // Assembly of RHS with active components
+        if (CalculateResidualVectorFlag == true) {
+            if (r_1.size() != u + 6) {
 
                 for (SizeType i = 0; i < u; ++i)
-                    extended_vector[i] = rRightHandSideVector[i];
+                    rRightHandSideVector[i] = r_1[i];
 
-                // Unten: Aktuierter Load-Vector einfügen
+                // // Bottom entries: insert actuated RHS
                 // for (SizeType i = 0; i < 6; ++i)
-                //     extended_vector[u + i] = f_int_act[i];
-
-                rRightHandSideVector.swap(extended_vector);
+                //     rRightHandSideVector[u + i] = f_int_act[i];
             }
         }
 
@@ -1186,7 +1187,7 @@ namespace Kratos
         Matrix K_mat = prod(trans(rActuatedB), Matrix(prod(rCRed, rActuatedB)));
 
         // Gesamte Aktuator-Steifigkeit: Kaa = K_geom + K_mat
-        noalias(rKActDiag) = integration_weight * (K_geom + K_mat);
+        noalias(rKActDiag) += integration_weight * (K_geom + K_mat); //CHECKLEO -> matrix is added to rKActDiag
     }
 
 
