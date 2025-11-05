@@ -61,7 +61,6 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
 
         reader = GiDOutputFileReader()
         simulation_output = reader.read_output_from(res_path)
-        water_pressures = simulation_output["results"]["WATER_PRESSURE"]
 
         bottom_nodes = [1, 48, 186]  # Bottom Left/Middle/Right
         top_nodes = [187, 223, 251]  # Top Left/Middle/Right
@@ -166,7 +165,6 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
 
         reader = GiDOutputFileReader()
         simulation_output = reader.read_output_from(res_path)
-        water_pressures = simulation_output["results"]["WATER_PRESSURE"]
 
         times = [x * 0.25 for x in range(1,16)]
         d_head_centre = [0.5, -0.5, -0.5, 0.5]
@@ -212,7 +210,6 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
 
         reader = GiDOutputFileReader()
         simulation_output = reader.read_output_from(res_path)
-        water_pressures = simulation_output["results"]["WATER_PRESSURE"]
 
         times = [x * 0.25 for x in range(1, 16)]
         d_head_left = [0.5, -0.5, -0.5, 0.5]
