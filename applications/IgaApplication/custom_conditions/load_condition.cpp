@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_conditions/load_condition.h"
+#include "utilities/atomic_utilities.h"
 
 
 namespace Kratos
@@ -255,6 +256,33 @@ namespace Kratos
 
             rDeterminantOfJacobian[pnt] = MathUtils<double>::GeneralizedDet(J);
         }
+    }
+
+    void LoadCondition::AddExplicitContribution(
+        const VectorType& rRHS,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double,3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        KRATOS_TRY;
+
+        const auto& r_geometry = GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+
+        if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL ) {
+            for(SizeType i=0; i< number_of_nodes; ++i) {
+                SizeType index = dimension * i;
+
+                array_1d<double, 3 >& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+                for(SizeType j=0; j<dimension; ++j) {
+                    AtomicAdd(r_force_residual[j], rRHS[index + j]);
+                }
+            }
+        }
+
+        KRATOS_CATCH( "" )
     }
 
     void LoadCondition::EquationIdVector(
