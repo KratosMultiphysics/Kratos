@@ -33,7 +33,7 @@ int MKLUtilities::GetNumThreads()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MKLUtilities::SetNumThreads(const int NumThreads)
+void MKLUtilities::SetNumThreads(const unsigned int NumThreads)
 {
     mkl_set_num_threads(NumThreads);
 }
