@@ -62,12 +62,15 @@ public:
         }
 
         // Ensure the number of threads in MKL is the same considered for other operations
-        MKLUtilities::SetMKLThreadCount(number_of_mkl_threads);
+        mNumberOfMKLThreads = MKLUtilities::ComputeMKLThreadCount(number_of_mkl_threads);
     }
 
     bool Compute(Eigen::Map<const SparseMatrix> a)
     {
+        const int previous_threads = MKLUtilities::GetNumMKLThreads();
+        MKLUtilities::SetNumMKLThreads(mNumberOfMKLThreads);
         m_solver.compute(a);
+        MKLUtilities::SetNumMKLThreads(previous_threads);
 
         const bool success = m_solver.info() == Eigen::Success;
 
@@ -76,7 +79,10 @@ public:
 
     bool Solve(Eigen::Ref<const Vector> b, Eigen::Ref<Vector> x) const
     {
+        const int previous_threads = MKLUtilities::GetNumMKLThreads();
+        MKLUtilities::SetNumMKLThreads(mNumberOfMKLThreads);
         x = m_solver.solve(b);
+        MKLUtilities::SetNumMKLThreads(previous_threads);
 
         const bool success = m_solver.info() == Eigen::Success;
 
@@ -92,6 +98,14 @@ public:
     {
         return "No additional information";
     }
+
+private:
+    ///@name Private Member Variables
+    ///@{
+
+    int mNumberOfMKLThreads = 0; /// Number of threads to be used by MKL
+
+    ///@}
 };
 
 } // namespace Kratos
