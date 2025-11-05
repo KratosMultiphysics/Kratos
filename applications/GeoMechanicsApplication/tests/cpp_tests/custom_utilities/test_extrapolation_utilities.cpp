@@ -26,12 +26,10 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Model               model;
-    auto&               r_model_part = model.CreateModelPart("Main");
     PointerVector<Node> nodes;
-    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(3, 1.0, 1.0, 0.0));
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(nodes);
     const auto p_properties = std::make_shared<Properties>();
     auto       element      = UPwSmallStrainElement<2, 3>(1, p_geometry, p_properties, nullptr);
