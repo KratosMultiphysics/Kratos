@@ -25,11 +25,6 @@ macro(kratos_add_gtests)
         add_executable("${KRATOS_ADD_GTEST_TARGET}Test" ${KRATOS_ADD_GTEST_SOURCES} ${KRATOS_GTEST_MAIN_SOURCE})
         target_link_libraries("${KRATOS_ADD_GTEST_TARGET}Test" ${KRATOS_ADD_GTEST_TARGET} KratosCoreTestUtilities "${TESTING_MPI_UTILITIES}" GTest::gmock_main)
         set_target_properties("${KRATOS_ADD_GTEST_TARGET}Test" PROPERTIES COMPILE_DEFINITIONS "KRATOS_TEST_CORE=IMPORT,API")
-
-        # Copy the RPATH of core tests that point to the kratos libs.
-        get_target_property(kratos_core_test_rpath KratosCoreTest INSTALL_RPATH)
-        set_target_properties(${KRATOS_ADD_GTEST_TARGET}Test PROPERTIES INSTALL_RPATH "${kratos_core_test_rpath}")
-
         target_compile_definitions("${KRATOS_ADD_GTEST_TARGET}Test" PUBLIC GTEST_LINKED_AS_SHARED_LIBRARY)
         install(TARGETS ${KRATOS_ADD_GTEST_TARGET}Test DESTINATION test)
 
