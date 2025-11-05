@@ -40,6 +40,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     // Expose class MKLUtilities
     py::class_<MKLUtilities>(m, "MKLUtilities")
+        .def_static("GetNumMKLThreads", &MKLUtilities::GetNumMKLThreads)
+        .def_static("SetNumMKLThreads", &MKLUtilities::SetNumMKLThreads, py::arg("NumThreads"))
         .def_static("CheckThreadNumber", &MKLUtilities::CheckThreadNumber, py::arg("NumberOfMKLThreads"))
         .def_static("CheckThreadNumber", [](const MKLUtilities::MKLThreadSetting Setting) {
             return MKLUtilities::CheckThreadNumber(static_cast<int>(Setting));

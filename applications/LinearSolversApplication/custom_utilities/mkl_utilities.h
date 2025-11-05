@@ -36,6 +36,10 @@ public:
         Manual = 1       /// Manually specify the number of threads to use
     };
 
+    static int GetNumMKLThreads();
+
+    static void SetNumMKLThreads(const int NumThreads);
+
     /**
      * @brief Checks if the MKL thread number has been previously validated or set.
      * @details This method determines whether the MKL thread configuration has already been checked or configured during the current execution. It serves as a guard to prevent redundant thread setting operations.

@@ -25,6 +25,22 @@
 namespace Kratos
 {
 
+int MKLUtilities::GetNumMKLThreads()
+{
+    return mkl_get_max_threads();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void MKLUtilities::SetNumMKLThreads(const int NumThreads)
+{
+    mkl_set_num_threads(NumThreads);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool MKLUtilities::CheckThreadNumber(const int NumberOfMKLThreads)
 {
     // Do nothing case
@@ -32,7 +48,7 @@ bool MKLUtilities::CheckThreadNumber(const int NumberOfMKLThreads)
         return true;
     }
 
-    const int number_of_threads_mkl = mkl_get_max_threads();
+    const int number_of_threads_mkl = GetNumMKLThreads();
     if (NumberOfMKLThreads > 0) { // Manual setting
         if (number_of_threads_mkl != NumberOfMKLThreads) {
             KRATOS_WARNING("MKLUtilities") << "The number of threads in MKL is: " << NumberOfMKLThreads << " instead of " << number_of_threads_mkl << std::endl;
@@ -72,14 +88,14 @@ void MKLUtilities::SetMKLThreadCount(const int NumberOfMKLThreads)
         if (NumberOfMKLThreads > 0) {
             number_of_threads_used = NumberOfMKLThreads;
         } else if (static_cast<int>(MKLThreadSetting::Minimal) == NumberOfMKLThreads) {
-            const int number_of_threads_mkl = mkl_get_max_threads();
+            const int number_of_threads_mkl = GetNumMKLThreads();
             number_of_threads_used = std::min(number_of_threads_mkl, number_of_threads_used);
         } else if (static_cast<int>(MKLThreadSetting::Consistent) == NumberOfMKLThreads) {
             number_of_threads_used = ParallelUtilities::GetNumThreads();
         } else {
             KRATOS_ERROR << "Invalid MKL thread setting: " << NumberOfMKLThreads << std::endl;
         }
-        mkl_set_num_threads(number_of_threads_used);
+        SetNumMKLThreads(number_of_threads_used);
     }
 }
 
