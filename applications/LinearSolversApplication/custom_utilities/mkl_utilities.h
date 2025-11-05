@@ -12,6 +12,9 @@
 
 #pragma once
 
+// System includes
+#include <optional>
+
 // Project includes
 #include "includes/kratos_parameters.h"
 
@@ -76,7 +79,7 @@ public:
      * @param Settings The settings including the options.
      * @return The final number of threads configured for MKL operations.
      */
-    static int ComputeMKLThreadCount(Parameters Settings);
+    static std::optional<int> ComputeMKLThreadCount(Parameters Settings);
 
     /**
      * @brief Computes and configures the optimal number of threads for MKL operations
@@ -91,7 +94,7 @@ public:
      * @param NumberOfMKLThreads Thread configuration parameter (positive integer or MKLThreadSetting enum cast to int).
      * @return The final number of threads configured for MKL operations.
      */
-    static int ComputeMKLThreadCount(const int NumberOfMKLThreads);
+    static std::optional<int> ComputeMKLThreadCount(const int NumberOfMKLThreads);
 
 };
 

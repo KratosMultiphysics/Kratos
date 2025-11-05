@@ -47,13 +47,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
             return MKLUtilities::CheckThreadNumber(static_cast<int>(Setting));
         }, py::arg("ThreadSetting"))
         .def_static("ComputeMKLThreadCount", [](Kratos::Parameters Settings) {
-            MKLUtilities::ComputeMKLThreadCount(Settings);
+            return MKLUtilities::ComputeMKLThreadCount(Settings);
         }, py::arg("Settings"))
         .def_static("ComputeMKLThreadCount", [](const int NumberOfMKLThreads) {
-            MKLUtilities::ComputeMKLThreadCount(NumberOfMKLThreads);
+            return MKLUtilities::ComputeMKLThreadCount(NumberOfMKLThreads);
         }, py::arg("NumberOfMKLThreads"))
         .def_static("ComputeMKLThreadCount", [](const MKLUtilities::MKLThreadSetting Setting) {
-            MKLUtilities::ComputeMKLThreadCount(static_cast<int>(Setting));
+            return MKLUtilities::ComputeMKLThreadCount(static_cast<int>(Setting));
         }, py::arg("ThreadSetting"))
         ;
 #endif

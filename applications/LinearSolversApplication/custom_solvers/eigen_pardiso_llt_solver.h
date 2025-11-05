@@ -9,6 +9,9 @@
 
 #pragma once
 
+// System includes
+#include <optional>
+
 // External includes
 #include <Eigen/Sparse>
 #include <Eigen/PardisoSupport>
@@ -49,9 +52,9 @@ public:
     bool Compute(Eigen::Map<const SparseMatrix> a)
     {
         const int previous_threads = MKLUtilities::GetNumThreads();
-        MKLUtilities::SetNumThreads(mNumberOfMKLThreads);
+        if (mNumberOfMKLThreads) MKLUtilities::SetNumThreads(*mNumberOfMKLThreads);
         m_solver.compute(a);
-        MKLUtilities::SetNumThreads(previous_threads);
+        if (mNumberOfMKLThreads) MKLUtilities::SetNumThreads(previous_threads);
 
         const bool success = m_solver.info() == Eigen::Success;
 
@@ -61,9 +64,9 @@ public:
     bool Solve(Eigen::Ref<const Vector> b, Eigen::Ref<Vector> x) const
     {
         const int previous_threads = MKLUtilities::GetNumThreads();
-        MKLUtilities::SetNumThreads(mNumberOfMKLThreads);
+        if (mNumberOfMKLThreads) MKLUtilities::SetNumThreads(*mNumberOfMKLThreads);
         x = m_solver.solve(b);
-        MKLUtilities::SetNumThreads(previous_threads);
+        if (mNumberOfMKLThreads) MKLUtilities::SetNumThreads(previous_threads);
 
         const bool success = m_solver.info() == Eigen::Success;
 
@@ -84,7 +87,7 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    int mNumberOfMKLThreads = 0; /// Number of threads to be used by MKL
+    std::optional<int> mNumberOfMKLThreads = std::nullopt; /// The number of MKL threads to be used
 
     ///@}
 };
