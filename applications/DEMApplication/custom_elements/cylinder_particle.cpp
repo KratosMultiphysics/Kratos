@@ -31,18 +31,18 @@ namespace Kratos
       /// Destructor.
       CylinderParticle::~CylinderParticle() {}
 
-      double CylinderParticle::CalculateVolume(){
-          return Globals::Pi * GetRadius() * GetRadius();
-      }
+      //double CylinderParticle::CalculateVolume(){
+      //    return Globals::Pi * GetRadius() * GetRadius();
+      //}
 
-      double CylinderParticle::CalculateMomentOfInertia() {
-          return 0.5 * GetMass() * GetRadius() * GetRadius();
-      }
+      //double CylinderParticle::CalculateMomentOfInertia() {
+      //    return 0.5 * GetMass() * GetRadius() * GetRadius();
+      //}
 
-      void CylinderParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
-      void CylinderParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_process_info){}
-      void CylinderParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
-      void CylinderParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
+      //void CylinderParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
+      //void CylinderParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_process_info){}
+      //void CylinderParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
+      //void CylinderParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
 
 }  // namespace Kratos.
 

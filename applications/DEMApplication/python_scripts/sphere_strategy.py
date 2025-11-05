@@ -248,6 +248,7 @@ class ExplicitStrategy():
 
 
         self.SetContinuumType()
+        self.gpu_results_utilities = GPUResultsUtilities()
 
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
@@ -454,6 +455,7 @@ class ExplicitStrategy():
     def Initialize(self):
         self.CheckMomentumConservation()
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
+        self.gpu_results_utilities.ExecuteInitialize(self.spheres_model_part, self.fem_model_part)
 
     def SetDt(self, dt):
         self.dt = dt
@@ -470,6 +472,7 @@ class ExplicitStrategy():
 
     def SolveSolutionStep(self):
         self.cplusplus_strategy.SolveSolutionStep()
+        self.gpu_results_utilities.Calculate(self.spheres_model_part, self.fem_model_part)
         return True
 
     def AdvanceInTime(self, time):
@@ -513,7 +516,7 @@ class ExplicitStrategy():
         self.cplusplus_strategy.FinalizeSolutionStep()
 
     def Finalize(self):
-        pass
+        self.gpu_results_utilities.ExecuteFinalize(self.spheres_model_part, self.fem_model_part)
 
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]

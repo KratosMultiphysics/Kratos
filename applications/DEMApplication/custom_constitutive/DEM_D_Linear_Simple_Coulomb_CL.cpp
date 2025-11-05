@@ -57,21 +57,46 @@ namespace Kratos {
                                                     SphericParticle* element2,
                                                     bool& sliding,
                                                     double LocalCoordSystem[3][3]) {
-    // Compute stiffness coefficients
-    const double my_radius    = element1->GetRadius();
-    const double other_radius = element2->GetRadius();
-    const double equiv_radius = 2.0 * my_radius * other_radius / (my_radius + other_radius);
-    const double my_young     = element1->GetYoung();
-    const double my_poisson   = element1->GetPoisson();
+    // Element properties
+    const double r1 = element1->GetRadius();
+    const double r2 = element2->GetRadius();
+    const double m1 = element1->GetMass();
+    const double m2 = element2->GetMass();
+    const double E1 = element1->GetYoung();
+    const double E2 = element2->GetYoung();
+    const double v1 = element1->GetPoisson();
+    const double v2 = element2->GetPoisson();
 
-    mKn = my_young * equiv_radius; // normal
-    mKt = my_poisson * mKn;        // tangent
+    // Effective properties
+    const double reff = r1 * r2 / (r1 + r2);
+    const double meff = m1 * m2 / (m1 + m2);
+    const double Eeff = 1.0 / ((1.0 - v1*v1) / E1 + (1.0 - v2*v2) / E2);
+    
+    // Compute normal force elastic
+    const double Kn = 2.0 * Eeff * sqrt(reff * indentation);
+    const double Fne = (2.0/3.0) * Kn * indentation;
 
-    // Compute normal and tangent forces
-    const double normal_contact_force = mKn * indentation;
-    LocalElasticContactForce[2] = normal_contact_force;
+    // Compute normal force viscous
+    Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+    const double phi = properties_of_this_contact[DAMPING_GAMMA];
+    double Fnv = -(2.0 * phi * sqrt(meff * Kn)) * LocalRelVel[2];
 
-    CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, sliding, element1, element2);
+    // Check for artificial cohesion
+    double Fn = Fne + Fnv;
+    if (Fn < 0.0) {
+        Fnv = -Fne;
+    }
+
+    // Store forces in their respective arrays
+    LocalElasticContactForce[2] = Fne;
+    ViscoDampingLocalContactForce[2] = Fnv;
+
+    // Compute tangential force
+    // TODO...
+
+    // Calculate elastic energy (each particle in a contact with another particle receives half the contact energy)
+    double& elastic_energy = element1->GetElasticEnergy();
+    elastic_energy += 0.20 * LocalElasticContactForce[2] * indentation;;
   }
 
   void DEM_D_Linear_Simple_Coulomb::CalculateForcesWithFEM(const ProcessInfo& r_process_info,
@@ -86,48 +111,70 @@ namespace Kratos {
                                                            SphericParticle* const element,
                                                            Condition* const wall,
                                                            bool& sliding) {
-    // Compute stiffness coefficients
-    const double my_radius  = element->GetRadius();
-    const double my_young   = element->GetYoung();
-    const double my_poisson = element->GetPoisson();
+    // Element properties
+    const double E1 = element->GetYoung();
+    const double E2 = wall->GetProperties()[YOUNG_MODULUS];
+    const double v1 = element->GetPoisson();
+    const double v2 = wall->GetProperties()[POISSON_RATIO];
 
-    mKn = my_young * my_radius; // normal
-    mKt = my_poisson * mKn;     // tangent
+    // Effective properties
+    const double reff = element->GetRadius();
+    const double meff = element->GetMass();
+    const double Eeff = 1.0 / ((1.0 - v1*v1) / E1 + (1.0 - v2*v2) / E2);
 
-    // Compute normal and tangent forces
-    const double normal_contact_force = mKn * indentation;
-    LocalElasticContactForce[2] = normal_contact_force;
+    // Compute normal force elastic
+    const double Kn = 2.0 * Eeff * sqrt(reff * indentation);
+    const double Fne = (2.0/3.0) * Kn * indentation;
 
-    CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, sliding, element, wall);
+    // Compute normal force viscous
+    Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+    const double phi = properties_of_this_contact[DAMPING_GAMMA];
+    double Fnv = -(2.0 * phi * sqrt(meff * Kn)) * LocalRelVel[2];
+
+    // Check for artificial cohesion
+    double Fn = Fne + Fnv;
+    if (Fn < 0.0) {
+        Fnv = -Fne;
+    }
+
+    // Store forces in their respective arrays
+    LocalElasticContactForce[2] = Fne;
+    ViscoDampingLocalContactForce[2] = Fnv;
+
+    // Compute tangential force
+    // TODO...
+
+    // Calculate elastic energy (each particle in a contact with a wall receives all the contact energy)
+    double& elastic_energy = element->GetElasticEnergy();
+    elastic_energy += 0.40 * LocalElasticContactForce[2] * indentation;;
+    
   }
 
-    template<class NeighbourClassType>
-    void DEM_D_Linear_Simple_Coulomb::CalculateTangentialForceWithNeighbour(
-        const double normal_contact_force,
-          const double OldLocalElasticContactForce[3],
-          double LocalElasticContactForce[3],
-          const double LocalDeltDisp[3],
-          bool& sliding,
-          SphericParticle* const element,
-          NeighbourClassType* const neighbour)
-    {
-        // Compute shear force
-        LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - this->mKt * LocalDeltDisp[0];
-        LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - this->mKt * LocalDeltDisp[1];
-        const double tangent_contact_force = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+  template<class NeighbourClassType>
+  void DEM_D_Linear_Simple_Coulomb::CalculateTangentialForceWithNeighbour(const double normal_contact_force,
+                                                                          const double OldLocalElasticContactForce[3],
+                                                                          double LocalElasticContactForce[3],
+                                                                          const double LocalDeltDisp[3],
+                                                                          bool& sliding,
+                                                                          SphericParticle* const element,
+                                                                          NeighbourClassType* const neighbour) {
+    // Compute shear force
+    LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - this->mKt * LocalDeltDisp[0];
+    LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - this->mKt * LocalDeltDisp[1];
+    const double tangent_contact_force = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        // Compute maximum admissible shear force
-        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
-        const double friction_angle_tg = std::tan(properties_of_this_contact[STATIC_FRICTION]);
-        const double MaximumAdmisibleShearForce = normal_contact_force * friction_angle_tg;
+    // Compute maximum admissible shear force
+    Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(neighbour->GetProperties().Id());
+    const double friction_angle_tg = std::tan(properties_of_this_contact[STATIC_FRICTION]);
+    const double MaximumAdmisibleShearForce = normal_contact_force * friction_angle_tg;
 
-        // Check for sliding: apply Coulomb friction condition
-        if (tangent_contact_force > MaximumAdmisibleShearForce) {
-            sliding = true;
-            const double fraction = MaximumAdmisibleShearForce / tangent_contact_force;
-            LocalElasticContactForce[0] *= fraction;
-            LocalElasticContactForce[1] *= fraction;
-        }
+    // Check for sliding: apply Coulomb friction condition
+    if (tangent_contact_force > MaximumAdmisibleShearForce) {
+        sliding = true;
+        const double fraction = MaximumAdmisibleShearForce / tangent_contact_force;
+        LocalElasticContactForce[0] *= fraction;
+        LocalElasticContactForce[1] *= fraction;
     }
+  }
 
 } // namespace Kratos
