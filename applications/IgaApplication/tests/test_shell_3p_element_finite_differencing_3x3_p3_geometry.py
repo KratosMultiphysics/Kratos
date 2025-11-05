@@ -4,6 +4,7 @@
 #        _/ // /_/ / ___ |
 #       /___/\____/_/  |_| Application
 
+import math
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.IgaApplication as IGA
@@ -123,7 +124,8 @@ def solve_cantilever(create_geometry):
     # create quadrature_point_geometries
     quadrature_point_geometries = KM.GeometriesVector()
 
-    surface.CreateQuadraturePointGeometries(quadrature_point_geometries, 3)
+    surface.CreateQuadraturePointGeometries(quadrature_point_geometries, 4)
+    print(len(quadrature_point_geometries), " quadrature point geometries created.")
 
     element_id = 1
     for i in range(0, len(quadrature_point_geometries)):
@@ -232,7 +234,7 @@ def solve_cantilever(create_geometry):
             perturbed_primal_rhs = KM.Vector()
             shell3p_perturbed_rhs = KM.Vector()
 
-            target_node_id = 4
+            target_node_id = 16
 
             if not model_part.HasNode(target_node_id):
                 raise RuntimeError(f"Model part does not contain node {target_node_id}")
@@ -240,7 +242,7 @@ def solve_cantilever(create_geometry):
             target_node = model_part.GetNode(target_node_id)
             
             #  node.X  #######################################
-            target_idx = 9  # column index associated with node 4 displacement X
+            target_idx = 45  # column index associated with node 16 displacement X
 
             target_node.X += delta
 
@@ -260,11 +262,13 @@ def solve_cantilever(create_geometry):
             print(f"perturbed node {target_node_id} Coordinate .X")
             print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
             for eq_idx in range(comparison_rows):
-                print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+
+                #print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+                math.isclose(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx], rel_tol=1e-4)
             print("-" * 40)
 
             #  node.Y  #######################################
-            target_idx = 10  # column index associated with node 4 displacement Y
+            target_idx = 46  # column index associated with node 16 displacement Y
 
             target_node.Y += delta
 
@@ -281,15 +285,15 @@ def solve_cantilever(create_geometry):
 
             comparison_rows = min(shell3p_fd_sensitivities.Size(), fd_sensitivities.Size())
 
-            print(f"perturbed node {target_node_id} Coordinate .Y")
-            print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
-            for eq_idx in range(comparison_rows):
-                print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-            print("-" * 40)
+            # print(f"perturbed node {target_node_id} Coordinate .Y")
+            # print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
+            # for eq_idx in range(comparison_rows):
+            #     print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+            # print("-" * 40)
 
 
             #  node.Z  #######################################
-            target_idx = 11  # column index associated with node 4 displacement Z
+            target_idx = 47  # column index associated with node 16 displacement Z
 
             target_node.Z += delta
 
@@ -313,7 +317,7 @@ def solve_cantilever(create_geometry):
             print("-" * 40)
 
             #  ALPHA  #######################################
-            target_idx = 12  # column index associated with Global Point - actuation variable Alpha
+            target_idx = 48  # column index associated with Global Point - actuation variable Alpha
 
             # There is only one node per background geometry -  the loop is redundant here but kept for generality
             print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
@@ -325,14 +329,14 @@ def solve_cantilever(create_geometry):
                 fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
                 node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) - delta)
 
-                print("perturbed ActiveGlobalNode - Variable ALPHA")
-                print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
-                for eq_idx in range(primal_rhs.Size()):
-                    print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-                print("-" * 40)
+                # print("perturbed ActiveGlobalNode - Variable ALPHA")
+                # print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
+                # for eq_idx in range(primal_rhs.Size()):
+                #     print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+                # print("-" * 40)
 
             #  KAPPA_1  #######################################
-            target_idx = 15  # column index associated with Global Point - actuation variable Kappa_1
+            target_idx = 51  # column index associated with Global Point - actuation variable Kappa_1
 
             # There is only one node per background geometry -  the loop is redundant here but kept for generality
             print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
@@ -344,41 +348,75 @@ def solve_cantilever(create_geometry):
                 fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
                 node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1) - delta)
 
-                print("perturbed ActiveGlobalNode - Variable KAPPA_1")
-                print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
-                for eq_idx in range(primal_rhs.Size()):
-                    print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-                print("-" * 40)
+                # print("perturbed ActiveGlobalNode - Variable KAPPA_1")
+                # print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
+                # for eq_idx in range(primal_rhs.Size()):
+                #     print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+                # print("-" * 40)
 
     return surface
 
 def create_geometry(model_part):
     node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0)
-    node2 = model_part.CreateNewNode(2, 1.0, 0.0, 0)
-    node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0)
-    node4 = model_part.CreateNewNode(4, 1.0, 1.0, 0)
+    node2 = model_part.CreateNewNode(2, 0.3333333333333333, 0.0, 0)
+    node3 = model_part.CreateNewNode(3, 0.6666666666666666, 0.0, 0)
+    node4 = model_part.CreateNewNode(4, 1.0, 0.0, 0)
 
+    node5 = model_part.CreateNewNode(5, 0.0, 0.3333333333333333, 0)
+    node6 = model_part.CreateNewNode(6, 0.3333333333333333, 0.3333333333333333, 0)
+    node7 = model_part.CreateNewNode(7, 0.6666666666666666, 0.3333333333333333, 0)
+    node8 = model_part.CreateNewNode(8, 1.0, 0.3333333333333333, 0)
+
+    node9 = model_part.CreateNewNode(9, 0.0, 0.6666666666666666, 0)
+    node10 = model_part.CreateNewNode(10, 0.3333333333333333, 0.6666666666666666, 0)
+    node11 = model_part.CreateNewNode(11, 0.6666666666666666, 0.6666666666666666, 0)
+    node12 = model_part.CreateNewNode(12, 1.0, 0.6666666666666666, 0)
+
+    node13 = model_part.CreateNewNode(13, 0.0, 1.0, 0)
+    node14 = model_part.CreateNewNode(14, 0.3333333333333333, 1.0, 0)
+    node15 = model_part.CreateNewNode(15, 0.6666666666666666, 1.0, 0)
+    node16 = model_part.CreateNewNode(16, 1.0, 1.0, 0)
 
     nodes = KM.NodesVector()
     nodes.append(node1)
     nodes.append(node2)
     nodes.append(node3)
     nodes.append(node4)
+    nodes.append(node5)
+    nodes.append(node6)
+    nodes.append(node7)
+    nodes.append(node8)
+    nodes.append(node9)
+    nodes.append(node10)
+    nodes.append(node11)
+    nodes.append(node12)
+    nodes.append(node13)
+    nodes.append(node14)
+    nodes.append(node15)
+    nodes.append(node16)
 
-    knots_u = KM.Vector(4)
+    knots_u = KM.Vector(8)
     knots_u[0] = 0.0
     knots_u[1] = 0.0
-    knots_u[2] = 1.0
-    knots_u[3] = 1.0
+    knots_u[2] = 0.0
+    knots_u[3] = 0.0
+    knots_u[4] = 1.0
+    knots_u[5] = 1.0
+    knots_u[6] = 1.0
+    knots_u[7] = 1.0
 
-    knots_v = KM.Vector(4)
+    knots_v = KM.Vector(8)
     knots_v[0] = 0.0
     knots_v[1] = 0.0
-    knots_v[2] = 1.0
-    knots_v[3] = 1.0
+    knots_v[2] = 0.0
+    knots_v[3] = 0.0
+    knots_v[4] = 1.0
+    knots_v[5] = 1.0
+    knots_v[6] = 1.0
+    knots_v[7] = 1.0
 
     surface = KM.NurbsSurfaceGeometry3D(
-        nodes, 1, 1, knots_u, knots_v)
+        nodes, 3, 3, knots_u, knots_v)
 
     return surface
 
@@ -392,3 +430,15 @@ if __name__ == "__main__":
         KratosUnittest.TestCase().assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_X), 0)
         KratosUnittest.TestCase().assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_Y), 0)
         KratosUnittest.TestCase().assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_Z), 0)
+
+    # KratosUnittest.TestCase().assertAlmostEqual(surface[0].Z, 0.0)
+    # KratosUnittest.TestCase().assertAlmostEqual(surface[3].Z, 0.0)
+    # KratosUnittest.TestCase().assertAlmostEqual(surface[6].Z, 0.0)
+
+    # KratosUnittest.TestCase().assertAlmostEqual(surface[1].Z, 0.0)
+    # KratosUnittest.TestCase().assertAlmostEqual(surface[4].Z, 0.0)
+    # KratosUnittest.TestCase().assertAlmostEqual(surface[7].Z, 0.0)
+
+    # KratosUnittest.TestCase().assertAlmostEqual(surface[2].Z, -0.223839729168301)
+    # KratosUnittest.TestCase().assertAlmostEqual(surface[5].Z, -0.223958628927084)
+    # KratosUnittest.TestCase().assertAlmostEqual(surface[8].Z, -0.223839729168301)
