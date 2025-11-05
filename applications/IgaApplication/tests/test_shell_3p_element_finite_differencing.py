@@ -147,7 +147,7 @@ def solve_cantilever(create_geometry):
 "kappa_12"
                            ],
         "applied_actuation_value": [
-0.50,
+0.00,
 0.00,
 0.00,
 0.00,

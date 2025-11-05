@@ -407,7 +407,7 @@ namespace Kratos
                 kinematic_variables);
 
             Matrix ActuatedB = ZeroMatrix(3, 6);
-            CalculateActuatedB(point_number, ActuatedB, kinematic_variables);
+            // CalculateActuatedB(point_number, ActuatedB, kinematic_variables);
 
             // Nonlinear Deformation
             SecondVariations second_variations_strain(mat_size);
@@ -492,10 +492,14 @@ namespace Kratos
 
                 noalias(r_1) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
                 noalias(r_1) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
-            
-                // Actuated contribution: bop_act * S * fac_ele
+                
+                KRATOS_WATCH(ActuatedB)
+                // Actuated contribution: bop_act^T * S * fac_ele
                 // bop_act corresponds to ActuatedBMembrane, S to constitutive_variables_membrane.StressVector, fac_ele to integration_weight
-                noalias(f_int_act) += integration_weight * prod(ActuatedB, constitutive_variables_membrane.StressVector);
+                noalias(f_int_act) += integration_weight * prod(trans(ActuatedB), constitutive_variables_membrane.StressVector);
+                KRATOS_WATCH(constitutive_variables_membrane.StressVector)
+                KRATOS_WATCH(integration_weight)
+                KRATOS_WATCH(f_int_act)
             }
         }
 
@@ -532,9 +536,9 @@ namespace Kratos
                 for (SizeType i = 0; i < u; ++i)
                     rRightHandSideVector[i] = r_1[i];
 
-                // // Bottom entries: insert actuated RHS
-                // for (SizeType i = 0; i < 6; ++i)
-                //     rRightHandSideVector[u + i] = f_int_act[i];
+                // Bottom entries: insert actuated RHS
+                for (SizeType i = 0; i < 6; ++i)
+                    rRightHandSideVector[u + i] = f_int_act[i];
             }
         }
 
