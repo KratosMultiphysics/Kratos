@@ -42,14 +42,14 @@ public:
      * This value reflects the thread configuration that will be used for subsequent MKL operations in the current process.
      * @return The number of threads currently set for MKL computations.
      */
-    static int GetNumMKLThreads();
+    static int GetNumThreads();
 
     /**
      * @brief Sets the number of threads to be used by Intel MKL library operations.
      * @details This static method configures the maximum number of threads that Intel MKL (Math Kernel Library) will use for parallel computations. This setting affects all subsequent MKL operations in the current process.
      * @param NumThreads The number of threads to be used by MKL. Should be a positive integer. Typically set to the number of available CPU cores or a fraction thereof depending on the desired parallelization strategy.
      */
-    static void SetNumMKLThreads(const int NumThreads);
+    static void SetNumThreads(const int NumThreads);
 
     /**
      * @brief Checks if the MKL thread number has been previously validated or set.

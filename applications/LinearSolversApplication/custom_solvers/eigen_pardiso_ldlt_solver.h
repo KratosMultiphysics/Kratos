@@ -67,10 +67,10 @@ public:
 
     bool Compute(Eigen::Map<const SparseMatrix> a)
     {
-        const int previous_threads = MKLUtilities::GetNumMKLThreads();
-        MKLUtilities::SetNumMKLThreads(mNumberOfMKLThreads);
+        const int previous_threads = MKLUtilities::GetNumThreads();
+        MKLUtilities::SetNumThreads(mNumberOfMKLThreads);
         m_solver.compute(a);
-        MKLUtilities::SetNumMKLThreads(previous_threads);
+        MKLUtilities::SetNumThreads(previous_threads);
 
         const bool success = m_solver.info() == Eigen::Success;
 
@@ -79,10 +79,10 @@ public:
 
     bool Solve(Eigen::Ref<const Vector> b, Eigen::Ref<Vector> x) const
     {
-        const int previous_threads = MKLUtilities::GetNumMKLThreads();
-        MKLUtilities::SetNumMKLThreads(mNumberOfMKLThreads);
+        const int previous_threads = MKLUtilities::GetNumThreads();
+        MKLUtilities::SetNumThreads(mNumberOfMKLThreads);
         x = m_solver.solve(b);
-        MKLUtilities::SetNumMKLThreads(previous_threads);
+        MKLUtilities::SetNumThreads(previous_threads);
 
         const bool success = m_solver.info() == Eigen::Success;
 

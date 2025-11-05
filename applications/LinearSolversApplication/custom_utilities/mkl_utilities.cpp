@@ -25,7 +25,7 @@
 namespace Kratos
 {
 
-int MKLUtilities::GetNumMKLThreads()
+int MKLUtilities::GetNumThreads()
 {
     return mkl_get_max_threads();
 }
@@ -33,7 +33,7 @@ int MKLUtilities::GetNumMKLThreads()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MKLUtilities::SetNumMKLThreads(const int NumThreads)
+void MKLUtilities::SetNumThreads(const int NumThreads)
 {
     mkl_set_num_threads(NumThreads);
 }
@@ -48,7 +48,7 @@ bool MKLUtilities::CheckThreadNumber(const int NumberOfMKLThreads)
         return true;
     }
 
-    const int number_of_threads_mkl = GetNumMKLThreads();
+    const int number_of_threads_mkl = GetNumThreads();
     if (NumberOfMKLThreads > 0) { // Manual setting
         if (number_of_threads_mkl != NumberOfMKLThreads) {
             KRATOS_WARNING("MKLUtilities") << "The number of threads in MKL is: " << NumberOfMKLThreads << " instead of " << number_of_threads_mkl << std::endl;
@@ -88,7 +88,7 @@ int MKLUtilities::ComputeMKLThreadCount(const int NumberOfMKLThreads)
         if (NumberOfMKLThreads > 0) {
             number_of_threads_used = NumberOfMKLThreads;
         } else if (static_cast<int>(MKLThreadSetting::Minimal) == NumberOfMKLThreads) {
-            const int number_of_threads_mkl = GetNumMKLThreads();
+            const int number_of_threads_mkl = GetNumThreads();
             number_of_threads_used = std::min(number_of_threads_mkl, number_of_threads_used);
         } else if (static_cast<int>(MKLThreadSetting::Consistent) == NumberOfMKLThreads) {
             number_of_threads_used = ParallelUtilities::GetNumThreads();
