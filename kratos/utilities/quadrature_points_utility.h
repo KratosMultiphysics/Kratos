@@ -149,7 +149,7 @@ namespace Kratos
             SizeType WorkingSpaceDimension,
             SizeType LocalSpaceDimension,
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
-            PointsArrayType rPoints,
+            const PointsArrayType& rPoints,
             double LocalTangentU,
             double LocalTangentV,
             GeometryType* pGeometryParent)
@@ -214,7 +214,7 @@ namespace Kratos
             SizeType WorkingSpaceDimension,
             SizeType LocalSpaceDimension,
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
-            PointsArrayType rPoints,
+            const PointsArrayType& rPoints,
             double LocalTangentU,
             double LocalTangentV)
         {
