@@ -260,6 +260,15 @@ namespace Kratos
             double derivative, 
             double dx, IndexType k, 
             double dy, IndexType n_k);
+
+        /**
+         * @brief 
+         * 
+         * @param grad_H_sum 
+         */
+        void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
+
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     
     private:
         ///@name Serialization
@@ -287,6 +296,20 @@ namespace Kratos
             const Matrix& rB, 
             ConstitutiveLaw::Parameters& rValues,
             ConstitutiveVariables& rConstitutiveVariables) const;
+        
+        /**
+         * @brief Compute the constitutive law response for the given strain vector.
+         * 
+         * @param matSize 
+         * @param rStrain 
+         * @param rValues 
+         * @param rConstitutiVariables 
+         */
+        void ApplyConstitutiveLawTrue(
+                SizeType matSize, 
+                Vector& rStrain, 
+                ConstitutiveLaw::Parameters& rValues,
+                ConstitutiveVariables& rConstitutiVariables);
 
         void CalculateB(
             Matrix& rB,

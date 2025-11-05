@@ -30,6 +30,10 @@
 #include "custom_elements/stokes_element.h"
 // Gap-SBM solid element
 #include "custom_elements/gap_sbm_solid_element.h"
+#include "custom_elements/laplacian_IGA_element.h"
+#include "custom_elements/stokes_element.h"
+#include "custom_elements/navier_stokes_element.h"
+#include "custom_elements/solid_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -38,6 +42,8 @@
 #include "custom_conditions/coupling_penalty_condition.h"
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
+#include "custom_conditions/laplacian_coupling_condition.h"
+#include "custom_conditions/fluid_coupling_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
@@ -45,6 +51,7 @@
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
 #include "custom_conditions/support_fluid_condition.h"
+#include "custom_conditions/support_pressure_condition.h"
 #include "custom_conditions/sbm_fluid_condition_dirichlet.h"
 #include "custom_conditions/support_pressure_condition.h"
 #include "custom_conditions/support_solid_condition.h"
@@ -65,6 +72,8 @@
 #include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "custom_modelers/nurbs_geometry_modeler_gap_sbm.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
+#include "custom_modelers/patch_subdivision_modeler.h"
+#include "custom_modelers/multipatch_modeler.h"
 
 namespace Kratos {
 
@@ -150,6 +159,10 @@ private:
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
     const GapSbmSolidElement mGapSbmSolidElement;
+    const LaplacianIGAElement mLaplacianIGAElement;
+    const StokesElement mStokesElement;
+    const NavierStokesElement mNavierStokesElement;
+    const SolidElement mSolidElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -158,6 +171,8 @@ private:
     const CouplingPenaltyCondition mCouplingPenaltyCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
+    const LaplacianCouplingCondition mLaplacianCouplingCondition;
+    const FluidCouplingCondition mFluidCouplingCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
@@ -183,6 +198,8 @@ private:
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
     const NurbsGeometryModelerGapSbm mNurbsGeometryModelerGapSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
+    const PatchSubdivisionModeler mPatchSubdivisionModeler;
+    const MultipatchModeler mMultipatchModeler;
 
     ///@}
     ///@name Private methods

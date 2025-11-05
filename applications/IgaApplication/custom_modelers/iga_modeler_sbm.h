@@ -196,7 +196,8 @@ private:
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties) const;
+        PropertiesPointerType pProperties,
+        const Vector KnotSpanSizes) const;
 
     /// Creates conditions from geometries
     void CreateConditions(
@@ -220,6 +221,8 @@ private:
         PropertiesPointerType pProperties,
         bool IsInner,
         const Vector KnotSpanSizes) const;
+
+    void PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const;
     
     /// Creates conditions from geometries (from skin projection)
     void CreateConditions(

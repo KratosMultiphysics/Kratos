@@ -38,6 +38,13 @@ void IgaModelerSbm::SetupModelPart()
         analysis_model_part,
         iga_physics_parameters);
 
+    if (mParameters.Has("integrate_on_true_boundary")) {
+        if (mParameters["integrate_on_true_boundary"].GetBool()) {
+            // method for computing the integral of the solution along the true boundary
+            PrepareIntegrationOnTrueBoundary(analysis_model_part);
+        } 
+    }
+
 }
 
 ///@}
@@ -270,13 +277,16 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
             << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
         if (type == "element") {
+            // Get the mesh sizes from the iga model part
+            const Vector& knot_span_sizes = rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Elements().size() > 0)
                 id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
             this->CreateElements(
                 geometries.ptr_begin(), geometries.ptr_end(),
-                rModelPart, name, id, PropertiesPointerType());
+                rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
         }
         else if (type == "condition") {
             // Get the mesh sizes from the iga model part
@@ -686,7 +696,8 @@ void IgaModelerSbm::CreateElements(
     ModelPart& rModelPart,
     std::string& rElementName,
     SizeType& rIdCounter,
-    PropertiesPointerType pProperties) const
+    PropertiesPointerType pProperties,
+    const Vector KnotSpanSizes) const
 {
     KRATOS_ERROR_IF(!KratosComponents<Element>::Has(rElementName))
         << rElementName << " not registered." << std::endl;
@@ -815,6 +826,147 @@ void IgaModelerSbm::CreateConditions(
     
     rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());
 }
+
+
+void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const {
+    // create the test bins containing all the boundary integration point (ALL!)
+    
+    PointVector points;
+    std::string skin_model_part_name;
+    if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
+    else {
+        skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+    }
+    ModelPart& skin_model_part_in  = mpModel->GetModelPart(skin_model_part_name).GetSubModelPart("inner");
+    ModelPart& skin_model_part_out = mpModel->GetModelPart(skin_model_part_name).GetSubModelPart("outer");
+
+    if (!(skin_model_part_in.NumberOfConditions() > 0 || skin_model_part_out.NumberOfConditions() > 0) ) {
+        KRATOS_ERROR << "Trying to integrate on true boundary when no skin boundary is defined" << std::endl;
+    }
+
+
+    ModelPart& surrogate_model_part_in = analysis_model_part.GetSubModelPart("SBM_Support_inner");
+    for (auto i_cond : surrogate_model_part_in.Conditions()) {
+        points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
+        i_cond.SetValue(INTEGRATION_POINTS, Matrix(0, 3)); // 0 rows, 3D points
+        i_cond.SetValue(INTEGRATION_WEIGHTS, Vector(0));
+        i_cond.SetValue(INTEGRATION_NORMALS,  Matrix(0,3)); // Nx3
+    }
+
+    int order = 0;
+    if (mParameters.Has("precision_order_on_integration")) {
+        order = mParameters["precision_order_on_integration"].GetInt();
+    } 
+    int num_points = order+1;
+
+    DynamicBins testBins(points.begin(), points.end());
+
+    Vector meshSizes_uv_inner = analysis_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+    Vector meshSizes_uv_outer = analysis_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+
+    const double meshSize= std::max(std::max(std::max(meshSizes_uv_inner[0], meshSizes_uv_inner[1]), meshSizes_uv_outer[0]), meshSizes_uv_outer[1]);
+    const double radius = 2*sqrt(2)*(meshSize);
+    // const double radius = 30*sqrt(2)*(meshSize);
+    KRATOS_WATCH(radius)
+
+    const int numberOfResults = 1e6; 
+    ModelPart::NodesContainerType::ContainerType Results(numberOfResults);
+    std::vector<double> list_of_distances(numberOfResults);
+    
+    if (skin_model_part_in.NumberOfConditions() > 0) {
+
+        const std::vector<std::array<double, 2>>& integration_point_list_u = IntegrationPointUtilities::s_gauss_legendre[num_points - 1];
+
+        for (auto &i_cond : skin_model_part_in.Conditions()) {
+            // First and second point of the condition
+            const CoordinateVector U_0 = i_cond.GetGeometry()[0]; 
+            const CoordinateVector U_1 = i_cond.GetGeometry()[1];
+            CoordinateVector distance_u = U_1 - U_0;
+            const double length_u = norm_2(distance_u);
+
+            // Compute the normals at the integration points
+            // const auto& G = i_cond.GetGeometry(); // 2 nodes
+            // array_1d<double,3> n_avg = G[0].GetValue(NORMAL) + G[1].GetValue(NORMAL);
+            // const double nrm = norm_2(n_avg);
+            // if (nrm > 1e-15) {
+            //     n_avg /= nrm; // normalize average normal
+            // }
+            const auto& G = i_cond.GetGeometry();
+            array_1d<double,3> t = G[1].Coordinates() - G[0].Coordinates(); // tangente fisica
+            const double L = norm_2(t);
+            KRATOS_ERROR_IF(L < 1e-14) << "Zero-length skin segment (condition " << i_cond.Id() << ")" << std::endl;
+            t /= L;
+            // Normale "destra" (= rotazione -90°) del segmento
+            array_1d<double,3> n_avg;
+            n_avg[0] =  t[1];
+            n_avg[1] = -t[0];
+            n_avg[2] =  0.0;
+
+            // Compute the integration points on this true segment
+            for (SizeType u = 0; u < static_cast<SizeType>(num_points); ++u)
+            {
+                const CoordinateVector curr_integration_point = U_0 + distance_u * integration_point_list_u[u][0];
+                const double curr_integration_weight = integration_point_list_u[u][1] * length_u;
+                PointerType pointToSearch = PointerType(new PointType(10000, curr_integration_point));
+                int obtainedResults = testBins.SearchInRadius(*pointToSearch, radius, Results.begin(), list_of_distances.begin(), numberOfResults);
+            
+            
+                double minimum_distance=1e10;
+                int nearestNodeId;
+                for (int i_distance = 0; i_distance < obtainedResults; i_distance++) {
+                    double new_distance = list_of_distances[i_distance];   
+                    if (new_distance < minimum_distance) { 
+                        minimum_distance = new_distance;
+                        nearestNodeId = i_distance;
+                        }
+                }
+                if (obtainedResults == 0) {
+                        KRATOS_WATCH("0 POINTS FOUND: EXIT")
+                        KRATOS_WATCH(pointToSearch)
+                        exit(0);}
+
+                
+                IndexType idCond = Results[nearestNodeId]->Id();
+
+                // Get current condition
+                auto& r_condition = surrogate_model_part_in.GetCondition(idCond);
+
+                // === INTEGRATION_POINTS ===
+                Matrix integration_point_matrix = r_condition.GetValue(INTEGRATION_POINTS);
+                // Resize matrix to add a new row for the current integration point
+                SizeType old_rows = integration_point_matrix.size1();
+                SizeType cols = curr_integration_point.size();
+                integration_point_matrix.resize(old_rows + 1, cols, true); // `true` preserves existing data
+                // Add new integration point
+                for (SizeType i = 0; i < cols; ++i) {
+                    integration_point_matrix(old_rows, i) = curr_integration_point[i];
+                }
+                // Set back
+                r_condition.SetValue(INTEGRATION_POINTS, integration_point_matrix);
+
+                // === INTEGRATION_WEIGHTS ===
+                Vector integration_weight_vector = r_condition.GetValue(INTEGRATION_WEIGHTS);
+                // Resize vector to add the new weight
+                SizeType old_size = integration_weight_vector.size();
+                integration_weight_vector.resize(old_size + 1, true); // preserve old
+                // Add new weight
+                integration_weight_vector[old_size] = curr_integration_weight;
+                // Set back
+                r_condition.SetValue(INTEGRATION_WEIGHTS, integration_weight_vector);
+
+                // === INTEGRATION_NORMALS ===
+                Matrix normals_matrix = r_condition.GetValue(INTEGRATION_NORMALS);
+                const SizeType old_rows_normals = normals_matrix.size1();
+                normals_matrix.resize(old_rows_normals + 1, 3, true);
+                normals_matrix(old_rows_normals,0) = n_avg[0];
+                normals_matrix(old_rows_normals,1) = n_avg[1];
+                normals_matrix(old_rows_normals,2) = n_avg[2];
+                r_condition.SetValue(INTEGRATION_NORMALS, normals_matrix);
+            }
+        }
+    }
+}
+
 
 void IgaModelerSbm::CreateConditions(
     typename GeometriesArrayType::ptr_iterator rGeometriesBegin,

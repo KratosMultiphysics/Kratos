@@ -34,11 +34,13 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
-    , mSolidElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mStokesElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mGapSbmSolidElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mNavierStokesElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mSolidElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -52,6 +54,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingNitscheCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mLaplacianCouplingCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mFluidCouplingCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
@@ -64,8 +70,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmLaplacianConditionNeumann(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mSupportFluidCondition(0, Element::GeometryType::Pointer(
-        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mSupportFluidCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPressureCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmFluidConditionDirichlet(0, Condition::GeometryType::Pointer(
@@ -104,6 +110,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
     KRATOS_REGISTER_ELEMENT("GapSbmSolidElement", mGapSbmSolidElement)
+    KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
+    KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
+    KRATOS_REGISTER_ELEMENT("NavierStokesElement", mNavierStokesElement)
+    KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -112,6 +122,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("CouplingPenaltyCondition", mCouplingPenaltyCondition)
     KRATOS_REGISTER_CONDITION("CouplingLagrangeCondition", mCouplingLagrangeCondition)
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
+    KRATOS_REGISTER_CONDITION("LaplacianCouplingCondition", mLaplacianCouplingCondition)
+    KRATOS_REGISTER_CONDITION("FluidCouplingCondition", mFluidCouplingCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
@@ -136,6 +148,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerSbm", mNurbsGeometryModelerSbm);
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerGapSbm", mNurbsGeometryModelerGapSbm);
     KRATOS_REGISTER_MODELER("ImportNurbsSbmModeler", mImportNurbsSbmModeler);
+    KRATOS_REGISTER_MODELER("PatchSubdivisionModeler", mPatchSubdivisionModeler);
+    KRATOS_REGISTER_MODELER("MultipatchModeler", mMultipatchModeler);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
@@ -209,6 +223,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // SBM Variables 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
+    KRATOS_REGISTER_VARIABLE(INTEGRATION_NORMALS)
     KRATOS_REGISTER_VARIABLE(BOUNDARY_CONDITION_TYPE)
     KRATOS_REGISTER_VARIABLE(CONDITION_NAME)
     KRATOS_REGISTER_VARIABLE(LAYER_NAME)
@@ -216,6 +231,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_V)
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_W)
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)
+    KRATOS_REGISTER_VARIABLE(PATCH_PARAMETER_SPACE_CORNERS)
     KRATOS_REGISTER_VARIABLE(PARAMETER_SPACE_CORNERS)
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE)
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_GEOMETRIES)
@@ -223,6 +239,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(CONNECTED_LAYERS)
     KRATOS_REGISTER_VARIABLE(CONNECTED_CONDITIONS)
     KRATOS_REGISTER_VARIABLE(INTERPOLATION_NODES_ID)
+    KRATOS_REGISTER_VARIABLE(RESULTS_ON_TRUE_BOUNDARY)
+    KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_COORDINATES)
+    KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_ID)
+
 }
 
 }  // namespace Kratos

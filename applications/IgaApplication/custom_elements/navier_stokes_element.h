@@ -46,14 +46,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class StokesElement : public Element
+class NavierStokesElement : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of StokesElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesElement);
+    /// Counted pointer of NavierStokesElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NavierStokesElement);
 
     typedef Element BaseType;
 
@@ -72,17 +72,17 @@ public:
     ///@{
 
     /// Default constructor.
-    StokesElement(
+    NavierStokesElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    StokesElement(
+    NavierStokesElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~StokesElement();
+    virtual ~NavierStokesElement();
 
     ///@}
     ///@name Operators
@@ -120,7 +120,7 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    StokesElement() : Element()
+    NavierStokesElement() : Element()
     {
     }
 
@@ -172,7 +172,14 @@ protected:
         }
     }
 
-    virtual void CalculateTau(double MuEffective);
+    virtual void CalculateTau(
+        const double MuEffective,
+        const double Density,
+        const double AdvectiveNorm);
+
+    void CalculateAdvectiveNorm(
+        const ShapeFunctionsType &rN,
+        double& adv_norm);
 
     double ElementSize();
 
@@ -189,6 +196,7 @@ protected:
     void AddContinuityTerms(MatrixType &rLHS,
             VectorType &rRHS,
             const array_1d<double,3>& rBodyForce,
+            const double Density,
             const double TauOne,
             const ShapeFunctionsType &rN,
             const ShapeDerivativesType &rDN_DX,
@@ -196,7 +204,16 @@ protected:
 
     void AddSecondOrderStabilizationTerms(MatrixType &rLHS,
             VectorType &rRHS,
+            const double TauOne,
+            const ShapeFunctionsType &rN,
+            const ShapeDerivativesType &rDN_DX,
+            const double Weight,
+            const Matrix& rD);
+    
+    void AddConvectiveTerms(MatrixType &rLHS,
+            VectorType &rRHS,
             const array_1d<double,3>& rBodyForce,
+            const double Density,
             const double TauOne,
             const ShapeFunctionsType &rN,
             const ShapeDerivativesType &rDN_DX,
@@ -359,7 +376,7 @@ private:
     ///@name Un accessible methods
     ///@{
 
-}; // Class StokesElement
+}; // Class NavierStokesElement
 
 ///@}
 

@@ -40,7 +40,7 @@ void SbmLaplacianConditionNeumann::CalculateLocalSystem(
     KRATOS_TRY
     
     const std::size_t mat_size = GetGeometry().size() * 1;
-
+    
     if (rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size);
     noalias(rRightHandSideVector) = ZeroVector(mat_size);
@@ -210,13 +210,25 @@ void SbmLaplacianConditionNeumann::CalculateRightHandSide(
     
     // Assembly
     Vector t_N(number_of_nodes);
+    // for (IndexType i = 0; i < number_of_nodes; ++i)
+    // {
+    //     t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
+    // }
+    const double x = mpProjectionNode->X();
+    const double y = mpProjectionNode->Y();
+    const double du_dx = std::cos(x) * std::sinh(y);
+    const double du_dy = std::sin(x) * std::cosh(y);
+    const double q_n = du_dx * mTrueNormal[0] + du_dy * mTrueNormal[1]; // + 0*mTrueNormal[2] in 2D
     for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
-        t_N[i] = mpProjectionNode->GetValue(HEAT_FLUX);
-    }
+        t_N[i] = q_n;
+
     // Neumann Contributions
     noalias(rRightHandSideVector) += prod(prod(trans(H), H), t_N) * mTrueDotSurrogateNormal * r_integration_points[0].Weight(); // * std::abs(determinant_jacobian_vector[point_number]);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> kratos/fluid_2d_1
     // --- Corresponding RHS ---
     Matrix left_hand_side = ZeroMatrix(number_of_nodes);
     CalculateLeftHandSide(left_hand_side,rCurrentProcessInfo);

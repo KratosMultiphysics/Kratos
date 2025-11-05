@@ -87,9 +87,11 @@ void SupportPressureCondition::CalculateRightHandSide(
     // Matrix DB = prod(r_D,B);
     const Matrix& N = r_geometry.ShapeFunctionsValues();
     // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-    noalias(DN_DX) = r_DN_De[0];
+    noalias(DN_DX) = r_DN_De[0]; // prod(DN_De[point_number],InvJ0);
 
     double p_D = this->GetValue(PRESSURE);
+
+    double current_time = rCurrentProcessInfo[TIME];
 
     for (IndexType j = 0; j < number_of_nodes; j++) {
         
@@ -98,8 +100,48 @@ void SupportPressureCondition::CalculateRightHandSide(
             rRightHandSideVector((mDim+1)*j+idim) -= p_D * ( N(0,j) * normal_parameter_space[idim] ) * mIntegrationWeight;
         }
         
-        // Neumann condition for the velocity
-        Vector t_N = this->GetValue(NORMAL_STRESS);
+        Vector t_N = ZeroVector(mDim); // Initialize t_N with zero vector of size 2
+        double x = r_geometry.Center().X(); 
+        double y = r_geometry.Center().Y();
+
+        Matrix grad_u(mDim, mDim); // grad_u(i,j) = du_i/dx_j
+
+        grad_u(0, 0) = sinh(x) * sinh(y);     // ∂u_x / ∂x
+        grad_u(0, 1) = cosh(x) * cosh(y);     // ∂u_x / ∂y
+        grad_u(1, 0) = -cosh(x) * cosh(y);    // ∂u_y / ∂x
+        grad_u(1, 1) = -sinh(x) * sinh(y);     // ∂u_y / ∂y
+
+        // grad_u(0, 0) = 3.0 * x * x;      // ∂u_x / ∂x
+        // grad_u(0, 1) = 0.0;              // ∂u_x / ∂y
+        // grad_u(1, 0) = -6.0 * x * y;     // ∂u_y / ∂x
+        // grad_u(1, 1) = -3.0 * x * x;     // ∂u_y / ∂y
+
+        // grad_u(0, 0) = 2.0 * x;      // ∂u_x / ∂x
+        // grad_u(0, 1) = 0.0;              // ∂u_x / ∂y
+        // grad_u(1, 0) = -2.0 * y;     // ∂u_y / ∂x
+        // grad_u(1, 1) = -2.0 * x;     // ∂u_y / ∂y
+
+        // grad_u(0, 0) = sinh(x) * sinh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_x / ∂x
+        // grad_u(0, 1) = cosh(x) * cosh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_x / ∂y
+        // grad_u(1, 0) = -cosh(x) * cosh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_y / ∂x
+        // grad_u(1, 1) = -sinh(x) * sinh(y) * std::exp(-current_time)*current_time*current_time;     // ∂u_y / ∂y
+
+        Matrix sym_grad_u(mDim, mDim); // ε(u) = 0.5*(∇u + ∇u^T)
+        for (IndexType i = 0; i < mDim; ++i) {
+            for (IndexType j = 0; j < mDim; ++j) {
+                sym_grad_u(i,j) = 0.5 * (grad_u(i,j) + grad_u(j,i));
+            }
+        }
+        // Now compute stress vector: σ·n = 2ν ε(u)·n
+        for (IndexType i = 0; i < mDim; ++i) {
+            for (IndexType j = 0; j < mDim; ++j) {
+                t_N[i] += 2.0 * sym_grad_u(i,j) * normal_parameter_space[j];
+            }
+        }
+
+        // -------------------------------------------------------CHANNEL-------------------------------------------------------
+        t_N = ZeroVector(mDim); 
+        // -------------------------------------------------------CHANNEL-------------------------------------------------------
 
         for (IndexType idim = 0; idim < mDim; idim++) {
             rRightHandSideVector((mDim+1)*j+idim) += N(0,j) * t_N[idim] * mIntegrationWeight;
@@ -237,6 +279,114 @@ void SupportPressureCondition::GetSolutionCoefficientVector(
         rValues[index] = velocity[0];
         rValues[index + 1] = velocity[1];
     }
+}
+
+
+void SupportPressureCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+#pragma omp critical
+{   
+    if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+
+
+    const auto& r_geom = GetGeometry();
+    const SizeType n = r_geom.size();
+
+    // 1) Dati di quadratura (GI_GAUSS_1) e funzioni di forma
+    const auto& r_ip   = r_geom.IntegrationPoints(this->GetIntegrationMethod());
+    const auto& r_dnde = r_geom.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const Matrix& H    = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const Matrix& DN_DX = r_dnde[0];
+
+    // 2) Normale e |J| per misura di linea (2D)
+    array_1d<double,3> n_par = - r_geom.Normal(0, this->GetIntegrationMethod());
+    n_par /= MathUtils<double>::Norm(n_par);
+
+    GeometryType::JacobiansType J0;
+    r_geom.Jacobian(J0, this->GetIntegrationMethod());
+    Matrix J = ZeroMatrix(3,3);
+    J(0,0)=J0[0](0,0); J(0,1)=J0[0](0,1);
+    J(1,0)=J0[0](1,0); J(1,1)=J0[0](1,1);
+    J(2,2)=1.0;
+
+    array_1d<double,3> t_par;
+    r_geom.Calculate(LOCAL_TANGENT, t_par);
+    Vector det_vec = prod(J, t_par);
+    det_vec[2]=0.0;
+    const double detJ = norm_2(det_vec);
+    const double w = r_ip[0].Weight() * std::abs(detJ);
+
+    // 3) Costitutivo al GP (B*u -> strain-rate), stress (solo viscoso)
+    Matrix B(3, n*mDim, 0.0);
+    CalculateB(B, DN_DX);
+
+    ConstitutiveLaw::Parameters Values(r_geom, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveVariables cv(3);
+    Vector u_coeff(n*mDim);
+    GetSolutionCoefficientVector(u_coeff);
+    Vector strain = prod(B, u_coeff);
+
+    Values.SetStrainVector(strain);
+    Values.SetStressVector(cv.StressVector);
+    Values.SetConstitutiveMatrix(cv.D);
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+
+    const Vector& sigma_voigt = Values.GetStressVector(); // τ in Voigt (xx, yy, xy)
+    // 2x2 da Voigt
+    Matrix tau = ZeroMatrix(2,2);
+    tau(0,0)=sigma_voigt[0]; tau(1,1)=sigma_voigt[1];
+    tau(0,1)=sigma_voigt[2]; tau(1,0)=sigma_voigt[2];
+
+    // 4) Pressione al GP (interpolazione)
+    double p_gp = 0.0;
+    for (SizeType a=0; a<n; ++a)
+        p_gp += H(0,a) * r_geom[a].GetSolutionStepValue(PRESSURE);
+
+    // 5) Normale (2D)
+    array_1d<double,2> n2; n2[0]=n_par[0]; n2[1]=n_par[1];
+
+    // 6) Tractions
+    array_1d<double,2> t_visc = ZeroVector(2);
+    t_visc[0] = tau(0,0)*n2[0] + tau(0,1)*n2[1];
+    t_visc[1] = tau(1,0)*n2[0] + tau(1,1)*n2[1];
+
+    array_1d<double,2> t_pres = ZeroVector(2);
+    t_pres[0] = -p_gp * n2[0];
+    t_pres[1] = -p_gp * n2[1];
+
+    array_1d<double,2> t_tot = t_visc + t_pres;
+
+    // 7) Coordinate del GP (qui uso il centro geometrico della condizione)
+    const auto center = r_geom.Center();
+
+    // 8) Salva risultati per il post-process (1 GP -> 1 riga)
+    //    [0] w, [1] fx_tot, [2] fy_tot, [3] fx_visc, [4] fy_visc, [5] fx_pres, [6] fy_pres,
+    //    [7] nx, [8] ny, [9] x_gp, [10] y_gp
+    Matrix results(1, 11, 0.0);
+    results(0,0)  = w;
+    results(0,1)  = t_tot[0];
+    results(0,2)  = t_tot[1];
+    results(0,3)  = t_visc[0];
+    results(0,4)  = t_visc[1];
+    results(0,5)  = t_pres[0];
+    results(0,6)  = t_pres[1];
+    results(0,7)  = n2[0];
+    results(0,8)  = n2[1];
+    results(0,9)  = center.X();
+    results(0,10) = center.Y();
+
+    // Usa una chiave diversa da quella del cilindro per non confonderli
+    this->SetValue(RESULTS_ON_TRUE_BOUNDARY, results);
+}
 }
 
 } // Namespace Kratos

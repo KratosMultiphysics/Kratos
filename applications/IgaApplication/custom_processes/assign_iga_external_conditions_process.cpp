@@ -345,6 +345,8 @@ void AssignIgaExternalConditionsProcess::SetVariableValueToCondition(
         p_condition->SetValue(VELOCITY_Y, value);
     } else if (rVariableName == "VELOCITY_Z") {
         p_condition->SetValue(VELOCITY_Z, value);
+    } else if (rVariableName == "PRESSURE") {
+        p_condition->SetValue(PRESSURE, value);
     } else if (rVariableName == "DISPLACEMENT_X") {
         p_condition->SetValue(DISPLACEMENT_X, value);
     } else if (rVariableName == "DISPLACEMENT_Y") {

@@ -32,6 +32,7 @@
 
 //schemes
 #include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
+#include "custom_strategies/schemes/bdf2_higher_order_vms_scheme.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta.h"
@@ -146,6 +147,14 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>,
         typename BDF2TurbulentScheme<SparseSpaceType, LocalSpaceType>::Pointer,
         BaseSchemeType>(m, "BDF2TurbulentScheme")
+    .def(py::init<>())                 // default constructor
+    .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
+    ;
+
+    py::class_<
+        BDF2HigherOrderVMSScheme<SparseSpaceType, LocalSpaceType>,
+        typename BDF2HigherOrderVMSScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m, "BDF2HigherOrderVMSScheme")
     .def(py::init<>())                 // default constructor
     .def(py::init<Process::Pointer>()) // constructor passing a turbulence model
     ;
