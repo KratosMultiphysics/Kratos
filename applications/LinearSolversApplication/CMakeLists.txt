@@ -66,7 +66,7 @@ if( USE_EIGEN_MKL MATCHES ON )
 
     target_compile_definitions(KratosLinearSolversCore PUBLIC
                                USE_EIGEN_MKL EIGEN_USE_MKL_ALL)
-    target_sources(KratosLinearSolversCore PUBLIC
+    target_sources(KratosLinearSolversCore PRIVATE
                    "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_smoother_base.cpp"
                    "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_ilu.cpp")
 endif()
@@ -98,11 +98,11 @@ if (USE_EIGEN_SUITESPARSE)
     include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindCHOLMOD.cmake")
     include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindSPQR.cmake")
     include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindUMFPACK.cmake")
-    add_definitions(-DKRATOS_USE_EIGEN_SUITESPARSE)
+    target_compile_definitions(KratosLinearSolversCore PUBLIC KRATOS_USE_EIGEN_SUITESPARSE)
 endif()
 
 ## generate variables with the sources
-target_sources(KratosLinearSolversCore PUBLIC
+target_sources(KratosLinearSolversCore PRIVATE
                ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp)
 

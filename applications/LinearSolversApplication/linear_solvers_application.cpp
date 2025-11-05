@@ -78,7 +78,7 @@ void KratosLinearSolversApplication::Register()
     static auto SparseCGFactory = SparseCGType::Factory();
     KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
 
-#if defined USE_EIGEN_MKL
+#ifdef USE_EIGEN_MKL
 
     {
         MKLVersion mkl_version;
