@@ -29,6 +29,8 @@ public:
     using BaseType = BDF2TurbulentScheme<TSparseSpace, TDenseSpace>;
     using TSystemMatrixType = typename TSparseSpace::MatrixType;
     using TSystemVectorType = typename TSparseSpace::VectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
     /// Constructor: same as parent
     BDF2HigherOrderVMSScheme()
@@ -48,6 +50,32 @@ public:
         return "BDF2HigherOrderVMSScheme";
     }
 
+    // Override condition assembly
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+        rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+        KRATOS_CATCH("")
+    }
+
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+        rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        KRATOS_CATCH("")
+    }
+
     /// Set the time iteration coefficients
     void InitializeNonLinIteration(
         ModelPart& rModelPart,
@@ -62,9 +90,15 @@ public:
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
         ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
-        // Use the second "element" (i.e. quadrature point) as a reference to get the number of Gauss points per knot span
-        const unsigned int gauss_point_per_knot_span = (el_begin+1)->GetGeometry().size();
-        const unsigned int number_of_control_points =  (el_begin+1)->GetGeometry().size();
+
+        // Find the first element with LocalSpaceDimension() != 1 to use as reference
+        int first_valid_index = 0;
+        for (; first_valid_index < nelements; ++first_valid_index) {
+            auto it_elem = el_begin + first_valid_index;
+            if (it_elem->GetGeometry().LocalSpaceDimension() != 1) break;
+        }
+        KRATOS_ERROR_IF(first_valid_index >= nelements)
+            << "BDF2HigherOrderVMSScheme: no 2D/3D elements found to use as reference." << std::endl;
 
         // KRATOS_INFO("BDF2HigherOrderVMSScheme") << "Number of Gauss points per knot span: " << gauss_point_per_knot_span << std::endl;
         // KRATOS_INFO("BDF2HigherOrderVMSScheme") << "Number of control points: " << number_of_control_points << std::endl;
@@ -76,20 +110,15 @@ public:
         std::vector<array_1d<double, 3>> collected_coordinates;
         unsigned int collected_count = 0;
 
-        // skip the first element/elements if there are inner loops
-        int skip_elements = 0;
-        for (int k = 0; k < nelements; k++) {  
+        // Iterate over all elements, skipping any with LocalSpaceDimension()==1
+        for (int k = first_valid_index; k < nelements; ++k) {
             auto it_elem = el_begin + k;
             if (it_elem->GetGeometry().LocalSpaceDimension() == 1) {
-                skip_elements++;
-            } else {
-                break; // exit the loop if we find an element with LocalSpaceDimension > 1
+                continue; // skip 1D (inner-loop) elements wherever they appear
             }
-        } 
-        // KRATOS_WATCH(skip_elements) 
 
-        for (int k = skip_elements; k < nelements; k++) {
-            auto it_elem = el_begin + k;
+            const unsigned int gauss_point_per_knot_span = (it_elem)->GetGeometry().size();
+            const unsigned int number_of_control_points  = (it_elem)->GetGeometry().size();
 
             if (it_elem->IsActive()) {
                 std::vector<Vector> stress_vector;

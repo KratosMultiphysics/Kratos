@@ -125,7 +125,7 @@ void RefPatchCouplingProcess::CreateAndAddBrepCurve(
     using NurbsCurveType = NurbsCurveGeometry<2, PointerVector<Node>>;
     auto p_curve = Kratos::make_shared<NurbsCurveType>(ctrl_pts, p, knot_vector);
 
-    auto p_brep = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve, brep_active_range, true);
+    auto p_brep = Kratos::make_shared<BrepCurveOnSurfaceSbmType>(pSurfaceGeometry, p_curve, brep_active_range, true);
     p_brep->SetId(++rLastGeometryId);
     rModelPart.AddGeometry(p_brep);
 }
@@ -184,7 +184,7 @@ void RefPatchCouplingProcess::CreateConditionsFromBrepCurvesWithMirroredNeighbou
 
     auto build_shared_ips = [&](GeometryPointerType pBrep) -> IPArray {
         double t0 = 0.0, t1 = 1.0;
-        if (auto p_brep = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(pBrep)) {
+        if (auto p_brep = std::dynamic_pointer_cast<BrepCurveOnSurfaceSbmType>(pBrep)) {
             const auto interval = p_brep->DomainInterval();
             t0 = interval.GetT0();
             t1 = interval.GetT1();
@@ -282,8 +282,10 @@ void RefPatchCouplingProcess::Execute()
     const Matrix& ref_c  = r_ref .GetValue(PATCH_PARAMETER_SPACE_CORNERS);
 
     PatchBox A, B;
-    A.pPatch = &r_base; A.name = base_name;
-    B.pPatch = &r_ref ; B.name = ref_name;
+    A.pPatch = &r_base; 
+    A.name = base_name;
+    B.pPatch = &r_ref ; 
+    B.name = ref_name;
     A.u0 = base_c(0,0); A.u1 = base_c(0,1); A.v0 = base_c(1,0); A.v1 = base_c(1,1);
     B.u0 = ref_c (0,0); B.u1 = ref_c (0,1); B.v0 = ref_c (1,0); B.v1 = ref_c (1,1);
 
@@ -358,14 +360,6 @@ void RefPatchCouplingProcess::Execute()
             Point A1(vertical_edge ? fixed : b, vertical_edge ? b : fixed, 0.0);
             Point B0 = A0; Point B1 = A1;
 
-            KRATOS_WATCH(A0)
-            KRATOS_WATCH(A1)
-            KRATOS_WATCH(B0)
-            KRATOS_WATCH(B1)
-            KRATOS_WATCH(flipA)
-            KRATOS_WATCH(flipB)
-            KRATOS_WATCH("\n")
-
             CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart, flipA);
             breps_A.push_back(mrModelPart.pGetGeometry(next_id));
             CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart, flipB);
@@ -388,16 +382,17 @@ void RefPatchCouplingProcess::Execute()
         return;
     }
 
-    KRATOS_WATCH()
 
     // Left edge (u = u0)
-    append_segments(true /*vertical*/, B.u0, v0, v1, /*flipA*/true, /*flipB*/false);
+    append_segments(true /*vertical*/, B.u0, v0, v1, /*flipA*/false, /*flipB*/true);
     // Right edge (u = u1)
-    append_segments(true /*vertical*/, B.u1, v0, v1, /*flipA*/false,  /*flipB*/true);
+    append_segments(true /*vertical*/, B.u1, v0, v1, /*flipA*/true,  /*flipB*/false);
     // Bottom edge (v = v0)
-    append_segments(false /*horizontal*/, B.v0, u0, u1, /*flipA*/false, /*flipB*/true);
+    append_segments(false /*horizontal*/, B.v0, u0, u1, /*flipA*/true, /*flipB*/false);
     // Top edge (v = v1)
-    append_segments(false /*horizontal*/, B.v1, u0, u1, /*flipA*/true,  /*flipB*/false);
+    append_segments(false /*horizontal*/, B.v1, u0, u1, /*flipA*/false,  /*flipB*/true);
+    // Left edge (u = u0)
+
 }
 
 } // namespace Kratos
