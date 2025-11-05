@@ -373,9 +373,20 @@ void MultipatchModeler::SetupModelPart()
             << (use_sbm_for_this_patch ? " [refined]" : "") << std::endl;
     }
 
-    // Generate geometry for this patch
+    // Adjust number_of_inner_loops = #refinement regions
+    Parameters patch_geometry_for_sbm_coupling = patch_geometry.Clone();
     {
-        NurbsGeometryModelerSbm geometry_modeler(*mpModel, patch_geometry);
+        const int n_inner = static_cast<int>(mRefinementRegions.size());
+        if (patch_geometry_for_sbm_coupling.Has("number_of_inner_loops")) {
+            patch_geometry_for_sbm_coupling["number_of_inner_loops"].SetInt(n_inner);
+        } else {
+            patch_geometry_for_sbm_coupling.AddEmptyValue("number_of_inner_loops").SetInt(n_inner);
+        }
+    }
+
+    // Generate geometry for this patch using the adjusted parameters
+    {
+        NurbsGeometryModelerSbm geometry_modeler(*mpModel, patch_geometry_for_sbm_coupling);
         geometry_modeler.SetupGeometryModel();
         geometry_modeler.PrepareGeometryModel();
         geometry_modeler.SetupModelPart();
@@ -429,22 +440,30 @@ void MultipatchModeler::SetupModelPart()
         auto has_mp = [](const Parameters& c)->bool {
             return c.Has("iga_model_part") && c["iga_model_part"].IsString();
         };
-        auto to_lower = [](std::string s){ std::transform(s.begin(), s.end(), s.begin(),
-                                    [](unsigned char ch){ return static_cast<char>(std::tolower(ch)); }); return s; };
 
         Parameters ext_tmpl, int_tmpl;
         bool has_ext = false, has_int = false;
 
-        // heuristic by name contains "outer/external" vs "inner/internal", else by first/second occurrence
+        // First: prefer explicit boundary_role if provided ("external" or "internal")
+        for (IndexType i = 0; i < condition_list.size(); ++i) {
+            const Parameters c = condition_list[i];
+            if (!is_edge_cond(c)) continue;
+            if (c.Has("boundary_role") && c["boundary_role"].IsString()) {
+                const std::string role = c["boundary_role"].GetString();
+                if (!has_ext && role == "external") { ext_tmpl = c.Clone(); has_ext = true; }
+                else if (!has_int && role == "internal") { int_tmpl = c.Clone(); has_int = true; }
+            }
+        }
+
+        // Then: heuristic by name contains "outer/external" vs "inner/internal", else by first/second occurrence
         for (IndexType i = 0; i < condition_list.size(); ++i) {
             const Parameters c = condition_list[i];
             if (!is_edge_cond(c) || !has_mp(c)) continue;
             const std::string mp = c["iga_model_part"].GetString();
-            const std::string l  = to_lower(mp);
-            if (!has_ext && (l.find("outer") != std::string::npos || l.find("external") != std::string::npos)) {
+            if (!has_ext && (mp.find("outer") != std::string::npos || mp.find("external") != std::string::npos)) {
                 ext_tmpl = c.Clone(); has_ext = true; continue;
             }
-            if (!has_int && (l.find("inner") != std::string::npos || l.find("internal") != std::string::npos)) {
+            if (!has_int && (mp.find("inner") != std::string::npos || mp.find("internal") != std::string::npos)) {
                 int_tmpl = c.Clone(); has_int = true; continue;
             }
         }
@@ -655,7 +674,7 @@ void MultipatchModeler::ProcessRefPatch_(
         if (patch_geometry.Has("skin_model_part_name")) patch_geometry.RemoveValue("skin_model_part_name");
     }
 
-    // Proportional spans
+    // Proportional spans (baseline)
     Vector patch_spans = patch_geometry["number_of_knot_spans"].GetVector();
     const int base_span_u = static_cast<int>(base_spans[0]);
     const int base_span_v = static_cast<int>(base_spans[1]);
@@ -663,6 +682,35 @@ void MultipatchModeler::ProcessRefPatch_(
     const double v_ratio  = (rect[V_MAX] - rect[V_MIN]) / base_v_length;
     patch_spans[0] = std::max(1, static_cast<int>(std::round(u_ratio * base_span_u)));
     patch_spans[1] = std::max(1, static_cast<int>(std::round(v_ratio * base_span_v)));
+
+    // Override from refinement_regions if a matching region is found
+    auto rect_matches = [&](const RectType& r) -> bool {
+        const double tol = 1e-12;
+        return std::abs(r[U_MIN] - rect[U_MIN]) <= tol &&
+               std::abs(r[U_MAX] - rect[U_MAX]) <= tol &&
+               std::abs(r[V_MIN] - rect[V_MIN]) <= tol &&
+               std::abs(r[V_MAX] - rect[V_MAX]) <= tol;
+    };
+    for (const auto& reg : mRefinementRegions) {
+        if (!rect_matches(reg.Rectangle)) continue;
+        if (reg.HasNumberOfKnotSpans && reg.NumberOfKnotSpans.size() >= 2) {
+            patch_spans[0] = std::max(1, reg.NumberOfKnotSpans[0]);
+            patch_spans[1] = std::max(1, reg.NumberOfKnotSpans[1]);
+            KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+                << "[RefPatch] Using explicit spans from refinement_regions: ("
+                << patch_spans[0] << ", " << patch_spans[1] << ")" << std::endl;
+        }
+        if (reg.HasPolynomialOrder && !reg.PolynomialOrder.empty()) {
+            Parameters poly_param = patch_geometry["polynomial_order"].Clone();
+            for (IndexType d = 0; d < poly_param.size() && d < reg.PolynomialOrder.size(); ++d) {
+                poly_param.GetArrayItem(d).SetInt(reg.PolynomialOrder[d]);
+            }
+            patch_geometry["polynomial_order"] = poly_param;
+            KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+                << "[RefPatch] Overriding polynomial_order from refinement_regions" << std::endl;
+        }
+        break;
+    }
     patch_geometry["number_of_knot_spans"].SetVector(patch_spans);
 
     // Store span sizes
