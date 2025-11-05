@@ -66,7 +66,7 @@ if( USE_EIGEN_MKL MATCHES ON )
 
     target_compile_definitions(KratosLinearSolversCore PUBLIC
                                USE_EIGEN_MKL EIGEN_USE_MKL_ALL)
-    target_sources(KratosLinearSolversCore PRIVATE
+    target_sources(KratosLinearSolversCore PUBLIC
                    "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_smoother_base.cpp"
                    "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_ilu.cpp")
 endif()
@@ -102,7 +102,7 @@ if (USE_EIGEN_SUITESPARSE)
 endif()
 
 ## generate variables with the sources
-target_sources(KratosLinearSolversCore PRIVATE
+target_sources(KratosLinearSolversCore PUBLIC
                ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp)
 
