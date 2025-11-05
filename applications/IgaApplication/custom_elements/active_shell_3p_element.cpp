@@ -421,10 +421,10 @@ namespace Kratos
             // Nonlinear actuation Part - Initial stress stiffness integrand CHECKLEO
             // === Aktuierter Load-Vector initialisieren ===
             std::vector<Matrix> IKg_act(3, ZeroMatrix(6,6));
-            CalculateSecondVariationActuationStrain(
-                point_number, 
-                IKg_act, 
-                kinematic_variables);
+            // CalculateSecondVariationActuationStrain(
+            //     point_number, 
+            //     IKg_act, 
+            //     kinematic_variables);
 
             double integration_weight =
                 r_integration_points[point_number].Weight()

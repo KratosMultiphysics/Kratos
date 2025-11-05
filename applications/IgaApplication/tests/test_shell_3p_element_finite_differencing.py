@@ -257,13 +257,9 @@ def solve_cantilever(create_geometry):
 
             #print(f"perturbed node {target_node_id} Coordinate .X")
             #print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
-            for eq_idx in range(28):
-                if eq_idx == 27:
-                    print(".................", fd_sensitivities)
-                    print("-adjoint_LHS(27,24).................")
+            print(".................", fd_sensitivities)
+            for eq_idx in range(33):
                     print(-adjoint_LHS[eq_idx, 24])
-                    print("-adjoint_LHS(24,27).................")
-                    print(-adjoint_LHS[24, eq_idx])
                 # KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
                 #print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
             # print("-" * 40)
@@ -318,23 +314,23 @@ def solve_cantilever(create_geometry):
             #  ALPHA  #######################################
             target_idx = 27  # column index associated with Global Point - actuation variable Alpha
 
-            # # There is only one node per background geometry -  the loop is redundant here but kept for generality
-            # print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
-            # delta = 1e-7
-            # for node in model["ACTIVE_MP"].Nodes:
-            #     print("perturbing node: ", node,"  - node id:", node.Id)
-            #     node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) + delta)
-            #     element.InitializeNonLinearIteration(model_part.ProcessInfo)
-            #     element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
-            #     fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
-            #     node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) - delta)
+            # There is only one node per background geometry -  the loop is redundant here but kept for generality
+            print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
+            delta = 1e-7
+            for node in model["ACTIVE_MP"].Nodes:
+                print("perturbing node: ", node,"  - node id:", node.Id)
+                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) + delta)
+                element.InitializeNonLinearIteration(model_part.ProcessInfo)
+                element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
+                fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
+                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) - delta)
 
-            #     print("perturbed ActiveGlobalNode - Variable ALPHA")
-            #     print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
-            #     for eq_idx in range(33):
-            #         print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-            # #     print("-" * 40)
-            # delta = 1e-8
+                print("perturbed ActiveGlobalNode - Variable ALPHA")
+                print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
+                for eq_idx in range(33):
+                    print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+            #     print("-" * 40)
+            delta = 1e-8
 
             # #  KAPPA_1  #######################################
             # target_idx = 30  # column index associated with Global Point - actuation variable Kappa_1
