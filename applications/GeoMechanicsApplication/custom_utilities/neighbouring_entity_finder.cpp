@@ -131,7 +131,7 @@ bool NeighbouringEntityFinder::AreQuadraticRotatedEquivalents(std::vector<std::s
                                                               const std::vector<std::size_t>& rSecond)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
-    auto       first_mid_side_node_id     = First.begin() + First.size() / 2;
+    const auto first_mid_side_node_id     = First.begin() + First.size() / 2;
     std::rotate(First.begin(), First.begin() + amount_of_needed_rotations, first_mid_side_node_id);
 
     std::rotate(first_mid_side_node_id, first_mid_side_node_id + amount_of_needed_rotations, First.end());
