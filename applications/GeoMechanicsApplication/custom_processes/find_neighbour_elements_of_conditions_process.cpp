@@ -12,6 +12,7 @@
 //
 
 #include "find_neighbour_elements_of_conditions_process.h"
+
 #include "geometries/geometry.h"
 #include <algorithm>
 #include <iterator>
@@ -38,18 +39,18 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
 void FindNeighbourElementsOfConditionsProcess::InitializeConditionMaps()
 {
-    mConditionNodeIdsToConditions.clear();
+    mNeighbouringEntityFinder.mConditionNodeIdsToConditions.clear();
     std::ranges::transform(
         mrModelPart.Conditions(),
-        std::inserter(mConditionNodeIdsToConditions, mConditionNodeIdsToConditions.end()), [](auto& rCondition) {
+        std::inserter(mNeighbouringEntityFinder.mConditionNodeIdsToConditions, mNeighbouringEntityFinder.mConditionNodeIdsToConditions.end()), [](auto& rCondition) {
         return NodeIdsToConditionsHashMap::value_type(
             GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
     });
 
-    mSortedToUnsortedConditionNodeIds.clear();
+    mNeighbouringEntityFinder.mSortedToUnsortedConditionNodeIds.clear();
     std::ranges::transform(
-        mConditionNodeIdsToConditions,
-        std::inserter(mSortedToUnsortedConditionNodeIds, mSortedToUnsortedConditionNodeIds.end()),
+        mNeighbouringEntityFinder.mConditionNodeIdsToConditions,
+        std::inserter(mNeighbouringEntityFinder.mSortedToUnsortedConditionNodeIds, mNeighbouringEntityFinder.mSortedToUnsortedConditionNodeIds.end()),
         [](const auto& rPair) {
         auto sorted_ids = rPair.first;
         std::ranges::sort(sorted_ids);
@@ -98,7 +99,7 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsToConditio
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         const auto element_boundary_node_ids = GetNodeIdsFromGeometry(r_boundary_geometry);
 
-        if (mConditionNodeIdsToConditions.contains(element_boundary_node_ids)) {
+        if (mNeighbouringEntityFinder.mConditionNodeIdsToConditions.contains(element_boundary_node_ids)) {
             SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
         } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
             // No condition is directly found for this boundary, but it might be a rotated equivalent
@@ -111,7 +112,7 @@ void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsToConditio
 void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
     const std::vector<std::size_t>& rConditionNodeIds, Element* pElement)
 {
-    const auto [start, end] = mConditionNodeIdsToConditions.equal_range(rConditionNodeIds);
+    const auto [start, end] = mNeighbouringEntityFinder.mConditionNodeIdsToConditions.equal_range(rConditionNodeIds);
     for (auto it = start; it != end; ++it) {
         const auto& r_conditions  = it->second;
         auto vector_of_neighbours = GlobalPointersVector<Element>{Element::WeakPointer{pElement}};
@@ -130,9 +131,9 @@ void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourIfRotatedNod
     auto sorted_boundary_node_ids = element_boundary_node_ids;
     std::ranges::sort(sorted_boundary_node_ids);
 
-    if (mSortedToUnsortedConditionNodeIds.contains(sorted_boundary_node_ids)) {
+    if (mNeighbouringEntityFinder.mSortedToUnsortedConditionNodeIds.contains(sorted_boundary_node_ids)) {
         const auto unsorted_condition_node_ids =
-            mSortedToUnsortedConditionNodeIds.find(sorted_boundary_node_ids)->second;
+            mNeighbouringEntityFinder.mSortedToUnsortedConditionNodeIds.find(sorted_boundary_node_ids)->second;
         if (AreRotatedEquivalents(element_boundary_node_ids, unsorted_condition_node_ids, r_order_type)) {
             SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(unsorted_condition_node_ids, &rElement);
         }

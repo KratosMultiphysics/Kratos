@@ -15,20 +15,12 @@
 
 #include "includes/model_part.h"
 #include "processes/process.h"
+#include "custom_utilities/neighbouring_entity_finder.h"
 
 #include <unordered_map>
 
 namespace Kratos
 {
-
-using NodeIdsToConditionsHashMap     = std::unordered_multimap<std::vector<std::size_t>,
-                                                               std::vector<Condition::Pointer>,
-                                                               KeyHasherRange<std::vector<std::size_t>>,
-                                                               KeyComparorRange<std::vector<std::size_t>>>;
-using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::size_t>,
-                                                               std::vector<std::size_t>,
-                                                               KeyHasherRange<std::vector<std::size_t>>,
-                                                               KeyComparorRange<std::vector<std::size_t>>>;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighbourElementsOfConditionsProcess : public Process
 {
@@ -46,8 +38,7 @@ public:
 
 private:
     ModelPart&                     mrModelPart;
-    NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
-    SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
+    NeighbouringEntityFinder mNeighbouringEntityFinder;
 
     void InitializeConditionMaps();
     void FindNeighbouringElementsForAllBoundaryTypes();
