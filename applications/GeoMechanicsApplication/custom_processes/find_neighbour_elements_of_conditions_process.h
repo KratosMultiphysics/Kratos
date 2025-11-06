@@ -54,7 +54,7 @@ private:
     void FindNeighbouringElementsForAllBoundaryTypes();
 
     void SetElementAsNeighbourOfAllGeometryWithIdenticalNodeIds(const std::vector<std::size_t>& rNodeIds,
-                                                                  Element* pElement);
+                                                                Element* pElement);
 
     void FindNeighboursBasedOnBoundaryType(auto GenerateBoundaries);
 

@@ -17,6 +17,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
+#include "custom_utilities/math_utilities.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 #include "lumped_integration_scheme.h"
@@ -32,8 +33,7 @@ Vector CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::Integratio
                                                            const Geometry<Node>& rGeometry)
 {
     auto result = Vector(rIntegrationPoints.size());
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), result.begin(),
-                   [&rGeometry](const auto& rIntegrationPoint) {
+    std::ranges::transform(rIntegrationPoints, result.begin(), [&rGeometry](const auto& rIntegrationPoint) {
         return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
     });
 
@@ -190,12 +190,17 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     // them to i.p. locations and introduce them to the constitutive law in an initial stress state
     // InitialState::SetInitialStressVector(const Vector& rInitialStressVector) for the incremental linear elastic model
     // or through InterfaceCoulombWithTensionCutOff::SetValue(CAUCHY_STRESS_VECTOR, rValue, rCurrentProcessInfo) for our Coulomb friction law
-    // ( have we forgotten an initial state for Coulomb friction? )
+    // (have we forgotten an initial state for Coulomb friction?)
 
     mConstitutiveLaws.clear();
     for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
         mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
-        mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
+    }
+    // This initial state should be an optional thing.
+    auto interface_prestress_from_neighbour = GetProperties().Has(INTERFACE_PRESTRESS_FROM_NEIGHBOUR) ? GetProperties()[INTERFACE_PRESTRESS_FROM_NEIGHBOUR] : false;
+    if (interface_prestress_from_neighbour) InterpolateNodalStressesToIntegrationPointTractions();
+    for (std::size_t i = 0; i < mConstitutiveLaws.size() ; ++i) {
+        mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(), shape_function_values_at_integration_points[i]);
     }
 }
 
@@ -273,16 +278,15 @@ std::vector<Vector> InterfaceElement::CalculateRelativeDisplacementsAtIntegratio
     const auto           dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
         GetGeometry(), no_Pw_geometry, GetGeometry().WorkingSpaceDimension());
     auto nodal_displacement_vector = Vector{dofs.size()};
-    std::transform(dofs.begin(), dofs.end(), nodal_displacement_vector.begin(),
-                   [](auto p_dof) { return p_dof->GetSolutionStepValue(); });
+    std::ranges::transform(dofs, nodal_displacement_vector.begin(),
+                           [](auto p_dof) { return p_dof->GetSolutionStepValue(); });
 
     auto result = std::vector<Vector>{};
     result.reserve(rLocalBMatrices.size());
     auto calculate_relative_displacement_vector = [&nodal_displacement_vector](const auto& rLocalB) {
         return Vector{prod(rLocalB, nodal_displacement_vector)};
     };
-    std::transform(rLocalBMatrices.begin(), rLocalBMatrices.end(), std::back_inserter(result),
-                   calculate_relative_displacement_vector);
+    std::ranges::transform(rLocalBMatrices, std::back_inserter(result), calculate_relative_displacement_vector);
 
     return result;
 }
@@ -315,9 +319,60 @@ std::vector<Vector> InterfaceElement::CalculateTractionsAtIntegrationPoints(cons
 void InterfaceElement::ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const
 {
     const auto dim = GetGeometry().WorkingSpaceDimension();
-    for (int i = 0; i + dim <= rBMatrix.size2(); i += dim) {
+    for (std::size_t i = 0; i + dim <= rBMatrix.size2(); i += dim) {
         auto sub_matrix = subrange(rBMatrix, 0, rBMatrix.size1(), i, i + dim);
         sub_matrix.assign(Matrix{prod(sub_matrix, trans(rRotationMatrix))});
+    }
+}
+
+void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions() const
+{
+    auto&               r_geometry = GetGeometry();
+    std::vector<Vector> nodal_stresses;
+    // VariablesUtilities::GetNodalValues(GetGeometry(), CAUCHY_STRESS_VECTOR, nodal_stresses.begin()); // override for vector variable type not available yet.
+    for (auto& r_node : r_geometry) {
+        nodal_stresses.push_back(r_node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR));
+    }
+
+    // interpolate nodal stresses on first side
+    std::size_t integration_point_index = 0;
+    for (const auto& r_integration_point : mIntegrationScheme->GetIntegrationPoints()) {
+        // interpolate first interface side
+        auto integration_point_stress                = Vector{ZeroVector(nodal_stresses[0].size())};
+        auto integration_point_shape_function_values = Vector{};
+        r_geometry.ShapeFunctionsValues(integration_point_shape_function_values, r_integration_point);
+        for (std::size_t node = 0; node < GetGeometry().PointsNumber() / 2; ++node) {
+            integration_point_stress += integration_point_shape_function_values[node] * nodal_stresses[node];
+        }
+
+        auto integration_point_stress_tensor = MathUtils<double>::StressVectorToTensor(integration_point_stress);
+        auto rotation_matrix = Matrix{ZeroMatrix{3}};
+        if (r_geometry.LocalSpaceDimension() == 1) {
+            auto two_d_rotation_matrix = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
+            // bad naming, but the general one is private
+            GeoElementUtilities::AssembleUUBlockMatrix(rotation_matrix, two_d_rotation_matrix);
+            rotation_matrix(2, 2) = 1.0;
+        } else {
+            rotation_matrix = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
+        }
+
+        auto integration_point_local_stress_tensor = GeoMechanicsMathUtilities::RotateSecondOrderTensor(integration_point_stress_tensor, rotation_matrix);
+        // extract normal and shear components ( depends on dimension )
+        Vector traction_vector;
+        if (r_geometry.LocalSpaceDimension() == 1) {
+            traction_vector = ZeroVector(VOIGT_SIZE_2D_INTERFACE);
+            traction_vector(0) = integration_point_local_stress_tensor(1,1);
+            traction_vector(1) = integration_point_local_stress_tensor(0,1);
+        } else {
+            traction_vector = ZeroVector(VOIGT_SIZE_3D_INTERFACE);
+            traction_vector(0) = integration_point_local_stress_tensor(2,2);
+            traction_vector(1) = integration_point_local_stress_tensor(0,2);
+            traction_vector(2) = integration_point_local_stress_tensor(1,2);
+        }
+        auto initial_state = make_intrusive<InitialState>(traction_vector,
+                    InitialState::InitialImposingType::STRESS_ONLY);
+        mConstitutiveLaws[integration_point_index]->SetInitialState(initial_state);
+        ++integration_point_index;
     }
 }
 

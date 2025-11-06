@@ -76,6 +76,7 @@ ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     r_result.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_result.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);
 
     return r_result;
 }
@@ -1289,6 +1290,42 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActi
 
     const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_properties->GetValue(INTERFACE_PRESTRESS_FROM_NEIGHBOUR) = true;
+
+    const auto prescribed_displacements = PrescribedDisplacements{
+        {2, array_1d<double, 3>{0.0, 0.0, 0.0}}, {3, array_1d<double, 3>{0.0, 0.0, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs,
+                                              p_properties, prescribed_displacements);
+    auto r_geometry = element.GetGeometry();
+    for (auto& r_node : r_geometry) {
+        auto x = r_node.GetInitialPosition().X();
+        Vector nodal_stress{4};
+        nodal_stress <<= x, 10.0+x, 78.0, 5.0+x;
+        r_node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR) = nodal_stress;
+    }
+
+    // Act
+    ProcessInfo dummy_process_info;
+    element.Initialize(dummy_process_info);
+
+    std::vector<Vector> actual_traction_vectors;
+    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+
+    // Assert
+    auto expected_traction_vector = Vector{2};
+    expected_traction_vector <<= 10.0, 5.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[0], expected_traction_vector, Defaults::relative_tolerance)
+    expected_traction_vector <<= 11.0, 6.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[1], expected_traction_vector, Defaults::relative_tolerance)
 }
 
 } // namespace Kratos::Testing

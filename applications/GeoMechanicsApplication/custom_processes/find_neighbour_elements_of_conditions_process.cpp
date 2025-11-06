@@ -26,13 +26,11 @@ FindNeighbourElementsOfConditionsProcess::FindNeighbourElementsOfConditionsProce
 
 void FindNeighbourElementsOfConditionsProcess::ExecuteInitialize()
 {
-    KRATOS_INFO("FindNeighbourElementsOfConditionsProcess::ExecuteInitialize()") << "For model part " << mrModelPart.Name() << std::endl;
     FindNeighbourElementsOfConditionsProcess::Execute();
 }
 
 void FindNeighbourElementsOfConditionsProcess::Execute()
 {
-    KRATOS_INFO("FindNeighbourElementsOfConditionsProcess::Execute") << "For model part " << mrModelPart.Name() << std::endl;
     if (mrModelPart.Conditions().empty()) return;
 
     InitializeBoundaryMaps();
@@ -46,9 +44,9 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 void FindNeighbourElementsOfConditionsProcess::InitializeBoundaryMaps()
 {
     mBoundaryNodeIdsToBoundaries.clear();
-    std::ranges::transform(
-        mrModelPart.Conditions(),
-        std::inserter(mBoundaryNodeIdsToBoundaries, mBoundaryNodeIdsToBoundaries.end()), [](auto& rBoundary) {
+    std::ranges::transform(mrModelPart.Conditions(),
+                           std::inserter(mBoundaryNodeIdsToBoundaries, mBoundaryNodeIdsToBoundaries.end()),
+                           [](auto& rBoundary) {
         // van de conditie wordt alleen de geometrie gebruikt
         return NodeIdsToBoundariesHashMap::value_type(
             GetNodeIdsFromGeometry(rBoundary.GetGeometry()), {&rBoundary});
@@ -104,7 +102,7 @@ void FindNeighbourElementsOfConditionsProcess::FindNeighboursBasedOnBoundaryType
 void FindNeighbourElementsOfConditionsProcess::AddNeighbouringElementsBasedOnOverlappingBoundaryGeometries(
     Element& rElement, const Geometry<Node>::GeometriesArrayType& rElementBoundaryGeometries)
 {
-    for (const auto& r_element_boundary_geometry: rElementBoundaryGeometries) {
+    for (const auto& r_element_boundary_geometry : rElementBoundaryGeometries) {
         const auto element_boundary_node_ids = GetNodeIdsFromGeometry(r_element_boundary_geometry);
 
         if (mBoundaryNodeIdsToBoundaries.contains(element_boundary_node_ids)) {
@@ -134,7 +132,6 @@ void FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllGeometr
 
         for (auto& p_boundary : r_boundaries) {
             // geeft SetValue een uitbreiding van het lijstje NEIGHBOUR_ELEMENTS of overschrijven we hier het geheel met een 1 lange vector?
-            KRATOS_INFO("FindNeighbourElementsOfConditionsProcess::SetElementAsNeighbourOfAllGeometryWithIdenticalNodeIds") << vector_of_neighbours[0].Id() << std::endl;
             p_boundary->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
         }
     }
@@ -188,7 +185,8 @@ bool FindNeighbourElementsOfConditionsProcess::AreQuadraticRotatedEquivalents(
     std::vector<std::size_t> First, const std::vector<std::size_t>& rSecond, std::size_t LocalSpaceDimension)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
-    auto first_mid_side_node_id = (LocalSpaceDimension == 1) ? First.begin()+2 : First.begin() + First.size() / 2;
+    auto       first_mid_side_node_id =
+        (LocalSpaceDimension == 1) ? First.begin() + 2 : First.begin() + First.size() / 2;
     std::rotate(First.begin(), First.begin() + amount_of_needed_rotations, first_mid_side_node_id);
     // Only rotate midside nodes of planes, the midside node for quadratic line remains in place
     if (LocalSpaceDimension == 2) {
