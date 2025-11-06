@@ -116,7 +116,7 @@ file(
 ###############################################################
 ## LinearSolversApplication core library (C++ parts)
 target_link_libraries(KratosLinearSolversCore PUBLIC KratosCore)
-set_target_properties(KratosLinearSolversCore PROPERTIES COMPILE_DEFINITIONS "LINEARSOLVERS_APPLICATION=EXPORT,API")
+target_compile_definitions(KratosLinearSolversCore PUBLIC "LINEARSOLVERS_APPLICATION=EXPORT,API")
 
 ## LinearSolversApplication python module
 pybind11_add_module(KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_LINEARSOLVERS_APPLICATION_PYTHON_INTERFACE} )
