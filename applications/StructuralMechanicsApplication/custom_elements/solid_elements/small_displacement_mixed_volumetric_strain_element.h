@@ -430,8 +430,8 @@ public:
     {
         std::stringstream buffer;
         buffer << "Small Displacement Mixed Strain Element #" << Id();
-        if (!BaseType::mConstitutiveLawVector.empty()) {
-          buffer << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        if (!mConstitutiveLawVector.empty()) {
+          buffer << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
         } else {
           buffer << "\nNo constitutive law.";
         }
@@ -442,8 +442,8 @@ public:
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Small Displacement Mixed Strain Element #" << Id();
-        if (!BaseType::mConstitutiveLawVector.empty()) {
-          rOStream << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        if (!mConstitutiveLawVector.empty()) {
+          rOStream << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
         } else {
           rOStream << "\nNo constitutive law.";
         }
