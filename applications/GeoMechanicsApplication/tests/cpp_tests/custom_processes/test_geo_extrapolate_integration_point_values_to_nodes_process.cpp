@@ -373,7 +373,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesPr
     // Arrange
     Model model;
     auto& r_empty_model_part = model.CreateModelPart("foo");
-    auto  parameters = Parameters(R"(
+    auto  parameters         = Parameters(R"(
      {
          "model_part_name"            : "MainModelPart",
          "list_of_variables"          : ["FLUID_FLUX_VECTOR"]

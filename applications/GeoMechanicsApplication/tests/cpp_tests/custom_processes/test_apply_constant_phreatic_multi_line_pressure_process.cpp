@@ -193,9 +193,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultilinePressureProcess_AppliesC
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyConstantPhreaticMultilinePressureProcess, KratosGeoMechanicsFastSuite)
 {
     // Arrange
-    auto                                          model              = Model{};
-    auto&                                         r_empty_model_part = model.CreateModelPart("foo");
-    auto                                          test_parameters    = Parameters{R"(
+    auto  model              = Model{};
+    auto& r_empty_model_part = model.CreateModelPart("foo");
+    auto  test_parameters    = Parameters{R"(
             {
                 "model_part_name": "foo",
                 "variable_name": "WATER_PRESSURE",
