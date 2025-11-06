@@ -23,15 +23,13 @@ namespace Kratos
 
 void GapSbmLaplacianInterfaceCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_WATCH("gap interface laplacian")
     InitializeMemberVariables();
     InitializeSbmMemberVariables();
-    KRATOS_WATCH("end")
 }
 
 void GapSbmLaplacianInterfaceCondition::InitializeMemberVariables()
 {
-    const auto& r_true_geometry = GetGeometry();
+    const auto& r_geometry = GetGeometry();
     const auto& r_surrogate_plus = GetGeometryPlus();
     const auto& r_DN_De = r_surrogate_plus.ShapeFunctionsLocalGradients(r_surrogate_plus.GetDefaultIntegrationMethod());
 
@@ -44,15 +42,14 @@ void GapSbmLaplacianInterfaceCondition::InitializeMemberVariables()
     mBasisFunctionsOrder *= 2;
 
     // normal from true geometry
-    array_1d<double,3> normal_ps = r_true_geometry.Normal(0, GetIntegrationMethod());
+    array_1d<double,3> normal_ps = r_geometry.Normal(0, GetIntegrationMethod());
     normal_ps /= MathUtils<double>::Norm(normal_ps);
     mNormalPhysicalSpace = normal_ps;
     SetValue(NORMAL, mNormalPhysicalSpace);
 
-    // integration weight (thickness if present)
-    const auto& r_integration_points = r_true_geometry.IntegrationPoints(this->GetIntegrationMethod());
-    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
-    const double integration_weight = r_integration_points[0].Weight() * thickness;
+    // integration weight
+    const auto& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const double integration_weight = r_integration_points[0].Weight();
     SetValue(INTEGRATION_WEIGHT, integration_weight);
 
     // penalty setup
@@ -87,6 +84,22 @@ void GapSbmLaplacianInterfaceCondition::InitializeSbmMemberVariables()
 
 void GapSbmLaplacianInterfaceCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
+    const auto& r_surrogate_geometry_plus = GetGeometryPlus();
+    const auto& r_surrogate_geometry_minus = GetGeometryMinus();
+
+    const std::size_t number_of_control_points_plus = r_surrogate_geometry_plus.size();
+    const std::size_t number_of_control_points_minus = r_surrogate_geometry_minus.size();
+    const std::size_t number_of_control_points = number_of_control_points_plus + number_of_control_points_minus;
+    const std::size_t mat_size = number_of_control_points * 1;
+
+    if (rRightHandSideVector.size() != mat_size)
+        rRightHandSideVector.resize(mat_size);
+    noalias(rRightHandSideVector) = ZeroVector(mat_size);
+
+    if (rLeftHandSideMatrix.size1() != mat_size)
+        rLeftHandSideMatrix.resize(mat_size, mat_size);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+    
     CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
     CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
@@ -140,40 +153,36 @@ void GapSbmLaplacianInterfaceCondition::CalculateLeftHandSide(MatrixType& rLeftH
 
     const IndexType off = n_plus;
 
-    // Consistency terms: - v_plus * 0.5 (k+ ∂n u+ + k- ∂n u-)
+    // Consistency terms: -[[v]] * {{∂n u}}
     for (IndexType i = 0; i < n_plus; ++i) {
-        const double v = N_sum_plus(i);
         for (IndexType j = 0; j < n_plus; ++j)
-            rLeftHandSideMatrix(i, j) -= 0.5 * weight * v * k_plus * DNn_plus[j];
+            rLeftHandSideMatrix(i, j) -= 0.5 * weight * N_sum_plus(i) * k_plus * DNn_plus[j];
         for (IndexType j = 0; j < n_minus; ++j)
-            rLeftHandSideMatrix(i, off + j) -= 0.5 * weight * v * k_minus * DNn_minus[j];
+            rLeftHandSideMatrix(i, off + j) -= 0.5 * weight * N_sum_plus(i) * k_minus * DNn_minus[j];
     }
     // rows: minus side + sign
     for (IndexType i = 0; i < n_minus; ++i) {
-        const double v = N_sum_minus(i);
         for (IndexType j = 0; j < n_plus; ++j)
-            rLeftHandSideMatrix(off + i, j) += 0.5 * weight * v * k_plus * DNn_plus[j];
+            rLeftHandSideMatrix(off + i, j) += 0.5 * weight * N_sum_minus(i) * k_plus * DNn_plus[j];
         for (IndexType j = 0; j < n_minus; ++j)
-            rLeftHandSideMatrix(off + i, off + j) += 0.5 * weight * v * k_minus * DNn_minus[j];
+            rLeftHandSideMatrix(off + i, off + j) += 0.5 * weight * N_sum_minus(i) * k_minus * DNn_minus[j];
     }
 
-    // Symmetric Nitsche terms: 0.5 * (∂n v) * (k u)
+    // Symmetric Nitsche terms: -{{∂n v}} * [[u]]
     for (IndexType i = 0; i < n_plus; ++i) {
-        const double grad_test_n = DNn_plus[i];
         for (IndexType j = 0; j < n_plus; ++j)
-            rLeftHandSideMatrix(i, j) += mNitschePenalty * 0.5 * weight * k_plus * grad_test_n * N_sum_plus(j);
+            rLeftHandSideMatrix(i, j) -= mNitschePenalty * 0.5 * weight * k_plus * DNn_plus[i] * N_sum_plus(j);
         for (IndexType j = 0; j < n_minus; ++j)
-            rLeftHandSideMatrix(i, off + j) += mNitschePenalty * 0.5 * weight * k_minus * grad_test_n * N_sum_minus(j);
+            rLeftHandSideMatrix(i, off + j) += mNitschePenalty * 0.5 * weight * k_minus * DNn_plus[i] * N_sum_minus(j);
     }
     for (IndexType i = 0; i < n_minus; ++i) {
-        const double grad_test_n = DNn_minus[i];
         for (IndexType j = 0; j < n_plus; ++j)
-            rLeftHandSideMatrix(off + i, j) += mNitschePenalty * 0.5 * weight * k_plus * grad_test_n * N_sum_plus(j);
+            rLeftHandSideMatrix(off + i, j) -= mNitschePenalty * 0.5 * weight * k_plus * DNn_minus[i] * N_sum_plus(j);
         for (IndexType j = 0; j < n_minus; ++j)
-            rLeftHandSideMatrix(off + i, off + j) += mNitschePenalty * 0.5 * weight * k_minus * grad_test_n * N_sum_minus(j);
+            rLeftHandSideMatrix(off + i, off + j) += mNitschePenalty * 0.5 * weight * k_minus * DNn_minus[i] * N_sum_minus(j);
     }
 
-    // Penalty on jump: γ (u+ - u-) (v+ - v-)
+    // Penalty on jump: γ [[v]] * [[u]]
     if (mPenalty != 0.0) {
         for (IndexType i = 0; i < n_plus; ++i) {
             for (IndexType j = 0; j < n_plus; ++j)

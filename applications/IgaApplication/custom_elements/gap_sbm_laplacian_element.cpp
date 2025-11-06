@@ -50,10 +50,8 @@ Element::Pointer GapSbmLaplacianElement::Create(IndexType NewId, GeometryType::P
 
 void GapSbmLaplacianElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_WATCH("gap interface laplacian")
     InitializeMemberVariables();
     InitializeSbmMemberVariables();
-    KRATOS_WATCH("end")
 
     // Set a single-point integration weight (as in standard Laplacian)
     const auto& r_geometry = GetGeometry();

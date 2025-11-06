@@ -47,10 +47,9 @@ void GapSbmLaplacianCondition::InitializeMemberVariables()
     mNormalPhysicalSpace = normal_ps;
     SetValue(NORMAL, mNormalPhysicalSpace);
 
-    // integration weight (thickness if present)
+    // integration weight
     const auto& r_integration_points = r_true_geometry.IntegrationPoints(this->GetIntegrationMethod());
-    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
-    const double integration_weight = r_integration_points[0].Weight() * thickness;
+    const double integration_weight = r_integration_points[0].Weight();
     SetValue(INTEGRATION_WEIGHT, integration_weight);
 
     // penalty setup
@@ -122,14 +121,12 @@ void GapSbmLaplacianCondition::CalculateLeftHandSide(MatrixType& rLeftHandSideMa
     // -(w, ∂n u)  - mNitschePenalty (∂n w, u)  + γ (w, u)
     // Consistency term: -(w, ∂n u) -> outer product of H_sum_vec and DNn
     noalias(rLeftHandSideMatrix) -= weight * outer_prod(H_sum_vec, DNn);
-
     // Symmetric Nitsche term: (∂n w, u)
-    for (IndexType i = 0; i < n; ++i)
-        for (IndexType j = 0; j < n; ++j)
-            rLeftHandSideMatrix(i, j) -= mNitschePenalty * DNn[i] * H_sum_vec[j] * weight;
+    noalias(rLeftHandSideMatrix) -= weight * mNitschePenalty * outer_prod(DNn, H_sum_vec);
 
     // Penalty term: γ (w, u)
-    noalias(rLeftHandSideMatrix) -= weight * mPenalty * outer_prod(H_sum_vec, H_sum_vec);
+    if (mPenalty != 0.0)
+        noalias(rLeftHandSideMatrix) += weight * mPenalty * outer_prod(H_sum_vec, H_sum_vec);
 }
 
 void GapSbmLaplacianCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
@@ -168,11 +165,11 @@ void GapSbmLaplacianCondition::CalculateRightHandSide(VectorType& rRightHandSide
 
     noalias(rRightHandSideVector) += H_sum_vec * DNn_dot_u * weight; // (w, ∂n u)
     noalias(rRightHandSideVector) += mNitschePenalty * DNn * H_sum_dot_u * weight; // (∂n w, u)
-    noalias(rRightHandSideVector) += H_sum_vec * H_sum_dot_u * mPenalty * weight; // -γ (w, u)
+    noalias(rRightHandSideVector) -= H_sum_vec * H_sum_dot_u * mPenalty * weight; // -γ (w, u)
 
     // Data terms with g
     noalias(rRightHandSideVector) -= mNitschePenalty * DNn * g_value * weight;
-    noalias(rRightHandSideVector) -= H_sum_vec * g_value * mPenalty * weight;
+    noalias(rRightHandSideVector) += H_sum_vec * g_value * mPenalty * weight;
 }
 
 int GapSbmLaplacianCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
