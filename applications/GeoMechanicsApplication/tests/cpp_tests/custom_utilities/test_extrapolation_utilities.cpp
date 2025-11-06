@@ -57,11 +57,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixThr
 
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        auto matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(
-            geometry, integration_method, 0, &fake_row),
-        "An extrapolation matrix size1 2 is not equal to a number of nodes 3 for element id 0");
+        auto matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(geometry, integration_method, 0, &fake_row), "A number of extrapolation matrix rows 2 is not equal to a number of nodes 3 for element id 0");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        auto matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(geometry, integration_method, 0, &fake_colums), "An extrapolation matrix size2 2 is not equal to a number of integration points 3 for element id 0");
+        auto matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(geometry, integration_method, 0, &fake_colums), "A number of extrapolation matrix columns 2 is not equal to a number of integration points 3 for element id 0");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)

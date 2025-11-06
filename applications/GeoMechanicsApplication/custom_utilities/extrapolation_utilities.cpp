@@ -31,11 +31,12 @@ Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Geometry<Node>
     const auto result = extrapolator->CalculateElementExtrapolationMatrix(rGeometry, IntegrationMethod);
 
     KRATOS_ERROR_IF_NOT(result.size1() == rGeometry.size())
-        << "An extrapolation matrix size1 " << result.size1() << " is not equal to a number of nodes "
+        << "A number of extrapolation matrix rows " << result.size1() << " is not equal to a number of nodes "
         << rGeometry.size() << " for element id " << ElementId << std::endl;
 
     KRATOS_ERROR_IF_NOT(result.size2() == rGeometry.IntegrationPoints(IntegrationMethod).size())
-        << "An extrapolation matrix size2 " << result.size2() << " is not equal to a number of integration points "
+        << "A number of extrapolation matrix columns " << result.size2()
+        << " is not equal to a number of integration points "
         << rGeometry.IntegrationPoints(IntegrationMethod).size() << " for element id " << ElementId
         << std::endl;
 
