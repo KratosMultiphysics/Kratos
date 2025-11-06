@@ -19,7 +19,7 @@ namespace Kratos
 {
 
 Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Geometry<Node>& rGeometry,
-                                                            const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                                            GeometryData::IntegrationMethod rIntegrationMethod,
                                                             size_t ElementId)
 {
     KRATOS_TRY
@@ -43,11 +43,11 @@ Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Geometry<Node>
 }
 
 std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalStresses(
-    const std::vector<std::size_t>&        node_ids,
-    const Geometry<Node>&                  rGeometry,
-    const GeometryData::IntegrationMethod& rIntegrationMethod,
-    const std::vector<Vector>&             rIntegrationPointStresses,
-    size_t                                 ElementId)
+    const std::vector<std::size_t>& node_ids,
+    const Geometry<Node>&           rGeometry,
+    GeometryData::IntegrationMethod rIntegrationMethod,
+    const std::vector<Vector>&      rIntegrationPointStresses,
+    size_t                          ElementId)
 {
     const auto               number_of_nodes = rGeometry.size();
     std::vector<std::size_t> element_node_ids(number_of_nodes);
