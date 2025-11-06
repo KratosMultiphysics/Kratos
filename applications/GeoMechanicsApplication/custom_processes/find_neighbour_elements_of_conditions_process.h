@@ -17,8 +17,6 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 
-#include <unordered_map>
-
 namespace Kratos
 {
 
@@ -43,7 +41,7 @@ private:
     void FindNeighbouringElementsForAllBoundaryTypes();
 
     [[nodiscard]] bool AllConditionsHaveAtLeastOneNeighbour() const;
-    [[noreturn]] void ReportConditionsWithoutNeighboursAndThrow() const;
+    [[noreturn]] void  ReportConditionsWithoutNeighboursAndThrow() const;
 };
 
 std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfConditionsProcess& rThis);

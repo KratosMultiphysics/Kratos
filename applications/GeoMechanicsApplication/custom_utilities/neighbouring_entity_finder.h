@@ -17,6 +17,8 @@
 #include "includes/kratos_export_api.h"
 #include "includes/model_part.h"
 
+#include <unordered_map>
+
 namespace Kratos
 {
 using NodeIdsToConditionsHashMap     = std::unordered_multimap<std::vector<std::size_t>,
