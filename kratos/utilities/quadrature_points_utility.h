@@ -154,59 +154,32 @@ namespace Kratos
             double LocalTangentV,
             GeometryType* pGeometryParent)
         {
-            if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
-                    QuadraturePointCurveGeometry<TPointType, 1>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        LocalTangentU,
-                        LocalTangentV,
-                        pGeometryParent);
-            else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
-                    QuadraturePointCurveGeometry<TPointType, 2, 1>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        LocalTangentU,
-                        LocalTangentV,
-                        pGeometryParent);
-            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
-                    QuadraturePointCurveGeometry<TPointType, 3, 1>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        LocalTangentU,
-                        LocalTangentV,
-                        pGeometryParent);
-            else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
-                return Kratos::make_shared<
-                    QuadraturePointCurveGeometry<TPointType, 2>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        LocalTangentU,
-                        LocalTangentV,
-                        pGeometryParent);
-            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
-                return Kratos::make_shared<
-                    QuadraturePointCurveGeometry<TPointType, 3, 2>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        LocalTangentU,
-                        LocalTangentV,
-                        pGeometryParent);
-            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
-                return Kratos::make_shared<
-                    QuadraturePointCurveGeometry<TPointType, 3>>(
-                        rPoints,
-                        rShapeFunctionContainer,
-                        LocalTangentU,
-                        LocalTangentV,
-                        pGeometryParent);
-            else{
-                KRATOS_ERROR << "Working/Local space dimension combinations are "
-                    << "not provided for QuadraturePointCurveGeometry. WorkingSpaceDimension: "
-                    << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
-                    <<  std::endl;
+            KRATOS_ERROR_IF(LocalSpaceDimension != 1)
+                << "QuadraturePointCurveGeometry expects a single local parameter (LocalSpaceDimension == 1), "
+                << "but received " << LocalSpaceDimension << "." << std::endl;
+
+            switch (WorkingSpaceDimension) {
+                case 2:
+                    return Kratos::make_shared<
+                        QuadraturePointCurveGeometry<TPointType, 2>>(
+                            rPoints,
+                            rShapeFunctionContainer,
+                            LocalTangentU,
+                            LocalTangentV,
+                            pGeometryParent);
+                case 3:
+                    return Kratos::make_shared<
+                        QuadraturePointCurveGeometry<TPointType, 3>>(
+                            rPoints,
+                            rShapeFunctionContainer,
+                            LocalTangentU,
+                            LocalTangentV,
+                            pGeometryParent);
+                default:
+                    KRATOS_ERROR << "Working/Local space dimension combinations are "
+                        << "not provided for QuadraturePointCurveGeometry. WorkingSpaceDimension: "
+                        << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
+                        << std::endl;
             }
         }
 
@@ -218,53 +191,30 @@ namespace Kratos
             double LocalTangentU,
             double LocalTangentV)
         {
-            if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
-                QuadraturePointCurveGeometry<TPointType, 1>>(
-                    rPoints,
-                    rShapeFunctionContainer,
-                    LocalTangentU,
-                    LocalTangentV);
-            else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
-                QuadraturePointCurveGeometry<TPointType, 2, 1>>(
-                    rPoints,
-                    rShapeFunctionContainer,
-                    LocalTangentU,
-                    LocalTangentV);
-            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 1)
-                return Kratos::make_shared<
-                QuadraturePointCurveGeometry<TPointType, 3, 1>>(
-                    rPoints,
-                    rShapeFunctionContainer,
-                    LocalTangentU,
-                    LocalTangentV);
-            else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
-                return Kratos::make_shared<
-                QuadraturePointCurveGeometry<TPointType, 2>>(
-                    rPoints,
-                    rShapeFunctionContainer,
-                    LocalTangentU,
-                    LocalTangentV);
-            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
-                return Kratos::make_shared<
-                QuadraturePointCurveGeometry<TPointType, 3, 2>>(
-                    rPoints,
-                    rShapeFunctionContainer,
-                    LocalTangentU,
-                    LocalTangentV);
-            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
-                return Kratos::make_shared<
-                QuadraturePointCurveGeometry<TPointType, 3>>(
-                    rPoints,
-                    rShapeFunctionContainer,
-                    LocalTangentU,
-                    LocalTangentV);
-            else {
-                KRATOS_ERROR << "Working/Local space dimension combinations are "
-                    << "not provided for QuadraturePointCurveGeometry. WorkingSpaceDimension: "
-                    << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
-                    << std::endl;
+            KRATOS_ERROR_IF(LocalSpaceDimension != 1)
+                << "QuadraturePointCurveGeometry expects a single local parameter (LocalSpaceDimension == 1), "
+                << "but received " << LocalSpaceDimension << "." << std::endl;
+
+            switch (WorkingSpaceDimension) {
+                case 2:
+                    return Kratos::make_shared<
+                        QuadraturePointCurveGeometry<TPointType, 2>>(
+                            rPoints,
+                            rShapeFunctionContainer,
+                            LocalTangentU,
+                            LocalTangentV);
+                case 3:
+                    return Kratos::make_shared<
+                        QuadraturePointCurveGeometry<TPointType, 3>>(
+                            rPoints,
+                            rShapeFunctionContainer,
+                            LocalTangentU,
+                            LocalTangentV);
+                default:
+                    KRATOS_ERROR << "Working/Local space dimension combinations are "
+                        << "not provided for QuadraturePointCurveGeometry. WorkingSpaceDimension: "
+                        << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
+                        << std::endl;
             }
         }
 
