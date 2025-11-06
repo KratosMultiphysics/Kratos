@@ -71,8 +71,8 @@ std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalStresse
     }
 
     std::vector<std::optional<Vector>> result;
-    for (unsigned int i = 0; i < node_ids.size(); ++i) {
-        auto it = std::find(element_node_ids.begin(), element_node_ids.end(), node_ids[i]);
+    for (const auto& node_id : node_ids) {
+        auto it = std::find(element_node_ids.begin(), element_node_ids.end(), node_id);
         if (it != element_node_ids.end()) {
             result.emplace_back(nodal_stresses[std::distance(element_node_ids.begin(), it)]);
         } else {
