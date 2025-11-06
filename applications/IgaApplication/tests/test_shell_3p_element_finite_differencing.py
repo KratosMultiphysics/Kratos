@@ -370,7 +370,7 @@ def solve_cantilever(create_geometry):
                 print("perturbed ActiveGlobalNode - Variable GAMMA")
                 print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
                 for eq_idx in range(33):
-                    print(fd_sensitivities[eq_idx], - adjoint_LHS[eq_idx, target_idx])
+                    # print(fd_sensitivities[eq_idx], - adjoint_LHS[eq_idx, target_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
             #     print("-" * 40)
 
@@ -390,7 +390,7 @@ def solve_cantilever(create_geometry):
                 print("perturbed ActiveGlobalNode - Variable KAPPA_1")
                 print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
                 for eq_idx in range(33):
-                    print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+                    # print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
                 # print("-" * 40)
 
@@ -410,7 +410,7 @@ def solve_cantilever(create_geometry):
                 print("perturbed ActiveGlobalNode - Variable KAPPA_2")
                 print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
                 for eq_idx in range(33):
-                    print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+                    # print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
                 # print("-" * 40)
 
@@ -430,7 +430,7 @@ def solve_cantilever(create_geometry):
                 print("perturbed ActiveGlobalNode - Variable KAPPA_12")
                 print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
                 for eq_idx in range(33):
-                    print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+                    # print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
                 # print("-" * 40)
 

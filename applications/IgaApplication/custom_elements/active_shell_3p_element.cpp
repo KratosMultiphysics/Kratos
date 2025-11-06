@@ -407,7 +407,7 @@ namespace Kratos
                 kinematic_variables);
 
             Matrix ActuatedB = ZeroMatrix(3, 6);
-            // CalculateActuatedB(point_number, ActuatedB, kinematic_variables);
+            CalculateActuatedB(point_number, ActuatedB, kinematic_variables);
 
             // Nonlinear Deformation
             SecondVariations second_variations_strain(mat_size);
@@ -421,10 +421,10 @@ namespace Kratos
             // Nonlinear actuation Part - Initial stress stiffness integrand CHECKLEO
             // === Aktuierter Load-Vector initialisieren ===
             std::vector<Matrix> IKg_act(3, ZeroMatrix(6,6));
-            // CalculateSecondVariationActuationStrain(
-            //     point_number, 
-            //     IKg_act, 
-            //     kinematic_variables);
+            CalculateSecondVariationActuationStrain(
+                point_number, 
+                IKg_act, 
+                kinematic_variables);
 
             double integration_weight =
                 r_integration_points[point_number].Weight()
@@ -493,13 +493,15 @@ namespace Kratos
                 noalias(r_1) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
                 noalias(r_1) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
                 
-                KRATOS_WATCH(ActuatedB)
+                
                 // Actuated contribution: bop_act^T * S * fac_ele
                 // bop_act corresponds to ActuatedBMembrane, S to constitutive_variables_membrane.StressVector, fac_ele to integration_weight
                 noalias(f_int_act) += integration_weight * prod(trans(ActuatedB), constitutive_variables_membrane.StressVector);
-                KRATOS_WATCH(constitutive_variables_membrane.StressVector)
-                KRATOS_WATCH(integration_weight)
-                KRATOS_WATCH(f_int_act)
+                
+                // KRATOS_WATCH(ActuatedB)
+                // KRATOS_WATCH(constitutive_variables_membrane.StressVector)
+                // KRATOS_WATCH(integration_weight)
+                // KRATOS_WATCH(f_int_act)
             }
         }
 
@@ -803,26 +805,26 @@ namespace Kratos
         //Strain - Membrane Part
         array_1d<double, 3> total_strain_vector = 0.5 * (rActualKinematic.a_ab_covariant - m_A_ab_covariant_vector[IntegrationPointIndex]);
 
-        // array_1d<double, 3> actuated_strain_vector;   
-        // //CHECKLEO strain part -> Vektor (E11,E22;E12)
-        // actuated_strain_vector[0] = (mACTUATION_ALPHA + 0.5 * std::pow(mACTUATION_ALPHA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][0];
-        // actuated_strain_vector[1] = (mACTUATION_BETA + 0.5 * std::pow(mACTUATION_BETA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][1]; 
-        // actuated_strain_vector[2] = 0.5 * (mACTUATION_ALPHA + mACTUATION_BETA + mACTUATION_ALPHA*mACTUATION_BETA) * m_A_ab_covariant_vector[IntegrationPointIndex][2];
-        // //shear part
-        // actuated_strain_vector[2] = 0.5 * (m_A_ab_covariant_vector[IntegrationPointIndex][2] * cos(mACTUATION_GAMMA) + m_dA_vector[IntegrationPointIndex] * sin(mACTUATION_GAMMA) - m_A_ab_covariant_vector[IntegrationPointIndex][2] ) * 2;
+        array_1d<double, 3> actuated_strain_vector;   
+        //CHECKLEO strain part -> Vektor (E11,E22;E12)
+        actuated_strain_vector[0] = (mACTUATION_ALPHA + 0.5 * std::pow(mACTUATION_ALPHA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][0];
+        actuated_strain_vector[1] = (mACTUATION_BETA + 0.5 * std::pow(mACTUATION_BETA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][1]; 
+        actuated_strain_vector[2] = 0.5 * (mACTUATION_ALPHA + mACTUATION_BETA + mACTUATION_ALPHA*mACTUATION_BETA) * m_A_ab_covariant_vector[IntegrationPointIndex][2];
+        //shear part
+        actuated_strain_vector[2] = 0.5 * (m_A_ab_covariant_vector[IntegrationPointIndex][2] * cos(mACTUATION_GAMMA) + m_dA_vector[IntegrationPointIndex] * sin(mACTUATION_GAMMA) - m_A_ab_covariant_vector[IntegrationPointIndex][2] ) * 2;
         
-        array_1d<double, 3> strain_vector = total_strain_vector; // - actuated_strain_vector;
+        array_1d<double, 3> strain_vector = total_strain_vector - actuated_strain_vector;
         noalias(rThisConstitutiveVariablesMembrane.StrainVector) = prod(m_T_vector[IntegrationPointIndex], strain_vector);
 
         // Strain - Curvature Part
         array_1d<double, 3> total_curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
 
-        // array_1d<double, 3> actuated_curvature_vector;
-        // actuated_curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: multiplication with the zeta is covered by the preintegration 
-        // actuated_curvature_vector[1] = mACTUATION_KAPPA_2;
-        // actuated_curvature_vector[2] = mACTUATION_KAPPA_12;
+        array_1d<double, 3> actuated_curvature_vector;
+        actuated_curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: multiplication with the zeta is covered by the preintegration 
+        actuated_curvature_vector[1] = mACTUATION_KAPPA_2;
+        actuated_curvature_vector[2] = mACTUATION_KAPPA_12;
 
-        array_1d<double, 3> curvature_vector = total_curvature_vector; // - actuated_curvature_vector;
+        array_1d<double, 3> curvature_vector = total_curvature_vector - actuated_curvature_vector;
         noalias(rThisConstitutiveVariablesCurvature.StrainVector) = prod(m_T_vector[IntegrationPointIndex], curvature_vector);
 
         // Constitive Matrices DMembrane and DCurvature
