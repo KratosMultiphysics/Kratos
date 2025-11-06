@@ -43,14 +43,16 @@ private:
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
     void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,
                                                                   Element* pElement);
-    void SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(Element& rElement,
-                                                            const std::vector<std::size_t>& element_boundary_node_ids,
-                                                            const GeometryData::KratosGeometryOrderType& r_order_type);
-    bool AreRotatedEquivalents(const std::vector<std::size_t>&              rFirst,
-                               const std::vector<std::size_t>&              rSecond,
-                               const GeometryData::KratosGeometryOrderType& rOrderType);
-    bool AreLinearRotatedEquivalents(std::vector<std::size_t> First, const std::vector<std::size_t>& rSecond);
-    bool AreQuadraticRotatedEquivalents(std::vector<std::size_t> First, const std::vector<std::size_t>& rSecond);
+    void        SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(Element& rElement,
+                                                                   const std::vector<std::size_t>& element_boundary_node_ids,
+                                                                   const GeometryData::KratosGeometryOrderType& r_order_type);
+    static bool AreRotatedEquivalents(const std::vector<std::size_t>&              rFirst,
+                                      const std::vector<std::size_t>&              rSecond,
+                                      const GeometryData::KratosGeometryOrderType& rOrderType);
+    static bool AreLinearRotatedEquivalents(std::vector<std::size_t>        First,
+                                            const std::vector<std::size_t>& rSecond);
+    static bool AreQuadraticRotatedEquivalents(std::vector<std::size_t>        First,
+                                               const std::vector<std::size_t>& rSecond);
     static std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
 
     NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
