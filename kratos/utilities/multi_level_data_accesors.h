@@ -16,8 +16,8 @@ namespace Kratos
  * @tparam NumLayers The number of layers in the data structure.
  * @tparam NumGaussPoints The number of Gauss points in each layer.
  */
-class KRATOS_API(KRATOS_CORE) LayeredGaussPointDataAccesor
- : public MultiLevelDataValueAccesor
+class KRATOS_API(KRATOS_CORE) LayeredGaussPointDataAccessor
+ : public MultiLevelDataValueAccessor
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(LayeredGaussPointDataAccesor);
