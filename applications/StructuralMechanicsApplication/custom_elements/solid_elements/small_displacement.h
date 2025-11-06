@@ -150,14 +150,24 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Small Displacement Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        buffer << "Small Displacement Solid Element #" << Id();
+        if (!BaseType::mConstitutiveLawVector.empty()) {
+          buffer << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        } else {
+          buffer << "\nNo constitutive law.";
+        }
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Small Displacement Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        rOStream << "Small Displacement Solid Element #" << Id();
+        if (!BaseType::mConstitutiveLawVector.empty()) {
+          rOStream << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        } else {
+          rOStream << "\nNo constitutive law.";
+        }
     }
 
     /// Print object's data.
