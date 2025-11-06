@@ -34,10 +34,9 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringEntityFinder
 {
 public:
     void InitializeConditionMaps(ModelPart::ConditionsContainerType& rConditions);
-    std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
-    void                     FindConditionNeighboursBasedOnBoundaryType(
-                            std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
-                            ModelPart::ElementsContainerType&                                   rElements);
+    void FindConditionNeighboursBasedOnBoundaryType(
+        std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
+        ModelPart::ElementsContainerType&                                   rElements);
 
 private:
     void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
@@ -52,6 +51,7 @@ private:
                                const GeometryData::KratosGeometryOrderType& rOrderType);
     bool AreLinearRotatedEquivalents(std::vector<std::size_t> First, const std::vector<std::size_t>& rSecond);
     bool AreQuadraticRotatedEquivalents(std::vector<std::size_t> First, const std::vector<std::size_t>& rSecond);
+    static std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
 
     NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
