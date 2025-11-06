@@ -31,14 +31,13 @@ using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::
 class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringEntityFinder
 {
 public:
-    NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
-    SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
     void InitializeConditionMaps(ModelPart::ConditionsContainerType& rConditions);
     std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
     void                     FindConditionNeighboursBasedOnBoundaryType(
                             std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
                             ModelPart::ElementsContainerType&                                   rElements);
 
+private:
     void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
     void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,
@@ -51,6 +50,8 @@ public:
                                const GeometryData::KratosGeometryOrderType& rOrderType);
     bool AreLinearRotatedEquivalents(std::vector<std::size_t> First, const std::vector<std::size_t>& rSecond);
     bool AreQuadraticRotatedEquivalents(std::vector<std::size_t> First, const std::vector<std::size_t>& rSecond);
-};
 
+    NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
+    SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
+};
 } // namespace Kratos
