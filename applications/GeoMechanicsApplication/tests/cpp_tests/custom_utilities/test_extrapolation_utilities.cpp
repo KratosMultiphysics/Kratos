@@ -11,7 +11,7 @@
 //
 
 #include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_utilities/extrapolation_utilities.hpp"
+#include "custom_utilities/extrapolation_utilities.h"
 #include "geometries/triangle_2d_10.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"

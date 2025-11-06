@@ -16,7 +16,7 @@
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
-#include "custom_utilities/extrapolation_utilities.hpp"
+#include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
