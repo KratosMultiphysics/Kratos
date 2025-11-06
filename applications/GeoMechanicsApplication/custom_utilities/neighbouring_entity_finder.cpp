@@ -21,7 +21,7 @@ void NeighbouringEntityFinder::InitializeConditionMaps(ModelPart::ConditionsCont
     mConditionNodeIdsToConditions.clear();
     std::ranges::transform(
         rConditions, std::inserter(mConditionNodeIdsToConditions, mConditionNodeIdsToConditions.end()),
-        [this](auto& rCondition) {
+        [](auto& rCondition) {
         return NodeIdsToConditionsHashMap::value_type(
             GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
     });
