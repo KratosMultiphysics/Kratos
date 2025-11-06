@@ -13,12 +13,12 @@
 
 #pragma once
 
+#include "geometries/geometry.h"
 #include "includes/kratos_export_api.h"
-
-#include <algorithm>
 
 namespace Kratos
 {
+class Node;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ExtrapolationUtilities
 {

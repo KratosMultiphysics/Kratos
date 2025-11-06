@@ -13,8 +13,7 @@
 
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
-
-#include <algorithm>
+#include "includes/node.h"
 
 namespace Kratos
 {
@@ -45,9 +44,10 @@ std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalStresse
 
     std::vector<Vector> nodal_stresses(number_of_nodes, ZeroVector(rIntegrationPointStresses[0].size()));
     for (unsigned int node_index = 0; node_index < number_of_nodes; ++node_index) {
-        for (unsigned int gp_index = 0; gp_index < rIntegrationPointStresses.size(); ++gp_index) {
-            nodal_stresses[node_index] +=
-                extrapolation_matrix(node_index, gp_index) * rIntegrationPointStresses[gp_index];
+        for (unsigned int integration_point = 0;
+             integration_point < rIntegrationPointStresses.size(); ++integration_point) {
+            nodal_stresses[node_index] += extrapolation_matrix(node_index, integration_point) *
+                                          rIntegrationPointStresses[integration_point];
         }
     }
 
