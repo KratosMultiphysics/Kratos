@@ -88,15 +88,6 @@ void FindNeighbourElementsOfConditionsProcess::ReportConditionsWithoutNeighbours
                  << ids_of_conditions_without_neighbours << std::endl;
 }
 
-std::vector<std::size_t> FindNeighbourElementsOfConditionsProcess::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry)
-{
-    std::vector<std::size_t> result;
-    result.reserve(rGeometry.size());
-    std::ranges::transform(rGeometry, std::back_inserter(result),
-                           [](const auto& rNode) { return rNode.Id(); });
-    return result;
-}
-
 std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfConditionsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
