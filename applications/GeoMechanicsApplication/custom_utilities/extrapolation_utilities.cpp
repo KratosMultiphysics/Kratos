@@ -19,22 +19,22 @@ namespace Kratos
 {
 
 Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Geometry<Node>& rGeometry,
-                                                            GeometryData::IntegrationMethod rIntegrationMethod,
+                                                            GeometryData::IntegrationMethod IntegrationMethod,
                                                             size_t ElementId)
 {
     KRATOS_TRY
 
     const auto extrapolator = LinearNodalExtrapolator{};
 
-    const auto result = extrapolator.CalculateElementExtrapolationMatrix(rGeometry, rIntegrationMethod);
+    const auto result = extrapolator.CalculateElementExtrapolationMatrix(rGeometry, IntegrationMethod);
 
     KRATOS_ERROR_IF_NOT(result.size1() == rGeometry.size())
         << "An extrapolation matrix size1 " << result.size1() << " is not equal to a number of nodes "
         << rGeometry.size() << " for element id " << ElementId << std::endl;
 
-    KRATOS_ERROR_IF_NOT(result.size2() == rGeometry.IntegrationPoints(rIntegrationMethod).size())
+    KRATOS_ERROR_IF_NOT(result.size2() == rGeometry.IntegrationPoints(IntegrationMethod).size())
         << "An extrapolation matrix size2 " << result.size2() << " is not equal to a number of integration points "
-        << rGeometry.IntegrationPoints(rIntegrationMethod).size() << " for element id " << ElementId
+        << rGeometry.IntegrationPoints(IntegrationMethod).size() << " for element id " << ElementId
         << std::endl;
 
     return result;
@@ -45,7 +45,7 @@ Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Geometry<Node>
 std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalStresses(
     const std::vector<std::size_t>& node_ids,
     const Geometry<Node>&           rGeometry,
-    GeometryData::IntegrationMethod rIntegrationMethod,
+    GeometryData::IntegrationMethod IntegrationMethod,
     const std::vector<Vector>&      rIntegrationPointStresses,
     size_t                          ElementId)
 {
@@ -54,7 +54,7 @@ std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalStresse
     std::transform(rGeometry.begin(), rGeometry.end(), element_node_ids.begin(),
                    [](const auto& node) { return node.Id(); });
 
-    const auto extrapolation_matrix = CalculateExtrapolationMatrix(rGeometry, rIntegrationMethod, ElementId);
+    const auto extrapolation_matrix = CalculateExtrapolationMatrix(rGeometry, IntegrationMethod, ElementId);
 
     KRATOS_ERROR_IF_NOT(extrapolation_matrix.size2() == rIntegrationPointStresses.size())
         << "An extrapolation matrix size " << extrapolation_matrix.size2()
