@@ -200,7 +200,7 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stresses, rCurrentProcessInfo);
             const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalStresses(
                 node_ids_common_with_element, element->GetGeometry(),
-                element->GetIntegrationMethod(), cauchy_stresses);
+                element->GetIntegrationMethod(), cauchy_stresses, element->Id());
             KRATOS_ERROR_IF_NOT(nodal_stresses.size() == node_ids_common_with_element.size())
                 << " vectors have different sizes" << std::endl;
         }
