@@ -629,13 +629,14 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     Properties properties;
-    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COULOMB_HARDENING_TYPE, "Linear");
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
 
     properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
-    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.0}));
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.3301270189}));
     properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
 
     ConstitutiveLaw::Parameters parameters;
@@ -645,9 +646,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    auto cauchy_stress_vector = UblasUtilities::CreateVector({10.0, -20.0, -50.0, 0.0});
-    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({-12.77369876060133495363436, -20.0, -27.2263012393986650463656358006279, 0.0});
-    constexpr double tolerance = 1.0e-6;
+    auto       cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 0.0, -40.0, 0.0});
+    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({5.0, 0.0, -35.0, 0.0});
+    constexpr double tolerance               = 1.0e-6;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
 }

@@ -31,7 +31,7 @@ CoulombYieldSurface::KappaDependentFunction MakeConstantFunction(double Value)
 
 CoulombYieldSurface::KappaDependentFunction MakeLinearFunction(double Value, double Coefficient)
 {
-    return [Value, Coefficient](double kappa) { return Value + Coefficient * kappa; };
+    return [Value, Coefficient](double kappa) { return std::max(Value + Coefficient * kappa, 0.0); };
 }
 
 std::string GetCoulombHardeningTypeFrom(const Properties& rMaterialProperties)
@@ -49,8 +49,8 @@ CoulombYieldSurface::KappaDependentFunction MakeFrictionAngleCalculator(const Pr
         return MakeConstantFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties));
     }
     if (hardening_type == "linear") {
-        return MakeLinearFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties)
-            ,rMaterialProperties[GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS](0));
+        return MakeLinearFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties),
+                                  rMaterialProperties[GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS](0));
     }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the friction angle of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
@@ -64,7 +64,7 @@ CoulombYieldSurface::KappaDependentFunction MakeCohesionCalculator(const Propert
     }
     if (hardening_type == "linear") {
         return MakeLinearFunction(ConstitutiveLawUtilities::GetCohesion(rMaterialProperties),
-        rMaterialProperties[GEO_COHESION_FUNCTION_COEFFICIENTS](0));
+                                  rMaterialProperties[GEO_COHESION_FUNCTION_COEFFICIENTS](0));
     }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the cohesion of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
@@ -78,7 +78,7 @@ CoulombYieldSurface::KappaDependentFunction MakeDilatancyAngleCalculator(const P
     }
     if (hardening_type == "linear") {
         return MakeLinearFunction(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
-            rMaterialProperties[GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS](0));
+                                  rMaterialProperties[GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS](0));
     }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the dilatancy angle of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
@@ -124,11 +124,7 @@ double CoulombYieldSurface::GetDilatancyAngleInRadians() const
 
 double CoulombYieldSurface::GetKappa() const { return mKappa; }
 
-void CoulombYieldSurface::SetKappa(const double kappa)
-{
-    mKappa = kappa;
-}
-
+void CoulombYieldSurface::SetKappa(double kappa) { mKappa = kappa; }
 
 double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {

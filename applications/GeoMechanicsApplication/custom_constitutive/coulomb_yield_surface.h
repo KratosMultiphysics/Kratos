@@ -43,7 +43,7 @@ public:
     [[nodiscard]] double GetDilatancyAngleInRadians() const;
     [[nodiscard]] double GetKappa() const;
 
-    void SetKappa(const double kappa);
+    void SetKappa(double kappa);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
