@@ -15,22 +15,28 @@
 #include "includes/kratos_export_api.h"
 #include "includes/key_hash.h"
 #include "includes/condition.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
-using NodeIdsToConditionsHashMap     = std::unordered_multimap<std::vector<std::size_t>,
-                                                               std::vector<Condition::Pointer>,
-                                                               KeyHasherRange<std::vector<std::size_t>>,
-                                                               KeyComparorRange<std::vector<std::size_t>>>;
+using NodeIdsToConditionsHashMap = std::unordered_multimap<std::vector<std::size_t>,
+                                                           std::vector<Condition::Pointer>,
+                                                           KeyHasherRange<std::vector<std::size_t>>,
+                                                           KeyComparorRange<std::vector<
+                                                               std::size_t>>>;
 using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::size_t>,
                                                                std::vector<std::size_t>,
-                                                               KeyHasherRange<std::vector<std::size_t>>,
-                                                               KeyComparorRange<std::vector<std::size_t>>>;
+                                                               KeyHasherRange<std::vector<
+                                                                   std::size_t>>,
+                                                               KeyComparorRange<std::vector<
+                                                                   std::size_t>>>;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringEntityFinder
 {
-    public:
+public:
     NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
+    void                           InitializeConditionMaps(ModelPart::ConditionsContainerType& rConditions);
+    std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
 };
 }

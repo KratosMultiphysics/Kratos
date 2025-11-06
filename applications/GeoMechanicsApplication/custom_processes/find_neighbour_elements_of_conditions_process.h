@@ -40,7 +40,6 @@ private:
     ModelPart&                     mrModelPart;
     NeighbouringEntityFinder mNeighbouringEntityFinder;
 
-    void InitializeConditionMaps();
     void FindNeighbouringElementsForAllBoundaryTypes();
 
     void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,

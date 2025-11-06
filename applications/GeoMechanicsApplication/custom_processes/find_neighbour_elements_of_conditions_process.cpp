@@ -29,33 +29,12 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     if (mrModelPart.Conditions().empty()) return;
 
-    InitializeConditionMaps();
+    mNeighbouringEntityFinder.InitializeConditionMaps(mrModelPart.Conditions());
     FindNeighbouringElementsForAllBoundaryTypes();
 
     if (!AllConditionsHaveAtLeastOneNeighbour()) {
         ReportConditionsWithoutNeighboursAndThrow();
     }
-}
-
-void FindNeighbourElementsOfConditionsProcess::InitializeConditionMaps()
-{
-    mNeighbouringEntityFinder.mConditionNodeIdsToConditions.clear();
-    std::ranges::transform(
-        mrModelPart.Conditions(),
-        std::inserter(mNeighbouringEntityFinder.mConditionNodeIdsToConditions, mNeighbouringEntityFinder.mConditionNodeIdsToConditions.end()), [](auto& rCondition) {
-        return NodeIdsToConditionsHashMap::value_type(
-            GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
-    });
-
-    mNeighbouringEntityFinder.mSortedToUnsortedConditionNodeIds.clear();
-    std::ranges::transform(
-        mNeighbouringEntityFinder.mConditionNodeIdsToConditions,
-        std::inserter(mNeighbouringEntityFinder.mSortedToUnsortedConditionNodeIds, mNeighbouringEntityFinder.mSortedToUnsortedConditionNodeIds.end()),
-        [](const auto& rPair) {
-        auto sorted_ids = rPair.first;
-        std::ranges::sort(sorted_ids);
-        return std::make_pair(sorted_ids, rPair.first);
-    });
 }
 
 void FindNeighbourElementsOfConditionsProcess::FindNeighbouringElementsForAllBoundaryTypes()
