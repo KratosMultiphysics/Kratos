@@ -317,6 +317,8 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
         # Writing a second time should yield the same results.
         # (unless writing is allowed to mutate the model part because we're not const-correct ...)
+        KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write_mesh_only.out.mdpa"))
+        KratosUtils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write_mesh_only.out.time"))
         model_part_io.WriteModelPart(model_part)
         value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
         self.assertTrue(value)
