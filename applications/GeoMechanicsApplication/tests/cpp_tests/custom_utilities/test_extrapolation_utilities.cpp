@@ -12,6 +12,7 @@
 
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
+#include "custom_utilities/nodal_extrapolator.h"
 #include "geometries/triangle_2d_10.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -23,6 +24,45 @@ using namespace Kratos;
 
 namespace Kratos::Testing
 {
+
+class FakeExtrapolator : public NodalExtrapolator
+{
+public:
+    FakeExtrapolator(std::size_t rows, std::size_t cols) : mRows(rows), mCols(cols) {}
+
+    [[nodiscard]] Matrix CalculateElementExtrapolationMatrix(const GeometryType& rGeometry,
+                                                             const GeometryData::IntegrationMethod& rIntegrationMethod) const override
+    {
+        Matrix mat(mRows, mCols);
+        mat.clear();
+        return mat;
+    }
+
+private:
+    std::size_t mRows;
+    std::size_t mCols;
+};
+
+KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixThrowsExceptions,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(3, 1.0, 1.0, 0.0));
+    const auto geometry           = Triangle2D3<Node>(nodes);
+    const auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto fake_row           = FakeExtrapolator(2, 3);
+    const auto fake_colums        = FakeExtrapolator(3, 2);
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        auto matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(
+            geometry, integration_method, 0, &fake_row),
+        "An extrapolation matrix size1 2 is not equal to a number of nodes 3 for element id 0");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        auto matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(geometry, integration_method, 0, &fake_colums), "An extrapolation matrix size2 2 is not equal to a number of integration points 3 for element id 0");
+}
 
 KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
 {

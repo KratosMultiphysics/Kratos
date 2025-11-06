@@ -23,7 +23,7 @@ namespace Kratos
 
 auto CalculateSquareExtrapolationMatrix = [](Element* pElement) {
     const auto extrapolation_matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(
-        pElement->GetGeometry(), pElement->GetIntegrationMethod(), pElement->Id());
+        pElement->GetGeometry(), pElement->GetIntegrationMethod(), pElement->Id(), nullptr);
     if (extrapolation_matrix.size1() != extrapolation_matrix.size2()) {
         KRATOS_ERROR << "Extrapolation matrix is not square for element id " << pElement->Id() << std::endl;
     }

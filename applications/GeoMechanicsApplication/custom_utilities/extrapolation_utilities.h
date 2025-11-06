@@ -18,6 +18,7 @@
 
 namespace Kratos
 {
+class NodalExtrapolator;
 class Node;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ExtrapolationUtilities
@@ -25,7 +26,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ExtrapolationUtilities
 public:
     [[nodiscard]] static Matrix CalculateExtrapolationMatrix(const Geometry<Node>& rGeometry,
                                                              GeometryData::IntegrationMethod IntegrationMethod,
-                                                             size_t ElementId);
+                                                             size_t                   ElementId,
+                                                             const NodalExtrapolator* extrapolator);
 
     [[nodiscard]] static std::vector<std::optional<Vector>> CalculateNodalStresses(
         const std::vector<std::size_t>& node_ids,

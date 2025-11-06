@@ -20,13 +20,15 @@ namespace Kratos
 
 Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Geometry<Node>& rGeometry,
                                                             GeometryData::IntegrationMethod IntegrationMethod,
-                                                            size_t ElementId)
+                                                            size_t ElementId,
+                                                            const NodalExtrapolator* extrapolator = nullptr)
 {
     KRATOS_TRY
 
-    const auto extrapolator = LinearNodalExtrapolator{};
+    LinearNodalExtrapolator default_extrapolator;
+    if (!extrapolator) extrapolator = &default_extrapolator;
 
-    const auto result = extrapolator.CalculateElementExtrapolationMatrix(rGeometry, IntegrationMethod);
+    const auto result = extrapolator->CalculateElementExtrapolationMatrix(rGeometry, IntegrationMethod);
 
     KRATOS_ERROR_IF_NOT(result.size1() == rGeometry.size())
         << "An extrapolation matrix size1 " << result.size1() << " is not equal to a number of nodes "
