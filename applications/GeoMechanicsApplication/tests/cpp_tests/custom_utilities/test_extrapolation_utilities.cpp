@@ -77,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosG
     const auto          delta_stress = Vector(4, 1000.0);
     std::vector<Vector> cauchy_stress_vectors;
     cauchy_stress_vectors.push_back(cauchy_stress);
-    cauchy_stress_vectors.push_back(cauchy_stress + delta_stress);
+    cauchy_stress_vectors.emplace_back(cauchy_stress + delta_stress);
 
     std::vector<std::size_t> node_ids = {1, 2, 3};
 
@@ -88,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosG
                                       "An extrapolation matrix size 3 is not equal to given "
                                       "stress vectors size 2 for element Id 1");
 
-    cauchy_stress_vectors.push_back(cauchy_stress + 2 * delta_stress);
+    cauchy_stress_vectors.emplace_back(cauchy_stress + 2 * delta_stress);
 
     // Act
     auto nodal_stresses = ExtrapolationUtilities::CalculateNodalStresses(
@@ -99,9 +99,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosG
     KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());
 
     std::vector<Vector> expected_nodal_stresses;
-    expected_nodal_stresses.push_back(cauchy_stress_vectors[0] - delta_stress);
+    expected_nodal_stresses.emplace_back(cauchy_stress_vectors[0] - delta_stress);
     expected_nodal_stresses.push_back(cauchy_stress_vectors[1]);
-    expected_nodal_stresses.push_back(cauchy_stress_vectors[2] + delta_stress);
+    expected_nodal_stresses.emplace_back(cauchy_stress_vectors[2] + delta_stress);
 
     for (auto i = std::size_t{0}; i < nodal_stresses.size(); ++i) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(nodal_stresses[i].value(), expected_nodal_stresses[i],
@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosG
                                                                     element.GetIntegrationMethod(),
                                                                     cauchy_stress_vectors, element.Id());
     KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());
-    KRATOS_EXPECT_TRUE(nodal_stresses[1].has_value() == false);
+    KRATOS_EXPECT_TRUE(nodal_stresses[1].has_value() == false)
     for (auto i = std::size_t{0}; i < nodal_stresses.size(); ++i) {
         if (nodal_stresses[i].has_value()) {
             KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
@@ -151,8 +151,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStressesForTriang
     const auto          delta_stress = Vector(4, 1000.0);
     std::vector<Vector> cauchy_stress_vectors;
     cauchy_stress_vectors.push_back(cauchy_stress);
-    cauchy_stress_vectors.push_back(cauchy_stress + delta_stress);
-    cauchy_stress_vectors.push_back(cauchy_stress + 2 * delta_stress);
+    cauchy_stress_vectors.emplace_back(cauchy_stress + delta_stress);
+    cauchy_stress_vectors.emplace_back(cauchy_stress + 2 * delta_stress);
 
     // Act
     std::vector<std::size_t> node_ids       = {1, 4, 2};
@@ -164,7 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStressesForTriang
     KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());
 
     std::vector<Vector> expected_nodal_stresses;
-    expected_nodal_stresses.push_back(cauchy_stress_vectors[0] - delta_stress);
+    expected_nodal_stresses.emplace_back(cauchy_stress_vectors[0] - delta_stress);
     expected_nodal_stresses.push_back(cauchy_stress_vectors[0]);
     expected_nodal_stresses.push_back(cauchy_stress_vectors[1]);
 
