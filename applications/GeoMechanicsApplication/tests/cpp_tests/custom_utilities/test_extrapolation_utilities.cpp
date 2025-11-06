@@ -93,6 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosG
                                                                     element.GetIntegrationMethod(),
                                                                     cauchy_stress_vectors, element.Id());
     KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());
+    KRATOS_EXPECT_TRUE(nodal_stresses[1].has_value()==false);
     for (auto i = std::size_t{0}; i < nodal_stresses.size(); ++i) {
         if (nodal_stresses[i].has_value()) {
             KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
