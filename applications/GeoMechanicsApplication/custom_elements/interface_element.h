@@ -86,6 +86,7 @@ private:
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
+    std::vector<Element*>                 mNeighbourElements;
 
     friend class Serializer;
 };

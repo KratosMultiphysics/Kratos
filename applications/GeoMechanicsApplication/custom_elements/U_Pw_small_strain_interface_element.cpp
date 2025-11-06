@@ -15,7 +15,6 @@
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "custom_utilities/extrapolation_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
@@ -118,19 +117,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessIn
         for (unsigned int i = 0; i < mStressVector.size(); ++i) {
             mStressVector[i].resize(VoigtSize);
             std::ranges::fill(mStressVector[i], 0.0);
-        }
-    }
-
-    if (!mNeighbourElements.empty()) {
-        for (const auto& element : mNeighbourElements) {
-            std::vector<std::size_t> node_ids_common_with_element(1);
-            std::vector<Vector>      cauchy_stresses;
-            element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stresses, rCurrentProcessInfo);
-            const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalStresses<TNumNodes>(
-                node_ids_common_with_element, element->GetGeometry(),
-                element->GetIntegrationMethod(), cauchy_stresses);
-            KRATOS_ERROR_IF_NOT(nodal_stresses.size() == node_ids_common_with_element.size())
-                << " vectors have different sizes" << std::endl;
         }
     }
 
