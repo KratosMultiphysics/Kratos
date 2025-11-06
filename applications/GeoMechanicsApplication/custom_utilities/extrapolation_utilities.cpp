@@ -51,8 +51,8 @@ std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalStresse
 {
     const auto               number_of_nodes = rGeometry.size();
     std::vector<std::size_t> element_node_ids(number_of_nodes);
-    std::transform(rGeometry.begin(), rGeometry.end(), element_node_ids.begin(),
-                   [](const auto& node) { return node.Id(); });
+    std::ranges::transform(rGeometry, element_node_ids.begin(),
+                           [](const auto& node) { return node.Id(); });
 
     const auto extrapolation_matrix = CalculateExtrapolationMatrix(rGeometry, IntegrationMethod, ElementId);
 
