@@ -41,6 +41,9 @@ public:
     [[nodiscard]] double GetFrictionAngleInRadians() const;
     [[nodiscard]] double GetCohesion() const;
     [[nodiscard]] double GetDilatancyAngleInRadians() const;
+    [[nodiscard]] double GetKappa() const;
+
+    void SetKappa(const double kappa);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
