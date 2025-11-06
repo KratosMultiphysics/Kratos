@@ -37,6 +37,29 @@ public:
     NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
     void                           InitializeConditionMaps(ModelPart::ConditionsContainerType& rConditions);
-    std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
+    std::vector<std::size_t>       GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
+    void FindConditionNeighboursBasedOnBoundaryType(
+        std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
+        ModelPart::ElementsContainerType&                                   rElements);
+
+    void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+        Element&                                   rElement,
+        const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
+    void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
+        const std::vector<std::size_t>& rConditionNodeIds,
+        Element*                        pElement);
+    void SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(Element& rElement,
+                                                            const std::vector<std::size_t>&
+                                                            element_boundary_node_ids,
+                                                            const GeometryData::
+                                                            KratosGeometryOrderType& r_order_type);
+    bool AreRotatedEquivalents(const std::vector<std::size_t>&              rFirst,
+                               const std::vector<std::size_t>&              rSecond,
+                               const GeometryData::KratosGeometryOrderType& rOrderType);
+    bool AreLinearRotatedEquivalents(std::vector<std::size_t>        First,
+                                     const std::vector<std::size_t>& rSecond);
+    bool AreQuadraticRotatedEquivalents(std::vector<std::size_t>        First,
+                                        const std::vector<std::size_t>& rSecond);
 };
+
 }
