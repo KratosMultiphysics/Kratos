@@ -6,18 +6,20 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes, SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics import FindGlobalNodalElementalNeighboursProcess
+from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 import numpy as np
+from scipy.spatial import KDTree
+
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
         raise RuntimeError(f"LevelSetControlHJ instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
         raise RuntimeError(f"LevelSetControlHJ instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return LevelSetControlHJ(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
+    return LevelSetControlShape(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
 
-class LevelSetControlHJ(Control):
+class LevelSetControlShape(Control):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> None:
         super().__init__(name)
 
@@ -30,11 +32,13 @@ class LevelSetControlHJ(Control):
             "output_all_fields"                 : true,
             "echo_level"                        : 0,
             "consider_recursive_property_update": false,
+            "filter_settings"                   : {},
             "density"                           : 1.0,
             "young_modulus"                     : 1.0,
             "k"                                 : 400.0,
             "initial_phi_value"                 : 0.0,
-            "mininum_modulus"                   : 1000000
+            "mininum_modulus"                   : 1000000,
+            "reinit_interval"                   : 20
         }""")
 
 
@@ -49,14 +53,17 @@ class LevelSetControlHJ(Control):
         self.k = parameters["k"].GetDouble()
         self.initial_phi = parameters["initial_phi_value"].GetDouble()
         self.epsilon = parameters["mininum_modulus"].GetDouble()
+        self.reinit_interval = parameters["reinit_interval"].GetInt()
 
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:
-            raise RuntimeError(f"No model parts are provided for SimpControl. [ control name = \"{self.GetName()}\"]")
+            raise RuntimeError(f"No model parts are provided for LevelSetControl. [ control name = \"{self.GetName()}\"]")
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_names_parts, False)
         # self.model_part: 'typing.Optional[Kratos.ModelPart]' = None
 
         self.consider_recursive_property_update = parameters["consider_recursive_property_update"].GetBool()
+
+        self.filter = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), Kratos.NODAL_AREA, Kratos.Globals.DataLocation.NodeNonHistorical, parameters["filter_settings"])
 
     def Initialize(self) -> None:
         self.un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
@@ -68,6 +75,9 @@ class LevelSetControlHJ(Control):
         if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements, self.consider_recursive_property_update)
             KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
+
+        self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
+        self.filter.Initialize()
 
         # check if the density or Young's modulus is defined
         element: Kratos.Element
@@ -88,9 +98,10 @@ class LevelSetControlHJ(Control):
 
 
         # # get the control field
-        self.control_phi = self.GetEmptyField()
-        #self._InitializeSignedDistance((2,0.5), 1, 0.25)
-        Kratos.Expression.LiteralExpressionIO.SetData(self.control_phi, self.initial_phi)
+        # self.control_phi = self.GetEmptyField()
+        # Kratos.Expression.LiteralExpressionIO.SetData(self.control_phi, self.initial_phi)
+        # initialize as SDF
+        self._InitializeSignedDistanceKDTree(min_dirac=0.1)
 
         # get element sizes (no remeshing)
         self.element_len = self._GetElementLength()
@@ -98,108 +109,93 @@ class LevelSetControlHJ(Control):
         # initialize physical fields 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
-    def _GetNeighbouringElements(self) -> dict:
-        # get elements that neighbour a node
-        find_neighbours = FindGlobalNodalElementalNeighboursProcess(self.model_part)
-        find_neighbours.Execute()
-        node_element_neighbours = find_neighbours.GetNeighbourIds(self.model_part.Nodes)
 
-        # Initialize the element-to-element neighbor map
-        element_neighbors = {elem.Id: set() for elem in self.model_part.Elements}
-
-        node : Kratos.Node
-        # Build the map
-        for node in self.model_part.Nodes:
-            neighbor_elem_ids = node_element_neighbours[node.Id]
-
-            for elem_id_1 in neighbor_elem_ids:
-                for elem_id_2 in neighbor_elem_ids:
-                    if elem_id_1 != elem_id_2:
-                        element_neighbors[elem_id_1].add(elem_id_2)
-
-        # Convert sets to sorted lists
-        #element_neighbors = {eid: sorted(list(neighs)) for eid, neighs in element_neighbors.items()}
-        return element_neighbors
-
-    def _ComputeStructuredElementNeighbours(self) -> dict:
+    def _InitializeSignedDistanceKDTree(self, interface_points=None, min_dirac=0.1):
         """
-        Classifies each element's neighbors into left, right, up, down using numpy.
+        Build a signed distance function φ using a KDTree for unstructured FEM nodes.
+        If interface_points=None, assumes interface at x=0 plane for demonstration.
         """
-        structured_neighbours = {}
-        # domain_size = self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-        # assert domain_size == 2, "This function currently supports only 2D"
+        interface_points = np.array([[node.X, node.Y, node.Z] for node in self.model_part.GetSubModelPart("BOUNDARY_NODES").Nodes])
+        nodes = np.array([[node.X, node.Y, node.Z] for node in self.model_part.Nodes])
+        # if interface_points is None:
+        #     # Example: interface plane at x = 0
+        #     interface_points = np.array([[0.0, y, z] for y, z in zip(nodes[:, 1], nodes[:, 2])])
 
-        for element in self.model_part.Elements:
-            elem_id = element.Id
-            center_e = element.GetGeometry().Center()
-            structured_neighbours[elem_id] = {
-                "LEFT": None,
-                "RIGHT": None,
-                "UP": None,
-                "DOWN": None,
-                "UNKNOWN": []
-            }
+        # Build KDTree from interface points
+        tree = KDTree(interface_points)
 
-            for neigh_id in self.element_neighbours[elem_id]:
-                neighbor = self.model_part.GetElement(neigh_id)
-                center_n = neighbor.GetGeometry().Center()
+        # Compute distances from each node to nearest interface point
+        distances, _ = tree.query(nodes)
 
-                delta = np.array(center_n) - np.array(center_e)
-                angle = np.arctan2(delta[1], delta[0]) * 180.0 / np.pi  # angle in degrees
+        # Determine inside/outside using current phi or coordinate sign (x>0 => material)
+        signs = np.sign(nodes[:, 0])  # <-- Replace with your material/void criterion
+        max_phi = 1/(2*self.k) * np.log((self.k - min_dirac + np.sqrt(self.k*(self.k - min_dirac)))/(2*min_dirac))
+        phi_values = signs * distances
 
-                # Classification thresholds in degrees
-                if -22.5 <= angle <= 22.5:
-                    structured_neighbours[elem_id]["RIGHT"] = neigh_id # should be UP
-                elif 67.5 <= angle <= 112.5:
-                    structured_neighbours[elem_id]["UP"] = neigh_id # should be LEFT
-                elif -112.5 <= angle <= -67.5:
-                    structured_neighbours[elem_id]["DOWN"] = neigh_id # should be RIGHT
-                elif angle >= 157.5 or angle <= -157.5:
-                    structured_neighbours[elem_id]["LEFT"] = neigh_id #should be DOWN
-                else:
-                    structured_neighbours[elem_id]["UNKNOWN"].append(neigh_id)
+        # ---- SCALE AND CLIP ----
+        phi_values /= np.max(np.abs(phi_values))  # normalize to [-1, 1]
+        phi_values *= max_phi                  # rescale to [-phi_max, phi_max]
+        phi_values = np.clip(phi_values, -max_phi, max_phi)
 
-        return structured_neighbours
+        # Set BC nodes to material
+        BC_points = [node.Id for node in self.model_part.GetSubModelPart("DISPLACEMENT_fixed_support").Nodes] + \
+                    [node.Id for node in self.model_part.GetSubModelPart("DISPLACEMENT_roller_support").Nodes] + \
+                    [node.Id for node in self.model_part.GetSubModelPart("PointLoad3D_load").Nodes]
+        for id in BC_points:
+            phi_values[id-1] = max_phi
 
-    def _InitializeSignedDistance(self, center=(0.5, 0.5), half_width = 0.25 , half_height = 0.25):
+        # Store as nodal expression
+        phi_exp = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(phi_exp, phi_values)
+
+        self.control_phi = phi_exp.Clone()
+
+        print(f"Initialized signed distance φ in range: [{phi_values.min():.3f}, {phi_values.max():.3f}]")
+
+    def _ReinitializePhiSussman(self, num_iterations=10, dt=0.01):
         """
-        Initializes the level-set function (control_phi) as a signed distance function
-        to a rectangle centered at `center` with given half-width.
-
-        Parameters:
-        - center: Tuple (x, y) indicating the rectangle center
-        - half_width: Half of the side length of the rectangle (assumes square shape)
+        Reinitializes the level set function φ using the Sussman PDE:
+            ∂φ/∂τ + S(φ₀)(|∇φ| - 1) = 0
+        to maintain φ as a signed distance function.
+        
+        Args:
+            num_iterations (int): Number of pseudo-time iterations
+            dt (float): Pseudo-time step (should be small, e.g. 0.01)
         """
 
-        distances = []
+        # Clone original φ as φ₀
+        phi_0 = self.control_phi.Clone()
 
-        for element in self.model_part.Elements:
-            centroid = element.GetGeometry().Center()
-            x, y = centroid[0], centroid[1]
+        # Precompute sign(phi₀) smoothed: S(phi₀) = phi₀ / sqrt(phi₀² + ε²)
+        eps = 1e-6
+        phi0_np = phi_0.Evaluate()
+        sign_phi = phi0_np / np.sqrt(phi0_np**2 + eps**2)
+        sign_phi_exp = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(sign_phi_exp, sign_phi)
 
-            # dx = max(abs(x - center[0]) - half_width, 0.0)
-            # dy = max(abs(y - center[1]) - half_height, 0.0)
-            # distance = np.sqrt(dx**2 + dy**2)
+        # Pseudo-time marching loop
+        for it in range(num_iterations):
+            # Compute |∇φ|
+            grad_phi_elem = Kratos.Expression.ElementExpression(self.model_part)
+            KratosOA.ExpressionUtils.GetGradientExpression(grad_phi_elem, self.control_phi, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE])
+            grad_norm = np.linalg.norm(grad_phi_elem.Evaluate(), axis=1)
+            grad_norm_exp = Kratos.Expression.ElementExpression(self.model_part)
+            Kratos.Expression.CArrayExpressionIO.Read(grad_norm_exp, grad_norm)
 
-            # # Negative if inside rectangle
-            # if abs(x - center[0]) < half_width and abs(y - center[1]) < half_height:
-            #     distance *= -1
+            # Collapse to nodal field for φ update
+            grad_norm_nodal = Kratos.Expression.NodalExpression(self.model_part)
+            KratosOA.ExpressionUtils.ProjectElementalToNodalViaShapeFunctions(grad_norm_nodal, grad_norm_exp)
 
-            dx = abs(x - center[0]) * (1 / center[0])
-            dy = abs(y - center[1]) * (1 / center[1])
-            distance = np.mean([dx, dy])
+            # Compute update: ∂φ/∂τ = -S(φ₀)(|∇φ| - 1)
+            update = -sign_phi_exp * (grad_norm_nodal - 1.0)
+            # Time integration (explicit Euler)
+            self.control_phi += update * dt
+            self.control_phi = Kratos.Expression.Utils.Collapse(self.control_phi)
 
-            distances.append(distance)
+            if it % 5 == 0 and self.echo_level > 0:
+                print(f" [Reinit] Iter {it}/{num_iterations} | mean(|∇φ|-1) = {np.mean(np.abs(grad_norm - 1)):.3e}")
 
-        numpy_array = np.array(distances, dtype=np.float64)
-        matrix = np.reshape(numpy_array, (80,20))
-        np.savetxt("output_phi.txt", matrix)
-        # Write it into element expression
-        signed_distance_function = Kratos.Expression.ElementExpression(self.model_part)
-        Kratos.Expression.CArrayExpressionIO.Read(signed_distance_function, numpy_array)
-
-        # Store the signed distance function
-        self.control_phi = signed_distance_function.Clone()
+        print(f"Sussman reinitialization done. Final φ range: [{min(self.control_phi.Evaluate()):.3f}, {max(self.control_phi.Evaluate()):.3f}]")
 
     def _GetElementLength(self) -> ContainerExpressionTypes:
         domain_size = []
@@ -212,12 +208,12 @@ class LevelSetControlHJ(Control):
         return Kratos.Expression.Utils.Pow(size_container, 1/self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE])
         
     def Check(self) -> None:
-        #self.filter.Check()
-        pass
+        self.filter.Check()
+        # pass
 
     def Finalize(self) -> None:
-        #self.filter.Finalize()
-        pass
+        self.filter.Finalize()
+        # pass
 
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [Kratos.DENSITY, Kratos.YOUNG_MODULUS]
@@ -280,10 +276,16 @@ class LevelSetControlHJ(Control):
             print(f"Time_step: {time_step}")
 
             new_update = update * nodal_grad * time_step
+            # self.filter.ForwardFilterField(new_update)
             self.control_phi += new_update
             self.control_phi = Kratos.Expression.Utils.Collapse(self.control_phi)
 
+            # Reinitialize the LSF as Signed Distance Function
+            # if self.optimization_problem.GetStep() % self.reinit_interval == 0:
+            #     self._ReinitializePhiSussman(num_iterations=15, dt = Kratos.Expression.Utils.EntityMin(self.element_len).Evaluate()[0] * time_step)
+
             self._UpdateAndOutputFields(new_update)
+            self.filter.Update()
             return True
 
         return False
@@ -336,118 +338,6 @@ class LevelSetControlHJ(Control):
             np.savetxt("d_young_modulus_d_phi.txt", self.d_young_modulus_d_phi.Evaluate())
             np.savetxt("elemental_phi.txt", elemental_phi.Evaluate())
             raise RuntimeError(f"Nan in dirac")
-
-
-    def _ComputePhiGradientNorm(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-
-        grad_norm = self.GetEmptyField()
-        element_data = self._ComputePhiGradient(control_field)
-
-        grad : Kratos.Vector
-        element : Kratos.Element
-        # Compute norm of the gradient per element
-        for element in self.model_part.Elements:
-            grad = element_data[element.Id]["grad"]
-            element.SetValue(Kratos.DENSITY_AIR, grad.norm_2())
-        
-        # Write it into element expression
-        Kratos.Expression.VariableExpressionIO.Read(grad_norm, Kratos.DENSITY_AIR)
-
-        return grad_norm
-
-    def _ComputePhiGradient(self, control_field: ContainerExpressionTypes) -> dict:
-        # Precompute phi and centroids
-        element_data = {}
-        domain_size = self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE]  # 2 or 3
-        phi = control_field.Evaluate()
-
-        element : Kratos.Element
-
-        for element in self.model_part.Elements:
-            x_e = element.GetGeometry().Center()
-            phi_e = phi[element.Id-1]
-            grad = Kratos.Vector(domain_size, 0.0)
-            element_data[element.Id] = {"center": x_e, "phi": phi_e, "grad": grad}
-  
-        # Estimate ∇phi per element using neighbors and directional finite difference
-        for element in self.model_part.Elements:
-            center_e = element_data[element.Id]["center"]
-            phi_e = element_data[element.Id]["phi"]
-            grad = element_data[element.Id]["grad"]
-
-            for neighbor_id in self.element_neighbours[element.Id]:
-                center_n = element_data[neighbor_id]["center"]
-                phi_n = element_data[neighbor_id]["phi"]
-
-                # Compute vector delta_x = x_j - x_e
-                delta_x = Kratos.Vector(domain_size)
-                for d in range(domain_size):
-                    delta_x[d] = center_n[d] - center_e[d]
-
-                distance_sq = sum(delta_x[i]**2 for i in range(domain_size))
-                if distance_sq < 1e-12:
-                    continue  # Skip if centers are coincident
-
-                # Finite difference approximation
-                coeff = (phi_n - phi_e) / distance_sq
-                for d in range(domain_size):
-                    grad[d] += coeff * delta_x[d]
-
-        return element_data
-
-    def _ComputePhiGradientNorm2(self, design_velocity: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        # Evaluate φ field
-        phi_data = self.control_phi.Evaluate()
-        v = design_velocity.Evaluate()
-        grad_norm = self.GetEmptyField()
-
-        element : Kratos.Element
-        #Loop over elements
-        #for element_id, neighbors in self.structured_neighbours.items():
-        for element in self.model_part.Elements:
-            element_id = element.Id
-            neighbors = self.structured_neighbours[element_id]
-            phi_ij = phi_data[element_id - 1]
-
-            # Retrieve neighbor φ
-            if neighbors["RIGHT"]:
-                dxp = phi_data[neighbors["RIGHT"] - 1] - phi_ij
-            else:
-                dxp = 0.0
-            if neighbors["LEFT"]:
-                dxm = phi_ij - phi_data[neighbors["LEFT"] - 1]
-            else:
-                dxm = 0.0
-            if neighbors["UP"]:
-                dyp = phi_data[neighbors["UP"] - 1] - phi_ij
-            else:
-                dyp = 0.0
-            if neighbors["DOWN"]:
-                dym = phi_ij - phi_data[neighbors["DOWN"] - 1]
-            else:
-                dym = 0.0
-
-            # Compute upwind gradient norm
-            if v[element_id - 1] < 0:
-                grad_phi = np.sqrt(
-                    min(dxm, 0.0)**2 + max(dxp, 0.0)**2 +
-                    min(dym, 0.0)**2 + max(dyp, 0.0)**2
-                )
-                element.SetValue(Kratos.DENSITY_AIR, grad_phi)
-            elif v[element_id - 1] > 0:
-                grad_phi = np.sqrt(
-                    max(dxm, 0.0)**2 + min(dxp, 0.0)**2 +
-                    max(dym, 0.0)**2 + min(dyp, 0.0)**2
-                )
-                element.SetValue(Kratos.DENSITY_AIR, grad_phi)
-            else:
-                grad_phi = 0.0
-                element.SetValue(Kratos.DENSITY_AIR, grad_phi)
-
-        # Write it into element expression
-        Kratos.Expression.VariableExpressionIO.Read(grad_norm, Kratos.DENSITY_AIR)
-        
-        return grad_norm
 
     def _ComputePhiGradientNorm3(self, delta_phi: ContainerExpressionTypes) -> ContainerExpressionTypes:
         # delta_phi has to be nodal expression

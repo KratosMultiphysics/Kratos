@@ -161,7 +161,7 @@ class LevelSetControlHJ(Control):
 
         return structured_neighbours
 
-    def _InitializeSignedDistance(self, center=(0.5, 0.5), half_width = 0.25 , half_height = 0.25):
+    def _InitializeSignedDistance(self, min_dirac = 0.1):
         """
         Initializes the level-set function (control_phi) as a signed distance function
         to a rectangle centered at `center` with given half-width.
@@ -171,29 +171,11 @@ class LevelSetControlHJ(Control):
         - half_width: Half of the side length of the rectangle (assumes square shape)
         """
 
+        max_phi = 1/(2*self.k) * np.log((self.k - min_dirac + np.sqrt(self.k*(self.k - min_dirac)))/(2*min_dirac))
+
         distances = []
 
-        for element in self.model_part.Elements:
-            centroid = element.GetGeometry().Center()
-            x, y = centroid[0], centroid[1]
-
-            # dx = max(abs(x - center[0]) - half_width, 0.0)
-            # dy = max(abs(y - center[1]) - half_height, 0.0)
-            # distance = np.sqrt(dx**2 + dy**2)
-
-            # # Negative if inside rectangle
-            # if abs(x - center[0]) < half_width and abs(y - center[1]) < half_height:
-            #     distance *= -1
-
-            dx = abs(x - center[0]) * (1 / center[0])
-            dy = abs(y - center[1]) * (1 / center[1])
-            distance = np.mean([dx, dy])
-
-            distances.append(distance)
-
         numpy_array = np.array(distances, dtype=np.float64)
-        matrix = np.reshape(numpy_array, (80,20))
-        np.savetxt("output_phi.txt", matrix)
         # Write it into element expression
         signed_distance_function = Kratos.Expression.ElementExpression(self.model_part)
         Kratos.Expression.CArrayExpressionIO.Read(signed_distance_function, numpy_array)
@@ -277,7 +259,7 @@ class LevelSetControlHJ(Control):
             KratosOA.ExpressionUtils.ProjectElementalToNodalViaShapeFunctions(nodal_grad, gradient_norm)
             # compute timestep from CFL
             time_step = self._ComputeCFLCondition(update)
-            print(f"Time_step: {time_step}")
+            # print(f"Time_step: {time_step}")
 
             new_update = update * nodal_grad * time_step
             self.control_phi += new_update

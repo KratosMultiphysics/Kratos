@@ -2,6 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from pathlib import Path
+import csv
 
 def Factory(Model: Kratos.Model, parameters: Kratos.Parameters,  optimization_problem: OptimizationProblem) -> Kratos.OutputProcess:
     if(type(parameters) != Kratos.Parameters):
@@ -29,41 +30,66 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
         self.file_name = parameters["file_name"].GetString()
         self.output_file_name_prefix = parameters["file_name"].GetString()
         self.output_path = parameters["output_path"].GetString()
+        self.output_path_cloud = "point_cloud"
         self.save_output_files_in_folder = parameters["save_output_files_in_folder"].GetBool()
         # self.output_interval = parameters["output_interval"].GetInt()
         self.model_part = model[parameters["model_part_name"].GetString()]
         self.optimization_problem = optimization_problem
+        self.output_interval = parameters["output_interval"].GetInt()
+        # self.created_nodes = {}
+        self.created_coordinates = {}
 
 
     def IsOutputStep(self):
-        return True
+        if self.optimization_problem.GetStep() % self.output_interval == 0:
+            return True
+        else:
+            return False
 
     def PrintOutput(self):
-        for control in self.optimization_problem.GetListOfControls():
-            self.control_field = control.GetControlField()
-        model = Kratos.Model()
-        mp = model.CreateModelPart("Interface")
-        mp.CreateNewProperties(2)
-        self.FindIntersectionPointsAndSurfaces_Hexa3D8N(mp)
+        if self.optimization_problem.GetStep() % self.output_interval == 0:
+            for control in self.optimization_problem.GetListOfControls():
+                self.control_field = control.GetControlField()
+            model = Kratos.Model()
+            mp = model.CreateModelPart("Interface")
+            mp.CreateNewProperties(2)
+            self.created_coordinates = {}
+            self.FindIntersectionPointsAndSurfaces_Hexa3D8N(mp)
 
-        if self.save_output_files_in_folder:
-            self.output_path = Path(self.output_path)
-            if not self.model_part.ProcessInfo[Kratos.IS_RESTARTED]:
-                kratos_utils.DeleteDirectoryIfExisting(str(self.output_path))
-                self.model_part.ProcessInfo[Kratos.IS_RESTARTED] = True
-            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
-            # now create the output path
-            Kratos.FilesystemExtensions.MPISafeCreateDirectories(str(self.output_path))
-        else:
-            self.output_path = Path(".")
+            if self.save_output_files_in_folder:
+                self.output_path = Path(self.output_path)
+                if not self.model_part.ProcessInfo[Kratos.IS_RESTARTED]:
+                    kratos_utils.DeleteDirectoryIfExisting(str(self.output_path))
+                    kratos_utils.DeleteDirectoryIfExisting(str(self.output_path_cloud))
+                    self.model_part.ProcessInfo[Kratos.IS_RESTARTED] = True
+                self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+                # now create the output path
+                Kratos.FilesystemExtensions.MPISafeCreateDirectories(str(self.output_path))
+                Kratos.FilesystemExtensions.MPISafeCreateDirectories(str(self.output_path_cloud))
+            else:
+                self.output_path = Path(".")
+                self.output_path_cloud = Path(".")
 
-        output_file_name = self.output_file_name_prefix
-        output_file_name = output_file_name.replace("<model_part_full_name>", self.model_part.FullName())
-        output_file_name = output_file_name.replace("<model_part_name>", self.model_part.Name)
-        output_file_name = output_file_name.replace("<step>", str(self.optimization_problem.GetStep()))
-        vtu_output = Kratos.VtuOutput(mp)
-        vtu_output.PrintOutput(str(self.output_path /output_file_name))
+            output_file_name = self.output_file_name_prefix
+            output_file_name = output_file_name.replace("<model_part_full_name>", self.model_part.FullName())
+            output_file_name = output_file_name.replace("<model_part_name>", self.model_part.Name)
+            output_file_name = output_file_name.replace("<step>", str(self.optimization_problem.GetStep()))
+            vtu_output = Kratos.VtuOutput(mp)
+            vtu_output.PrintOutput(str(self.output_path /output_file_name))
+            self.write_created_coordinates_to_csv(self.output_path_cloud + "/interface_nodes_" + str(self.optimization_problem.GetStep()) + ".csv")
 
+
+    def write_created_coordinates_to_csv(self, filename="created_coordinates.csv"):
+        with open(filename, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            # Write header
+            writer.writerow(["node_id", "x", "y", "z", "type"])
+
+            # Write each entry
+            for (x, y, z), (node_id, node_type) in self.created_coordinates.items():
+                writer.writerow([node_id, x, y, z, node_type])
+
+        print(f"✅ CSV file written: {filename}")
 
     def FindIntersectionPointsAndSurfaces_Hexa3D8N(self, mp_interface: Kratos.ModelPart) -> None:
         control_field = self.control_field.Evaluate()
@@ -86,6 +112,7 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
             zero_level_set = []
             corners = []
             edge = []
+            ntype = []
 
             # usual zero-crossing along edges
             for (i1, i2) in edge_pairs:
@@ -99,21 +126,33 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                     p_int = self.InterpolateZeroCrossing(n1, n2, phi1, phi2)
                     zero_level_set.append(p_int)
                     edge.append([(i1,i2), (phi1, phi2)])
+                    ntype.append("intersection")
 
             # include boundary nodes that are part of material
+            #####
+            cords = []
+            ids = []
+            ######
             for node in geom:
+                #####
+                cords.append((node.X0, node.Y0, node.Z0))
+                ids.append(node.Id)
+                ######
                 phi = control_field[node.Id - 1]
                 num_neigh = len(node_neighbours[node.Id])
                 if num_neigh == 11 and phi >= 0.0:
+                    ntype.append("edge")
                     zero_level_set.append((node.X0, node.Y0, node.Z0))
-                elif num_neigh == 17 and phi >= 0.0:
-                    zero_level_set.append((node.X0, node.Y0, node.Z0))
+                # elif num_neigh == 17 and phi >= 0.0:
+                #     ntype.append("surface")
+                #     zero_level_set.append((node.X0, node.Y0, node.Z0))
                 elif num_neigh == 7 and phi >= 0.0:
+                    ntype.append("corner")
                     corners.append((node.X0, node.Y0, node.Z0))
 
             # create surfaces if any intersection points exist
             if len(zero_level_set) > 0:
-                self.FindSurfaces(mp_interface, zero_level_set, corners, edge)
+                self.FindSurfaces(mp_interface, zero_level_set, corners, edge, cords, ids, ntype)
     
     def InterpolateZeroCrossing(self, node1: Kratos.Node, node2: Kratos.Node, phi1: float, phi2: float):
         lmbd = phi1 / (phi1 - phi2)
@@ -122,7 +161,7 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
         z = node1.Z0 - lmbd * (node1.Z0 - node2.Z0)
         return (x, y, z)
 
-    def FindSurfaces(self, mp_interface: Kratos.ModelPart, zero_level_set: list, corners: list = [], edge: list = []) -> None:
+    def FindSurfaces(self, mp_interface: Kratos.ModelPart, zero_level_set: list, corners: list = [], edge: list = [], temp1: list = [], temp2: list = [], ntype = []) -> None:
         prop = mp_interface.GetProperties(2)
         i = mp_interface.NumberOfNodes()
         j = mp_interface.NumberOfConditions()
@@ -130,10 +169,18 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
 
         node_ids = []
         for k in range(n):
-            i += 1
-            mp_interface.CreateNewNode(i, zero_level_set[k][0], zero_level_set[k][1], zero_level_set[k][2])
-            node_ids.append(i)
-        print(f"id:{node_ids}\ncoordinates: {zero_level_set}")
+            if not zero_level_set[k] in self.created_coordinates:
+                i += 1
+                mp_interface.CreateNewNode(i, zero_level_set[k][0], zero_level_set[k][1], zero_level_set[k][2])
+                node_ids.append(i)
+                self.created_coordinates[zero_level_set[k]] = (i, ntype[k])
+                # self.created_nodes[i] = zero_level_set[k]
+            else:
+                id = self.created_coordinates[zero_level_set[k]][0]
+                node_ids.append(id)
+
+        # print(f"id:{node_ids}\ncoordinates: {zero_level_set}")
+
         if corners == []:
             # raise RuntimeError(f"zero node coordinates: {zero_level_set}\nzero node ids: {node_ids}\ncorners: {corners}\nedge: {edge}")
             if n == 2:
@@ -160,6 +207,20 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                 # # Create two triangle conditions sharing the shorter diagonal (c,d)
                 # mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 1, [a, c, d], prop)
                 # mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 2, [b, c, d], prop)
+            # 5 node internal intersection
+            elif n == 5:
+                node1 = zero_level_set[0]
+                node1_id = node_ids[0]
+                surface = [node1_id]
+                for k in range(len(zero_level_set)-1):
+                    del zero_level_set[node_ids.index(node1_id)]
+                    node_ids.remove(node1_id)
+                    node1_id = self.FindClosest(zero_level_set, node_ids, node1)[0]
+                    node1 = zero_level_set[node_ids.index(node1_id)]
+                    surface.append(node1_id)
+                mp_interface.CreateNewCondition("SurfaceCondition3D3N", j + 1, surface[0:3], prop)
+                surface.pop(1)
+                mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, surface, prop)
             elif n == 6 and len(edge)!=0:
                 distances = {}
                 distances_bound = {}
@@ -199,13 +260,10 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                         distances[(node_ids[l], node_ids[k])] = distance
                     cur_shortest = sorted(distances, key=distances.get, reverse=False)[:3]
                     third_shortest[cur_shortest[2]] = distances[cur_shortest[2]]
-                    # print(f"Distances: {distances}\nThird shortest: {third_shortest}")
                     if (cur_shortest[0] not in shortest) and (cur_shortest[0][::-1] not in shortest):
                         shortest.append(cur_shortest[0])
                     if cur_shortest[1] not in shortest and cur_shortest[1][::-1] not in shortest:
                         shortest.append(cur_shortest[1])
-                    # print(f"current shortest: {cur_shortest}")
-                    # print(f"shortest: {shortest}")
                 if len(shortest) == 6:
                     third = sorted(third_shortest, key=third_shortest.get, reverse=False)[0]
                     shortest.append(third)
@@ -217,20 +275,16 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                             shared_nodes[node] = 1
                         else:
                             shared_nodes[node] = shared_nodes[node] + 1
-                # print(f"Connections: {shortest}\nNumber of edges: {shared_nodes}")
                 shared = []
-                # nodes that appare 3 times are shared nodes of surfaces
                 for shared_node, instances in shared_nodes.items():
                     if instances == 3:
                         shared.append(shared_node)
-                # print(f"Shared: {shared}, reverse: {shared[::-1]}")
                 if tuple(shared) in shortest:
                     shortest.remove(tuple(shared))
                 elif tuple(shared[::-1]) in shortest:
                     shortest.remove(tuple(shared[::-1]))
                 surf1 = shared.copy()
                 cur = shared[1]
-                # loop over remaining pairs to find a closed loop
                 while len(surf1) < 4:
                     for l in range(len(shortest)):
                         if cur == shortest[l][0]:
@@ -263,6 +317,8 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                             break
                 mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, surf1, prop)
                 mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, surf2, prop)
+            elif n == 7:
+                Kratos.Logger.PrintWarning("InterfaceOutputProcess", f"Element produced {n} intersections — not handled. Hiljem lisan")
             # two internal node intersections
             elif n == 8 and len(edge) == 8:
                 connections = []
@@ -348,11 +404,9 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
                 mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 2, [e, g, f, h], prop)
             else:
                 Kratos.Logger.PrintWarning("InterfaceOutputProcess", f"Element produced {n} intersections — not handled.")
-                control_field = self.control_field.Evaluate()
-                phi = []
-                for id in node_ids:
-                    phi.append(control_field[id])
-                raise RuntimeError(f"Node ids: {node_ids}\nCoordinates: {zero_level_set}\nPhi value: {phi}\n Edges: {edge}")
+                print(f"element Coordinates: {temp1}\n Element ids: {temp2}")
+                
+                raise RuntimeError(f"Node ids: {node_ids}\nCoordinates: {zero_level_set}\n Edges: {edge}")
         else:
             n = len(corners)
             corner_node_ids = []
@@ -369,7 +423,7 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
             elif len(zero_level_set) == 4 and n == 2:
                 res = self.FindClosest(zero_level_set, node_ids, zero_level_set[0])
                 # print(f"corner nodes: {corner_node_ids}, Zero-level: {distances}")
-                a, b, c = res[3], res[2], res[1]
+                a, b, c = res[2], res[1], res[0]
                 d = node_ids[0]
                 # Order each quad along longest diagonal
                 mp_interface.CreateNewCondition("SurfaceCondition3D4N", j + 1, [a, b, corner_node_ids[0], corner_node_ids[1]], prop)
