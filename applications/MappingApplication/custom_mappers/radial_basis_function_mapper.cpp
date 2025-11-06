@@ -135,7 +135,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
         KRATOS_ERROR << "Unrecognized RBF type: " << rbf_string << std::endl;
     }
 
-    // Now rbf_type is an enum
+    // Now rbf_type is an enum  
     RBFShapeFunctionsUtility::RBFType rbf_type = it->second;
 
     // Compute shape parameter
