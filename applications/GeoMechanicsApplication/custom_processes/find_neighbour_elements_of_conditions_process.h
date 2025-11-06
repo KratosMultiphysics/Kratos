@@ -13,9 +13,9 @@
 
 #pragma once
 
+#include "custom_utilities/neighbouring_entity_finder.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include "custom_utilities/neighbouring_entity_finder.h"
 
 #include <unordered_map>
 
@@ -37,7 +37,7 @@ public:
     void                      PrintData(std::ostream& rOStream) const override;
 
 private:
-    ModelPart&                     mrModelPart;
+    ModelPart&               mrModelPart;
     NeighbouringEntityFinder mNeighbouringEntityFinder;
 
     void FindNeighbouringElementsForAllBoundaryTypes();

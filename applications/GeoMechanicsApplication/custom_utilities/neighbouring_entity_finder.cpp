@@ -16,14 +16,12 @@
 namespace Kratos
 {
 
-
-void NeighbouringEntityFinder::InitializeConditionMaps(
-    ModelPart::ConditionsContainerType& rConditions)
+void NeighbouringEntityFinder::InitializeConditionMaps(ModelPart::ConditionsContainerType& rConditions)
 {
     mConditionNodeIdsToConditions.clear();
     std::ranges::transform(
-        rConditions,
-        std::inserter(mConditionNodeIdsToConditions, mConditionNodeIdsToConditions.end()), [this](auto& rCondition) {
+        rConditions, std::inserter(mConditionNodeIdsToConditions, mConditionNodeIdsToConditions.end()),
+        [this](auto& rCondition) {
         return NodeIdsToConditionsHashMap::value_type(
             GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
     });
@@ -48,7 +46,9 @@ std::vector<std::size_t> NeighbouringEntityFinder::GetNodeIdsFromGeometry(const 
     return result;
 }
 
-void NeighbouringEntityFinder::FindConditionNeighboursBasedOnBoundaryType(std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries, ModelPart::ElementsContainerType& rElements)
+void NeighbouringEntityFinder::FindConditionNeighboursBasedOnBoundaryType(
+    std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
+    ModelPart::ElementsContainerType&                                   rElements)
 {
     for (auto& r_element : rElements) {
         const auto& r_element_geometry  = r_element.GetGeometry();
@@ -105,8 +105,8 @@ void NeighbouringEntityFinder::SetElementAsNeighbourIfRotatedNodeIdsAreEquivalen
 }
 
 bool NeighbouringEntityFinder::AreRotatedEquivalents(const std::vector<std::size_t>& rFirst,
-                                                                     const std::vector<std::size_t>& rSecond,
-                                                                     const GeometryData::KratosGeometryOrderType& rOrderType)
+                                                     const std::vector<std::size_t>& rSecond,
+                                                     const GeometryData::KratosGeometryOrderType& rOrderType)
 {
     switch (rOrderType) {
         using enum GeometryData::KratosGeometryOrderType;
@@ -119,8 +119,8 @@ bool NeighbouringEntityFinder::AreRotatedEquivalents(const std::vector<std::size
     }
 }
 
-bool NeighbouringEntityFinder::AreLinearRotatedEquivalents(std::vector<std::size_t> First,
-                                                                           const std::vector<std::size_t>& rSecond)
+bool NeighbouringEntityFinder::AreLinearRotatedEquivalents(std::vector<std::size_t>        First,
+                                                           const std::vector<std::size_t>& rSecond)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
     std::rotate(First.begin(), First.begin() + amount_of_needed_rotations, First.end());
@@ -128,7 +128,7 @@ bool NeighbouringEntityFinder::AreLinearRotatedEquivalents(std::vector<std::size
 }
 
 bool NeighbouringEntityFinder::AreQuadraticRotatedEquivalents(std::vector<std::size_t> First,
-                                                                              const std::vector<std::size_t>& rSecond)
+                                                              const std::vector<std::size_t>& rSecond)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
     auto       first_mid_side_node_id     = First.begin() + First.size() / 2;
@@ -139,4 +139,4 @@ bool NeighbouringEntityFinder::AreQuadraticRotatedEquivalents(std::vector<std::s
     return First == rSecond;
 }
 
-}
+} // namespace Kratos

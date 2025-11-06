@@ -58,7 +58,8 @@ void FindNeighbourElementsOfConditionsProcess::FindNeighbouringElementsForAllBou
         generate_generic_boundaries, generate_points, generate_edges_3d, generate_edges_1d};
 
     for (const auto& r_boundary_generator : boundary_generators) {
-        mNeighbouringEntityFinder.FindConditionNeighboursBasedOnBoundaryType(r_boundary_generator, mrModelPart.Elements());
+        mNeighbouringEntityFinder.FindConditionNeighboursBasedOnBoundaryType(
+            r_boundary_generator, mrModelPart.Elements());
         if (AllConditionsHaveAtLeastOneNeighbour()) return;
     }
 }
