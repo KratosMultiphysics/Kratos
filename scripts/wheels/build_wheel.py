@@ -8,7 +8,7 @@ import platform
 
 from pathlib import Path
 
-KRATOS_VERSION = "10.3.2"
+KRATOS_VERSION = "10.4.0"
 PLATFORM_CONFIG = {
     'Linux': {
         'PYTHONS': ["38", "39", "310", "311", "312", "313", "314"],
@@ -19,7 +19,7 @@ PLATFORM_CONFIG = {
         'CORE_LIB_DIR': "/workspace/coreLibs",
     },
     'Windows': {
-        'PYTHONS': ["38"],
+        'PYTHONS': ["38", "39", "310", "311", "312", "313", "314"],
         'BASE_LD_LIBRARY_PATH': "",
         'KRATOS_ROOT': "C:/Users/Rossi/Kratos",
         'WHEEL_ROOT': "C:/dist/wheel",
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     setupLogging("wheelbuild.log") 
 
     # Set some defines
-    os.environ['KRATOS_VERSION'] = "10.3.3"
+    os.environ['KRATOS_VERSION'] = KRATOS_VERSION
 
     # TODO: Detect OS
     OS = platform.system()
