@@ -26,10 +26,10 @@ title = "KratosMultiphysics Core"
     classifiers = [
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
-        "Topic :: Scientific/Engineering"
+        "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Scientific/Engineering :: Mathematics",
-        "Topic :: Natural Language :: English",
+        "Natural Language :: English",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Developers"
     ]

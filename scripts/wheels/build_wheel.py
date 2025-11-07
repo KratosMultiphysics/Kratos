@@ -5,6 +5,7 @@ import shutil
 import fnmatch
 import logging
 import platform
+import subprocess
 
 from pathlib import Path
 
@@ -12,22 +13,25 @@ KRATOS_VERSION = "10.4.0"
 PLATFORM_CONFIG = {
     'Linux': {
         'PYTHONS': ["38", "39", "310", "311", "312", "313", "314"],
-        'BASE_LD_LIBRARY_PATH': "/usr/lib/x86_64-linux-gnu", 
+        'PYTHON_BUILD_VER': "314",
+        'BUILD_SCRIPT': "scripts/wheels/linux/configure.sh",
         'KRATOS_ROOT': "/workspace/kratos/Kratos",
         'WHEEL_ROOT': "/workspace/wheel",
-        'WHEEL_OUT': "/data_swap_guest",
-        'CORE_LIB_DIR': "/workspace/coreLibs",
+        'WHEEL_OUT': "/data_swap_guest"
     },
     'Windows': {
-        'PYTHONS': ["38", "39", "310", "311", "312", "313", "314"],
+        'PYTHONS': ["39"],
+        'PYTHON_BUILD_VER': "39",
+        'BUILD_SCRIPT': "scripts/configure.bat",
         'BASE_LD_LIBRARY_PATH': "",
         'KRATOS_ROOT': "C:/Users/Rossi/Kratos",
         'WHEEL_ROOT': "C:/dist/wheel",
-        'WHEEL_OUT': "C:/dist/",
-        'CORE_LIB_DIR': "/workspace/coreLibs",
+        'WHEEL_OUT': "C:/dist/"
     },
     'Darwin': {
         'PYTHONS': ["39"],
+        'PYTHON_BUILD_VER': "39",
+        'BUILD_SCRIPT': "scripts/wheels/darwin/configure.sh",
         'KRATOS_ROOT': "/workspace/kratos/Kratos",
         'WHEEL_ROOT': "/workspace/wheel",
         'WHEEL_OUT': "/workspace/dist",
@@ -52,6 +56,55 @@ def getAppList(kts_apps_dir):
         logging.critical(f"Error detecting apps in {kts_apps_dir}: {e}")
 
     return applications
+
+def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
+    if platform == "Windows":
+        subprocess.run(
+            [
+                "powershell", 
+                "-Command", 
+                Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
+                # Path(os.environ['pythonRoot']) / f"{python_ver}" / "python.exe",
+                Path("C:/python") / f"{python_ver}" / "python.exe",
+                Path(CURRENT_CONFIG['KRATOS_ROOT']),
+                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}",
+                "24"
+            ], 
+            check=True
+        )
+    elif platform == "Linux":
+        subprocess.run(
+            [
+                "bash", 
+                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "Scripts" / "Wheels" / platform.lower() / "configure.sh",
+                Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python",
+                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}" / "libs"
+            ],
+            check=True
+        )
+    elif platform == "Darwin":
+        subprocess.run(
+            [
+                "bash", 
+                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "Scripts" / "Wheels" / platform.lower() / "configure.sh",
+                Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python",
+                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}" / "libs"
+            ],
+            check=True
+        )
+    else:
+        logging.critical(f"Cannot build for platform: {platform}")
+      
+def buildKernel(CURRENT_CONFIG: dict, platform: str, python_ver: str):
+    configure(CURRENT_CONFIG, platform, python_ver)
+
+    subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "release", "--target", "KratosKernel"], check=True)
+
+def buildInterface(CURRENT_CONFIG: dict, platform: str, python_ver: str):
+    configure(CURRENT_CONFIG, platform, python_ver)
+
+    subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosPythonInterface"], check=True)
+    subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "install"], check=True)
 
 def setupWheelDir(wheel_root_path: str):
     """
@@ -172,24 +225,33 @@ if __name__ == "__main__":
     
     CURRENT_CONFIG = PLATFORM_CONFIG[OS]
     CURRENT_CONFIG['UNIFIED_WHEEL'] = False
-    
+    CURRENT_CONFIG['CLEAN_COMPILE'] = True
+
     logging.info(f"Build mode is: {'Unified' if CURRENT_CONFIG['UNIFIED_WHEEL'] else 'Packages'}")
 
     logging.debug(f"Using KRATOS_ROOT: {CURRENT_CONFIG['KRATOS_ROOT']}")
     logging.debug(f"Targeting Python versions: {', '.join(CURRENT_CONFIG['PYTHONS'])}")
 
-    main_whl_tree = Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / "KratosMultiphysics"
+    # Complile the kernel if necessary.
+    if CURRENT_CONFIG['CLEAN_COMPILE']:
+        buildKernel(CURRENT_CONFIG, OS, CURRENT_CONFIG['PYTHON_BUILD_VER'])
 
-    # 0. Build for each python version
+    # Build for each python version
     for PYTHON in CURRENT_CONFIG['PYTHONS']:
         logging.info(f"Begining to build wheel for python version {PYTHON}")
         logging.info(f"Building Core...")
 
-        # 1. Set Project paths
+        main_whl_tree = Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{PYTHON}" / "KratosMultiphysics"
+        
+        # Complile the interface.
+        if CURRENT_CONFIG['CLEAN_COMPILE']:
+            buildInterface(CURRENT_CONFIG, OS, PYTHON)
+
+        # Set Project paths
         paths = {
             'project_path': main_whl_tree,
             'whl_dst_path': "KratosMultiphysics",
-            'project_libs': Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / "libs",
+            'project_libs': Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{PYTHON}" / "libs",
             'project_read': Path(CURRENT_CONFIG['KRATOS_ROOT']) / "README.md" ,
             'project_hook': Path(CURRENT_CONFIG['KRATOS_ROOT']) / "scripts" / "wheels" / "hatch_build.py"
         }
@@ -199,12 +261,12 @@ if __name__ == "__main__":
         else:
             paths['project_toml'] = Path(CURRENT_CONFIG['KRATOS_ROOT']) / "scripts" / "wheels" / "pyproject.toml"
 
-        # 2. Create the core wheel
+        # Create the core wheel
         buildWheel(CURRENT_CONFIG, paths)
         
-        # 3. Build applications (if not unified build)
+        # Build applications (if not unified build)
         if not CURRENT_CONFIG['UNIFIED_WHEEL']: 
-            for APP in getAppList(Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / "KratosMultiphysics"):
+            for APP in getAppList(Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{PYTHON}" / "KratosMultiphysics"):
                 logging.info(f"Building {APP}...")
 
                 paths['project_path'] = main_whl_tree / APP
