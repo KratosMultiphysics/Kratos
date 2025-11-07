@@ -81,24 +81,22 @@ void NeighbouringEntityFinder::SetElementAsNeighbourOfAllConditionsWithIdentical
         const auto& r_conditions  = it->second;
         auto vector_of_neighbours = GlobalPointersVector<Element>{Element::WeakPointer{pElement}};
 
-        for (auto& p_condition : r_conditions) {
-            p_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
+        for (auto& rp_condition : r_conditions) {
+            rp_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
         }
     }
 }
 
 void NeighbouringEntityFinder::SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
-    Element&                                     rElement,
-    const std::vector<std::size_t>&              element_boundary_node_ids,
-    const GeometryData::KratosGeometryOrderType& r_order_type)
+    Element& rElement, const std::vector<std::size_t>& rElementBoundaryNodeIds, GeometryData::KratosGeometryOrderType OrderType)
 {
-    auto sorted_boundary_node_ids = element_boundary_node_ids;
+    auto sorted_boundary_node_ids = rElementBoundaryNodeIds;
     std::ranges::sort(sorted_boundary_node_ids);
 
     if (mSortedToUnsortedConditionNodeIds.contains(sorted_boundary_node_ids)) {
         const auto unsorted_condition_node_ids =
             mSortedToUnsortedConditionNodeIds.find(sorted_boundary_node_ids)->second;
-        if (AreRotatedEquivalents(element_boundary_node_ids, unsorted_condition_node_ids, r_order_type)) {
+        if (AreRotatedEquivalents(rElementBoundaryNodeIds, unsorted_condition_node_ids, OrderType)) {
             SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(unsorted_condition_node_ids, &rElement);
         }
     }
@@ -106,9 +104,9 @@ void NeighbouringEntityFinder::SetElementAsNeighbourIfRotatedNodeIdsAreEquivalen
 
 bool NeighbouringEntityFinder::AreRotatedEquivalents(const std::vector<std::size_t>& rFirst,
                                                      const std::vector<std::size_t>& rSecond,
-                                                     const GeometryData::KratosGeometryOrderType& rOrderType)
+                                                     GeometryData::KratosGeometryOrderType OrderType)
 {
-    switch (rOrderType) {
+    switch (OrderType) {
         using enum GeometryData::KratosGeometryOrderType;
     case Kratos_Linear_Order:
         return AreLinearRotatedEquivalents(rFirst, rSecond);

@@ -44,11 +44,11 @@ private:
     void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,
                                                                   Element* pElement);
     void        SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(Element& rElement,
-                                                                   const std::vector<std::size_t>& element_boundary_node_ids,
-                                                                   const GeometryData::KratosGeometryOrderType& r_order_type);
-    static bool AreRotatedEquivalents(const std::vector<std::size_t>&              rFirst,
-                                      const std::vector<std::size_t>&              rSecond,
-                                      const GeometryData::KratosGeometryOrderType& rOrderType);
+                                                                   const std::vector<std::size_t>& rElementBoundaryNodeIds,
+                                                                   GeometryData::KratosGeometryOrderType OrderType);
+    static bool AreRotatedEquivalents(const std::vector<std::size_t>&       rFirst,
+                                      const std::vector<std::size_t>&       rSecond,
+                                      GeometryData::KratosGeometryOrderType OrderType);
     static bool AreLinearRotatedEquivalents(std::vector<std::size_t>        First,
                                             const std::vector<std::size_t>& rSecond);
     static bool AreQuadraticRotatedEquivalents(std::vector<std::size_t>        First,
