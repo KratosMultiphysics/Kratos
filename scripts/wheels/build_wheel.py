@@ -96,15 +96,23 @@ def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
         logging.critical(f"Cannot build for platform: {platform}")
       
 def buildKernel(CURRENT_CONFIG: dict, platform: str, python_ver: str):
-    configure(CURRENT_CONFIG, platform, python_ver)
-
-    subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "release", "--target", "KratosKernel"], check=True)
+    if platform == "Windows":
+        # Currently windows insist on rebuilding all sources when we change python and not reuse the kernel. 
+        pass
+    else:
+        configure(CURRENT_CONFIG, platform, python_ver)
+        subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosKernel"], check=True)
+    
 
 def buildInterface(CURRENT_CONFIG: dict, platform: str, python_ver: str):
     configure(CURRENT_CONFIG, platform, python_ver)
 
-    subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosPythonInterface"], check=True)
-    subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "install"], check=True)
+    if platform == "Windows":
+        subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "install", "--", "/property:configuration=Release", "/p:Platform=x64"], check=True)
+    else:
+        subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosPythonInterface"], check=True)
+        subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "install"], check=True)
+
 
 def setupWheelDir(wheel_root_path: str):
     """
