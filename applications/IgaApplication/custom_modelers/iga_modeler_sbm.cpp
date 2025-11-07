@@ -37,14 +37,15 @@ void IgaModelerSbm::SetupModelPart()
     CreateIntegrationDomain(
         analysis_model_part,
         iga_physics_parameters);
-
-    if (mParameters.Has("integrate_on_true_boundary")) {
-        if (mParameters["integrate_on_true_boundary"].GetBool()) {
-            // method for computing the integral of the solution along the true boundary
-            PrepareIntegrationOnTrueBoundary(analysis_model_part);
-        } 
+    
+    if (mpModel->HasModelPart("skin_model_part")) { // // TODO: change this for multi patch
+        if (mParameters.Has("integrate_on_true_boundary")) {
+            if (mParameters["integrate_on_true_boundary"].GetBool()) {
+                // method for computing the integral of the solution along the true boundary
+                PrepareIntegrationOnTrueBoundary(analysis_model_part);
+            } 
+        }
     }
-
 }
 
 ///@}
@@ -148,13 +149,18 @@ void IgaModelerSbm::GetGeometryList(
                     << "::[IgaModelerSbm]:: The surrogate_model_part_inner has zero elements (no inner loop/boundary defined)."
                     << "Something might be missing in the NurbsModelerSbm." << std::endl;
 
-                for (IndexType iel = 1; iel < surrogate_model_part_inner.NumberOfElements()+1; iel++) { //loop over the number of inner loops
+                for (const auto& rElem : surrogate_model_part_inner.Elements()) {
                     /*
                     Each element in the surrogate_model_part_inner represents a surrogate boundary loop. First "node.Id()" is the id of the first condition and
                         the second "node.Id()" is the last condition of that loop. (Essential for multiple inner loops)
                     */
-                    IndexType first_condition_id = surrogate_model_part_inner.pGetElement(iel)->GetGeometry()[0].Id();
-                    IndexType last_condition_id = surrogate_model_part_inner.pGetElement(iel)->GetGeometry()[1].Id();
+                    const auto& r_geometry = rElem.GetGeometry();
+                    KRATOS_ERROR_IF(r_geometry.PointsNumber() < 2)
+                        << "Surrogate loop element " << rElem.Id() << " has <2 geometry points." << std::endl;
+
+                    // First/last condition IDs encoded as the first two geometry nodes
+                    const IndexType first_condition_id = r_geometry[0].Id();
+                    const IndexType last_condition_id  = r_geometry[1].Id();
 
                     SizeType size_surrogate_loop = last_condition_id - first_condition_id + 1;
 
@@ -290,9 +296,20 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                 id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-            this->CreateConditions(
-                geometries.ptr_begin(), geometries.ptr_end(),
-                rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
+            if (!rParameters.Has("additional_data")) {
+                this->CreateConditions(
+                    geometries.ptr_begin(), geometries.ptr_end(),
+                    rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
+            } else {
+                this->CreateConditionsWithAdditionalData(
+                    geometries,
+                    rModelPart,
+                    rParameters["additional_data"],
+                    name,
+                    id,
+                    PropertiesPointerType(),
+                    knot_span_sizes);
+            }
         }
         else {
             KRATOS_ERROR << "\"type\" does not exist: " << type
@@ -513,6 +530,99 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
                 rModelPart, skin_sub_model_part_out, list_id_closest_condition, list_id_second_closest_condition, 
                 id, PropertiesPointerType(), is_inner, knot_span_sizes);
         }
+    }
+}
+
+void IgaModelerSbm::CreateConditionsWithAdditionalData(
+    GeometriesArrayType& rGeometries,
+    ModelPart& rModelPart,
+    const Parameters rAdditionalData,
+    std::string& rDefaultConditionName,
+    SizeType& rIdCounter,
+    PropertiesPointerType pProperties,
+    const Vector KnotSpanSizes) const
+{
+    GeometriesArrayType remaining_geometries;
+    for (auto it = rGeometries.ptr_begin(); it != rGeometries.ptr_end(); ++it) {
+        remaining_geometries.push_back((*it));
+    }
+
+    auto matches_apply_to = [](const GeometryType& rGeom, const std::string& rExpr) -> bool {
+        std::string expr;
+        expr.reserve(rExpr.size());
+        for (char c : rExpr) if (c != ' ') expr.push_back(c);
+        if (expr.empty()) return false;
+
+        const char axis = static_cast<char>(std::tolower(expr[0]));
+        std::size_t eq_pos = expr.find('=');
+        if (eq_pos == std::string::npos) {
+            eq_pos = expr.find("==");
+            if (eq_pos == std::string::npos) return false;
+        }
+        const std::string value_str = expr.substr(eq_pos + (expr[eq_pos]=='=' && eq_pos+1 < expr.size() && expr[eq_pos+1]=='=' ? 2 : 1));
+        char* endptr = nullptr;
+        const double value = std::strtod(value_str.c_str(), &endptr);
+        if (endptr == value_str.c_str()) return false;
+
+        const auto center = rGeom.Center();
+        const double eps = 1e-12;
+        if (axis == 'x') return std::abs(center.X() - value) < eps;
+        if (axis == 'y') return std::abs(center.Y() - value) < eps;
+        if (axis == 'z') return std::abs(center.Z() - value) < eps;
+        return false;
+    };
+
+    for (IndexType i_rule = 0; i_rule < rAdditionalData.size(); ++i_rule) {
+        const Parameters rule = rAdditionalData[i_rule];
+        if (!rule.Has("apply_to") || !rule.Has("iga_model_part") || !rule.Has("name")) {
+            KRATOS_INFO("IgaModelerSbm") << "Skipping additional_data[" << i_rule
+                << "]: missing one of {apply_to, iga_model_part, name}." << std::endl;
+            continue;
+        }
+
+        const std::string apply_to = rule["apply_to"].GetString();
+        const std::string target_mp_name = rule["iga_model_part"].GetString();
+        const std::string target_cond_name = rule["name"].GetString();
+
+        GeometriesArrayType geometries_match;
+        GeometriesArrayType geometries_non_match;
+        for (auto it = remaining_geometries.ptr_begin(); it != remaining_geometries.ptr_end(); ++it) {
+            const auto& r_geom = *(*it);
+            if (matches_apply_to(r_geom, apply_to)) {
+                geometries_match.push_back((*it));
+            } else {
+                geometries_non_match.push_back((*it));
+            }
+        }
+
+        if (geometries_match.size() > 0) {
+            ModelPart* p_target_mp = nullptr;
+            if (mpModel != nullptr && mpModel->HasModelPart(target_mp_name)) {
+                p_target_mp = &mpModel->GetModelPart(target_mp_name);
+            } else {
+                // Create/get the submodel part at the same level as rModelPart (under its parent/patch)
+                ModelPart& r_owner_mp = rModelPart.GetParentModelPart();
+                ModelPart* p_owner = (&r_owner_mp == &rModelPart) ? &rModelPart : &r_owner_mp;
+                p_target_mp = p_owner->HasSubModelPart(target_mp_name)
+                    ? &p_owner->GetSubModelPart(target_mp_name)
+                    : &p_owner->CreateSubModelPart(target_mp_name);
+            }
+            std::string cond_name_copy = target_cond_name;
+            this->CreateConditions(
+                geometries_match.ptr_begin(), geometries_match.ptr_end(),
+                *p_target_mp, cond_name_copy, rIdCounter, pProperties, KnotSpanSizes);
+        }
+
+        remaining_geometries = GeometriesArrayType();
+        for (auto it = geometries_non_match.ptr_begin(); it != geometries_non_match.ptr_end(); ++it) {
+            remaining_geometries.push_back((*it));
+        }
+    }
+
+    if (remaining_geometries.size() > 0) {
+        this->CreateConditions(
+            remaining_geometries.ptr_begin(), remaining_geometries.ptr_end(),
+            rModelPart, rDefaultConditionName, rIdCounter, pProperties, KnotSpanSizes);
     }
 }
 
@@ -827,8 +937,11 @@ void IgaModelerSbm::CreateConditions(
 
 
 void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const {
-    // create the test bins containing all the boundary integration point (ALL!)
     
+    if (!analysis_model_part.HasSubModelPart("SBM_Support_inner")) {
+        return;
+    }
+
     PointVector points;
     std::string skin_model_part_name;
     if (!mParameters.Has("skin_model_part_name")) skin_model_part_name = "skin_model_part";
@@ -859,8 +972,19 @@ void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_p
 
     DynamicBins testBins(points.begin(), points.end());
 
-    Vector meshSizes_uv_inner = analysis_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
-    Vector meshSizes_uv_outer = analysis_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+    Vector meshSizes_uv_inner;
+    Vector meshSizes_uv_outer;
+
+    if (analysis_model_part.GetParentModelPart().Has(KNOT_SPAN_SIZES)) {
+        meshSizes_uv_inner = analysis_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+        meshSizes_uv_outer = analysis_model_part.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+    } else {
+        meshSizes_uv_inner = analysis_model_part.GetValue(KNOT_SPAN_SIZES);
+        meshSizes_uv_outer = analysis_model_part.GetValue(KNOT_SPAN_SIZES);
+    } 
+    if (meshSizes_uv_inner.size() == 0 || meshSizes_uv_outer.size() == 0) {
+        KRATOS_ERROR << "KNOT_SPAN_SIZES not found in analysis_model_part or its parent model part." << std::endl;
+    }
 
     const double meshSize= std::max(std::max(std::max(meshSizes_uv_inner[0], meshSizes_uv_inner[1]), meshSizes_uv_outer[0]), meshSizes_uv_outer[1]);
     const double radius = 2*sqrt(2)*(meshSize);

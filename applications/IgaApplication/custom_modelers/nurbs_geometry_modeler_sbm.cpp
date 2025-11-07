@@ -103,9 +103,14 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
     }
 
     // Create the surrogate sub model parts inner and outer
-    ModelPart& surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");
-    ModelPart& surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");
-    
+    ModelPart& surrogate_sub_model_part_inner = r_iga_model_part.HasSubModelPart("surrogate_inner")
+        ? r_iga_model_part.GetSubModelPart("surrogate_inner")
+        : r_iga_model_part.CreateSubModelPart("surrogate_inner");
+
+    ModelPart& surrogate_sub_model_part_outer = r_iga_model_part.HasSubModelPart("surrogate_outer")
+        ? r_iga_model_part.GetSubModelPart("surrogate_outer")
+        : r_iga_model_part.CreateSubModelPart("surrogate_outer");
+
     if (mParameters.Has("skin_model_part_name"))
         skin_model_part_name = mParameters["skin_model_part_name"].GetString();
     else
@@ -120,10 +125,21 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
         ? mpModel->GetModelPart(skin_model_part_outer_initial_name)
         : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
     
-    // Skin model part refined after Snake Process
-    ModelPart& skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
-    skin_model_part.CreateSubModelPart("inner");
-    skin_model_part.CreateSubModelPart("outer");
+    // Skin model part refined after Snake Process — get or create
+    ModelPart& skin_model_part = mpModel->HasModelPart(skin_model_part_name)
+        ? mpModel->GetModelPart(skin_model_part_name)
+        : mpModel->CreateModelPart(skin_model_part_name);
+
+    // Ensure "inner" submodel part exists
+    ModelPart& skin_inner = skin_model_part.HasSubModelPart("inner")
+        ? skin_model_part.GetSubModelPart("inner")
+        : skin_model_part.CreateSubModelPart("inner");
+
+    // Ensure "outer" submodel part exists
+    ModelPart& skin_outer = skin_model_part.HasSubModelPart("outer")
+        ? skin_model_part.GetSubModelPart("outer")
+        : skin_model_part.CreateSubModelPart("outer");
+
 
     // Create the parameters for the SnakeSbmProcess
     Kratos::Parameters snake_parameters;
