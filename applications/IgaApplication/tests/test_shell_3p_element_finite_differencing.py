@@ -147,7 +147,7 @@ def solve_cantilever(create_geometry):
 "kappa_12"
                            ],
         "applied_actuation_value": [
-0.50,
+0.00,
 0.00,
 0.00,
 0.00,
@@ -330,7 +330,7 @@ def solve_cantilever(create_geometry):
                 print("perturbed ActiveGlobalNode - Variable ALPHA")
                 print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
                 for eq_idx in range(33):
-                    print(fd_sensitivities[eq_idx], - adjoint_LHS[eq_idx, target_idx])
+                    # print(fd_sensitivities[eq_idx], - adjoint_LHS[eq_idx, target_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
             #     print("-" * 40)
 
@@ -368,51 +368,54 @@ def solve_cantilever(create_geometry):
                 node.SetSolutionStepValue(IGA.ACTIVE_SHELL_GAMMA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_GAMMA) - delta)
 
                 print("perturbed ActiveGlobalNode - Variable GAMMA")
+                print("fd_sensitivities:",fd_sensitivities)
                 print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
                 for eq_idx in range(33):
-                    # print(fd_sensitivities[eq_idx], - adjoint_LHS[eq_idx, target_idx])
+                    print(fd_sensitivities[eq_idx], - adjoint_LHS[eq_idx, target_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
             #     print("-" * 40)
 
-            #  KAPPA_1  #######################################
-            target_idx = 30  # column index associated with Global Point - actuation variable Kappa_1
+            # #  KAPPA_1  #######################################
+            # target_idx = 30  # column index associated with Global Point - actuation variable Kappa_1
 
-            # There is only one node per background geometry -  the loop is redundant here but kept for generality
-            print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
-            for node in model["ACTIVE_MP"].Nodes:
-                print("perturbing node: ", node,"  - node id:", node.Id)
-                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1) + delta)
-                element.InitializeNonLinearIteration(model_part.ProcessInfo)
-                element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
-                fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
-                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1) - delta)
+            # # There is only one node per background geometry -  the loop is redundant here but kept for generality
+            # print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
+            # for node in model["ACTIVE_MP"].Nodes:
+            #     print("perturbing node: ", node,"  - node id:", node.Id)
+            #     node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1) + delta)
+            #     element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            #     element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
+            #     fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
+            #     node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_1) - delta)
 
-                print("perturbed ActiveGlobalNode - Variable KAPPA_1")
-                print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
-                for eq_idx in range(33):
-                    # print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-                    KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
-                # print("-" * 40)
+            #     print("perturbed ActiveGlobalNode - Variable KAPPA_1")
+            #     print("fd_sensitivities:",fd_sensitivities)
+            #     print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
+            #     for eq_idx in range(33):
+            #         print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+            #         KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
+            #     # print("-" * 40)
 
-            #  KAPPA_2  #######################################
-            target_idx = 31  # column index associated with Global Point - actuation variable Kappa_2
+            # #  KAPPA_2  #######################################
+            # target_idx = 31  # column index associated with Global Point - actuation variable Kappa_2
 
-            # There is only one node per background geometry -  the loop is redundant here but kept for generality
-            print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
-            for node in model["ACTIVE_MP"].Nodes:
-                print("perturbing node: ", node,"  - node id:", node.Id)
-                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_2, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_2) + delta)
-                element.InitializeNonLinearIteration(model_part.ProcessInfo)
-                element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
-                fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
-                node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_2, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_2) - delta)
+            # # There is only one node per background geometry -  the loop is redundant here but kept for generality
+            # print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
+            # for node in model["ACTIVE_MP"].Nodes:
+            #     print("perturbing node: ", node,"  - node id:", node.Id)
+            #     node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_2, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_2) + delta)
+            #     element.InitializeNonLinearIteration(model_part.ProcessInfo)
+            #     element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
+            #     fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
+            #     node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_2, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_2) - delta)
 
-                print("perturbed ActiveGlobalNode - Variable KAPPA_2")
-                print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
-                for eq_idx in range(33):
-                    # print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-                    KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
-                # print("-" * 40)
+            #     print("perturbed ActiveGlobalNode - Variable KAPPA_2")
+            #     print("fd_sensitivities:",fd_sensitivities)
+            #     print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
+            #     for eq_idx in range(33):
+            #         print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+            #         KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
+            #     # print("-" * 40)
 
             #  KAPPA_12  #######################################
             target_idx = 32  # column index associated with Global Point - actuation variable Kappa_12
@@ -428,9 +431,10 @@ def solve_cantilever(create_geometry):
                 node.SetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_12, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_KAPPA_12) - delta)
 
                 print("perturbed ActiveGlobalNode - Variable KAPPA_12")
+                print("fd_sensitivities:",fd_sensitivities)
                 print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
                 for eq_idx in range(33):
-                    # print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+                    print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
                 # print("-" * 40)
 

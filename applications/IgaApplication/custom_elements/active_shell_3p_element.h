@@ -444,7 +444,8 @@ private:
     //CKECKLEO funktions Beschreibung
     void CalculateActuatedB(
     const IndexType IntegrationPointIndex,
-    Matrix& rB,
+    Matrix& rBMembrane,
+    Matrix& rBCurvature,
     const KinematicVariables& rActualKinematic) const;
 
     void CalculateSecondVariationStrainCurvature(
@@ -454,9 +455,9 @@ private:
         const KinematicVariables& rActualKinematic) const;
     
     //CHECKLEO Funktionsbeschreibung
-    void CalculateSecondVariationActuationStrain(
+    void CalculateSecondVariationActuatedStrain(
         const IndexType IntegrationPointIndex,
-        std::vector<Matrix>& rIKgAct,
+        std::vector<Matrix>& rSecondVariationActuatedStrain,
         const KinematicVariables& rActualKinematic) const;
 
     /**
@@ -506,10 +507,12 @@ private:
 
     void CalculateActuationDiagonalMatrix(
         MatrixType& rKActDiag,
-        const std::vector<Matrix>& rIKgAct,
-        const Vector& rStressVector,
-        const Matrix& rActuatedB,
-        const Matrix& rCRed,
+        const std::vector<Matrix>& rSecondVariationActuatedStrain,
+        const Vector& rMembraneStressVector,
+        const Matrix& rActuatedBMembrane,
+        const Matrix& rActuatedBCurvature,
+        const Matrix& rMembraneCRed,
+        const Matrix& rCurvatureCRed,
         double integration_weight
     ) const;
 
