@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -21,6 +21,6 @@
 
 namespace Kratos::Python {
 
-void AddCustomDecompositionsToPython(pybind11::module& m);
+void AddCustomUtilitiesToPython(pybind11::module& m);
 
 } // namespace Kratos::Python

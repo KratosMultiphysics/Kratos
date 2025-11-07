@@ -19,9 +19,9 @@
 #include "linear_solvers_application.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 #include "custom_python/add_custom_decompositions_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 PYBIND11_MODULE(KratosLinearSolversApplication, m)
 {
@@ -35,6 +35,7 @@ PYBIND11_MODULE(KratosLinearSolversApplication, m)
 
     AddCustomSolversToPython(m);
     AddCustomDecompositionsToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     m.def("HasMKL", []() {
 #if defined(USE_EIGEN_MKL)
@@ -62,7 +63,6 @@ PYBIND11_MODULE(KratosLinearSolversApplication, m)
           }, "Return true if Kratos was compiled with SuiteSparse support. False otherwise.");
 }
 
-} // namespace Python
-} // namespace Kratos
+} // namespace Kratos::Python
 
 #endif // defined(KRATOS_PYTHON)
