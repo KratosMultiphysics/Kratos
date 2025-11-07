@@ -36,24 +36,25 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::RadialBasisFunctionMapper(
     ModelPart& rModelPartOrigin,
     ModelPart& rModelPartDestination,
     Parameters JsonParameters)
-    : BaseType(rModelPartOrigin, rModelPartDestination, JsonParameters),
-    mLocalMapperSettings(JsonParameters) 
+    :  mrModelPartOrigin(rModelPartOrigin),
+       mrModelPartDestination(rModelPartDestination),
+       mMapperSettings(JsonParameters)
 {
     mLocalMapperSettings.ValidateAndAssignDefaults(this->GetMapperDefaultSettings());
 
     //const bool is_destination_slave = mLocalMapperSettings["is_destination_slave"].GetBool();
 
     // Define the master and slave interfaces
-    mpCouplingInterfaceMaster = &rModelPartOrigin;
-    mpCouplingInterfaceSlave = &rModelPartDestination;
+    mpCouplingInterfaceOrigin = &rModelPartOrigin;
+    mpCouplingInterfaceDestination = &rModelPartDestination;
 
     MappingMatrixUtilitiesType::InitializeSystemVector(
         this->pGetInterfaceVectorContainerOrigin()->pGetVector(),
-        mpCouplingInterfaceMaster->NumberOfNodes());
+        mpCouplingInterfaceOrigin->NumberOfNodes());
 
     MappingMatrixUtilitiesType::InitializeSystemVector(
         this->pGetInterfaceVectorContainerDestination()->pGetVector(),
-        mpCouplingInterfaceSlave->NumberOfNodes());
+        mpCouplingInterfaceDestination->NumberOfNodes());
     
     // This function creates the mapping matrix required for the linear mapping
     this->InitializeInterface();
@@ -116,7 +117,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     FillCoordinatesMatrix(this->GetDestinationModelPart(), destination_integration_points, destination_coords, is_destination_iga);
 
     // Allocate mapping matrix
-    this->mpMappingMatrix = Kratos::make_unique<TMappingMatrixType>(n_destination, n_origin);
+    this->mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(n_destination, n_origin);
 
     // Read string from settings
     std::string rbf_string = mLocalMapperSettings["radial_basis_function_type"].GetString();
@@ -462,9 +463,9 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateDestinationRBFM
 
 
 template<class TSparseSpace, class TDenseSpace>
-std::unique_ptr<typename RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::TMappingMatrixType>
+std::unique_ptr<typename RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MappingMatrixType>
 RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIga(
-    const typename RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::TMappingMatrixType& rMappingMatrixGP,
+    const typename RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MappingMatrixType& rMappingMatrixGP,
     const std::vector<Condition::Pointer>& rOriginIntegrationPoints,
     const ModelPart& rOriginModelPart) const
 {
@@ -508,10 +509,92 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIga(
 
 
     // Compute final mapping: H = H_tilde @ N_reduced
-    auto pMappingMatrix = Kratos::make_unique<TMappingMatrixType>(rMappingMatrixGP.size1(), N_reduced.size2());
+    auto pMappingMatrix = Kratos::make_unique<MappingMatrixType>(rMappingMatrixGP.size1(), N_reduced.size2());
     noalias(*pMappingMatrix) = prod(rMappingMatrixGP, N_reduced);
 
     return pMappingMatrix;
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternal(
+    const Variable<double>& rOriginVariable,
+    const Variable<double>& rDestinationVariable,
+    Flags MappingOptions)
+{
+    const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
+
+    mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
+
+    // if (precompute_mapping_matrix) {
+    //     TSparseSpace::Mult(
+    //         *mpMappingMatrix,
+    //         mpInterfaceVectorContainerMaster->GetVector(),
+    //         mpInterfaceVectorContainerSlave->GetVector()); // rQd = rMdo * rQo
+    // } else {
+    //     TSparseSpace::Mult(
+    //         *mpMappingMatrixProjector,
+    //         mpInterfaceVectorContainerMaster->GetVector(),
+    //         *mpTempVector); // rQd = rMdo * rQo
+
+    //     mpLinearSolver->Solve(*mpMappingMatrixSlave, mpInterfaceVectorContainerSlave->GetVector(), *mpTempVector);
+    // }
+
+    mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
+    const Variable<double>& rOriginVariable,
+    const Variable<double>& rDestinationVariable,
+    Flags MappingOptions)
+{
+    const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
+
+    mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
+
+    // if (dual_mortar || precompute_mapping_matrix) {
+    //     TSparseSpace::TransposeMult(
+    //         *mpMappingMatrix,
+    //         mpInterfaceVectorContainerSlave->GetVector(),
+    //         mpInterfaceVectorContainerMaster->GetVector()); // rQo = rMdo^T * rQd
+    // } else {
+    //     mpLinearSolver->Solve(*mpMappingMatrixSlave, *mpTempVector, mpInterfaceVectorContainerSlave->GetVector());
+
+    //     TSparseSpace::TransposeMult(
+    //         *mpMappingMatrixProjector,
+    //         *mpTempVector,
+    //         mpInterfaceVectorContainerMaster->GetVector()); // rQo = rMdo^T * rQd
+    // }
+
+    mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternal(
+    const Variable<array_1d<double,3>>& rOriginVariable,
+    const Variable<array_1d<double,3>>& rDestinationVariable,
+    Flags MappingOptions)
+{
+    for (const auto var_ext : {"_X", "_Y", "_Z"}) {
+        const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
+        const auto& var_destination = KratosComponents<Variable<double>>::Get(rDestinationVariable.Name() + var_ext);
+
+        MapInternal(var_origin, var_destination, MappingOptions);
+    }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
+    const Variable<array_1d<double,3>>& rOriginVariable,
+    const Variable<array_1d<double,3>>& rDestinationVariable,
+    Flags MappingOptions)
+{
+    for (const auto var_ext : {"_X", "_Y", "_Z"}) {
+        const auto& var_origin = KratosComponents<Variable<double>>::Get(rOriginVariable.Name() + var_ext);
+        const auto& var_destination = KratosComponents<Variable<double>>::Get(rDestinationVariable.Name() + var_ext);
+
+        MapInternalTranspose(var_origin, var_destination, MappingOptions);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
