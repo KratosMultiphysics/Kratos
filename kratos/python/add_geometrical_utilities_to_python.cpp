@@ -468,14 +468,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_static("CalculateShapeFunctionsAndGradients", &AuxiliaryCalculateMLSShapeFunctionsAndGradients)
         ;
 
-    // Radial Basis Functions utility
-    py::enum_<RBFShapeFunctionsUtility::RBFType>(m, "RBFType")
-        .value("InverseMultiquadric", RBFShapeFunctionsUtility::RBFType::InverseMultiquadric)
-        .value("Multiquadric",        RBFShapeFunctionsUtility::RBFType::Multiquadric)
-        .value("Gaussian",            RBFShapeFunctionsUtility::RBFType::Gaussian)
-        .value("ThinPlateSpline",     RBFShapeFunctionsUtility::RBFType::ThinPlateSpline)
-        .value("WendlandC2",          RBFShapeFunctionsUtility::RBFType::WendlandC2);
-
+    // Radial Basis FUnctions utility
     using DenseQRPointerType = typename RBFShapeFunctionsUtility::DenseQRPointerType;
     py::class_<RBFShapeFunctionsUtility>(m,"RBFShapeFunctionsUtility")
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN){
@@ -486,12 +479,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
             return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);})
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR){
             return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
-        .def_static("CalculateShapeFunctions",[](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN, DenseQRPointerType pDenseQR, RBFShapeFunctionsUtility::RBFType rbf_type){
-            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN, pDenseQR, rbf_type);
-        })
-        .def_static("CalculateShapeFunctions",[](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR, RBFShapeFunctionsUtility::RBFType rbf_type){
-            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR, rbf_type);
-        });
+        ;
 
     // Radial Node Search and MasterSlaveConstraints Assignation Utility
     using NodesContainerType = typename AssignMasterSlaveConstraintsToNeighboursUtility::NodesContainerType;
