@@ -20,13 +20,13 @@ PLATFORM_CONFIG = {
         'WHEEL_OUT': "/data_swap_guest"
     },
     'Windows': {
-        'PYTHONS': ["39"],
+        'PYTHONS': ["38", "39", "310", "311", "312", "313", "314"],
         'PYTHON_BUILD_VER': "39",
-        'BUILD_SCRIPT': "scripts/configure.bat",
+        'BUILD_SCRIPT': "scripts/wheels/windows/configure.bat",
         'BASE_LD_LIBRARY_PATH': "",
-        'KRATOS_ROOT': "C:/Users/Rossi/Kratos",
+        'KRATOS_ROOT': "C:/kratos/Kratos",
         'WHEEL_ROOT': "C:/dist/wheel",
-        'WHEEL_OUT': "C:/dist/"
+        'WHEEL_OUT': "C:/data_swap_guest/"
     },
     'Darwin': {
         'PYTHONS': ["39"],
