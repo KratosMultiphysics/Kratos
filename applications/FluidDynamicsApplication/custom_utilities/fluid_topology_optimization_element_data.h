@@ -96,6 +96,7 @@ public:
 
     // ADJOINT NAVIER-STOKES VARIABLES
     NodalVectorData Velocity_adj;
+    NodalVectorData Convection_velocity_adj;
     NodalVectorData Velocity_adj_OldStep1;
     NodalVectorData Velocity_adj_OldStep2;
     NodalVectorData MeshVelocity_adj;

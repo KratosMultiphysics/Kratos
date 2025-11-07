@@ -2132,7 +2132,7 @@ void FluidTopologyOptimizationElement< FluidTopologyOptimizationElementData<2,3,
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,2,3> v_ns = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
+    const BoundedMatrix<double,2,3> v_ns = rData.Convection_velocity_adj; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
@@ -2426,7 +2426,7 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,3,4> v_ns = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
+    const BoundedMatrix<double,3,4> v_ns = rData.Convection_velocity_adj; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
@@ -3239,7 +3239,7 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,t
     const BoundedMatrix<double,2,3>& vn_adj = rData.Velocity_adj_OldStep1;
     const BoundedMatrix<double,2,3>& vnn_adj = rData.Velocity_adj_OldStep2;
     const BoundedMatrix<double,2,3>& vmesh_adj = rData.MeshVelocity_adj;
-    const BoundedMatrix<double,2,3> v_ns = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
+    const BoundedMatrix<double,2,3> v_ns = rData.Convection_velocity_adj; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
     const BoundedMatrix<double,2,3>& f_adj = rData.BodyForce_adj;
     const array_1d<double,3>& p_adj = rData.Pressure_adj;
     const array_1d<double,3>& t = rData.Temperature;
@@ -3356,7 +3356,7 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     const BoundedMatrix<double,3,4>& vn_adj = rData.Velocity_adj_OldStep1;
     const BoundedMatrix<double,3,4>& vnn_adj = rData.Velocity_adj_OldStep2;
     const BoundedMatrix<double,3,4>& vmesh_adj = rData.MeshVelocity_adj;
-    const BoundedMatrix<double,3,4> v_ns = rData.Velocity; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
+    const BoundedMatrix<double,3,4> v_ns = rData.Convection_velocity_adj; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
     const BoundedMatrix<double,3,4>& f_adj = rData.BodyForce_adj;
     const array_1d<double,4>& p_adj = rData.Pressure_adj;
     // const array_1d<double,4>& pn_adj = rData.Pressure_adj_OldStep1;

@@ -14,9 +14,9 @@ from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_monolithic_solver
 
 def CreateSolver(model, custom_settings, isAdjointSolver = False):
     solver_settings = custom_settings["solver_settings"]
-    return FluidTopologyOptimizationSolver(model, solver_settings, is_adjoint_solver=isAdjointSolver)
+    return FluidTopologyOptimizationSolverTime(model, solver_settings, is_adjoint_solver=isAdjointSolver)
 
-class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
+class FluidTopologyOptimizationSolverTime(NavierStokesMonolithicSolver):
     @classmethod
     def GetDefaultParameters(cls):
         ##settings string in json format
@@ -36,12 +36,12 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         return default_settings
 
     def __init__(self, model, custom_settings, is_adjoint_solver):
+        self._DefineAdjointSolver(is_adjoint_solver)
         self._InitializeModelPartImporter()
         self.InitializeDataCommunicator()
         self.CheckModelPartImportSettings(custom_settings)
+        print(custom_settings)
         super().__init__(model,custom_settings)
-        self._DefineAdjointSolver(is_adjoint_solver)
-        self._DefineElementsAndConditions()
         print_str = "Construction of FluidTopologyOptimizationSolver "
         if self.IsAdjoint():
             print_str += "for Adjoint problem "
@@ -57,22 +57,23 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
     def CheckModelPartImportSettings(self, settings):
         if (settings["model_import_settings"]["input_type"].GetString() != "mdpa"):
             raise RuntimeError("Executing MPI with the wrong model part import settings")
+        if self.IsAdjoint():
+            physics_mp_name = settings["model_part_name"].GetString()
+            settings["model_part_name"].SetString(physics_mp_name+"_adjoint")
 
     def _DefineAdjointSolver(self, isAdjointSolver):
         self.is_adjoint = isAdjointSolver
-
-    def _DefineElementsAndConditions(self):
-        if (self.element_name != "FluidTopologyOptimizationElement"):
-            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " element_name: \' " + self.element_name + " \' is not compatible with FluidTopologyOptimization. Its value has been reset to default value: \' FluidTopologyOptimizationElement \'")
-            self.element_name = "FluidTopologyOptimizationElement"
-        self.condition_name = "FluidTopologyOptimizationWallCondition"
-        self.element_integrates_in_time = True
         
     def _SetFormulation(self):
-        super()._SetFormulation()
+        self.element_name = "FluidTopologyOptimizationElement"
+        self.condition_name = "FluidTopologyOptimizationWallCondition"
+        self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
+        self.historical_nodal_properties_variables_list = []
+        self.non_historical_nodal_properties_variables_list = []
         self.non_historical_nodal_properties_variables_list.append(KratosCFD.RESISTANCE)
         self.non_historical_nodal_properties_variables_list.append(KratosMultiphysics.CONVECTION_COEFFICIENT)
+        self.non_historical_nodal_properties_variables_list.append(KratosCFD.CONVECTION_VELOCITY)
 
     def AddVariables(self):  
         #Add parent class variables
@@ -90,7 +91,6 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.BODY_FORCE_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_ADJ)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE_ADJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
@@ -111,29 +111,14 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
     def _SetTimeSchemeBufferSize(self):
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":
-            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + scheme_type + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' steady \'")
-            self.settings["time_scheme"].SetString("steady")
-            self.min_buffer_size = 1
-            self._SetUpSteadySimulation()
+            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + scheme_type + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' bdf2 \'")
+            self.settings["time_scheme"].SetString("bdf2")
+            self.min_buffer_size = 3
         elif scheme_type == "bdf2":
-            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + scheme_type + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' steady \'")
-            self.settings["time_scheme"].SetString("steady")
-            self.min_buffer_size = 1
-            self._SetUpSteadySimulation()
+            self.min_buffer_size = 3
         elif scheme_type == "steady":
             self.min_buffer_size = 1
             self._SetUpSteadySimulation()
-        else:
-            msg  = "Unknown time_scheme option found in project parameters:\n"
-            msg += "\"" + scheme_type + "\"\n"
-            msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
-            raise Exception(msg)
-        # TO DO: should be set to steady, but due to its implementation works only with 
-        # scheme:bdf2 
-        # min buffer size = 1
-        self.settings["time_scheme"].SetString("bdf2")
-        self.min_buffer_size = 1
-        self._SetUpSteadySimulation()
     
     def _SetNodalProperties(self):
         set_density = KratosMultiphysics.DENSITY in self.historical_nodal_properties_variables_list
@@ -222,16 +207,11 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
     def AdvanceInTime(self, current_time):
         if (not self.IsAdjoint()): # NS
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] += 1
-            new_time =  super().AdvanceInTime(current_time)
-        else: #ADJ
-            KratosMultiphysics.Logger.PrintWarning("[WARNING] The Adjoint problem should go backward buth this has not yet been implemented. Since for now it is steady, we advance in time even if it is unnecessary.")
-            dt = self._ComputeDeltaTime()
-            # new_time = current_time - dt
-            new_time = current_time + dt
-            self.main_model_part.CloneTimeStep(new_time)
-            # print("\nASK HOW TO HANDLE THIS!!!\n")
-            # self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        else: 
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
+        dt = self._ComputeDeltaTime()
+        new_time = current_time + dt
+        self.main_model_part.CloneTimeStep(new_time)
         return new_time
     
     def IsAdjoint(self):
@@ -253,8 +233,10 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         if (self.IsPhysics()):
             self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
         else:
-            fluid_mp = model_parts[0]
-            self.main_model_part = fluid_mp
+            source_mp = model_parts[0]
+            modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+            element_name, condition_name = self.__GetElementAndConditionNames()
+            modeler.GenerateModelPart(source_mp, self.main_model_part, element_name, condition_name)
         
     def PrepareModelPart(self):
         # Call the base solver to do the PrepareModelPart
@@ -271,6 +253,10 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
                 node.SetValue(KratosCFD.RESISTANCE, resistance[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
         else:
             raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(resistance)}")
+        
+    def _UpdateConvectionVelocityVariable(self, buffer_id):
+        for node in self._GetLocalMeshNodes():
+            node.SetValue(KratosCFD.CONVECTION_VELOCITY, node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, buffer_id))
     
     def InitializeSolutionStep(self):
         self.is_resistance_updated = False
@@ -296,6 +282,36 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
             return self.GetMainModelPart().GetCommunicator().LocalMesh().Nodes
         else:
             return mp.GetCommunicator().LocalMesh().Nodes
+        
+    def __GetElementAndConditionNames(self):
+        base_element_name = self.element_name
+        base_condition_name = self.condition_name
+        model_part = self.GetMainModelPart()
+        domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        if domain_size not in [2,3]:
+            raise Exception("DOMAIN_SIZE is not set in ProcessInfo container.")
+        ## Elements
+        ## Get the number of nodes from the fluid mesh elements (if there are no elements simplicial are assumed)
+        num_nodes_elements = 0
+        if (len(model_part.Elements) > 0):
+            for elem in model_part.Elements:
+                num_nodes_elements = len(elem.GetNodes())
+                break
+        if not num_nodes_elements:
+            num_nodes_elements = domain_size + 1
+        element_name = f"{base_element_name}{domain_size}D{num_nodes_elements}N"
+        ## Conditions
+        ## Get the number of nodes from the fluid mesh conditions (if there are no elements simplicial are assumed)
+        num_nodes_conditions = 0
+        if (len(model_part.Conditions) > 0):
+            for cond in model_part.Conditions:
+                num_nodes_conditions = len(cond.GetNodes())
+                break
+        num_nodes_conditions = model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
+        if not num_nodes_conditions:
+            num_nodes_conditions = domain_size
+        condition_name = f"{base_condition_name}{domain_size}D{num_nodes_conditions}N" 
+        return element_name, condition_name
         
 
 

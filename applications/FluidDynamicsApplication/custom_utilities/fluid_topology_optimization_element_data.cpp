@@ -101,6 +101,7 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     // this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2);
 
     // ADJOINT NAVIER-STOKES VARIABLES
+    this->FillFromNonHistoricalNodalData(Convection_velocity_adj,CONVECTION_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_adj,VELOCITY_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(MeshVelocity_adj,MESH_VELOCITY_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce_adj,BODY_FORCE_ADJ,r_geometry);
