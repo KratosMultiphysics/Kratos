@@ -540,10 +540,6 @@ typedef Node NodeType;
 
         KRATOS_EXPECT_VECTOR_NEAR(quadrature_points[10].Center(), global_coords, TOLERANCE);
 
-        KRATOS_WATCH(quadrature_points)
-
-        KRATOS_WATCH(quadrature_points[10])
-
         // check normals and jacobian 
         array_1d<double, 3> normal_expected; 
         normal_expected[0] = 0.235684;

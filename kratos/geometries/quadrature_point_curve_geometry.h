@@ -25,25 +25,25 @@ namespace Kratos
 /**
  * @class QuadraturePointGeometry
  * @ingroup KratosCore
- * @brief A single quadrature point, that can be used for geometries without
+ * @brief A single quadrature point for a curve, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
- *        at a single quadrature point.
+ *        at a single quadrature point of a curve.
  *        This point defines a line segment described on a underlying surface.
  *        Shape functions and integration types have to be precomputed and are set from
  *        from outside.
  *        The parent pointer can provide the address to the owner of this quadrature point.
- */
-template<class TPointType, int TWorkingSpaceDimension = 3>
+ */template<class TPointType,
+    int TWorkingSpaceDimension>
 class QuadraturePointCurveGeometry
-    : public QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 2, 1>
+    : public QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 1, 1>
 {
 public:
 
     /// Pointer definition of QuadraturePointGeometry
     KRATOS_CLASS_POINTER_DEFINITION(QuadraturePointCurveGeometry);
 
-    using BaseType = QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 2, 1>;
+    using BaseType = QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 1, 1>;
     using GeometryType = Geometry<TPointType>;
 
     using IndexType = typename GeometryType::IndexType;
@@ -62,13 +62,6 @@ public:
     using IntegrationPointsContainerType = typename GeometryType::IntegrationPointsContainerType;
     using ShapeFunctionsValuesContainerType = typename GeometryType::ShapeFunctionsValuesContainerType;
     using ShapeFunctionsLocalGradientsContainerType = typename GeometryType::ShapeFunctionsLocalGradientsContainerType;
-
-    /// using base class functions
-    using BaseType::Jacobian;
-    using BaseType::DeterminantOfJacobian;
-    using BaseType::ShapeFunctionsValues;
-    using BaseType::ShapeFunctionsLocalGradients;
-    using BaseType::InverseOfJacobian;
 
     ///@}
     ///@name Life Cycle
@@ -169,7 +162,7 @@ public:
         GeometryData::IntegrationMethod ThisMethod) const override
     {
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex != 0)
-            << "Trying to access Normal of QuadraturePointCurveGeometryOnSurface "
+            << "Trying to access Normal of QuadraturePointCurveGeometry "
             << "with an integration point index != 0." << std::endl;
 
         CoordinatesArrayType normal = ZeroVector(3);
@@ -200,7 +193,7 @@ public:
      */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry;
+        return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_Geometry;
     }
 
     ///@}
@@ -210,13 +203,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "Quadrature point for a curve on surface.";
+        return "Quadrature point for a curve.";
     }
 
     /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "Quadrature point for a curve on surface.";
+        rOStream << "Quadrature point for a curve.";
     }
 
     /// Print object's data.
