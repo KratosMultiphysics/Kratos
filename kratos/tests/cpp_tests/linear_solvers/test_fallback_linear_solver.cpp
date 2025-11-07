@@ -98,6 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
     for (std::size_t i = 0; i < size; ++i) {
         A.push_back(i, i, 1.0);
     }
+    A.set_filled(size + 1, size);
     VectorType b(size);
     VectorType x(size);
 
@@ -124,6 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
     for (std::size_t i = 0; i < size; ++i) {
         A.push_back(i, i, 1.0);
     }
+    A.set_filled(size + 1, size);
     VectorType b(size);
     VectorType x(size);
 
