@@ -24,9 +24,6 @@ CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
 CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\FemToDemApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\DelaunayMeshingApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshingApplication;
 CALL :add_app %KRATOS_APP_DIR%\DemStructuresCouplingApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
@@ -51,7 +48,6 @@ CALL :add_app %KRATOS_APP_DIR%\SystemIdentificationApplication;
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
-
 
 echo %KRATOS_SOURCE%
 echo %KRATOS_BUILD%\%KRATOS_BUILD_TYPE%

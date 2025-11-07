@@ -5,12 +5,6 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
-export MPI_HOME=/usr/lib64/mpich/bin
-export PATH=${PATH}:${MPI_HOME}
-
-export MPI_C=`which mpicc`
-export MPI_CXX=`which mpicxx`
-
 # Set variables
 export KRATOS_SOURCE=${KRATOS_ROOT}
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
@@ -34,9 +28,6 @@ add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
-# add_app ${KRATOS_APP_DIR}/FemToDemApplication;
-# add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
-# add_app ${KRATOS_APP_DIR}/DelaunayMeshingApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/MetisApplication;
 add_app ${KRATOS_APP_DIR}/DemStructuresCouplingApplication;
@@ -48,7 +39,6 @@ add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
-# add_app ${KRATOS_APP_DIR}/HDF5Application;
 add_app ${KRATOS_APP_DIR}/IgaApplication;
 add_app ${KRATOS_APP_DIR}/ChimeraApplication;
 add_app ${KRATOS_APP_DIR}/StatisticsApplication;
@@ -63,14 +53,11 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
-# -DKRATOS_ENABLE_LTO=ON                                                 \
-
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
 -DCMAKE_POLICY_VERSION_MINIMUM=3.5                                     \
 -DKRATOS_USE_FUTURE=ON                                                 \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
--DUSE_MPI=ON                                                           \
 -DMAKE_TRILINOS_OPTIONAL=ON                                            \
 -DCMAKE_C_COMPILER=gcc                                                 \
 -DCMAKE_CXX_COMPILER=g++                                               \
@@ -80,4 +67,4 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=OFF                                             \
--DKRATOS_GENERATE_PYTHON_STUBS=ON                                      \
+-DKRATOS_GENERATE_PYTHON_STUBS=ON
