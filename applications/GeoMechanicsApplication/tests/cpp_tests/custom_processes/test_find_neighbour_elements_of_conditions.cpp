@@ -197,4 +197,14 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighboursWithMultipleNeigh
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 2);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoFindNeighbourElementsOfConditionsProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_empty_model_part = model.CreateModelPart("foo");
+    const FindNeighbourElementsOfConditionsProcess process(r_empty_model_part);
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "FindNeighbourElementsOfConditionsProcess");
+}
+
 } // namespace Kratos::Testing

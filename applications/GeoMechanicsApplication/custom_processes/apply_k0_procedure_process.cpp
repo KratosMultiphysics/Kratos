@@ -19,6 +19,7 @@
 #include "containers/model.h"
 #include "custom_constitutive/linear_elastic_law.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/process_utilities.h"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
@@ -46,23 +47,8 @@ namespace Kratos
 ApplyK0ProcedureProcess::ApplyK0ProcedureProcess(Model& rModel, Parameters K0Settings)
     : mSettings(std::move(K0Settings))
 {
-    KRATOS_ERROR_IF_NOT(mSettings.Has("model_part_name") || mSettings.Has("model_part_name_list"))
-        << "Please specify 'model_part_name' or 'model_part_name_list' for "
-        << ApplyK0ProcedureProcess::Info();
-
-    KRATOS_ERROR_IF(mSettings.Has("model_part_name") && mSettings.Has("model_part_name_list"))
-        << "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for "
-        << ApplyK0ProcedureProcess::Info();
-
-    const auto model_part_names = mSettings.Has("model_part_name_list")
-                                      ? mSettings["model_part_name_list"].GetStringArray()
-                                      : std::vector{mSettings["model_part_name"].GetString()};
-    KRATOS_ERROR_IF(model_part_names.empty()) << "The parameters 'model_part_name_list' needs "
-                                                 "to contain at least one model part name for "
-                                              << ApplyK0ProcedureProcess::Info();
-    std::ranges::transform(
-        model_part_names, std::back_inserter(mrModelParts),
-        [&rModel](const auto& rName) -> ModelPart& { return rModel.GetModelPart(rName); });
+    mrModelParts =
+        ProcessUtilities::GetModelPartsFromSettings(rModel, mSettings, ApplyK0ProcedureProcess::Info());
 }
 
 void ApplyK0ProcedureProcess::ExecuteInitialize()

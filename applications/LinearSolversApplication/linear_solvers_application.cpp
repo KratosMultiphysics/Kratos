@@ -51,15 +51,6 @@ void KratosLinearSolversApplication::Register()
         Registry::AddItem<std::string>("libraries.eigen");
     }
 
-    #if defined USE_EIGEN_MKL
-    MKLVersion mkl_version;
-    mkl_get_version(&mkl_version);
-    KRATOS_INFO("") << "Using Intel MKL version "
-                    << mkl_version.MajorVersion << "." << mkl_version.MinorVersion << "." << mkl_version.UpdateVersion
-                    << " build " << mkl_version.Build << std::endl
-                    << "MKL processor: " << mkl_version.Processor << std::endl;
-    #endif
-
     RegisterDenseLinearSolvers();
 
     using complex = std::complex<double>;
@@ -85,6 +76,19 @@ void KratosLinearSolversApplication::Register()
     KRATOS_REGISTER_LINEAR_SOLVER("sparse_cg", SparseCGFactory);
 
 #if defined USE_EIGEN_MKL
+
+    {
+        MKLVersion mkl_version;
+        mkl_get_version(&mkl_version);
+        KRATOS_INFO("") << "Using Intel MKL version "
+                        << mkl_version.MajorVersion << "." << mkl_version.MinorVersion << "." << mkl_version.UpdateVersion
+                        << " build " << mkl_version.Build << std::endl
+                        << "MKL processor: " << mkl_version.Processor << std::endl;
+    }
+
+    if (!Registry::HasItem("libraries.mkl")) {
+        Registry::AddItem<std::string>("libraries.mkl");
+    }
 
     // Pardiso LU Solver
     using PardisoLUType = EigenDirectSolver<EigenPardisoLUSolver<double>>;

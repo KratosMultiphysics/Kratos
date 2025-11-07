@@ -413,9 +413,12 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateConstitutiv
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = Properties{};
-    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 1.0E8);
-    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 5.0E7);
+    auto properties                        = Properties{};
+    properties[INTERFACE_NORMAL_STIFFNESS] = 1.0E8;
+    properties[INTERFACE_SHEAR_STIFFNESS]  = 5.0E7;
+    properties[GEO_FRICTION_ANGLE]         = 0.0;
+    properties[GEO_COHESION]               = 0.0;
+    properties[GEO_DILATANCY_ANGLE]        = 0.0;
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);

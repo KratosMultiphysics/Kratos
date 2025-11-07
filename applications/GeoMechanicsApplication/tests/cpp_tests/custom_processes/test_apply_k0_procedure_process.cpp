@@ -626,4 +626,14 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfModelPartHasElements, KratosGeoMech
                                       "ApplyK0ProcedureProces has no elements in modelpart dummy")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoK0ProcedureProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    model.CreateModelPart("dummy");
+    const ApplyK0ProcedureProcess process{model, {R"({"model_part_name" : "dummy"})"}};
+
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyK0ProcedureProcess");
+}
 } // namespace Kratos::Testing

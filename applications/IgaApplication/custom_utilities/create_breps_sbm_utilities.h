@@ -45,9 +45,6 @@ class CreateBrepsSbmUtilities : public IO
     /// Pointer definition of CreateBrepsSbmUtilities
     KRATOS_CLASS_POINTER_DEFINITION(CreateBrepsSbmUtilities);
 
-    using SizeType = std::size_t;
-    using IndexType = std::size_t;
-
     using GeometryType = Geometry<TNodeType>;
     using GeometryPointerType = typename GeometryType::Pointer;
     using GeometrySurrogateArrayType = DenseVector<GeometryPointerType>;
@@ -70,7 +67,7 @@ class CreateBrepsSbmUtilities : public IO
 
     /// Constructor with path to input file.
     CreateBrepsSbmUtilities(
-        SizeType EchoLevel = 0)
+        std::size_t EchoLevel = 0)
         : mEchoLevel(EchoLevel)
     {
     }
@@ -118,7 +115,7 @@ class CreateBrepsSbmUtilities : public IO
                                 ModelPart& rModelPart)
     {
         CreateBrepSurface(pSurface, rModelPart, mEchoLevel);
-        IndexType id_brep_curve_on_surface = 2; // because id 1 is the brep surface
+        std::size_t id_brep_curve_on_surface = 2; // because id 1 is the brep surface
         CreateBrepCurvesOnRectangle(pSurface, rCoordsA, rCoordsB, id_brep_curve_on_surface, rModelPart);
     }
 
@@ -135,7 +132,7 @@ private:
     static void CreateBrepSurface(
         NurbsSurfaceGeometryPointerType pSurface,
         ModelPart& rModelPart,
-        const SizeType EchoLevel = 0)
+        const std::size_t EchoLevel = 0)
     {
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
             << "Creating BrepSurface \""<< std::endl;
@@ -170,7 +167,7 @@ private:
         const ModelPart& rSurrogateModelPartInner, 
         const ModelPart& rSurrogateModelPartOuter,
         ModelPart& rModelPart,
-        const SizeType EchoLevel = 0)
+        const std::size_t EchoLevel = 0)
     {
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
             << "Creating BrepSurface \""<< std::endl;
@@ -229,9 +226,9 @@ private:
         const Point& rCoordsA, 
         const Point& rCoordsB,
         ModelPart& rModelPart,
-        const SizeType EchoLevel = 0) {
+        const std::size_t EchoLevel = 0) {
         // OUTER 
-        IndexType id_brep_curve_on_surface = 2; // because id 1 is the brep surface
+        std::size_t id_brep_curve_on_surface = 2; // because id 1 is the brep surface
 
         if (rSurrogateModelPartOuter.NumberOfConditions() > 0)
         {
@@ -288,11 +285,14 @@ private:
 
 
         // INNER
-        for (IndexType i_element = 1; i_element < rSurrogateModelPartInner.Elements().size()+1; i_element++) {
-            IndexType first_surrogate_cond_id = rSurrogateModelPartInner.pGetElement(i_element)->GetGeometry()[0].Id(); // Element 1 because is the only surrogate loop
-            IndexType last_surrogate_cond_id = rSurrogateModelPartInner.pGetElement(i_element)->GetGeometry()[1].Id();  // Element 1 because is the only surrogate loop
-    
-            for (IndexType cond_id = first_surrogate_cond_id; cond_id <= last_surrogate_cond_id; ++cond_id) {
+        const auto& r_elems = rSurrogateModelPartInner.Elements();
+
+        for (const auto& rElem : r_elems) {
+            const auto& r_geom = rElem.GetGeometry();
+            std::size_t first_surrogate_cond_id = r_geom[0].Id();
+            std::size_t last_surrogate_cond_id  = r_geom[1].Id();
+
+            for (std::size_t cond_id = first_surrogate_cond_id; cond_id <= last_surrogate_cond_id; ++cond_id) {
                 
                 auto p_cond = rSurrogateModelPartInner.pGetCondition(cond_id);
                 Geometry<Node>::PointsArrayType points;
@@ -384,7 +384,7 @@ private:
     static void CreateBrepCurvesOnRectangle(const NurbsSurfaceGeometryPointerType pSurfaceGeometry, 
                                             const Point& rCoordsA, 
                                             const Point& rCoordsB, 
-                                            IndexType& rLastGeometryId,
+                                            std::size_t& rLastGeometryId,
                                             ModelPart& rModelPart) {
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
