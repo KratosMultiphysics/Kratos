@@ -57,9 +57,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixThr
 
     // Act and Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        auto matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(geometry, integration_method, 0, &fake_row), "A number of extrapolation matrix rows 2 is not equal to a number of nodes 3 for element id 0");
+        (void)ExtrapolationUtilities::CalculateExtrapolationMatrix(geometry, integration_method, 0, &fake_row), "A number of extrapolation matrix rows 2 is not equal to a number of nodes 3 for element id 0");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        auto matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(geometry, integration_method, 0, &fake_colums), "A number of extrapolation matrix columns 2 is not equal to a number of integration points 3 for element id 0");
+        (void)ExtrapolationUtilities::CalculateExtrapolationMatrix(geometry, integration_method, 0, &fake_colums), "A number of extrapolation matrix columns 2 is not equal to a number of integration points 3 for element id 0");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStresses, KratosG
     std::vector<std::size_t> node_ids = {1, 2, 3};
 
     // Act and Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(auto stresses = ExtrapolationUtilities::CalculateNodalStresses(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ExtrapolationUtilities::CalculateNodalStresses(
                                           node_ids, element.GetGeometry(), element.GetIntegrationMethod(),
                                           cauchy_stress_vectors, element.Id()),
                                       "An extrapolation matrix size 3 is not equal to given "
