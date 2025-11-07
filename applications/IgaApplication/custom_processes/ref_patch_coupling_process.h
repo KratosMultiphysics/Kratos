@@ -101,7 +101,24 @@ private:
         int echo_level);
 
     static Vector ComputeEffectiveKnotSpans(ModelPart& rCouplingMP, ModelPart* pA, ModelPart* pB);
+
+    // Build coupling segments along one edge and create mirrored coupling conditions
+    void BuildCouplingSegmentsOnEdge(
+        bool vertical_edge,
+        double fixed,
+        double tmin,
+        double tmax,
+        bool flipA,
+        bool flipB,
+        const PatchBox& A,
+        const PatchBox& B,
+        ModelPart& rCouplingSubModelPart,
+        const NurbsSurfaceGeometryPointerType p_surf_A,
+        const NurbsSurfaceGeometryPointerType p_surf_B,
+        SizeType pA_u,
+        SizeType pA_v,
+        SizeType pB_u,
+        SizeType pB_v);
 };
 
 } // namespace Kratos
-

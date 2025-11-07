@@ -325,53 +325,6 @@ void RefPatchCouplingProcess::Execute()
     const SizeType pB_u = p_surf_B->PolynomialDegree(0);
     const SizeType pB_v = p_surf_B->PolynomialDegree(1);
 
-    auto append_segments = [&](bool vertical_edge, double fixed, double tmin, double tmax,
-                               bool flipA, bool flipB)
-    {
-        // Build breaks for the sweep direction
-        std::vector<double> Av = vertical_edge ? MakeBreaks(A.v0, A.v1, A.dv, A.nv)
-                                               : MakeBreaks(A.u0, A.u1, A.du, A.nu);
-        std::vector<double> Bv = vertical_edge ? MakeBreaks(B.v0, B.v1, B.dv, B.nv)
-                                               : MakeBreaks(B.u0, B.u1, B.du, B.nu);
-        // Clip to intersection with [tmin, tmax]
-        auto clip = [&](std::vector<double>& X){
-            std::vector<double> Y; Y.reserve(X.size());
-            for (double t : X) {
-                if (t >= tmin - 1e-10 && t <= tmax + 1e-10)
-                    Y.push_back(std::clamp(t, tmin, tmax));
-            }
-            X.swap(Y);
-        };
-        clip(Av); clip(Bv);
-        const auto breaks = UnionBreaks(Av, Bv);
-
-        // Degree along sweep
-        const SizeType p_sweep = vertical_edge ? std::max(pA_v, pB_v) : std::max(pA_u, pB_u);
-        const SizeType ip_per_span = 2 * p_sweep + 1;
-        const SizeType deriv_order = 2;
-        IndexType next_id = NextGeometryId(mrModelPart);
-
-        std::vector<GeometryPointerType> breps_A, breps_B;
-        for (std::size_t k = 0; k + 1 < breaks.size(); ++k) {
-            const double a = breaks[k];
-            const double b = breaks[k+1];
-            if (b <= a + mTol) continue;
-            Point A0(vertical_edge ? fixed : a, vertical_edge ? a : fixed, 0.0);
-            Point A1(vertical_edge ? fixed : b, vertical_edge ? b : fixed, 0.0);
-            Point B0 = A0; Point B1 = A1;
-
-            CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart, flipA);
-            breps_A.push_back(mrModelPart.pGetGeometry(next_id));
-            CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart, flipB);
-            breps_B.push_back(mrModelPart.pGetGeometry(next_id));
-        }
-
-        const Vector eff_spans = ComputeEffectiveKnotSpans(coupling, A.pPatch, B.pPatch);
-        CreateConditionsFromBrepCurvesWithMirroredNeighbours(
-            breps_A, breps_B, coupling, mCouplingConditionName,
-            ip_per_span, deriv_order, eff_spans, mEchoLevel);
-    };
-
     // Intersect ref boundary with base box (clip to base domain)
     const double u0 = std::max(B.u0, A.u0);
     const double u1 = std::min(B.u1, A.u1);
@@ -382,17 +335,81 @@ void RefPatchCouplingProcess::Execute()
         return;
     }
 
-
     // Left edge (u = u0)
-    append_segments(true /*vertical*/, B.u0, v0, v1, /*flipA*/false, /*flipB*/true);
+    BuildCouplingSegmentsOnEdge(true /*vertical*/, B.u0, v0, v1, /*flipA*/false, /*flipB*/true,
+        A, B, coupling, p_surf_A, p_surf_B, pA_u, pA_v, pB_u, pB_v);
     // Right edge (u = u1)
-    append_segments(true /*vertical*/, B.u1, v0, v1, /*flipA*/true,  /*flipB*/false);
+    BuildCouplingSegmentsOnEdge(true /*vertical*/, B.u1, v0, v1, /*flipA*/true,  /*flipB*/false,
+        A, B, coupling, p_surf_A, p_surf_B, pA_u, pA_v, pB_u, pB_v);
     // Bottom edge (v = v0)
-    append_segments(false /*horizontal*/, B.v0, u0, u1, /*flipA*/true, /*flipB*/false);
+    BuildCouplingSegmentsOnEdge(false /*horizontal*/, B.v0, u0, u1, /*flipA*/true, /*flipB*/false,
+        A, B, coupling, p_surf_A, p_surf_B, pA_u, pA_v, pB_u, pB_v);
     // Top edge (v = v1)
-    append_segments(false /*horizontal*/, B.v1, u0, u1, /*flipA*/false,  /*flipB*/true);
+    BuildCouplingSegmentsOnEdge(false /*horizontal*/, B.v1, u0, u1, /*flipA*/false,  /*flipB*/true,
+        A, B, coupling, p_surf_A, p_surf_B, pA_u, pA_v, pB_u, pB_v);
     // Left edge (u = u0)
 
+}
+
+void RefPatchCouplingProcess::BuildCouplingSegmentsOnEdge(
+    bool vertical_edge,
+    double fixed,
+    double tmin,
+    double tmax,
+    bool flipA,
+    bool flipB,
+    const PatchBox& A,
+    const PatchBox& B,
+    ModelPart& rCouplingSubModelPart,
+    const NurbsSurfaceGeometryPointerType p_surf_A,
+    const NurbsSurfaceGeometryPointerType p_surf_B,
+    SizeType pA_u,
+    SizeType pA_v,
+    SizeType pB_u,
+    SizeType pB_v)
+{
+    // Build breaks for the sweep direction
+    std::vector<double> Av = vertical_edge ? MakeBreaks(A.v0, A.v1, A.dv, A.nv)
+                                           : MakeBreaks(A.u0, A.u1, A.du, A.nu);
+    std::vector<double> Bv = vertical_edge ? MakeBreaks(B.v0, B.v1, B.dv, B.nv)
+                                           : MakeBreaks(B.u0, B.u1, B.du, B.nu);
+    // Clip to intersection with [tmin, tmax]
+    auto clip = [&](std::vector<double>& X){
+        std::vector<double> Y; Y.reserve(X.size());
+        for (double t : X) {
+            if (t >= tmin - 1e-10 && t <= tmax + 1e-10)
+                Y.push_back(std::clamp(t, tmin, tmax));
+        }
+        X.swap(Y);
+    };
+    clip(Av); clip(Bv);
+    const auto breaks = UnionBreaks(Av, Bv);
+
+    // Degree along sweep
+    const SizeType p_sweep = vertical_edge ? std::max(pA_v, pB_v) : std::max(pA_u, pB_u);
+    const SizeType ip_per_span = 2 * p_sweep + 1;
+    const SizeType deriv_order = 2;
+    IndexType next_id = NextGeometryId(mrModelPart);
+
+    std::vector<GeometryPointerType> breps_A, breps_B;
+    for (std::size_t k = 0; k + 1 < breaks.size(); ++k) {
+        const double a = breaks[k];
+        const double b = breaks[k+1];
+        if (b <= a + mTol) continue;
+        Point A0(vertical_edge ? fixed : a, vertical_edge ? a : fixed, 0.0);
+        Point A1(vertical_edge ? fixed : b, vertical_edge ? b : fixed, 0.0);
+        Point B0 = A0; Point B1 = A1;
+
+        CreateAndAddBrepCurve(p_surf_A, A0, A1, next_id, mrModelPart, flipA);
+        breps_A.push_back(mrModelPart.pGetGeometry(next_id));
+        CreateAndAddBrepCurve(p_surf_B, B0, B1, next_id, mrModelPart, flipB);
+        breps_B.push_back(mrModelPart.pGetGeometry(next_id));
+    }
+
+    const Vector eff_spans = ComputeEffectiveKnotSpans(rCouplingSubModelPart, A.pPatch, B.pPatch);
+    CreateConditionsFromBrepCurvesWithMirroredNeighbours(
+        breps_A, breps_B, rCouplingSubModelPart, mCouplingConditionName,
+        ip_per_span, deriv_order, eff_spans, mEchoLevel);
 }
 
 } // namespace Kratos
