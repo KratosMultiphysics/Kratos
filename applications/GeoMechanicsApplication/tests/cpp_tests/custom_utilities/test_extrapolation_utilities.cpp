@@ -155,8 +155,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalStressesForTriang
     cauchy_stress_vectors.emplace_back(cauchy_stress + 2 * delta_stress);
 
     // Act
-    std::vector<std::size_t> node_ids       = {1, 4, 2};
-    const auto               nodal_stresses = ExtrapolationUtilities::CalculateNodalStresses(
+    const std::vector<std::size_t> node_ids       = {1, 4, 2};
+    const auto                     nodal_stresses = ExtrapolationUtilities::CalculateNodalStresses(
         node_ids, element.GetGeometry(), element.GetIntegrationMethod(), cauchy_stress_vectors,
         element.Id());
 
