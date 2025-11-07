@@ -22,6 +22,4 @@ fi
 cd /workspace/kratos
 git clone --depth 1 --single-branch -b $BRANCH https://github.com/KratosMultiphysics/Kratos.git
 
-cd /workspace/kratos/Kratos/scripts/wheels/linux/
-chmod +x build_mpi.sh
-./build_mpi.sh
+python ./workspace/kratos/Kratos/scripts/wheels/build_wheel.py
