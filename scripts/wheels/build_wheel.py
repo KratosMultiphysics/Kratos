@@ -191,7 +191,7 @@ if __name__ == "__main__":
             'whl_dst_path': "KratosMultiphysics",
             'project_libs': Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / "libs",
             'project_read': Path(CURRENT_CONFIG['KRATOS_ROOT']) / "README.md" ,
-            'project_hook': Path(CURRENT_CONFIG['KRATOS_ROOT']) / "scripts" / "hatch_build.py"
+            'project_hook': Path(CURRENT_CONFIG['KRATOS_ROOT']) / "scripts" / "wheels" / "hatch_build.py"
         }
 
         if not CURRENT_CONFIG['UNIFIED_WHEEL']:
