@@ -22,6 +22,7 @@
 // Application includes
 #include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "custom_modelers/iga_modeler_sbm.h"
+#include "custom_modelers/nurbs_geometry_modeler_gap_sbm.h"
 
 namespace Kratos
 {
@@ -63,7 +64,7 @@ private:
 
     // Performs input validation, parameter normalization, logging, subdivision,
     // and writes global PARAMETER_SPACE_CORNERS. Returns the target ModelPart.
-    ModelPart& InitializeSetup_(
+    ModelPart& InitializeSetup(
         Parameters& r_parameters,
         Parameters& rGeometryBaseOut,
         Parameters& rAnalysisBaseOut,
@@ -92,7 +93,7 @@ private:
         const std::string& prefix);
 
     // Specialized: process refinement patch as body-fitted, only elements (FluidDomain)
-    void ProcessRefPatch_(
+    void ProcessRefPatch(
         const RectType& rect,
         const Parameters& geometry_base,
         const Parameters& analysis_base,
@@ -104,7 +105,7 @@ private:
     // Returns true if the skin model part (by name) is fully contained
     // within the rectangular patch in physical XY space derived from
     // the given rect (parameter-space) and the base geometry extents.
-    bool IsSkinFullyInsidePatch_(
+    bool IsSkinFullyInsidePatch(
         const std::string& rSkinModelPartName,
         const RectType& rect,
         const Parameters& geometry_base) const;
@@ -113,11 +114,11 @@ private:
     ModelPart& CreateOrResetModelPart_(const std::string& rName) const;
 
     // Utility: append a rectangular closed loop (4 LineCondition2D2N) to a model part using parameter-space coords
-    void AppendRectangleSkinLoop_(ModelPart& rModelPart, const RectType& rect) const;
+    void AppendRectangleSkinLoop(ModelPart& rModelPart, const RectType& rect) const;
 
     // Builds a skin model part composed by the refinement regions as closed rectangular loops
     // Returns the created/cleared ModelPart reference
-    ModelPart& CreateSkinCouplingModelPartForRefinements_(const std::string& rSkinModelPartName) const;
+    ModelPart& CreateSkinCouplingModelPartForRefinements(const std::string& rSkinModelPartName) const;
 
     std::vector<RectangleType> mSubdomains;
     std::vector<RefinementRegionData> mRefinementRegions;
@@ -130,6 +131,30 @@ private:
     void BuildGlobalSubModelParts(
         ModelPart& r_parent_model_part,
         const std::vector<std::string>& rTargetNames) const;
+
+    struct PatchPreparationResult
+    {
+        std::vector<ModelPart::IndexType> GeometryIdsBefore;
+        Parameters PatchGeometryForSbmCoupling;
+    };
+
+    PatchPreparationResult PreparePatchGeometryAndData(
+        ModelPart& r_patch_model_part,
+        Parameters& r_patch_geometry,
+        const Parameters& r_geometry_base,
+        const RectType& rect,
+        const bool use_sbm_for_this_patch,
+        const std::string& patch_full_name,
+        const bool is_base_patch) const;
+
+    PatchPreparationResult PreparePatchGeometryAndDataGapSbm(
+        ModelPart& r_patch_model_part,
+        Parameters& r_patch_geometry,
+        const Parameters& r_geometry_base,
+        const RectType& rect,
+        const bool use_sbm_for_this_patch,
+        const std::string& patch_full_name,
+        const bool is_base_patch) const;
 
 };
 
