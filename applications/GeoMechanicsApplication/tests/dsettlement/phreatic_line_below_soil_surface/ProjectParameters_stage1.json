@@ -51,7 +51,12 @@
             "scaling": true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list": ["TopWaterPressure", "Bottom", "LeftSide", "RightSide", "SoilExcludingBoundary", "Soil"],
+        "processes_sub_model_part_list": ["Soil",
+                                          "TopWaterPressure",
+                                          "Bottom",
+                                          "LeftSide",
+                                          "RightSide",
+                                          "SoilExcludingBoundary"],
         "body_domain_sub_model_part_list": ["Soil"],
         "move_mesh_flag": false
     },
