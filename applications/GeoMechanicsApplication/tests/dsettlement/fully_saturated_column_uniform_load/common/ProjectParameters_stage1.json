@@ -24,7 +24,6 @@
     },
     "buffer_size"                     : 2,
     "echo_level"                      : 1,
-    "clear_storage"                   : false,
     "compute_reactions"               : true,
     "reform_dofs_at_each_step"        : false,
     "block_builder"                   : true,
