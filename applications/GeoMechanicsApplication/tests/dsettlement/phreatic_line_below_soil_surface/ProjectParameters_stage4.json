@@ -83,8 +83,8 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "nodal_results": ["TOTAL_DISPLACEMENT", "WATER_PRESSURE", "CAUCHY_STRESS_TENSOR"],
-                            "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
+                            "nodal_results": ["TOTAL_DISPLACEMENT", "WATER_PRESSURE", "CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR"],
+                            "gauss_point_results": []
                         }
                     }
                 }
@@ -213,7 +213,7 @@
                 "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain",
-                    "list_of_variables": ["CAUCHY_STRESS_TENSOR"]
+                    "list_of_variables": ["CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR"]
                 }
             }
         ]

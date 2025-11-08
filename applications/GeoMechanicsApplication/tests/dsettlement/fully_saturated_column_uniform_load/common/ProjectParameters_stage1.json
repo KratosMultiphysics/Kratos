@@ -82,7 +82,7 @@
               "body_output"             : true,
               "node_output"             : false,
               "skin_output"             : false,
-              "nodal_results"           : ["TOTAL_DISPLACEMENT", "WATER_PRESSURE", "CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR"],
+              "nodal_results"           : ["TOTAL_DISPLACEMENT", "WATER_PRESSURE"],
               "gauss_point_results"     : []
             }
           }
