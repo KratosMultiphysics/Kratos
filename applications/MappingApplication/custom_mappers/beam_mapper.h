@@ -192,6 +192,7 @@ class KRATOS_API(MAPPING_APPLICATION) BeamMapperLocalSystem : public MapperLocal
 public:
     using VectorType = Vector;
     using BeamMapperInterfaceInfoPointerType = Kratos::shared_ptr<BeamMapperInterfaceInfo>;
+    using GeometryType = Geometry<Node>;
 
     explicit BeamMapperLocalSystem(NodePointerType pNode) : mpNode(pNode) {
         VectorType zeroVector(3, 0.0);
@@ -318,7 +319,6 @@ public:
     using VectorType = typename TDenseSpace::VectorType;
 
     using ComponentVariableType = Variable<double>;
-    // using GeometryType = InterfaceObject::GeometryType;
     using GeometryType = Geometry<Node>;
     using GeometryPointerType = InterfaceObject::GeometryPointerType;
 
@@ -578,18 +578,6 @@ private:
 
     void GetRotationVector(const MatrixType& rRotationMatrix, VectorType& rRotationVector);
 
-    // static ProjectionUtilities::PairingIndex ProjectOnLineHermitian(const GeometryType& rGeometry,
-    //                                 const Point& rPointToProject,
-    //                                 const double LocalCoordTol,
-    //                                 Vector& rHermitianShapeFunctionValues,
-    //                                 Vector& rHermitianShapeFunctionValuesDer,
-    //                                 double& rProjectionDistance,
-    //                                 Point& rProjectionOfPoint);
-    
-    // static void HermitianShapeFunctionsValues(Vector& rHermitianShapeFunctions, 
-    //     Vector& rHermitianShapeFunctionsDer, 
-    //     const array_1d<double, 3>& rCoordinates);
-
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const 
     {
         return Kratos::make_unique<BeamMapperInterfaceInfo>();
@@ -610,57 +598,6 @@ private:
     ///@}
 
 }; // Class BeamMapper
-
-// class BeamMapperUtilities
-// {
-//     public:
-//         using GeometryType = Geometry<Node>;
-
-//         /// Compute Hermitian shape functions and derivatives
-//         static void HermitianShapeFunctionsValues (Vector& rHermitianShapeFunctions, 
-//                                             Vector& rHermitianShapeFunctionsDer, 
-//                                             const array_1d<double, 3>& rCoordinates) 
-//         {
-//             if(rHermitianShapeFunctions.size() != 4) {
-//                 rHermitianShapeFunctions.resize(4, false);
-//             }
-
-//             rHermitianShapeFunctions[0] =  0.25 * ( 1.0 - rCoordinates[0]) * ( 1.0 - rCoordinates[0]) * ( 2.0 + rCoordinates[0]);
-//             rHermitianShapeFunctions[1] =  0.125 * ( 1.0 - rCoordinates[0]) * ( 1.0 - rCoordinates[0]) * ( 1.0 + rCoordinates[0]);
-//             rHermitianShapeFunctions[2] =  0.25 * ( 1.0 + rCoordinates[0]) * ( 1.0 + rCoordinates[0]) * ( 2.0 - rCoordinates[0]);
-//             rHermitianShapeFunctions[3] =  -0.125  * ( 1.0 + rCoordinates[0]) * ( 1.0 + rCoordinates[0]) * ( 1.0 - rCoordinates[0]);
-
-//             if(rHermitianShapeFunctionsDer.size() != 4) {
-//                 rHermitianShapeFunctionsDer.resize(4, false);
-//             }
-
-//             rHermitianShapeFunctionsDer[0] = -(3 / 2) * ( 1.0 - rCoordinates[0] ) * ( 1.0 + rCoordinates[0] ); 
-//             rHermitianShapeFunctionsDer[1] = -0.25 * ( 1.0 - rCoordinates[0] ) * ( 1.0 + 3 * rCoordinates[0]) ;
-//             rHermitianShapeFunctionsDer[2] = (3 / 2) * ( 1.0 + rCoordinates[0] ) * ( 1.0 - rCoordinates[0] );
-//             rHermitianShapeFunctionsDer[3] = -0.25 * ( 1.0 + rCoordinates[0] ) * ( 1.0 - 3 * rCoordinates[0]) ;    
-//         }
-
-//         /// Project a point onto a beam line using Hermitian shape functions
-//         static ProjectionUtilities::PairingIndex ProjectOnLineHermitian(const GeometryType& rGeometry,
-//                                             const Point& rPointToProject,
-//                                             const double LocalCoordTol,
-//                                             Vector& rHermitianShapeFunctionValues,
-//                                             Vector& rHermitianShapeFunctionValuesDer,
-//                                             double& rProjectionDistance,
-//                                             Point& rProjectionOfPoint)
-//         {
-//             rProjectionDistance = std::abs(GeometricalProjectionUtilities::FastProjectOnLine(rGeometry, rPointToProject, rProjectionOfPoint));
-//             array_1d<double, 3> local_coords;
-//             ProjectionUtilities::PairingIndex pairing_index = ProjectionUtilities::PairingIndex::Unspecified;
-
-//             if (rGeometry.IsInside(rProjectionOfPoint, local_coords, 1e-14)) {
-//                 pairing_index = ProjectionUtilities::PairingIndex::Line_Inside;
-//                 HermitianShapeFunctionsValues(rHermitianShapeFunctionValues, rHermitianShapeFunctionValuesDer, local_coords);
-//             } 
-
-//             return pairing_index;
-//         }
-// };
 
 ///@} addtogroup block
 }  // namespace Kratos.
