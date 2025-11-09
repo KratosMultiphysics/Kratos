@@ -50,11 +50,9 @@ public:
     typedef typename MapperInterfaceInfo::CoordinatesArrayType CoordinatesArrayType;
 
     typedef Matrix MatrixType;
-    typedef Vector VectorType;
     typedef std::vector<int> EquationIdVectorType; // int bcs of mpi
 
     typedef InterfaceObject::NodePointerType NodePointerType;
-    typedef InterfaceObject::GeometryType GeometryType; 
     typedef InterfaceObject::GeometryPointerType GeometryPointerType;
 
     ///@}
@@ -206,17 +204,6 @@ public:
     virtual void PrintData(std::ostream& rOStream) const {}
 
     ///@}
-    // virtual void CalculateRotationMatrixInterfaceInfos(MatrixType& rRotationMatrix_B,
-    //                                                    VectorType& rTranslationVector_G_B,
-    //                                                    VectorType& rLinearShapeValues,
-    //                                                    VectorType& rHermitianShapeValues,
-    //                                                    VectorType& rHermitianDerShapeValues,
-    //                                                    GeometryType& rGeometry,
-    //                                                    NodePointerType& pNode){ KRATOS_ERROR << "Base class function called! This function is used only for the Beam Mapper. " << std::endl;}
-    
-    // virtual void SaveRotationVectorValue(const VectorType& rRotationVector) { KRATOS_ERROR << "Base class function called!" << std::endl; }
-    
-    // virtual void GetValue(VectorType& rRotVectorValue) { KRATOS_ERROR << "Base class function called!" << std::endl; }
 
 protected:
     ///@name Protected Life Cycle
