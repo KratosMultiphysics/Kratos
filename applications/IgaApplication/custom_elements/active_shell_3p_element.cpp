@@ -703,7 +703,7 @@ namespace Kratos
     *  the local cartesian basis.
     *  ε_curvilinear is defined: [ε_11, ε_22, ε_12]
     *  The transformation matrix T transforms to voigt notation:
-    *  ε_local_cartesian = [ε_11, ε_22, 2*ε_12]
+    *  ε_local_cartesian = [ε_11, ε_22, 2e12] = [ε_11, ε_22, gamma_12] 
     *
     *  The transformation from ε_12_cu to 2*ε_12_ca is included in T.
     */
@@ -925,6 +925,10 @@ namespace Kratos
         rBCurvature(0, 3) = kappa_1;
         rBCurvature(1, 4) = kappa_2;
         rBCurvature(2, 5) = kappa_12;
+
+        // Transform from curvilinear to local cartesian basis
+        noalias(rBMembrane) = prod(m_T_vector[IntegrationPointIndex], rBMembrane);
+        noalias(rBCurvature) = prod(m_T_vector[IntegrationPointIndex], rBCurvature);
     }
 
     void ActiveShell3pElement::CalculateBCurvature(
@@ -1150,6 +1154,35 @@ namespace Kratos
 
         // e12 actuator (γ)
         rSecondVariationActuatedStrain[2](2, 2) = 0.5 * (-A12 * std::cos(gamma) - h * std::sin(gamma));
+
+        // Transform second-variation blocks to the local Cartesian basis
+        std::vector<Matrix> second_variation_curvilinear(3);
+        for (int i = 0; i < 3; ++i) {
+            second_variation_curvilinear[i] = rSecondVariationActuatedStrain[i];
+            noalias(rSecondVariationActuatedStrain[i]) = ZeroMatrix(6, 6);
+        }
+
+        const Matrix& r_T = m_T_vector[IntegrationPointIndex];
+        for (IndexType r = 0; r < 6; ++r) {
+            for (IndexType s = 0; s <= r; ++s) {
+                const double curvilinear_B11 = second_variation_curvilinear[0](r, s);
+                const double curvilinear_B22 = second_variation_curvilinear[1](r, s);
+                const double curvilinear_B12 = second_variation_curvilinear[2](r, s);
+
+                const double transformed_B11 = r_T(0, 0) * curvilinear_B11 + r_T(0, 1) * curvilinear_B22 + r_T(0, 2) * curvilinear_B12;
+                const double transformed_B22 = r_T(1, 0) * curvilinear_B11 + r_T(1, 1) * curvilinear_B22 + r_T(1, 2) * curvilinear_B12;
+                const double transformed_B12 = r_T(2, 0) * curvilinear_B11 + r_T(2, 1) * curvilinear_B22 + r_T(2, 2) * curvilinear_B12;
+
+                rSecondVariationActuatedStrain[0](r, s) = transformed_B11;
+                rSecondVariationActuatedStrain[0](s, r) = transformed_B11;
+
+                rSecondVariationActuatedStrain[1](r, s) = transformed_B22;
+                rSecondVariationActuatedStrain[1](s, r) = transformed_B22;
+
+                rSecondVariationActuatedStrain[2](r, s) = transformed_B12;
+                rSecondVariationActuatedStrain[2](s, r) = transformed_B12;
+            }
+        }
     }
 
     ///@}
