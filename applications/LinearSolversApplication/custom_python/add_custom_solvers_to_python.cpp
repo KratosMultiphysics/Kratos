@@ -26,6 +26,9 @@
 #include "custom_solvers/eigen_dense_direct_solver.h"
 #include "custom_solvers/eigen_dense_eigenvalue_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
+#include "custom_solvers/eigen_cholmod_solver.hpp" // EigenCholmodSolver
+#include "custom_solvers/eigen_spqr_solver.hpp" // EigenSPQRSolver
+#include "custom_solvers/eigen_umfpack_solver.hpp" // EigenUmfPackSolver
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
@@ -245,6 +248,15 @@ void AddCustomSolversToPython(pybind11::module& m)
         .def(pybind11::init<Parameters>())
         ;
 #endif // defined USE_EIGEN_MKL
+
+#ifdef KRATOS_USE_EIGEN_SUITESPARSE
+    register_solver<EigenCholmodSolver<double>>(m, "CholmodSolver");
+    register_solver<EigenSPQRSolver<double>>(m, "SPQRSolver");
+    register_solver<EigenSPQRSolver<complex>>(m, "ComplexSPQRSolver");
+
+    register_solver<EigenUmfPackSolver<double>>(m, "UmfPackSolver");
+    register_solver<EigenUmfPackSolver<complex>>(m, "ComplexUmfPackSolver");
+#endif // KRATOS_USE_EIGEN_SUITESPARSE
 
     register_base_dense_solver(m);
 
