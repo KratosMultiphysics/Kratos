@@ -14,6 +14,7 @@
 #pragma once
 
 // System includes
+#include <algorithm>
 
 // Project includes
 #include "includes/model_part.h"
@@ -151,7 +152,34 @@ public:
      */
     static IdsView CellIdsByK(const KnotSpanIdsCSR& S, const std::size_t k)
     {
-        return IdsView{ S.pool.data() + S.nnz_off[k], S.nnz_len[k] };
+        if (k >= S.nnz_off.size() || k >= S.nnz_len.size()) {
+            KRATOS_WARNING_ONCE("SnakeGapSbmProcess")
+                << "CellIdsByK received index " << k << " but nnz_off has size "
+                << S.nnz_off.size() << " and nnz_len has size " << S.nnz_len.size() << ". "
+                << "Returning empty view to avoid accessing invalid data." << std::endl;
+            return {};
+        }
+
+        const std::size_t offset = S.nnz_off[k];
+        const std::size_t length = S.nnz_len[k];
+        const std::size_t pool_size = S.pool.size();
+
+        if (offset >= pool_size) {
+            KRATOS_WARNING_ONCE("SnakeGapSbmProcess")
+                << "CellIdsByK computed offset " << offset << " beyond pool size "
+                << pool_size << ". Returning empty view to avoid invalid access." << std::endl;
+            return {};
+        }
+
+        const std::size_t max_length = pool_size - offset;
+        const std::size_t safe_length = std::min(length, max_length);
+        if (safe_length != length) {
+            KRATOS_WARNING_ONCE("SnakeGapSbmProcess")
+                << "CellIdsByK clipped entry length from " << length << " to "
+                << safe_length << " to stay within pool bounds (" << pool_size << ")." << std::endl;
+        }
+
+        return IdsView{ S.pool.data() + offset, safe_length };
     }
 
     /**
