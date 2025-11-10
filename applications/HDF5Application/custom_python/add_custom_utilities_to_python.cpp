@@ -12,6 +12,8 @@
 
 // External includes
 #include <pybind11/stl.h>
+#include <pybind11/functional.h>
+#include <pybind11/stl/filesystem.h>
 
 // Internal includes
 #include "add_custom_utilities_to_python.h"
@@ -21,12 +23,10 @@
 #include "custom_utilities/vertex_utilities.h"
 #include "custom_utilities/container_io_utils.h"
 #include "custom_utilities/data_type_utilities.h"
+#include "custom_utilities/journal.hpp"
 
 
-namespace Kratos
-{
-namespace Python
-{
+namespace Kratos::Python {
 
 
 class PointLocatorAdaptorTrampoline : public HDF5::PointLocatorAdaptor
@@ -86,6 +86,8 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
         .def("GetID", &HDF5::Detail::Vertex::GetID)
         ;
 
+    #undef KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING
+
     pybind11::class_<HDF5::Detail::VertexContainerType, HDF5::Detail::VertexContainerType::Pointer>(rModule, "VertexContainer")
         .def(pybind11::init<>())
         .def("push_back", pybind11::overload_cast<const HDF5::Detail::VertexContainerType::pointer&>(&HDF5::Detail::VertexContainerType::push_back))
@@ -97,9 +99,67 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
     sub_module.def("GetListOfAvailableVariables", &HDF5::Internals::GetListOfAvailableVariables<ModelPart::ElementsContainerType>, pybind11::arg("container"), pybind11::arg("data_communicator"));
     sub_module.def("GetListOfAvailableVariables", &HDF5::Internals::GetListOfAvailableVariables<ModelPart::PropertiesContainerType>, pybind11::arg("container"), pybind11::arg("data_communicator"));
 
-    #undef KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING
+    pybind11::class_<JournalBase, JournalBase::Pointer>(rModule, "JournalBase")
+        .def(pybind11::init<const std::filesystem::path&>())
+        .def(pybind11::init<const std::filesystem::path&,const JournalBase::Extractor&>())
+        .def("GetFilePath",
+             &JournalBase::GetFilePath,
+             "Get the path to the underlying file.")
+        .def("SetExtractor",
+             pybind11::overload_cast<const JournalBase::Extractor&>(&JournalBase::SetExtractor),
+             "Set the extractor handling the conversion from Model to string.")
+        .def("Push",
+             pybind11::overload_cast<const Model&>(&JournalBase::Push),
+             "Insert a new entry at the end, extracted from the input model.")
+        .def("EraseIf",
+             &JournalBase::EraseIf,
+             "Erase all lines from the associated file matching the provided predicate.")
+        .def("Clear",
+             &JournalBase::Clear,
+             "Delete the journal file.")
+        .def("__len__",
+             &JournalBase::size)
+        .def("__iter__",
+             [](const JournalBase& rJournal){return pybind11::make_iterator(rJournal.begin(), rJournal.end());},
+             pybind11::keep_alive<0, 1>())
+        ;
+
+    pybind11::class_<Journal, Journal::Pointer>(rModule, "Journal")
+        .def(pybind11::init<const std::filesystem::path&>())
+        .def(pybind11::init<const std::filesystem::path&,const Journal::Extractor&>())
+        .def("GetFilePath",
+             &Journal::GetFilePath,
+             "Get the path to the underlying file.")
+        .def("SetExtractor",
+             pybind11::overload_cast<const Journal::Extractor&>(&Journal::SetExtractor),
+             "Set the extractor handling the conversion from Model to Parameters.")
+        .def("Push",
+             &Journal::Push,
+             "Insert a new entry at the end, extracted from the input model.")
+        .def("EraseIf",
+             &Journal::EraseIf,
+             "Erase all lines from the associated file matching the provided predicate.")
+        .def("Clear",
+             &Journal::Clear,
+             "Delete the journal file.")
+        .def("__len__",
+             &Journal::size)
+        .def("__iter__",
+             [](const Journal& rJournal){return pybind11::make_iterator(rJournal.begin(), rJournal.end());},
+             pybind11::keep_alive<0, 1>())
+        ;
+
+    #ifdef KRATOS_BUILD_TESTING // <== defined through CMake if cpp test sources are built
+    auto testing_module = rModule.def_submodule("Testing", "Module for testing Python bindings.");
+    testing_module.def("TestJournal", [](const Model& rModel, Journal& rJournal) -> void {
+            constexpr const std::size_t iteration_count = 1e2;
+            IndexPartition<>(iteration_count).for_each([&rModel,&rJournal](std::size_t index){
+                rJournal.Push(rModel);
+            });
+        })
+        ;
+    #endif
 }
 
 
-} // namespace Python
-} // namespace Kratos
+} // namespace Kratos::Python
