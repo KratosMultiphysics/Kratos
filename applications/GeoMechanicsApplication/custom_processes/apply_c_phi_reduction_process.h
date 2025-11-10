@@ -43,15 +43,15 @@ private:
     double                                         mPreviousReductionFactor = 1.0;
     double                                         mReductionIncrement      = 0.1;
 
-    [[nodiscard]] double GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId) const;
+    [[nodiscard]] static double GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId);
 
     [[nodiscard]] double ComputeReducedPhi(double Phi) const;
 
-    [[nodiscard]] double GetAndCheckC(const Properties& rModelPartProperties) const;
+    [[nodiscard]] static double GetAndCheckC(const Properties& rModelPartProperties);
 
-    void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC) const;
+    static void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC);
 
-    void SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue) const;
+    static void SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue);
 
     [[nodiscard]] bool IsStepRestarted() const;
 };

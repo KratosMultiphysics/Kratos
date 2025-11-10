@@ -193,12 +193,12 @@ protected:
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
+    static void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
 
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
-                                              const ElementVariables& rVariables) const;
+    static void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                              const ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
                                        const ElementVariables& rVariables,
@@ -208,11 +208,11 @@ protected:
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
-                                            const ElementVariables& rVariables) const;
+    static void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
+                                            const ElementVariables& rVariables);
 
     [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
+    static void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables);
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
