@@ -154,9 +154,7 @@ void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double Reduc
     SetValueAtElement(rElement, UMAT_PARAMETERS, Umat_parameters);
 }
 
-void ApplyCPhiReductionProcess::SetValueAtElement(Element&                rElement,
-                                                  const Variable<Vector>& rVariable,
-                                                  const Vector&           rValue)
+void ApplyCPhiReductionProcess::SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue)
 {
     // Copies properties
     Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(rElement.GetProperties());
