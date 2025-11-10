@@ -63,15 +63,6 @@ namespace Kratos {
                                 Condition* const wall,
                                 bool& sliding) override;
 
-    template<class NeighbourClassType>
-    void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
-                                               const double OldLocalElasticContactForce[3],
-                                               double LocalElasticContactForce[3],
-                                               const double LocalDeltDisp[3],
-                                               bool& sliding,
-                                               SphericParticle* const element,
-                                               NeighbourClassType* const neighbour);
-
   private:
 
     friend class Serializer;
