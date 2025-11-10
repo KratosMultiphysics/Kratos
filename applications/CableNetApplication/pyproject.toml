@@ -1,11 +1,9 @@
-title = "KratosMultiphysics FluidDynamicsApplication"
-
 [build-system]
     requires = ["hatchling"]
     build-backend = "hatchling.build"
 
 [project]
-    name = "KratosFluidDynamicsApplication"
+    name = "KratosCableNetApplication"
     description = """
         KRATOS Multiphysics ("Kratos") is a framework for building parallel,
         multi-disciplinary simulation software, aiming at modularity,
@@ -20,8 +18,7 @@ title = "KratosMultiphysics FluidDynamicsApplication"
     ]
     requires-python = ">=3.8"
     dependencies = [
-        "KratosMultiphysics=={env:KRATOS_VERSION}",
-        "KratosLinearSolversApplication==${env:KRATOS_VERSION}",
+        "KratosMultiphysics=={env:KRATOS_VERSION}"
     ]
     classifiers = [
         "Programming Language :: Python :: 3",
@@ -33,12 +30,12 @@ title = "KratosMultiphysics FluidDynamicsApplication"
 # List of binaries for this application 
 # (This is a Kratos build script extension and will not work with python build)
 [kratos]
-    libs = ["KratosFluidDynamicsApplication.*", "KratosFluidDynamicsCore.*", "libKratosFluidDynamicsCore.*"]
+    libs = ["KratosCableNetApplication.*", "KratosCableNetCore.*", "libKratosCableNetCore.*"]
 
 # Wheel (py and stubs)
 [tool.hatch.build.targets.wheel]
     include = [
-        "KratosMultiphysics/FluidDynamicsApplication/**/*.py*"
+        "KratosMultiphysics/CableNetApplication/**/*.py*"
     ]
 
 # # Hook to Build Properties
@@ -52,7 +49,7 @@ title = "KratosMultiphysics FluidDynamicsApplication"
 # Editable (py and stubs)
 [tool.hatch.build.targets.editable]
     include = [
-        "KratosMultiphyscis/FluidDynamicsApplication/**/*.py*"
+        "KratosMultiphyscis/CableNetApplication/**/*.py*"
     ]
 
 # Editable (dll, so, binary dependencies)
