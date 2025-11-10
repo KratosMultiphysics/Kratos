@@ -102,13 +102,13 @@ RUN powershell.exe -Command \
     c:\python\313\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.14
-# RUN powershell.exe -Command \
-#     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-#     wget https://www.python.org/ftp/python/3.14.0/python-3.14.0-amd64.exe -OutFile c:\temp\python314.exe; \
-#     mkdir c:\python\314; \
-#     Start-Process c:\temp\python314.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\314' -Wait; \
-#     c:\python\314\python.exe -m pip install --upgrade pip; \
-#     c:\python\314\python.exe -m pip install --upgrade setuptools wheel
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.14.0/python-3.14.0-amd64.exe -OutFile c:\temp\python314.exe; \
+    mkdir c:\python\314; \
+    Start-Process c:\temp\python314.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\314' -Wait; \
+    c:\python\314\python.exe -m pip install --upgrade pip; \
+    c:\python\314\python.exe -m pip install --upgrade setuptools wheel
 
 # Download and extract hdf5
 RUN powershell.exe -Command \

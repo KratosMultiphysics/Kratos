@@ -17,4 +17,5 @@ cd c:\kratos
 
 git clone --depth 1 --single-branch --branch $branch https://github.com/KratosMultiphysics/Kratos.git kratos
 
-c:\python c:\kratos\Kratos\scripts\wheels\windows\build_wheel.py
+c:\python\39\python.exe -m pip install toml build hatchling
+c:\python\39\python.exe c:\kratos\Kratos\scripts\wheels\build_wheel.py
