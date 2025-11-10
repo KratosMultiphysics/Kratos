@@ -53,7 +53,6 @@ private:
                                             const std::vector<std::size_t>& rSecond);
     static bool AreQuadraticRotatedEquivalents(std::vector<std::size_t>        First,
                                                const std::vector<std::size_t>& rSecond);
-    static std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
 
     NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;

@@ -11,6 +11,7 @@
 //
 
 #include "neighbouring_entity_finder.h"
+#include "geometry_utilities.h"
 #include <algorithm>
 
 namespace Kratos
@@ -23,7 +24,7 @@ void NeighbouringEntityFinder::InitializeConditionMaps(ModelPart::ConditionsCont
         rConditions, std::inserter(mConditionNodeIdsToConditions, mConditionNodeIdsToConditions.end()),
         [](auto& rCondition) {
         return NodeIdsToConditionsHashMap::value_type(
-            GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
+            GeometryUtilities::GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
     });
 
     mSortedToUnsortedConditionNodeIds.clear();
@@ -35,15 +36,6 @@ void NeighbouringEntityFinder::InitializeConditionMaps(ModelPart::ConditionsCont
         std::ranges::sort(sorted_ids);
         return std::make_pair(sorted_ids, rPair.first);
     });
-}
-
-std::vector<std::size_t> NeighbouringEntityFinder::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry)
-{
-    std::vector<std::size_t> result;
-    result.reserve(rGeometry.size());
-    std::ranges::transform(rGeometry, std::back_inserter(result),
-                           [](const auto& rNode) { return rNode.Id(); });
-    return result;
 }
 
 void NeighbouringEntityFinder::FindConditionNeighboursBasedOnBoundaryType(
@@ -61,7 +53,7 @@ void NeighbouringEntityFinder::AddNeighbouringElementsToConditionsBasedOnOverlap
     Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
-        const auto element_boundary_node_ids = GetNodeIdsFromGeometry(r_boundary_geometry);
+        const auto element_boundary_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry);
 
         if (mConditionNodeIdsToConditions.contains(element_boundary_node_ids)) {
             SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
