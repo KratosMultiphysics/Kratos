@@ -105,8 +105,17 @@ namespace Kratos
     ///@}
     ///@name Private Operations
     ///@{
-    void NurbsGeometryModeler::CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz,
-        const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool AddSurfaceToModelPart)
+    void NurbsGeometryModeler::CreateAndAddRegularGrid2D( 
+        ModelPart& r_model_part, 
+        const Point& A_xyz, 
+        const Point& B_xyz,
+        const Point& A_uvw, 
+        const Point& B_uvw, 
+        SizeType OrderU, 
+        SizeType OrderV,
+        SizeType NumKnotSpansU,
+        SizeType NumKnotSpansV,
+        bool AddSurfaceToModelPart)
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() ) << "NurbsGeometryModeler: "
             << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;
@@ -250,9 +259,19 @@ namespace Kratos
     }
 
 
-    void NurbsGeometryModeler::CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz,
-        const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV, SizeType OrderW,
-        SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW )
+    void NurbsGeometryModeler::CreateAndAddRegularGrid3D( 
+        ModelPart& r_model_part,
+        const Point& A_xyz,
+        const Point& B_xyz,
+        const Point& A_uvw,
+        const Point& B_uvw,
+        SizeType OrderU,
+        SizeType OrderV,
+        SizeType OrderW,
+        SizeType NumKnotSpansU,
+        SizeType NumKnotSpansV,
+        SizeType NumKnotSpansW,
+        bool AddVolumeToModelPart)
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() || B_xyz.Z() <= A_xyz.Z() ) << "NurbsGeometryModeler: "
             << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;
@@ -340,20 +359,23 @@ namespace Kratos
             insert_knots_w[i] = knot_w;
         }
 
-        // Add geometry to model part
-        if( mParameters.Has("geometry_name") ){
-            p_volume_geometry->SetId(mParameters["geometry_name"].GetString());
-        } else {
-            const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
-            SizeType last_geometry_id = 0;
-            if( number_of_geometries > 0 ){
-                for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
-                    last_geometry_id = it->Id();
+        // In some cases there is no need of add the surface geometry, AddSurfaceToModelPart is true by default
+        if (AddVolumeToModelPart) {
+            // Add geometry to model part
+            if( mParameters.Has("geometry_name") ){
+                p_volume_geometry->SetId(mParameters["geometry_name"].GetString());
+            } else {
+                const SizeType number_of_geometries = r_model_part.NumberOfGeometries();
+                SizeType last_geometry_id = 0;
+                if( number_of_geometries > 0 ){
+                    for( auto it = r_model_part.GeometriesBegin(); it!= r_model_part.GeometriesEnd(); ++it){
+                        last_geometry_id = it->Id();
+                    }
                 }
+                p_volume_geometry->SetId(last_geometry_id+1);
             }
-            p_volume_geometry->SetId(last_geometry_id+1);
+            r_model_part.AddGeometry(p_volume_geometry);
         }
-        r_model_part.AddGeometry(p_volume_geometry);
 
         // Perform knot refinement.
         PointerVector<NodeType> PointsRefined = p_volume_geometry->Points();
@@ -368,6 +390,8 @@ namespace Kratos
             p_volume_geometry->SetInternals(PointsRefined,
                 p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
                 KnotsURefined, p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
+
+                KRATOS_WATCH(KnotsURefined)
         }
         if( NumKnotSpansV > 1) {
             Vector KnotsVRefined;
@@ -379,6 +403,8 @@ namespace Kratos
             p_volume_geometry->SetInternals(PointsRefined,
                 p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
                 p_volume_geometry->KnotsU(), KnotsVRefined, p_volume_geometry->KnotsW());
+
+                KRATOS_WATCH(KnotsVRefined)
         }
         if( NumKnotSpansW > 1) {
             Vector KnotsWRefined;
@@ -390,6 +416,8 @@ namespace Kratos
             p_volume_geometry->SetInternals(PointsRefined,
                 p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
                 p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), KnotsWRefined);
+
+                KRATOS_WATCH(KnotsWRefined)
         }
 
         // Add nodes to model part
@@ -407,6 +435,20 @@ namespace Kratos
         p_volume_geometry->SetInternals(PointsRefined,
             p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
             p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
+
+        KRATOS_WATCH(PointsRefined)
+
+        // exit(0);
+        
+
+        // assign the value p_volume_geometry to the class member mpVolume for derived classes
+        mpVolume = p_volume_geometry;
+        mInsertKnotsU = insert_knots_u;
+        mInsertKnotsV = insert_knots_v;
+        mInsertKnotsW = insert_knots_w;
+        mKnotVectorU = knot_vector_u;
+        mKnotVectorV = knot_vector_v;
+        mKnotVectorW = knot_vector_w;
     }
     ///@}
 } // end namespace kratos

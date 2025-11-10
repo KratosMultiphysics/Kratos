@@ -8,10 +8,10 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Manuel Messmer
+//                   Nicolò Antonelli
 //
 
-#if !defined(KRATOS_NURBS_VOLUME_GEOMETRY_H_INCLUDED )
-#define  KRATOS_NURBS_VOLUME_GEOMETRY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -93,6 +93,7 @@ public:
         , mKnotsW(rKnotsW)
     {
         CheckAndFitKnotVectors();
+        CheckIsRationalOnlyOnce();
     }
 
     /// Attention: Weights are not yet implemented!
@@ -135,7 +136,9 @@ public:
         , mKnotsU(rOther.mKnotsU)
         , mKnotsV(rOther.mKnotsV)
         , mKnotsW(rOther.mKnotsW)
+        , mpGeometryParent(rOther.mpGeometryParent)
     {
+        CheckIsRationalOnlyOnce();
     }
 
     /// Copy constructor from a geometry with different point type.
@@ -148,6 +151,7 @@ public:
         , mKnotsU(rOther.mKnotsU)
         , mKnotsV(rOther.mKnotsV)
         , mKnotsW(rOther.mKnotsW)
+        , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
 
@@ -168,6 +172,7 @@ public:
         mKnotsU = rOther.mKnotsU;
         mKnotsV = rOther.mKnotsV;
         mKnotsW = rOther.mKnotsW;
+        mpGeometryParent = rOther.mpGeometryParent;
         return *this;
     }
 
@@ -183,6 +188,7 @@ public:
         mKnotsU = rOther.mKnotsU;
         mKnotsV = rOther.mKnotsV;
         mKnotsW = rOther.mKnotsW;
+        mpGeometryParent = rOther.mpGeometryParent;
         return *this;
     }
 
@@ -194,6 +200,20 @@ public:
         PointsArrayType const& ThisPoints) const override
     {
         return Kratos::make_shared<NurbsVolumeGeometry>(ThisPoints);
+    }
+
+    ///@}
+    ///@name Parent
+    ///@{
+
+    BaseType& GetGeometryParent(IndexType Index) const override
+    {
+        return *mpGeometryParent;
+    }
+
+    void SetGeometryParent(BaseType* pGeometryParent) override
+    {
+        mpGeometryParent = pGeometryParent;
     }
 
     ///@}
@@ -341,6 +361,23 @@ public:
         return mKnotsW.size();
     }
 
+    /* Checks if shape functions are rational or not.
+     * @mRational is true if NURBS, false if B-Splines only (all weights are considered as 1) */
+    void CheckIsRationalOnlyOnce()
+    {
+        if (mWeights.size() == 0)
+            mIsRational = false;
+        else {
+            mIsRational = false;
+            for (IndexType i = 0; i < mWeights.size(); ++i) {
+                if (std::abs(mWeights[i] - 1.0) > 1e-8) {
+                    mIsRational = true;
+                    break;
+                }
+            }
+        }
+    }
+
     /**
      * @brief Checks if shape functions are rational or not.
      * @return False. Weights are not yet considered.
@@ -416,6 +453,54 @@ public:
                 << DirectionIndex << " not available. Options are: 0, 1 and 2." << std::endl;
         }
         return knot_span_counter;
+    }
+
+    /* @brief Provides all knot spans within direction u.
+     * @param return vector of span intervals.
+     * @param index of direction: 0: U; 1: V.
+     */
+    void SpansLocalSpace(
+        std::vector<double>& rSpans, 
+        IndexType DirectionIndex
+    ) const override
+    {
+        rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
+
+        if (DirectionIndex == 0) {
+            rSpans[0] = mKnotsU[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+                if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsU[i + 1];
+                    counter++;
+                }
+            }
+        }
+        else if (DirectionIndex == 1) {
+            rSpans[0] = mKnotsV[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+                if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsV[i + 1];
+                    counter++;
+                }
+            }
+        } else if (DirectionIndex == 2) {
+            rSpans[0] = mKnotsW[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsW.size() - 1; i++) {
+                if (std::abs(mKnotsW[i] - mKnotsW[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsW[i + 1];
+                    counter++;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "NurbsVolumeGeometry::Spans: Direction index: "
+                << DirectionIndex << " not available. Options are: 0, 1 and 2." << std::endl;
+        }
     }
 
     /**
@@ -736,88 +821,88 @@ public:
     {
         // Option 1: One QuadraturePointGeometry is created containing all integration points. This should be used
         // when all rIntegrationPoints are located inside the same element.
-        if(  IntegrationInfo::QuadratureMethod::GAUSS == rIntegrationInfo.GetQuadratureMethod(0) ){
-            KRATOS_ERROR_IF(NumberOfShapeFunctionDerivatives != 2) << "NumberOfShapeFunctionDerivatives must be 2.\n";
-            // Shape function container.
-            NurbsVolumeShapeFunction shape_function_container(
-                mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, NumberOfShapeFunctionDerivatives);
+        // if(  IntegrationInfo::QuadratureMethod::GAUSS == rIntegrationInfo.GetQuadratureMethod(0) ){
+        //     KRATOS_ERROR_IF(NumberOfShapeFunctionDerivatives != 2) << "NumberOfShapeFunctionDerivatives must be 2.\n";
+        //     // Shape function container.
+        //     NurbsVolumeShapeFunction shape_function_container(
+        //         mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, NumberOfShapeFunctionDerivatives);
 
-            // Resize containers.
-            if (rResultGeometries.size() != 1){
-                rResultGeometries.resize(1);
-            }
+        //     // Resize containers.
+        //     if (rResultGeometries.size() != 1){
+        //         rResultGeometries.resize(1);
+        //     }
 
-            const auto default_method = this->GetDefaultIntegrationMethod();
+        //     const auto default_method = this->GetDefaultIntegrationMethod();
 
-            const SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
-            const SizeType num_points = rIntegrationPoints.size();
-            KRATOS_ERROR_IF(num_points < 1) << "List of integration points is empty.\n";
+        //     const SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+        //     const SizeType num_points = rIntegrationPoints.size();
+        //     KRATOS_ERROR_IF(num_points < 1) << "List of integration points is empty.\n";
 
-            // Initialize containers.
-            IntegrationPointsContainerType integration_points;
-            ShapeFunctionsValuesContainerType shape_function_values;
-            ShapeFunctionsLocalGradientsContainerType shape_function_gradients;
+        //     // Initialize containers.
+        //     IntegrationPointsContainerType integration_points;
+        //     ShapeFunctionsValuesContainerType shape_function_values;
+        //     ShapeFunctionsLocalGradientsContainerType shape_function_gradients;
 
-            integration_points[0] = rIntegrationPoints;
-            shape_function_gradients[0].resize(rIntegrationPoints.size());
-            shape_function_values[0].resize(rIntegrationPoints.size(), num_nonzero_cps);
+        //     integration_points[0] = rIntegrationPoints;
+        //     shape_function_gradients[0].resize(rIntegrationPoints.size());
+        //     shape_function_values[0].resize(rIntegrationPoints.size(), num_nonzero_cps);
 
-            for( IndexType i_point = 0; i_point < num_points; ++i_point){
-                shape_function_gradients[0][i_point].resize(num_nonzero_cps, 3);
-            }
+        //     for( IndexType i_point = 0; i_point < num_points; ++i_point){
+        //         shape_function_gradients[0][i_point].resize(num_nonzero_cps, 3);
+        //     }
 
-            // Centroid of points. This will be used to identify knot span.
-            // Single point might be located on the boundary of two knot spans.
-            array_1d<double, 3> centroid(3, 0.0);
+        //     // Centroid of points. This will be used to identify knot span.
+        //     // Single point might be located on the boundary of two knot spans.
+        //     array_1d<double, 3> centroid(3, 0.0);
 
-            // Fill containers
-            for (IndexType i_point = 0; i_point < num_points; ++i_point)
-            {
-                // Compute centroid.
-                centroid += rIntegrationPoints[i_point].Coordinates();
+        //     // Fill containers
+        //     for (IndexType i_point = 0; i_point < num_points; ++i_point)
+        //     {
+        //         // Compute centroid.
+        //         centroid += rIntegrationPoints[i_point].Coordinates();
 
-                shape_function_container.ComputeBSplineShapeFunctionValues(
-                    mKnotsU, mKnotsV, mKnotsW,
-                    rIntegrationPoints[i_point][0], rIntegrationPoints[i_point][1], rIntegrationPoints[i_point][2]);
+        //         shape_function_container.ComputeBSplineShapeFunctionValues(
+        //             mKnotsU, mKnotsV, mKnotsW,
+        //             rIntegrationPoints[i_point][0], rIntegrationPoints[i_point][1], rIntegrationPoints[i_point][2]);
 
-                /// Get Shape Functions.
-                for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-                    shape_function_values[0](i_point, j) = shape_function_container(j, 0);
-                }
+        //         /// Get Shape Functions.
+        //         for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+        //             shape_function_values[0](i_point, j) = shape_function_container(j, 0);
+        //         }
 
-                // Get Shape Function Derivatives DN_De, ...
-                for (IndexType k = 0; k < 3; ++k) {
-                    for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-                        shape_function_gradients[0][i_point](j, k) = shape_function_container(j, 1 + k);
-                    }
-                }
-            }
+        //         // Get Shape Function Derivatives DN_De, ...
+        //         for (IndexType k = 0; k < 3; ++k) {
+        //             for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+        //                 shape_function_gradients[0][i_point](j, k) = shape_function_container(j, 1 + k);
+        //             }
+        //         }
+        //     }
 
-            /// Get List of Control Points.
-            PointsArrayType nonzero_control_points(num_nonzero_cps);
-            centroid /= num_points;
-            shape_function_container.ComputeBSplineShapeFunctionValues(
-                    mKnotsU, mKnotsV, mKnotsW,
-                    centroid[0], centroid[1], centroid[2]);
+        //     /// Get List of Control Points.
+        //     PointsArrayType nonzero_control_points(num_nonzero_cps);
+        //     centroid /= num_points;
+        //     shape_function_container.ComputeBSplineShapeFunctionValues(
+        //             mKnotsU, mKnotsV, mKnotsW,
+        //             centroid[0], centroid[1], centroid[2]);
 
-            auto cp_indices = shape_function_container.ControlPointIndices(
-                NumberOfControlPointsU(), NumberOfControlPointsV(), NumberOfControlPointsW());
+        //     auto cp_indices = shape_function_container.ControlPointIndices(
+        //         NumberOfControlPointsU(), NumberOfControlPointsV(), NumberOfControlPointsW());
 
-            for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-                nonzero_control_points(j) = pGetPoint(cp_indices[j]);
-            }
+        //     for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+        //         nonzero_control_points(j) = pGetPoint(cp_indices[j]);
+        //     }
 
-            // Instantiate shape function container.
-            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                default_method, integration_points,
-                shape_function_values, shape_function_gradients);
+        //     // Instantiate shape function container.
+        //     GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+        //         default_method, integration_points,
+        //         shape_function_values, shape_function_gradients);
 
-            // Create quadrature point geometry.
-            rResultGeometries(0) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points, this);
-        }
-        // Option 2: A list of QuadraturePointGeometry is created, one for each integration points.
-        else if ( IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS == rIntegrationInfo.GetQuadratureMethod(0) ) {
+        //     // Create quadrature point geometry.
+        //     rResultGeometries(0) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
+        //         this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points, this);
+        // }
+        // // Option 2: A list of QuadraturePointGeometry is created, one for each integration points.
+        // else if ( IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS == rIntegrationInfo.GetQuadratureMethod(0) ) {
             // Shape function container.
             NurbsVolumeShapeFunction shape_function_container(
                 mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, NumberOfShapeFunctionDerivatives);
@@ -876,9 +961,9 @@ public:
                 rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
                     this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points, this);
             }
-        } else {
-            KRATOS_ERROR << "Integration method not available.\n";
-        }
+        // } else {
+        //     KRATOS_ERROR << "Integration method not available.\n";
+        // }
     }
 
     ///@}
@@ -1173,7 +1258,11 @@ private:
     Vector mKnotsU;
     Vector mKnotsV;
     Vector mKnotsW;
-    // Vector mWeights;
+    Vector mWeights;
+    bool mIsRational;
+
+    /// A NurbsSurface may refer to the BrepSurface as geometry parent.
+    BaseType* mpGeometryParent = nullptr;
 
     ///@}
     ///@name Private Operations
@@ -1242,7 +1331,8 @@ private:
         rSerializer.save("KnotsU", mKnotsU);
         rSerializer.save("KnotsV", mKnotsV);
         rSerializer.save("KnotsW", mKnotsW);
-        // rSerializer.save("Weights", mWeights);
+        rSerializer.save("Weights", mWeights);
+        rSerializer.save("pGeometryParent", mpGeometryParent);
     }
 
     void load(Serializer& rSerializer) override
@@ -1254,7 +1344,8 @@ private:
         rSerializer.load("KnotsU", mKnotsU);
         rSerializer.load("KnotsV", mKnotsV);
         rSerializer.load("KnotsW", mKnotsW);
-        // rSerializer.load("Weights", mWeights);
+        rSerializer.load("Weights", mWeights);
+        rSerializer.load("pGeometryParent", mpGeometryParent);
     }
 
     NurbsVolumeGeometry() : BaseType(PointsArrayType(), &msGeometryData) {};
@@ -1295,5 +1386,3 @@ template<class TPointType>
 const GeometryDimension NurbsVolumeGeometry<TPointType>::msGeometryDimension(3, 3);
 
 } // namespace Kratos
-
-#endif // KRATOS_NURBS_VOLUME_GEOMETRY_H_INCLUDED defined

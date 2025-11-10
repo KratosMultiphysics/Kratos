@@ -29,7 +29,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template<bool TShiftedBoundary, class TNodeType = Node>
+template<class TNodeType = Node>
 class KRATOS_API(KRATOS_CORE) BrepSbmUtilities
 {
 public:
@@ -38,13 +38,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
+    using IndexType = std::size_t;
+    using SizeType = std::size_t;
 
-    typedef IntegrationPoint<3> IntegrationPointType;
-    typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
-
-    using BrepCurveOnSurfacePointerType = typename BrepCurveOnSurface<PointerVector<Node>, TShiftedBoundary, PointerVector<Point>>::Pointer;
+    using IntegrationPointType = IntegrationPoint<3>;
+    using IntegrationPointsArrayType = std::vector<IntegrationPointType>;
 
     using GeometryType = Geometry<TNodeType>;
     using GeometryPointerType = typename GeometryType::Pointer;

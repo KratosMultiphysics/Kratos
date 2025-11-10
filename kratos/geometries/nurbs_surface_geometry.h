@@ -333,16 +333,17 @@ public:
      * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
     bool IsRational() const
     {
-        if (mWeights.size() == 0)
-            return false;
-        else {
-            for (IndexType i = 0; i < mWeights.size(); ++i) {
-                if (std::abs(mWeights[i] - 1.0) > 1e-8) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        // if (mWeights.size() == 0)
+        //     return false;
+        // else {
+        //     for (IndexType i = 0; i < mWeights.size(); ++i) {
+        //         if (std::abs(mWeights[i] - 1.0) > 1e-8) {
+        //             return true;
+        //         }
+        //     }
+        //     return false;
+        // }
+        return false;
     }
 
     /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
@@ -833,7 +834,7 @@ public:
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 1);
 
         if (mIsRational) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
@@ -842,13 +843,13 @@ public:
             shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
         }
 
-        if (rResult.size1() != 2
-            && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
-            rResult.resize(2, shape_function_container.NumberOfNonzeroControlPoints());
+        if (rResult.size2() != 2
+            || rResult.size1() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints(), 2);
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-            rResult(0, i) = shape_function_container(i, 1);
-            rResult(1, i) = shape_function_container(i, 2);
+            rResult(i, 0) = shape_function_container(i, 1);
+            rResult(i, 1) = shape_function_container(i, 2);
         }
 
         return rResult;

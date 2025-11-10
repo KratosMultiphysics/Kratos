@@ -103,6 +103,38 @@ protected:
         const SizeType NumKnotSpansU, 
         const SizeType NumKnotSpansV, 
         const bool AddSurfaceToModelPart) override;
+    
+
+    /**
+     * @brief Create a And Add Regular Grid 3 D object
+     * 
+     * @param rModelPart 
+     * @param A_xyz 
+     * @param B_xyz 
+     * @param A_uvw 
+     * @param B_uvw 
+     * @param OrderU 
+     * @param OrderV 
+     * @param OrderW 
+     * @param NumKnotSpansU 
+     * @param NumKnotSpansV 
+     * @param NumKnotSpansW 
+     * @param AddVolumeToModelPart 
+     * @return * void 
+     */
+    void CreateAndAddRegularGrid3D(
+        ModelPart& rModelPart, 
+        const Point& A_xyz, 
+        const Point& B_xyz, 
+        const Point& A_uvw, 
+        const Point& B_uvw,
+        const SizeType OrderU, 
+        const SizeType OrderV, 
+        const SizeType OrderW, 
+        const SizeType NumKnotSpansU, 
+        const SizeType NumKnotSpansV, 
+        const SizeType NumKnotSpansW, 
+        const bool AddVolumeToModelPart) override;
 
 private:
 

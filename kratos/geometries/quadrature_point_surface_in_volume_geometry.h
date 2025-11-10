@@ -8,6 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Manuel Messmer
+//                   Nicolò Antonelli
+//                   Andrea Gorgi
 //
 
 #if !defined(KRATOS_QUADRATURE_POINT_SURFACE_IN_VOLUME_GEOMETRY_H_INCLUDED )
@@ -26,13 +28,13 @@ namespace Kratos
 /**
  * @class QuadraturePointSurfaceInVolumeGeometry
  * @ingroup KratosCore
- * @brief A single quadrature point, that can be used for geometries without
+ * @brief A sinlge quadrature point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single quadrature point.
  *        This point defines a surface segment described in a underlying volume.
  *        Shape functions and integration types have to be precomputed and are set from outside.
- *        The parent pointer can provide the address to the owner of this quadrature point.
+ *        The parent pointer can provide the adress to the owner of this quadrature point.
  */
 template<class TPointType>
 class QuadraturePointSurfaceInVolumeGeometry
@@ -75,6 +77,22 @@ public:
             << "QuadraturePointSurfaceInVolumeGeometry :: Dimensions of LocalTangents do not match (3,2). "
             << "Given Dimensions are: (" << LocalTangents.size1() << "," << LocalTangents.size2() <<"). " << std::endl;
         mLocalTangents = LocalTangents;
+    }
+
+    // COntructor for SBM with the normal
+    QuadraturePointSurfaceInVolumeGeometry(
+        const PointsArrayType& ThisPoints,
+        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        const TangentMatrixType& LocalTangents,
+        GeometryType* pGeometryParent,
+        Vector& Normal)
+        : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer, pGeometryParent)
+    {
+        KRATOS_ERROR_IF( mLocalTangents.size1() != LocalTangents.size1() || mLocalTangents.size2() != LocalTangents.size2() )
+            << "QuadraturePointSurfaceInVolumeGeometry :: Dimensions of LocalTangents do not match (3,2). "
+            << "Given Dimensions are: (" << LocalTangents.size1() << "," << LocalTangents.size2() <<"). " << std::endl;
+        mLocalTangents = LocalTangents;
+        mNormal = Normal;
     }
 
     /// Constructor with points, geometry shape function container and parent
@@ -142,6 +160,21 @@ public:
                 rOutput.resize(mLocalTangents.size1(),mLocalTangents.size2());
             }
             rOutput = mLocalTangents;
+        }
+    } 
+    
+    /// Calculate with Matrix
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) const override
+    {
+        if (rVariable == NORMAL) {
+            if( rOutput.size() != mNormal.size()){
+                rOutput.resize(mNormal.size());
+            }
+
+            if (mNormal.size() == 0) KRATOS_ERROR << "[QUADRATURE_POINT_IN_SURFACE_GEOMETRY]:: Normal not defined" << std::endl;
+            rOutput = mNormal;
         }
     }
 
@@ -275,6 +308,7 @@ private:
     ///@{
 
     TangentMatrixType mLocalTangents;
+    Vector mNormal;
 
     ///@}
     ///@name Serialization

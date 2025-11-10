@@ -7,16 +7,11 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Tobias Teschemacher
-//                   Andreas Apostolatos
-//                   Pooyan Dadvand
-//                   Philipp Bucher
-//                   Nicolò Antonelli
+//  Main authors:    Nicolò Antonelli
 //                   Andrea Gorgi
 //
 
-#if !defined(KRATOS_BREP_FACE_3D_H_INCLUDED )
-#define  KRATOS_BREP_FACE_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -24,11 +19,10 @@
 
 // Project includes
 #include "geometries/geometry.h"
-#include "geometries/brep_curve_on_surface.h"
+#include "geometries/brep_surface_on_volume.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
-// trimming integration
-#include "utilities/geometry_utilities/brep_trimming_utilities.h"
+// integration
 #include "utilities/geometry_utilities/brep_sbm_utilities.h"
 
 namespace Kratos
@@ -37,15 +31,15 @@ namespace Kratos
 ///@{
 
 /**
- * @class BrepSurface
+ * @class BrepVolume
  * @ingroup KratosCore
- * @brief The BrepSurface acts as topology for faces. Those
+ * @brief The BrepVolume acts as topology for faces. Those
  *        can be enclosed by a certain set of brep face curves.
  * @tparam TShiftedBoundary Boolean flag indicating whether is 
  *        defined with shifted boundary conditions.
  */
 template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType>
-class BrepSurface
+class BrepVolume
     : public Geometry<typename TContainerPointType::value_type>
 {
 public:
@@ -53,8 +47,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /** Pointer definition of BrepSurface */
-    KRATOS_CLASS_POINTER_DEFINITION( BrepSurface );
+    /** Pointer definition of BrepVolume */
+    KRATOS_CLASS_POINTER_DEFINITION( BrepVolume );
 
     typedef typename TContainerPointType::value_type PointType;
 
@@ -65,15 +59,14 @@ public:
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
-    typedef BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
+    typedef NurbsVolumeGeometry<TContainerPointType> NurbsVolumeType;
+    typedef BrepSurfaceOnVolume<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType> BrepSurfaceOnVolumeType;
 
-    typedef BrepTrimmingUtilities<TShiftedBoundary> BrepTrimmingUtilitiesType;
     typedef BrepSbmUtilities<Node> BrepSbmUtilitiesType;
 
-    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
-    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
-    typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
+    typedef DenseVector<typename BrepSurfaceOnVolumeType::Pointer> BrepSurfaceOnVolumeArrayType;
+    typedef DenseVector<typename BrepSurfaceOnVolumeType::Pointer> BrepSurfaceOnVolumeLoopType;
+    typedef DenseVector<DenseVector<typename BrepSurfaceOnVolumeType::Pointer>> BrepSurfaceOnVolumeLoopArrayType;
 
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
 
@@ -89,21 +82,21 @@ public:
     ///@{
 
     /// Constructor for untrimmed patch
-    BrepSurface(
-        typename NurbsSurfaceType::Pointer pSurface)
+    BrepVolume(
+        typename NurbsVolumeType::Pointer pVolume)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
+        , mpNurbsVolume(pVolume)
     {
         mIsTrimmed = false;
     }
 
     /// Constructor for trimmed patch
-    BrepSurface(
-        typename NurbsSurfaceType::Pointer pSurface,
-        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
-        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray)
+    BrepVolume(
+        typename NurbsVolumeType::Pointer pVolume,
+        BrepSurfaceOnVolumeLoopArrayType& BrepOuterLoopArray,
+        BrepSurfaceOnVolumeLoopArrayType& BrepInnerLoopArray)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
+        , mpNurbsVolume(pVolume)
         , mOuterLoopArray(BrepOuterLoopArray)
         , mInnerLoopArray(BrepInnerLoopArray)
     {
@@ -111,41 +104,28 @@ public:
     }
 
     /// Constructor for trimmed patch including IsTrimmed
-    BrepSurface(
-        typename NurbsSurfaceType::Pointer pSurface,
-        BrepCurveOnSurfaceLoopArrayType& BrepOuterLoopArray,
-        BrepCurveOnSurfaceLoopArrayType& BrepInnerLoopArray,
+    BrepVolume(
+        typename NurbsVolumeType::Pointer pVolume,
+        BrepSurfaceOnVolumeLoopArrayType& BrepOuterLoopArray,
+        BrepSurfaceOnVolumeLoopArrayType& BrepInnerLoopArray,
         bool IsTrimmed)
         : BaseType(PointsArrayType(), &msGeometryData)
-        , mpNurbsSurface(pSurface)
+        , mpNurbsVolume(pVolume)
         , mOuterLoopArray(BrepOuterLoopArray)
         , mInnerLoopArray(BrepInnerLoopArray)
         , mIsTrimmed(IsTrimmed)
     {
     }
 
-    explicit BrepSurface(const PointsArrayType& ThisPoints)
+    explicit BrepVolume(const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &msGeometryData)
     {
     }
 
     /// Copy constructor.
-    BrepSurface( BrepSurface const& rOther )
+    BrepVolume( BrepVolume const& rOther )
         : BaseType( rOther )
-        , mpNurbsSurface(rOther.mpNurbsSurface)
-        , mOuterLoopArray(rOther.mOuterLoopArray)
-        , mInnerLoopArray(rOther.mInnerLoopArray)
-        , mEmbeddedEdgesArray(rOther.mEmbeddedEdgesArray)
-        , mIsTrimmed(rOther.mIsTrimmed)
-    {
-    }
-
-    /// Copy constructor from a geometry with different point type.
-    template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
-    explicit BrepSurface(
-        BrepSurface<TOtherContainerPointType, TShiftedBoundary, TOtherContainerPointEmbeddedType> const& rOther )
-        : BaseType( rOther )
-        , mpNurbsSurface(rOther.mpNurbsSurface)
+        , mpNurbsVolume(rOther.mpNurbsVolume)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
         , mEmbeddedEdgesArray(rOther.mEmbeddedEdgesArray)
@@ -154,17 +134,17 @@ public:
     }
 
     /// Destructor
-    ~BrepSurface() override = default;
+    ~BrepVolume() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    BrepSurface& operator=( const BrepSurface& rOther )
+    BrepVolume& operator=( const BrepVolume& rOther )
     {
         BaseType::operator=( rOther );
-        mpNurbsSurface = rOther.mpNurbsSurface;
+        mpNurbsVolume = rOther.mpNurbsVolume;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
         mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
@@ -176,10 +156,10 @@ public:
 
     /// Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
-    BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TShiftedBoundary, TOtherContainerPointEmbeddedType> const & rOther )
+    BrepVolume& operator=( BrepVolume<TOtherContainerPointType, TShiftedBoundary, TOtherContainerPointEmbeddedType> const & rOther )
     {
         BaseType::operator=( rOther );
-        mpNurbsSurface = rOther.mpNurbsSurface;
+        mpNurbsVolume = rOther.mpNurbsVolume;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
         mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
@@ -195,140 +175,9 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new BrepSurface( ThisPoints ) );
+        return typename BaseType::Pointer( new BrepVolume( ThisPoints ) );
     }
 
-    ///@}
-    ///@name Access to Geometry Parts
-    ///@{
-
-    /**
-    * @brief This function returns the pointer of the geometry
-    *        which is corresponding to the trim index.
-    *        Surface of the geometry is accessible with SURFACE_INDEX.
-    * @param Index: trim_index or SURFACE_INDEX.
-    * @return pointer of geometry, corresponding to the index.
-    */
-    GeometryPointer pGetGeometryPart(const IndexType Index) override
-    {
-        const auto& const_this = *this;
-        return std::const_pointer_cast<GeometryType>(
-            const_this.pGetGeometryPart(Index));
-    }
-
-    /**
-    * @brief This function returns the pointer of the geometry
-    *        which is corresponding to the trim index.
-    *        Surface of the geometry is accessible with GeometryType::BACKGROUND_GEOMETRY_INDEX.
-    * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
-    * @return pointer of geometry, corresponding to the index.
-    */
-    const GeometryPointer pGetGeometryPart(const IndexType Index) const override
-    {
-        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
-            return mpNurbsSurface;
-
-        for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
-        {
-            for (IndexType j = 0; j < mOuterLoopArray[i].size(); ++j)
-            {
-                if (mOuterLoopArray[i][j]->Id() == Index)
-                    return mOuterLoopArray[i][j];
-            }
-        }
-
-        for (IndexType i = 0; i < mInnerLoopArray.size(); ++i)
-        {
-            for (IndexType j = 0; j < mInnerLoopArray[i].size(); ++j)
-            {
-                if (mInnerLoopArray[i][j]->Id() == Index)
-                    return mInnerLoopArray[i][j];
-            }
-        }
-
-        for (IndexType i = 0; i < mEmbeddedEdgesArray.size(); ++i)
-        {
-            if (mEmbeddedEdgesArray[i]->Id() == Index)
-                return mEmbeddedEdgesArray[i];
-        }
-
-        KRATOS_ERROR << "Index " << Index << " not existing in BrepSurface: "
-            << this->Id() << std::endl;
-    }
-
-    /**
-    * @brief This function is used to check if this BrepSurface
-    *        has certain trim or surface object.
-    * @param Index of the geometry part.
-    * @return true if has trim or surface
-    */
-    bool HasGeometryPart(const IndexType Index) const override
-    {
-        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
-            return true;
-
-        for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
-        {
-            for (IndexType j = 0; j < mOuterLoopArray[i].size(); ++j)
-            {
-                if (mOuterLoopArray[i][j]->Id() == Index)
-                    return true;
-            }
-        }
-
-        for (IndexType i = 0; i < mInnerLoopArray.size(); ++i)
-        {
-            for (IndexType j = 0; j < mInnerLoopArray[i].size(); ++j)
-            {
-                if (mInnerLoopArray[i][j]->Id() == Index)
-                    return true;
-            }
-        }
-
-        for (IndexType i = 0; i < mEmbeddedEdgesArray.size(); ++i)
-        {
-            if (mEmbeddedEdgesArray[i]->Id() == Index)
-                return true;
-        }
-
-        return false;
-    }
-
-    /// @brief Used to add the embedded edges to the brep surface.
-    void AddEmbeddedEdges(BrepCurveOnSurfaceArrayType EmbeddedEdges)
-    {
-        mEmbeddedEdgesArray = EmbeddedEdges;
-    }
-
-    /// Access the nested loop of outer loops.
-    const BrepCurveOnSurfaceLoopArrayType& GetOuterLoops() const {
-        return mOuterLoopArray;
-    }
-
-    /// Access the nested loop of inner loops.
-    const BrepCurveOnSurfaceLoopArrayType& GetInnerLoops() const {
-        return mInnerLoopArray;
-    }
-
-    /// Access the array of embedded edges.
-    const BrepCurveOnSurfaceArrayType& GetEmbeddedEdges() const {
-        return mEmbeddedEdgesArray;
-    }
-
-    ///@}
-    ///@name Dynamic access to internals
-    ///@{
-
-    /// Calculate with array_1d<double, 3>
-    void Calculate(
-        const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& rOutput) const override
-    {
-        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
-        {
-            mpNurbsSurface->Calculate(rVariable, rOutput);
-        }
-    }
 
     ///@}
     ///@name Mathematical Informations
@@ -337,26 +186,7 @@ public:
     /// Return polynomial degree of the nurbs surface
     SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
-        return mpNurbsSurface->PolynomialDegree(LocalDirectionIndex);
-    }
-
-    ///@}
-    ///@name Information
-    ///@{
-
-    /*
-    * @brief checks if the BrepSurface has any boundary trim information.
-    * @return true if has no trimming.
-    */
-    bool IsTrimmed() const
-    {
-        return mIsTrimmed;
-    }
-
-    /// Returns number of points of NurbsSurface.
-    SizeType PointsNumberInDirection(IndexType DirectionIndex) const override
-    {
-        return mpNurbsSurface->PointsNumberInDirection(DirectionIndex);
+        return mpNurbsVolume->PolynomialDegree(LocalDirectionIndex);
     }
 
     ///@}
@@ -366,7 +196,7 @@ public:
     /// Provides the center of the underlying surface
     Point Center() const override
     {
-        return mpNurbsSurface->Center();
+        return mpNurbsVolume->Center();
     }
 
     /**
@@ -403,10 +233,9 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
-        return mpNurbsSurface->ProjectionPointGlobalToLocalSpace(
+        return mpNurbsVolume->ProjectionPointGlobalToLocalSpace(
             rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
     }
-
 
 
     /*
@@ -421,7 +250,7 @@ public:
         const CoordinatesArrayType& rLocalCoordinates
     ) const override
      {
-        mpNurbsSurface->GlobalCoordinates(rResult, rLocalCoordinates);
+        mpNurbsVolume->GlobalCoordinates(rResult, rLocalCoordinates);
 
         return rResult;
     }
@@ -433,23 +262,23 @@ public:
     /// Provides the default integration dependent on the polynomial degree.
     IntegrationInfo GetDefaultIntegrationInfo() const override
     {
-        return mpNurbsSurface->GetDefaultIntegrationInfo();
+        return mpNurbsVolume->GetDefaultIntegrationInfo();
     }
 
     ///@}
     ///@name Integration Points
     ///@{
 
-    /* Creates integration points on the nurbs surface of this geometry.
+    /* Creates integration points on the nurbs volume of this geometry.
      * Accounting for whether the surface is trimmed or untrimmed, and whether shifted 
      * boundary conditions are used
      * 
-     * - **Untrimmed Surface**: -> Non-cutting case
+     * - **Untrimmed Volume**: -> Non-cutting case
      *   - If `TShiftedBoundary` is true, the method prepares for the shifted boundary method (SBM) 
      *   - Otherwise, it directly uses `CreateIntegrationPoints` from the underlying NURBS surface.
-     * - **Trimmed Surface**: -> Cutting case
-     *   - It calls `BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints` 
-     *     to generate integration points that conform to the trimming curve.
+     * - **Trimmed Volume**: -> Cutting case
+     *   - It calls `BrepTrimmingUtilities::CreateBrepVolumeTrimmingIntegrationPoints` 
+     *     to generate integration points that conform to the trimming surface.
      * 
      * @param return integration points.
      */
@@ -459,41 +288,36 @@ public:
     {
         if (!mIsTrimmed) {
             // sbm case
-            if constexpr (TShiftedBoundary) {
 
+            if constexpr (TShiftedBoundary) {
+    
                 std::vector<double> spans_u;
                 std::vector<double> spans_v;
-                mpNurbsSurface->SpansLocalSpace(spans_u, 0);
-                mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+                std::vector<double> spans_w;
+                mpNurbsVolume->SpansLocalSpace(spans_u, 0);
+                mpNurbsVolume->SpansLocalSpace(spans_v, 1);
+                mpNurbsVolume->SpansLocalSpace(spans_w, 2);
                 
-                // Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
-                BrepSbmUtilitiesType::CreateBrepSurfaceSbmIntegrationPoints(
+                // Call  "BrepSBMUtilities::CreateBrepVolumeSbmIntegrationPoints"
+                BrepSbmUtilitiesType::CreateBrepVolumeSbmIntegrationPoints(
                     rIntegrationPoints,
                     spans_u, 
                     spans_v,
+                    spans_w,
                     *mpSurrogateOuterLoopGeometries,
                     *mpSurrogateInnerLoopGeometries,
-                    rIntegrationInfo);
+                    rIntegrationInfo); 
             }
             // body-fitted case
             else {
-                mpNurbsSurface->CreateIntegrationPoints(
+                mpNurbsVolume->CreateIntegrationPoints(
                     rIntegrationPoints, rIntegrationInfo);
             }
         }
         // trimmed case
         else
         {
-            std::vector<double> spans_u;
-            std::vector<double> spans_v;
-            mpNurbsSurface->SpansLocalSpace(spans_u, 0);
-            mpNurbsSurface->SpansLocalSpace(spans_v, 1);
-
-            BrepTrimmingUtilitiesType::CreateBrepSurfaceTrimmingIntegrationPoints(
-                rIntegrationPoints,
-                mOuterLoopArray, mInnerLoopArray,
-                spans_u, spans_v,
-                rIntegrationInfo);
+            KRATOS_ERROR << "Trimmed BrepVolume is not yet implemented" << std::endl;
         }
     }
 
@@ -517,7 +341,7 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
-        mpNurbsSurface->CreateQuadraturePointGeometries(
+        mpNurbsVolume->CreateQuadraturePointGeometries(
             rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
@@ -533,7 +357,7 @@ public:
         Vector &rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        mpNurbsSurface->ShapeFunctionsValues(rResult, rCoordinates);
+        mpNurbsVolume->ShapeFunctionsValues(rResult, rCoordinates);
 
         return rResult;
     }
@@ -542,7 +366,7 @@ public:
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        mpNurbsSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
+        mpNurbsVolume->ShapeFunctionsLocalGradients(rResult, rCoordinates);
 
         return rResult;
     }
@@ -614,13 +438,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "Brep surface";
+        return "Brep volume";
     }
 
     /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "Brep surface";
+        rOStream << "Brep volume";
     }
 
     /// Print object's data.
@@ -628,7 +452,7 @@ public:
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        rOStream << "    Brep surface " << std::endl;
+        rOStream << "    Brep volume " << std::endl;
     }
 
     ///@}
@@ -645,16 +469,16 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename NurbsSurfaceType::Pointer mpNurbsSurface;
+    typename NurbsVolumeType::Pointer mpNurbsVolume;
 
-    BrepCurveOnSurfaceLoopArrayType mOuterLoopArray;
-    BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
+    BrepSurfaceOnVolumeLoopArrayType mOuterLoopArray;
+    BrepSurfaceOnVolumeLoopArrayType mInnerLoopArray;
 
-    BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
+    BrepSurfaceOnVolumeArrayType mEmbeddedEdgesArray;
 
     // For Sbm
-    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateOuterLoopGeometries;
-    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateInnerLoopGeometries;
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateOuterLoopGeometries = nullptr;
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateInnerLoopGeometries = nullptr;
     
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
@@ -670,7 +494,7 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.save("NurbsSurface", mpNurbsSurface);
+        rSerializer.save("NurbsSurface", mpNurbsVolume);
         rSerializer.save("OuterLoopArray", mOuterLoopArray);
         rSerializer.save("InnerLoopArray", mInnerLoopArray);
         rSerializer.save("EmbeddedEdgesArray", mEmbeddedEdgesArray);
@@ -682,7 +506,7 @@ private:
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.load("NurbsSurface", mpNurbsSurface);
+        rSerializer.load("NurbsSurface", mpNurbsVolume);
         rSerializer.load("OuterLoopArray", mOuterLoopArray);
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
         rSerializer.load("EmbeddedEdgesArray", mEmbeddedEdgesArray);
@@ -691,13 +515,13 @@ private:
         rSerializer.save("SurrogateOuterLoopGeometries", mpSurrogateOuterLoopGeometries);
     }
 
-    BrepSurface()
+    BrepVolume()
         : BaseType( PointsArrayType(), &msGeometryData )
     {}
 
     ///@}
 
-}; // Class BrepSurface
+}; // Class BrepVolume
 
 ///@name Input and output
 ///@{
@@ -705,12 +529,12 @@ private:
 /// input stream functions
 template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType> inline std::istream& operator >> (
     std::istream& rIStream,
-    BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>& rThis );
+    BrepVolume<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>& rThis );
 
 /// output stream functions
 template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType = TContainerPointType> inline std::ostream& operator << (
     std::ostream& rOStream,
-    const BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>& rThis )
+    const BrepVolume<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -723,15 +547,13 @@ template<class TContainerPointType, bool TShiftedBoundary, class TContainerPoint
 ///@{
 
 template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType> const
-GeometryData BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>::msGeometryData(
+GeometryData BrepVolume<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
     GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TContainerPointType, bool TShiftedBoundary, class TContainerPointEmbeddedType>
-const GeometryDimension BrepSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>::msGeometryDimension(3, 2);
+const GeometryDimension BrepVolume<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType>::msGeometryDimension(3, 2);
 
 ///@}
 }// namespace Kratos.
-
-#endif // KRATOS_BREP_FACE_3D_H_INCLUDED  defined

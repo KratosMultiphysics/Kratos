@@ -38,7 +38,7 @@ void AssignIgaExternalConditionsProcess::Execute(){
     const std::vector<std::string> sub_model_part_names = analysis_model_part.GetSubModelPartNames();
 
     // Number of element_condition_list (Elements or Conditions), in the end are all the Gauss Points
-    const int number_of_entitites = mIgaPhysicsParameters.size();  
+    const IndexType number_of_entitites = mIgaPhysicsParameters.size();  
 
     const ProcessInfo& r_process_info = analysis_model_part.GetProcessInfo();
     double t = r_process_info[TIME];

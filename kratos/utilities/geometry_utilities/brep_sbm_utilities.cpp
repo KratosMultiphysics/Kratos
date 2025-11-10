@@ -15,8 +15,8 @@ namespace Kratos
     
 ///@name Kratos Classes
 ///@{
-template<bool TShiftedBoundary, class TNodeType>
-void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepSurfaceSbmIntegrationPoints(
+template<class TNodeType>
+void BrepSbmUtilities<TNodeType>::CreateBrepSurfaceSbmIntegrationPoints(
     IntegrationPointsArrayType& rIntegrationPoints,
     const std::vector<double>& rSpansU,
     const std::vector<double>& rSpansV,
@@ -123,8 +123,8 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepSurfaceSbmIntegrat
 };
 
 ///@} // Kratos Classes
-template<bool TShiftedBoundary, class TNodeType>
-int BrepSbmUtilities<TShiftedBoundary, TNodeType>::FindKnotSpans1D(const std::vector<double>& rSpans, const double coord) {
+template<class TNodeType>
+int BrepSbmUtilities<TNodeType>::FindKnotSpans1D(const std::vector<double>& rSpans, const double coord) {
     
     for (IndexType i_row = 1; i_row < rSpans.size(); ++i_row) {
         if (rSpans[i_row] > coord) {
@@ -137,8 +137,8 @@ int BrepSbmUtilities<TShiftedBoundary, TNodeType>::FindKnotSpans1D(const std::ve
 }
 
 // 
-template<bool TShiftedBoundary, class TNodeType>
-void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
+template<class TNodeType>
+void BrepSbmUtilities<TNodeType>::CreateBrepVolumeSbmIntegrationPoints(
     IntegrationPointsArrayType& rIntegrationPoints,
     const std::vector<double>& rSpansU,
     const std::vector<double>& rSpansV,
@@ -150,9 +150,9 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepVolumeSbmIntegrati
     // Loop over rSurrogateInnerLoopGeometries and outer and save the perpendicular faces with respect to x-direction
     std::vector<std::vector<std::vector<double>>> perpendicular_conditions_per_u_direction(rSpansV.size()-1);
 
-    for (int v = 0; v < rSpansV.size()-1; v++) 
+    for (IndexType v = 0; v < rSpansV.size()-1; v++) 
     {
-        perpendicular_conditions_per_u_direction[v].resize(rSpansV.size()-1);
+        perpendicular_conditions_per_u_direction[v].resize(rSpansW.size()-1);
     }
     bool is_outer_loop_defined = false;
     if (rSurrogateOuterLoopGeometries.size() > 0) {is_outer_loop_defined = true;}
@@ -212,8 +212,8 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepVolumeSbmIntegrati
     for (IndexType j = 0; j < rSpansV.size() - 1; j++) {
         for (IndexType k = 0; k < rSpansW.size() - 1; k++) {
 
-            int starting_u_index = 0;
-            int next_switch_knot_span;
+            IndexType starting_u_index = 0;
+            IndexType next_switch_knot_span;
             if (perpendicular_conditions_per_u_direction[j][k].size() > 0) {
                 // next_switch_knot_span = (vertical_conditions_per_row[j][0]+1e-13)/meshSizes_uv[0];
                 next_switch_knot_span = FindKnotSpans1D(rSpansU, perpendicular_conditions_per_u_direction[j][k][0]+1e-13);
@@ -222,7 +222,7 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepVolumeSbmIntegrati
             else {
                 next_switch_knot_span = rSpansU.size() - 1;
             }
-            int perpendicular_condition_index = 1;
+            IndexType perpendicular_condition_index = 1;
 
             if (is_outer_loop_defined){
                 if (perpendicular_conditions_per_u_direction[j][k].empty()) {continue;}
@@ -275,6 +275,5 @@ void BrepSbmUtilities<TShiftedBoundary, TNodeType>::CreateBrepVolumeSbmIntegrati
     }
 };
 
-template class KRATOS_API(KRATOS_CORE) BrepSbmUtilities<true>;
-template class KRATOS_API(KRATOS_CORE) BrepSbmUtilities<false>;
+template class KRATOS_API(KRATOS_CORE) BrepSbmUtilities<Node>;
 } // namespace Kratos.

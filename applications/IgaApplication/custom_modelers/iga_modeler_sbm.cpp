@@ -112,6 +112,15 @@ void IgaModelerSbm::GetGeometryList(
 
     const std::string type = rPhysicsParameters["type"].GetString();
 
+    // get the dimension of the geometry
+    SizeType dim;
+    // Get the space dimension 
+    if (rModelPart.GetValue(KNOT_VECTOR_W).size() == 0) {
+        dim = 2;
+    } else {
+        dim = 3;
+    }
+
     if (type == "element")
     {
         int surface_brep_id = 1; 
@@ -131,9 +140,12 @@ void IgaModelerSbm::GetGeometryList(
                 int inner_brep_id = 2;
                 ModelPart& surrogate_model_part_outer = rModelPart.GetSubModelPart("surrogate_outer");
                 if (surrogate_model_part_outer.NumberOfConditions() == 0)
-                    // 2D case
-                    inner_brep_id += 4; // if there is no outer we use the 4 sides of the rectangle
-                    // 3D -> //TODO:
+                    if (dim == 2) // 2D case
+                        inner_brep_id += 4; // if there is no outer we use the 4 sides of the rectangle
+                    else if (dim == 3) // 3D case
+                        inner_brep_id += 6; // if there is no outer we use the 6 sides of the parallelepiped   
+                    else
+                        KRATOS_ERROR << "::[IgaModelerSbm]:: The dimension of the geometry is not 2 or 3." << std::endl;                 
                 else 
                     // if outer loop is present take the number of conditions
                     inner_brep_id += surrogate_model_part_outer.NumberOfConditions();
@@ -163,18 +175,16 @@ void IgaModelerSbm::GetGeometryList(
             } else // outer loop
             {
                 int outer_brep_id = 2;
-                // OUTER
-                ModelPart& surrogate_model_part_outer = rModelPart.GetSubModelPart("surrogate_outer");
+                const ModelPart& surrogate_model_part_outer = rModelPart.GetSubModelPart("surrogate_outer");
                 
                 if (surrogate_model_part_outer.NumberOfConditions() > 0) {
-                    // 2D
-                    if ((surrogate_model_part_outer.ConditionsBegin())->GetGeometry().size() == 2) {
-                        const int size_surrogate_loop_outer = surrogate_model_part_outer.NumberOfConditions();
-                        for (int j = 0; j < size_surrogate_loop_outer; ++j) {
-                            rGeometryList.push_back(rModelPart.pGetGeometry(outer_brep_id));
-                            outer_brep_id++;
-                        }
-                    } 
+                    // both for 2D and 3D
+                    const int size_surrogate_loop_outer = surrogate_model_part_outer.NumberOfConditions();
+                    for (int j = 0; j < size_surrogate_loop_outer; ++j) {
+                        rGeometryList.push_back(rModelPart.pGetGeometry(outer_brep_id));
+                        outer_brep_id++;
+                    }
+
                 }
             }
         }
@@ -381,7 +391,9 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
     if (knot_span_sizes.size() > 2) {if (knot_span_sizes[2] > knot_span_reference_size) {knot_span_reference_size = knot_span_sizes[2];}}
 
     // 2D case
-    const double search_radius = sqrt(2)*(knot_span_reference_size); 
+    // const double search_radius = std::sqrt(3)*(knot_span_reference_size);
+    const double search_radius = 2*(knot_span_reference_size);
+    // const double search_radius = 10*(knot_span_reference_size);
     // 3D case //TODO:
     DynamicBins testBins(points.begin(), points.end());
     
@@ -438,19 +450,19 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbm(
             double minimum_distance = 1e14;
 
             // Find the nearest node
-            IndexType nearest_node_id;
+            IndexType nearest_result_id;
             for (IndexType k = 0; k < obtained_results; k++) {
                 double current_distance = list_of_distances[k];   
                 if (current_distance < minimum_distance) { 
                     minimum_distance = current_distance;
-                    nearest_node_id = k;
+                    nearest_result_id = k;
                 }
             }
             KRATOS_ERROR_IF(obtained_results == 0) << "::[IgaModelerSbm]:: Zero points found in serch for projection of point: " <<
                 p_integration_point << std::endl;
             
             // store id closest condition
-            list_id_closest_condition[j] = results[nearest_node_id]->Id();
+            list_id_closest_condition[j] = results[nearest_result_id]->Id();
         }
 
         if (is_inner) {
@@ -497,9 +509,9 @@ void IgaModelerSbm::CreateElements(
     {
         new_element_list.push_back(
             rReferenceElement.Create(rIdCounter, (*it), pProperties));
-        for (SizeType i = 0; i < (*it)->size(); ++i) {
-            rModelPart.Nodes().push_back((*it)->pGetPoint(i));
-        }
+        // for (SizeType i = 0; i < (*it)->size(); ++i) {
+        //     rModelPart.Nodes().push_back((*it)->pGetPoint(i));
+        // }
         rIdCounter++;
     }
 
@@ -527,9 +539,9 @@ void IgaModelerSbm::CreateConditions(
     {
         new_condition_list.push_back(
             reference_condition.Create(rIdCounter, (*it), pProperties));
-        for (SizeType i = 0; i < (*it)->size(); ++i) {
-            rModelPart.Nodes().push_back((*it)->pGetPoint(i));
-        }
+        // for (SizeType i = 0; i < (*it)->size(); ++i) {
+        //     rModelPart.Nodes().push_back((*it)->pGetPoint(i));
+        // }
         rIdCounter++;
     }
 
@@ -583,16 +595,31 @@ void IgaModelerSbm::CreateConditions(
             }
             new_condition_list.GetContainer()[countListClosestCondition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
                         
-            for (SizeType i = 0; i < (*it)->size(); ++i) {
-                // These are the control points associated with the basis functions involved in the condition we are creating
-                rModelPart.Nodes().push_back((*it)->pGetPoint(i));
-            }
+            // for (SizeType i = 0; i < (*it)->size(); ++i) {
+            //     // These are the control points associated with the basis functions involved in the condition we are creating
+            //     rModelPart.Nodes().push_back((*it)->pGetPoint(i));
+            // }
             rIdCounter++;
             countListClosestCondition++;
         }
     } else {
-        // TODO: 3D case
-        KRATOS_ERROR << "CreateConditions: 3D case not implemented yet." << std::endl;
+        // 3D case
+        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+            new_condition_list.push_back(reference_condition.Create(rIdCounter, (*it), pProperties));
+
+            IndexType condId = listIdClosestCondition[countListClosestCondition];
+            Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
+
+            new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1}));
+            if (IsInner) {
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "inner");
+            } else {
+                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
+            }
+            new_condition_list.GetContainer()[countListClosestCondition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
+            rIdCounter++;
+            countListClosestCondition++;
+        }
     }
     
     rModelPart.AddConditions(new_condition_list.begin(), new_condition_list.end());

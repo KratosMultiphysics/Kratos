@@ -180,6 +180,8 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
 
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
 
 private:

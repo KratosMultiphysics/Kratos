@@ -173,6 +173,7 @@ typedef Node NodeType;
         auto surface = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<Point>>>(points_surface, p_surface,
             q_surface, knot_vector_u_surface, knot_vector_v_surface, weights_surface);
 
+
         // Create and return a curve on surface geometry
         return NurbsCurveOnSurfaceGeometry<3, PointerVector<Point>, PointerVector<Point>>(surface, curve);
     }
