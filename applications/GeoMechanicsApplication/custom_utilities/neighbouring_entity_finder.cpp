@@ -11,32 +11,12 @@
 //
 
 #include "neighbouring_entity_finder.h"
-#include "geometry_utilities.h"
 #include <algorithm>
 
 namespace Kratos
 {
 
-void NeighbouringEntityFinder::InitializeConditionMaps(ModelPart::ConditionsContainerType& rConditions)
-{
-    mConditionNodeIdsToConditions.clear();
-    std::ranges::transform(
-        rConditions, std::inserter(mConditionNodeIdsToConditions, mConditionNodeIdsToConditions.end()),
-        [](auto& rCondition) {
-        return NodeIdsToConditionsHashMap::value_type(
-            GeometryUtilities::GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
-    });
 
-    mSortedToUnsortedConditionNodeIds.clear();
-    std::ranges::transform(
-        mConditionNodeIdsToConditions,
-        std::inserter(mSortedToUnsortedConditionNodeIds, mSortedToUnsortedConditionNodeIds.end()),
-        [](const auto& rPair) {
-        auto sorted_ids = rPair.first;
-        std::ranges::sort(sorted_ids);
-        return std::make_pair(sorted_ids, rPair.first);
-    });
-}
 
 void NeighbouringEntityFinder::FindConditionNeighboursBasedOnBoundaryType(
     std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,

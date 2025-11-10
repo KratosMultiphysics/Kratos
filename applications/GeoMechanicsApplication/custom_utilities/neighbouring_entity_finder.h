@@ -12,7 +12,8 @@
 
 #pragma once
 
-#include "includes/condition.h"
+#include "geometry_utilities.h"
+#include "includes/geometrical_object.h"
 #include "includes/key_hash.h"
 #include "includes/kratos_export_api.h"
 #include "includes/model_part.h"
@@ -21,8 +22,9 @@
 
 namespace Kratos
 {
+
 using NodeIdsToConditionsHashMap     = std::unordered_multimap<std::vector<std::size_t>,
-                                                               std::vector<Condition::Pointer>,
+                                                               std::vector<GeometricalObject::Pointer>,
                                                                KeyHasherRange<std::vector<std::size_t>>,
                                                                KeyComparorRange<std::vector<std::size_t>>>;
 using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::size_t>,
@@ -33,7 +35,31 @@ using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::
 class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringEntityFinder
 {
 public:
-    void InitializeConditionMaps(ModelPart::ConditionsContainerType& rConditions);
+    template <typename EntityContainerType>
+    void InitializeBoundaryMaps(EntityContainerType& rConditions)
+    {
+        {
+            mConditionNodeIdsToConditions.clear();
+            std::ranges::transform(
+                rConditions,
+                std::inserter(mConditionNodeIdsToConditions, mConditionNodeIdsToConditions.end()),
+                [](auto& rCondition) {
+                return NodeIdsToConditionsHashMap::value_type(
+                    GeometryUtilities::GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
+            });
+
+            mSortedToUnsortedConditionNodeIds.clear();
+            std::ranges::transform(
+                mConditionNodeIdsToConditions,
+                std::inserter(mSortedToUnsortedConditionNodeIds, mSortedToUnsortedConditionNodeIds.end()),
+                [](const auto& rPair) {
+                auto sorted_ids = rPair.first;
+                std::ranges::sort(sorted_ids);
+                return std::make_pair(sorted_ids, rPair.first);
+            });
+        }
+    }
+
     void FindConditionNeighboursBasedOnBoundaryType(
         std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
         ModelPart::ElementsContainerType&                                   rElements);

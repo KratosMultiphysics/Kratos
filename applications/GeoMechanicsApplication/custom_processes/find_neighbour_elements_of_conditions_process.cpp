@@ -29,7 +29,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     if (mrModelPart.Conditions().empty()) return;
 
-    mNeighbouringEntityFinder.InitializeConditionMaps(mrModelPart.Conditions());
+    mNeighbouringEntityFinder.InitializeBoundaryMaps(mrModelPart.Conditions());
     FindNeighbouringElementsForAllBoundaryTypes();
 
     if (!AllConditionsHaveAtLeastOneNeighbour()) {
