@@ -1307,9 +1307,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
                                               p_properties, prescribed_displacements);
     auto r_geometry = element.GetGeometry();
     for (auto& r_node : r_geometry) {
-        auto x = r_node.GetInitialPosition().X();
+        auto   x = r_node.GetInitialPosition().X();
         Vector nodal_stress{4};
-        nodal_stress <<= x, 10.0+x, 78.0, 5.0+x;
+        nodal_stress <<= x, 10.0 + x, 78.0, 5.0 + x;
         r_node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR) = nodal_stress;
     }
 

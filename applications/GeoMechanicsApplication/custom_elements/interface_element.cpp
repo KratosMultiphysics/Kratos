@@ -193,14 +193,16 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     // (have we forgotten an initial state for Coulomb friction?)
 
     mConstitutiveLaws.clear();
-    for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
+    for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
         mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
     }
     // This initial state should be an optional thing.
-    auto interface_prestress_from_neighbour = GetProperties().Has(INTERFACE_PRESTRESS_FROM_NEIGHBOUR) ? GetProperties()[INTERFACE_PRESTRESS_FROM_NEIGHBOUR] : false;
-    if (interface_prestress_from_neighbour) InterpolateNodalStressesToIntegrationPointTractions();
-    for (std::size_t i = 0; i < mConstitutiveLaws.size() ; ++i) {
-        mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(), shape_function_values_at_integration_points[i]);
+    if (GetProperties().Has(INTERFACE_PRESTRESS_FROM_NEIGHBOUR) ? GetProperties()[INTERFACE_PRESTRESS_FROM_NEIGHBOUR]
+                                                                : false)
+        InterpolateNodalStressesToIntegrationPointTractions();
+    for (std::size_t i = 0; i < mConstitutiveLaws.size(); ++i) {
+        mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(),
+                                                 shape_function_values_at_integration_points[i]);
     }
 }
 
@@ -356,21 +358,22 @@ void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions() con
             rotation_matrix = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
         }
 
-        auto integration_point_local_stress_tensor = GeoMechanicsMathUtilities::RotateSecondOrderTensor(integration_point_stress_tensor, rotation_matrix);
+        auto integration_point_local_stress_tensor = GeoMechanicsMathUtilities::RotateSecondOrderTensor(
+            integration_point_stress_tensor, rotation_matrix);
         // extract normal and shear components ( depends on dimension )
         Vector traction_vector;
         if (r_geometry.LocalSpaceDimension() == 1) {
-            traction_vector = ZeroVector(VOIGT_SIZE_2D_INTERFACE);
-            traction_vector(0) = integration_point_local_stress_tensor(1,1);
-            traction_vector(1) = integration_point_local_stress_tensor(0,1);
+            traction_vector    = ZeroVector(VOIGT_SIZE_2D_INTERFACE);
+            traction_vector(0) = integration_point_local_stress_tensor(1, 1);
+            traction_vector(1) = integration_point_local_stress_tensor(0, 1);
         } else {
-            traction_vector = ZeroVector(VOIGT_SIZE_3D_INTERFACE);
-            traction_vector(0) = integration_point_local_stress_tensor(2,2);
-            traction_vector(1) = integration_point_local_stress_tensor(0,2);
-            traction_vector(2) = integration_point_local_stress_tensor(1,2);
+            traction_vector    = ZeroVector(VOIGT_SIZE_3D_INTERFACE);
+            traction_vector(0) = integration_point_local_stress_tensor(2, 2);
+            traction_vector(1) = integration_point_local_stress_tensor(0, 2);
+            traction_vector(2) = integration_point_local_stress_tensor(1, 2);
         }
-        auto initial_state = make_intrusive<InitialState>(traction_vector,
-                    InitialState::InitialImposingType::STRESS_ONLY);
+        auto initial_state =
+            make_intrusive<InitialState>(traction_vector, InitialState::InitialImposingType::STRESS_ONLY);
         mConstitutiveLaws[integration_point_index]->SetInitialState(initial_state);
         ++integration_point_index;
     }
