@@ -16,8 +16,6 @@
 namespace Kratos
 {
 
-
-
 void NeighbouringEntityFinder::FindConditionNeighboursBasedOnBoundaryType(
     std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
     ModelPart::ElementsContainerType&                                   rElements)
