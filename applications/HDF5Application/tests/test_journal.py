@@ -86,7 +86,7 @@ class TestJournal(UnitTest.TestCase):
         # Check whether python objects are protected in a multithreaded environment
         journal.Clear()
         self.assertFalse(len(journal))
-        self.assertRaises(RuntimeError, KratosHDF5.Testing.TestJournal, model, journal)
+        self.assertRaises(RuntimeError, KratosHDF5.HDF5Testing.TestJournal, model, journal)
         self.assertTrue(len(journal))
 
     def test_Erase(self) -> None:

@@ -150,7 +150,7 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
         ;
 
     #ifdef KRATOS_BUILD_TESTING // <== defined through CMake if cpp test sources are built
-    auto testing_module = rModule.def_submodule("Testing", "Module for testing Python bindings.");
+    auto testing_module = rModule.def_submodule("HDF5Testing", "Module for testing Python bindings.");
     testing_module.def("TestJournal", [](const Model& rModel, Journal& rJournal) -> void {
             constexpr const std::size_t iteration_count = 1e2;
             IndexPartition<>(iteration_count).for_each([&rModel,&rJournal](std::size_t index){
