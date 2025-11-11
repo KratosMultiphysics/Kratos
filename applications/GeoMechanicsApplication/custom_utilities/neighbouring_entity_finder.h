@@ -35,6 +35,7 @@ using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::
 class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringEntityFinder
 {
 public:
+    explicit NeighbouringEntityFinder(bool alsoSearchReverse = false);
     void InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping);
 
     void FindEntityNeighboursBasedOnBoundaryType(
@@ -59,5 +60,6 @@ private:
 
     NodeIdsToEntitiesHashMap       mGeometryNodeIdsToEntities;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedEntityNodeIds;
+    bool mAlsoSearchReverse = false;
 };
 } // namespace Kratos

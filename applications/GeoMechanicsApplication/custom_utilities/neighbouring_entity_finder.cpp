@@ -16,6 +16,11 @@
 namespace Kratos
 {
 
+NeighbouringEntityFinder::NeighbouringEntityFinder(bool alsoSearchReverse)
+    : mAlsoSearchReverse(alsoSearchReverse)
+{
+}
+
 void NeighbouringEntityFinder::InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping)
 {
     {
@@ -48,14 +53,21 @@ void NeighbouringEntityFinder::AddNeighbouringElementsToConditionsBasedOnOverlap
     Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
-        const auto element_boundary_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry);
-
+        auto element_boundary_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry);
         if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
             SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
         } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
             // No condition is directly found for this boundary, but it might be a rotated equivalent
             SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
                 rElement, element_boundary_node_ids, r_boundary_geometry.GetGeometryOrderType());
+        }
+
+        if (mAlsoSearchReverse) {
+            // Right now this works only for linear boundaries, where no 'rotations' are necessary
+            std::ranges::reverse(element_boundary_node_ids);
+            if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
+                SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
+            }
         }
     }
 }
