@@ -139,7 +139,7 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS KratosHDF5Core DESTINATION libs )
+install(TARGETS KratosHDF5Core DESTINATION libs RUNTIME_DEPENDENCIES DIRECTORIES "${HDF5_ROOT}/lib" "${HDF5_ROOT}/bin")
 install(TARGETS KratosHDF5Application DESTINATION libs)
 
 # Define custom targets
