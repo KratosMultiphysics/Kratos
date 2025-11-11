@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsCorrectNeighbouringEle
     EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 42);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsCorrectNeighbouringElementOfElement_ForTwoContinua,
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_NeverRefersToItselfAsNeighbour,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
@@ -110,13 +110,13 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsCorrectNeighbouringEle
     finder.InitializeBoundaryMaps(map);
     auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("empty");
 
-    std::vector         neighbour_node_ids = {1, 2};
+    std::vector         neighbour_node_ids = {1, 2, 3};
     PointerVector<Node> neighbour_nodes(neighbour_node_ids.size());
     std::ranges::transform(neighbour_node_ids, neighbour_nodes.ptr_begin(),
                            [&r_model_part_for_entities_for_finding](auto Id) {
         return r_model_part_for_entities_for_finding.pGetNode(Id);
     });
-    auto p_element = ElementSetupUtilities::Create2D2NElement(neighbour_nodes, {});
+    auto p_element = ElementSetupUtilities::Create2D3NElement(neighbour_nodes, {});
     p_element->SetId(42);
     r_model_part_for_neighbouring_elements.AddElement(p_element);
 
@@ -127,8 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsCorrectNeighbouringEle
     finder.FindEntityNeighboursBasedOnBoundaryType(
         generate_generic_boundaries, r_model_part_for_neighbouring_elements.Elements());
 
-    ASSERT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
-    EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 42);
+    ASSERT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
 }
 
 } // namespace Kratos::Testing
