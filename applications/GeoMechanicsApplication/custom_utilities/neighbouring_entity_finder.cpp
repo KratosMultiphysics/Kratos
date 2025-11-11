@@ -69,8 +69,7 @@ void NeighbouringEntityFinder::SetElementAsNeighbourOfAllConditionsWithIdentical
         auto vector_of_neighbours = GlobalPointersVector<Element>{Element::WeakPointer{pElement}};
 
         for (auto& rp_condition : r_conditions) {
-            // NOT SURE YET IF IS SAME WORKS AS EXPECTED
-            if (GeometricalObject::IsSame(*rp_condition, *pElement)) continue;
+            if (rp_condition->GetGeometry().Id() == pElement->GetGeometry().Id()) continue;
             rp_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
         }
     }
