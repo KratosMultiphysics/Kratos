@@ -993,7 +993,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         This method computes the resistance functional for a single dt: int_{\Omega}{\\alpha||u||^2}
         """
         buffer_id = self.GetPhysicsBufferIdFromTimeStepId(time_step_id)
-        mp = self._GetComputingModelPart()
+        mp = self._GetPhysicsMainModelPart()
         velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.VELOCITY, buffer_id, self.dim)).reshape(self.n_nodes, self.dim)
         nodal_velocity_norm = np.linalg.norm(velocity, axis=1)
         integrand = self.resistance * (nodal_velocity_norm**2) #component-wise multiplication
@@ -1204,10 +1204,10 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
     def _GetFluidModelPart(self):
         return self._GetMainModelPart()
     
-    def _GetPhysicsModelPart(self):
+    def _GetPhysicsMainModelPart(self):
         return self._GetPhysicsSolver().GetMainModelPart()
     
-    def _GetAdjointModelPart(self):
+    def _GetAdjointMainModelPart(self):
         return self._GetAdjointSolver().GetMainModelPart()
     
     def _GetSubModelPart(self, super_model_part, sub_model_part_name):
@@ -2364,7 +2364,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
     
     def _GetLocalMeshNodes(self, mp = None):
         if mp is None:
-            return self._GetMainModelPart().GetCommunicator().LocalMesh().Nodes
+            return self._GetPhysicsMainModelPart().GetCommunicator().LocalMesh().Nodes
         else:
             return mp.GetCommunicator().LocalMesh().Nodes
         

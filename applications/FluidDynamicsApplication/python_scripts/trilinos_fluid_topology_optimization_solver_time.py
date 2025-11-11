@@ -239,9 +239,22 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
         dt = self._ComputeDeltaTime()
         new_time = current_time + dt
-        self.main_model_part.CloneTimeStep(new_time)
+        self._CustomCloneTimeStep(new_time)
         return new_time
     
+    def _CustomCloneTimeStep(self, new_time):
+        if (not self.IsAdjoint()):
+            self.main_model_part.CloneTimeStep(new_time)
+        else:
+            self.ShiftAdjointBuffer(adjoint_vars=[KratosMultiphysics.VELOCITY_ADJ, KratosMultiphysics.PRESSURE_ADJ])
+            self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] = new_time
+
+    def ShiftAdjointBuffer(self, adjoint_vars):
+        for node in self._GetLocalMeshNodes():
+            for var in adjoint_vars:
+                for i in range(self.min_buffer_size-1, 0, -1):
+                    node.SetSolutionStepValue(var, i, node.GetSolutionStepValue(var, i-1))
+
     def IsAdjoint(self):
         return self.is_adjoint
     

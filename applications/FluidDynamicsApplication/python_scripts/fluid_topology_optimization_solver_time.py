@@ -211,8 +211,16 @@ class FluidTopologyOptimizationSolverTime(NavierStokesMonolithicSolver):
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
         dt = self._ComputeDeltaTime()
         new_time = current_time + dt
-        self.main_model_part.CloneTimeStep(new_time)
+        self._CustomCloneTimeStep(new_time)
         return new_time
+    
+    def _CustomCloneTimeStep(self, new_time):
+        if self.IsAdjoint():
+            dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, self.min_buffer_size-1, dim))
+        self.main_model_part.CloneTimeStep(new_time)
+        if self.IsAdjoint():
+            KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, velocity, 0)
     
     def IsAdjoint(self):
         return self.is_adjoint
