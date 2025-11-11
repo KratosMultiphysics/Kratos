@@ -161,7 +161,7 @@ void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariabl
     r_geom.Jacobian(rVariables.JContainer, this->GetIntegrationMethod());
 }
 
-void GeneralUPwDiffOrderCondition::CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber) const
+void GeneralUPwDiffOrderCondition::CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
 

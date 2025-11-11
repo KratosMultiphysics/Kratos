@@ -93,7 +93,7 @@ int ApplyCPhiReductionProcess::Check()
     return 0;
 }
 
-double ApplyCPhiReductionProcess::GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId) const
+double ApplyCPhiReductionProcess::GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId)
 {
     // Get the initial properties from the model part. Recall that we create a separate
     // properties object with reduced c and phi for each and every element. Those reduced
@@ -120,7 +120,7 @@ double ApplyCPhiReductionProcess::ComputeReducedPhi(double Phi) const
     return std::atan(reduced_tan_phi) * 180.0 / Globals::Pi;
 }
 
-double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rModelPartProperties) const
+double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rModelPartProperties)
 {
     // Get the initial properties from the model part. Recall that we create a separate
     // properties object with reduced c and phi for each and every element. Those reduced
@@ -141,7 +141,7 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rModelPartPrope
     return c;
 }
 
-void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC) const
+void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC)
 {
     // Get C/Phi material properties of this element
     const auto& r_prop = rElement.GetProperties();
@@ -154,9 +154,7 @@ void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double Reduc
     SetValueAtElement(rElement, UMAT_PARAMETERS, Umat_parameters);
 }
 
-void ApplyCPhiReductionProcess::SetValueAtElement(Element&                rElement,
-                                                  const Variable<Vector>& rVariable,
-                                                  const Vector&           rValue) const
+void ApplyCPhiReductionProcess::SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue)
 {
     // Copies properties
     Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(rElement.GetProperties());
