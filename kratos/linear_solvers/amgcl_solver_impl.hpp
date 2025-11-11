@@ -174,7 +174,6 @@ AMGCLSolver<TSparse,TDense>::AMGCLSolver(Parameters Settings)
       mBlockSize(),
       mGMRESSize(0),
       mCoarseEnough(0),
-      mFallbackToGMRES(false),
       mProvideCoordinates(false),
       mUseBlockMatricesIfPossible(false)
 {
@@ -198,7 +197,6 @@ AMGCLSolver<TSparse,TDense>::AMGCLSolver(const std::string& rSmootherName,
       mBlockSize(),
       mGMRESSize(GMRESSize),
       mCoarseEnough(1000),
-      mFallbackToGMRES(false),
       mProvideCoordinates(false),
       mUseBlockMatricesIfPossible(false)
 {
@@ -228,7 +226,6 @@ AMGCLSolver<TSparse,TDense>::AMGCLSolver(const std::string& rSmootherName,
       mBlockSize(),
       mGMRESSize(GMRESSize),
       mCoarseEnough(1000),
-      mFallbackToGMRES(false),
       mProvideCoordinates(ProvideCoordinates),
       mUseBlockMatricesIfPossible(false)
 {
@@ -303,7 +300,6 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
     mAMGCLParameters.put("solver.tol", mTolerance);
     mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
 
-    mFallbackToGMRES = false;
     this->SetIterativeSolverType(Settings["krylov_type"].GetString());
 
     // Multigrid preconditioner settings.
@@ -761,30 +757,6 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
         },
         mpImpl->mpSolver
     );
-
-    // Failed to solve the system; retry with GMRES.
-    // This results in a lasting changes to the original
-    // configuration of this solver instance.
-    // (this functionality should be handled outside this class)
-    if (mFallbackToGMRES && mTolerance < residual_norm) {
-        const std::string iterative_solver_name = mAMGCLParameters.get<std::string>("solver.type");
-        if (iterative_solver_name != "gmres") {
-            KRATOS_INFO("AMGCLSolver")
-                << "Failed to solve the system using " << iterative_solver_name << " "
-                << "(" << residual_norm << " residual in " << iteration_count << " iterations) "
-                << ". Falling back to \"gmres\".";
-
-            // Override the user-provided configuration and retry with
-            // GMRES and a block size of 1.
-            // => requires a refactorization.
-            mAMGCLParameters.put("solver.type", "gmres");
-            mAMGCLParameters.put("solver.M",  mGMRESSize);
-            this->mBlockSize = 1;
-            this->InitializeSolutionStep(rLhs, rSolution, rRhs);
-
-            return this->PerformSolutionStep(rLhs, rSolution, rRhs);
-        }
-    }
 
     return residual_norm < mTolerance;
 

@@ -260,7 +260,6 @@ protected:
     std::optional<int> mBlockSize;                  //< The size of the dof block
     SizeType mGMRESSize;                            //< The size of the GMRES
     SizeType mCoarseEnough;                         //< The level of coarsening allowed
-    bool mFallbackToGMRES;                          //< Of consider GMRES as fallback (TODO: Local flag?)
     bool mProvideCoordinates;                       //< If the coordinates are provided (TODO: Local flag?)
     bool mUseBlockMatricesIfPossible;               //< If use the bloack matrices if possible  (TODO: Local flag?)
     bool mUseGPGPU;                                 //< Use GPGPU if available
