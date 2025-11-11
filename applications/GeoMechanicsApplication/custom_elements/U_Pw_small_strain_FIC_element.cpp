@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-auto CalculateSquareExtrapolationMatrix(Element* pElement)
+auto CalculateSquareExtrapolationMatrix(const Element* pElement)
 {
     const auto extrapolation_matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(
         pElement->GetGeometry(), pElement->GetIntegrationMethod(), pElement->Id());
