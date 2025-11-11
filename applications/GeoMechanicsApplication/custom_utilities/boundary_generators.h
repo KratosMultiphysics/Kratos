@@ -26,6 +26,12 @@ public:
     virtual Geometry<Node>::GeometriesArrayType operator()(const Geometry<Node>& rGeometry) const = 0;
 };
 
+class PointsGenerator : public BoundaryGenerator
+{
+public:
+    Geometry<Node>::GeometriesArrayType operator()(const Geometry<Node>& rGeometry) const override;
+};
+
 class EdgesGenerator : public BoundaryGenerator
 {
 public:

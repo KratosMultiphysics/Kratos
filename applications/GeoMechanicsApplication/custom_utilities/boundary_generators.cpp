@@ -16,6 +16,11 @@
 namespace Kratos
 {
 
+Geometry<Node>::GeometriesArrayType PointsGenerator::operator()(const Geometry<Node>& rGeometry) const
+{
+    return rGeometry.GeneratePoints();
+}
+
 Geometry<Node>::GeometriesArrayType EdgesGenerator::operator()(const Geometry<Node>& rGeometry) const
 {
     return rGeometry.GenerateEdges();
