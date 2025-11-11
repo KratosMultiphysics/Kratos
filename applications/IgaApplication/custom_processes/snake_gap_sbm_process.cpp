@@ -378,7 +378,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
 
     SetSurrogateToSkinProjections<TIsInnerLoop>(rSurrogateSubModelPart, rSkinSubModelPart, skin_nodes_per_knot_span);
     // Loop over the nodes of the surrogate sub model part
-    IndexType element_id = 1;
+    IndexType element_id = rSurrogateSubModelPart.ElementsBegin()->Id();
     std::size_t brep_degree = p_nurbs_surface->PolynomialDegree(0);
     std::size_t number_of_shape_functions_derivatives = 2 * brep_degree + 1;
 
@@ -1577,10 +1577,10 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
             const IndexType candidate_id = r_candidate_node.Id();
             const auto& candidate_layers = r_candidate_node.GetValue(CONNECTED_LAYERS);
 
-            bool matches_forced = true;
+            bool matches_forced = false;
             for (const auto& forced_layer : forced_layers) {
-                if (std::find(candidate_layers.begin(), candidate_layers.end(), forced_layer) == candidate_layers.end()) {
-                    matches_forced = false;
+                if (std::find(candidate_layers.begin(), candidate_layers.end(), forced_layer) != candidate_layers.end()) {
+                    matches_forced = true;
                     break;
                 }
             }
@@ -1785,10 +1785,10 @@ void SnakeGapSbmProcess::AssestProjectionsFeasibility(
 
     for (const auto& r_interface_node : *p_interface_nodes) {
         const auto& candidate_layers = r_interface_node.GetValue(CONNECTED_LAYERS);
-        bool matches_layers = true;
+        bool matches_layers = false;
         for (const auto& forced_layer : forced_layers) {
-            if (std::find(candidate_layers.begin(), candidate_layers.end(), forced_layer) == candidate_layers.end()) {
-                matches_layers = false;
+            if (std::find(candidate_layers.begin(), candidate_layers.end(), forced_layer) != candidate_layers.end()) {
+                matches_layers = true;
                 break;
             }
         }
@@ -1814,10 +1814,10 @@ void SnakeGapSbmProcess::AssestProjectionsFeasibility(
     const auto& connected_conditions = rSkinSubModelPart.GetNode(nearest_node_id).GetValue(CONNECTED_CONDITIONS);
 
     // check if the found node matches also the layer of the other surrogate node projection
-    bool matches_layers = true;
+    bool matches_layers = false;
     for (const auto& layer : connected_layers_surrogate_node_2) {
-        if (std::find(connected_layers.begin(), connected_layers.end(), layer) == connected_layers.end()) {
-            matches_layers = false;
+        if (std::find(connected_layers.begin(), connected_layers.end(), layer) != connected_layers.end()) {
+            matches_layers = true;
             break;
         }
     }
