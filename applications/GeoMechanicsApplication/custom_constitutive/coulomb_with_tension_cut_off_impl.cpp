@@ -24,16 +24,14 @@ namespace
 
 using namespace Kratos;
 
-const double CalculatePlasticMultiplier(const Vector& rSigmaTau,
+double CalculatePlasticMultiplier(const Vector& rSigmaTau,
                                         const Vector& rDerivativeOfFlowFunction,
                                         double        FrictionAngleInRadians,
                                         double        Cohesion)
 {
     const auto sin_phi   = std::sin(FrictionAngleInRadians);
     const auto numerator = sin_phi * rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1];
-    const auto lambda =
-        (Cohesion * std::cos(FrictionAngleInRadians) - rSigmaTau[0] * sin_phi - rSigmaTau[1]) / numerator;
-    return lambda;
+    return (Cohesion * std::cos(FrictionAngleInRadians) - rSigmaTau[0] * sin_phi - rSigmaTau[1]) / numerator;
 }
 
 double CalculateApex(double FrictionAngleInRadians, double Cohesion)
@@ -129,6 +127,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
 
     const double kappa_start = mCoulombYieldSurface.GetKappa();
     double       error       = 1.0;
+    int          counter     = 0;
     while (error > 1.0e-8) {
         const auto apex = CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(),
                                         mCoulombYieldSurface.GetCohesion());
@@ -150,23 +149,25 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperti
         if (IsStressAtCornerReturnZone(
                 rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
                 corner_point)) {
-            return corner_point;
+            result = corner_point;
         }
 
-        // Regular failure region
-        result = ReturnStressAtRegularFailureZone(
-            rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
-            mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
+        else { // Regular failure region
+            result = ReturnStressAtRegularFailureZone(
+                rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
+                mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
+        }
 
         const auto lambda = CalculatePlasticMultiplier(
             rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
             mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
         const double kappa =
             kappa_start + CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
-        ;
         mCoulombYieldSurface.SetKappa(kappa);
 
         error = std::abs(mCoulombYieldSurface.YieldFunctionValue(result));
+        counter++;
+        if (counter > 50) break;
     }
     return result;
 }
@@ -187,8 +188,14 @@ double CoulombWithTensionCutOffImpl::CalculateEquivalentPlasticStrain(const Vect
                                                                       CoulombYieldSurface::CoulombAveragingType AveragingType,
                                                                       double lambda) const
 {
-    Vector dGdsigma = mCoulombYieldSurface.DerivativeOfFlowFunction(rSigmaTau, AveragingType);
-    return -2.0 / 3.0 * lambda * MathUtils<double>::Norm(dGdsigma);
+    Vector     dGdsigma   = mCoulombYieldSurface.DerivativeOfFlowFunction(rSigmaTau, AveragingType);
+    const auto g1         = (dGdsigma[0] + dGdsigma[1]) * 0.5;
+    const auto g3         = (dGdsigma[0] - dGdsigma[1]) * 0.5;
+    const auto mean       = (g1 + g3) / 3.0;
+    const auto deviatoric = std::sqrt(std::pow(g1 - mean, 2) + std::pow(g3 - mean, 2));
+    const auto alpha      = std::sqrt(2.0 / 3.0) * deviatoric;
+    return -alpha * lambda;
+    ;
 }
 
 } // namespace Kratos
