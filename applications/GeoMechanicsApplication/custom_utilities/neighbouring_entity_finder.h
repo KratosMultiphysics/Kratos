@@ -61,17 +61,14 @@ public:
             if (map.empty()) continue;
 
             InitializeBoundaryMaps(map);
-            FindEntityNeighboursBasedOnBoundaryType([&r_boundary_generator](const auto& rGeometry) {
-                return r_boundary_generator(rGeometry);
-            }, rCandidates);
+            FindEntityNeighboursBasedOnBoundaryType(r_boundary_generator, rCandidates);
         }
     }
 
 private:
     void InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping);
-    void FindEntityNeighboursBasedOnBoundaryType(
-        std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
-        ModelPart::ElementsContainerType&                                   rElements);
+    void FindEntityNeighboursBasedOnBoundaryType(const BoundaryGenerator& rBoundaryGenerator,
+                                                 ModelPart::ElementsContainerType& rElements);
     void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
     void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,

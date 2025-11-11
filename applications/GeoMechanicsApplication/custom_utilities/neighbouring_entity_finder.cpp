@@ -36,13 +36,12 @@ void NeighbouringEntityFinder::InitializeBoundaryMaps(NodeIdsToEntitiesHashMap G
     });
 }
 
-void NeighbouringEntityFinder::FindEntityNeighboursBasedOnBoundaryType(
-    std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
-    ModelPart::ElementsContainerType&                                   rElements)
+void NeighbouringEntityFinder::FindEntityNeighboursBasedOnBoundaryType(const BoundaryGenerator& rBoundaryGenerator,
+                                                                       ModelPart::ElementsContainerType& rElements)
 {
     for (auto& r_element : rElements) {
         const auto& r_element_geometry  = r_element.GetGeometry();
-        const auto  boundary_geometries = GenerateBoundaries(r_element_geometry);
+        const auto  boundary_geometries = rBoundaryGenerator(r_element_geometry);
         AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(r_element, boundary_geometries);
     }
 }
