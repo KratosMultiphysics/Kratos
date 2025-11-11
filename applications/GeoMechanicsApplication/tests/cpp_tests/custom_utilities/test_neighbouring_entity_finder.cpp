@@ -111,10 +111,6 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenTwoCont
     constexpr auto           alsoSearchReverse = true;
     NeighbouringEntityFinder finder(alsoSearchReverse);
 
-    auto generate_generic_boundaries = [](const auto& rGeometry) {
-        return rGeometry.GenerateBoundariesEntities();
-    };
-    finder.FindEntityNeighboursBasedOnBoundaryType(generate_generic_boundaries, r_model_part.Elements());
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{2}] = std::make_unique<EdgesGenerator>();
     finder.FindEntityNeighbours(r_model_part.Elements(), r_model_part.Elements(), boundary_generators);

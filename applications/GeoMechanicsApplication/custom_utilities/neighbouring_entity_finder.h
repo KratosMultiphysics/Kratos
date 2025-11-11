@@ -37,11 +37,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringEntityFinder
 {
 public:
     explicit NeighbouringEntityFinder(bool alsoSearchReverse = false);
-    void InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping);
-
-    void FindEntityNeighboursBasedOnBoundaryType(
-        std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
-        ModelPart::ElementsContainerType&                                   rElements);
 
     using BoundaryGeneratorByLocalDim = std::map<std::size_t, std::unique_ptr<BoundaryGenerator>>;
 
@@ -73,6 +68,10 @@ public:
     }
 
 private:
+    void InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping);
+    void FindEntityNeighboursBasedOnBoundaryType(
+        std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
+        ModelPart::ElementsContainerType&                                   rElements);
     void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
     void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,
