@@ -41,26 +41,14 @@ class PathPatternEntity(PatternEntity):
 
 class Pattern:
     def __init__(self, tagged_pattern: str, tag_type_dict: 'dict[str, typing.Any]') -> None:
-        regex_special_chars_escape_map = {
-            "+": r"\+",
-            "^": r"\^",
-            "$": r"\$",
-            ".": r"\.",
-            "|": r"\|",
-            "?": r"\?",
-            "*": r"\*",
-            "(": r"\(",
-            ")": r"\)",
-            "[": r"\[",
-            "]": r"\]",
-            "{": r"\{",
-            "}": r"\}"
-        }
+        regex_special_chars_escape = [
+            "+", "^", "$", ".", "|", "?", "*", "(", ")", "[", "]", "{", "}"
+        ]
 
         # replace regex chars
         regex_pattern = tagged_pattern.replace("\\", "\\\\")
-        for k, v in regex_special_chars_escape_map.items():
-            regex_pattern = regex_pattern.replace(k, v)
+        for k in regex_special_chars_escape:
+            regex_pattern = regex_pattern.replace(k, "\\" + k)
 
         self.__converters: 'list[typing.Any]' = []
 
