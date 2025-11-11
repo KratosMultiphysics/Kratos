@@ -56,16 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsCorrectNeighbouringEle
 
     auto& r_model_part_for_entities_for_finding =
         ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
-    NodeIdsToEntitiesHashMap map;
-    for (auto& rElement : r_model_part_for_entities_for_finding.Elements()) {
-        std::ranges::transform(rElement.GetGeometry().GenerateBoundariesEntities(),
-                               std::inserter(map, map.end()), [&rElement](auto& BoundaryGeometry) {
-            return NodeIdsToEntitiesHashMap::value_type(
-                GeometryUtilities::GetNodeIdsFromGeometry(BoundaryGeometry), {&rElement});
-        });
-    }
 
-    finder.InitializeBoundaryMaps(map);
     auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("empty");
 
     std::vector         neighbour_node_ids = {1, 2};
@@ -78,12 +69,10 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsCorrectNeighbouringEle
     p_element->SetId(42);
     r_model_part_for_neighbouring_elements.AddElement(p_element);
 
-    auto generate_generic_boundaries = [](const auto& rGeometry) {
-        return rGeometry.GenerateEdges();
-    };
-
-    finder.FindEntityNeighboursBasedOnBoundaryType(
-        generate_generic_boundaries, r_model_part_for_neighbouring_elements.Elements());
+    std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
+    boundary_generators[std::size_t{2}] = std::make_unique<EdgesGenerator>();
+    finder.FindEntityNeighbours(r_model_part_for_entities_for_finding.Elements(),
+                                r_model_part_for_neighbouring_elements.Elements(), boundary_generators);
 
     ASSERT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
     EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 42);
@@ -146,8 +135,9 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenTwoCont
             GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry), {p_element_1}));
     }
 
-    constexpr auto               alsoSearchReverse = true;
-    NeighbouringEntityFinder finder(alsoSearchReverse);    finder.InitializeBoundaryMaps(map);
+    constexpr auto           alsoSearchReverse = true;
+    NeighbouringEntityFinder finder(alsoSearchReverse);
+    finder.InitializeBoundaryMaps(map);
 
     auto generate_generic_boundaries = [](const auto& rGeometry) {
         return rGeometry.GenerateBoundariesEntities();

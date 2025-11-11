@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include "boundary_generators.h"
 #include "geometry_utilities.h"
 #include "includes/geometrical_object.h"
 #include "includes/key_hash.h"
@@ -42,6 +43,33 @@ public:
         std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
         ModelPart::ElementsContainerType&                                   rElements);
 
+    using BoundaryGeneratorByLocalDim = std::map<std::size_t, std::unique_ptr<BoundaryGenerator>>;
+
+    template <typename EntityContainerType, typename CandidateNeighbourContainerType>
+    void FindEntityNeighbours(EntityContainerType&             rEntities,
+                              CandidateNeighbourContainerType& rCandidates,
+                              BoundaryGeneratorByLocalDim&     rBoundaryGenerators)
+    {
+        for (int local_space_dimension = 0; local_space_dimension < 4; ++local_space_dimension) {
+            NodeIdsToEntitiesHashMap map;
+            if (!rBoundaryGenerators.contains(local_space_dimension)) continue;
+
+            const auto& r_boundary_generator = *rBoundaryGenerators.at(local_space_dimension);
+            for (auto& r_entity : rEntities) {
+                if (r_entity.GetGeometry().LocalSpaceDimension() != local_space_dimension) continue;
+
+                for (const auto& r_boundary_geometry : r_boundary_generator(r_entity.GetGeometry())) {
+                    map.insert({GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry), {&r_entity}});
+                }
+            }
+
+            InitializeBoundaryMaps(map);
+            FindEntityNeighboursBasedOnBoundaryType([&r_boundary_generator](const auto& rGeometry) {
+                return r_boundary_generator(rGeometry);
+            }, rCandidates);
+        }
+    }
+
 private:
     void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
@@ -60,6 +88,6 @@ private:
 
     NodeIdsToEntitiesHashMap       mGeometryNodeIdsToEntities;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedEntityNodeIds;
-    bool mAlsoSearchReverse = false;
+    bool                           mAlsoSearchReverse = false;
 };
 } // namespace Kratos

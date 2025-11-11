@@ -14,6 +14,7 @@
 #pragma once
 
 #include "geometries/geometry.h"
+#include "includes/kratos_export_api.h"
 #include "includes/node.h"
 
 namespace Kratos
@@ -26,19 +27,19 @@ public:
     virtual Geometry<Node>::GeometriesArrayType operator()(const Geometry<Node>& rGeometry) const = 0;
 };
 
-class PointsGenerator : public BoundaryGenerator
+class KRATOS_API(GEO_MECHANICS_APPLICATION) PointsGenerator : public BoundaryGenerator
 {
 public:
     Geometry<Node>::GeometriesArrayType operator()(const Geometry<Node>& rGeometry) const override;
 };
 
-class EdgesGenerator : public BoundaryGenerator
+class KRATOS_API(GEO_MECHANICS_APPLICATION) EdgesGenerator : public BoundaryGenerator
 {
 public:
     Geometry<Node>::GeometriesArrayType operator()(const Geometry<Node>& rGeometry) const override;
 };
 
-class FacesGenerator : public BoundaryGenerator
+class KRATOS_API(GEO_MECHANICS_APPLICATION) FacesGenerator : public BoundaryGenerator
 {
 public:
     Geometry<Node>::GeometriesArrayType operator()(const Geometry<Node>& rGeometry) const override;
