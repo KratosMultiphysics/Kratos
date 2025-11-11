@@ -260,7 +260,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsEmptyListForEmptyGeometry, Kr
 {
     const auto node_ids = GeometryUtilities::GetNodeIdsFromGeometry(Geometry<Node>{});
 
-    KRATOS_EXPECT_TRUE(node_ids.empty());
+    KRATOS_EXPECT_TRUE(node_ids.empty())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectNodeIds, KratosGeoMechanicsFastSuiteWithoutKernel)
