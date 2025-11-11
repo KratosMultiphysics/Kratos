@@ -64,7 +64,6 @@ def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
                 "powershell", 
                 "-Command", 
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
-                # Path(os.environ['pythonRoot']) / f"{python_ver}" / "python.exe",
                 Path("C:/python") / f"{python_ver}" / "python.exe",
                 Path(CURRENT_CONFIG['KRATOS_ROOT']),
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}",
@@ -223,8 +222,6 @@ def buildWheel (CURRENT_CONFIG: dict, paths: dict):
     cleanupWheelDir(wheel_staging_path)
 
 if __name__ == "__main__":
-    setupLogging("wheelbuild.log") 
-
     # Set some defines
     os.environ['KRATOS_VERSION'] = KRATOS_VERSION
 
@@ -234,6 +231,9 @@ if __name__ == "__main__":
     CURRENT_CONFIG = PLATFORM_CONFIG[OS]
     CURRENT_CONFIG['UNIFIED_WHEEL'] = False
     CURRENT_CONFIG['CLEAN_COMPILE'] = True
+
+    # Setup Logging
+    setupLogging(Path(CURRENT_CONFIG['WHEEL_OUT']) / "wheelbuild.log") 
 
     logging.info(f"Build mode is: {'Unified' if CURRENT_CONFIG['UNIFIED_WHEEL'] else 'Packages'}")
 
