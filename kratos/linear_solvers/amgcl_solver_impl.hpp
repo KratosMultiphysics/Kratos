@@ -762,16 +762,27 @@ bool AMGCLSolver<TSparse,TDense>::PerformSolutionStep(SparseMatrixType& rLhs,
         mpImpl->mpSolver
     );
 
+    // Failed to solve the system; retry with GMRES.
+    // This results in a lasting changes to the original
+    // configuration of this solver instance.
+    // (this functionality should be handled outside this class)
     if (mFallbackToGMRES && mTolerance < residual_norm) {
         const std::string iterative_solver_name = mAMGCLParameters.get<std::string>("solver.type");
-        if (iterative_solver_name == "gmres") {
-            KRATOS_INFO_IF("AMGCLSolver", iterative_solver_name == "gmres")
+        if (iterative_solver_name != "gmres") {
+            KRATOS_INFO("AMGCLSolver")
                 << "Failed to solve the system using " << iterative_solver_name << " "
                 << "(" << residual_norm << " residual in " << iteration_count << " iterations) "
                 << ". Falling back to \"gmres\".";
+
+            // Override the user-provided configuration and retry with
+            // GMRES and a block size of 1.
+            // => requires a refactorization.
             mAMGCLParameters.put("solver.type", "gmres");
             mAMGCLParameters.put("solver.M",  mGMRESSize);
-            this->PerformSolutionStep(rLhs, rSolution, rRhs);
+            this->mBlockSize = 1;
+            this->InitializeSolutionStep(rLhs, rSolution, rRhs);
+
+            return this->PerformSolutionStep(rLhs, rSolution, rRhs);
         }
     }
 
