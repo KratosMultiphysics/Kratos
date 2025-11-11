@@ -131,7 +131,6 @@ class MasterControl:
             KratosOA.CollectiveExpression: Control space sensitivities.
         """
 
-        print("MASTER CONTROL MAP GRADIENT")
 
         mapped_gradients = KratosOA.CollectiveExpression()
 
@@ -161,7 +160,6 @@ class MasterControl:
 
             # map the physical control variable sensitivities to one control space
             mapped_gradients.Add(control.MapGradient(control_physical_sensitivities_container_expression_map))
-            print("MAP GRADIENT END")
 
         return mapped_gradients
 

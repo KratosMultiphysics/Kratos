@@ -36,7 +36,6 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
         self.model_part = model[parameters["model_part_name"].GetString()]
         self.optimization_problem = optimization_problem
         self.output_interval = parameters["output_interval"].GetInt()
-        # self.created_nodes = {}
         self.created_coordinates = {}
 
 
@@ -49,7 +48,7 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
     def PrintOutput(self):
         if self.optimization_problem.GetStep() % self.output_interval == 0:
             for control in self.optimization_problem.GetListOfControls():
-                self.control_field = control.GetControlField()
+                self.control_field = control.GetPhysicalField()
             model = Kratos.Model()
             mp = model.CreateModelPart("Interface")
             mp.CreateNewProperties(2)
@@ -76,7 +75,7 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
             output_file_name = output_file_name.replace("<step>", str(self.optimization_problem.GetStep()))
             vtu_output = Kratos.VtuOutput(mp)
             vtu_output.PrintOutput(str(self.output_path /output_file_name))
-            self.write_created_coordinates_to_csv(self.output_path_cloud + "/interface_nodes_" + str(self.optimization_problem.GetStep()) + ".csv")
+            # self.write_created_coordinates_to_csv(self.output_path_cloud + "/interface_nodes_" + str(self.optimization_problem.GetStep()) + ".csv")
 
 
     def write_created_coordinates_to_csv(self, filename="created_coordinates.csv"):
@@ -405,8 +404,9 @@ class InterfaceOutputProcess(Kratos.OutputProcess):
             else:
                 Kratos.Logger.PrintWarning("InterfaceOutputProcess", f"Element produced {n} intersections — not handled.")
                 print(f"element Coordinates: {temp1}\n Element ids: {temp2}")
+                print((f"Node ids: {node_ids}\nCoordinates: {zero_level_set}\n Edges: {edge}"))
                 
-                raise RuntimeError(f"Node ids: {node_ids}\nCoordinates: {zero_level_set}\n Edges: {edge}")
+                # raise RuntimeError(f"Node ids: {node_ids}\nCoordinates: {zero_level_set}\n Edges: {edge}")
         else:
             n = len(corners)
             corner_node_ids = []

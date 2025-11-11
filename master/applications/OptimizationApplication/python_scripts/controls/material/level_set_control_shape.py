@@ -101,7 +101,8 @@ class LevelSetControlShape(Control):
         # self.control_phi = self.GetEmptyField()
         # Kratos.Expression.LiteralExpressionIO.SetData(self.control_phi, self.initial_phi)
         # initialize as SDF
-        self._InitializeSignedDistanceKDTree(min_dirac=0.1)
+        self.physical_phi = self._InitializeSignedDistanceKDTree(min_dirac=0.1)
+        self.control_phi = self.filter.UnfilterField(self.physical_phi)
 
         # get element sizes (no remeshing)
         self.element_len = self._GetElementLength()
@@ -109,17 +110,10 @@ class LevelSetControlShape(Control):
         # initialize physical fields 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
-
-    def _InitializeSignedDistanceKDTree(self, interface_points=None, min_dirac=0.1):
-        """
-        Build a signed distance function φ using a KDTree for unstructured FEM nodes.
-        If interface_points=None, assumes interface at x=0 plane for demonstration.
-        """
+    # Build a signed distance function φ using a KDTree for unstructured FEM nodes.
+    def _InitializeSignedDistanceKDTree(self, interface_points=None, min_dirac=0.1) -> ContainerExpressionTypes:
         interface_points = np.array([[node.X, node.Y, node.Z] for node in self.model_part.GetSubModelPart("BOUNDARY_NODES").Nodes])
         nodes = np.array([[node.X, node.Y, node.Z] for node in self.model_part.Nodes])
-        # if interface_points is None:
-        #     # Example: interface plane at x = 0
-        #     interface_points = np.array([[0.0, y, z] for y, z in zip(nodes[:, 1], nodes[:, 2])])
 
         # Build KDTree from interface points
         tree = KDTree(interface_points)
@@ -128,74 +122,81 @@ class LevelSetControlShape(Control):
         distances, _ = tree.query(nodes)
 
         # Determine inside/outside using current phi or coordinate sign (x>0 => material)
-        signs = np.sign(nodes[:, 0])  # <-- Replace with your material/void criterion
-        max_phi = 1/(2*self.k) * np.log((self.k - min_dirac + np.sqrt(self.k*(self.k - min_dirac)))/(2*min_dirac))
+        signs = np.sign(nodes[:, 0]) 
+        self.max_phi = 1/(2*self.k) * np.log((self.k - min_dirac + np.sqrt(self.k*(self.k - min_dirac)))/(2*min_dirac))
         phi_values = signs * distances
 
         # ---- SCALE AND CLIP ----
         phi_values /= np.max(np.abs(phi_values))  # normalize to [-1, 1]
-        phi_values *= max_phi                  # rescale to [-phi_max, phi_max]
-        phi_values = np.clip(phi_values, -max_phi, max_phi)
+        phi_values *= self.max_phi                  # rescale to [-phi_max, phi_max]
+        phi_values = np.clip(phi_values, -self.max_phi, self.max_phi)
 
-        # Set BC nodes to material
-        BC_points = [node.Id for node in self.model_part.GetSubModelPart("DISPLACEMENT_fixed_support").Nodes] + \
-                    [node.Id for node in self.model_part.GetSubModelPart("DISPLACEMENT_roller_support").Nodes] + \
-                    [node.Id for node in self.model_part.GetSubModelPart("PointLoad3D_load").Nodes]
-        for id in BC_points:
-            phi_values[id-1] = max_phi
+        # # Set BC nodes to material
+        # BC_points = [node.Id for node in self.model_part.GetSubModelPart("DISPLACEMENT_fixed_support").Nodes] + \
+        #             [node.Id for node in self.model_part.GetSubModelPart("DISPLACEMENT_roller_support").Nodes] + \
+        #             [node.Id for node in self.model_part.GetSubModelPart("PointLoad3D_load").Nodes]
+        # for id in BC_points:
+        #     phi_values[id-1] = self.max_phi
 
         # Store as nodal expression
         phi_exp = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.CArrayExpressionIO.Read(phi_exp, phi_values)
 
-        self.control_phi = phi_exp.Clone()
-
         print(f"Initialized signed distance φ in range: [{phi_values.min():.3f}, {phi_values.max():.3f}]")
 
-    def _ReinitializePhiSussman(self, num_iterations=10, dt=0.01):
-        """
-        Reinitializes the level set function φ using the Sussman PDE:
-            ∂φ/∂τ + S(φ₀)(|∇φ| - 1) = 0
-        to maintain φ as a signed distance function.
-        
-        Args:
-            num_iterations (int): Number of pseudo-time iterations
-            dt (float): Pseudo-time step (should be small, e.g. 0.01)
-        """
+        return phi_exp
 
-        # Clone original φ as φ₀
-        phi_0 = self.control_phi.Clone()
 
-        # Precompute sign(phi₀) smoothed: S(phi₀) = phi₀ / sqrt(phi₀² + ε²)
+    # Reinitializes φ via the Sussman PDE without arbitrary constants.
+    # ∂φ/∂t + S(φ₀)(|∇φ| - 1) = 0
+    # Automatically adapts pseudo-time step from mesh size and gradients.
+    def _ReinitializePhiSussman(self, num_iterations=10):
+
+        phi_0 = self.physical_phi.Clone()
         eps = 1e-6
-        phi0_np = phi_0.Evaluate()
-        sign_phi = phi0_np / np.sqrt(phi0_np**2 + eps**2)
-        sign_phi_exp = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.CArrayExpressionIO.Read(sign_phi_exp, sign_phi)
 
-        # Pseudo-time marching loop
+        # Compute smoothed sign(phi_0)
+        phi0_np = phi_0.Evaluate()
+        sign_phi_np = phi0_np / np.sqrt(phi0_np**2 + eps**2)
+        sign_phi_exp = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(sign_phi_exp, sign_phi_np)
+
+        # Element length expression for adaptive dtau
+        h_min = Kratos.Expression.Utils.EntityMin(self.element_len).Evaluate()[0]
+
         for it in range(num_iterations):
-            # Compute |∇φ|
+            # |∇φ|
             grad_phi_elem = Kratos.Expression.ElementExpression(self.model_part)
-            KratosOA.ExpressionUtils.GetGradientExpression(grad_phi_elem, self.control_phi, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE])
+            KratosOA.ExpressionUtils.GetGradientExpression(
+                grad_phi_elem, self.physical_phi, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+            )
             grad_norm = np.linalg.norm(grad_phi_elem.Evaluate(), axis=1)
             grad_norm_exp = Kratos.Expression.ElementExpression(self.model_part)
             Kratos.Expression.CArrayExpressionIO.Read(grad_norm_exp, grad_norm)
 
-            # Collapse to nodal field for φ update
+            # Project to nodes
             grad_norm_nodal = Kratos.Expression.NodalExpression(self.model_part)
             KratosOA.ExpressionUtils.ProjectElementalToNodalViaShapeFunctions(grad_norm_nodal, grad_norm_exp)
 
-            # Compute update: ∂φ/∂τ = -S(φ₀)(|∇φ| - 1)
+            # Adaptive pseudo-time step
+            max_grad = np.max(grad_norm)
+            dtau = h_min / (max_grad + 1e-12)
+
+            # Explicit update
             update = -sign_phi_exp * (grad_norm_nodal - 1.0)
-            # Time integration (explicit Euler)
-            self.control_phi += update * dt
-            self.control_phi = Kratos.Expression.Utils.Collapse(self.control_phi)
+            self.physical_phi += update * dtau
+            self.physical_phi = Kratos.Expression.Utils.Collapse(self.physical_phi)
 
-            if it % 5 == 0 and self.echo_level > 0:
-                print(f" [Reinit] Iter {it}/{num_iterations} | mean(|∇φ|-1) = {np.mean(np.abs(grad_norm - 1)):.3e}")
+            # Soft normalization to keep phi within [-a, a]
+            phi_np = self.physical_phi.Evaluate()
+            # max_abs = np.max(np.abs(phi_np))
+            phi_np /= np.max(np.abs(phi_np))  # normalize to [-1, 1]
+            phi_np *= self.max_phi                  # rescale to [-phi_max, phi_max]
+            Kratos.Expression.CArrayExpressionIO.Read(self.physical_phi, phi_np)
+            self.physical_phi = self.filter.ForwardFilterField(self.physical_phi)
 
-        print(f"Sussman reinitialization done. Final φ range: [{min(self.control_phi.Evaluate()):.3f}, {max(self.control_phi.Evaluate()):.3f}]")
+            if self.echo_level > 0 and it % 5 == 0:
+                print(f"[Reinit] Iter {it}/{num_iterations} | mean(|∇φ|-1) = {np.mean(np.abs(grad_norm - 1)):.3e}")
 
     def _GetElementLength(self) -> ContainerExpressionTypes:
         domain_size = []
@@ -232,11 +233,13 @@ class LevelSetControlShape(Control):
     
     def GetControlField(self) -> ContainerExpressionTypes:
         return self.control_phi.Clone()
+    
+    def GetPhysicalField(self) -> ContainerExpressionTypes:
+        return self.physical_phi.Clone()
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         # Get physical variables
         keys = physical_gradient_variable_container_expression_map.keys()
-        print(physical_gradient_variable_container_expression_map)
         if len(keys) != 2:
             raise RuntimeError(f"Not provided required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
         if  Kratos.DENSITY not in keys or Kratos.YOUNG_MODULUS not in keys:
@@ -255,7 +258,7 @@ class LevelSetControlShape(Control):
         d_j_d_phi_nodal = Kratos.Expression.NodalExpression(self.model_part)
         KratosOA.ExpressionUtils.ProjectElementalToNodalViaShapeFunctions(d_j_d_phi_nodal, d_j_d_phi)
 
-        return d_j_d_phi_nodal
+        return self.filter.BackwardFilterIntegratedField(d_j_d_phi_nodal)
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
         
@@ -274,15 +277,15 @@ class LevelSetControlShape(Control):
             # compute timestep from CFL
             time_step = self._ComputeCFLCondition(update)
             print(f"Time_step: {time_step}")
-
+            # v * |∇φ| * t
             new_update = update * nodal_grad * time_step
-            # self.filter.ForwardFilterField(new_update)
+            # φ(n+1) = φ(n) + A(v * |∇φ| * t)
             self.control_phi += new_update
             self.control_phi = Kratos.Expression.Utils.Collapse(self.control_phi)
 
             # Reinitialize the LSF as Signed Distance Function
-            # if self.optimization_problem.GetStep() % self.reinit_interval == 0:
-            #     self._ReinitializePhiSussman(num_iterations=15, dt = Kratos.Expression.Utils.EntityMin(self.element_len).Evaluate()[0] * time_step)
+            if self.optimization_problem.GetStep() % self.reinit_interval == 0:
+                self._ReinitializePhiSussman(num_iterations=15)
 
             self._UpdateAndOutputFields(new_update)
             self.filter.Update()
@@ -291,9 +294,13 @@ class LevelSetControlShape(Control):
         return False
 
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
+        # get filtered physical field
+        physical_phi_update = self.filter.ForwardFilterField(update)
+        self.physical_phi = Kratos.Expression.Utils.Collapse(self.physical_phi + physical_phi_update)
+        
         # compute elemental phi
         elemental_phi = Kratos.Expression.ElementExpression(self.model_part)
-        KratosOA.ExpressionUtils.ProjectNodalToElementalViaShapeFunctions(elemental_phi, self.control_phi)
+        KratosOA.ExpressionUtils.ProjectNodalToElementalViaShapeFunctions(elemental_phi, self.physical_phi)
         
         # get elemental heaviside values
         heaviside = Kratos.Expression.ElementExpression(self.model_part)
@@ -325,15 +332,14 @@ class LevelSetControlShape(Control):
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-        un_buffered_data.SetValue(f"{self.GetName()}", self.control_phi.Clone(),overwrite=True)
+        un_buffered_data.SetValue(f"{self.GetName()}", self.physical_phi.Clone(),overwrite=True)
         if self.output_all_fields:
-            un_buffered_data.SetValue(f"{self.GetName()}_update", update.Clone(), overwrite=True)
+            un_buffered_data.SetValue(f"{self.GetName()}_update", physical_phi_update.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"dDENSITY_d{self.GetName()}", self.d_density_d_phi.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", self.d_young_modulus_d_phi.Clone(), overwrite=True)
 
         if True in (np.isnan(np.array(heaviside.Evaluate())) | np.isinf(np.array(heaviside.Evaluate()))):
             np.savetxt("density.txt", density.Evaluate())
-            np.savetxt("youngs.txt", youngs_modulus.Evaluate())
             np.savetxt("heaviside.txt", heaviside.Evaluate())
             np.savetxt("d_young_modulus_d_phi.txt", self.d_young_modulus_d_phi.Evaluate())
             np.savetxt("elemental_phi.txt", elemental_phi.Evaluate())
@@ -355,7 +361,7 @@ class LevelSetControlShape(Control):
         elemental_velocity = Kratos.Expression.ElementExpression(self.model_part)
         KratosOA.ExpressionUtils.ProjectNodalToElementalViaShapeFunctions(elemental_velocity, design_velocity)
         time = self.element_len / Kratos.Expression.Utils.Abs(elemental_velocity)
-        return min(time.Evaluate()) * 0.1    
+        return min(time.Evaluate()) #* 0.1    
 
     @staticmethod
     def ComputeHeavisideValue(phi: ContainerExpressionTypes, k: float) -> ContainerExpressionTypes:  
