@@ -34,7 +34,6 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsEmptyListWhenNoNeighbo
     finder.FindEntityNeighbours(r_model_part_for_entities_for_finding.Elements(),
                                 r_model_part_for_neighbouring_elements.Elements(), boundary_generators);
 
-
     EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
 }
 
@@ -118,8 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenTwoCont
     finder.FindEntityNeighboursBasedOnBoundaryType(generate_generic_boundaries, r_model_part.Elements());
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{2}] = std::make_unique<EdgesGenerator>();
-    finder.FindEntityNeighbours(r_model_part.Elements(),
-                                r_model_part.Elements(), boundary_generators);
+    finder.FindEntityNeighbours(r_model_part.Elements(), r_model_part.Elements(), boundary_generators);
 
     ASSERT_EQ(p_element_1->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
     EXPECT_EQ(p_element_1->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 2);

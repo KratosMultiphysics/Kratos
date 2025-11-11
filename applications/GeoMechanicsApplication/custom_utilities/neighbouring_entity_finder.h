@@ -63,6 +63,8 @@ public:
                 }
             }
 
+            if (map.empty()) continue;
+
             InitializeBoundaryMaps(map);
             FindEntityNeighboursBasedOnBoundaryType([&r_boundary_generator](const auto& rGeometry) {
                 return r_boundary_generator(rGeometry);

@@ -23,19 +23,17 @@ NeighbouringEntityFinder::NeighbouringEntityFinder(bool alsoSearchReverse)
 
 void NeighbouringEntityFinder::InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping)
 {
-    {
-        mGeometryNodeIdsToEntities = std::move(GeometryNodeIdsToEntityMapping);
+    mGeometryNodeIdsToEntities = std::move(GeometryNodeIdsToEntityMapping);
 
-        mSortedToUnsortedEntityNodeIds.clear();
-        std::ranges::transform(
-            mGeometryNodeIdsToEntities,
-            std::inserter(mSortedToUnsortedEntityNodeIds, mSortedToUnsortedEntityNodeIds.end()),
-            [](const auto& rPair) {
-            auto sorted_ids = rPair.first;
-            std::ranges::sort(sorted_ids);
-            return std::make_pair(sorted_ids, rPair.first);
-        });
-    }
+    mSortedToUnsortedEntityNodeIds.clear();
+    std::ranges::transform(
+        mGeometryNodeIdsToEntities,
+        std::inserter(mSortedToUnsortedEntityNodeIds, mSortedToUnsortedEntityNodeIds.end()),
+        [](const auto& rPair) {
+        auto sorted_ids = rPair.first;
+        std::ranges::sort(sorted_ids);
+        return std::make_pair(sorted_ids, rPair.first);
+    });
 }
 
 void NeighbouringEntityFinder::FindEntityNeighboursBasedOnBoundaryType(
