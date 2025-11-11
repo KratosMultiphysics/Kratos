@@ -24,9 +24,9 @@ CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
 CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
-CALL :add_app %KRATOS_APP_DIR%\FemToDemApplication;
-CALL :add_app %KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\DelaunayMeshingApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\FemToDemApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\DelaunayMeshingApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshingApplication;
 CALL :add_app %KRATOS_APP_DIR%\DemStructuresCouplingApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
@@ -59,6 +59,7 @@ echo %KRATOS_BUILD%\%KRATOS_BUILD_TYPE%
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
 -DCMAKE_INSTALL_PREFIX=%3                                                                   ^
 -DCMAKE_POLICY_VERSION_MINIMUM=3.5                                                          ^
+-DKRATOS_USE_FUTURE=ON                                                                      ^
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                                               ^
 -DCMAKE_C_FLAGS="/MP24 /Gm- /Zm10"                                                          ^
 -DCMAKE_CXX_FLAGS="/MP24 /Gm- /Zm10"                                                        ^
