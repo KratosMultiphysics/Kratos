@@ -33,7 +33,7 @@ void NeighbouringEntityFinder::InitializeBoundaryMaps(NodeIdsToEntitiesHashMap G
     }
 }
 
-void NeighbouringEntityFinder::FindConditionNeighboursBasedOnBoundaryType(
+void NeighbouringEntityFinder::FindEntityNeighboursBasedOnBoundaryType(
     std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
     ModelPart::ElementsContainerType&                                   rElements)
 {

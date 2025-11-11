@@ -37,7 +37,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringEntityFinder
 public:
     void InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping);
 
-    void FindConditionNeighboursBasedOnBoundaryType(
+    void FindEntityNeighboursBasedOnBoundaryType(
         std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
         ModelPart::ElementsContainerType&                                   rElements);
 
