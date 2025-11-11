@@ -77,8 +77,19 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS KratosMedCore DESTINATION libs RUNTIME_DEPENDENCIES DIRECTORIES "${MED_ROOT}/lib" "${MED_ROOT}/bin")
-install(TARGETS KratosMedApplication DESTINATION libs )
+if(WIN32)
+    install(TARGETS KratosMedCore DESTINATION libs RUNTIME_DEPENDENCIES DIRECTORIES "${HDF5_ROOT}/lib" "${HDF5_ROOT}/bin" "${MED_ROOT}/lib" "${MED_ROOT}/bin")
+else()
+    install(TARGETS KratosMedCore DESTINATION libs)
+endif()
+if(APPLE)
+    install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.so*")
+    install(DIRECTORY "${MED_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.so*")
+endif()
+if(UNIX AND NOT APPLE)
+    install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.so*")
+    install(DIRECTORY "${MED_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.so*")
+endif()
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMedCore" PARENT_SCOPE)

@@ -139,8 +139,17 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS KratosHDF5Core DESTINATION libs RUNTIME_DEPENDENCIES DIRECTORIES "${HDF5_ROOT}/lib" "${HDF5_ROOT}/bin")
-install(TARGETS KratosHDF5Application DESTINATION libs)
+if(WIN32)
+    install(TARGETS KratosHDF5Application DESTINATION libs RUNTIME_DEPENDENCIES DIRECTORIES "${HDF5_ROOT}/lib" "${HDF5_ROOT}/bin")
+else()
+    install(TARGETS KratosHDF5Application DESTINATION libs)
+endif()
+if(APPLE)
+    install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.so*")
+endif()
+if(UNIX AND NOT APPLE)
+    install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.so*")
+endif()
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosHDF5Core" PARENT_SCOPE)
