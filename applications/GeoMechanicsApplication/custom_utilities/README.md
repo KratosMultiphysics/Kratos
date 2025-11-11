@@ -157,5 +157,5 @@ $$(q_{mc} - q)\frac{3 \sin{\phi}}{\sqrt{3} \cos{\bar{\theta}_s} - \sin{\bar{\the
 ### CalculateExtrapolationMatrix  function
 This function calculates an extrapolation matrix that is used to extrapolate data from integration points of an element to its nodes. The matrix is used to perform linear interpolation. 
 
-### CalculateNodalStresses function
+### CalculateNodalVectors function
 This function uses the extrapolation matrix to extrapolate vector inputs, for example, stress vectors from the integration points to the element nodes that are provided as input. 

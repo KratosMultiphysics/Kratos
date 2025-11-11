@@ -187,23 +187,23 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
 
-    mConstitutiveLaws.clear();
-    for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
-        mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
-        mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
-    }
-
     if (!mNeighbourElements.empty()) {
         for (const auto& element : mNeighbourElements) {
             std::vector<std::size_t> node_ids_common_with_element(1);
             std::vector<Vector>      cauchy_stresses;
             element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stresses, rCurrentProcessInfo);
-            const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalStresses(
+            const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(
                 node_ids_common_with_element, element->GetGeometry(),
                 element->GetIntegrationMethod(), cauchy_stresses, element->Id());
             KRATOS_ERROR_IF_NOT(nodal_stresses.size() == node_ids_common_with_element.size())
                 << " vectors have different sizes" << std::endl;
         }
+    }
+
+    mConstitutiveLaws.clear();
+    for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
+        mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
+        mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
     }
 }
 
