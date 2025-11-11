@@ -278,9 +278,15 @@ protected:
     /**
      * @brief This method sets the smother type to be considered
      * @param rSmootherName The smother type to be considered
+     * @warning This method invalidates the existing hierarchy.
      */
     void SetSmootherType(const std::string& rSmootherName)
     {
+        // Clear the existing hierarchy (but not other data).
+        auto coordinates = std::move(mCoordinates);
+        this->Clear();
+        mCoordinates = std::move(coordinates);
+
         const std::vector<std::string> options {
             "spai0",
             "spai1",
@@ -291,21 +297,29 @@ protected:
             "gauss_seidel",
             "chebyshev"
         };
+
         if (std::find(options.begin(), options.end(), rSmootherName) == options.end()) {
             std::stringstream message;
             message << "Invalid AMGCL smoother name: \"" << rSmootherName << "\". Options are:\n";
             for (const auto& r_option : options) message << "\t\"" << r_option << "\"\n";
             KRATOS_ERROR << message.str();
         }
+
         mAMGCLParameters.put("precond.relax.type", rSmootherName);
     }
 
     /**
      * @brief This method sets the iterative solver to be considered
      * @param rSolverName The iterative solver to be considered
+     * @warning This method invalidates the existing hierarchy.
      */
     void SetIterativeSolverType(const std::string& rSolverName)
     {
+        // Clear the existing hierarchy (but not other data).
+        auto coordinates = std::move(mCoordinates);
+        this->Clear();
+        mCoordinates = std::move(coordinates);
+
         const std::vector<std::string> options {
             "gmres",
             "bicgstab",
@@ -313,24 +327,20 @@ protected:
             "bicgstabl",
             "lgmres",
             "fgmres",
-            "idrs",
-            "bicgstab_with_gmres_fallback"
+            "idrs"
         };
+
         if (std::find(options.begin(), options.end(), rSolverName) == options.end()) {
             std::stringstream message;
             message << "Invalid AMGCL solver name: \"" << rSolverName << "\". Options are:\n";
             for (const auto& r_option : options) message << "\t\"" << r_option << "\"\n";
             KRATOS_ERROR << message.str();
         }
-        mAMGCLParameters.put("solver.type", rSolverName);
 
+        mAMGCLParameters.put("solver.type", rSolverName);
         if (rSolverName == "gmres" || rSolverName == "fgmres" || rSolverName == "lgmres")
             mAMGCLParameters.put("solver.M",  mGMRESSize);
-        else if (rSolverName == "bicgstab_with_gmres_fallback") {
-            mAMGCLParameters.put("solver.M",  mGMRESSize);
-            mAMGCLParameters.put("solver.type", "bicgstab");
-            mFallbackToGMRES = true;
-        } else {
+        else {
             mAMGCLParameters.erase("solver.M");
         }
     }
@@ -338,21 +348,29 @@ protected:
     /**
      * @brief This method sets the coarsening type to be considered
      * @param rCoarseningName The coarsening type to be considered
+     * @warning This method invalidates the existing hierarchy.
      */
     void SetCoarseningType(const std::string& rCoarseningName)
     {
+        // Clear the existing hierarchy (but not other data).
+        auto coordinates = std::move(mCoordinates);
+        this->Clear();
+        mCoordinates = std::move(coordinates);
+
         const std::vector<std::string> options {
             "ruge_stuben",
             "aggregation",
             "smoothed_aggregation",
             "smoothed_aggr_emin"
         };
+
         if (std::find(options.begin(), options.end(), rCoarseningName) == options.end()) {
             std::stringstream message;
             message << "Invalid AMGCL coarsening name: \"" << rCoarseningName << "\". Options are:\n";
             for (const auto& r_option : options) message << "\t\"" << r_option << "\"\n";
             KRATOS_ERROR << message.str();
         }
+
         mAMGCLParameters.put("precond.coarsening.type", rCoarseningName);
     }
 
