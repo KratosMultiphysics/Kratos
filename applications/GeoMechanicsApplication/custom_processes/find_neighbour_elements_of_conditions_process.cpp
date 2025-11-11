@@ -29,7 +29,13 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     if (mrModelPart.Conditions().empty()) return;
 
-    mNeighbouringEntityFinder.InitializeBoundaryMaps(mrModelPart.Conditions());
+    NodeIdsToEntitiesHashMap map;
+    std::ranges::transform(mrModelPart.Conditions(), std::inserter(map, map.end()), [](auto& rCondition) {
+        return NodeIdsToEntitiesHashMap::value_type(
+            GeometryUtilities::GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
+    });
+
+    mNeighbouringEntityFinder.InitializeBoundaryMaps(map);
     FindNeighbouringElementsForAllBoundaryTypes();
 
     if (!AllConditionsHaveAtLeastOneNeighbour()) {

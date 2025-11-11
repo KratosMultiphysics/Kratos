@@ -23,7 +23,7 @@
 namespace Kratos
 {
 
-using NodeIdsToConditionsHashMap     = std::unordered_multimap<std::vector<std::size_t>,
+using NodeIdsToEntitiesHashMap       = std::unordered_multimap<std::vector<std::size_t>,
                                                                std::vector<GeometricalObject::Pointer>,
                                                                KeyHasherRange<std::vector<std::size_t>>,
                                                                KeyComparorRange<std::vector<std::size_t>>>;
@@ -35,30 +35,7 @@ using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::
 class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringEntityFinder
 {
 public:
-    template <typename EntityContainerType>
-    void InitializeBoundaryMaps(EntityContainerType& rConditions)
-    {
-        {
-            mConditionNodeIdsToConditions.clear();
-            std::ranges::transform(
-                rConditions,
-                std::inserter(mConditionNodeIdsToConditions, mConditionNodeIdsToConditions.end()),
-                [](auto& rCondition) {
-                return NodeIdsToConditionsHashMap::value_type(
-                    GeometryUtilities::GetNodeIdsFromGeometry(rCondition.GetGeometry()), {&rCondition});
-            });
-
-            mSortedToUnsortedConditionNodeIds.clear();
-            std::ranges::transform(
-                mConditionNodeIdsToConditions,
-                std::inserter(mSortedToUnsortedConditionNodeIds, mSortedToUnsortedConditionNodeIds.end()),
-                [](const auto& rPair) {
-                auto sorted_ids = rPair.first;
-                std::ranges::sort(sorted_ids);
-                return std::make_pair(sorted_ids, rPair.first);
-            });
-        }
-    }
+    void InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping);
 
     void FindConditionNeighboursBasedOnBoundaryType(
         std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
@@ -80,7 +57,7 @@ private:
     static bool AreQuadraticRotatedEquivalents(std::vector<std::size_t>        First,
                                                const std::vector<std::size_t>& rSecond);
 
-    NodeIdsToConditionsHashMap     mConditionNodeIdsToConditions;
-    SortedToUnsortedNodeIdsHashMap mSortedToUnsortedConditionNodeIds;
+    NodeIdsToEntitiesHashMap       mGeometryNodeIdsToEntities;
+    SortedToUnsortedNodeIdsHashMap mSortedToUnsortedEntityNodeIds;
 };
 } // namespace Kratos

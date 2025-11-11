@@ -16,6 +16,23 @@
 namespace Kratos
 {
 
+void NeighbouringEntityFinder::InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping)
+{
+    {
+        mGeometryNodeIdsToEntities = std::move(GeometryNodeIdsToEntityMapping);
+
+        mSortedToUnsortedEntityNodeIds.clear();
+        std::ranges::transform(
+            mGeometryNodeIdsToEntities,
+            std::inserter(mSortedToUnsortedEntityNodeIds, mSortedToUnsortedEntityNodeIds.end()),
+            [](const auto& rPair) {
+            auto sorted_ids = rPair.first;
+            std::ranges::sort(sorted_ids);
+            return std::make_pair(sorted_ids, rPair.first);
+        });
+    }
+}
+
 void NeighbouringEntityFinder::FindConditionNeighboursBasedOnBoundaryType(
     std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)> GenerateBoundaries,
     ModelPart::ElementsContainerType&                                   rElements)
@@ -33,7 +50,7 @@ void NeighbouringEntityFinder::AddNeighbouringElementsToConditionsBasedOnOverlap
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         const auto element_boundary_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry);
 
-        if (mConditionNodeIdsToConditions.contains(element_boundary_node_ids)) {
+        if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
             SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
         } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
             // No condition is directly found for this boundary, but it might be a rotated equivalent
@@ -46,7 +63,7 @@ void NeighbouringEntityFinder::AddNeighbouringElementsToConditionsBasedOnOverlap
 void NeighbouringEntityFinder::SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
     const std::vector<std::size_t>& rConditionNodeIds, Element* pElement)
 {
-    const auto [start, end] = mConditionNodeIdsToConditions.equal_range(rConditionNodeIds);
+    const auto [start, end] = mGeometryNodeIdsToEntities.equal_range(rConditionNodeIds);
     for (auto it = start; it != end; ++it) {
         const auto& r_conditions  = it->second;
         auto vector_of_neighbours = GlobalPointersVector<Element>{Element::WeakPointer{pElement}};
@@ -63,9 +80,9 @@ void NeighbouringEntityFinder::SetElementAsNeighbourIfRotatedNodeIdsAreEquivalen
     auto sorted_boundary_node_ids = rElementBoundaryNodeIds;
     std::ranges::sort(sorted_boundary_node_ids);
 
-    if (mSortedToUnsortedConditionNodeIds.contains(sorted_boundary_node_ids)) {
+    if (mSortedToUnsortedEntityNodeIds.contains(sorted_boundary_node_ids)) {
         const auto unsorted_condition_node_ids =
-            mSortedToUnsortedConditionNodeIds.find(sorted_boundary_node_ids)->second;
+            mSortedToUnsortedEntityNodeIds.find(sorted_boundary_node_ids)->second;
         if (AreRotatedEquivalents(rElementBoundaryNodeIds, unsorted_condition_node_ids, OrderType)) {
             SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(unsorted_condition_node_ids, &rElement);
         }
