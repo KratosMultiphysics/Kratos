@@ -19,7 +19,7 @@
     requires-python = ">=3.8"
     dependencies = [
         "KratosMultiphysics=={env:KRATOS_VERSION}",
-        "KratosLinearSolversApplication==${env:KRATOS_VERSION}"
+        "KratosLinearSolversApplication=={env:KRATOS_VERSION}"
     ]
     classifiers = [
         "Programming Language :: Python :: 3",
