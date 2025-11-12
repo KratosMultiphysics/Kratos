@@ -138,16 +138,19 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
+# Fix Windows paths
+file(TO_CMAKE_PATH "${HDF5_ROOT}/bin" HDF5_ROOT_DEP)
+
 # Install targets
 install(TARGETS KratosHDF5Application DESTINATION libs)
 if(WIN32)
-    install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.dll*")
+    install(DIRECTORY "${HDF5_ROOT_DEP}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.dll")
 endif()
 if(APPLE)
-    install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.dylib")
+    install(DIRECTORY "${HDF5_ROOT_DEP}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.dylib")
 endif()
 if(UNIX AND NOT APPLE)
-    install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.so*")
+    install(DIRECTORY "${HDF5_ROOT_DEP}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.so*")
 endif()
 
 # Define custom targets
