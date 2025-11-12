@@ -92,10 +92,18 @@ std::vector<std::size_t> GeometryUtilities::GetNodeIdsFromGeometry(const Geometr
 std::vector<std::size_t> GeometryUtilities::GetReversedNodeIdsForGeometryFamily(
     const GeometryData::KratosGeometryFamily& rGeometryFamily, const std::vector<std::size_t>& rInitialNodeIds)
 {
-    auto result               = rInitialNodeIds;
+    auto result = rInitialNodeIds;
+
+    // For line geometries we want to reverse all 'corner points', while for surfaces we don't
+    // change the starting node, but only reverse the order of the rest of the corner points.
+    auto begin_of_corner_points = rGeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Linear
+                                      ? result.begin()
+                                      : result.begin() + 1;
     auto end_of_corner_points = result.begin() + GetNumberOfCornerPoints(rGeometryFamily);
-    std::reverse(result.begin(), end_of_corner_points);
+
+    std::reverse(begin_of_corner_points, end_of_corner_points);
     std::reverse(end_of_corner_points, result.end());
+
     return result;
 }
 

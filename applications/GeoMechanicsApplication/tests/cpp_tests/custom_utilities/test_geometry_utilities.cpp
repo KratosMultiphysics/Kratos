@@ -307,15 +307,15 @@ INSTANTIATE_TEST_CASE_P(
                                       std::vector<std::size_t>{2, 1, 4, 3}),
                       std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Triangle,
                                       std::vector<std::size_t>{1, 2, 3},
-                                      std::vector<std::size_t>{3, 2, 1}),
+                                      std::vector<std::size_t>{1, 3, 2}),
                       std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Triangle,
                                       std::vector<std::size_t>{1, 2, 3, 4, 5, 6},
-                                      std::vector<std::size_t>{3, 2, 1, 6, 5, 4}),
+                                      std::vector<std::size_t>{1, 3, 2, 6, 5, 4}),
                       std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Quadrilateral,
                                       std::vector<std::size_t>{1, 2, 3, 4},
-                                      std::vector<std::size_t>{4, 3, 2, 1}),
+                                      std::vector<std::size_t>{1, 4, 3, 2}),
                       std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Quadrilateral,
                                       std::vector<std::size_t>{1, 2, 3, 4, 5, 6, 7, 8},
-                                      std::vector<std::size_t>{4, 3, 2, 1, 8, 7, 6, 5})));
+                                      std::vector<std::size_t>{1, 4, 3, 2, 8, 7, 6, 5})));
 
 } // namespace Kratos::Testing
