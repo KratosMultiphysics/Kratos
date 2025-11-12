@@ -15,6 +15,42 @@
 
 #include <boost/numeric/ublas/assignment.hpp>
 
+namespace
+{
+
+using namespace Kratos;
+
+std::size_t GetNumberOfCornerPoints(GeometryData::KratosGeometryFamily GeometryFamily)
+{
+    switch (GeometryFamily) {
+        using enum GeometryData::KratosGeometryFamily;
+    case Kratos_Linear:
+        return 2;
+    case Kratos_Triangle:
+        return 3;
+    case Kratos_Quadrilateral:
+        return 4;
+    default:
+        KRATOS_ERROR << "The geometry family of the mid-geometry is not supported\n";
+    }
+}
+
+template <typename InputIt>
+void ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily, InputIt Begin, InputIt End)
+{
+    // For line geometries we want to reverse all 'corner points', while for surfaces we don't
+    // change the starting node, but only reverse the order of the rest of the corner points.
+    auto begin_of_corner_points =
+        GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Linear ? Begin : Begin + 1;
+    auto end_of_corner_points = Begin + GetNumberOfCornerPoints(GeometryFamily);
+
+    std::reverse(begin_of_corner_points, end_of_corner_points);
+    std::reverse(end_of_corner_points, End);
+}
+
+}
+
+
 namespace Kratos
 {
 
@@ -70,22 +106,13 @@ std::vector<std::size_t> GeometryUtilities::GetNodeIdsFromGeometry(const Geometr
 
 void GeometryUtilities::ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily, PointerVector<Node>& rNodes)
 {
-    ReverseNodes(GeometryFamily, rNodes.ptr_begin(), rNodes.ptr_end());
+    ::ReverseNodes(GeometryFamily, rNodes.ptr_begin(), rNodes.ptr_end());
 }
 
-std::size_t GeometryUtilities::GetNumberOfCornerPoints(const GeometryData::KratosGeometryFamily& rGeometryFamily)
+void GeometryUtilities::ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily,
+                                     std::vector<std::size_t>&          rNodeIds)
 {
-    switch (rGeometryFamily) {
-        using enum GeometryData::KratosGeometryFamily;
-    case Kratos_Linear:
-        return 2;
-    case Kratos_Triangle:
-        return 3;
-    case Kratos_Quadrilateral:
-        return 4;
-    default:
-        KRATOS_ERROR << "The geometry family of the mid-geometry is not supported\n";
-    }
+    ::ReverseNodes(GeometryFamily, rNodeIds.begin(), rNodeIds.end());
 }
 
 } // namespace Kratos
