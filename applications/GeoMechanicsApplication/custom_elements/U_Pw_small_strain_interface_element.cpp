@@ -1472,8 +1472,9 @@ void UPwSmallStrainInterfaceElement<3, 6>::CalculateShapeFunctionsGradients(TMat
     rAuxVariables.LocalCoordinatesGradientsMatrix(0, 1) = rAuxVariables.LocalCoordinatesGradients[0];
     rAuxVariables.LocalCoordinatesGradientsMatrix(1, 1) = rAuxVariables.LocalCoordinatesGradients[1];
 
-    GeoElementUtilities::InvertMatrix2(rAuxVariables.LocalCoordinatesGradientsInvMatrix,
-                                       rAuxVariables.LocalCoordinatesGradientsMatrix);
+    double determinant;
+    MathUtils<>::InvertMatrix2(rAuxVariables.LocalCoordinatesGradientsInvMatrix,
+                               rAuxVariables.LocalCoordinatesGradientsMatrix, determinant);
 
     noalias(rAuxVariables.ShapeFunctionsGradientsMatrix) =
         prod(rAuxVariables.ShapeFunctionsNaturalGradientsMatrix, rAuxVariables.LocalCoordinatesGradientsInvMatrix);
@@ -1537,8 +1538,9 @@ void UPwSmallStrainInterfaceElement<3, 8>::CalculateShapeFunctionsGradients(TMat
     rAuxVariables.LocalCoordinatesGradientsMatrix(0, 1) = rAuxVariables.LocalCoordinatesGradients[0];
     rAuxVariables.LocalCoordinatesGradientsMatrix(1, 1) = rAuxVariables.LocalCoordinatesGradients[1];
 
-    GeoElementUtilities::InvertMatrix2(rAuxVariables.LocalCoordinatesGradientsInvMatrix,
-                                       rAuxVariables.LocalCoordinatesGradientsMatrix);
+    double determinant;
+    MathUtils<>::InvertMatrix2(rAuxVariables.LocalCoordinatesGradientsInvMatrix,
+                               rAuxVariables.LocalCoordinatesGradientsMatrix, determinant);
 
     noalias(rAuxVariables.ShapeFunctionsGradientsMatrix) =
         prod(rAuxVariables.ShapeFunctionsNaturalGradientsMatrix, rAuxVariables.LocalCoordinatesGradientsInvMatrix);
