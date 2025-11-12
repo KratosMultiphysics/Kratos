@@ -68,6 +68,11 @@ std::vector<std::size_t> GeometryUtilities::GetNodeIdsFromGeometry(const Geometr
     return result;
 }
 
+void GeometryUtilities::ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily, PointerVector<Node>& rNodes)
+{
+    ReverseNodes(GeometryFamily, rNodes.ptr_begin(), rNodes.ptr_end());
+}
+
 std::size_t GeometryUtilities::GetNumberOfCornerPoints(const GeometryData::KratosGeometryFamily& rGeometryFamily)
 {
     switch (rGeometryFamily) {
