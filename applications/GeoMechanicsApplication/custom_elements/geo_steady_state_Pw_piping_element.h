@@ -19,6 +19,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
@@ -262,8 +263,9 @@ private:
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
                                      const array_1d<double, TNumNodes>& rFluidBodyVector) const
     {
-        const auto permeability_vector =
-            array_1d<double, TNumNodes>{-prod(rPermeabilityMatrix, GetNodalValuesOf(WATER_PRESSURE))};
+        const auto permeability_vector = array_1d<double, TNumNodes>{
+            -prod(rPermeabilityMatrix,
+                  VariablesUtilities::GetNodalValuesOf<TNumNodes>(WATER_PRESSURE, GetGeometry()))};
         rRightHandSideVector = permeability_vector + rFluidBodyVector;
     }
 
@@ -305,16 +307,6 @@ private:
                 constitutive_matrix, 1.0, rIntegrationCoefficients[integration_point_index]);
         }
 
-        return result;
-    }
-
-    array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
-    {
-        auto        result     = array_1d<double, TNumNodes>{};
-        const auto& r_geometry = GetGeometry();
-        std::ranges::transform(r_geometry, result.begin(), [&rNodalVariable](const auto& node) {
-            return node.FastGetSolutionStepValue(rNodalVariable);
-        });
         return result;
     }
 

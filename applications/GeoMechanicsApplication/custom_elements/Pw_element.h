@@ -515,9 +515,8 @@ private:
 
     std::vector<double> CalculateFluidPressure()
     {
-        array_1d<double, TNumNodes> pressure_vector;
-        VariablesUtilities::GetNodalValues(this->GetGeometry(), WATER_PRESSURE, pressure_vector.begin());
-        return GeoTransportEquationUtilities::CalculateFluidPressures(mNContainer, pressure_vector);
+        return GeoTransportEquationUtilities::CalculateFluidPressures(
+            mNContainer, VariablesUtilities::GetNodalValuesOf<TNumNodes>(WATER_PRESSURE, this->GetGeometry()));
     }
 
     auto MakeProjectedGravityForIntegrationPointsGetter() const
