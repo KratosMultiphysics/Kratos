@@ -46,9 +46,9 @@ public:
                               BoundaryGeneratorByLocalDim&     rBoundaryGenerators)
     {
         for (int local_space_dimension = 0; local_space_dimension < 4; ++local_space_dimension) {
-            NodeIdsToEntitiesHashMap map;
             if (!rBoundaryGenerators.contains(local_space_dimension)) continue;
 
+            NodeIdsToEntitiesHashMap map;
             const auto& r_boundary_generator = *rBoundaryGenerators.at(local_space_dimension);
             for (auto& r_entity : rEntities) {
                 if (r_entity.GetGeometry().LocalSpaceDimension() != local_space_dimension) continue;
