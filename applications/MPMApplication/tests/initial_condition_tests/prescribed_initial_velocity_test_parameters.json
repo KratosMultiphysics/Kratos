@@ -1,0 +1,106 @@
+{
+    "problem_data": {
+        "problem_name": "prescribed_initial_velocity_test",
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 0.2
+    },
+    "solver_settings": {
+        "time_stepping": {
+            "time_step": 0.05
+        },
+        "solver_type": "Dynamic",
+        "model_part_name": "MPM_Material",
+        "domain_size": 2,
+        "echo_level": 0,
+        "analysis_type": "non_linear",
+        "time_integration_method": "implicit",
+        "scheme_type": "newmark",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "initial_condition_tests/prescribed_initial_velocity_test_Body"
+        },
+        "material_import_settings": {
+            "materials_filename": "initial_condition_tests/prescribed_initial_velocity_test_materials.json"
+        },
+        "convergence_criterion": "residual_criterion",
+        "displacement_relative_tolerance": 1e-6,
+        "displacement_absolute_tolerance": 1e-9,
+        "residual_relative_tolerance": 1e-6,
+        "residual_absolute_tolerance": 1e-9,
+        "max_iteration": 10,
+        "grid_model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "initial_condition_tests/prescribed_initial_velocity_test_Grid"
+        },
+        "pressure_dofs": false,
+        "linear_solver_settings": {
+            "solver_type": "LinearSolversApplication.sparse_lu"
+        },
+        "auxiliary_variables_list": [
+            "NORMAL",
+            "IS_STRUCTURE"
+        ]
+    },
+    "processes": {
+        "constraints_process_list": [],
+        "loads_process_list": [],
+        "initial_conditions_processes": [
+            {
+                "python_module": "assign_initial_velocity_to_material_point_process",
+                "kratos_module": "KratosMultiphysics.MPMApplication",
+                "process_name": "AssignInitialVelocityToMaterialPointProcess",
+                "Parameters": {
+                    "model_part_name": "Initial_MPM_Material.Parts_Material_domain_Material_domain_Auto1",
+                    "variable_name": "MP_VELOCITY",
+                    "modulus": 1.0,
+                    "direction": [
+                        2.0,
+                        1.0,
+                        0.0
+                    ]
+                }
+            }
+        ],
+        "gravity": [],
+        "json_check_process": [
+            {
+                "python_module": "from_json_check_result_process",
+                "kratos_module": "KratosMultiphysics",
+                "help": "",
+                "process_name": "FromJsonCheckResultProcess",
+                "Parameters": {
+                    "check_variables": [
+                        "DISPLACEMENT",
+                        "VELOCITY",
+                        "ACCELERATION",
+                        "NODAL_MASS",
+                        "NODAL_MOMENTUM",
+                        "NODAL_INERTIA"
+                    ],
+                    "input_file_name": "initial_condition_tests/prescribed_initial_velocity_test_grid_results.json",
+                    "model_part_name": "Background_Grid",
+                    "time_frequency": 0.0499999
+                }
+            },
+            {
+                "python_module": "mpm_from_json_check_result_process",
+                "kratos_module": "KratosMultiphysics.MPMApplication",
+                "help": "",
+                "process_name": "MPMFromJsonCheckResultProcess",
+                "Parameters": {
+                    "check_variables": [
+                        "MP_DISPLACEMENT",
+                        "MP_VELOCITY",
+                        "MP_ACCELERATION"
+                    ],
+                    "input_file_name": "initial_condition_tests/prescribed_initial_velocity_test_material_point_results.json",
+                    "model_part_name": "MPM_Material",
+                    "time_frequency": 0.0499999
+                }
+            }
+        ]
+    },
+    "analysis_stage": "KratosMultiphysics.MPMApplication.particle_mechanics_analysis"
+}

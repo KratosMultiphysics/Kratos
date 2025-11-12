@@ -53,6 +53,9 @@ from mpm_test_factory import PQMPMExplicitQuadTest as TPQMPMExplicitQuadTest
 from mpm_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
 from mpm_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 
+
+from mpm_test_factory import InitialConditionPrescribedVelocityTest as TInitialConditionPrescribedVelocityTest
+
 ##### RESTART TESTS #####
 from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
 from restart_tests import MPMRestartTestDynamicCantilever2D    as TMPMRestartTestDynamicCantilever2D
@@ -116,6 +119,9 @@ def AssembleTestSuites():
     smallSuite.addTest(TPenaltyBasedSlipTest('test_execution'))
 
     smallSuite.addTest(TFrictionConformingTest('test_execution'))
+    
+    smallSuite.addTest(TInitialConditionPrescribedVelocityTest('test_execution'))
+    
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']

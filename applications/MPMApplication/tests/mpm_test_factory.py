@@ -167,3 +167,7 @@ class PQMPMExplicitTriTest(MPMTestFactory):
 
 class PQMPMExplicitHexTest(MPMTestFactory):
     file_name = "pqmpm_tests/pqmpm_explicit_hex_test"
+    
+### Initial condition tests
+class InitialConditionPrescribedVelocityTest(MPMTestFactory):
+    file_name = "initial_condition_tests/prescribed_initial_velocity_test"
