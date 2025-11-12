@@ -28,7 +28,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectors, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto element = ElementSetupUtilities::Create2D3NElement();
+    const auto p_element = ElementSetupUtilities::Create2D3NElement();
 
     Vector cauchy_stress(4);
     cauchy_stress <<= 1000.0, 2000.0, 3000.0, 4000.0;
@@ -40,18 +40,19 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectors, KratosGe
     std::vector<std::size_t> node_ids = {1, 2, 3};
 
     // Act and Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ExtrapolationUtilities::CalculateNodalVectors(
-                                          node_ids, element->GetGeometry(), element->GetIntegrationMethod(),
-                                          cauchy_stress_vectors, element->Id()),
-                                      "An extrapolation matrix size 3 is not equal to given "
-                                      "stress vectors size 2 for element Id 1");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)ExtrapolationUtilities::CalculateNodalVectors(node_ids, p_element->GetGeometry(),
+                                                            p_element->GetIntegrationMethod(),
+                                                            cauchy_stress_vectors, p_element->Id()),
+        "An extrapolation matrix size 3 is not equal to given "
+        "stress vectors size 2 for element Id 1");
 
     cauchy_stress_vectors.emplace_back(cauchy_stress + 2 * delta_stress);
 
     // Act
     auto nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(
-        node_ids, element->GetGeometry(), element->GetIntegrationMethod(), cauchy_stress_vectors,
-        element->Id());
+        node_ids, p_element->GetGeometry(), p_element->GetIntegrationMethod(),
+        cauchy_stress_vectors, p_element->Id());
 
     // Assert
     KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());
@@ -68,9 +69,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectors, KratosGe
 
     // a reduced number of node ids
     node_ids.pop_back();
-    nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(node_ids, element->GetGeometry(),
-                                                                   element->GetIntegrationMethod(),
-                                                                   cauchy_stress_vectors, element->Id());
+    nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(
+        node_ids, p_element->GetGeometry(), p_element->GetIntegrationMethod(),
+        cauchy_stress_vectors, p_element->Id());
     KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());
     for (auto i = std::size_t{0}; i < nodal_stresses.size(); ++i) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(nodal_stresses[i].value(), expected_nodal_stresses[i],
@@ -79,9 +80,9 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectors, KratosGe
 
     // a wrong node id
     node_ids       = {1, 4, 3};
-    nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(node_ids, element->GetGeometry(),
-                                                                   element->GetIntegrationMethod(),
-                                                                   cauchy_stress_vectors, element->Id());
+    nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(
+        node_ids, p_element->GetGeometry(), p_element->GetIntegrationMethod(),
+        cauchy_stress_vectors, p_element->Id());
     KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());
     KRATOS_EXPECT_FALSE(nodal_stresses[1].has_value())
     for (auto i = std::size_t{0}; i < nodal_stresses.size(); ++i) {
@@ -94,7 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectors, KratosGe
 
 KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectorsForTriangle2D6, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto element = ElementSetupUtilities::Create2D6NElement();
+    const auto p_element = ElementSetupUtilities::Create2D6NElement();
 
     Vector cauchy_stress(4);
     cauchy_stress <<= 1000.0, 2000.0, 3000.0, 4000.0;
@@ -107,8 +108,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectorsForTriangl
     // Act
     const std::vector<std::size_t> node_ids       = {1, 4, 2};
     const auto                     nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(
-        node_ids, element->GetGeometry(), element->GetIntegrationMethod(), cauchy_stress_vectors,
-        element->Id());
+        node_ids, p_element->GetGeometry(), p_element->GetIntegrationMethod(),
+        cauchy_stress_vectors, p_element->Id());
 
     // Assert
     KRATOS_EXPECT_EQ(nodal_stresses.size(), node_ids.size());

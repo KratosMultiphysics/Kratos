@@ -47,7 +47,6 @@ std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalVectors
     const std::vector<Vector>&      rVectorsAtIntegrationPoints,
     size_t                          ElementId)
 {
-    const auto number_of_nodes  = rGeometry.size();
     const auto element_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(rGeometry);
     const auto extrapolation_matrix = CalculateExtrapolationMatrix(rGeometry, IntegrationMethod, ElementId);
 
@@ -56,12 +55,14 @@ std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalVectors
         << " is not equal to given stress vectors size " << rVectorsAtIntegrationPoints.size()
         << " for element Id " << ElementId << std::endl;
 
-    std::vector<Vector> nodal_stresses(number_of_nodes, ZeroVector(rVectorsAtIntegrationPoints[0].size()));
+    const auto          number_of_nodes = rGeometry.size();
+    std::vector<Vector> extrapolated_vectors_at_nodes(
+        number_of_nodes, ZeroVector(rVectorsAtIntegrationPoints[0].size()));
     for (unsigned int node_index = 0; node_index < number_of_nodes; ++node_index) {
         for (unsigned int integration_point = 0;
              integration_point < rVectorsAtIntegrationPoints.size(); ++integration_point) {
-            nodal_stresses[node_index] += extrapolation_matrix(node_index, integration_point) *
-                                          rVectorsAtIntegrationPoints[integration_point];
+            extrapolated_vectors_at_nodes[node_index] += extrapolation_matrix(node_index, integration_point) *
+                                                         rVectorsAtIntegrationPoints[integration_point];
         }
     }
 
@@ -69,7 +70,7 @@ std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalVectors
     for (const auto& node_id : rNodeIds) {
         auto it = std::find(element_node_ids.begin(), element_node_ids.end(), node_id);
         if (it != element_node_ids.end()) {
-            result.emplace_back(nodal_stresses[std::distance(element_node_ids.begin(), it)]);
+            result.emplace_back(extrapolated_vectors_at_nodes[std::distance(element_node_ids.begin(), it)]);
         } else {
             result.emplace_back(std::nullopt);
         }

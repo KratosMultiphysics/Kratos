@@ -18,18 +18,21 @@
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
-namespace Kratos
+namespace
 {
-
-auto CalculateSquareExtrapolationMatrix(const Element* pElement)
+auto CalculateSquareExtrapolationMatrix(const Kratos::Element* pElement)
 {
-    const auto extrapolation_matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(
+    const auto extrapolation_matrix = Kratos::ExtrapolationUtilities::CalculateExtrapolationMatrix(
         pElement->GetGeometry(), pElement->GetIntegrationMethod(), pElement->Id());
     if (extrapolation_matrix.size1() != extrapolation_matrix.size2()) {
         KRATOS_ERROR << "Extrapolation matrix is not square for element id " << pElement->Id() << std::endl;
     }
     return extrapolation_matrix;
-};
+}
+} // namespace
+
+namespace Kratos
+{
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(IndexType             NewId,
