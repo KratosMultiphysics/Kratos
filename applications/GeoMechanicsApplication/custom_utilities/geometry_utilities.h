@@ -29,8 +29,27 @@ public:
     static Matrix Calculate3DRotationMatrixForPlaneGeometry(const Geometry<Node>& rGeometry,
                                                             const array_1d<double, 3>& rLocalCoordinate);
     static std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
-    static std::vector<std::size_t> GetReversedNodeIdsForGeometryFamily(
-        const GeometryData::KratosGeometryFamily& rGeometryFamily, const std::vector<std::size_t>& rInitialNodeIds);
+
+    [[nodiscard]] static auto GetReversedNodesForGeometryFamily(const GeometryData::KratosGeometryFamily& rGeometryFamily,
+                                                                const auto& rOrderedNodes)
+    {
+        auto result = rOrderedNodes;
+
+        // For line geometries we want to reverse all 'corner points', while for surfaces we don't
+        // change the starting node, but only reverse the order of the rest of the corner points.
+        auto begin_of_corner_points = rGeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Linear
+                                          ? result.begin()
+                                          : result.begin() + 1;
+        auto end_of_corner_points = result.begin() + GetNumberOfCornerPoints(rGeometryFamily);
+
+        std::reverse(begin_of_corner_points, end_of_corner_points);
+        std::reverse(end_of_corner_points, result.end());
+
+        return result;
+    }
+
+private:
+    [[nodiscard]] static std::size_t GetNumberOfCornerPoints(const GeometryData::KratosGeometryFamily& rGeometryFamily);
 };
 
 } // namespace Kratos
