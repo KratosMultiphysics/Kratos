@@ -1,4 +1,5 @@
 import os
+import re
 import toml
 import build
 import shutil
@@ -43,6 +44,26 @@ def setupLogging(file):
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
     logging.getLogger().addHandler(console)
+
+def generate_tag(lib_dir):
+    """
+    Detect the full ABI/platform tag from a compiled .pyd file.
+    Examples:
+        my_module.cp311-win_amd64.pyd        -> cp311-win_amd64
+        my_module.cp310-cp310-win_amd64.pyd  -> cp310-cp310-win_amd64
+    """
+    # Match either Windows (.pyd) or Unix (.so)
+    pattern = re.compile(
+        r"\.(?:(cp\d+(?:-[\w\d]+)*)|cpython-[\d]+(?:-[\w\d-]+)*)\.(?:pyd|so)$"
+    )
+
+    for file in Path(lib_dir).glob("*.[ps][oy][ds]"):  # matches *.pyd and *.so
+        match = pattern.search(file.name)
+        if match:
+            # Return whichever group matched (cp... or cpython-...)
+            return match.group(1) or match.group(0).lstrip(".").rsplit(".", 1)[0]
+        
+    return None
 
 def getAppList(kts_apps_dir):
 
@@ -270,6 +291,7 @@ if __name__ == "__main__":
             paths['project_toml'] = Path(CURRENT_CONFIG['KRATOS_ROOT']) / "scripts" / "wheels" / "pyproject.toml"
 
         # Create the core wheel
+        os.environ['ABI_TAG'] = generate_tag(paths['project_libs'])
         buildWheel(CURRENT_CONFIG, paths)
         
         # Build applications (if not unified build)
