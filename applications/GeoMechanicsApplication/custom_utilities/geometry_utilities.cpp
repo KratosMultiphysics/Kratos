@@ -10,9 +10,31 @@
 //  Main authors:    Richard Faasse
 //
 #include "geometry_utilities.h"
+#include "geometries/geometry_data.h"
 #include "math_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+
+namespace
+{
+
+using namespace Kratos;
+[[nodiscard]] std::size_t GetNumberOfCornerPoints(const GeometryData::KratosGeometryFamily& rGeometryFamily)
+{
+    switch (rGeometryFamily) {
+        using enum GeometryData::KratosGeometryFamily;
+    case Kratos_Linear:
+        return 2;
+    case Kratos_Triangle:
+        return 3;
+    case Kratos_Quadrilateral:
+        return 4;
+    default:
+        KRATOS_ERROR << "The geometry family of the mid-geometry is not supported\n";
+    }
+}
+}
+
 
 namespace Kratos
 {
@@ -71,7 +93,7 @@ std::vector<std::size_t> GeometryUtilities::GetReversedNodeIdsForGeometryFamily(
     const GeometryData::KratosGeometryFamily& rGeometryFamily, const std::vector<std::size_t>& rInitialNodeIds)
 {
     auto result = rInitialNodeIds;
-    std::ranges::reverse(result);
+    std::reverse(result.begin(), result.begin() + GetNumberOfCornerPoints(rGeometryFamily));
     return result;
 }
 
