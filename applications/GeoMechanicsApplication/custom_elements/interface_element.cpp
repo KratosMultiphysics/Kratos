@@ -333,7 +333,7 @@ void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions() con
     auto in_first_side = std::find(neighbour_nodes.begin(), neighbour_nodes.end(),
                                    interface_element_nodes[0]) != neighbour_nodes.end();
 
-    std::size_t start_index = in_first_side ? 0 : interface_element_nodes.size() / 2;
+    std::size_t         start_index = in_first_side ? 0 : interface_element_nodes.size() / 2;
     std::vector<Vector> nodal_stresses;
     for (auto i = 0; i < interface_element_nodes.size() / 2; ++i) {
         nodal_stresses.push_back(r_interface_geometry[start_index + i].FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR));
@@ -353,7 +353,7 @@ void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions() con
         if (r_interface_geometry.LocalSpaceDimension() == 1) {
             auto two_d_rotation_matrix = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
             GeoElementUtilities::AssembleUUBlockMatrix(rotation_matrix, two_d_rotation_matrix);
-            rotation_matrix(2,2) = 1.0;
+            rotation_matrix(2, 2) = 1.0;
         } else {
             rotation_matrix = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
         }

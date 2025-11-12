@@ -306,6 +306,18 @@ Matrix ExpectedLeftHandSideForTriangleElement()
 
     return expected_left_hand_side;
 }
+
+void CreateNeighbouringStressField(const Element::Pointer& pNeighbourElement)
+{
+    auto r_neighbour_geometry = pNeighbourElement->GetGeometry();
+    for (auto& r_node : r_neighbour_geometry) {
+        auto   x = r_node.GetInitialPosition().X();
+        auto   y = r_node.GetInitialPosition().Y();
+        Vector nodal_stress{4};
+        nodal_stress <<= x + y, 10.0 + x + y, 78.0, 5.0 + x + y;
+        r_node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR) = nodal_stress;
+    }
+}
 } // namespace
 
 namespace Kratos::Testing
@@ -1311,20 +1323,13 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
 
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0));
-    //second_neighbour_nodes.push_back(r_model_part.pGetNode(2));
+    // second_neighbour_nodes.push_back(r_model_part.pGetNode(2));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
     auto       element    = CreateInterfaceElementWithUDofs<Interface2D>(p_properties, p_geometry);
     Variable<GlobalPointersVector<Element>>::Type neighbours{neighbour_element};
     element.SetValue(NEIGHBOUR_ELEMENTS, neighbours);
     // provide stresses on nodes of neighbour element
-    auto r_neighbour_geometry = neighbour_element->GetGeometry();
-    for (auto& r_node : r_neighbour_geometry) {
-        auto   x = r_node.GetInitialPosition().X();
-        auto   y = r_node.GetInitialPosition().Y();
-        Vector nodal_stress{4};
-        nodal_stress <<= x + y, 10.0 + x + y, 78.0, 5.0 + x + y;
-        r_node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR) = nodal_stress;
-    }
+    CreateNeighbouringStressField(neighbour_element);
 
     // Act
     ProcessInfo dummy_process_info;
@@ -1339,6 +1344,26 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     expected_traction_vector <<= 10.0, 5.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[0], expected_traction_vector, Defaults::relative_tolerance)
     expected_traction_vector <<= 11.0, 6.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[1], expected_traction_vector, Defaults::relative_tolerance)
+
+    // Arrange a neighbour on the other side of the interface element
+    nodes.clear();
+    nodes.push_back(r_model_part.pGetNode(2));
+    nodes.push_back(r_model_part.pGetNode(3));
+    auto other_neighbour_element = ElementSetupUtilities::Create2D2NElement(nodes, p_properties);
+    Variable<GlobalPointersVector<Element>>::Type other_neighbours{other_neighbour_element};
+    element.SetValue(NEIGHBOUR_ELEMENTS, other_neighbours);
+    CreateNeighbouringStressField(other_neighbour_element);
+
+    // Act
+    element.Initialize(dummy_process_info);
+    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+
+    // Assert
+    // answers for 2nd side
+    expected_traction_vector <<= 11.0, 6.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[0], expected_traction_vector, Defaults::relative_tolerance)
+    expected_traction_vector <<= 12.0, 7.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[1], expected_traction_vector, Defaults::relative_tolerance)
 }
 
