@@ -76,31 +76,11 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
+install(TARGETS KratosMedCore DESTINATION libs)
 # Install targets
 if(WIN32)
-    install(
-        TARGETS
-            KratosMedCore 
-        DESTINATION 
-            libs 
-        RUNTIME_DEPENDENCIES DIRECTORIES 
-            "${HDF5_ROOT}/lib"
-            "${HDF5_ROOT}/bin"
-            "${MED_ROOT}/lib"
-            "${MED_ROOT}/bin"
-        PRE_EXCLUDE_REGEXES
-            "api-ms-"          # exclude Windows API shims
-            "ext-ms-"          # exclude Windows API extensions
-        POST_EXCLUDE_REGEXES
-            ".*system32/.*"    # ignore system DLLs
-            ".*Windows/system32/.*"
-            ".*VCRUNTIME.*"    # ignore Microsoft runtime DLLs
-            ".*MSVCP.*"
-            ".*KERNEL32.*"
-            ".*USER32.*"
-      )
-else()
-    install(TARGETS KratosMedCore DESTINATION libs)
+    install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.dll*")
+    install(DIRECTORY "${MED_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.dll*")
 endif()
 if(APPLE)
     install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.dylib")
