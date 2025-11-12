@@ -349,7 +349,7 @@ void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions() con
             integration_point_stress += integration_point_shape_function_values[i] * nodal_stresses[i];
         }
 
-        auto rotation_matrix = Matrix{ZeroMatrix{3}};
+        auto rotation_matrix = Matrix(3, 3, 0.0);
         if (r_interface_geometry.LocalSpaceDimension() == 1) {
             auto two_d_rotation_matrix = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
             GeoElementUtilities::AssembleUUBlockMatrix(rotation_matrix, two_d_rotation_matrix);
