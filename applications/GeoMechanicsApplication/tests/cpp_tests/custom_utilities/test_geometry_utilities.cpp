@@ -12,6 +12,7 @@
 
 #include "custom_geometries/interface_geometry.h"
 #include "custom_utilities/geometry_utilities.h"
+#include "geometries/geometry_data.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -275,6 +276,17 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectNodeIds, KratosGeoMech
     const auto node_ids = GeometryUtilities::GetNodeIdsFromGeometry(geometry);
 
     KRATOS_EXPECT_VECTOR_EQ(node_ids, std::vector({1, 3, 42, 314}));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_CorrectlyReversesNodeIdsForLinearGeometryFamilies,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto               geometry_family = GeometryData::KratosGeometryFamily::Kratos_Linear;
+    std::vector<std::size_t> node_ids        = {1, 2};
+
+    const auto reversed_ids = GeometryUtilities::GetReversedNodeIdsForGeometryFamily(geometry_family, node_ids);
+
+    KRATOS_EXPECT_VECTOR_EQ(reversed_ids, std::vector({2, 1}));
 }
 
 } // namespace Kratos::Testing

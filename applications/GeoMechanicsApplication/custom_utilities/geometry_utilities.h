@@ -29,6 +29,8 @@ public:
     static Matrix Calculate3DRotationMatrixForPlaneGeometry(const Geometry<Node>& rGeometry,
                                                             const array_1d<double, 3>& rLocalCoordinate);
     static std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
+    static std::vector<std::size_t> GetReversedNodeIdsForGeometryFamily(
+        const GeometryData::KratosGeometryFamily& rGeometryFamily, const std::vector<std::size_t>& rInitialNodeIds);
 };
 
 } // namespace Kratos

@@ -67,4 +67,12 @@ std::vector<std::size_t> GeometryUtilities::GetNodeIdsFromGeometry(const Geometr
     return result;
 }
 
+std::vector<std::size_t> GeometryUtilities::GetReversedNodeIdsForGeometryFamily(
+    const GeometryData::KratosGeometryFamily& rGeometryFamily, const std::vector<std::size_t>& rInitialNodeIds)
+{
+    auto result = rInitialNodeIds;
+    std::ranges::reverse(result);
+    return result;
+}
+
 } // namespace Kratos
