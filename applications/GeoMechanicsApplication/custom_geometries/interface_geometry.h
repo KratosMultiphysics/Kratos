@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "custom_utilities/geometry_utilities.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
 
@@ -307,17 +308,8 @@ private:
         // The second side is defined by the second half of the element nodes. However, the
         // nodes must be traversed in opposite direction.
         auto nodes_of_second_side = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-        auto end_of_corner_points = nodes_of_second_side.ptr_begin() + GetNumberOfCornerPoints();
-
-        // For line geometries we want to reverse all 'corner points' of the second side, while
-        // for surfaces we don't change the starting node, but only reverse the order of the rest
-        // of the corner points.
-        auto begin_of_corner_points_to_reverse =
-            mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
-                ? nodes_of_second_side.ptr_begin()
-                : nodes_of_second_side.ptr_begin() + 1;
-        std::reverse(begin_of_corner_points_to_reverse, end_of_corner_points);
-        std::reverse(end_of_corner_points, nodes_of_second_side.ptr_end()); // any high-order nodes
+        GeometryUtilities::ReverseNodes(mMidGeometry->GetGeometryFamily(),
+                                        nodes_of_second_side.ptr_begin(), nodes_of_second_side.ptr_end());
 
         auto result = GeometriesArrayType{};
         result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_side));

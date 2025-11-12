@@ -288,7 +288,7 @@ TEST_P(LinearGeometryFamiliesReverseFixture, GeometryUtilities_CorrectlyReverses
     const auto [geometry_family, initial_ids, expected_reversed_ids] = GetParam();
 
     auto reversed_ids = initial_ids;
-        GeometryUtilities::GetReversedNodesForGeometryFamily(geometry_family, reversed_ids.begin(), reversed_ids.end());
+    GeometryUtilities::ReverseNodes(geometry_family, reversed_ids.begin(), reversed_ids.end());
 
     KRATOS_EXPECT_VECTOR_EQ(reversed_ids, expected_reversed_ids);
 }
