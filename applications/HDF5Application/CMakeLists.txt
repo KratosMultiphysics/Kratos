@@ -138,8 +138,8 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-install(TARGETS KratosHDF5Application DESTINATION libs)
 # Install targets
+install(TARGETS KratosHDF5Application DESTINATION libs)
 if(WIN32)
     install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.dll*")
 endif()

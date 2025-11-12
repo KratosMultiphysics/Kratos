@@ -76,8 +76,8 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-install(TARGETS KratosMedCore DESTINATION libs)
 # Install targets
+install(TARGETS KratosMedApplication DESTINATION libs)
 if(WIN32)
     install(DIRECTORY "${HDF5_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.dll*")
     install(DIRECTORY "${MED_ROOT}/lib/" DESTINATION lib FILES_MATCHING PATTERN "*.dll*")
