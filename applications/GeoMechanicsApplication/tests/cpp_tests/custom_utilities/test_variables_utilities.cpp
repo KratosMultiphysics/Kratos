@@ -23,11 +23,30 @@ KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesGetsCorrectComponents, KratosGeo
     KRATOS_EXPECT_EQ(component, ACCELERATION_X);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesThrowsWhenComponentDoesNotExist, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesThrowsWhenComponentDoesNotExist,
+                          KratosGeoMechanicsFastSuiteWithoutKernel){KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+    VariablesUtilities::GetComponentFromVectorVariable(ACCELERATION.Name(), "?"),
+    "Error: The component \"ACCELERATION_?\" is not registered!")}
+
+KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsGetNodalValuesOf, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        VariablesUtilities::GetComponentFromVectorVariable(ACCELERATION.Name(), "?"),
-        "Error: The component \"ACCELERATION_?\" is not registered!")
+    // Arrange
+    Model model;
+    auto& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(11, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(30, 0.0, 0.0, 0.0));
+    const Geometry geometry(1, nodes);
+
+    for (auto& r_node : geometry) {
+        r_node.FastGetSolutionStepValue(TEMPERATURE) = 4.5;
+    }
+
+    // Act
+    const auto temperatures = VariablesUtilities::GetNodalValuesOf<2>(TEMPERATURE, geometry);
+    // Assert
+    KRATOS_EXPECT_VECTOR_EQ(temperatures, std::vector({4.5, 4.5}));
 }
 
 } // namespace Kratos::Testing

@@ -22,6 +22,7 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/hydraulic_discharge.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
@@ -189,7 +190,7 @@ public:
             // Map initial material property to gauss points, as required for the output
             std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
         } else {
-            std::fill(rOutput.begin(), rOutput.end(), 0.0);
+            std::ranges::fill(rOutput, 0.0);
         }
 
         KRATOS_CATCH("")
@@ -364,16 +365,6 @@ private:
     Vector                               mDetJCcontainer;
     std::vector<double>                  mFluidPressures;
 
-    array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
-    {
-        auto        result     = array_1d<double, TNumNodes>{};
-        const auto& r_geometry = GetGeometry();
-        std::ranges::transform(r_geometry, result.begin(), [&rNodalVariable](const auto& node) {
-            return node.FastGetSolutionStepValue(rNodalVariable);
-        });
-        return result;
-    }
-
     std::vector<double> CalculateIntegrationCoefficients(const Vector& rDetJs) const
     {
         const GeometryType::IntegrationPointsArrayType& integration_points =
@@ -529,7 +520,7 @@ private:
         return GeoTransportEquationUtilities::CalculateFluidPressures(mNContainer, pressure_vector);
     }
 
-    auto MakeProjectedGravityForIntegrationPointsGetter()
+    auto MakeProjectedGravityForIntegrationPointsGetter() const
     {
         return [this]() -> std::vector<Vector> {
             return CalculateProjectedGravityAtIntegrationPoints(mNContainer);
@@ -543,8 +534,9 @@ private:
 
     auto MakeNodalVariableGetter() const
     {
-        return
-            [this](const Variable<double>& variable) -> Vector { return GetNodalValuesOf(variable); };
+        return [this](const Variable<double>& variable) -> Vector {
+            return VariablesUtilities::GetNodalValuesOf<TNumNodes>(variable, this->GetGeometry());
+        };
     }
 
     auto MakeShapeFunctionLocalGradientsGetter()
