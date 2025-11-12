@@ -1295,7 +1295,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&             
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                    const ElementVariables& rVariables) const
+                                                                    const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -1335,7 +1335,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                          const ElementVariables& rVariables) const
+                                                                          const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -1418,7 +1418,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
-                                                                        const ElementVariables& rVariables) const
+                                                                        const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -1448,7 +1448,7 @@ std::vector<double> SmallStrainUPwDiffOrderElement::CalculateBishopCoefficients(
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector,
-                                                                     const ElementVariables& rVariables) const
+                                                                     const ElementVariables& rVariables)
 {
     KRATOS_TRY
 
