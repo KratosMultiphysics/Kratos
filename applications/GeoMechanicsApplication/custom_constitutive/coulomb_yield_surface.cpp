@@ -99,8 +99,8 @@ CoulombYieldSurface::CoulombYieldSurface()
     InitializeKappaDependentFunctions();
 }
 
-CoulombYieldSurface::CoulombYieldSurface(Properties MaterialProperties)
-    : mMaterialProperties{std::move(MaterialProperties)}
+CoulombYieldSurface::CoulombYieldSurface(const Properties& rMaterialProperties)
+    : mMaterialProperties{rMaterialProperties}
 {
     // For backward compatibility, if no hardening type is given, we assume no hardening at all
     if (!mMaterialProperties.Has(GEO_COULOMB_HARDENING_TYPE)) {
