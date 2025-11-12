@@ -317,21 +317,6 @@ private:
         return result;
     }
 
-    [[nodiscard]] std::size_t GetNumberOfCornerPoints() const
-    {
-        switch (mMidGeometry->GetGeometryFamily()) {
-            using enum GeometryData::KratosGeometryFamily;
-        case Kratos_Linear:
-            return 2;
-        case Kratos_Triangle:
-            return 3;
-        case Kratos_Quadrilateral:
-            return 4;
-        default:
-            KRATOS_ERROR << "The geometry family of the mid-geometry is not supported\n";
-        }
-    }
-
     std::unique_ptr<BaseType> mMidGeometry;
 };
 
