@@ -278,9 +278,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectNodeIds, KratosGeoMech
     KRATOS_EXPECT_VECTOR_EQ(node_ids, std::vector({1, 3, 42, 314}));
 }
 
-class LinearGeometryFamiliesReverseFixture : public ::testing::TestWithParam<std::tuple<std::vector<std::size_t>, std::vector<std::size_t>>>
+class LinearGeometryFamiliesReverseFixture
+    : public ::testing::TestWithParam<std::tuple<std::vector<std::size_t>, std::vector<std::size_t>>>
 {
-
 };
 
 TEST_P(LinearGeometryFamiliesReverseFixture, GeometryUtilities_CorrectlyReversesNodeIds)
@@ -288,17 +288,18 @@ TEST_P(LinearGeometryFamiliesReverseFixture, GeometryUtilities_CorrectlyReverses
     const auto [initial_ids, expected_reversed_ids] = GetParam();
     const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Linear;
 
-    const auto reversed_ids = GeometryUtilities::GetReversedNodeIdsForGeometryFamily(geometry_family, initial_ids);
+    const auto reversed_ids =
+        GeometryUtilities::GetReversedNodeIdsForGeometryFamily(geometry_family, initial_ids);
 
     KRATOS_EXPECT_VECTOR_EQ(reversed_ids, expected_reversed_ids);
 }
 
-INSTANTIATE_TEST_CASE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                        LinearGeometryFamiliesReverseFixture,
-                        ::testing::Values(
-                            std::make_tuple(std::vector<std::size_t>{1, 2}, std::vector<std::size_t>{2, 1}),
-                            std::make_tuple(std::vector<std::size_t>{1, 2, 3}, std::vector<std::size_t>{2, 1, 3}),
-                            std::make_tuple(std::vector<std::size_t>{1, 2, 3, 4}, std::vector<std::size_t>{2, 1, 4, 3})
-                        ));
+INSTANTIATE_TEST_CASE_P(
+    KratosGeoMechanicsFastSuiteWithoutKernel,
+    LinearGeometryFamiliesReverseFixture,
+    ::testing::Values(std::make_tuple(std::vector<std::size_t>{1, 2}, std::vector<std::size_t>{2, 1}),
+                      std::make_tuple(std::vector<std::size_t>{1, 2, 3}, std::vector<std::size_t>{2, 1, 3}),
+                      std::make_tuple(std::vector<std::size_t>{1, 2, 3, 4},
+                                      std::vector<std::size_t>{2, 1, 4, 3})));
 
 } // namespace Kratos::Testing

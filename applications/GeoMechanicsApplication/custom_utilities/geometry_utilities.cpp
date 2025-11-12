@@ -19,6 +19,7 @@ namespace
 {
 
 using namespace Kratos;
+
 [[nodiscard]] std::size_t GetNumberOfCornerPoints(const GeometryData::KratosGeometryFamily& rGeometryFamily)
 {
     switch (rGeometryFamily) {
@@ -33,8 +34,7 @@ using namespace Kratos;
         KRATOS_ERROR << "The geometry family of the mid-geometry is not supported\n";
     }
 }
-}
-
+} // namespace
 
 namespace Kratos
 {
@@ -92,8 +92,8 @@ std::vector<std::size_t> GeometryUtilities::GetNodeIdsFromGeometry(const Geometr
 std::vector<std::size_t> GeometryUtilities::GetReversedNodeIdsForGeometryFamily(
     const GeometryData::KratosGeometryFamily& rGeometryFamily, const std::vector<std::size_t>& rInitialNodeIds)
 {
-    auto result = rInitialNodeIds;
-    auto end_of_corner_points  = result.begin() + GetNumberOfCornerPoints(rGeometryFamily);
+    auto result               = rInitialNodeIds;
+    auto end_of_corner_points = result.begin() + GetNumberOfCornerPoints(rGeometryFamily);
     std::reverse(result.begin(), end_of_corner_points);
     std::reverse(end_of_corner_points, result.end());
     return result;
