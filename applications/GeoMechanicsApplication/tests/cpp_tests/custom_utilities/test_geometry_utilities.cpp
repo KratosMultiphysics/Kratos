@@ -297,7 +297,8 @@ INSTANTIATE_TEST_CASE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                         LinearGeometryFamiliesReverseFixture,
                         ::testing::Values(
                             std::make_tuple(std::vector<std::size_t>{1, 2}, std::vector<std::size_t>{2, 1}),
-                            std::make_tuple(std::vector<std::size_t>{1, 2, 3}, std::vector<std::size_t>{2, 1, 3})
+                            std::make_tuple(std::vector<std::size_t>{1, 2, 3}, std::vector<std::size_t>{2, 1, 3}),
+                            std::make_tuple(std::vector<std::size_t>{1, 2, 3, 4}, std::vector<std::size_t>{2, 1, 4, 3})
                         ));
 
 } // namespace Kratos::Testing
