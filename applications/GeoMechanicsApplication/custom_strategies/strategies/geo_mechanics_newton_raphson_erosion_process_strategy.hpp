@@ -268,7 +268,7 @@ private:
     }
 
     template <typename FilteredElementsType>
-    bool CheckPipeEquilibrium(const FilteredElementsType& rOpenPipeElements, double MaxPipeHeight, unsigned int MaxNumberOfPipingIterations)
+    bool CheckPipeEquilibrium(const FilteredElementsType& rOpenPipeElements, int numberPipingElements, double MaxPipeHeight, unsigned int MaxNumberOfPipingIterations)
     {
         bool         equilibrium      = false;
         bool         converged        = true;
@@ -303,7 +303,7 @@ private:
                                                                 current_height > eq_height);
                 // check this if statement, I don't understand the check for pipe erosion
                 if ((!p_open_pipe_element->GetValue(PIPE_EROSION) || current_height > eq_height) &&
-                    current_height < MaxPipeHeight) {
+                    current_height < MaxPipeHeight - mPipeHeightAccuracy) {
                     if (p_open_pipe_element->GetValue(PIPE_HEIGHT) < r_prop[PIPE_HEIGHT] - mPipeHeightAccuracy) {
                         p_open_pipe_element->SetValue(PIPE_HEIGHT, r_prop[PIPE_HEIGHT]);
                     } else {
@@ -311,6 +311,13 @@ private:
                     }
                     equilibrium = false;
                 }
+
+                auto numberOpenPipeElements =  std::ranges::distance(rOpenPipeElements);
+                // KRATOS_INFO("PipingLoop- Equilibrium") << "Number of Open Pipe Elements: " << numberOpenPipeElements << std::endl;
+                // KRATOS_INFO("PipingLoop- Equilibrium") << "Number of Pipe Elements: " << numberPipingElements << std::endl;
+                if (numberOpenPipeElements == numberPipingElements) {
+                     p_open_pipe_element->SetValue(PIPE_HEIGHT, MaxPipeHeight + pipe_height_increment);
+                 }
 
                 // check if equilibrium height and current pipe heights are diverging, stop
                 // Picard iterations if this is the case and set pipe height on zero
@@ -324,7 +331,6 @@ private:
             }
             ++piping_iteration;
         }
-
         return equilibrium;
     }
 
@@ -340,29 +346,48 @@ private:
     std::tuple<bool, SizeType> CheckStatusTipElement(SizeType NumberOfOpenPipeElements,
                                                      SizeType NumberOfPipeELements,
                                                      double   MaxPipeHeight,
+                                                     bool     primaryErosionEnabled,
                                                      const FilteredElementsType& rPipeElements)
     {
         bool grow = true;
         // check status of tip element, stop growing if pipe_height is zero or greater than maximum
         // pipe height or if all elements are open
-        if (NumberOfOpenPipeElements < NumberOfPipeELements) {
-            auto       p_tip_element = rPipeElements.at(NumberOfOpenPipeElements - 1);
-            const auto pipe_height   = p_tip_element->GetValue(PIPE_HEIGHT);
 
-            if (pipe_height > MaxPipeHeight + std::numeric_limits<double>::epsilon() ||
-                pipe_height < mPipeHeightAccuracy) {
-                // stable element found; pipe length does not increase during current time step
+        if (primaryErosionEnabled && NumberOfOpenPipeElements < NumberOfPipeELements) {
+            NumberOfOpenPipeElements = this->ActivateTipElement(rPipeElements, NumberOfOpenPipeElements);
+        }
+
+        auto      p_tip_element = rPipeElements.at(NumberOfOpenPipeElements - 1);
+        if (NumberOfOpenPipeElements < NumberOfPipeELements) {
+            bool isPrimaryErosion = false;
+            if (primaryErosionEnabled &&
+                p_tip_element->CheckForPrimaryErosion( p_tip_element->GetProperties(),
+                                                       p_tip_element->GetGeometry())) {
+                isPrimaryErosion = true;
+                                                       }
+            //else if (primaryErosionEnabled) {
+             //   p_tip_element->SetValue(PIPE_ACTIVE, false);
+            //}
+
+           // p_tip_element = rPipeElements.at(NumberOfOpenPipeElements);
+
+            auto pipe_height = p_tip_element->GetValue(PIPE_HEIGHT);
+            if (pipe_height <= mPipeHeightAccuracy && isPrimaryErosion) {
+                isPrimaryErosion = false;
+                p_tip_element->SetValue(PIPE_HEIGHT, p_tip_element->GetProperties()[PIPE_HEIGHT]);
+            }
+            else if (pipe_height > MaxPipeHeight + std::numeric_limits<double>::epsilon() ||
+                pipe_height < mPipeHeightAccuracy || primaryErosionEnabled) {
                 grow = false;
                 p_tip_element->SetValue(PIPE_EROSION, false);
                 p_tip_element->SetValue(PIPE_ACTIVE, false);
                 --NumberOfOpenPipeElements;
-
-                KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
-                    << "Number of Open Pipe Elements: " << NumberOfOpenPipeElements << std::endl;
-            }
-        } else {
+                }
+        }
+        else {
             grow = false;
         }
+
         return std::make_tuple(grow, NumberOfOpenPipeElements);
     }
 
@@ -373,15 +398,27 @@ private:
     /// <param name="Grow"> boolean to check if pipe grows</param>
     /// <returns></returns>
     template <typename FilteredElementsType>
-    void SaveOrResetPipeHeights(const FilteredElementsType& rOpenPipeElements, bool Grow)
+    void SaveOrResetPipeHeights(const FilteredElementsType& rOpenPipeElements, bool Grow, bool primaryErosionSelected)
     {
         for (auto p_element : rOpenPipeElements) {
             if (Grow) {
                 p_element->SetValue(PREV_PIPE_HEIGHT, p_element->GetValue(PIPE_HEIGHT));
+            } else if (primaryErosionSelected) {
+                return;
             } else {
                 p_element->SetValue(PIPE_HEIGHT, p_element->GetValue(PREV_PIPE_HEIGHT));
             }
         }
+    }
+
+    template <typename FilteredElementsType>
+    SizeType ActivateTipElement(const FilteredElementsType& rPipingElements, SizeType NumberOfOpenPipeElements)
+    {
+        auto p_tip_element = rPipingElements.at(NumberOfOpenPipeElements);
+        ++NumberOfOpenPipeElements;
+        p_tip_element->SetValue(PIPE_ACTIVE, true);
+        p_tip_element->SetValue(PIPE_HEIGHT, mSmallPipeHeight);
+        return NumberOfOpenPipeElements;
     }
 
     template <typename FilteredElementsType>
@@ -391,37 +428,51 @@ private:
         const auto number_of_piping_elements = rPipingElements.size();
         auto number_of_open_piping_elements  = this->GetNumberOfActivePipeElements(rPipingElements);
         auto max_pipe_height                 = CalculateMaxPipeHeight(rPipingElements);
-        while (grow && (number_of_open_piping_elements < number_of_piping_elements)) {
+        auto primaryErosionSelected                = rPipingElements.at(0)->GetProperties()[PIPE_PRIMARY_EROSION_ENABLED];
+        while (grow && (number_of_open_piping_elements <= number_of_piping_elements)) {
             // get tip element and activate
-            auto p_tip_element = rPipingElements.at(number_of_open_piping_elements);
-            ++number_of_open_piping_elements;
-            p_tip_element->SetValue(PIPE_ACTIVE, true);
+            if (!primaryErosionSelected){
+                number_of_open_piping_elements = ActivateTipElement(rPipingElements, number_of_open_piping_elements);
+            }
 
             // Get all open pipe elements
             auto filter = [](auto p_element) {
                 return p_element->Has(PIPE_ACTIVE) && p_element->GetValue(PIPE_ACTIVE);
             };
             auto OpenPipeElements = rPipingElements | boost::adaptors::filtered(filter);
-            KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
-                << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
+            KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
 
             // nonlinear Picard iteration, for deepening the pipe
             // Todo JDN (20220817):: Deal with Equilibrium redundancy
-            CheckPipeEquilibrium(OpenPipeElements, max_pipe_height, mPipingIterations);
+            CheckPipeEquilibrium(OpenPipeElements, number_of_piping_elements, max_pipe_height, mPipingIterations);
 
             // check if pipe should grow in length
-            std::tie(grow, number_of_open_piping_elements) = CheckStatusTipElement(
-                number_of_open_piping_elements, number_of_piping_elements, max_pipe_height, rPipingElements);
+            std::tie(grow, number_of_open_piping_elements) =
+                CheckStatusTipElement(number_of_open_piping_elements, number_of_piping_elements,
+                    max_pipe_height, primaryErosionSelected, rPipingElements);
+
+            KRATOS_INFO("GROW:") << "Grow Status: " << grow << std::endl;
 
             // if n open elements is lower than total pipe elements, save pipe height current
             // growing iteration or reset to previous iteration in case the pipe should not grow.
             if (number_of_open_piping_elements < number_of_piping_elements) {
-                SaveOrResetPipeHeights(OpenPipeElements, grow);
+                SaveOrResetPipeHeights(OpenPipeElements, grow, primaryErosionSelected);
             }
-            // recalculate groundwater flow
-            const auto converged = this->Recalculate();
 
-            KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
+            // recalculate groundwater flow
+            if (!grow) {
+                const auto converged = this->Recalculate();
+                KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
+            }
+        }
+
+        auto filter = [](auto p_element) {
+            return p_element->Has(PIPE_ACTIVE) && p_element->GetValue(PIPE_ACTIVE);
+        };
+
+        auto OpenPipeElements = rPipingElements | boost::adaptors::filtered(filter);
+        for (auto p_element : OpenPipeElements) {
+            KRATOS_INFO("Piping Check") << "Element " << p_element->Id() << " Pipe Height: " << p_element->GetValue(PIPE_HEIGHT) << std::endl;
         }
     }
 }; // Class GeoMechanicsNewtonRaphsonErosionProcessStrategy

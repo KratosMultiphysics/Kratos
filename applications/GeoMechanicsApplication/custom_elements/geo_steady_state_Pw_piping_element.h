@@ -145,6 +145,8 @@ public:
         if (critGradient > std::numeric_limits<double>::epsilon()) {
             // JDN is this abs correct here? Is it not directional ?
             auto dhdx = std::abs(CalculateHeadGradient(rProp, rGeom));
+            KRATOS_INFO("Piping") << "Element " << this->Id() << " dh/dx: " << dhdx
+                           << " critical gradient: " << critGradient << std::endl;
             return dhdx > critGradient;
         }
         return false;
