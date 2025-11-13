@@ -35,7 +35,7 @@ std::size_t GetNumberOfCornerPoints(GeometryData::KratosGeometryFamily GeometryF
     }
 }
 
-template <typename InputIt>
+template <std::bidirectional_iterator InputIt>
 void ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily, InputIt Begin, InputIt End)
 {
     // For line geometries we want to reverse all 'corner points', while for surfaces we don't
