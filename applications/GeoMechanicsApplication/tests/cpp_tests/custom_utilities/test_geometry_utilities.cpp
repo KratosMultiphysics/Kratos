@@ -285,7 +285,7 @@ class LinearGeometryFamiliesReverseFixture
 
 TEST_P(LinearGeometryFamiliesReverseFixture, GeometryUtilities_CorrectlyReversesNodeIds)
 {
-    const auto [geometry_family, initial_ids, expected_reversed_ids] = GetParam();
+    const auto& [geometry_family, initial_ids, expected_reversed_ids] = GetParam();
 
     auto reversed_ids = initial_ids;
     GeometryUtilities::ReverseNodes(geometry_family, reversed_ids);
