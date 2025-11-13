@@ -442,7 +442,7 @@ private:
                 return p_element->Has(PIPE_ACTIVE) && p_element->GetValue(PIPE_ACTIVE);
             };
             auto OpenPipeElements = rPipingElements | boost::adaptors::filtered(filter);
-            KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
+            KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
 
             // nonlinear Picard iteration, for deepening the pipe
             // Todo JDN (20220817):: Deal with Equilibrium redundancy
