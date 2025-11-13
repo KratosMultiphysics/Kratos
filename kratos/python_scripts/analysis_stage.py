@@ -1,8 +1,13 @@
 # Importing Kratos
 import KratosMultiphysics
+from KratosMultiphysics import FluidDynamicsApplication
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
+
+# Correct import for the distance process (from DistanceCalculationApplication)
+
+
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -208,7 +213,40 @@ class AnalysisStage(object):
 
     def ModifyInitialGeometry(self):
         """this is the place to eventually modify geometry (for example moving nodes) in the stage """
-        pass
+
+        model_part = self._GetSolver().GetComputingModelPart()
+        root_model_part = self.model["FluidModelPart"]  # access the full root model part
+
+        # --- Ensure DISTANCE variable exists ---
+        if not model_part.HasNodalSolutionStepVariable(KratosMultiphysics.DISTANCE):
+            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+            print("::[SBM]:: Added DISTANCE variable to model part.")
+            
+        # --- Ensure the solid geometry submodelpart exists ---
+        if not root_model_part.HasSubModelPart("SolidGeometry"):
+            print("::[SBM]:: ERROR: 'SolidGeometry' submodelpart not found in FluidModelPart.")
+            print("Available submodelparts:")
+            for smp in root_model_part.SubModelParts:
+                print("   -", smp.Name)
+            return
+
+        solid_model_part = root_model_part.GetSubModelPart("SolidGeometry")
+        print(f"::[SBM]:: Detected SolidGeometry with {solid_model_part.NumberOfNodes()} nodes.")
+
+        # --- Compute distance field from solid boundary ---
+        distance_process = KratosMultiphysics.CalculateDistanceToSkinProcess2D(model_part, solid_model_part)
+        distance_process.Execute()
+        print("::[SBM]:: Distance to solid boundary computed successfully.")
+
+        # --- Deactivate elements fully inside the solid ---
+        inside_count = 0
+        for elem in model_part.Elements:
+            distances = [node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) for node in elem.GetNodes()]
+            if all(d < -1e-6 for d in distances):
+                elem.Set(KratosMultiphysics.ACTIVE, False)
+                inside_count += 1
+        print(f"::[SBM]:: {inside_count} elements deactivated inside the solid.")
+        #pass
 
     def ModifyAfterSolverInitialize(self):
         """this is the place to eventually do any modification that requires the solver to be initialized """
@@ -216,10 +254,52 @@ class AnalysisStage(object):
 
     def ApplyBoundaryConditions(self):
         """here the boundary conditions is applied, by calling the InitializeSolutionStep function of the processes"""
+        """Apply standard BCs and enforce shifted boundary (SBM) momentum = 0 on surrogate nodes."""
 
+        # --- Standard BC processes first ---
         for process in self._GetListOfProcesses():
             process.ExecuteInitializeSolutionStep()
 
+        model_part = self._GetSolver().GetComputingModelPart()
+
+        # --- Compute gradients for momentum fields ---
+        if not hasattr(self, "momentum_x_gradient_process"):
+            self.momentum_x_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
+                model_part,
+                KratosMultiphysics.MOMENTUM_X,
+                FluidDynamicsApplication.MOMENTUM_X_GRADIENT,
+                KratosMultiphysics.NODAL_AREA
+            )
+            self.momentum_y_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
+                model_part,
+                KratosMultiphysics.MOMENTUM_Y,
+                FluidDynamicsApplication.MOMENTUM_Y_GRADIENT,
+                KratosMultiphysics.NODAL_AREA
+            )
+
+        self.momentum_x_gradient_process.Execute()
+        self.momentum_y_gradient_process.Execute()
+
+        # --- Detect cut (surrogate) boundary nodes ---
+        cut_nodes = set()
+        for elem in model_part.Elements:
+            distances = [node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) for node in elem.GetNodes()]
+            has_pos = any(d > -1e-6 for d in distances)
+            has_neg = any(d < -1e-6 for d in distances)
+            if has_pos and has_neg:
+                for node in elem.GetNodes():
+                    if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < -1e-6:
+                        cut_nodes.add(node.Id)
+
+        # --- Enforce zero momentum on surrogate boundary nodes ---
+        for nid in cut_nodes:
+            node = model_part.GetNode(nid)
+            node.Fix(KratosMultiphysics.MOMENTUM_X)
+            node.Fix(KratosMultiphysics.MOMENTUM_Y)
+            node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_X, 0.0)
+            node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_Y, 0.0)
+
+        print(f"::[SBM]:: Applied Momentum=0 on {len(cut_nodes)} surrogate boundary nodes.")
         #other operations as needed
 
     def ChangeMaterialProperties(self):

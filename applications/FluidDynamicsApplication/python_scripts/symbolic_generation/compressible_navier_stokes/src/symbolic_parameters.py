@@ -25,6 +25,7 @@ class FormulationParameters:
         self.R1    = sympy.Symbol('data.R1', positive=True)
         self.R2    = sympy.Symbol('data.R2', positive=True)
         self.omega = sympy.Symbol('data.omega', positive=True)
+        self.E0    = sympy.Symbol('data.E0', positive=True)
 
 class ShockCapturingParameters:
     def __init__(self):

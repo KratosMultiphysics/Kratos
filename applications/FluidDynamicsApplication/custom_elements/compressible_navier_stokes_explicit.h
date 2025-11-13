@@ -11,13 +11,11 @@
 //
 
 #if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_H_INCLUDED)
-#define  KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_H_INCLUDED
+#define KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_H_INCLUDED
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -31,7 +29,6 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-
 
 namespace Kratos
 {
@@ -65,7 +62,7 @@ namespace Kratos
      * @tparam TDim The space dimension (2 or 3)
      * @tparam TNumNodes The number of nodes
      */
-    template< unsigned int TDim, unsigned int TNumNodes>
+    template <unsigned int TDim, unsigned int TNumNodes>
     class CompressibleNavierStokesExplicit : public Element
     {
     public:
@@ -95,18 +92,25 @@ namespace Kratos
             array_1d<double, TNumNodes> beta_sc_nodes;
             array_1d<double, TNumNodes> lamb_sc_nodes;
 
-            array_1d<double, TNumNodes > N;
-            BoundedMatrix<double, TNumNodes, TDim > DN_DX;
+            array_1d<double, TNumNodes> N;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
 
-            double h;           // Element size
-            double volume;      // In 2D: element area. In 3D: element volume
-            double mu;          // Dynamic viscosity
-            double nu;          // Kinematic viscosity
-            double nu_sc;       // Kinematic viscosity (shock capturing)
-            double lambda;      // Heat conductivity
-            double lambda_sc;   // Heat conductivity (shock capturing)
-            double c_v;         // Heat capacity at constant volume
-            double gamma;       // Heat capacity ratio
+            double h;         // Element size
+            double volume;    // In 2D: element area. In 3D: element volume
+            double mu;        // Dynamic viscosity
+            double nu;        // Kinematic viscosity
+            double nu_sc;     // Kinematic viscosity (shock capturing)
+            double lambda;    // Heat conductivity
+            double lambda_sc; // Heat conductivity (shock capturing)
+            double c_v;       // Heat capacity at constant volume
+            double gamma;     // Heat capacity ratio
+            double A_JWL;     // Parameter in JWL Equation
+            double B_JWL;     // Parameter in JWL Equation
+            double R1;        // Parameter in JWL Equation
+            double R2;        // Parameter in JWL Equation
+            double omega;     // Parameter in JWL Equation
+            double rho_0;     // Parameter in JWL Equation
+            double E0;        // Parameter in JWL Equation
 
             bool UseOSS;         // Use orthogonal subscales
             bool ShockCapturing; // Activate shock capturing
@@ -121,14 +125,16 @@ namespace Kratos
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Element(NewId, pGeometry)
-        {}
+        {
+        }
 
         CompressibleNavierStokesExplicit(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
             : Element(NewId, pGeometry, pProperties)
-        {}
+        {
+        }
 
         /// Destructor.
         ~CompressibleNavierStokesExplicit() override = default;
@@ -137,18 +143,17 @@ namespace Kratos
         ///@name Operators
         ///@{
 
-
         ///@}
         ///@name Operations
         ///@{
 
         Element::Pointer Create(
             IndexType NewId,
-            NodesArrayType const& rThisNodes,
+            NodesArrayType const &rThisNodes,
             PropertiesType::Pointer pProperties) const override
         {
             KRATOS_TRY
-                return Kratos::make_intrusive< CompressibleNavierStokesExplicit < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+            return Kratos::make_intrusive<CompressibleNavierStokesExplicit<TDim, TNumNodes>>(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
             KRATOS_CATCH("");
         }
 
@@ -158,7 +163,7 @@ namespace Kratos
             PropertiesType::Pointer pProperties) const override
         {
             KRATOS_TRY
-                return Kratos::make_intrusive< CompressibleNavierStokesExplicit < TDim, TNumNodes > >(NewId, pGeom, pProperties);
+            return Kratos::make_intrusive<CompressibleNavierStokesExplicit<TDim, TNumNodes>>(NewId, pGeom, pProperties);
             KRATOS_CATCH("");
         }
 
@@ -173,13 +178,13 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info instance
          */
         void CalculateLocalSystem(
-            MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            const ProcessInfo& rCurrentProcessInfo) override
+            MatrixType &rLeftHandSideMatrix,
+            VectorType &rRightHandSideVector,
+            const ProcessInfo &rCurrentProcessInfo) override
         {
             KRATOS_TRY
 
-                KRATOS_ERROR << "Calling the CalculateLocalSystem() method for the explicit compressible Navier-Stokes element.";
+            KRATOS_ERROR << "Calling the CalculateLocalSystem() method for the explicit compressible Navier-Stokes element.";
 
             KRATOS_CATCH("")
         }
@@ -194,12 +199,12 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info instance
          */
         void CalculateRightHandSide(
-            VectorType& rRightHandSideVector,
-            const ProcessInfo& rCurrentProcessInfo) override
+            VectorType &rRightHandSideVector,
+            const ProcessInfo &rCurrentProcessInfo) override
         {
             KRATOS_TRY
 
-                KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit compressible Navier-Stokes element. Call the CalculateRightHandSideInternal() instead.";
+            KRATOS_ERROR << "Calling the CalculateRightHandSide() method for the explicit compressible Navier-Stokes element. Call the CalculateRightHandSideInternal() instead.";
 
             KRATOS_CATCH("")
         }
@@ -212,9 +217,9 @@ namespace Kratos
          * IS ALLOWED TO WRITE ON ITS NODES.
          * the caller is expected to ensure thread safety hence
          * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-          * @param rCurrentProcessInfo the current process info instance
+         * @param rCurrentProcessInfo the current process info instance
          */
-        void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
+        void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override;
 
         /**
          * This is called during the assembling process in order
@@ -223,8 +228,8 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info instance
          */
         virtual void CalculateMassMatrix(
-            MatrixType& rMassMatrix,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            MatrixType &rMassMatrix,
+            const ProcessInfo &rCurrentProcessInfo) override;
 
         /**
          * @brief Calculate the lumped mass vector
@@ -234,8 +239,8 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info instance
          */
         virtual void CalculateLumpedMassVector(
-            VectorType& rLumpedMassVector,
-            const ProcessInfo& rCurrentProcessInfo) const override;
+            VectorType &rLumpedMassVector,
+            const ProcessInfo &rCurrentProcessInfo) const override;
 
         /**
          * This function provides the place to perform checks on the completeness of the input.
@@ -245,42 +250,40 @@ namespace Kratos
          * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
          * @return 0 if no errors were found.
          */
-        int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+        int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
         void Calculate(
-            const Variable<double>& rVariable,
-            double& Output,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const Variable<double> &rVariable,
+            double &Output,
+            const ProcessInfo &rCurrentProcessInfo) override;
 
         void Calculate(
-            const Variable<array_1d<double, 3 > >& rVariable,
-            array_1d<double, 3 >& Output,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const Variable<array_1d<double, 3>> &rVariable,
+            array_1d<double, 3> &Output,
+            const ProcessInfo &rCurrentProcessInfo) override;
 
         void Calculate(
-            const Variable<Matrix>& rVariable,
-            Matrix& Output,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const Variable<Matrix> &rVariable,
+            Matrix &Output,
+            const ProcessInfo &rCurrentProcessInfo) override;
 
         void CalculateOnIntegrationPoints(
-            const Variable<double>& rVariable,
-            std::vector<double>& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const Variable<double> &rVariable,
+            std::vector<double> &rOutput,
+            const ProcessInfo &rCurrentProcessInfo) override;
 
         void CalculateOnIntegrationPoints(
-            const Variable<array_1d<double, 3>>& rVariable,
-            std::vector<array_1d<double, 3>>& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
+            const Variable<array_1d<double, 3>> &rVariable,
+            std::vector<array_1d<double, 3>> &rOutput,
+            const ProcessInfo &rCurrentProcessInfo) override;
 
         ///@}
         ///@name Access
         ///@{
 
-
         ///@}
         ///@name Inquiry
         ///@{
-
 
         ///@}
         ///@name Input and output
@@ -295,13 +298,13 @@ namespace Kratos
         }
 
         /// Print information about this object.
-        void PrintInfo(std::ostream& rOStream) const override
+        void PrintInfo(std::ostream &rOStream) const override
         {
             rOStream << Info() << Id();
         }
 
         /// Print object's data.
-        void PrintData(std::ostream& rOStream) const override
+        void PrintData(std::ostream &rOStream) const override
         {
             pGetGeometry()->PrintData(rOStream);
         }
@@ -310,12 +313,10 @@ namespace Kratos
         ///@name Friends
         ///@{
 
-
         ///@}
     protected:
         ///@name Protected static member variables
         ///@{
-
 
         ///@}
         ///@name Protected member Variables
@@ -327,8 +328,8 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info instance
          */
         void EquationIdVector(
-            EquationIdVectorType& rResult,
-            const ProcessInfo& rCurrentProcessInfo) const override;
+            EquationIdVectorType &rResult,
+            const ProcessInfo &rCurrentProcessInfo) const override;
 
         /**
          * Determines the elemental list of DOFs
@@ -336,8 +337,8 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info instance
          */
         void GetDofList(
-            DofsVectorType& ElementalDofList,
-            const ProcessInfo& rCurrentProcessInfo) const override;
+            DofsVectorType &ElementalDofList,
+            const ProcessInfo &rCurrentProcessInfo) const override;
 
         ///@}
         ///@name Protected Operators
@@ -356,8 +357,8 @@ namespace Kratos
          * @param rCurrentProcessInfo Reference to the current process info
          */
         void FillElementData(
-            ElementDataStruct& rData,
-            const ProcessInfo& rCurrentProcessInfo);
+            ElementDataStruct &rData,
+            const ProcessInfo &rCurrentProcessInfo);
 
         /**
          * @brief Internal CalculateRightHandSide() method
@@ -367,8 +368,8 @@ namespace Kratos
          * @param rCurrentProcessInfo Reference to the current process info
          */
         void CalculateRightHandSideInternal(
-            BoundedVector<double, BlockSize* TNumNodes>& rRightHandSideBoundedVector,
-            const ProcessInfo& rCurrentProcessInfo);
+            BoundedVector<double, BlockSize * TNumNodes> &rRightHandSideBoundedVector,
+            const ProcessInfo &rCurrentProcessInfo);
 
         /**
          * @brief Calculate the momentum projection
@@ -377,7 +378,7 @@ namespace Kratos
          * The division by the lumped mass matrix values requires to be done at the strategy level.
          * @param rCurrentProcessInfo Reference to the current process info
          */
-        void CalculateMomentumProjection(const ProcessInfo& rCurrentProcessInfo);
+        void CalculateMomentumProjection(const ProcessInfo &rCurrentProcessInfo);
 
         /**
          * @brief Calculate the density projection
@@ -386,7 +387,7 @@ namespace Kratos
          * The division by the lumped mass matrix values requires to be done at the strategy level.
          * @param rCurrentProcessInfo Reference to the current process info
          */
-        void CalculateDensityProjection(const ProcessInfo& rCurrentProcessInfo);
+        void CalculateDensityProjection(const ProcessInfo &rCurrentProcessInfo);
 
         /**
          * @brief Calculate the total energy projection
@@ -395,33 +396,28 @@ namespace Kratos
          * The division by the lumped mass matrix values requires to be done at the strategy level.
          * @param rCurrentProcessInfo Reference to the current process info
          */
-        void CalculateTotalEnergyProjection(const ProcessInfo& rCurrentProcessInfo);
+        void CalculateTotalEnergyProjection(const ProcessInfo &rCurrentProcessInfo);
 
         ///@}
         ///@name Protected  Access
         ///@{
 
-
         ///@}
         ///@name Protected Inquiry
         ///@{
 
-
         ///@}
         ///@name Protected LifeCycle
         ///@{
-
 
         ///@}
     private:
         ///@name Static Member Variables
         ///@{
 
-
         ///@}
         ///@name Member Variables
         ///@{
-
 
         ///@}
         ///@name Serialization
@@ -429,12 +425,12 @@ namespace Kratos
 
         friend class Serializer;
 
-        void save(Serializer& rSerializer) const override
+        void save(Serializer &rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
         }
 
-        void load(Serializer& rSerializer) override
+        void load(Serializer &rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
         }
@@ -491,11 +487,9 @@ namespace Kratos
         ///@name Private  Access
         ///@{
 
-
         ///@}
         ///@name Private Inquiry
         ///@{
-
 
         ///@}
         ///@name Un accessible methods
@@ -507,30 +501,29 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
 
-
     ///@}
-
 
     /// Implementation of template-parameter independent methods
 
     template <unsigned int TDim, unsigned int TNumNodes>
-    int CompressibleNavierStokesExplicit<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
+    int CompressibleNavierStokesExplicit<TDim, TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
-            // Perform basic element checks
-            int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
-        if (ErrorCode != 0) {
+        // Perform basic element checks
+        int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
+        if (ErrorCode != 0)
+        {
             return ErrorCode;
         }
 
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY)) << "Missing DENSITY variable on solution step data for node " << this->GetGeometry()[i].Id();
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(MOMENTUM)) << "Missing MOMENTUM variable on solution step data for node " << this->GetGeometry()[i].Id();
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY variable on solution step data for node " << this->GetGeometry()[i].Id();
@@ -540,7 +533,8 @@ namespace Kratos
             // Activate as soon as we start using the explicit DOF based strategy
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(DENSITY)) << "Missing DENSITY DOF in node ", this->GetGeometry()[i].Id();
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_X) || this->GetGeometry()[i].HasDofFor(MOMENTUM_Y)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
-            if constexpr (TDim == 3) {
+            if constexpr (TDim == 3)
+            {
                 KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_Z)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
             }
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY DOF in node ", this->GetGeometry()[i].Id();
@@ -553,151 +547,184 @@ namespace Kratos
 
     template <unsigned int TDim, unsigned int TNumNodes>
     void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
-        const Variable<double>& rVariable,
-        double& Output,
-        const ProcessInfo& rCurrentProcessInfo)
+        const Variable<double> &rVariable,
+        double &Output,
+        const ProcessInfo &rCurrentProcessInfo)
     {
         // Lumped projection terms
-        if (rVariable == DENSITY_PROJECTION) {
+        if (rVariable == DENSITY_PROJECTION)
+        {
             CalculateDensityProjection(rCurrentProcessInfo);
         }
-        else if (rVariable == TOTAL_ENERGY_PROJECTION) {
+        else if (rVariable == TOTAL_ENERGY_PROJECTION)
+        {
             CalculateTotalEnergyProjection(rCurrentProcessInfo);
         }
-        else if (rVariable == VELOCITY_DIVERGENCE) {
+        else if (rVariable == VELOCITY_DIVERGENCE)
+        {
             Output = CalculateMidPointVelocityDivergence();
         }
-        else if (rVariable == SOUND_VELOCITY) {
+        else if (rVariable == SOUND_VELOCITY)
+        {
             Output = CalculateMidPointSoundVelocity();
         }
-        else {
+        else
+        {
             KRATOS_ERROR << "Variable not implemented." << std::endl;
         }
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
     void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        array_1d<double, 3 >& Output,
-        const ProcessInfo& rCurrentProcessInfo)
+        const Variable<array_1d<double, 3>> &rVariable,
+        array_1d<double, 3> &Output,
+        const ProcessInfo &rCurrentProcessInfo)
     {
-        if (rVariable == DENSITY_GRADIENT) {
+        if (rVariable == DENSITY_GRADIENT)
+        {
             Output = CalculateMidPointDensityGradient();
         }
-        else if (rVariable == TEMPERATURE_GRADIENT) {
+        else if (rVariable == TEMPERATURE_GRADIENT)
+        {
             Output = CalculateMidPointTemperatureGradient();
         }
-        else if (rVariable == VELOCITY_ROTATIONAL) {
+        else if (rVariable == VELOCITY_ROTATIONAL)
+        {
             Output = CalculateMidPointVelocityRotational();
         }
-        else if (rVariable == MOMENTUM_PROJECTION) {
+        else if (rVariable == MOMENTUM_PROJECTION)
+        {
             CalculateMomentumProjection(rCurrentProcessInfo);
         }
-        else {
+        else
+        {
             KRATOS_ERROR << "Variable not implemented." << std::endl;
         }
     }
 
-
     template <unsigned int TDim, unsigned int TNumNodes>
     void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
-        const Variable<Matrix>& rVariable,
-        Matrix& Output,
-        const ProcessInfo& rCurrentProcessInfo)
+        const Variable<Matrix> &rVariable,
+        Matrix &Output,
+        const ProcessInfo &rCurrentProcessInfo)
     {
-        if (rVariable == VELOCITY_GRADIENT) {
+        if (rVariable == VELOCITY_GRADIENT)
+        {
             Output = CalculateMidPointVelocityGradient();
         }
-        else {
+        else
+        {
             KRATOS_ERROR << "Variable not implemented." << std::endl;
         }
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
     void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-        const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
+        const Variable<double> &rVariable,
+        std::vector<double> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo)
     {
-        const auto& r_geometry = GetGeometry();
-        const auto& r_integration_points = r_geometry.IntegrationPoints();
-        if (rOutput.size() != r_integration_points.size()) {
+        const auto &r_geometry = GetGeometry();
+        const auto &r_integration_points = r_geometry.IntegrationPoints();
+        if (rOutput.size() != r_integration_points.size())
+        {
             rOutput.resize(r_integration_points.size());
         }
 
-        if (rVariable == SHOCK_SENSOR) {
+        if (rVariable == SHOCK_SENSOR)
+        {
             const double sc = this->GetValue(SHOCK_SENSOR);
-            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss)
+            {
                 rOutput[i_gauss] = sc;
             }
         }
-        else if (rVariable == SHEAR_SENSOR) {
+        else if (rVariable == SHEAR_SENSOR)
+        {
             const double sc = this->GetValue(SHEAR_SENSOR);
-            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss)
+            {
                 rOutput[i_gauss] = sc;
             }
         }
-        else if (rVariable == THERMAL_SENSOR) {
+        else if (rVariable == THERMAL_SENSOR)
+        {
             const double sc = this->GetValue(THERMAL_SENSOR);
-            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss)
+            {
                 rOutput[i_gauss] = sc;
             }
         }
-        else if (rVariable == ARTIFICIAL_CONDUCTIVITY) {
+        else if (rVariable == ARTIFICIAL_CONDUCTIVITY)
+        {
             const double k_star = this->GetValue(ARTIFICIAL_CONDUCTIVITY);
-            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss)
+            {
                 rOutput[i_gauss] = k_star;
             }
         }
-        else if (rVariable == ARTIFICIAL_BULK_VISCOSITY) {
+        else if (rVariable == ARTIFICIAL_BULK_VISCOSITY)
+        {
             const double beta_star = this->GetValue(ARTIFICIAL_BULK_VISCOSITY);
-            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss)
+            {
                 rOutput[i_gauss] = beta_star;
             }
         }
-        else if (rVariable == VELOCITY_DIVERGENCE) {
+        else if (rVariable == VELOCITY_DIVERGENCE)
+        {
             const double div_v = CalculateMidPointVelocityDivergence();
-            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss)
+            {
                 rOutput[i_gauss] = div_v;
             }
         }
-        else {
+        else
+        {
             KRATOS_ERROR << "Variable not implemented." << std::endl;
         }
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
     void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3>>& rVariable,
-        std::vector<array_1d<double, 3>>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
+        const Variable<array_1d<double, 3>> &rVariable,
+        std::vector<array_1d<double, 3>> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo)
     {
-        const auto& r_geometry = GetGeometry();
-        const auto& r_integration_points = r_geometry.IntegrationPoints();
-        if (rOutput.size() != r_integration_points.size()) {
+        const auto &r_geometry = GetGeometry();
+        const auto &r_integration_points = r_geometry.IntegrationPoints();
+        if (rOutput.size() != r_integration_points.size())
+        {
             rOutput.resize(r_integration_points.size());
         }
 
-        if (rVariable == DENSITY_GRADIENT) {
+        if (rVariable == DENSITY_GRADIENT)
+        {
             const array_1d<double, 3> rho_grad = CalculateMidPointDensityGradient();
-            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss)
+            {
                 rOutput[i_gauss] = rho_grad;
             }
         }
-        else if (rVariable == TEMPERATURE_GRADIENT) {
+        else if (rVariable == TEMPERATURE_GRADIENT)
+        {
             const array_1d<double, 3> temp_grad = CalculateMidPointTemperatureGradient();
 
-            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss)
+            {
                 rOutput[i_gauss] = temp_grad;
             }
         }
-        else if (rVariable == VELOCITY_ROTATIONAL) {
+        else if (rVariable == VELOCITY_ROTATIONAL)
+        {
             const array_1d<double, 3> rot_v = CalculateMidPointVelocityRotational();
-            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss)
+            {
                 rOutput[i_gauss] = rot_v;
             }
         }
-        else {
+        else
+        {
             KRATOS_ERROR << "Variable not implemented." << std::endl;
         }
     }
@@ -718,9 +745,8 @@ namespace Kratos
      */
     namespace CompressibleNavierStokesExplicitInternal
     {
-        template<unsigned int TDim, unsigned int TNumNodes>
+        template <unsigned int TDim, unsigned int TNumNodes>
         using ElementDataStruct = typename CompressibleNavierStokesExplicit<TDim, TNumNodes>::ElementDataStruct;
-
 
         constexpr bool IsSimplex(const unsigned int dimensions, const unsigned int nnodes)
         {
@@ -728,10 +754,10 @@ namespace Kratos
         }
 
         // Specialization for simplex geometries
-        template<unsigned int TDim, unsigned int TNumNodes>
+        template <unsigned int TDim, unsigned int TNumNodes>
         static typename std::enable_if<IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryData(
-            const Geometry<Node>& rGeometry,
-            ElementDataStruct<TDim, TNumNodes>& rData)
+            const Geometry<Node> &rGeometry,
+            ElementDataStruct<TDim, TNumNodes> &rData)
         {
             GeometryUtils::CalculateGeometryData(rGeometry, rData.DN_DX, rData.N, rData.volume);
             rData.h = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rData.DN_DX);
@@ -742,30 +768,29 @@ namespace Kratos
          * Shape functions cannot be obtained here. They will need to be calculated
          * during integration at each gauss point.
          */
-        template<unsigned int TDim, unsigned int TNumNodes>
+        template <unsigned int TDim, unsigned int TNumNodes>
         static typename std::enable_if<!IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryData(
-            const Geometry<Node>& rGeometry,
-            ElementDataStruct<TDim, TNumNodes>& rData)
+            const Geometry<Node> &rGeometry,
+            ElementDataStruct<TDim, TNumNodes> &rData)
         {
             rData.volume = rGeometry.DomainSize();
             rData.h = ElementSizeCalculator<TDim, TNumNodes>::AverageElementSize(rGeometry);
         }
     }
 
-
     template <unsigned int TDim, unsigned int TNumNodes>
     void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
-        ElementDataStruct& rData,
-        const ProcessInfo& rCurrentProcessInfo)
+        ElementDataStruct &rData,
+        const ProcessInfo &rCurrentProcessInfo)
     {
         // Getting data for the given geometry
-        const auto& r_geometry = GetGeometry();
+        const auto &r_geometry = GetGeometry();
 
         // Loads shape function info only if jacobian is uniform
         CompressibleNavierStokesExplicitInternal::ComputeGeometryData<TDim, TNumNodes>(r_geometry, rData);
 
         // Database access to all of the variables needed
-        Properties& r_properties = this->GetProperties();
+        Properties &r_properties = this->GetProperties();
         rData.mu = r_properties.GetValue(DYNAMIC_VISCOSITY);
         rData.lambda = r_properties.GetValue(CONDUCTIVITY);
         rData.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
@@ -780,31 +805,34 @@ namespace Kratos
         const double aux_theta = theta > 0 ? 1.0 / (theta * time_step) : 0.0;
 
         // Get nodal values
-        if (rData.UseOSS) {
-            for (unsigned int i = 0; i < TNumNodes; ++i) {
-                const auto& r_node = r_geometry[i];
+        if (rData.UseOSS)
+        {
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                const auto &r_node = r_geometry[i];
                 // Vector data
-                const array_1d<double, 3>& r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
-                const array_1d<double, 3>& r_momentum_old = r_node.FastGetSolutionStepValue(MOMENTUM, 1);
-                const array_1d<double, 3>& r_momentum_projection = r_node.GetValue(MOMENTUM_PROJECTION);
+                const array_1d<double, 3> &r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
+                const array_1d<double, 3> &r_momentum_old = r_node.FastGetSolutionStepValue(MOMENTUM, 1);
+                const array_1d<double, 3> &r_momentum_projection = r_node.GetValue(MOMENTUM_PROJECTION);
                 const array_1d<double, 3> mom_inc = r_momentum - r_momentum_old;
-                const auto& r_body_force = r_node.FastGetSolutionStepValue(BODY_FORCE);
-                for (unsigned int k = 0; k < TDim; ++k) {
+                const auto &r_body_force = r_node.FastGetSolutionStepValue(BODY_FORCE);
+                for (unsigned int k = 0; k < TDim; ++k)
+                {
                     rData.U(i, k + 1) = r_momentum[k];
                     rData.dUdt(i, k + 1) = aux_theta * mom_inc[k];
                     rData.ResProj(i, k + 1) = r_momentum_projection[k];
                     rData.f_ext(i, k) = r_body_force[k];
                 }
                 // Density data
-                const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-                const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
+                const double &r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+                const double &r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
                 const double rho_inc = r_rho - r_rho_old;
                 rData.U(i, 0) = r_rho;
                 rData.dUdt(i, 0) = aux_theta * rho_inc;
                 rData.ResProj(i, 0) = r_node.GetValue(DENSITY_PROJECTION);
                 // Total energy data
-                const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
-                const double& r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
+                const double &r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+                const double &r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
                 const double tot_ener_inc = r_tot_ener - r_tot_ener_old;
                 rData.U(i, TDim + 1) = r_tot_ener;
                 rData.dUdt(i, TDim + 1) = aux_theta * tot_ener_inc;
@@ -819,27 +847,30 @@ namespace Kratos
                 rData.lamb_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
             }
         }
-        else {
-            for (unsigned int i = 0; i < TNumNodes; ++i) {
-                const auto& r_node = r_geometry[i];
+        else
+        {
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                const auto &r_node = r_geometry[i];
                 // Vector data
-                const array_1d<double, 3>& r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
-                const array_1d<double, 3>& r_momentum_old = r_node.FastGetSolutionStepValue(MOMENTUM, 1);
+                const array_1d<double, 3> &r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
+                const array_1d<double, 3> &r_momentum_old = r_node.FastGetSolutionStepValue(MOMENTUM, 1);
                 const array_1d<double, 3> mom_inc = r_momentum - r_momentum_old;
-                const auto& r_body_force = r_node.FastGetSolutionStepValue(BODY_FORCE);
-                for (unsigned int k = 0; k < TDim; ++k) {
+                const auto &r_body_force = r_node.FastGetSolutionStepValue(BODY_FORCE);
+                for (unsigned int k = 0; k < TDim; ++k)
+                {
                     rData.U(i, k + 1) = r_momentum[k];
                     rData.dUdt(i, k + 1) = aux_theta * mom_inc[k];
                     rData.f_ext(i, k) = r_body_force[k];
                 }
                 // Density data
-                const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-                const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
+                const double &r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+                const double &r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
                 rData.U(i, 0) = r_rho;
                 rData.dUdt(i, 0) = aux_theta * (r_rho - r_rho_old);
                 // Total energy data
-                const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
-                const double& r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
+                const double &r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+                const double &r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
                 rData.U(i, TDim + 1) = r_tot_ener;
                 rData.dUdt(i, TDim + 1) = aux_theta * (r_tot_ener - r_tot_ener_old);
                 // Source data
@@ -858,19 +889,21 @@ namespace Kratos
     array_1d<double, 3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointDensityGradient() const
     {
         // Get geometry data
-        const auto& r_geom = GetGeometry();
+        const auto &r_geom = GetGeometry();
         const unsigned int NumNodes = r_geom.PointsNumber();
         Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
         r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
-        const auto& r_dNdX = dNdX_container[0];
+        const auto &r_dNdX = dNdX_container[0];
 
         // Calculate midpoint magnitudes
         array_1d<double, 3> midpoint_grad_rho = ZeroVector(3);
-        for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-            auto& r_node = r_geom[i_node];
+        for (unsigned int i_node = 0; i_node < NumNodes; ++i_node)
+        {
+            auto &r_node = r_geom[i_node];
             const auto node_dNdX = row(r_dNdX, i_node);
-            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-            for (unsigned int d1 = 0; d1 < TDim; ++d1) {
+            const double &r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+            for (unsigned int d1 = 0; d1 < TDim; ++d1)
+            {
                 midpoint_grad_rho[d1] += node_dNdX(d1) * r_rho;
             }
         }
@@ -883,24 +916,26 @@ namespace Kratos
     array_1d<double, 3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointTemperatureGradient() const
     {
         // Get geometry data
-        const auto& r_geom = GetGeometry();
+        const auto &r_geom = GetGeometry();
         const unsigned int NumNodes = r_geom.PointsNumber();
         Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
         r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
-        const auto& r_dNdX = dNdX_container[0];
+        const auto &r_dNdX = dNdX_container[0];
 
         // Calculate midpoint magnitudes
         const double c_v = GetProperties()[SPECIFIC_HEAT];
         array_1d<double, 3> midpoint_grad_temp = ZeroVector(3);
-        for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-            auto& r_node = r_geom[i_node];
+        for (unsigned int i_node = 0; i_node < NumNodes; ++i_node)
+        {
+            auto &r_node = r_geom[i_node];
             const auto node_dNdX = row(r_dNdX, i_node);
-            const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
-            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-            const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+            const auto &r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+            const double &r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+            const double &r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
             const array_1d<double, 3> vel = r_mom / r_rho;
             const double temp = (r_tot_ener / r_rho - 0.5 * inner_prod(vel, vel)) / c_v;
-            for (unsigned int d1 = 0; d1 < TDim; ++d1) {
+            for (unsigned int d1 = 0; d1 < TDim; ++d1)
+            {
                 midpoint_grad_temp[d1] += node_dNdX(d1) * temp;
             }
         }
@@ -912,21 +947,23 @@ namespace Kratos
     double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointSoundVelocity() const
     {
         // Get geometry data
-        const auto& r_geom = GetGeometry();
+        const auto &r_geom = GetGeometry();
         const unsigned int NumNodes = r_geom.PointsNumber();
 
         // Calculate midpoint magnitudes
         double midpoint_rho = 0.0;
         double midpoint_tot_ener = 0.0;
         array_1d<double, TDim> midpoint_mom = ZeroVector(TDim);
-        for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-            auto& r_node = r_geom[i_node];
-            const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
-            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-            const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+        for (unsigned int i_node = 0; i_node < NumNodes; ++i_node)
+        {
+            auto &r_node = r_geom[i_node];
+            const auto &r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+            const double &r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+            const double &r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
             midpoint_rho += r_rho;
             midpoint_tot_ener += r_tot_ener;
-            for (unsigned int d1 = 0; d1 < TDim; ++d1) {
+            for (unsigned int d1 = 0; d1 < TDim; ++d1)
+            {
                 midpoint_mom[d1] += r_mom(d1);
             }
         }
@@ -935,7 +972,7 @@ namespace Kratos
         midpoint_tot_ener /= NumNodes;
 
         // Calculate midpoint speed of sound
-        const auto& r_prop = GetProperties();
+        const auto &r_prop = GetProperties();
         const double c_v = r_prop.GetValue(SPECIFIC_HEAT);
         const double gamma = r_prop.GetValue(HEAT_CAPACITY_RATIO);
         const double temp = (midpoint_tot_ener / midpoint_rho - inner_prod(midpoint_mom, midpoint_mom) / (2 * std::pow(midpoint_rho, 2))) / c_v;
@@ -947,24 +984,26 @@ namespace Kratos
     double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointVelocityDivergence() const
     {
         // Get geometry data
-        const auto& r_geom = GetGeometry();
+        const auto &r_geom = GetGeometry();
         const unsigned int NumNodes = r_geom.PointsNumber();
         Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
         r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
-        const auto& r_dNdX = dNdX_container[0];
+        const auto &r_dNdX = dNdX_container[0];
 
         // Calculate midpoint magnitudes
         double midpoint_rho = 0.0;
         double midpoint_div_mom = 0.0;
         array_1d<double, TDim> midpoint_mom = ZeroVector(TDim);
         array_1d<double, TDim> midpoint_grad_rho = ZeroVector(TDim);
-        for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-            auto& r_node = r_geom[i_node];
+        for (unsigned int i_node = 0; i_node < NumNodes; ++i_node)
+        {
+            auto &r_node = r_geom[i_node];
             const auto node_dNdX = row(r_dNdX, i_node);
-            const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
-            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+            const auto &r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+            const double &r_rho = r_node.FastGetSolutionStepValue(DENSITY);
             midpoint_rho += r_rho;
-            for (unsigned int d1 = 0; d1 < TDim; ++d1) {
+            for (unsigned int d1 = 0; d1 < TDim; ++d1)
+            {
                 midpoint_mom[d1] += r_mom(d1);
                 midpoint_div_mom += node_dNdX(d1) * r_mom(d1);
                 midpoint_grad_rho[d1] += node_dNdX(d1) * r_rho;
@@ -981,12 +1020,13 @@ namespace Kratos
 
     template <unsigned int TDim, unsigned int TNumNodes>
     void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateLumpedMassVector(
-        VectorType& rLumpedMassVector,
-        const ProcessInfo& rCurrentProcessInfo) const
+        VectorType &rLumpedMassVector,
+        const ProcessInfo &rCurrentProcessInfo) const
     {
         // Initialize the lumped mass vector
         constexpr IndexType size = TNumNodes * BlockSize;
-        if (rLumpedMassVector.size() != BlockSize) {
+        if (rLumpedMassVector.size() != BlockSize)
+        {
             rLumpedMassVector.resize(size, false);
         }
 
@@ -995,9 +1035,8 @@ namespace Kratos
         std::fill(rLumpedMassVector.begin(), rLumpedMassVector.end(), nodal_mass);
     }
 
-
     template <unsigned int TDim, unsigned int TNumNodes>
-    void CompressibleNavierStokesExplicit<TDim, TNumNodes>::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
+    void CompressibleNavierStokesExplicit<TDim, TNumNodes>::AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo)
     {
         // Calculate the explicit residual vector
         BoundedVector<double, DofSize> rhs;
@@ -1005,11 +1044,11 @@ namespace Kratos
 
         // Add the residual contribution
         // Note that the reaction is indeed the formulation residual
-        auto& r_geometry = GetGeometry();
+        auto &r_geometry = GetGeometry();
 
         for (IndexType i_node = 0; i_node < NumNodes; ++i_node)
         {
-            auto& r_node = r_geometry[i_node];
+            auto &r_node = r_geometry[i_node];
 
             IndexType i_dof = BlockSize * i_node;
 
@@ -1053,12 +1092,14 @@ namespace Kratos
             "This element implements a compressible Navier-Stokes formulation written in conservative variables. A Variational MultiScales (VMS) stabilization technique, both with Algebraic SubGrid Scales (ASGS) and Orthogonal Subgrid Scales (OSS), is used. This element is compatible with both entropy-based and physics-based shock capturing techniques."
     })");
 
-        if constexpr (TDim == 2) {
-            std::vector<std::string> dofs_2d({ "DENSITY","MOMENTUM_X","MOMENTUM_Y","TOTAL_ENERGY" });
+        if constexpr (TDim == 2)
+        {
+            std::vector<std::string> dofs_2d({"DENSITY", "MOMENTUM_X", "MOMENTUM_Y", "TOTAL_ENERGY"});
             specifications["required_dofs"].SetStringArray(dofs_2d);
         }
-        else {
-            std::vector<std::string> dofs_3d({ "DENSITY","MOMENTUM_X","MOMENTUM_Y","MOMENTUM_Z","TOTAL_ENERGY" });
+        else
+        {
+            std::vector<std::string> dofs_3d({"DENSITY", "MOMENTUM_X", "MOMENTUM_Y", "MOMENTUM_Z", "TOTAL_ENERGY"});
             specifications["required_dofs"].SetStringArray(dofs_3d);
         }
 

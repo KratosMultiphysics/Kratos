@@ -9,12 +9,17 @@ def ComputeEulerJacobianMatrix(dofs, params):
     # Auxiliary variables
     dim = params.dim
     gamma = params.gamma
-    rho_0 = params.rho_0
-    A_JWL = params.A_JWL
-    B_JWL = params.B_JWL
-    omega = params.omega
-    R1 = params.R1
-    R2 = params.R2
+
+    # Symbolic links to runtime data fields
+    rho_0 = sympy.Symbol("data.rho_0")
+    A_JWL  = sympy.Symbol("data.A_JWL")
+    B_JWL  = sympy.Symbol("data.B_JWL")
+    omega  = sympy.Symbol("data.omega")
+    R1     = sympy.Symbol("data.R1")
+    R2     = sympy.Symbol("data.R2")
+    E0     = sympy.Symbol("data.E0")
+
+    # Primary variables
     rho = dofs[0]
     mom = []
     vel = []
@@ -22,22 +27,22 @@ def ComputeEulerJacobianMatrix(dofs, params):
     for i in range(dim):
         mom.append(dofs[i + 1])
         vel.append(dofs[i + 1] / rho)
-        mom_prod += dofs[i + 1]**2
+        mom_prod += dofs[i + 1] ** 2
     e_tot = dofs[dim + 1]
-    V = rho_0 / rho  # Relative volume
-    e_internal = e_tot - 0.5 * mom_prod / rho # Interna Energy
+    V = rho_0 / rho
+    e_internal = E0
 
+    # JWL pressure equation
     p = A_JWL * (1 - omega / (R1 * V)) * sympy.exp(-R1 * V) + \
-    B_JWL * (1 - omega / (R2 * V)) * sympy.exp(-R2 * V) + \
-    (omega * e_internal) / V
-
+        B_JWL * (1 - omega / (R2 * V)) * sympy.exp(-R2 * V) + \
+        (omega * e_internal) / V
 
     # Define and fill the convective flux matrix
     E = defs.Matrix('E', dim + 2, dim, real=True)
     for j in range(dim):
         E[0, j] = mom[j]
         for d in range(dim):
-            E[1 + d, j] = mom[j]*vel[d]
+            E[1 + d, j] = mom[j] * vel[d]
             if j == d:
                 E[1 + d, j] += p
         E[dim + 1, j] = vel[j] * (e_tot + p)

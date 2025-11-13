@@ -112,6 +112,7 @@ namespace Kratos
             double R2;        // Parameter R2 in JWL EOS
             double omega;     // Parameter omega in JWL EOS
             double rho_0;     // Parameter rho_0 in JWL EOS
+            double E0;        // Parameter in JWL Equation
 
             bool UseOSS;         // Use orthogonal subscales
             bool ShockCapturing; // Activate shock capturing
@@ -796,6 +797,14 @@ namespace Kratos
         rData.lambda = r_properties.GetValue(CONDUCTIVITY);
         rData.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
         rData.gamma = r_properties.GetValue(HEAT_CAPACITY_RATIO);
+
+        rData.A_JWL = r_properties[A_JWL];
+        rData.B_JWL = r_properties[B_JWL];
+        rData.R1 = r_properties[R1];
+        rData.R2 = r_properties[R2];
+        rData.omega = r_properties[omega];
+        rData.rho_0 = r_properties[rho_0];
+        rData.E0 = r_properties[E0];
 
         rData.UseOSS = rCurrentProcessInfo[OSS_SWITCH];
         rData.ShockCapturing = rCurrentProcessInfo[SHOCK_CAPTURING_SWITCH];

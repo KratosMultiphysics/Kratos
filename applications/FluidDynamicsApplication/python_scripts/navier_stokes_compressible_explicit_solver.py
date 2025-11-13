@@ -95,6 +95,9 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             KratosMultiphysics.REACTION)  # Momentum DOF reaction
         self.main_model_part.AddNodalSolutionStepVariable(
             KratosFluid.REACTION_ENERGY)  # Total energy DOF reaction
+        #FSI
+        self.main_model_part.AddNodalSolutionStepVariable(
+            KratosMultiphysics.DISTANCE)  # DISTANCE in FSI       
 
         # Required variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
@@ -102,6 +105,11 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.HEAT_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.NUMERICAL_ENTROPY) # TODO: This is only necessary with shock capturing entropy_based
+
+        # Shifted Boundary Method
+        # Momentum gradient variables (historical storage)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_X_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_Y_GRADIENT)
 
         # Post-process variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MACH)

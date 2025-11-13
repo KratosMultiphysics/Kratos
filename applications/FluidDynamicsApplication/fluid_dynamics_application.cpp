@@ -37,7 +37,7 @@ Kratos::KratosApplication *CreateApplication()
 namespace Kratos
 {
 
-    KratosFluidDynamicsApplication::KratosFluidDynamicsApplication() : KratosApplication("FluidDynamicsApplication"),
+    KratosFluidDynamicsApplication::KratosFluidDynamicsApplication() : KratosApplication("KratosMultiphysics.MOMENTUM_X_GRADIENT"),
                                                                        mVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
                                                                        mVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
                                                                        mQSVMS2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
@@ -209,6 +209,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(B_JWL);
         KRATOS_REGISTER_VARIABLE(R1);
         KRATOS_REGISTER_VARIABLE(R2);
+        KRATOS_REGISTER_VARIABLE(E0);
         KRATOS_REGISTER_VARIABLE(omega);
         KRATOS_REGISTER_VARIABLE(rho_0);
         KRATOS_REGISTER_VARIABLE(FLUID_STRESS);
@@ -300,6 +301,10 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DRAG_FORCE_CENTER)
         KRATOS_REGISTER_VARIABLE(SMOOTHING_COEFFICIENT)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INLET_NORMAL)
+
+        // SBM variables
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOMENTUM_X_GRADIENT)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOMENTUM_Y_GRADIENT)
 
         // Two-phase flow with surface tension
         KRATOS_REGISTER_VARIABLE(SURFACE_TENSION_COEFFICIENT)
