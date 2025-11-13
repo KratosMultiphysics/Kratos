@@ -64,14 +64,23 @@ void ReverseNodes(InputIt                               Begin,
     // change the starting node, but only reverse the order of the rest of the corner points.
     auto begin_of_corner_points =
         GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Linear ? Begin : Begin + 1;
-    auto end_of_corner_points = Begin + GetNumberOfCornerPoints(GeometryFamily);
 
+    const auto number_of_corner_points = GetNumberOfCornerPoints(GeometryFamily);
+    KRATOS_ERROR_IF(number_of_corner_points > std::distance(Begin, End))
+        << "Number of nodes for reversal is too small for the geometry family and order type "
+           "specified.\n";
+    auto end_of_corner_points = Begin + number_of_corner_points;
+
+    const auto number_of_edge_points = GetNumberOfEdgePoints(GeometryFamily, GeometryOrderType);
     // For line geometries, all remaining points are edge points, while for surfaces there could be
     // internal points as well.
+    KRATOS_ERROR_IF(number_of_edge_points > std::distance(end_of_corner_points, End) && GeometryFamily != GeometryData::KratosGeometryFamily::Kratos_Linear)
+        << "Number of nodes for reversal is too small for the geometry family and order type "
+           "specified.\n";
     auto end_of_edge_points =
         GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Linear
             ? End
-            : end_of_corner_points + GetNumberOfEdgePoints(GeometryFamily, GeometryOrderType);
+            : end_of_corner_points + number_of_edge_points;
 
     std::reverse(begin_of_corner_points, end_of_corner_points);
     std::reverse(end_of_corner_points, end_of_edge_points);

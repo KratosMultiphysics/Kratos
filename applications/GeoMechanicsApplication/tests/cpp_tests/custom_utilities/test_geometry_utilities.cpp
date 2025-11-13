@@ -278,13 +278,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectNodeIds, KratosGeoMech
     KRATOS_EXPECT_VECTOR_EQ(node_ids, std::vector({1, 3, 42, 314}));
 }
 
-class LinearGeometryFamiliesReverseFixture
+class GeometryFamiliesReverseFixture
     : public ::testing::TestWithParam<
           std::tuple<GeometryData::KratosGeometryFamily, GeometryData::KratosGeometryOrderType, std::vector<std::size_t>, std::vector<std::size_t>>>
 {
 };
 
-TEST_P(LinearGeometryFamiliesReverseFixture, GeometryUtilities_CorrectlyReversesNodeIds)
+TEST_P(GeometryFamiliesReverseFixture, GeometryUtilities_CorrectlyReversesNodeIds)
 {
     const auto& [geometry_family, geometry_order, initial_ids, expected_reversed_ids] = GetParam();
 
@@ -296,7 +296,7 @@ TEST_P(LinearGeometryFamiliesReverseFixture, GeometryUtilities_CorrectlyReverses
 
 INSTANTIATE_TEST_CASE_P(
     KratosGeoMechanicsFastSuiteWithoutKernel,
-    LinearGeometryFamiliesReverseFixture,
+    GeometryFamiliesReverseFixture,
     ::testing::Values(std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Linear,
                                       GeometryData::KratosGeometryOrderType::Kratos_Linear_Order,
                                       std::vector<std::size_t>{1, 2},
@@ -333,5 +333,44 @@ INSTANTIATE_TEST_CASE_P(
                                       GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order,
                                       std::vector<std::size_t>{1, 2, 3, 4, 5, 6, 7, 8, 9},
                                       std::vector<std::size_t>{1, 4, 3, 2, 8, 7, 6, 5, 9})));
+
+class ReverseThrowsWhenNumberOfNodeIdsIsTooSmall
+    : public ::testing::TestWithParam<std::tuple<GeometryData::KratosGeometryFamily, GeometryData::KratosGeometryOrderType, std::vector<std::size_t>>>
+{
+};
+
+TEST_P(ReverseThrowsWhenNumberOfNodeIdsIsTooSmall, GeometryUtilities_ThrowsWhenNumberOfNodeIdsIsTooSmall)
+{
+    const auto& [geometry_family, geometry_order, initial_ids] = GetParam();
+
+    auto reversed_ids = initial_ids;
+
+    const auto expected_message = "Number of nodes for reversal is too small for the geometry "
+                                  "family and order type specified.";
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        GeometryUtilities::ReverseNodes(reversed_ids, geometry_family, geometry_order), expected_message);
+}
+
+INSTANTIATE_TEST_CASE_P(
+    KratosGeoMechanicsFastSuiteWithoutKernel,
+    ReverseThrowsWhenNumberOfNodeIdsIsTooSmall,
+    ::testing::Values(std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Linear,
+                                      GeometryData::KratosGeometryOrderType::Kratos_Linear_Order,
+                                      std::vector<std::size_t>{1}),
+                      std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Triangle,
+                                      GeometryData::KratosGeometryOrderType::Kratos_Linear_Order,
+                                      std::vector<std::size_t>{1, 2}),
+                      std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Triangle,
+                                      GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order,
+                                      std::vector<std::size_t>{1, 2, 3, 4, 5}),
+                      std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Triangle,
+                                      GeometryData::KratosGeometryOrderType::Kratos_Cubic_Order,
+                                      std::vector<std::size_t>{1, 2, 3, 4, 5, 6, 7, 8}),
+                      std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Quadrilateral,
+                                      GeometryData::KratosGeometryOrderType::Kratos_Linear_Order,
+                                      std::vector<std::size_t>{1, 2, 3}),
+                      std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Quadrilateral,
+                                      GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order,
+                                      std::vector<std::size_t>{1, 2, 3, 4, 5, 6, 7})));
 
 } // namespace Kratos::Testing
