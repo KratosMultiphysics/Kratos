@@ -308,7 +308,8 @@ private:
         // The second side is defined by the second half of the element nodes. However, the
         // nodes must be traversed in opposite direction.
         auto nodes_of_second_side = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-        GeometryUtilities::ReverseNodes(mMidGeometry->GetGeometryFamily(), nodes_of_second_side);
+        GeometryUtilities::ReverseNodes(nodes_of_second_side, mMidGeometry->GetGeometryFamily(),
+                                        mMidGeometry->GetGeometryOrderType());
 
         auto result = GeometriesArrayType{};
         result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_side));

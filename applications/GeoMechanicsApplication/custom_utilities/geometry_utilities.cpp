@@ -37,7 +37,10 @@ std::size_t GetNumberOfCornerPoints(GeometryData::KratosGeometryFamily GeometryF
 }
 
 template <std::random_access_iterator InputIt>
-void ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily, InputIt Begin, InputIt End)
+void ReverseNodes(InputIt                               Begin,
+                  InputIt                               End,
+                  GeometryData::KratosGeometryFamily    GeometryFamily,
+                  GeometryData::KratosGeometryOrderType GeometryOrderType)
 {
     // For line geometries we want to reverse all 'corner points', while for surfaces we don't
     // change the starting node, but only reverse the order of the rest of the corner points.
@@ -104,15 +107,18 @@ std::vector<std::size_t> GeometryUtilities::GetNodeIdsFromGeometry(const Geometr
     return result;
 }
 
-void GeometryUtilities::ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily, PointerVector<Node>& rNodes)
+void GeometryUtilities::ReverseNodes(PointerVector<Node>&                  rNodes,
+                                     GeometryData::KratosGeometryFamily    GeometryFamily,
+                                     GeometryData::KratosGeometryOrderType GeometryOrderType)
 {
-    ::ReverseNodes(GeometryFamily, rNodes.ptr_begin(), rNodes.ptr_end());
+    ::ReverseNodes(rNodes.ptr_begin(), rNodes.ptr_end(), GeometryFamily, GeometryOrderType);
 }
 
-void GeometryUtilities::ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily,
-                                     std::vector<std::size_t>&          rNodeIds)
+void GeometryUtilities::ReverseNodes(std::vector<std::size_t>&             rNodeIds,
+                                     GeometryData::KratosGeometryFamily    GeometryFamily,
+                                     GeometryData::KratosGeometryOrderType GeometryOrderType)
 {
-    ::ReverseNodes(GeometryFamily, rNodeIds.begin(), rNodeIds.end());
+    ::ReverseNodes(rNodeIds.begin(), rNodeIds.end(), GeometryFamily, GeometryOrderType);
 }
 
 } // namespace Kratos
