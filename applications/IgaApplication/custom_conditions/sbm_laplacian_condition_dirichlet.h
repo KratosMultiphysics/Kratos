@@ -223,6 +223,19 @@ private:
      * @param n_k 
      * @return double 
      */
+
+    void ComputeTaylorExpansionContributionReduced(Vector& H_sum_vec);
+    
+    /**
+     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
+     * @param derivative 
+     * @param dx 
+     * @param k 
+     * @param dy 
+     * @param n_k 
+     * @return double 
+     */
+
     double ComputeTaylorTerm(
         double derivative, 
         double dx, IndexType k, 

@@ -176,13 +176,44 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
     // compute Taylor expansion contribution: H_sum_vec
     Vector H_sum_vec = ZeroVector(number_of_nodes);
     ComputeTaylorExpansionContribution (H_sum_vec);
+
+    // Scovazzi correction
+    Vector H_sum_red_vec = ZeroVector(number_of_nodes);
+    ComputeTaylorExpansionContributionReduced (H_sum_red_vec);
+    Matrix DN_dot_d = ZeroMatrix(1, number_of_nodes);
+    Vector DN_dot_d_vec = ZeroVector(number_of_nodes);
     
+    double dummydist = 0.0;
+    double corr = 0.0;
+
+    
+    for (IndexType idim = 0; idim < mDim; idim++) {
+                corr  += mNormalPhysicalSpace[idim] * mDistanceVector[idim];   
+                dummydist += mDistanceVector[idim] * mDistanceVector[idim];
+        } 
+
+    corr = corr / sqrtf(dummydist) / sqrtf(dummydist);
+    
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        for (IndexType idim = 0; idim < mDim; idim++) {
+                
+                DN_dot_d_vec(i)  += DN_DX(i, idim) * mDistanceVector[idim]*corr;         
+        } 
+    }
+    noalias(row(DN_dot_d, 0)) = DN_dot_d_vec;
+      Matrix H_sum_red = ZeroMatrix(1, number_of_nodes);
+    noalias(row(H_sum_red, 0)) = H_sum_red_vec;  
+
     Matrix H_sum = ZeroMatrix(1, number_of_nodes);
     noalias(row(H_sum, 0)) = H_sum_vec;
-
     // Assembly
     // -(GRAD_w * n, u + GRAD_u * d + ...)
     noalias(rLeftHandSideMatrix) -= mNitschePenalty * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() * std::abs(det_J0) ;
+    // Symmetrizing terms
+    //noalias(rLeftHandSideMatrix) -= (mNitschePenalty+1)/2 * prod(trans(H_sum_red), DN_dot_n)  * r_integration_points[0].Weight() * std::abs(det_J0) ;
+    //noalias(rLeftHandSideMatrix) += (mNitschePenalty+1)/2 * prod(trans(H_sum_red), DN_dot_d)  * r_integration_points[0].Weight() * std::abs(det_J0) ;
     // -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
     noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * r_integration_points[0].Weight() * std::abs(det_J0) ;
     // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
@@ -327,6 +358,64 @@ void SbmLaplacianConditionDirichlet::ComputeTaylorExpansionContribution(Vector& 
             }
         }
         H_sum_vec(i) = H_taylor_term + N(0,i);
+    }
+}
+
+void SbmLaplacianConditionDirichlet::ComputeTaylorExpansionContributionReduced(Vector& H_sum_vec)
+{
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_nodes = r_geometry.PointsNumber();
+    const Matrix& N = r_geometry.ShapeFunctionsValues();
+
+    if (H_sum_vec.size() != number_of_nodes)
+    {
+        H_sum_vec = ZeroVector(number_of_nodes);
+    }
+
+    // Compute all the derivatives of the basis functions involved
+    std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
+    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+        shape_function_derivatives[n-1] = r_geometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod());
+    }
+    
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        // Reset for each node
+        double H_taylor_term = 0.0; 
+
+        if (mDim == 2) {
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+                // Retrieve the appropriate derivative for the term
+                Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
+                for (IndexType k = 0; k <= n; k++) {
+                    IndexType n_k = n - k;
+                    double derivative = r_shape_function_derivatives(i,k); 
+                    // Compute the Taylor term for this derivative
+                    H_taylor_term += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                }
+            }
+        } else {
+            // 3D
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+                Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
+                
+                int countDerivativeId = 0;
+                // Loop over blocks of derivatives in x
+                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                    // Loop over the possible derivatives in y
+                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                        
+                        // derivatives in z
+                        IndexType k_z = n - k_x - k_y;
+                        double derivative = r_shape_function_derivatives(i,countDerivativeId); 
+
+                        H_taylor_term += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
+                        countDerivativeId++;
+                    }
+                }
+            }
+        }
+        H_sum_vec(i) = H_taylor_term + N(0,i)- N(0,i);
     }
 }
 

@@ -339,6 +339,8 @@ void AssignIgaExternalConditionsProcess::SetVariableValueToCondition(
         p_condition->SetValue(TEMPERATURE, value);
     } else if (rVariableName == "FACE_HEAT_FLUX") {
         p_condition->SetValue(FACE_HEAT_FLUX, value);
+    }  else if (rVariableName == "HEAT_FLUX") {
+        p_condition->SetValue(HEAT_FLUX, value);
     } else if (rVariableName == "VELOCITY_X") {
         p_condition->SetValue(VELOCITY_X, value);
     } else if (rVariableName == "VELOCITY_Y") {
