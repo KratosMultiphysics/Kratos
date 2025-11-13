@@ -40,10 +40,10 @@ public:
 
     using BoundaryGeneratorByLocalDim = std::map<std::size_t, std::unique_ptr<BoundaryGenerator>>;
 
-    template <typename EntityContainerType, typename CandidateNeighbourContainerType>
-    void FindEntityNeighbours(EntityContainerType&             rEntities,
-                              CandidateNeighbourContainerType& rCandidates,
-                              BoundaryGeneratorByLocalDim&     rBoundaryGenerators)
+    template <typename EntityContainerType>
+    void FindEntityNeighbours(EntityContainerType&              rEntities,
+                              ModelPart::ElementsContainerType& rCandidates,
+                              BoundaryGeneratorByLocalDim&      rBoundaryGenerators)
     {
         for (int local_space_dimension = 0; local_space_dimension < 4; ++local_space_dimension) {
             if (!rBoundaryGenerators.contains(local_space_dimension)) continue;
@@ -69,10 +69,10 @@ private:
     void InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping);
     void FindEntityNeighboursBasedOnBoundaryType(const BoundaryGenerator& rBoundaryGenerator,
                                                  ModelPart::ElementsContainerType& rElements);
-    void AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+    void AddNeighbouringElementsToEntitiesBasedOnOverlappingBoundaryGeometries(
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
-    void SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(const std::vector<std::size_t>& rConditionNodeIds,
-                                                                  Element* pElement);
+    void SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(const std::vector<std::size_t>& rEntityNodeIds,
+                                                                Element* pElement);
     void        SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(Element& rElement,
                                                                    const std::vector<std::size_t>& rElementBoundaryNodeIds,
                                                                    GeometryData::KratosGeometryOrderType OrderType);

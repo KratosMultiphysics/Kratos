@@ -43,19 +43,19 @@ void NeighbouringEntityFinder::FindEntityNeighboursBasedOnBoundaryType(const Bou
     for (auto& r_element : rElements) {
         const auto& r_element_geometry  = r_element.GetGeometry();
         const auto  boundary_geometries = rBoundaryGenerator(r_element_geometry);
-        AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(r_element, boundary_geometries);
+        AddNeighbouringElementsToEntitiesBasedOnOverlappingBoundaryGeometries(r_element, boundary_geometries);
     }
 }
 
-void NeighbouringEntityFinder::AddNeighbouringElementsToConditionsBasedOnOverlappingBoundaryGeometries(
+void NeighbouringEntityFinder::AddNeighbouringElementsToEntitiesBasedOnOverlappingBoundaryGeometries(
     Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         auto element_boundary_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry);
         if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
-            SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
+            SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
         } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
-            // No condition is directly found for this boundary, but it might be a rotated equivalent
+            // No entity is directly found for this boundary, but it might be a rotated equivalent
             SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
                 rElement, element_boundary_node_ids, r_boundary_geometry.GetGeometryOrderType());
         }
@@ -64,23 +64,23 @@ void NeighbouringEntityFinder::AddNeighbouringElementsToConditionsBasedOnOverlap
             GeometryUtilities::ReverseNodes(element_boundary_node_ids, r_boundary_geometry.GetGeometryFamily(),
                                             r_boundary_geometry.GetGeometryOrderType());
             if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
-                SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
+                SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
             }
         }
     }
 }
 
-void NeighbouringEntityFinder::SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(
-    const std::vector<std::size_t>& rConditionNodeIds, Element* pElement)
+void NeighbouringEntityFinder::SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(
+    const std::vector<std::size_t>& rEntityNodeIds, Element* pElement)
 {
-    const auto [start, end] = mGeometryNodeIdsToEntities.equal_range(rConditionNodeIds);
+    const auto [start, end] = mGeometryNodeIdsToEntities.equal_range(rEntityNodeIds);
     for (auto it = start; it != end; ++it) {
-        const auto& r_conditions  = it->second;
+        const auto& r_entities    = it->second;
         auto vector_of_neighbours = GlobalPointersVector<Element>{Element::WeakPointer{pElement}};
 
-        for (auto& rp_condition : r_conditions) {
-            if (rp_condition->GetGeometry().Id() == pElement->GetGeometry().Id()) continue;
-            rp_condition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
+        for (auto& rp_entity : r_entities) {
+            if (rp_entity->GetGeometry().Id() == pElement->GetGeometry().Id()) continue;
+            rp_entity->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
         }
     }
 }
@@ -92,10 +92,10 @@ void NeighbouringEntityFinder::SetElementAsNeighbourIfRotatedNodeIdsAreEquivalen
     std::ranges::sort(sorted_boundary_node_ids);
 
     if (mSortedToUnsortedEntityNodeIds.contains(sorted_boundary_node_ids)) {
-        const auto unsorted_condition_node_ids =
+        const auto unsorted_entity_node_ids =
             mSortedToUnsortedEntityNodeIds.find(sorted_boundary_node_ids)->second;
-        if (AreRotatedEquivalents(rElementBoundaryNodeIds, unsorted_condition_node_ids, OrderType)) {
-            SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(unsorted_condition_node_ids, &rElement);
+        if (AreRotatedEquivalents(rElementBoundaryNodeIds, unsorted_entity_node_ids, OrderType)) {
+            SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(unsorted_entity_node_ids, &rElement);
         }
     }
 }
