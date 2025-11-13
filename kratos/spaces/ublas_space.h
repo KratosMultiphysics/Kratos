@@ -325,11 +325,7 @@ public:
 
     static void Mult(const compressed_matrix<TDataType>& rA, const VectorType& rX, VectorType& rY)
     {
-#ifndef _OPENMP
-        axpy_prod(rA, rX, rY, true);
-#else
         ParallelProductNoAdd(rA, rX, rY);
-#endif
     }
 
     template< class TOtherMatrixType >
@@ -908,7 +904,6 @@ private:
     ///@name Private Operators
     ///@{
 
-#ifdef _OPENMP
     /**
     * @brief Computes the matrix-vector product y = A*x for a sparse matrix A without adding to the result.
     * @details This function calculates the product of a compressed sparse row (CSR) matrix 'A'
@@ -924,97 +919,30 @@ private:
         VectorType& rOut
         )
     {
-        const unsigned int number_of_rows = rA.size1(); // Total number of rows in matrix A
+        const std::size_t number_of_rows = rA.size1();
 
-        // Ensure the output vector has the correct size.
+        // Ensure the output vector has the correct size
         if (rOut.size() != number_of_rows) {
             rOut.resize(number_of_rows, false);
         }
 
-        // Create partition
-        DenseVector<unsigned int> partition;
-        unsigned int number_of_threads = omp_get_max_threads();
-        unsigned int number_of_initialized_rows = rA.filled1() - 1;
-        CreatePartition(number_of_threads, number_of_initialized_rows, partition);
+        // Get matrix data
+        const auto& r_row_indices = rA.index1_data();
+        const auto& r_col_indices = rA.index2_data();
+        const auto& r_values = rA.value_data();
 
-        // Parallel loop
-        #pragma omp parallel
-        {
-            const int thread_id = omp_get_thread_num();
-            const int number_of_rows = partition[thread_id + 1] - partition[thread_id];
-            auto row_iter_begin = rA.index1_data().begin() + partition[thread_id];
-            auto index_2_begin = rA.index2_data().begin() + *row_iter_begin;
-            auto value_begin = rA.value_data().begin() + *row_iter_begin;
+        // Parallel computation using IndexPartition
+        IndexPartition<std::size_t>(number_of_rows).for_each([&](std::size_t i) {
+            const std::size_t row_begin = r_row_indices[i];
+            const std::size_t row_end = r_row_indices[i + 1];
 
-            PartialProductNoAdd(number_of_rows,
-                                row_iter_begin,
-                                index_2_begin,
-                                value_begin,
-                                rIn,
-                                partition[thread_id],
-                                rOut
-                                );
-        }
-    }
-
-    /**
-     * @brief Partitions a range of rows for multi-threaded processing.
-     * @details This function divides a total number of rows into contiguous segments, each 
-     * approximately equal in size, for distribution among multiple threads.
-     * The first partition starts at row 0 and the last partition ends at row NumberOfRows.
-     * Each intermediate partition index is set to the cumulative sum of a fixed partition size,
-     * computed as the integer division of NumberOfRows by NumberOfThreads.
-     * @param NumberOfThreads The number of threads to partition the rows among.
-     * @param NumberOfRows The total number of rows to be partitioned.
-     * @param rPartitions A vector that will contain the partition indices. It will be resized 
-     *                    to NumberOfThreads + 1, where rPartitions[0] is 0 and 
-     *                    rPartitions[NumberOfThreads] is NumberOfRows.
-     */
-    static void CreatePartition(
-        const unsigned int NumberOfThreads,
-        const int NumberOfRows,
-        DenseVector<unsigned int>& rPartitions
-        )
-    {
-        rPartitions.resize(NumberOfThreads + 1);
-        const int partition_size = NumberOfRows / NumberOfThreads;
-        rPartitions[0] = 0;
-        rPartitions[NumberOfThreads] = NumberOfRows;
-        for (unsigned int i = 1; i < NumberOfThreads; i++) {
-            rPartitions[i] = rPartitions[i - 1] + partition_size;
-        }
-    }
-
-
-    /**
-     * @brief Calculates partial product resetting to zero the output before
-     */
-    static void PartialProductNoAdd(
-        const int NumberOfRows,
-        typename compressed_matrix<TDataType>::index_array_type::const_iterator itRowBegin,
-        typename compressed_matrix<TDataType>::index_array_type::const_iterator itIndex2Begin,
-        typename compressed_matrix<TDataType>::value_array_type::const_iterator itValueBegin,
-        const VectorType& rInputVector,
-        const unsigned int OutputBeginIndex,
-        VectorType& rOutputVector
-        )
-    {
-        int rowSize;
-        int outputIndex = OutputBeginIndex;
-        auto rowIt = itRowBegin;
-        for (int k = 0; k < NumberOfRows; k++) {
-            rowSize = *(rowIt + 1) - *rowIt;
-            rowIt++;
-            TDataType t = TDataType();
-
-            for (int i = 0; i < rowSize; i++) {
-                t += *itValueBegin++ * (rInputVector[*itIndex2Begin++]);
+            TDataType sum = TDataType();
+            for (std::size_t j = row_begin; j < row_end; ++j) {
+                sum += r_values[j] * rIn[r_col_indices[j]];
             }
-
-            rOutputVector[outputIndex++] = t;
-        }
+            rOut[i] = sum;
+        });
     }
-#endif
 
     ///@}
     ///@name Private Operations
