@@ -161,7 +161,7 @@
     }
     },
     "stage_2" : {
-		"stage_settings" : {
+        "stage_settings" : {
             "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
             "problem_data": {
             "problem_name":         "test",
