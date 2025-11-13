@@ -161,4 +161,47 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenInterfa
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadraticInterfaceAndContinuum, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("Main");
+    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(3, 0.5, 0.0, 0.0);
+    r_model_part.CreateNewNode(4, 0.0, 0.1, 0.0);
+    r_model_part.CreateNewNode(5, 1.0, 0.1, 0.0);
+    r_model_part.CreateNewNode(6, 0.5, 0.1, 0.0);
+    r_model_part.CreateNewNode(7, 0.25, 0.5, 0.0);
+    r_model_part.CreateNewNode(8, 0.5, 1.0, 0.0);
+    r_model_part.CreateNewNode(9, 0.75, 0.5, 0.0);
+
+    std::vector<std::size_t> node_ids_continuum_element = {4, 5, 8, 6, 9, 7};
+    PointerVector<Node>      nodes_continuum_element(node_ids_continuum_element.size());
+    std::ranges::transform(node_ids_continuum_element, nodes_continuum_element.ptr_begin(),
+                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    auto p_continuum_element = ElementSetupUtilities::Create2D6NElement(nodes_continuum_element, {});
+    r_model_part.AddElement(p_continuum_element);
+
+    std::vector<std::size_t> node_ids_element_2 = {1, 2, 3, 4, 5, 6};
+    PointerVector<Node>      nodes_element_2(node_ids_element_2.size());
+    std::ranges::transform(node_ids_element_2, nodes_element_2.ptr_begin(),
+                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_element_2, {});
+    p_interface_element->SetId(2);
+    r_model_part.AddElement(p_interface_element);
+
+    auto& r_interface_model_part = model.CreateModelPart("Interfaces");
+    r_interface_model_part.AddElement(p_interface_element);
+
+    constexpr auto           alsoSearchReverse = true;
+    NeighbouringEntityFinder finder(alsoSearchReverse);
+
+    std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
+    boundary_generators[std::size_t{1}] = std::make_unique<EdgesGenerator>();
+    finder.FindEntityNeighbours(r_interface_model_part.Elements(), r_model_part.Elements(), boundary_generators);
+
+    ASSERT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
+}
+
 } // namespace Kratos::Testing

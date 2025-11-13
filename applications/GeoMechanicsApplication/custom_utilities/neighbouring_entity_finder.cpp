@@ -11,6 +11,7 @@
 //
 
 #include "neighbouring_entity_finder.h"
+#include "geometry_utilities.h"
 #include <algorithm>
 
 namespace Kratos
@@ -60,8 +61,9 @@ void NeighbouringEntityFinder::AddNeighbouringElementsToConditionsBasedOnOverlap
         }
 
         if (mAlsoSearchReverse) {
-            // Right now this works only for linear boundaries, where no 'rotations' are necessary
-            std::ranges::reverse(element_boundary_node_ids);
+            GeometryUtilities::ReverseNodes(element_boundary_node_ids,
+                                           r_boundary_geometry.GetGeometryFamily(),
+                                           r_boundary_geometry.GetGeometryOrderType());
             if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
                 SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
             }
