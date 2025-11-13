@@ -155,14 +155,10 @@ public:
     ///@{
 
     /// Default constructor.
-    UblasSpace()
-    {
-    }
+    UblasSpace() = default;
 
     /// Destructor.
-    virtual ~UblasSpace()
-    {
-    }
+    virtual ~UblasSpace() = default;
 
     ///@}
     ///@name Operators
@@ -209,34 +205,38 @@ public:
             rX.resize(rM.size1(), false);
         }
 
-        for (std::size_t i = 0; i < rM.size1(); i++) {
+        IndexPartition<std::size_t>(rM.size1()).for_each([&rM, &rX, j](std::size_t i) {
             rX[i] = rM(i, j);
-        }
+        });
     }
 
     // This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
     template<typename TColumnType>
     static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
     {
-        for (std::size_t i = 0; i < rM.size1(); i++) {
-            rM(i,j) = rX[i];
-        }
+        IndexPartition<std::size_t>(rM.size1()).for_each([&rM, &rX, j](std::size_t i) {
+            rM(i, j) = rX[i];
+        });
     }
 
     /// rY = rX
     static void Copy(MatrixType const& rX, MatrixType& rY)
     {
-        rY.assign(rX);
+        IndexPartition<std::size_t>(rX.size1()).for_each([&rX, &rY](std::size_t i) {
+            for (std::size_t j = 0; j < rX.size2(); ++j) {
+                rY(i,j) = rX(i,j);
+            }
+        });
     }
 
     /// rY = rX
     static void Copy(VectorType const& rX, VectorType& rY)
     {
-        const int size = rX.size();
-        if (rY.size() != static_cast<unsigned int>(size))
+        const std::size_t size = rX.size();
+        if (rY.size() != size)
             rY.resize(size, false);
 
-        IndexPartition<int>(size).for_each([&](int i){
+        IndexPartition<std::size_t>(size).for_each([&rX, &rY](std::size_t i){
             rY[i] = rX[i];
         });
     }
@@ -244,9 +244,9 @@ public:
     /// rX * rY
     static TDataType Dot(VectorType const& rX, VectorType const& rY)
     {
-        const int size = static_cast<int>(rX.size());
+        const std::size_t size = rX.size();
 
-        TDataType total = IndexPartition<int>(size).for_each<SumReduction<TDataType>>([&](int i){
+        TDataType total = IndexPartition<std::size_t>(size).for_each<SumReduction<TDataType>>([&](std::size_t i){
             return rX[i] * rY[i];
         });
 
@@ -262,9 +262,9 @@ public:
 
     static TDataType TwoNorm(const Matrix& rA) // Frobenious norm
     {
-        TDataType aux_sum = IndexPartition<int>(static_cast<int>(rA.size1())).for_each<SumReduction<TDataType>>([&](int i){
+        TDataType aux_sum = IndexPartition<std::size_t>(rA.size1()).for_each<SumReduction<TDataType>>([&](std::size_t i){
             TDataType row_sum = TDataType();
-            for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
+            for (std::size_t j=0; j<rA.size2(); ++j) {
                 row_sum += std::pow(rA(i,j),2);
             }
             return row_sum;
@@ -276,7 +276,7 @@ public:
     {
         const auto& r_values = rA.value_data();
 
-        TDataType aux_sum = IndexPartition<int>(static_cast<int>(r_values.size())).for_each<SumReduction<TDataType>>([&](int i){
+        TDataType aux_sum = IndexPartition<std::size_t>(r_values.size()).for_each<SumReduction<TDataType>>([&](std::size_t i){
             return std::pow(r_values[i] , 2);
         });
         return std::sqrt(aux_sum);
@@ -289,9 +289,9 @@ public:
      */
     static TDataType JacobiNorm(const Matrix& rA)
     {
-        TDataType aux_sum = IndexPartition<int>(static_cast<int>(rA.size1())).for_each<SumReduction<TDataType>>([&](int i){
+        TDataType aux_sum = IndexPartition<std::size_t>(rA.size1()).for_each<SumReduction<TDataType>>([&](std::size_t i){
             TDataType row_sum = TDataType();
-            for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
+            for (std::size_t j=0; j<rA.size2(); ++j) {
                 if (i != j) {
                     row_sum += std::abs(rA(i,j));
                 }
@@ -305,8 +305,8 @@ public:
     {
         TDataType aux_sum = TDataType();
 
-        typedef typename compressed_matrix<TDataType>::const_iterator1 t_it_1;
-        typedef typename compressed_matrix<TDataType>::const_iterator2 t_it_2;
+        using t_it_1 = typename compressed_matrix<TDataType>::const_iterator1;
+        using t_it_2 = typename compressed_matrix<TDataType>::const_iterator2;
 
         for (t_it_1 it_1 = rA.begin1(); it_1 != rA.end1(); ++it_1) {
             for (t_it_2 it_2 = it_1.begin(); it_2 != it_1.end(); ++it_2) {
@@ -376,19 +376,19 @@ public:
 
     static void InplaceMult(VectorType& rX, const double A)
     {
-        if (A == 1.00) {
-	    // NOTHING
-        } else if (A == -1.00) {
-            const int size = rX.size();
+        if (A == static_cast<double>(1)) {
+	        // NOTHING
+        } else if (A == static_cast<double>(-1)) {
+            const std::size_t size = rX.size();
 
-            IndexPartition<int>(size).for_each([&](int i){
+            IndexPartition<std::size_t>(size).for_each([&rX](std::size_t i){
                 rX[i] = -rX[i];
             });
         } else {
-            const int size = rX.size();
+            const std::size_t size = rX.size();
             const double factor = A; // Ensure A is captured correctly by the lambda
 
-            IndexPartition<int>(size).for_each([&, factor](int i){
+            IndexPartition<std::size_t>(size).for_each([&rX, factor](std::size_t i){
                 rX[i] *= factor;
             });
         }
@@ -401,21 +401,21 @@ public:
 
     static void Assign(VectorType& rX, const double A, const VectorType& rY)
     {
-        const int size = rY.size();
-        if (rX.size() != static_cast<unsigned int>(size) )
+        const std::size_t size = rY.size();
+        if (rX.size() != size)
             rX.resize(size, false);
 
-        if (A == 1.00) {
-            IndexPartition<int>(size).for_each([&](int i){
+        if (A == static_cast<double>(1)) {
+            IndexPartition<std::size_t>(size).for_each([&rX, &rY](std::size_t i){
                 rX[i] = rY[i];
             });
-        } else if (A == -1.00) {
-            IndexPartition<int>(size).for_each([&](int i){
+        } else if (A == static_cast<double>(-1)) {
+            IndexPartition<std::size_t>(size).for_each([&rX, &rY](std::size_t i){
                 rX[i] = -rY[i];
             });
         } else {
             const double factor = A; // Ensure A is captured correctly
-            IndexPartition<int>(size).for_each([&, factor](int i){
+            IndexPartition<std::size_t>(size).for_each([&rX, &rY, factor](std::size_t i){
                 rX[i] = factor * rY[i];
             });
         }
@@ -428,21 +428,21 @@ public:
 
     static void UnaliasedAdd(VectorType& rX, const double A, const VectorType& rY)
     {
-        const int size = rY.size();
-        if (rX.size() != static_cast<unsigned int>(size) )
+        const std::size_t size = rY.size();
+        if (rX.size() != size)
             rX.resize(size, false);
 
-        if (A == 1.00) {
-            IndexPartition<int>(size).for_each([&](int i){
+        if (A == static_cast<double>(1)) {
+            IndexPartition<std::size_t>(size).for_each([&rX, &rY](std::size_t i){
                 rX[i] += rY[i];
             });
-        } else if (A == -1.00) {
-            IndexPartition<int>(size).for_each([&](int i){
+        } else if (A == static_cast<double>(-1)) {
+            IndexPartition<std::size_t>(size).for_each([&rX, &rY](std::size_t i){
                 rX[i] -= rY[i];
             });
         } else {
             const double factor = A; // Ensure A is captured correctly
-            IndexPartition<int>(size).for_each([&, factor](int i){
+            IndexPartition<std::size_t>(size).for_each([&rX, &rY, factor](std::size_t i){
                 rX[i] += factor * rY[i];
             });
         }
@@ -517,7 +517,7 @@ public:
     {
         rA.resize(m, false);
         DataType* vals = rA.value_data().begin();
-        IndexPartition<int>(static_cast<int>(m)).for_each([&](int i){
+        IndexPartition<std::size_t>(m).for_each([&](std::size_t i){
             vals[i] = TDataType();
         });
     }
@@ -526,7 +526,7 @@ public:
     {
         rA.value_data().resize(m);
         TDataType* vals = rA.value_data().begin();
-        IndexPartition<int>(static_cast<int>(m)).for_each([&](int i){
+        IndexPartition<std::size_t>(m).for_each([&](std::size_t i){
             vals[i] = TDataType();
         });
     }
@@ -534,8 +534,8 @@ public:
     inline static void ResizeData(VectorType& rX, SizeType m)
     {
         rX.resize(m, false);
-        const int current_size = rX.size();
-        IndexPartition<int>(current_size).for_each([&](int i){
+        const std::size_t current_size = rX.size();
+        IndexPartition<std::size_t>(current_size).for_each([&rX](std::size_t i){
             rX[i] = TDataType();
         });
     }
@@ -544,8 +544,8 @@ public:
     inline static void SetToZero(TOtherMatrixType& rA)
     {
         TDataType* vals = rA.value_data().begin();
-        const int size = rA.value_data().end() - rA.value_data().begin();
-        IndexPartition<int>(size).for_each([&](int i){
+        const std::size_t size = rA.value_data().end() - rA.value_data().begin();
+        IndexPartition<std::size_t>(size).for_each([&vals](std::size_t i){
             vals[i] = TDataType();
         });
     }
@@ -553,16 +553,16 @@ public:
     inline static void SetToZero(compressed_matrix<TDataType>& rA)
     {
         TDataType* vals = rA.value_data().begin();
-        const int size = rA.value_data().end() - rA.value_data().begin();
-        IndexPartition<int>(size).for_each([&](int i){
+        const std::size_t size = rA.value_data().end() - rA.value_data().begin();
+        IndexPartition<std::size_t>(size).for_each([&vals](std::size_t i){
             vals[i] = TDataType();
         });
     }
 
     inline static void SetToZero(VectorType& rX)
     {
-        const int current_size = rX.size();
-        IndexPartition<int>(current_size).for_each([&](int i){
+        const std::size_t current_size = rX.size();
+        IndexPartition<std::size_t>(current_size).for_each([&rX](std::size_t i){
             rX[i] = TDataType();
         });
     }
