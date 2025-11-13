@@ -22,7 +22,6 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/hydraulic_discharge.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
@@ -533,8 +532,8 @@ private:
 
     auto MakeNodalVariableGetter() const
     {
-        return [this](const Variable<double>& variable) -> Vector {
-            return VariablesUtilities::GetNodalValuesOf<TNumNodes>(variable, this->GetGeometry());
+        return [this](const Variable<double>& rVariable) -> Vector {
+            return VariablesUtilities::GetNodalValuesOf<TNumNodes>(rVariable, this->GetGeometry());
         };
     }
 
