@@ -70,19 +70,19 @@ void ReverseNodes(InputIt                               Begin,
         << "Number of nodes for reversal is too small for the geometry family and order type "
            "specified.\n";
     auto end_of_corner_points = Begin + number_of_corner_points;
-
-    const auto number_of_edge_points = GetNumberOfEdgePoints(GeometryFamily, GeometryOrderType);
-    // For line geometries, all remaining points are edge points, while for surfaces there could be
-    // internal points as well.
-    KRATOS_ERROR_IF(number_of_edge_points > std::distance(end_of_corner_points, End) && GeometryFamily != GeometryData::KratosGeometryFamily::Kratos_Linear)
-        << "Number of nodes for reversal is too small for the geometry family and order type "
-           "specified.\n";
-    auto end_of_edge_points =
-        GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Linear
-            ? End
-            : end_of_corner_points + number_of_edge_points;
-
     std::reverse(begin_of_corner_points, end_of_corner_points);
+
+    auto end_of_edge_points = End;
+    if (GeometryFamily != GeometryData::KratosGeometryFamily::Kratos_Linear) {
+        // For non-line geometries, there could be internal points as well, so we only reverse the
+        // edge points here. For line geometries, all remaining points will be edge points.
+        const auto number_of_edge_points = GetNumberOfEdgePoints(GeometryFamily, GeometryOrderType);
+        KRATOS_ERROR_IF(number_of_edge_points > std::distance(end_of_corner_points, End))
+            << "Number of nodes for reversal is too small for the geometry family and order type "
+               "specified.\n";
+        end_of_edge_points = end_of_corner_points + number_of_edge_points;
+    }
+
     std::reverse(end_of_corner_points, end_of_edge_points);
 }
 
