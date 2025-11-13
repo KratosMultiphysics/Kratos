@@ -97,19 +97,19 @@
             "table":           [0,1,0]
         }
     }],
-           "json_output": [{
-            "python_module": "json_output_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "JsonOutputProcess",
-            "Parameters":    {
-                "model_part_name": "PorousDomain.output",
-                "output_file_name": "calculated_result.json",
+    "json_output": [{
+        "python_module": "json_output_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "JsonOutputProcess",
+        "Parameters": {
+            "model_part_name": "PorousDomain.output",
+            "output_file_name": "calculated_result.json",
             "output_variables": ["VELOCITY_Y"],
             "time_frequency"                : 0.005,
             "historical_value"              : true,
             "resultant_solution"            : false,
             "use_node_coordinates"          : false
-            }
-        }]
+        }
+    }]
     }
 }
