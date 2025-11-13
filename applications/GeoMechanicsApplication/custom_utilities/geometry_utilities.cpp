@@ -36,6 +36,24 @@ std::size_t GetNumberOfCornerPoints(GeometryData::KratosGeometryFamily GeometryF
     }
 }
 
+std::size_t GetNumberOfEdgePoints(GeometryData::KratosGeometryFamily    GeometryFamily,
+                                  GeometryData::KratosGeometryOrderType GeometryOrder)
+{
+    switch (GeometryOrder) {
+        using enum GeometryData::KratosGeometryOrderType;
+    case Kratos_Linear_Order:
+        return 0;
+    case Kratos_Quadratic_Order:
+        return GetNumberOfCornerPoints(GeometryFamily);
+    case Kratos_Cubic_Order:
+        return 2 * GetNumberOfCornerPoints(GeometryFamily);
+    default:
+        KRATOS_ERROR
+            << "The specified geometry order type is not supported for getting the number of "
+               "edge points.\n";
+    }
+}
+
 template <std::random_access_iterator InputIt>
 void ReverseNodes(InputIt                               Begin,
                   InputIt                               End,
@@ -48,8 +66,15 @@ void ReverseNodes(InputIt                               Begin,
         GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Linear ? Begin : Begin + 1;
     auto end_of_corner_points = Begin + GetNumberOfCornerPoints(GeometryFamily);
 
+    // For line geometries, all remaining points are edge points, while for surfaces there could be
+    // internal points as well.
+    auto end_of_edge_points =
+        GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Linear
+            ? End
+            : end_of_corner_points + GetNumberOfEdgePoints(GeometryFamily, GeometryOrderType);
+
     std::reverse(begin_of_corner_points, end_of_corner_points);
-    std::reverse(end_of_corner_points, End);
+    std::reverse(end_of_corner_points, end_of_edge_points);
 }
 
 } // namespace

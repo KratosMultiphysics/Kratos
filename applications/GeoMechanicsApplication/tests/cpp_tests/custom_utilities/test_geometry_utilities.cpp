@@ -317,6 +317,10 @@ INSTANTIATE_TEST_CASE_P(
                                       GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order,
                                       std::vector<std::size_t>{1, 2, 3, 4, 5, 6},
                                       std::vector<std::size_t>{1, 3, 2, 6, 5, 4}),
+                      std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Triangle,
+                                      GeometryData::KratosGeometryOrderType::Kratos_Cubic_Order,
+                                      std::vector<std::size_t>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+                                      std::vector<std::size_t>{1, 3, 2, 9, 8, 7, 6, 5, 4, 10}),
                       std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Quadrilateral,
                                       GeometryData::KratosGeometryOrderType::Kratos_Linear_Order,
                                       std::vector<std::size_t>{1, 2, 3, 4},
@@ -324,6 +328,10 @@ INSTANTIATE_TEST_CASE_P(
                       std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Quadrilateral,
                                       GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order,
                                       std::vector<std::size_t>{1, 2, 3, 4, 5, 6, 7, 8},
-                                      std::vector<std::size_t>{1, 4, 3, 2, 8, 7, 6, 5})));
+                                      std::vector<std::size_t>{1, 4, 3, 2, 8, 7, 6, 5}),
+                      std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Quadrilateral,
+                                      GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order,
+                                      std::vector<std::size_t>{1, 2, 3, 4, 5, 6, 7, 8, 9},
+                                      std::vector<std::size_t>{1, 4, 3, 2, 8, 7, 6, 5, 9})));
 
 } // namespace Kratos::Testing
