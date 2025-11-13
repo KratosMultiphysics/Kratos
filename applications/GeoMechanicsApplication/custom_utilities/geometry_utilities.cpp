@@ -35,4 +35,36 @@ Matrix GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(const Geometr
     return result;
 }
 
+Matrix GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry(const Geometry<Node>& rGeometry,
+                                                                    const array_1d<double, 3>& rLocalCoordinate)
+{
+    Matrix jacobian;
+    rGeometry.Jacobian(jacobian, rLocalCoordinate);
+    const auto tangential_vector_1 = GeoMechanicsMathUtilities::Normalized(Vector{column(jacobian, 0)});
+    const auto tangential_vector_2 = GeoMechanicsMathUtilities::Normalized(
+        Vector{Vector{column(jacobian, 1)} -
+               inner_prod(Vector{column(jacobian, 1)}, tangential_vector_1) * tangential_vector_1});
+    Vector normal_vector(3);
+    MathUtils<>::CrossProduct(normal_vector, tangential_vector_1, tangential_vector_2);
+    normal_vector = GeoMechanicsMathUtilities::Normalized(normal_vector);
+
+    // clang-format off
+    Matrix result(3, 3);
+    result <<= tangential_vector_1[0], tangential_vector_2[0], normal_vector[0],
+               tangential_vector_1[1], tangential_vector_2[1], normal_vector[1],
+               tangential_vector_1[2], tangential_vector_2[2], normal_vector[2];
+    // clang-format on
+
+    return result;
+}
+
+std::vector<std::size_t> GeometryUtilities::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry)
+{
+    std::vector<std::size_t> result;
+    result.reserve(rGeometry.size());
+    std::ranges::transform(rGeometry, std::back_inserter(result),
+                           [](const auto& rNode) { return rNode.Id(); });
+    return result;
+}
+
 } // namespace Kratos

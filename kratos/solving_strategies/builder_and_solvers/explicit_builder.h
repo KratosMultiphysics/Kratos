@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_BUILDER)
-#define  KRATOS_EXPLICIT_BUILDER
+#pragma once
 
 // System includes
 #include <set>
@@ -21,34 +20,30 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/constraint_utilities.h"
+#include "utilities/reduction_utilities.h"
+#include "utilities/atomic_utilities.h"
 #include "includes/kratos_parameters.h"
 #include "factories/factory.h"
-#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
 ///@name Kratos Globals
 ///@{
 
-
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name  Enum's
 ///@{
 
-
 ///@}
 ///@name  Functions
 ///@{
-
 
 ///@}
 ///@name Kratos Classes
@@ -71,54 +66,54 @@ public:
     ///@{
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of the data type
-    typedef typename TSparseSpace::DataType TDataType;
+    using TDataType = typename TSparseSpace::DataType;
 
     ///Definition of the sparse matrix
-    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+    using TSystemMatrixType = typename TSparseSpace::MatrixType;
 
     /// Definition of the vector size
-    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    using TSystemVectorType = typename TSparseSpace::VectorType;
 
     /// Definition of the pointer to the sparse matrix
-    typedef typename TSparseSpace::MatrixPointerType TSystemMatrixPointerType;
+    using TSystemMatrixPointerType = typename TSparseSpace::MatrixPointerType;
 
     /// Definition of the pointer to the vector
-    typedef typename TSparseSpace::VectorPointerType TSystemVectorPointerType;
+    using TSystemVectorPointerType = typename TSparseSpace::VectorPointerType;
 
     /// The local matrix definition
-    typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
+    using LocalSystemMatrixType = typename TDenseSpace::MatrixType;
 
     /// The local vector definition
-    typedef typename TDenseSpace::VectorType LocalSystemVectorType;
+    using LocalSystemVectorType = typename TDenseSpace::VectorType;
 
     /// Definition of the DoF class
-    typedef ModelPart::DofType DofType;
+    using DofType = ModelPart::DofType;
 
     /// Definition of the DoF array type
-    typedef ModelPart::DofsArrayType DofsArrayType;
+    using DofsArrayType = ModelPart::DofsArrayType;
 
     /// Definition of the DoF vector type
-    typedef ModelPart::DofsVectorType DofsVectorType;
+    using DofsVectorType = ModelPart::DofsVectorType;
 
     /// The definition of the DoF set type
-    typedef typename std::unordered_set<DofType::Pointer, DofPointerHasher> DofSetType;
+    using DofSetType = typename std::unordered_set<DofType::Pointer, DofPointerHasher>;
 
     /// The containers of the entities
-    typedef ModelPart::NodesContainerType NodesArrayType;
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ElementsArrayType = ModelPart::ElementsContainerType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     /// The definition of the element container type
-    typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
+    using ElementsContainerType = PointerVectorSet<Element, IndexedObject>;
 
     /// The definition of the current class
-    typedef ExplicitBuilder<TSparseSpace, TDenseSpace> ClassType;
+    using ClassType = ExplicitBuilder<TSparseSpace, TDenseSpace>;
 
     /// Pointer definition of ExplicitBuilder
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitBuilder);
@@ -164,7 +159,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -320,37 +314,32 @@ public:
         // Gets the array of elements, conditions and constraints from the modeler
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_conditions_array = rModelPart.Conditions();
-        const int n_elems = static_cast<int>(r_elements_array.size());
-        const int n_conds = static_cast<int>(r_conditions_array.size());
+        const std::size_t n_elems = r_elements_array.size();
+        const std::size_t n_conds = r_conditions_array.size();
 
         const auto& r_process_info = rModelPart.GetProcessInfo();
 
-#pragma omp parallel firstprivate(n_elems, n_conds)
-        {
-#pragma omp for schedule(guided, 512) nowait
-            // Assemble all elements
-            for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-                auto it_elem = r_elements_array.begin() + i_elem;
-                // If the element is active
-                if (it_elem->IsActive()) {
-                    // Calculate elemental explicit residual contribution
-                    // The explicit builder and solver assumes that the residual contribution is assembled in the REACTION variables
-                    it_elem->AddExplicitContribution(r_process_info);
-                }
+        // Assemble all elements
+        IndexPartition<std::size_t>(n_elems).for_each([&](std::size_t i_elem) {
+            auto it_elem = r_elements_array.begin() + i_elem;
+            // If the element is active
+            if (it_elem->IsActive()) {
+                // Calculate elemental explicit residual contribution
+                // The explicit builder and solver assumes that the residual contribution is assembled in the REACTION variables
+                it_elem->AddExplicitContribution(r_process_info);
             }
+        });
 
-            // Assemble all conditions
-#pragma omp for schedule(guided, 512)
-            for (int i_cond = 0; i_cond < n_conds; ++i_cond) {
-                auto it_cond = r_conditions_array.begin() + i_cond;
-                // If the condition is active
-                if (it_cond->IsActive()) {
-                    // Calculate condition explicit residual contribution
-                    // The explicit builder and solver assumes that the residual contribution is assembled in the REACTION variables
-                    it_cond->AddExplicitContribution(r_process_info);
-                }
+        // Assemble all conditions
+        IndexPartition<std::size_t>(n_conds).for_each([&](std::size_t i_cond) {
+            auto it_cond = r_conditions_array.begin() + i_cond;
+            // If the condition is active
+            if (it_cond->IsActive()) {
+                // Calculate condition explicit residual contribution
+                // The explicit builder and solver assumes that the residual contribution is assembled in the REACTION variables
+                it_cond->AddExplicitContribution(r_process_info);
             }
-        }
+        });
 
         KRATOS_CATCH("")
     }
@@ -503,11 +492,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -535,12 +522,10 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
@@ -567,7 +552,6 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -684,8 +668,8 @@ protected:
         KRATOS_ERROR_IF(mEquationSystemSize == 0) << "Trying to set the equation ids. in an empty DOF set (equation system size is 0)." << std::endl;
 
         // Loop the DOF set to assign the equation ids
-        IndexPartition<int>(mEquationSystemSize).for_each(
-            [&](int i_dof){
+        IndexPartition<unsigned int>(mEquationSystemSize).for_each(
+            [&](unsigned int i_dof){
                 auto it_dof = mDofSet.begin() + i_dof;
                 it_dof->SetEquationId(i_dof);
             }
@@ -712,25 +696,29 @@ protected:
         TDenseSpace::SetToZero(*mpLumpedMassVector);
 
         // Loop the elements to get the lumped mass vector
-        LocalSystemVectorType elem_mass_vector;
-        std::vector<std::size_t> elem_equation_id;
         const auto &r_elements_array = rModelPart.Elements();
         const auto &r_process_info = rModelPart.GetProcessInfo();
-        const int n_elems = static_cast<int>(r_elements_array.size());
+        const std::size_t n_elems = r_elements_array.size();
 
-#pragma omp for private(elem_mass_vector) schedule(guided, 512) nowait
-        for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+        // Auxiliary definitions
+        struct TLS {
+            LocalSystemVectorType elem_mass_vector;
+            std::vector<std::size_t> elem_equation_id;
+        };
+
+        // Iterate over elements
+        IndexPartition<std::size_t>(n_elems).for_each(TLS(), [&](std::size_t i_elem, TLS& rTLS){
             const auto it_elem = r_elements_array.begin() + i_elem;
 
             // Calculate the elemental lumped mass vector
-            it_elem->CalculateLumpedMassVector(elem_mass_vector, r_process_info);
-            it_elem->EquationIdVector(elem_equation_id, r_process_info);
+            it_elem->CalculateLumpedMassVector(rTLS.elem_mass_vector, r_process_info);
+            it_elem->EquationIdVector(rTLS.elem_equation_id, r_process_info);
 
             // Update value of lumped mass vector
-            for (IndexType i = 0; i < elem_equation_id.size(); ++i) {
-                AtomicAdd((*mpLumpedMassVector)[elem_equation_id[i]], elem_mass_vector(i));
+            for (IndexType i = 0; i < rTLS.elem_equation_id.size(); ++i) {
+                AtomicAdd((*mpLumpedMassVector)[rTLS.elem_equation_id[i]], rTLS.elem_mass_vector(i));
             }
-        }
+        });
 
         // Set the lumped mass vector flag as true
         mLumpedMassVectorIsInitialized = true;
@@ -811,16 +799,13 @@ protected:
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
 
     ///@}
 private:
@@ -837,26 +822,21 @@ private:
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
 
     ///@}
 }; /* Class ExplicitBuilder */
@@ -864,8 +844,5 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_BUILDER  defined */

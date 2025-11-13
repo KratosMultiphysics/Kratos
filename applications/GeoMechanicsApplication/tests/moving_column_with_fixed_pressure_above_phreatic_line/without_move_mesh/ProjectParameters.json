@@ -1,0 +1,162 @@
+{
+  "problem_data": {
+    "problem_name": "moving_column_with_fixed_pressure_above_phreatic_line",
+    "start_time": 0.0,
+    "end_time": 172800,
+    "echo_level": 1,
+    "parallel_type": "OpenMP",
+    "number_of_threads": 1
+  },
+  "solver_settings": {
+    "solver_type": "U_Pw",
+    "model_part_name": "PorousDomain",
+    "domain_size": 2,
+    "model_import_settings": {
+      "input_type": "mdpa",
+      "input_filename": "mesh"
+    },
+    "material_import_settings": {
+      "materials_filename": "../common/MaterialParameters.json"
+    },
+    "time_stepping": {
+      "time_step": 3600.0
+    },
+    "buffer_size": 2,
+    "echo_level": 1,
+    "clear_storage": false,
+    "compute_reactions": true,
+    "reform_dofs_at_each_step": false,
+    "block_builder": true,
+    "solution_type": "Quasi-Static",
+    "scheme_type": "Backward_Euler",
+    "reset_displacements": false,
+    "strategy_type": "newton_raphson",
+    "convergence_criterion": "residual_criterion",
+    "residual_relative_tolerance": 0.01,
+    "residual_absolute_tolerance": 1E-08,
+    "min_iterations": 6,
+    "max_iterations": 15,
+    "number_cycles": 1,
+    "reduction_factor": 1.0,
+    "increase_factor": 1.0,
+    "calculate_reactions": true,
+    "rotation_dofs": false,
+    "linear_solver_settings": {
+      "solver_type": "LinearSolversApplication.sparse_lu",
+      "scaling": true
+    },
+    "problem_domain_sub_model_part_list": ["Soil"],
+    "processes_sub_model_part_list": ["Top", "Bottom", "SoilExcludingBoundary", "Soil"],
+    "body_domain_sub_model_part_list": ["Soil"],
+    "move_mesh_flag": false
+  },
+  "output_processes": {
+    "gid_output": [
+      {
+        "python_module": "gid_output_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "GiDOutputProcess",
+        "Parameters": {
+          "model_part_name": "PorousDomain.porous_computational_model_part",
+          "output_name": "output",
+          "postprocess_parameters": {
+            "result_file_configuration": {
+              "gidpost_flags": {
+                "WriteDeformedMeshFlag": "WriteUndeformed",
+                "WriteConditionsFlag": "WriteElementsOnly",
+                "GiDPostMode": "GiD_PostAscii",
+                "MultiFileFlag": "SingleFile"
+              },
+              "file_label": "step",
+              "output_control_type": "step",
+              "output_interval": 1,
+              "body_output": true,
+              "node_output": false,
+              "skin_output": false,
+              "nodal_results": ["WATER_PRESSURE", "TOTAL_DISPLACEMENT"],
+              "gauss_point_results": []
+            }
+          }
+        }
+      }
+    ]
+  },
+  "processes": {
+    "constraints_process_list": [
+      {
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name": "ApplyScalarConstraintTableProcess",
+        "Parameters": {
+          "model_part_name": "PorousDomain.Top",
+          "variable_name": "WATER_PRESSURE",
+          "is_fixed": true,
+          "table": [1,1],
+          "fluid_pressure_type": "Phreatic_Multi_Line",
+          "gravity_direction": 1,
+          "out_of_plane_direction": 2,
+          "x_coordinates": [0.0, 1.0],
+          "y_coordinates": [-2.0, -2.0],
+          "z_coordinates": [0.0, 0.0],
+          "specific_weight": 10000.0
+        }
+      },
+       {
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name": "ApplyScalarConstraintTableProcess",
+        "Parameters": {
+          "model_part_name": "PorousDomain.Bottom",
+          "variable_name": "WATER_PRESSURE",
+          "is_fixed": true,
+          "table": [1,1],
+          "fluid_pressure_type": "Phreatic_Multi_Line",
+          "gravity_direction": 1,
+          "out_of_plane_direction": 2,
+          "x_coordinates": [0.0, 1.0],
+          "y_coordinates": [-2.0, -2.0],
+          "z_coordinates": [0.0, 0.0],
+          "specific_weight": 10000.0
+        }
+      }
+    ],
+    "loads_process_list": [
+      {
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name": "ApplyVectorConstraintTableProcess",
+        "Parameters": {
+          "model_part_name": "PorousDomain.Soil",
+          "variable_name": "VOLUME_ACCELERATION",
+          "active": [false, true, false],
+          "value": [0.0, -9.81, 0.0],
+          "table": [0, 0, 0]
+        }
+      },{
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name": "ApplyVectorConstraintTableProcess",
+        "Parameters": {
+          "model_part_name": "PorousDomain.Soil",
+          "variable_name": "DISPLACEMENT",
+          "active": [true, true, false],
+          "is_fixed": [true, true, false],
+          "value": [0.0, 0.0, 0.0],
+          "table": [0, 2, 0]
+        }
+      }
+    ],
+    "auxiliary_process_list": [
+      {
+        "python_module": "fix_model_part_above_phreatic_line_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name": "FixWaterPressuresAbovePhreaticLineProcess",
+        "Parameters": {
+          "model_part_name": "PorousDomain.SoilExcludingBoundary",
+          "x_coordinates": [0.0, 1.0],
+          "y_coordinates": [-2.0, -2.0]
+        }
+      }
+    ]
+  }
+}

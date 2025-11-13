@@ -28,7 +28,6 @@
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",
@@ -67,7 +66,7 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Clay_after_excavation","Excavated_clay"],
-        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Gravitational_load","K0_model_part"],
+        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Gravitational_load","Clay_after_excavation","Excavated_clay"],
         "body_domain_sub_model_part_list":    ["Clay_after_excavation","Excavated_clay"]
     },
     "output_processes": {
@@ -172,8 +171,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name": "ApplyK0ProcedureProcess",
         "Parameters": {
-          "model_part_name": "PorousDomain.K0_model_part",
-          "variable_name": "CAUCHY_STRESS_TENSOR"
+          "model_part_name_list": ["PorousDomain.Clay_after_excavation", "PorousDomain.Excavated_clay"]
         }
       }
     ]    

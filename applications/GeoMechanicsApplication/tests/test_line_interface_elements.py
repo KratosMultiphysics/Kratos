@@ -27,6 +27,14 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         simulation = self.run_simulation('Dirichlet')
         self.assert_outputs_for_3_plus_3_line_interface_element(simulation)
 
+    def test_3_plus_3_line_interface_element_with_neumann_conditions_umat(self):
+        """
+        This test is equivalent to 'test_3_plus_3_line_interface_element_with_neumann_conditions',
+        except that it uses a linear elastic interface UMAT for the constitutive law.
+        """
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_single_stage_umat'))
+        simulation = test_helper.run_kratos(file_path)
+        self.assert_outputs_for_3_plus_3_line_interface_element(simulation)
 
     @staticmethod
     def run_simulation(condition_type):
@@ -121,6 +129,26 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
     def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions(self):
         file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage'))
+
+        initial_cwd = os.getcwd()
+        os.chdir(file_path)
+
+        project_parameters_file_names = ['ProjectParameters_stage1.json', 'ProjectParameters_stage2.json']
+        expected_displacement_vectors_of_loaded_side = [[-8.8933333333333332e-5, -2.22e-5, 0.0], [-2.0e-4, -4.44e-5, 0.0]]
+        for file_name, displacement_vector in zip(project_parameters_file_names, expected_displacement_vectors_of_loaded_side):
+            stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
+            stage.Run()
+
+            self.assert_results_of_multi_stage_test(stage, displacement_vector)
+
+        os.chdir(initial_cwd)
+
+    def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions_umat(self):
+        """
+        This test is equivalent to 'test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions',
+        except that it uses a linear elastic interface UMAT for the constitutive law.
+        """
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage_umat'))
 
         initial_cwd = os.getcwd()
         os.chdir(file_path)

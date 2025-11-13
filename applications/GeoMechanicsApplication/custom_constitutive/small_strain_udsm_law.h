@@ -98,7 +98,7 @@ public:
 
     // This constitutive law cannot be moved using the default semantics provided by the compiler
     // due to the C-style multidimensional array. We'll disable the move operations for now.
-    SmallStrainUDSMLaw(SmallStrainUDSMLaw&&) noexcept = delete;
+    SmallStrainUDSMLaw(SmallStrainUDSMLaw&&) noexcept            = delete;
     SmallStrainUDSMLaw& operator=(SmallStrainUDSMLaw&&) noexcept = delete;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
@@ -151,6 +151,9 @@ public:
     void SetValue(const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using ConstitutiveLaw::SetValue;
+
+    bool Has(const Variable<Vector>& rThisVariable) override;
+    using ConstitutiveLaw::Has;
 
     [[nodiscard]] std::string Info() const override;
     void                      PrintInfo(std::ostream& rOStream) const override;

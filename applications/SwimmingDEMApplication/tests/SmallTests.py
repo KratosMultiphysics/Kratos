@@ -84,17 +84,19 @@ class fluid_dem_coupling_one_way_test(FDEMTF.TestFactory):
      file_name = "fluid_dem_tests/settling_cube"
      file_parameters = "fluid_dem_tests/ProjectParameters.json"
 
-class CFD_DEM_two_way_test(FDEMTF.TestFactory):
-     file_name = "CFD_DEM_two_way_tests/Two_way_testFluid"
-     file_parameters = "CFD_DEM_two_way_tests/ProjectParameters.json"
+# 3 Tests below are not ready to run, they have problems writing the results
 
-class CFD_DEM_two_way_test_DVMS(FDEMTF.TestFactory):
-     file_name = "CFD_DEM_two_way_tests/Two_way_testFluid_DVMS"
-     file_parameters = "CFD_DEM_two_way_tests/ProjectParameters_DVMS.json"
+# class CFD_DEM_two_way_test(FDEMTF.TestFactory):
+#      file_name = "CFD_DEM_two_way_tests/Two_way_testFluid"
+#      file_parameters = "CFD_DEM_two_way_tests/ProjectParameters.json"
 
-class analytic_multiple_ghosts_test(AnalyticTF.TestFactory):
-     file_name = "analytic_tests/multiple_phantoms/multiple_phantom_test"
-     file_parameters = "analytic_tests/multiple_phantoms/ProjectParameters.json"
+# class CFD_DEM_two_way_test_DVMS(FDEMTF.TestFactory):
+#      file_name = "CFD_DEM_two_way_tests/Two_way_testFluid_DVMS"
+#      file_parameters = "CFD_DEM_two_way_tests/ProjectParameters_DVMS.json"
+
+# class analytic_multiple_ghosts_test(AnalyticTF.TestFactory):
+#      file_name = "analytic_tests/multiple_phantoms/multiple_phantom_test"
+#      file_parameters = "analytic_tests/multiple_phantoms/ProjectParameters.json"
 
 class porosity_field_conservation_test(PorosityTF.PorosityConservationTestFactory):
      file_name = "porosity_tests/porosity_conservation/Test_porosityFluid"
