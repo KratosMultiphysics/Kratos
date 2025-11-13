@@ -206,4 +206,47 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadrat
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadraticSurfaceInterfaceAnd3DContinuum,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    auto& r_model_part = model.CreateModelPart("Main");
+
+    PointerVector<Node> nodes_3d10n(10);
+    for (std::size_t i = 0; i < nodes_3d10n.size(); ++i) {
+        nodes_3d10n(i) = r_model_part.CreateNewNode(i + 1, 0.0, 0.0, 0.0);
+    }
+    auto p_continuum_element = ElementSetupUtilities::Create3D10NElement(nodes_3d10n, {});
+    p_continuum_element->SetId(1);
+    r_model_part.AddElement(p_continuum_element);
+
+    for (int i = 0; i < 6; ++i) {
+        r_model_part.CreateNewNode(11 + i, 0.0, 0.0, 0.0);
+    }
+
+    std::vector<std::size_t> node_ids_element_2 = {1, 2, 3, 5, 6, 7, 11, 12, 13, 14, 15, 16};
+    PointerVector<Node>      nodes_element_2(node_ids_element_2.size());
+    std::ranges::transform(node_ids_element_2, nodes_element_2.ptr_begin(),
+                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    auto p_interface_element = ElementSetupUtilities::Create3D12NInterfaceElement(nodes_element_2, {});
+
+    p_interface_element->SetId(2);
+    r_model_part.AddElement(p_interface_element);
+
+    auto& r_interface_model_part = model.CreateModelPart("Interfaces");
+    r_interface_model_part.AddElement(p_interface_element);
+
+    constexpr auto           alsoSearchReverse = true;
+    NeighbouringEntityFinder finder(alsoSearchReverse);
+
+    std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
+    boundary_generators[std::size_t{2}] = std::make_unique<FacesGenerator>();
+    finder.FindEntityNeighbours(r_interface_model_part.Elements(), r_model_part.Elements(), boundary_generators);
+
+    ASSERT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
+}
+
+
+
 } // namespace Kratos::Testing
