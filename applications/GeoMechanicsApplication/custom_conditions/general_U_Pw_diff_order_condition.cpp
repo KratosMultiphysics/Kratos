@@ -128,7 +128,7 @@ void GeneralUPwDiffOrderCondition::CalculateAll(Vector& rRightHandSideVector, bo
         GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     for (unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++) {
-        this->CalculateKinematics(Variables, PointNumber);
+        CalculateKinematics(Variables, PointNumber);
 
         this->CalculateConditionVector(Variables, PointNumber);
 
