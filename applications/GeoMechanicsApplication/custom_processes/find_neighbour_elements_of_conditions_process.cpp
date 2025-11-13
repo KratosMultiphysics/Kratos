@@ -43,8 +43,8 @@ void FindNeighbourElementsOfConditionsProcess::FindNeighbouringElementsForAllBou
     boundary_generator_map[1] = std::make_unique<EdgesGenerator>();
     boundary_generator_map[2] = std::make_unique<FacesGenerator>();
 
-    mNeighbouringEntityFinder.FindEntityNeighbours(mrModelPart.Conditions(), mrModelPart.Elements(),
-                                                   boundary_generator_map);
+    NeighbouringEntityFinder finder;
+    finder.FindEntityNeighbours(mrModelPart.Conditions(), mrModelPart.Elements(), boundary_generator_map);
 }
 
 bool FindNeighbourElementsOfConditionsProcess::AllConditionsHaveAtLeastOneNeighbour() const

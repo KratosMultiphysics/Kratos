@@ -36,7 +36,6 @@ public:
 
 private:
     ModelPart&               mrModelPart;
-    NeighbouringEntityFinder mNeighbouringEntityFinder;
 
     void FindNeighbouringElementsForAllBoundaryTypes();
 
