@@ -77,8 +77,7 @@ public:
     static Element::Pointer Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
                                                        const Properties::Pointer& rProperties);
     static Element::Pointer Create3D12NInterfaceElement(const PointerVector<Node>& rNodes,
-                                                       const Properties::Pointer& rProperties);
-
+                                                        const Properties::Pointer& rProperties);
 
     static Element::Pointer Create3D4NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
