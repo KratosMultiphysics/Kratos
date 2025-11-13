@@ -268,7 +268,7 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     noalias(rRightHandSideVector) += mNitschePenalty * DN_dot_n_vec * inner_prod(H_sum_vec,temperature_old_iteration)  * r_integration_points[0].Weight() * std::abs(det_J0);
     // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
     noalias(rRightHandSideVector) += H_vec * inner_prod(DN_dot_n_vec,temperature_old_iteration) * r_integration_points[0].Weight() * std::abs(det_J0) ;
-    noalias(rRightHandSideVector) -= H_sum_vec * inner_prod(H_sum_vec,temperature_old_iteration) * penalty_integration * std::abs(det_J0) ;
+    noalias(rRightHandSideVector) -= H_sum_vec * inner_prod(H_sum_vec,temperature_old_iteration) * penalty_integration * std::abs(det_J0);
 
 }
 
