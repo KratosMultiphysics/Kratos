@@ -61,9 +61,8 @@ void NeighbouringEntityFinder::AddNeighbouringElementsToConditionsBasedOnOverlap
         }
 
         if (mAlsoSearchReverse) {
-            GeometryUtilities::ReverseNodes(element_boundary_node_ids,
-                                           r_boundary_geometry.GetGeometryFamily(),
-                                           r_boundary_geometry.GetGeometryOrderType());
+            GeometryUtilities::ReverseNodes(element_boundary_node_ids, r_boundary_geometry.GetGeometryFamily(),
+                                            r_boundary_geometry.GetGeometryOrderType());
             if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
                 SetElementAsNeighbourOfAllConditionsWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
             }
