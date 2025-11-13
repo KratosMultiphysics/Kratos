@@ -323,8 +323,8 @@ void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions() con
 {
     auto neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
     // so far pick the first ( this may have to change when an interface is between 2 soils
-    auto&      r_neighbour_geometry = neighbour_elements[0].GetGeometry();
-    const auto neighbour_nodes = GeometryUtilities::GetNodeIdsFromGeometry(r_neighbour_geometry);
+    const auto& r_neighbour_geometry = neighbour_elements[0].GetGeometry();
+    const auto  neighbour_nodes = GeometryUtilities::GetNodeIdsFromGeometry(r_neighbour_geometry);
 
     // interpolate nodal stresses on a chosen side
     auto& r_interface_geometry = GetGeometry();

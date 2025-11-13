@@ -1323,7 +1323,6 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
 
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0));
-    // second_neighbour_nodes.push_back(r_model_part.pGetNode(2));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
     auto       element    = CreateInterfaceElementWithUDofs<Interface2D>(p_properties, p_geometry);
     Variable<GlobalPointersVector<Element>>::Type neighbours{neighbour_element};
