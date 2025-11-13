@@ -10,6 +10,7 @@
 //  Main authors:    Nicolò Antonelli
 
 // System includes
+#include <fstream>
 
 // External includes
 
@@ -60,306 +61,6 @@ std::string RectangleToString(const RectangleType& rRectangle)
 
 } // namespace
 
-MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometryAndData(
-    ModelPart& r_patch_model_part,
-    Parameters& r_patch_geometry,
-    const Parameters& r_geometry_base,
-    const RectangleType& rect,
-    const bool use_sbm_for_this_patch,
-    const std::string& patch_full_name,
-    const bool is_base_patch) const
-{
-    PatchPreparationResult result;
-
-    // Snapshot geometry IDs before generation (to detect new ones)
-    result.GeometryIdsBefore.reserve(r_patch_model_part.NumberOfGeometries());
-    for (const auto& r_geom : r_patch_model_part.Geometries()) {
-        result.GeometryIdsBefore.push_back(r_geom.Id());
-    }
-
-    // Assign UVW bounds for the patch
-    Vector patch_lower_uvw = r_patch_geometry["lower_point_uvw"].GetVector();
-    Vector patch_upper_uvw = r_patch_geometry["upper_point_uvw"].GetVector();
-    patch_lower_uvw[0] = rect[U_MIN]; patch_upper_uvw[0] = rect[U_MAX];
-    patch_lower_uvw[1] = rect[V_MIN]; patch_upper_uvw[1] = rect[V_MAX];
-    r_patch_geometry["lower_point_uvw"].SetVector(patch_lower_uvw);
-    r_patch_geometry["upper_point_uvw"].SetVector(patch_upper_uvw);
-
-    // Map UVW fractions into XYZ using base box and base UVW
-    const auto& base_lower_xyz = r_geometry_base["lower_point_xyz"].GetVector();
-    const auto& base_upper_xyz = r_geometry_base["upper_point_xyz"].GetVector();
-    const auto& base_lower_uvw = r_geometry_base["lower_point_uvw"].GetVector();
-    const auto& base_upper_uvw = r_geometry_base["upper_point_uvw"].GetVector();
-    const auto& base_spans     = r_geometry_base["number_of_knot_spans"].GetVector();
-
-    const double base_u_length = base_upper_uvw[0] - base_lower_uvw[0];
-    const double base_v_length = base_upper_uvw[1] - base_lower_uvw[1];
-
-    Vector patch_lower_xyz = r_patch_geometry["lower_point_xyz"].GetVector();
-    Vector patch_upper_xyz = r_patch_geometry["upper_point_xyz"].GetVector();
-
-    const double u_fraction_min = (rect[U_MIN] - base_lower_uvw[0]) / base_u_length;
-    const double u_fraction_max = (rect[U_MAX] - base_lower_uvw[0]) / base_u_length;
-    const double v_fraction_min = (rect[V_MIN] - base_lower_uvw[1]) / base_v_length;
-    const double v_fraction_max = (rect[V_MAX] - base_lower_uvw[1]) / base_v_length;
-
-    // Keep Z as-is, interpolate X and Y
-    patch_lower_xyz[0] = base_lower_xyz[0] + u_fraction_min * (base_upper_xyz[0] - base_lower_xyz[0]);
-    patch_upper_xyz[0] = base_lower_xyz[0] + u_fraction_max * (base_upper_xyz[0] - base_lower_xyz[0]);
-    patch_lower_xyz[1] = base_lower_xyz[1] + v_fraction_min * (base_upper_xyz[1] - base_lower_xyz[1]);
-    patch_upper_xyz[1] = base_lower_xyz[1] + v_fraction_max * (base_upper_xyz[1] - base_lower_xyz[1]);
-    patch_lower_xyz[2] = base_lower_xyz[2];
-    patch_upper_xyz[2] = base_upper_xyz[2];
-
-    r_patch_geometry["lower_point_xyz"].SetVector(patch_lower_xyz);
-    r_patch_geometry["upper_point_xyz"].SetVector(patch_upper_xyz);
-
-    // If SBM is not applicable to this patch (either no region matched or containment failed),
-    // remove SBM-related keys so NurbsGeometryModelerSbm goes body-fitted for this patch.
-    if (!use_sbm_for_this_patch) {
-        if (r_patch_geometry.Has("skin_model_part_inner_initial_name")) r_patch_geometry.RemoveValue("skin_model_part_inner_initial_name");
-        if (r_patch_geometry.Has("skin_model_part_outer_initial_name")) r_patch_geometry.RemoveValue("skin_model_part_outer_initial_name");
-        if (r_patch_geometry.Has("skin_model_part_name")) r_patch_geometry.RemoveValue("skin_model_part_name");
-        if (mEchoLevel > 1) {
-            KRATOS_INFO("MultipatchModeler")
-                << "  Disabling SBM for patch '" << patch_full_name << "' ("
-                << (is_base_patch ? "base patch (no/invalid skin)" : "refinement patch") << ")." << std::endl;
-        }
-    }
-
-    // Compute per-patch knot spans proportionally
-    Vector patch_spans = r_patch_geometry["number_of_knot_spans"].GetVector();
-    const int base_span_u = static_cast<int>(base_spans[0]);
-    const int base_span_v = static_cast<int>(base_spans[1]);
-    const double u_ratio  = (rect[U_MAX] - rect[U_MIN]) / base_u_length;
-    const double v_ratio  = (rect[V_MAX] - rect[V_MIN]) / base_v_length;
-    patch_spans[0] = std::max(1, static_cast<int>(std::round(u_ratio * base_span_u)));
-    patch_spans[1] = std::max(1, static_cast<int>(std::round(v_ratio * base_span_v)));
-
-    // Store span sizes as KNOT_SPAN_SIZES on the patch model part
-    if (patch_spans.size() >= 2) {
-        Vector patch_span_sizes(patch_spans.size());
-        for (IndexType span_index = 0; span_index < patch_spans.size(); ++span_index) {
-            const double span_count = patch_spans[span_index];
-            double span_length = 0.0;
-            // First two dimensions are U and V
-            span_length = (span_index == 0)
-                ? (patch_upper_uvw[0] - patch_lower_uvw[0])
-                : (span_index == 1)
-                    ? (patch_upper_uvw[1] - patch_lower_uvw[1])
-                    : (patch_upper_uvw[span_index] - patch_lower_uvw[span_index]);
-            patch_span_sizes[span_index] = span_count > 0.0 ? span_length / span_count : 0.0;
-        }
-        r_patch_model_part.SetValue(KNOT_SPAN_SIZES, patch_span_sizes);
-    }
-
-    // Write PARAMETER_SPACE_CORNERS for this patch (vector and matrix forms)
-    std::vector<Vector> patch_parameter_corners(2);
-    patch_parameter_corners[0].resize(2);
-    patch_parameter_corners[1].resize(2);
-    patch_parameter_corners[0][0] = patch_lower_uvw[0];
-    patch_parameter_corners[0][1] = patch_upper_uvw[0];
-    patch_parameter_corners[1][0] = patch_lower_uvw[1];
-    patch_parameter_corners[1][1] = patch_upper_uvw[1];
-    r_patch_model_part.SetValue(PARAMETER_SPACE_CORNERS, patch_parameter_corners);
-
-    Matrix patch_parameter_corners_matrix(2, 2, 0.0);
-    patch_parameter_corners_matrix(0,0) = patch_lower_uvw[0];
-    patch_parameter_corners_matrix(0,1) = patch_upper_uvw[0];
-    patch_parameter_corners_matrix(1,0) = patch_lower_uvw[1];
-    patch_parameter_corners_matrix(1,1) = patch_upper_uvw[1];
-    r_patch_model_part.SetValue(PATCH_PARAMETER_SPACE_CORNERS, patch_parameter_corners_matrix);
-
-    if (mEchoLevel > 0) {
-        KRATOS_INFO("MultipatchModeler")
-            << "  Divisions (u, v) .......: ["
-            << static_cast<int>(patch_spans[0]) << ", "
-            << static_cast<int>(patch_spans[1]) << "]"
-            << (use_sbm_for_this_patch ? " [refined]" : "") << std::endl;
-    }
-
-    // Adjust number_of_inner_loops = #refinement regions
-    result.PatchGeometryForSbmCoupling = r_patch_geometry.Clone();
-    {
-        const int n_inner = static_cast<int>(mRefinementRegions.size());
-        if (result.PatchGeometryForSbmCoupling.Has("number_of_inner_loops")) {
-            result.PatchGeometryForSbmCoupling["number_of_inner_loops"].SetInt(n_inner);
-        } else {
-            result.PatchGeometryForSbmCoupling.AddEmptyValue("number_of_inner_loops").SetInt(n_inner);
-        }
-    }
-
-    return result;
-}
-
-MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometryAndDataGapSbm(
-    ModelPart& r_patch_model_part,
-    Parameters& r_patch_geometry,
-    const Parameters& r_geometry_base,
-    const RectangleType& rect,
-    const bool use_sbm_for_this_patch,
-    const std::string& patch_full_name,
-    const bool is_base_patch) const
-{
-    // Reuse standard preparation to compute bounds, spans and ids
-    auto prep = PreparePatchGeometryAndData(
-        r_patch_model_part,
-        r_patch_geometry,
-        r_geometry_base,
-        rect,
-        use_sbm_for_this_patch,
-        patch_full_name,
-        is_base_patch);
-
-    // Build parameters for GAP-SBM modeler from prepared geometry
-    Parameters gap_params = prep.PatchGeometryForSbmCoupling.Clone();
-
-    // Delete // TODO: modify this, is artificial
-    if (gap_params.Has("skin_model_part_outer_initial_name")) gap_params.RemoveValue("skin_model_part_outer_initial_name");
-
-    KRATOS_WATCH(gap_params) // is missing the skin_coupling
-
-    KRATOS_WATCH("start NurbsGeometryModelerGapSbm")
-    // Run GAP-SBM geometry modeler
-    {
-        NurbsGeometryModelerGapSbm geometry_modeler(*mpModel, gap_params);
-        geometry_modeler.SetupGeometryModel();
-        geometry_modeler.PrepareGeometryModel();
-        geometry_modeler.SetupModelPart();
-    }
-
-    KRATOS_WATCH("end NurbsGeometryModelerGapSbm")
-    // exit(0);
-
-    return prep;
-}
-
-ModelPart& MultipatchModeler::CreateOrResetModelPart_(const std::string& rName) const
-{
-    ModelPart& r_mp = mpModel->HasModelPart(rName)
-        ? mpModel->GetModelPart(rName)
-        : mpModel->CreateModelPart(rName);
-
-    r_mp.Nodes().clear();
-    r_mp.Elements().clear();
-    r_mp.Conditions().clear();
-    r_mp.Geometries().clear();
-    if (!r_mp.HasProperties(0)) {
-        r_mp.CreateNewProperties(0);
-    }
-    return r_mp;
-}
-
-void MultipatchModeler::AppendRectangleSkinLoop(ModelPart& rModelPart, const RectType& rect) const
-{
-    // Rectangle corners
-    const double u0 = rect[U_MIN];
-    const double u1 = rect[U_MAX];
-    const double v0 = rect[V_MIN];
-    const double v1 = rect[V_MAX];
-
-    // Ensure submodelpart exists for coupling entities
-    ModelPart& r_coupling_sub = rModelPart.HasSubModelPart("CuplingConditions")
-        ? rModelPart.GetSubModelPart("CuplingConditions")
-        : rModelPart.CreateSubModelPart("CuplingConditions");
-
-    // Create and add NURBS curves for each edge (straight lines)
-    const int degree = 1;
-    const int ncp_side = 2;
-    Vector weights(ncp_side);
-    weights[0] = 1.0; weights[1] = 1.0;
-
-    auto make_knots = [&](int ncp){
-        Vector kv(ncp + degree + 1);
-        kv[0]=0.0; kv[1]=0.0;
-        for(int i=2;i<kv.size()-2;++i) kv[i] = static_cast<double>(i-1)/(ncp-1);
-        kv[kv.size()-2]=1.0; kv[kv.size()-1]=1.0;
-        return kv;
-    };
-
-    auto add_curve = [&](const std::vector<std::pair<double,double>>& pts_uv, const std::string& id){
-        PointerVector<Node> control_points;
-        control_points.reserve(pts_uv.size());
-        for (const auto& uv : pts_uv) {
-            Vector xyz(3); xyz[0]=uv.first; xyz[1]=uv.second; xyz[2]=0.0;
-            control_points.push_back(Kratos::make_intrusive<Node>(0, xyz));
-        }
-        Vector kv = make_knots(static_cast<int>(control_points.size()));
-        typedef NurbsCurveGeometry<2, PointerVector<Node>> CurveType;
-        typename CurveType::Pointer p_curve(new CurveType(control_points, degree, kv, weights));
-        // Set identifiers and condition name
-        p_curve->SetValue(IDENTIFIER, "Layer1"); // TODO: change this???
-
-        KRATOS_WATCH(mParameters)
-        if (mParameters.Has("coupling_conditions_name") && mParameters["coupling_conditions_name"].IsString()) {
-            const std::string cond_name = mParameters["coupling_conditions_name"].GetString();
-
-            KRATOS_WATCH(cond_name)
-            if (!cond_name.empty()) {
-                p_curve->SetValue(CONDITION_NAME, cond_name);
-            }
-        }
-        p_curve->SetId(static_cast<unsigned>(rModelPart.NumberOfGeometries()));
-        r_coupling_sub.AddGeometry(p_curve);
-    };
-
-    std::vector<std::pair<double,double>> bottom, right, top, left;
-    bottom.reserve(ncp_side); right.reserve(ncp_side); top.reserve(ncp_side); left.reserve(ncp_side);
-    bottom.emplace_back(u0, v0); bottom.emplace_back(u1, v0);
-    right.emplace_back(u1, v0);  right.emplace_back(u1, v1);
-    top.emplace_back(u1, v1);    top.emplace_back(u0, v1);
-    left.emplace_back(u0, v1);   left.emplace_back(u0, v0);
-    add_curve(bottom, "bottom");
-    add_curve(right,  "right");
-    add_curve(top,    "top");
-    add_curve(left,   "left");
-}
-
-ModelPart& MultipatchModeler::CreateSkinCouplingModelPartForRefinements(const std::string& rSkinModelPartName) const
-{
-    ModelPart& r_skin = CreateOrResetModelPart_(rSkinModelPartName);
-    // Create one rectangular loop per refinement region
-    for (const auto& r_reg : mRefinementRegions) {
-        AppendRectangleSkinLoop(r_skin, r_reg.Rectangle);
-    }
-    return r_skin;
-}
-
-MultipatchModeler::MultipatchModeler(Model& rModel, const Parameters ModelParameters)
-    : Modeler(rModel, ModelParameters)
-    , mpModel(&rModel)
-{
-    mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-}
-
-Modeler::Pointer MultipatchModeler::Create(Model& rModel, const Parameters ModelParameters) const
-{
-    return Kratos::make_shared<MultipatchModeler>(rModel, ModelParameters);
-}
-
-const Parameters MultipatchModeler::GetDefaultParameters() const
-{
-    return Parameters(R"({
-        "model_part_name" : "",
-        "base_domain" : {
-            "lower_point_uvw" : [0.0, 0.0, 0.0],
-            "upper_point_uvw" : [1.0, 1.0, 0.0]
-        },
-        "refinement_regions" : [],
-        "child_patch_prefix" : "Patch",
-        "geometry_parameters" : {},
-        "analysis_parameters" : {},
-        "coupling_conditions_name": "",
-        "coupling_type": "body-fitted" ,
-        "echo_level" : 0
-    })");
-}
-
-const std::vector<MultipatchModeler::RectangleType>& MultipatchModeler::GetSubdomains() const
-{
-    return mSubdomains;
-}
-
 
 void MultipatchModeler::SetupModelPart()
 {
@@ -386,9 +87,56 @@ void MultipatchModeler::SetupModelPart()
         return;
     }
 
+    // Select coupling type from project parameters: "body-fitted" (default) or "gap-sbm"
+    bool body_fitted_coupling = true; // default
+    if (mParameters.Has("coupling_type") && mParameters["coupling_type"].IsString()) {
+        const std::string coupling_type = mParameters["coupling_type"].GetString();
+        if (coupling_type == "gap-sbm" || coupling_type == "gap_sbm" || coupling_type == "gapsbm") {
+            body_fitted_coupling = false;
+        } else {
+            body_fitted_coupling = true;
+        }
+    }
+
     const std::string prefix = r_parameters["child_patch_prefix"].GetString();
     ModelPart& r_parent_model_part = r_model_part;
 
+    
+    if (!body_fitted_coupling) {
+        // Refinement patch
+        //----------------------------------------------------------------------------------------------------------------------------------------------
+        Parameters patch_geometry_refinement_patch = geometry_base.Clone();
+        // Remove GAP-SBM specific keys from the generic patch geometry,
+        // so that when used with NurbsGeometryModelerSbm (e.g. for refinement patch),
+        // it doesn't carry GAP-only options.
+        const std::array<const char*, 5> gap_only_keys = {
+            "gap_approximation_order",
+            "number_internal_divisions",
+            "gap_sbm_type",
+            "gap_element_name",
+            "gap_interface_condition_name"
+        };
+        for (const char* key : gap_only_keys) {
+            if (patch_geometry_refinement_patch.Has(key)) {
+                patch_geometry_refinement_patch.RemoveValue(key);
+            }
+        }
+        // Call NurbsGeometryModelerSbm for the refinement patch 
+        if (mSubdomains.size() > 1) {
+            const auto& ref_rect = mSubdomains[1];
+            // Inside it calls the NurbsGeometryModelerSbm and the IgaModeler
+            ProcessRefPatch(ref_rect, patch_geometry_refinement_patch, analysis_base, r_parent_model_part, prefix);
+        }
+    }
+
+
+    
+
+    
+
+
+    // Base domain
+    //------------------------------------------------------------------------------------------------------------------------------------------
     // Process only the base domain patch with SBM and the just-created inner skin
 
     // Create skin_coupling_model_part initial loops:
@@ -397,8 +145,16 @@ void MultipatchModeler::SetupModelPart()
     const std::string inner_initial_name = "skin_coupling_model_part_initial";
     const std::string skin_name          = "skin_coupling_model_part";
 
-    // Build inner (from refinement regions)
-    ModelPart& r_inner_initial = CreateSkinCouplingModelPartForRefinements(inner_initial_name);
+    
+    // // Build inner (from refinement regions)
+    // ModelPart& r_inner_initial = CreateSkinCouplingModelPartForRefinements(inner_initial_name);
+
+    // Build inner from refinement patch surrogate outer as NURBS curves
+    ModelPart& r_inner_initial = CreateSkinInnerInitialFromRefinementSurrogateOuter(inner_initial_name);
+
+
+
+
     KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
         << "Built inner initial skin '" << inner_initial_name << "' with "
         << r_inner_initial.NumberOfConditions() << " conditions." << std::endl;
@@ -408,7 +164,6 @@ void MultipatchModeler::SetupModelPart()
 
 
     /// Process base domain Patch
-
     const std::string patch_suffix = prefix + std::to_string(1); // Patch naming 
     ModelPart& r_patch_model_part = r_parent_model_part.HasSubModelPart(patch_suffix)
         ? r_parent_model_part.GetSubModelPart(patch_suffix)
@@ -416,11 +171,8 @@ void MultipatchModeler::SetupModelPart()
     const std::string patch_full_name = r_patch_model_part.FullName();
 
     if (mEchoLevel > 2) {
-        KRATOS_INFO("MultipatchModeler")
-            << "-- Created " << patch_full_name << std::endl;
+        KRATOS_INFO("MultipatchModeler") << "-- Created " << patch_full_name << std::endl;
     }
-
-    const bool is_base_patch = true;
 
     // Clone base geometry parameters, scope to this patch
     Parameters patch_geometry = geometry_base.Clone();
@@ -434,7 +186,7 @@ void MultipatchModeler::SetupModelPart()
 
     // Skin model parts are prepared in SetupModelPart; read skin name if present
     std::string sbm_skin_name_for_base;
-    if (is_base_patch && patch_geometry.Has("skin_model_part_name")) {
+    if (patch_geometry.Has("skin_model_part_name")) {
         sbm_skin_name_for_base = patch_geometry["skin_model_part_name"].GetString();
         KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
             << "SBM skin for base patch: '" << sbm_skin_name_for_base << "'" << std::endl;
@@ -459,28 +211,19 @@ void MultipatchModeler::SetupModelPart()
 
 
     // enable SBM on base patch only
-    bool use_sbm_for_this_patch = is_base_patch && has_skin_data && skin_fully_inside;
+    bool use_sbm_for_this_patch = has_skin_data && skin_fully_inside;
     if (mEchoLevel > 2) {
         KRATOS_INFO("MultipatchModeler")
             << "Creating/Updating patch '" << patch_full_name << "' from subdomain "
             << RectangleToString(mBaseRect) << std::endl;
         KRATOS_INFO("MultipatchModeler")
             << "  Patch classification ....: " << (use_sbm_for_this_patch ? "SBM" : "body-fitted") << std::endl;
-        if (!has_skin_data && is_base_patch) {
+        if (!has_skin_data) {
             KRATOS_INFO("MultipatchModeler")
                 << "  Note: missing skin_model_part definitions -> surrogate workflow disabled for base patch." << std::endl;
         }
     }
-    // Select coupling type from project parameters: "body-fitted" (default) or "gap-sbm"
-    bool body_fitted_coupling = true; // default
-    if (mParameters.Has("coupling_type") && mParameters["coupling_type"].IsString()) {
-        const std::string coupling_type = mParameters["coupling_type"].GetString();
-        if (coupling_type == "gap-sbm" || coupling_type == "gap_sbm" || coupling_type == "gapsbm") {
-            body_fitted_coupling = false;
-        } else {
-            body_fitted_coupling = true;
-        }
-    }
+    
 
     // Prepare variables needed later regardless of coupling choice
     std::vector<ModelPart::IndexType> patch_geometry_ids_before;
@@ -496,7 +239,7 @@ void MultipatchModeler::SetupModelPart()
             mBaseRect,
             use_sbm_for_this_patch,
             patch_full_name,
-            is_base_patch);
+            true);
 
         patch_geometry_ids_before = prep.GeometryIdsBefore;
         patch_geometry_for_sbm_coupling = prep.PatchGeometryForSbmCoupling;
@@ -518,18 +261,16 @@ void MultipatchModeler::SetupModelPart()
             mBaseRect,
             use_sbm_for_this_patch,
             patch_full_name,
-            is_base_patch);
+            true);
         patch_geometry_ids_before = prep.GeometryIdsBefore;
         patch_geometry_for_sbm_coupling = prep.PatchGeometryForSbmCoupling;
         
-
-
-
         // Remove GAP-SBM specific keys from the generic patch geometry,
         // so that when used with NurbsGeometryModelerSbm (e.g. for refinement patch),
         // it doesn't carry GAP-only options.
-        const std::array<const char*, 4> gap_only_keys = {
+        const std::array<const char*, 5> gap_only_keys = {
             "gap_approximation_order",
+            "number_internal_divisions",
             "gap_sbm_type",
             "gap_element_name",
             "gap_interface_condition_name"
@@ -539,30 +280,8 @@ void MultipatchModeler::SetupModelPart()
                 geometry_base.RemoveValue(key);
             }
         }
-        KRATOS_WATCH("after removing")
-        KRATOS_WATCH(geometry_base)
+        
     }
-
-    
-    // Detect newly created geometries for BREP classification
-    std::vector<ModelPart::IndexType> new_patch_geometry_ids;
-    {
-        std::vector<ModelPart::IndexType> patch_geometry_ids_after;
-        patch_geometry_ids_after.reserve(r_patch_model_part.NumberOfGeometries());
-        for (const auto& r_geom : r_patch_model_part.Geometries()) {
-            patch_geometry_ids_after.push_back(r_geom.Id());
-        }
-        for (const auto id : patch_geometry_ids_after) {
-            if (std::find(patch_geometry_ids_before.begin(), patch_geometry_ids_before.end(), id) ==
-                patch_geometry_ids_before.end()) {
-                new_patch_geometry_ids.push_back(id);
-            }
-        }
-        std::sort(patch_geometry_ids_after.begin(), patch_geometry_ids_after.end());
-    }
-
-    KRATOS_ERROR_IF(!analysis_base.Has("analysis_model_part_name"))
-        << "MultipatchModeler: missing analysis parameters in input." << std::endl;
 
     Parameters patch_analysis = analysis_base.Clone();
     patch_analysis["analysis_model_part_name"].SetString(patch_full_name);
@@ -677,7 +396,6 @@ void MultipatchModeler::SetupModelPart()
                 p.AddEmptyValue("brep_ids").SetVector(v);
             }
         };
-
         if (!external_ids.empty()) {
             Parameters ext = ext_tmpl.Clone();
             if (!ext.Has("geometry_type")) ext.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
@@ -685,14 +403,12 @@ void MultipatchModeler::SetupModelPart()
             set_brep_ids(ext, external_ids);
             reduced.Append(ext);
         }
-
         if (!internal_ids.empty()) {
             Parameters in = int_tmpl.Clone();
             if (!in.Has("geometry_type")) in.AddEmptyValue("geometry_type").SetString("SurfaceEdge");
             // keep internal template "name" and order (can differ from external)
             set_brep_ids(in, internal_ids);
         }
-
         patch_analysis["element_condition_list"] = reduced;
         
     }
@@ -714,51 +430,39 @@ void MultipatchModeler::SetupModelPart()
         KRATOS_INFO_IF("MultipatchModeler:: called IgaModelerSbm", mEchoLevel > 1) << std::endl;
     }
 
-    // Create one simple refinement patch (body-fitted) if a refinement region exists
-    if (mSubdomains.size() > 1) {
-        const auto& ref_rect = mSubdomains[1];
-        // Inside it calls the NurbsGeometryModelerSbm
-        ProcessRefPatch(ref_rect, geometry_base, analysis_base, r_parent_model_part, prefix);
-    }
 
-    // Call the intersection process with matching echo level and requested coupling condition
-    std::string coupling_condition_name = "";
-    if (mParameters.Has("coupling_conditions_name") && mParameters["coupling_conditions_name"].IsString()) {
-        coupling_condition_name = mParameters["coupling_conditions_name"].GetString();
-    } else {
-        KRATOS_ERROR << "MultipatchModeler: no coupling_conditions_name defined" << std::endl;
-    }
-
-    // TODO: extend to more than 1 ref region
-    // For the multipatch layout (base + one refinement), build coupling only around the refinement patch
-    if (mSubdomains.size() > 1) {
-        RefPatchCouplingProcess ref_coupling_process(
-            r_parent_model_part,
-            static_cast<int>(mEchoLevel),
-            1e-12,
-            prefix,
-            /*base_patch_index*/1,
-            /*ref_patch_index*/2,
-            coupling_condition_name);
-        ref_coupling_process.Execute();
-    }
-
-    // Collect analysis targets from parameters and build global submodel parts
-    std::vector<std::string> targets;
-    if (mParameters.Has("analysis_parameters")) {
-        const auto& analysis = mParameters["analysis_parameters"];
-        if (analysis.Has("element_condition_list") && analysis["element_condition_list"].IsArray()) {
-            const auto& ecl = analysis["element_condition_list"];
-            for (IndexType i = 0; i < ecl.size(); ++i) {
-                if (ecl[i].Has("iga_model_part") && ecl[i]["iga_model_part"].IsString()) {
-                    const std::string mp = ecl[i]["iga_model_part"].GetString();
-                    if (!mp.empty()) targets.push_back(mp);
-                }
-            }
+    if (body_fitted_coupling) {
+        // REFINEMENT PATCH
+        // --------------------------------------------------------------------------------------------------------------------------------------------
+        // Create one simple refinement patch (body-fitted) if a refinement region exists
+        if (mSubdomains.size() > 1) {
+            const auto& ref_rect = mSubdomains[1];
+            // Inside it calls the NurbsGeometryModelerSbm
+            ProcessRefPatch(ref_rect, geometry_base, analysis_base, r_parent_model_part, prefix);
+        }
+        // Call the intersection process with matching echo level and requested coupling condition
+        std::string coupling_condition_name = "";
+        if (mParameters.Has("coupling_conditions_name") && mParameters["coupling_conditions_name"].IsString()) {
+            coupling_condition_name = mParameters["coupling_conditions_name"].GetString();
+        } else {
+            KRATOS_ERROR << "MultipatchModeler: no coupling_conditions_name defined" << std::endl;
+        }
+        // TODO: extend to more than 1 ref region
+        // For the multipatch layout (base + one refinement), build coupling only around the refinement patch
+        if (mSubdomains.size() > 1) {
+            RefPatchCouplingProcess ref_coupling_process(
+                r_parent_model_part,
+                static_cast<int>(mEchoLevel),
+                1e-12,
+                prefix,
+                /*base_patch_index*/1,
+                /*ref_patch_index*/2,
+                coupling_condition_name);
+            ref_coupling_process.Execute();
         }
     }
-    std::sort(targets.begin(), targets.end());
-    targets.erase(std::unique(targets.begin(), targets.end()), targets.end());
+
+    
 
 
 }
@@ -899,7 +603,16 @@ void MultipatchModeler::ProcessRefPatch(
         r_patch_model_part.SetValue(PATCH_PARAMETER_SPACE_CORNERS, patch_parameter_corners_matrix);
     }
 
-    KRATOS_WATCH("nurbs Geom Modeler for ref patch")
+    // Add parameter to create surrounding outer from surrounding inner
+    if (patch_geometry.Has("create_surr_outer_from_surr_inner")) {
+        patch_geometry["create_surr_outer_from_surr_inner"].SetBool(true);
+    } else {
+        patch_geometry.AddEmptyValue("create_surr_outer_from_surr_inner").SetBool(true);
+    }
+
+
+
+    // KRATOS_WATCH("nurbs Geom Modeler for ref patch")
     KRATOS_WATCH(patch_geometry)
 
     // Create geometry
@@ -909,6 +622,8 @@ void MultipatchModeler::ProcessRefPatch(
         geometry_modeler.PrepareGeometryModel();
         geometry_modeler.SetupModelPart();
     }
+
+    KRATOS_WATCH("nurbs Geom Modeler for ref patch END!!")
 
     // Analysis: elements only by default; if SBM, append sbm-conditions for inner hole
     if (analysis_base.Has("analysis_model_part_name")) {
@@ -944,7 +659,8 @@ void MultipatchModeler::ProcessRefPatch(
             patch_analysis["skin_model_part_name"].SetString(geometry_base["skin_model_part_name"].GetString());
         }
 
-        KRATOS_WATCH(patch_analysis)
+        // KRATOS_WATCH(patch_analysis)
+        // exit(0);
 
         IgaModelerSbm iga_modeler(*mpModel, patch_analysis);
         iga_modeler.SetupModelPart();
@@ -1114,6 +830,478 @@ ModelPart& MultipatchModeler::InitializeSetup(
     r_model_part.SetValue(PARAMETER_SPACE_CORNERS, rectangles_data);
 
     return r_model_part;
+}
+
+
+MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometryAndData(
+    ModelPart& r_patch_model_part,
+    Parameters& r_patch_geometry,
+    const Parameters& r_geometry_base,
+    const RectangleType& rect,
+    const bool use_sbm_for_this_patch,
+    const std::string& patch_full_name,
+    const bool is_base_patch) const
+{
+    PatchPreparationResult result;
+
+    // Snapshot geometry IDs before generation (to detect new ones)
+    result.GeometryIdsBefore.reserve(r_patch_model_part.NumberOfGeometries());
+    for (const auto& r_geom : r_patch_model_part.Geometries()) {
+        result.GeometryIdsBefore.push_back(r_geom.Id());
+    }
+
+    // Assign UVW bounds for the patch
+    Vector patch_lower_uvw = r_patch_geometry["lower_point_uvw"].GetVector();
+    Vector patch_upper_uvw = r_patch_geometry["upper_point_uvw"].GetVector();
+    patch_lower_uvw[0] = rect[U_MIN]; patch_upper_uvw[0] = rect[U_MAX];
+    patch_lower_uvw[1] = rect[V_MIN]; patch_upper_uvw[1] = rect[V_MAX];
+    r_patch_geometry["lower_point_uvw"].SetVector(patch_lower_uvw);
+    r_patch_geometry["upper_point_uvw"].SetVector(patch_upper_uvw);
+
+    // Map UVW fractions into XYZ using base box and base UVW
+    const auto& base_lower_xyz = r_geometry_base["lower_point_xyz"].GetVector();
+    const auto& base_upper_xyz = r_geometry_base["upper_point_xyz"].GetVector();
+    const auto& base_lower_uvw = r_geometry_base["lower_point_uvw"].GetVector();
+    const auto& base_upper_uvw = r_geometry_base["upper_point_uvw"].GetVector();
+    const auto& base_spans     = r_geometry_base["number_of_knot_spans"].GetVector();
+
+    const double base_u_length = base_upper_uvw[0] - base_lower_uvw[0];
+    const double base_v_length = base_upper_uvw[1] - base_lower_uvw[1];
+
+    Vector patch_lower_xyz = r_patch_geometry["lower_point_xyz"].GetVector();
+    Vector patch_upper_xyz = r_patch_geometry["upper_point_xyz"].GetVector();
+
+    const double u_fraction_min = (rect[U_MIN] - base_lower_uvw[0]) / base_u_length;
+    const double u_fraction_max = (rect[U_MAX] - base_lower_uvw[0]) / base_u_length;
+    const double v_fraction_min = (rect[V_MIN] - base_lower_uvw[1]) / base_v_length;
+    const double v_fraction_max = (rect[V_MAX] - base_lower_uvw[1]) / base_v_length;
+
+    // Keep Z as-is, interpolate X and Y
+    patch_lower_xyz[0] = base_lower_xyz[0] + u_fraction_min * (base_upper_xyz[0] - base_lower_xyz[0]);
+    patch_upper_xyz[0] = base_lower_xyz[0] + u_fraction_max * (base_upper_xyz[0] - base_lower_xyz[0]);
+    patch_lower_xyz[1] = base_lower_xyz[1] + v_fraction_min * (base_upper_xyz[1] - base_lower_xyz[1]);
+    patch_upper_xyz[1] = base_lower_xyz[1] + v_fraction_max * (base_upper_xyz[1] - base_lower_xyz[1]);
+    patch_lower_xyz[2] = base_lower_xyz[2];
+    patch_upper_xyz[2] = base_upper_xyz[2];
+
+    r_patch_geometry["lower_point_xyz"].SetVector(patch_lower_xyz);
+    r_patch_geometry["upper_point_xyz"].SetVector(patch_upper_xyz);
+
+    // If SBM is not applicable to this patch (either no region matched or containment failed),
+    // remove SBM-related keys so NurbsGeometryModelerSbm goes body-fitted for this patch.
+    if (!use_sbm_for_this_patch) {
+        if (r_patch_geometry.Has("skin_model_part_inner_initial_name")) r_patch_geometry.RemoveValue("skin_model_part_inner_initial_name");
+        if (r_patch_geometry.Has("skin_model_part_outer_initial_name")) r_patch_geometry.RemoveValue("skin_model_part_outer_initial_name");
+        if (r_patch_geometry.Has("skin_model_part_name")) r_patch_geometry.RemoveValue("skin_model_part_name");
+        if (mEchoLevel > 1) {
+            KRATOS_INFO("MultipatchModeler")
+                << "  Disabling SBM for patch '" << patch_full_name << "' ("
+                << (is_base_patch ? "base patch (no/invalid skin)" : "refinement patch") << ")." << std::endl;
+        }
+    }
+
+    // Compute per-patch knot spans proportionally
+    Vector patch_spans = r_patch_geometry["number_of_knot_spans"].GetVector();
+    const int base_span_u = static_cast<int>(base_spans[0]);
+    const int base_span_v = static_cast<int>(base_spans[1]);
+    const double u_ratio  = (rect[U_MAX] - rect[U_MIN]) / base_u_length;
+    const double v_ratio  = (rect[V_MAX] - rect[V_MIN]) / base_v_length;
+    patch_spans[0] = std::max(1, static_cast<int>(std::round(u_ratio * base_span_u)));
+    patch_spans[1] = std::max(1, static_cast<int>(std::round(v_ratio * base_span_v)));
+
+    // Store span sizes as KNOT_SPAN_SIZES on the patch model part
+    if (patch_spans.size() >= 2) {
+        Vector patch_span_sizes(patch_spans.size());
+        for (IndexType span_index = 0; span_index < patch_spans.size(); ++span_index) {
+            const double span_count = patch_spans[span_index];
+            double span_length = 0.0;
+            // First two dimensions are U and V
+            span_length = (span_index == 0)
+                ? (patch_upper_uvw[0] - patch_lower_uvw[0])
+                : (span_index == 1)
+                    ? (patch_upper_uvw[1] - patch_lower_uvw[1])
+                    : (patch_upper_uvw[span_index] - patch_lower_uvw[span_index]);
+            patch_span_sizes[span_index] = span_count > 0.0 ? span_length / span_count : 0.0;
+        }
+        r_patch_model_part.SetValue(KNOT_SPAN_SIZES, patch_span_sizes);
+    }
+
+    // Write PARAMETER_SPACE_CORNERS for this patch (vector and matrix forms)
+    std::vector<Vector> patch_parameter_corners(2);
+    patch_parameter_corners[0].resize(2);
+    patch_parameter_corners[1].resize(2);
+    patch_parameter_corners[0][0] = patch_lower_uvw[0];
+    patch_parameter_corners[0][1] = patch_upper_uvw[0];
+    patch_parameter_corners[1][0] = patch_lower_uvw[1];
+    patch_parameter_corners[1][1] = patch_upper_uvw[1];
+    r_patch_model_part.SetValue(PARAMETER_SPACE_CORNERS, patch_parameter_corners);
+
+    Matrix patch_parameter_corners_matrix(2, 2, 0.0);
+    patch_parameter_corners_matrix(0,0) = patch_lower_uvw[0];
+    patch_parameter_corners_matrix(0,1) = patch_upper_uvw[0];
+    patch_parameter_corners_matrix(1,0) = patch_lower_uvw[1];
+    patch_parameter_corners_matrix(1,1) = patch_upper_uvw[1];
+    r_patch_model_part.SetValue(PATCH_PARAMETER_SPACE_CORNERS, patch_parameter_corners_matrix);
+
+    if (mEchoLevel > 0) {
+        KRATOS_INFO("MultipatchModeler")
+            << "  Divisions (u, v) .......: ["
+            << static_cast<int>(patch_spans[0]) << ", "
+            << static_cast<int>(patch_spans[1]) << "]"
+            << (use_sbm_for_this_patch ? " [refined]" : "") << std::endl;
+    }
+
+    // Adjust number_of_inner_loops = #refinement regions
+    result.PatchGeometryForSbmCoupling = r_patch_geometry.Clone();
+    {
+        const int n_inner = static_cast<int>(mRefinementRegions.size());
+        if (result.PatchGeometryForSbmCoupling.Has("number_of_inner_loops")) {
+            result.PatchGeometryForSbmCoupling["number_of_inner_loops"].SetInt(n_inner);
+        } else {
+            result.PatchGeometryForSbmCoupling.AddEmptyValue("number_of_inner_loops").SetInt(n_inner);
+        }
+    }
+
+    return result;
+}
+
+
+MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometryAndDataGapSbm(
+    ModelPart& r_patch_model_part,
+    Parameters& r_patch_geometry,
+    const Parameters& r_geometry_base,
+    const RectangleType& rect,
+    const bool use_sbm_for_this_patch,
+    const std::string& patch_full_name,
+    const bool is_base_patch) const
+{
+    // Reuse standard preparation to compute bounds, spans and ids
+    auto prep = PreparePatchGeometryAndData(
+        r_patch_model_part,
+        r_patch_geometry,
+        r_geometry_base,
+        rect,
+        use_sbm_for_this_patch,
+        patch_full_name,
+        is_base_patch);
+
+    // Build parameters for GAP-SBM modeler from prepared geometry
+    Parameters gap_params = prep.PatchGeometryForSbmCoupling.Clone();
+
+    // Delete // TODO: modify this, it is artificial
+    if (gap_params.Has("skin_model_part_outer_initial_name")) gap_params.RemoveValue("skin_model_part_outer_initial_name");
+    
+    // Ensure fast NURBS import: use a single initial point
+    if (gap_params.Has("number_initial_points_if_importing_nurbs")) {
+        gap_params["number_initial_points_if_importing_nurbs"].SetInt(2);
+    } else {
+        gap_params.AddEmptyValue("number_initial_points_if_importing_nurbs").SetInt(2);
+    }
+    
+    KRATOS_WATCH("start NurbsGeometryModelerGapSbm")
+
+    // KRATOS_WATCH(gap_params)
+    // exit(0);
+    // Run GAP-SBM geometry modeler
+    {
+        NurbsGeometryModelerGapSbm geometry_modeler(*mpModel, gap_params);
+        geometry_modeler.SetupGeometryModel();
+        geometry_modeler.PrepareGeometryModel();
+        geometry_modeler.SetupModelPart();
+    }
+
+    KRATOS_WATCH("end NurbsGeometryModelerGapSbm")
+
+    return prep;
+}
+
+ModelPart& MultipatchModeler::CreateOrResetModelPart_(const std::string& rName) const
+{
+    ModelPart& r_mp = mpModel->HasModelPart(rName)
+        ? mpModel->GetModelPart(rName)
+        : mpModel->CreateModelPart(rName);
+
+    r_mp.Nodes().clear();
+    r_mp.Elements().clear();
+    r_mp.Conditions().clear();
+    r_mp.Geometries().clear();
+    if (!r_mp.HasProperties(0)) {
+        r_mp.CreateNewProperties(0);
+    }
+    return r_mp;
+}
+
+void MultipatchModeler::AppendRectangleSkinLoop(ModelPart& rModelPart, const RectType& rect) const
+{
+    // Rectangle corners
+    const double u0 = rect[U_MIN];
+    const double u1 = rect[U_MAX];
+    const double v0 = rect[V_MIN];
+    const double v1 = rect[V_MAX];
+
+    // Ensure submodelpart exists for coupling entities
+    ModelPart& r_coupling_sub = rModelPart.HasSubModelPart("CuplingConditions")
+        ? rModelPart.GetSubModelPart("CuplingConditions")
+        : rModelPart.CreateSubModelPart("CuplingConditions");
+
+    // Create and add NURBS curves for each edge (straight lines)
+    const int degree = 1;
+    const int ncp_side = 2;
+    Vector weights(ncp_side);
+    weights[0] = 1.0; weights[1] = 1.0;
+
+    auto make_knots = [&](int ncp){
+        Vector kv(ncp + degree + 1);
+        kv[0]=0.0; kv[1]=0.0;
+        for(int i=2;i<kv.size()-2;++i) kv[i] = static_cast<double>(i-1)/(ncp-1);
+        kv[kv.size()-2]=1.0; kv[kv.size()-1]=1.0;
+        return kv;
+    };
+
+    auto add_curve = [&](const std::vector<std::pair<double,double>>& pts_uv, const std::string& id){
+        PointerVector<Node> control_points;
+        control_points.reserve(pts_uv.size());
+        for (const auto& uv : pts_uv) {
+            Vector xyz(3); xyz[0]=uv.first; xyz[1]=uv.second; xyz[2]=0.0;
+            control_points.push_back(Kratos::make_intrusive<Node>(0, xyz));
+        }
+        Vector kv = make_knots(static_cast<int>(control_points.size()));
+        typedef NurbsCurveGeometry<2, PointerVector<Node>> CurveType;
+        typename CurveType::Pointer p_curve(new CurveType(control_points, degree, kv, weights));
+        // Set identifiers and condition name
+        p_curve->SetValue(IDENTIFIER, "Layer1"); // TODO: change this???
+
+        if (mParameters.Has("coupling_conditions_name") && mParameters["coupling_conditions_name"].IsString()) {
+            const std::string cond_name = mParameters["coupling_conditions_name"].GetString();
+
+            if (!cond_name.empty()) {
+                p_curve->SetValue(CONDITION_NAME, cond_name);
+            }
+        }
+        p_curve->SetId(static_cast<unsigned>(rModelPart.NumberOfGeometries()));
+        r_coupling_sub.AddGeometry(p_curve);
+    };
+
+    std::vector<std::pair<double,double>> bottom, right, top, left;
+    bottom.reserve(ncp_side); right.reserve(ncp_side); top.reserve(ncp_side); left.reserve(ncp_side);
+    bottom.emplace_back(u0, v0); bottom.emplace_back(u1, v0);
+    right.emplace_back(u1, v0);  right.emplace_back(u1, v1);
+    top.emplace_back(u1, v1);    top.emplace_back(u0, v1);
+    left.emplace_back(u0, v1);   left.emplace_back(u0, v0);
+    add_curve(bottom, "bottom");
+    add_curve(right,  "right");
+    add_curve(top,    "top");
+    add_curve(left,   "left");
+}
+
+ModelPart& MultipatchModeler::CreateSkinCouplingModelPartForRefinements(const std::string& rSkinModelPartName) const
+{
+    ModelPart& r_skin = CreateOrResetModelPart_(rSkinModelPartName);
+    // Create one rectangular loop per refinement region
+    for (const auto& r_reg : mRefinementRegions) {
+        AppendRectangleSkinLoop(r_skin, r_reg.Rectangle);
+    }
+    return r_skin;
+}
+
+ModelPart& MultipatchModeler::CreateSkinInnerInitialFromRefinementSurrogateOuter(const std::string& rSkinModelPartName) const
+{
+    // Prepare/clear target skin model part
+    ModelPart& r_skin = CreateOrResetModelPart_(rSkinModelPartName);
+
+    // Locate the refinement patch (assumed suffix "<prefix>2") and its surrogate outer loop
+    const std::string root_name = mParameters["model_part_name"].GetString();
+    const std::string prefix = mParameters["child_patch_prefix"].GetString();
+    const std::string patch_suffix = prefix + std::to_string(2);
+
+    KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(root_name))
+        << "MultipatchModeler: root model part '" << root_name << "' not found." << std::endl;
+    ModelPart& r_root = mpModel->GetModelPart(root_name);
+    KRATOS_ERROR_IF_NOT(r_root.HasSubModelPart(patch_suffix))
+        << "MultipatchModeler: refinement patch '" << patch_suffix << "' not found under '" << root_name << "'." << std::endl;
+    ModelPart& r_ref_patch = r_root.GetSubModelPart(patch_suffix);
+    KRATOS_ERROR_IF_NOT(r_ref_patch.HasSubModelPart("surrogate_outer"))
+        << "MultipatchModeler: submodelpart 'surrogate_outer' not found in refinement patch '" << patch_suffix << "'." << std::endl;
+    const ModelPart& r_surrogate_outer = r_ref_patch.GetSubModelPart("surrogate_outer");
+
+    // Ensure coupling submodelpart exists on the destination skin
+    ModelPart& r_coupling_sub = r_skin.HasSubModelPart("CuplingConditions")
+        ? r_skin.GetSubModelPart("CuplingConditions")
+        : r_skin.CreateSubModelPart("CuplingConditions");
+
+    // Curve settings: degree-1 NURBS with two control points per segment
+    const int degree = 1;
+    const int ncp = 2;
+    Vector weights(ncp);
+    weights[0] = 1.0; weights[1] = 1.0;
+    auto make_knots = [&]() {
+        Vector kv(ncp + degree + 1);
+        kv[0] = 0.0; kv[1] = 0.0; kv[2] = 1.0; kv[3] = 1.0;
+        return kv;
+    };
+
+    // Optional condition name to tag curves
+    std::string cond_name;
+    if (mParameters.Has("coupling_conditions_name") && mParameters["coupling_conditions_name"].IsString()) {
+        cond_name = mParameters["coupling_conditions_name"].GetString();
+    }
+
+    // Collect all segments from surrogate conditions, carrying also the BREP_ID
+    struct Segment { double x0, y0, x1, y1; int brep_id; };
+    std::vector<Segment> segments;
+    segments.reserve(r_surrogate_outer.NumberOfConditions());
+    for (const auto& r_cond : r_surrogate_outer.Conditions()) {
+        const auto& g = r_cond.GetGeometry();
+        if (g.size() != 2) continue;
+        const int brep_id = r_cond.GetValue(BREP_ID);
+        segments.push_back({g[0].X(), g[0].Y(), g[1].X(), g[1].Y(), brep_id});
+    }
+
+    // Order segments to form a continuous loop and enforce clockwise orientation
+    std::vector<Segment> ordered;
+    ordered.reserve(segments.size());
+    if (!segments.empty()) {
+        const auto same_point = [](double ax, double ay, double bx, double by) {
+            const double tol = 1e-10;
+            return std::abs(ax - bx) <= tol * (1.0 + std::max(std::abs(ax), std::abs(bx))) &&
+                   std::abs(ay - by) <= tol * (1.0 + std::max(std::abs(ay), std::abs(by)));
+        };
+
+        // Pick start: the endpoint with smallest (y, then x)
+        std::size_t start_idx = 0; bool start_is_first = true;
+        double best_y = segments[0].y0, best_x = segments[0].x0;
+        auto consider = [&](std::size_t idx, bool first){
+            const double xx = first ? segments[idx].x0 : segments[idx].x1;
+            const double yy = first ? segments[idx].y0 : segments[idx].y1;
+            if (yy < best_y || (yy == best_y && xx < best_x)) {
+                best_y = yy; best_x = xx; start_idx = idx; start_is_first = first;
+            }
+        };
+        for (std::size_t i = 0; i < segments.size(); ++i) { consider(i, true); consider(i, false); }
+
+        std::vector<char> used(segments.size(), 0);
+        // Orient the starting segment so that it starts at the chosen point
+        Segment s0 = segments[start_idx];
+        if (!start_is_first) std::swap(s0.x0, s0.x1), std::swap(s0.y0, s0.y1);
+        ordered.push_back(s0);
+        used[start_idx] = 1;
+
+        // Greedily chain the remaining segments by matching endpoints
+        double cx = s0.x1, cy = s0.y1;
+        for (std::size_t k = 1; k < segments.size(); ++k) {
+            std::size_t next_idx = segments.size();
+            bool flip = false;
+            for (std::size_t j = 0; j < segments.size(); ++j) {
+                if (used[j]) continue;
+                const auto& sj = segments[j];
+                if (same_point(cx, cy, sj.x0, sj.y0)) { next_idx = j; flip = false; break; }
+                if (same_point(cx, cy, sj.x1, sj.y1)) { next_idx = j; flip = true;  break; }
+            }
+            if (next_idx == segments.size()) break; // cannot chain further
+            Segment sj = segments[next_idx];
+            if (flip) std::swap(sj.x0, sj.x1), std::swap(sj.y0, sj.y1);
+            ordered.push_back(sj);
+            used[next_idx] = 1;
+            cx = sj.x1; cy = sj.y1;
+        }
+
+        // Compute signed area to detect orientation (positive = CCW)
+        if (!ordered.empty()) {
+            double area = 0.0;
+            double px = ordered.front().x0, py = ordered.front().y0;
+            for (const auto& s : ordered) {
+                const double qx = s.x1, qy = s.y1;
+                area += px * qy - qx * py;
+                px = qx; py = qy;
+            }
+            // Enforce anticlockwise (CCW) orientation
+            if (area < 0.0) {
+                std::reverse(ordered.begin(), ordered.end());
+                for (auto& s : ordered) {
+                    std::swap(s.x0, s.x1);
+                    std::swap(s.y0, s.y1);
+                }
+            }
+        }
+    }
+
+    // Create curves in the ordered, anticlockwise sequence
+    // int layer_id = 1;
+    for (const auto& s : ordered) {
+        PointerVector<Node> control_points;
+        control_points.reserve(ncp);
+        {
+            Vector xyz(3); xyz[0] = s.x0; xyz[1] = s.y0; xyz[2] = 0.0;
+            control_points.push_back(Kratos::make_intrusive<Node>(0, xyz));
+        }
+        {
+            Vector xyz(3); xyz[0] = s.x1; xyz[1] = s.y1; xyz[2] = 0.0;
+            control_points.push_back(Kratos::make_intrusive<Node>(0, xyz));
+        }
+
+        Vector kv = make_knots();
+        using CurveType = NurbsCurveGeometry<2, PointerVector<Node>>;
+        CurveType::Pointer p_curve(new CurveType(control_points, degree, kv, weights));
+        // propagate Brep id from the originating surrogate condition
+        p_curve->SetValue(BREP_ID, s.brep_id);
+        p_curve->SetValue(IDENTIFIER, "Layer1");
+        // const std::string layer_name = std::string("Layer") + std::to_string(layer_id++);
+        if (!cond_name.empty()) {
+            p_curve->SetValue(CONDITION_NAME, cond_name);
+        }
+        p_curve->SetId(static_cast<unsigned>(r_skin.NumberOfGeometries()));
+        r_coupling_sub.AddGeometry(p_curve);
+    }
+
+    // // Write created coupling curves (as line segments) to a txt file
+    // {
+    //     std::ofstream fout("generated_coupling_curves.txt", std::ios::out | std::ios::trunc);
+    //     if (fout.good()) {
+    //         for (const auto& r_geom : r_coupling_sub.Geometries()) {
+    //             if (r_geom.size() < 2) continue;
+    //             const auto& n0 = r_geom[0];
+    //             const auto& n1 = r_geom[1];
+    //             fout << n0.X() << ' ' << n0.Y() << ' ' << n1.X() << ' ' << n1.Y() << '\n';
+    //         }
+    //     }
+    // }
+
+    return r_skin;
+}
+
+MultipatchModeler::MultipatchModeler(Model& rModel, const Parameters ModelParameters)
+    : Modeler(rModel, ModelParameters)
+    , mpModel(&rModel)
+{
+    mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+}
+
+Modeler::Pointer MultipatchModeler::Create(Model& rModel, const Parameters ModelParameters) const
+{
+    return Kratos::make_shared<MultipatchModeler>(rModel, ModelParameters);
+}
+
+const Parameters MultipatchModeler::GetDefaultParameters() const
+{
+    return Parameters(R"({
+        "model_part_name" : "",
+        "base_domain" : {
+            "lower_point_uvw" : [0.0, 0.0, 0.0],
+            "upper_point_uvw" : [1.0, 1.0, 0.0]
+        },
+        "refinement_regions" : [],
+        "child_patch_prefix" : "Patch",
+        "geometry_parameters" : {},
+        "analysis_parameters" : {},
+        "coupling_conditions_name": "",
+        "coupling_type": "body-fitted" ,
+        "echo_level" : 0
+    })");
+}
+
+const std::vector<MultipatchModeler::RectangleType>& MultipatchModeler::GetSubdomains() const
+{
+    return mSubdomains;
 }
 
 

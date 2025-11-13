@@ -144,8 +144,6 @@ private:
         const Variable<double>& rUnknown,
         Vector& rValues) const;
 
-private:
-
     const GeometryType& GetGeometryMirror() const
     {
         return *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
@@ -156,6 +154,16 @@ private:
 
     array_1d<double, 3> mNormalPhysicalSpaceA = ZeroVector(3);
     array_1d<double, 3> mNormalPhysicalSpaceB = ZeroVector(3);
+
+    void ComputeTaylorExpansionContribution(const GeometryType& rGeometry, const Vector& rDistanceVector, Vector& H_sum_vec);
+    void ComputeGradientTaylorExpansionContribution(const GeometryType& rGeometry, const Vector& rDistanceVector, Matrix& grad_H_sum);
+    double ComputeTaylorTerm(double derivative, double dx, IndexType n_k, double dy, IndexType k);
+    double ComputeTaylorTerm3D(double derivative, double dx, IndexType k_x, double dy, IndexType k_y, double dz, IndexType k_z);
+
+    unsigned int mDim = 0;
+    IndexType mBasisFunctionsOrder = 0;
+    bool mIsGapSbmCoupling = false;
+    Vector mDistanceVectorB;
 };
 
 } // namespace Kratos

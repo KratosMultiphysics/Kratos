@@ -27,6 +27,14 @@ void LaplacianCouplingCondition::Initialize(const ProcessInfo& rCurrentProcessIn
     const auto& r_integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
     const double integration_weight = r_integration_points[0].Weight();
     SetValue(INTEGRATION_WEIGHT, integration_weight);
+
+    if (mIsGapSbmCoupling) {
+        const auto& r_true = GetGeometry();
+        const auto& r_surrogate_B = GetGeometryMirror();
+
+        mDistanceVectorB.resize(3);
+        noalias(mDistanceVectorB) = r_true.Center().Coordinates() - r_surrogate_B.Center().Coordinates();
+    }
 }
 
 void LaplacianCouplingCondition::InitializeMemberVariables()
@@ -34,8 +42,20 @@ void LaplacianCouplingCondition::InitializeMemberVariables()
     const auto& r_geometry_patchA = GetGeometry();
     const auto& r_geometry_patchB = GetGeometryMirror();
 
-    KRATOS_ERROR_IF(norm_2(r_geometry_patchA.Center()-r_geometry_patchB.Center()) > 1e-12)
-        << "LaplacianCouplingCondition found non matching geometries." << std::endl;
+    // Basis function order of the Taylor expansion is decided by the r_geometry_patchB
+    const auto& r_DN_De = r_geometry_patchB.ShapeFunctionsLocalGradients(r_geometry_patchB.GetDefaultIntegrationMethod());
+    mDim = r_DN_De[0].size2();
+    if (mDim == 3) {
+        mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
+    } else {
+        mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
+    }
+    mBasisFunctionsOrder *= 2;
+
+    // KRATOS_ERROR_IF(norm_2(r_geometry_patchA.Center()-r_geometry_patchB.Center()) > 1e-12)
+    //     << "LaplacianCouplingCondition found non matching geometries." << std::endl;
+    if (norm_2(r_geometry_patchA.Center()-r_geometry_patchB.Center()) > 1e-12)
+        mIsGapSbmCoupling = true;
 
     mNormalParameterSpaceA = -r_geometry_patchA.Normal(0, GetIntegrationMethod());
     mNormalParameterSpaceA /= MathUtils<double>::Norm(mNormalParameterSpaceA);
@@ -45,8 +65,14 @@ void LaplacianCouplingCondition::InitializeMemberVariables()
     mNormalParameterSpaceB /= MathUtils<double>::Norm(mNormalParameterSpaceB);
     mNormalPhysicalSpaceB = mNormalParameterSpaceB;
 
-    KRATOS_ERROR_IF(std::abs(inner_prod(mNormalPhysicalSpaceA, mNormalPhysicalSpaceB)+1) > 1e-12)
+    if (mIsGapSbmCoupling) {
+        mNormalPhysicalSpaceB = -mNormalPhysicalSpaceA;
+    }
+
+    KRATOS_ERROR_IF(std::abs(inner_prod(mNormalPhysicalSpaceA, mNormalPhysicalSpaceB)+1) > 1e-12 && !mIsGapSbmCoupling)
         << "LaplacianCouplingCondition: normals are not opposite." << std::endl;
+    
+    SetValue(NORMAL, mNormalPhysicalSpaceA);
 }
 
 void LaplacianCouplingCondition::CalculateLocalSystem(
@@ -100,7 +126,15 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
         << n_patch_B << ", obtained " << rDN_De_B[0].size1() << "." << std::endl;
 
     const Matrix& N_patch_A = r_patch_A.ShapeFunctionsValues();
-    const Matrix& N_patch_B = r_patch_B.ShapeFunctionsValues();
+    Matrix N_patch_B = r_patch_B.ShapeFunctionsValues();
+
+    if (mIsGapSbmCoupling) {
+        Vector N_sum_B_vector(n_patch_B);
+        ComputeTaylorExpansionContribution(r_patch_B, mDistanceVectorB, N_sum_B_vector);
+        for (IndexType j = 0; j < n_patch_B; ++j) {
+            N_patch_B(0, j) = N_sum_B_vector[j];
+        }
+    }
 
     KRATOS_ERROR_IF(N_patch_A.size2() != n_patch_A)
         << "LaplacianCouplingCondition: shape function values columns mismatch for patch A. Expected "
@@ -138,8 +172,8 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
     double penalty_factor;
     double nitsche_penalty_free = 1.0;
     if (GetProperties().Has(PENALTY_FACTOR)) {
-        // penalty_factor = -1.0; // GetProperties()[PENALTY_FACTOR];
-        penalty_factor = 100.0; 
+        // penalty_factor = GetProperties()[PENALTY_FACTOR];
+        penalty_factor = 1000.0; 
         if (penalty_factor <= 0.0) {
             penalty_factor = 0.0;
             nitsche_penalty_free = -1.0; // does not matter this sign
@@ -165,35 +199,29 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
     }
     const double penalty_over_h = penalty_factor / characteristic_length;
 
-    Vector DN_dot_n_patch_A = ZeroVector(n_patch_A);
-    Vector DN_dot_n_patch_B = ZeroVector(n_patch_B);
     Matrix DN_patch_A = rDN_De_A[0];
     Matrix DN_patch_B = rDN_De_B[0];
 
-    for (IndexType a = 0; a < n_patch_A; ++a) {
-        for (unsigned int d = 0; d < dim_patch_A; ++d) {
-            DN_dot_n_patch_A[a] += DN_patch_A(a, d) * mNormalPhysicalSpaceA[d];
-        }
+    if (mIsGapSbmCoupling) {
+        Matrix grad_H_minus_T(3, n_patch_B);
+        ComputeGradientTaylorExpansionContribution(r_patch_B, mDistanceVectorB, grad_H_minus_T);
+        DN_patch_B = trans(grad_H_minus_T); // [n_patch_B x 3]
     }
-    for (IndexType b = 0; b < n_patch_B; ++b) {
-        for (unsigned int d = 0; d < dim_patch_B; ++d) {
-            DN_dot_n_patch_B[b] += DN_patch_B(b, d) * mNormalPhysicalSpaceB[d];
-        }
-    }
+
     Vector DNn_A_nA(n_patch_A, 0.0);
     Vector DNn_A_nB(n_patch_A, 0.0);
     Vector DNn_B_nA(n_patch_B, 0.0);
     Vector DNn_B_nB(n_patch_B, 0.0);
     for (IndexType a = 0; a < n_patch_A; ++a) {
         for (unsigned int d = 0; d < dim_patch_A; ++d) {
-            const double grad_val = rDN_De_A[0](a, d);
+            const double grad_val = DN_patch_A(a, d);
             DNn_A_nA[a] += grad_val * mNormalPhysicalSpaceA[d];
             DNn_A_nB[a] += grad_val * mNormalPhysicalSpaceB[d];
         }
     }
     for (IndexType b = 0; b < n_patch_B; ++b) {
         for (unsigned int d = 0; d < dim_patch_B; ++d) {
-            const double grad_val = rDN_De_B[0](b, d);
+            const double grad_val = DN_patch_B(b, d);
             DNn_B_nA[b] += grad_val * mNormalPhysicalSpaceA[d];
             DNn_B_nB[b] += grad_val * mNormalPhysicalSpaceB[d];
         }
@@ -462,6 +490,105 @@ void LaplacianCouplingCondition::GetSolutionCoefficientVectorB(
     for (IndexType i = 0; i < n_patch_B; ++i) {
         rValues[i] = r_patch_B[i].FastGetSolutionStepValue(rUnknown);
     }
+}
+
+void LaplacianCouplingCondition::ComputeTaylorExpansionContribution(const GeometryType& rGeometry, const Vector& rDistanceVector, Vector& H_sum_vec)
+{
+    const std::size_t number_of_control_points = rGeometry.PointsNumber();
+    const Matrix& r_N = rGeometry.ShapeFunctionsValues();
+    if (H_sum_vec.size() != number_of_control_points) H_sum_vec.resize(number_of_control_points);
+    // derivatives up to order mBasisFunctionsOrder
+    std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
+    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+        shape_function_derivatives[n - 1] = rGeometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod());
+    }
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        double H_taylor_term = 0.0;
+        if (mDim == 2) {
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+                Matrix& r_shape_function_derivatives = shape_function_derivatives[n - 1];
+                for (IndexType k = 0; k <= n; k++) {
+                    IndexType n_k = n - k;
+                    const double derivative = r_shape_function_derivatives(i, k);
+                    H_taylor_term += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
+                }
+            }
+        } else {
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+                Matrix& r_shape_function_derivatives = shape_function_derivatives[n - 1];
+                int countDerivativeId = 0;
+                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                        IndexType k_z = n - k_x - k_y;
+                        const double derivative = r_shape_function_derivatives(i, countDerivativeId);
+                        H_taylor_term += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y, rDistanceVector[2], k_z);
+                        countDerivativeId++;
+                    }
+                }
+            }
+        }
+        H_sum_vec(i) = H_taylor_term + r_N(0, i);
+    }
+}
+
+void LaplacianCouplingCondition::ComputeGradientTaylorExpansionContribution(const GeometryType& rGeometry, const Vector& rDistanceVector, Matrix& grad_H_sum)
+{
+    const std::size_t number_of_control_points = rGeometry.PointsNumber();
+    const auto& r_DN_De = rGeometry.ShapeFunctionsLocalGradients(rGeometry.GetDefaultIntegrationMethod());
+    std::vector<Matrix> shape_function_derivatives(mBasisFunctionsOrder);
+    for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+        shape_function_derivatives[n - 1] = rGeometry.ShapeFunctionDerivatives(n, 0, this->GetIntegrationMethod());
+    }
+    if (grad_H_sum.size1() != 3 || grad_H_sum.size2() != number_of_control_points) grad_H_sum.resize(3, number_of_control_points);
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        double H_taylor_term_X = 0.0, H_taylor_term_Y = 0.0, H_taylor_term_Z = 0.0;
+        if (mDim == 2) {
+            for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
+                Matrix& shapeFunctionDerivatives = shape_function_derivatives[n - 1];
+                for (IndexType k = 0; k <= n - 1; k++) {
+                    IndexType n_k = n - 1 - k;
+                    const double derivative = shapeFunctionDerivatives(i, k);
+                    H_taylor_term_X += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
+                }
+                for (IndexType k = 0; k <= n - 1; k++) {
+                    IndexType n_k = n - 1 - k;
+                    const double derivative = shapeFunctionDerivatives(i, k + 1);
+                    H_taylor_term_Y += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
+                }
+            }
+        } else {
+            for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
+                Matrix& shapeFunctionDerivatives = shape_function_derivatives[n - 1];
+                IndexType countDerivativeId = 0;
+                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                        IndexType k_z = n - k_x - k_y;
+                        const double derivative = shapeFunctionDerivatives(i, countDerivativeId);
+                        if (k_x >= 1) H_taylor_term_X += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x - 1, rDistanceVector[1], k_y, rDistanceVector[2], k_z);
+                        if (k_y >= 1) H_taylor_term_Y += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y - 1, rDistanceVector[2], k_z);
+                        if (k_z >= 1) H_taylor_term_Z += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y, rDistanceVector[2], k_z - 1);
+                        countDerivativeId++;
+                    }
+                }
+            }
+        }
+        grad_H_sum(0, i) = H_taylor_term_X + r_DN_De[0](i, 0);
+        grad_H_sum(1, i) = H_taylor_term_Y + r_DN_De[0](i, 1);
+        if (mDim == 3)
+            grad_H_sum(2, i) = H_taylor_term_Z + r_DN_De[0](i, 2);
+        else
+            grad_H_sum(2, i) = 0.0;
+    }
+}
+
+double LaplacianCouplingCondition::ComputeTaylorTerm(const double derivative, const double dx, const IndexType n_k, const double dy, const IndexType k)
+{
+    return derivative * std::pow(dx, n_k) * std::pow(dy, k) / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));
+}
+
+double LaplacianCouplingCondition::ComputeTaylorTerm3D(const double derivative, const double dx, const IndexType k_x, const double dy, const IndexType k_y, const double dz, const IndexType k_z)
+{
+    return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) / (MathUtils<double>::Factorial(k_x) * MathUtils<double>::Factorial(k_y) * MathUtils<double>::Factorial(k_z));
 }
 
 } // namespace Kratos

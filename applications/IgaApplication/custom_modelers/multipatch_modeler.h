@@ -120,6 +120,12 @@ private:
     // Returns the created/cleared ModelPart reference
     ModelPart& CreateSkinCouplingModelPartForRefinements(const std::string& rSkinModelPartName) const;
 
+    // Builds the inner-initial skin model part by copying the surrogate outer
+    // loop of the refinement patch (Patch2) as a set of degree-1 NURBS curves,
+    // one curve per surrogate condition.
+    // Returns the created/cleared ModelPart reference
+    ModelPart& CreateSkinInnerInitialFromRefinementSurrogateOuter(const std::string& rSkinModelPartName) const;
+
     std::vector<RectangleType> mSubdomains;
     std::vector<RefinementRegionData> mRefinementRegions;
     RectangleType mBaseRect{0.0, 1.0, 0.0, 1.0};
