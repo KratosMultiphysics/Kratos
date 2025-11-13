@@ -224,7 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadrat
         r_model_part.CreateNewNode(11 + i, 0.0, 0.0, 0.0);
     }
 
-    std::vector<std::size_t> node_ids_element_2 = {1, 2, 3, 5, 6, 7, 11, 12, 13, 14, 15, 16};
+    std::vector<std::size_t> node_ids_element_2 = {3, 1, 2, 7, 5, 6, 11, 12, 13, 14, 15, 16};
     PointerVector<Node>      nodes_element_2(node_ids_element_2.size());
     std::ranges::transform(node_ids_element_2, nodes_element_2.ptr_begin(),
                            [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });

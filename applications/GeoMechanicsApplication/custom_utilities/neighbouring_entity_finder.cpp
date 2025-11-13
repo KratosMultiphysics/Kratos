@@ -65,6 +65,10 @@ void NeighbouringEntityFinder::AddNeighbouringElementsToEntitiesBasedOnOverlappi
                                             r_boundary_geometry.GetGeometryOrderType());
             if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
                 SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
+            } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
+                // No entity is directly found for this boundary, but it might be a rotated equivalent
+                SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
+                    rElement, element_boundary_node_ids, r_boundary_geometry.GetGeometryOrderType());
             }
         }
     }
