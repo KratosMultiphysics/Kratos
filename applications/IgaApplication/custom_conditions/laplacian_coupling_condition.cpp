@@ -65,14 +65,11 @@ void LaplacianCouplingCondition::InitializeMemberVariables()
     mNormalParameterSpaceB /= MathUtils<double>::Norm(mNormalParameterSpaceB);
     mNormalPhysicalSpaceB = mNormalParameterSpaceB;
 
-    if (mIsGapSbmCoupling) {
-        mNormalPhysicalSpaceB = -mNormalPhysicalSpaceA;
-    }
-
     KRATOS_ERROR_IF(std::abs(inner_prod(mNormalPhysicalSpaceA, mNormalPhysicalSpaceB)+1) > 1e-12 && !mIsGapSbmCoupling)
         << "LaplacianCouplingCondition: normals are not opposite." << std::endl;
     
     SetValue(NORMAL, mNormalPhysicalSpaceA);
+    SetValue(PROJECTION_NODE_COORDINATES, r_geometry_patchB.Center());
 }
 
 void LaplacianCouplingCondition::CalculateLocalSystem(
@@ -172,17 +169,17 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
     double penalty_factor;
     double nitsche_penalty_free = 1.0;
     if (GetProperties().Has(PENALTY_FACTOR)) {
-        // penalty_factor = GetProperties()[PENALTY_FACTOR];
-        penalty_factor = 1000.0; 
+        penalty_factor = GetProperties()[PENALTY_FACTOR];
+        penalty_factor = 10000000; 
         if (penalty_factor <= 0.0) {
             penalty_factor = 0.0;
-            nitsche_penalty_free = -1.0; // does not matter this sign
+            nitsche_penalty_free = -1.0;
         }
     } else {
         KRATOS_ERROR << "LaplacianCouplingCondition requires PENALTY_FACTOR to be defined in the Properties." << std::endl;
     }
 
-    double characteristic_length = 1.0;
+    double characteristic_length;
     if (Has(KNOT_SPAN_SIZES)) {
         const Vector& knot_span_sizes = GetValue(KNOT_SPAN_SIZES);
         if (!knot_span_sizes.empty()) {
@@ -193,9 +190,8 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
         } else {
             KRATOS_ERROR << "KNOT_SPAN_SIZES is empty in LaplacianCouplingCondition" << std::endl;
         }
-    }
-    if (characteristic_length <= 0.0) {
-        KRATOS_ERROR << "KNOT_SPAN_SIZES is < 0 in LaplacianCouplingCondition" << std::endl;
+    } else {
+        KRATOS_ERROR << "KNOT_SPAN_SIZES is not defined in LaplacianCouplingCondition" << std::endl;
     }
     const double penalty_over_h = penalty_factor / characteristic_length;
 
@@ -203,101 +199,88 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
     Matrix DN_patch_B = rDN_De_B[0];
 
     if (mIsGapSbmCoupling) {
-        Matrix grad_H_minus_T(3, n_patch_B);
-        ComputeGradientTaylorExpansionContribution(r_patch_B, mDistanceVectorB, grad_H_minus_T);
-        DN_patch_B = trans(grad_H_minus_T); // [n_patch_B x 3]
+        Matrix grad_H_B_T(3, n_patch_B);
+        ComputeGradientTaylorExpansionContribution(r_patch_B, mDistanceVectorB, grad_H_B_T);
+        DN_patch_B = trans(grad_H_B_T); // [n_patch_B x 3]
     }
 
-    Vector DNn_A_nA(n_patch_A, 0.0);
-    Vector DNn_A_nB(n_patch_A, 0.0);
-    Vector DNn_B_nA(n_patch_B, 0.0);
-    Vector DNn_B_nB(n_patch_B, 0.0);
+    Vector DNn_A_n(n_patch_A, 0.0);
+    Vector DNn_B_n(n_patch_B, 0.0);
     for (IndexType a = 0; a < n_patch_A; ++a) {
         for (unsigned int d = 0; d < dim_patch_A; ++d) {
-            const double grad_val = DN_patch_A(a, d);
-            DNn_A_nA[a] += grad_val * mNormalPhysicalSpaceA[d];
-            DNn_A_nB[a] += grad_val * mNormalPhysicalSpaceB[d];
+            DNn_A_n[a] += DN_patch_A(a, d) * mNormalPhysicalSpaceA[d];
         }
     }
     for (IndexType b = 0; b < n_patch_B; ++b) {
         for (unsigned int d = 0; d < dim_patch_B; ++d) {
-            const double grad_val = DN_patch_B(b, d);
-            DNn_B_nA[b] += grad_val * mNormalPhysicalSpaceA[d];
-            DNn_B_nB[b] += grad_val * mNormalPhysicalSpaceB[d];
+            DNn_B_n[b] += DN_patch_B(b, d) * mNormalPhysicalSpaceA[d];
         }
     }
 
-    // Integration by parts + coupling condition [Scovazzi]
-    // Term: ∫ [[w]] · {{∇u}} = ∫ (v_A n_A + v_B n_B) · 0.5(∇u_A + ∇u_B)
+    // Integration by parts + coupling condition 
+    // Term: -∫ [[w]] · {{∇u}} = -∫ (v_A - v_B) · 0.5(∇u_A dot n_A + ∇u_B dot n_B)
     const IndexType offB = n_patch_A;
     // rows: test v_A with n_A
     for (IndexType i = 0; i < n_patch_A; ++i) {
         const double vA = N_patch_A(0, i);
         // cols: u_A via (∇N_A · n_A)
         for (IndexType j = 0; j < n_patch_A; ++j)
-            rLeftHandSideMatrix(i, j) -= weight * 0.5 * vA * DNn_A_nA[j];
+            rLeftHandSideMatrix(i, j) -= weight * 0.5 * vA * DNn_A_n[j];
         // cols: u_B via (∇N_B · n_A)
         for (IndexType j = 0; j < n_patch_B; ++j)
-            rLeftHandSideMatrix(i, offB + j) -= weight * 0.5 * vA * DNn_B_nA[j];
+            rLeftHandSideMatrix(i, offB + j) -= weight * 0.5 * vA * DNn_B_n[j];
     }
     // rows: test v_B with n_B
     for (IndexType i = 0; i < n_patch_B; ++i) {
         const double vB = N_patch_B(0, i);
         // cols: u_A via (∇N_A · n_B)
         for (IndexType j = 0; j < n_patch_A; ++j)
-            rLeftHandSideMatrix(offB + i, j) -= weight * 0.5 * vB * DNn_A_nB[j];
+            rLeftHandSideMatrix(offB + i, j) += weight * 0.5 * vB * DNn_A_n[j];
         // cols: u_B via (∇N_B · n_B)
         for (IndexType j = 0; j < n_patch_B; ++j)
-            rLeftHandSideMatrix(offB + i, offB + j) -= weight * 0.5 * vB * DNn_B_nB[j];
+            rLeftHandSideMatrix(offB + i, offB + j) += weight * 0.5 * vB * DNn_B_n[j];
     }
 
 
 
     // Nitsche stabilization
-    // 0.5*(grad v_A + grad v_B) · (u_A n_A + u_B n_B)
+    // 0.5*(grad v_A n_A + grad v_B n_B) · (u_A - u_B)
     for (IndexType i = 0; i < n_patch_A; ++i) {
-        const double grad_test_A_nA = DNn_A_nA[i];
-        const double grad_test_A_nB = DNn_A_nB[i];
         for (IndexType j = 0; j < n_patch_A; ++j) {
-            rLeftHandSideMatrix(i, j) += nitsche_penalty_free * 0.5 * weight * grad_test_A_nA * N_patch_A(0, j);
+            rLeftHandSideMatrix(i, j) -= nitsche_penalty_free * 0.5 * weight * DNn_A_n[i] * N_patch_A(0, j);
         }
         for (IndexType j = 0; j < n_patch_B; ++j) {
-            rLeftHandSideMatrix(i, n_patch_A + j) += nitsche_penalty_free * 0.5 * weight * grad_test_A_nB * N_patch_B(0, j);
+            rLeftHandSideMatrix(i, n_patch_A + j) += nitsche_penalty_free * 0.5 * weight * DNn_A_n[i] * N_patch_B(0, j);
         }
     }
     for (IndexType i = 0; i < n_patch_B; ++i) {
-        const double grad_test_B_nA = DNn_B_nA[i];
-        const double grad_test_B_nB = DNn_B_nB[i];
         for (IndexType j = 0; j < n_patch_A; ++j) {
-            rLeftHandSideMatrix(n_patch_A + i, j) += nitsche_penalty_free * 0.5 * weight * grad_test_B_nA * N_patch_A(0, j);
+            rLeftHandSideMatrix(n_patch_A + i, j) -= nitsche_penalty_free * 0.5 * weight * DNn_B_n[i] * N_patch_A(0, j);
         }
         for (IndexType j = 0; j < n_patch_B; ++j) {
-            rLeftHandSideMatrix(n_patch_A + i, n_patch_A + j) += nitsche_penalty_free * 0.5 * weight * grad_test_B_nB * N_patch_B(0, j);
+            rLeftHandSideMatrix(n_patch_A + i, n_patch_A + j) += nitsche_penalty_free * 0.5 * weight * DNn_B_n[i] * N_patch_B(0, j);
         }
     }
 
 
     // Penalty term
     if (penalty_over_h != 0.0) {
-        const double dot_nA_nA = MathUtils<double>::Dot(mNormalPhysicalSpaceA, mNormalPhysicalSpaceA);
-        const double dot_nA_nB = MathUtils<double>::Dot(mNormalPhysicalSpaceA, mNormalPhysicalSpaceB);
-        const double dot_nB_nB = MathUtils<double>::Dot(mNormalPhysicalSpaceB, mNormalPhysicalSpaceB);
 
         for (IndexType i = 0; i < n_patch_A; ++i) {
             for (IndexType j = 0; j < n_patch_A; ++j) {
-                rLeftHandSideMatrix(i, j) += penalty_over_h * weight * N_patch_A(0, i) * N_patch_A(0, j) * dot_nA_nA;
+                rLeftHandSideMatrix(i, j) += penalty_over_h * weight * N_patch_A(0, i) * N_patch_A(0, j);
             }
             for (IndexType j = 0; j < n_patch_B; ++j) {
-                rLeftHandSideMatrix(i, n_patch_A + j) += penalty_over_h * weight * N_patch_A(0, i) * N_patch_B(0, j) * dot_nA_nB;
+                rLeftHandSideMatrix(i, n_patch_A + j) -= penalty_over_h * weight * N_patch_A(0, i) * N_patch_B(0, j);
             }
         }
 
         for (IndexType i = 0; i < n_patch_B; ++i) {
             for (IndexType j = 0; j < n_patch_A; ++j) {
-                rLeftHandSideMatrix(n_patch_A + i, j) += penalty_over_h * weight * N_patch_B(0, i) * N_patch_A(0, j) * dot_nA_nB;
+                rLeftHandSideMatrix(n_patch_A + i, j) -= penalty_over_h * weight * N_patch_B(0, i) * N_patch_A(0, j);
             }
             for (IndexType j = 0; j < n_patch_B; ++j) {
-                rLeftHandSideMatrix(n_patch_A + i, n_patch_A + j) += penalty_over_h * weight * N_patch_B(0, i) * N_patch_B(0, j) * dot_nB_nB;
+                rLeftHandSideMatrix(n_patch_A + i, n_patch_A + j) += penalty_over_h * weight * N_patch_B(0, i) * N_patch_B(0, j);
             }
         }
 
