@@ -154,7 +154,6 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenInterfa
     NeighbouringEntityFinder finder(alsoSearchReverse);
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
-    boundary_generators[std::size_t{2}] = std::make_unique<EdgesGenerator>();
     boundary_generators[std::size_t{1}] = std::make_unique<EdgesGenerator>();
     finder.FindEntityNeighbours(r_interface_model_part.Elements(), r_model_part.Elements(), boundary_generators);
 
