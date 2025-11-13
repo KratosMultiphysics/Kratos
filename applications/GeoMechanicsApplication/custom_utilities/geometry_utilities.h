@@ -30,7 +30,8 @@ public:
                                                             const array_1d<double, 3>& rLocalCoordinate);
     static std::vector<std::size_t> GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry);
     static void ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily, PointerVector<Node>& rNodes);
-    static void ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily, std::vector<std::size_t>& rNodeIds);
+    static void ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily,
+                             std::vector<std::size_t>&          rNodeIds);
 };
 
 } // namespace Kratos

@@ -48,8 +48,7 @@ void ReverseNodes(GeometryData::KratosGeometryFamily GeometryFamily, InputIt Beg
     std::reverse(end_of_corner_points, End);
 }
 
-}
-
+} // namespace
 
 namespace Kratos
 {
