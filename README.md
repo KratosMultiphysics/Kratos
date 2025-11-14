@@ -147,6 +147,7 @@ Some users of the technologies developed in Kratos are:
 - [GidPost]([https://www.gidhome.com/gid-plus/tools/476/gidpost/](https://www.gidsimulation.com/downloads/gidpost-2-11-library-to-write-postprocess-results-for-gid-in-ascii-binary-or-hdf5-format/)) providing output to [GiD](https://www.gidsimulation.com/)
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
 - [JSON](https://github.com/nlohmann/json) JSON for Modern C++
+- [JSON Schema Validator](https://github.com/pboettch/json-schema-validator/pull/360) JSON schema validator for JSON for modern C++
 - [ZLib](https://zlib.net/) The compression library
 - [Google Test](https://github.com/google/googletest) for unit testing C++ code
 - [Google Benchmark](https://github.com/google/benchmark) for microbenchmarking and performance testing
