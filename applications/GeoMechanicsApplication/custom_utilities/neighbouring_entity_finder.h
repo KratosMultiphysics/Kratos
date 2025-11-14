@@ -45,7 +45,7 @@ public:
                               ModelPart::ElementsContainerType& rCandidates,
                               BoundaryGeneratorByLocalDim&      rBoundaryGenerators)
     {
-        for (int local_space_dimension = 0; local_space_dimension < 4; ++local_space_dimension) {
+        for (std::size_t local_space_dimension = 0; local_space_dimension < 4; ++local_space_dimension) {
             if (!rBoundaryGenerators.contains(local_space_dimension)) continue;
 
             NodeIdsToEntitiesHashMap map;
