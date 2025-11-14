@@ -231,12 +231,10 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixGlobal
     }
     noalias(v3) = MathUtils<double>::CrossProduct(v1, v2);
 
-    // Assemble the basis vectors in the rotation matrix
-    for (IndexType i = 0; i < 3; ++i) { // in rows, global to local
-        rRotationMatrix(0, i) = v1[i];
-        rRotationMatrix(1, i) = v2[i];
-        rRotationMatrix(2, i) = v3[i];
-    }
+    row(rRotationMatrix, 0) = v1;
+    row(rRotationMatrix, 1) = v2;
+    row(rRotationMatrix, 2) = v3;
+
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateRotationMatrixGlobalToLocal")
 }
 
@@ -1000,7 +998,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::AddBodyForces(
     const auto& r_props = GetProperties();
 
     array_3 body_forces = ZeroVector(3);
-    const double one_third = 1.0 / 3.0;
+    constexpr double one_third = 1.0 / 3.0;
 
     double density = 0.0;
     if (r_props.Has(DENSITY)) {
