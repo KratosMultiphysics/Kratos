@@ -45,25 +45,14 @@ def setupLogging(file):
     console.setLevel(logging.INFO)
     logging.getLogger().addHandler(console)
 
-def generate_tag(lib_dir):
-    """
-    Detect the full ABI/platform tag from a compiled .pyd file.
-    Examples:
-        my_module.cp311-win_amd64.pyd        -> cp311-win_amd64
-        my_module.cp310-cp310-win_amd64.pyd  -> cp310-cp310-win_amd64
-    """
-    # Match either Windows (.pyd) or Unix (.so)
-    pattern = re.compile(
-        r"\.(?:(cp\d+(?:-[\w\d]+)*)|cpython-[\d]+(?:-[\w\d-]+)*)\.(?:pyd|so)$"
-    )
+def logResult(res):
+    if res.stdout:
+        for line in res.stdout.splitlines():
+            logging.info(line)
+    if res.stderr:
+        for line in res.stderr.splitlines():
+            logging.error(line)
 
-    for file in Path(lib_dir).glob("*.[ps][oy][ds]"):  # matches *.pyd and *.so
-        match = pattern.search(file.name)
-        if match:
-            # Return whichever group matched (cp... or cpython-...)
-            return match.group(1) or match.group(0).lstrip(".").rsplit(".", 1)[0]
-        
-    return None
 
 def getAppList(kts_apps_dir):
 
@@ -78,40 +67,55 @@ def getAppList(kts_apps_dir):
 
     return applications
 
-def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
+def getPythonInterpreter(platform: str, python_ver: str):
     if platform == "Windows":
-        subprocess.run(
+        return Path("C:/python") / f"{python_ver}" / "python.exe"
+    elif platform == "Linux":
+        return Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python"
+    elif platform == "Darwin":
+        return Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python"
+    else:
+        logging.critical(f"Cannot retrieve python interpreter for platform: {platform}")
+
+def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
+    python_interpreter = getPythonInterpreter(platform, python_ver)
+
+    if platform == "Windows":
+        res = subprocess.run(
             [
                 "powershell", 
                 "-Command", 
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
-                Path("C:/python") / f"{python_ver}" / "python.exe",
+                python_interpreter,
                 Path(CURRENT_CONFIG['KRATOS_ROOT']),
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}",
                 "24"
             ], 
             check=True
         )
+        logResult(res)
     elif platform == "Linux":
-        subprocess.run(
+        res = subprocess.run(
             [
                 "bash", 
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / "Scripts" / "Wheels" / platform.lower() / "configure.sh",
-                Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python",
+                python_interpreter,
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}" / "libs"
             ],
             check=True
         )
+        logResult(res)
     elif platform == "Darwin":
-        subprocess.run(
+        res = subprocess.run(
             [
                 "bash", 
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / "Scripts" / "Wheels" / platform.lower() / "configure.sh",
-                Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python",
+                python_interpreter,
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}" / "libs"
             ],
             check=True
         )
+        logResult(res)
     else:
         logging.critical(f"Cannot build for platform: {platform}")
       
@@ -121,68 +125,22 @@ def buildKernel(CURRENT_CONFIG: dict, platform: str, python_ver: str):
         pass
     else:
         configure(CURRENT_CONFIG, platform, python_ver)
-        subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosKernel"], check=True)
-    
+        res = subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosKernel"], check=True)
+        logResult(res)
 
 def buildInterface(CURRENT_CONFIG: dict, platform: str, python_ver: str):
     configure(CURRENT_CONFIG, platform, python_ver)
 
     if platform == "Windows":
-        subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "install", "--", "/property:configuration=Release", "/p:Platform=x64"], check=True)
+        res = subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "install", "--", "/property:configuration=Release", "/p:Platform=x64"], check=True)
+        logResult(res)
     else:
-        subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosPythonInterface"], check=True)
-        subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "install"], check=True)
+        res = subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosPythonInterface"], check=True)
+        logResult(res)
+        res = subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "install"], check=True)
+        logResult(res)
 
-
-def setupWheelDir(wheel_root_path: str):
-    """
-    Sets up the required directory structure for building wheels in the staging area.
-    This creates the main wheel root and the KratosMultiphysics structure inside it.
-    """
-    
-    logging.debug(f"Setting up Wheel Directory at: {wheel_root_path}")
-
-    # Define the required directories to create inside the wheel root
-    # This structure is relative to wheel_root_path
-    target_structure = [
-        '', 'KratosMultiphysics', os.path.join('KratosMultiphysics', '.libs')
-    ]
-
-    # Create all directories using the full path
-    for relative_path in target_structure:
-        dir_path = os.path.join(wheel_root_path, relative_path)
-        try:
-            # os.makedirs is Python's equivalent of 'mkdir -p'
-            os.makedirs(dir_path, exist_ok=True)
-            logging.debug(f"Created/Ensured directory: {dir_path}")
-        except Exception as e:
-            logging.critical(f"Error creating directory {dir_path}: {e}")
-            return None # Return None if setup fails
-
-    logging.debug("\nSetup complete.")
-    return wheel_root_path
-
-def cleanupWheelDir(wheel_root_path: str):
-    """
-    Removes the entire wheel building directory recursively.
-    This is equivalent to 'rm -r $WHEEL_ROOT'.
-    """
-
-    logging.debug(f"Cleaning up Wheel Directory: {wheel_root_path}")
-    
-    if os.path.exists(wheel_root_path):
-        try:
-            # shutil.rmtree is Python's equivalent of 'rm -r'
-            shutil.rmtree(wheel_root_path)
-            logging.debug(f"Successfully removed directory: {wheel_root_path}")
-        except Exception as e:
-            logging.critical(f"Error removing directory {wheel_root_path}: {e}")
-    else:
-        logging.warning(f"Directory not found, nothing to clean: {wheel_root_path}")
-    
-    logging.info("Cleanup complete.\n")
-
-def buildWheel (CURRENT_CONFIG: dict, paths: dict):
+def buildWheel (CURRENT_CONFIG: dict, paths: dict, platform: str, python_ver: str):
     """ Builds the wheel for the current target.
 
     """
@@ -237,10 +195,60 @@ def buildWheel (CURRENT_CONFIG: dict, paths: dict):
                 os.remove(item)
 
     # Build
-    builder = build.ProjectBuilder(CURRENT_CONFIG['WHEEL_ROOT'])
-    builder.build("wheel", Path(CURRENT_CONFIG['WHEEL_OUT']))
+    python_interpreter = getPythonInterpreter(platform, python_ver)
+
+    res = subprocess.run([python_interpreter, "-m", "build", "--wheel"], check=True)
+    logResult(res)
 
     cleanupWheelDir(wheel_staging_path)
+
+def setupWheelDir(wheel_root_path: str):
+    """
+    Sets up the required directory structure for building wheels in the staging area.
+    This creates the main wheel root and the KratosMultiphysics structure inside it.
+    """
+    
+    logging.debug(f"Setting up Wheel Directory at: {wheel_root_path}")
+
+    # Define the required directories to create inside the wheel root
+    # This structure is relative to wheel_root_path
+    target_structure = [
+        '', 'KratosMultiphysics', os.path.join('KratosMultiphysics', '.libs')
+    ]
+
+    # Create all directories using the full path
+    for relative_path in target_structure:
+        dir_path = os.path.join(wheel_root_path, relative_path)
+        try:
+            # os.makedirs is Python's equivalent of 'mkdir -p'
+            os.makedirs(dir_path, exist_ok=True)
+            logging.debug(f"Created/Ensured directory: {dir_path}")
+        except Exception as e:
+            logging.critical(f"Error creating directory {dir_path}: {e}")
+            return None # Return None if setup fails
+
+    logging.debug("\nSetup complete.")
+    return wheel_root_path
+
+def cleanupWheelDir(wheel_root_path: str):
+    """
+    Removes the entire wheel building directory recursively.
+    This is equivalent to 'rm -r $WHEEL_ROOT'.
+    """
+
+    logging.debug(f"Cleaning up Wheel Directory: {wheel_root_path}")
+    
+    if os.path.exists(wheel_root_path):
+        try:
+            # shutil.rmtree is Python's equivalent of 'rm -r'
+            shutil.rmtree(wheel_root_path)
+            logging.debug(f"Successfully removed directory: {wheel_root_path}")
+        except Exception as e:
+            logging.critical(f"Error removing directory {wheel_root_path}: {e}")
+    else:
+        logging.warning(f"Directory not found, nothing to clean: {wheel_root_path}")
+    
+    logging.info("Cleanup complete.\n")
 
 if __name__ == "__main__":
     # Set some defines
@@ -291,8 +299,7 @@ if __name__ == "__main__":
             paths['project_toml'] = Path(CURRENT_CONFIG['KRATOS_ROOT']) / "scripts" / "wheels" / "pyproject.toml"
 
         # Create the core wheel
-        os.environ['ABI_TAG'] = generate_tag(paths['project_libs'])
-        buildWheel(CURRENT_CONFIG, paths)
+        buildWheel(CURRENT_CONFIG, paths, OS, PYTHON)
         
         # Build applications (if not unified build)
         if not CURRENT_CONFIG['UNIFIED_WHEEL']: 
