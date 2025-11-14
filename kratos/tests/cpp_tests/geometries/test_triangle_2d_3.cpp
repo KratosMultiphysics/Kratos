@@ -147,6 +147,17 @@ namespace Testing {
     KRATOS_EXPECT_EQ(geom->FacesNumber(), 1);
   }
 
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Faces, KratosCoreGeometriesFastSuite) {
+    auto p_geom = GeneratePointsRightTriangle2D3();
+
+    const auto& r_faces = p_geom->GenerateFaces();
+    ASSERT_EQ(r_faces.size(), 1);
+    for (std::size_t i = 0; i < r_faces.front().PointsNumber(); ++i) {
+      KRATOS_EXPECT_NEAR(r_faces.front()[i].X(), (p_geom->pGetPoint(i))->X(), TOLERANCE);
+      KRATOS_EXPECT_NEAR(r_faces.front()[i].Y(), (p_geom->pGetPoint(i))->Y(), TOLERANCE);
+    }
+  }
+
   /** Checks if the area of the triangle is calculated correctly.
    * Checks if the area of the triangle is calculated correctly.
    */

@@ -77,6 +77,17 @@ namespace {
         KRATOS_EXPECT_EQ(geom->FacesNumber(), 1);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D10Faces, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateReferenceTriangle2D10();
+
+        const auto& r_faces = p_geom->GenerateFaces();
+        ASSERT_EQ(r_faces.size(), 1);
+        for (std::size_t i = 0; i < r_faces.front().PointsNumber(); ++i) {
+            KRATOS_EXPECT_NEAR(r_faces.front()[i].X(), (p_geom->pGetPoint(i))->X(), TOLERANCE);
+            KRATOS_EXPECT_NEAR(r_faces.front()[i].Y(), (p_geom->pGetPoint(i))->Y(), TOLERANCE);
+        }
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D10Area, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D10();
         KRATOS_EXPECT_NEAR(geom->Area(), 0.5, TOLERANCE);

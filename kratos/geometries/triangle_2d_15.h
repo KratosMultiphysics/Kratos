@@ -85,6 +85,11 @@ namespace Kratos
         typedef Line2D5<TPointType> EdgeType;
 
         /**
+         * Type of face geometry
+         */
+        using FaceType = Triangle2D15<TPointType>;
+
+        /**
          * Pointer definition of Triangle2D15
          */
         KRATOS_CLASS_POINTER_DEFINITION(Triangle2D15);
@@ -785,6 +790,28 @@ namespace Kratos
         SizeType FacesNumber() const override
         {
             return 1;
+        }
+
+        /// @copydoc Geometry::GenerateFaces
+        GeometriesArrayType GenerateFaces() const override
+        {
+            GeometriesArrayType faces;
+            faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 0 ),
+                                                               this->pGetPoint( 1 ),
+                                                               this->pGetPoint( 2 ),
+                                                               this->pGetPoint( 3 ),
+                                                               this->pGetPoint( 4 ),
+                                                               this->pGetPoint( 5 ),
+                                                               this->pGetPoint( 6 ),
+                                                               this->pGetPoint( 7 ),
+                                                               this->pGetPoint( 8 ),
+                                                               this->pGetPoint( 9 ),
+                                                               this->pGetPoint( 10 ),
+                                                               this->pGetPoint( 11 ),
+                                                               this->pGetPoint( 12 ),
+                                                               this->pGetPoint( 13 ),
+                                                               this->pGetPoint( 14 )) );
+            return faces;
         }
 
         //Connectivities of faces required
