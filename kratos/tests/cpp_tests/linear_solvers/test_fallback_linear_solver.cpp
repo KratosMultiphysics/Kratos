@@ -18,7 +18,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "spaces/ublas_space.h"
-#include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "linear_solvers/fallback_linear_solver.h"
 
 namespace Kratos::Testing
@@ -64,27 +63,6 @@ public:
     }
 
     ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        return "Dummy linear solver";
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "Dummy linear solver";
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
-
-    ///@}
 
 }; // Class DummyLinearSolver
 
@@ -101,7 +79,6 @@ using DenseVectorType = typename LocalSpaceType::VectorType;
 // Define the types of solvers
 using LinearSolverType = LinearSolver<SpaceType, LocalSpaceType>;
 using DummyLinearSolverType = DummyLinearSolver<SpaceType, LocalSpaceType>;
-using SkylineLUFactorizationSolverType = SkylineLUFactorizationSolver<SpaceType, LocalSpaceType>;
 using FallbackLinearSolverType = FallbackLinearSolver<SpaceType, LocalSpaceType>;
 using LinearSolverFactoryType = LinearSolverFactory<SpaceType, LocalSpaceType>;
 
@@ -109,7 +86,11 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
 {
     // Create the solvers
     auto p_solver1 = Kratos::make_shared<DummyLinearSolverType>();
-    auto p_solver2 = Kratos::make_shared<SkylineLUFactorizationSolverType>();
+    Parameters amgcl_parameters = Parameters(R"({
+        "solver_type": "amgcl",
+        "block_size" : 3
+    })");
+    auto p_solver2 = LinearSolverFactoryType().Create(amgcl_parameters);
 
     // Create the matrix and vectors
     const std::size_t size = 3;
@@ -154,10 +135,11 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
         "solver_type": "fallback_linear_solver",
         "solvers"    : [
             {
-                "solver_type": "skyline_lu_factorization"
+                "solver_type": "amgcl",
+                "block_size" : 3
             },
             {
-                "solver_type": "cg"
+                "solver_type": "skyline_lu_factorization"
             }
         ],
         "reset_solver_each_try": false
