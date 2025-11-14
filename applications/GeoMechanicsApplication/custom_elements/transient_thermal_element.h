@@ -19,6 +19,7 @@
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
@@ -82,7 +83,7 @@ public:
         GeometryType::ShapeFunctionsGradientsType dN_dX_container;
         Vector                                    det_J_container;
 
-        // ShapreFunctionsIntegrationsPointsGradients does not allow for the line element in 2D/3D
+        // ShapeFunctionsIntegrationsPointsGradients does not allow for the line element in 2D/3D
         // configuration and will produce errors. To circumvent this, the dN_dX_container is
         // separately computed with correct dimensions for the line element.
         if (GetGeometry().LocalSpaceDimension() == 1) {
@@ -182,11 +183,13 @@ private:
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rConductivityMatrix,
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rCapacityMatrix) const
     {
-        const auto capacity_vector =
-            array_1d<double, TNumNodes>{-prod(rCapacityMatrix, GetNodalValuesOf(DT_TEMPERATURE))};
-        rRightHandSideVector = capacity_vector;
-        const auto conductivity_vector =
-            array_1d<double, TNumNodes>{-prod(rConductivityMatrix, GetNodalValuesOf(TEMPERATURE))};
+        const auto capacity_vector     = array_1d<double, TNumNodes>{-prod(
+            rCapacityMatrix,
+            VariablesUtilities::GetNodalValuesOf<TNumNodes>(DT_TEMPERATURE, this->GetGeometry()))};
+        rRightHandSideVector           = capacity_vector;
+        const auto conductivity_vector = array_1d<double, TNumNodes>{-prod(
+            rConductivityMatrix,
+            VariablesUtilities::GetNodalValuesOf<TNumNodes>(TEMPERATURE, this->GetGeometry()))};
         rRightHandSideVector += conductivity_vector;
     }
 
@@ -230,16 +233,6 @@ private:
             result += (c_water + c_solid) * outer_prod(N, N) * rIntegrationCoefficients[integration_point_index];
         }
 
-        return result;
-    }
-
-    array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
-    {
-        auto        result     = array_1d<double, TNumNodes>{};
-        const auto& r_geometry = GetGeometry();
-        std::ranges::transform(r_geometry, result.begin(), [&rNodalVariable](const auto& node) {
-            return node.FastGetSolutionStepValue(rNodalVariable);
-        });
         return result;
     }
 

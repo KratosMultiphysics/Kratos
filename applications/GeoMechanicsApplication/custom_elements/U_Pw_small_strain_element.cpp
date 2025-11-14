@@ -17,7 +17,6 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/hydraulic_discharge.h"
-#include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/node_utilities.h"
 #include "custom_utilities/output_utilities.hpp"
@@ -1295,25 +1294,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariable
     this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,
                                                      rVariables.GradNpTInitialConfiguration,
                                                      IntegrationPointIndex);
-
-    KRATOS_CATCH("")
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainElement<TDim, TNumNodes>::CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix)
-{
-    KRATOS_TRY
-
-    const auto extrapolator = LinearNodalExtrapolator{};
-    const auto result       = extrapolator.CalculateElementExtrapolationMatrix(
-        this->GetGeometry(), this->GetIntegrationMethod());
-    KRATOS_ERROR_IF_NOT(result.size1() == TNumNodes)
-        << "Extrapolation matrix has unexpected number of rows: " << result.size1() << " (expected "
-        << TNumNodes << ")" << std::endl;
-    KRATOS_ERROR_IF_NOT(result.size2() == TNumNodes)
-        << "Extrapolation matrix has unexpected number of columns: " << result.size2()
-        << " (expected " << TNumNodes << ")" << std::endl;
-    rExtrapolationMatrix = result;
 
     KRATOS_CATCH("")
 }

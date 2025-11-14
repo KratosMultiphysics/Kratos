@@ -238,3 +238,8 @@ Install the *SuiteSparse* package on your system, and set the `USE_EIGEN_SUITESP
 - MacOS
     - *SuiteSparse* is [available](https://formulae.brew.sh/formula/suite-sparse) on *Homebrew* for both Intel and Apple Silicon machines.
     - `brew install suite-sparse`
+
+- Windows
+  - *SuiteSparse* is available through [*vcpkg*](https://vcpkg.io/en/package/suitesparse) and [*MSYS2*](https://packages.msys2.org/packages/mingw-w64-x86_64-suitesparse) package managers.
+  - `vcpkg install suitesparse suitesparse-spqr suitesparse-umfpack` (remember to add to build script `-DCMAKE_TOOLCHAIN_FILE="vcpkg_path\vcpkg\scripts\buildsystems\vcpkg.cmake"`)
+  - `pacman -S mingw-w64-x86_64-suitesparse`
