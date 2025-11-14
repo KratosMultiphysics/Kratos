@@ -207,22 +207,12 @@ class FluidTopologyOptimizationSolverTime(NavierStokesMonolithicSolver):
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
         new_time = current_time + dt
-        self._CustomCloneTimeStep(new_time)
+        self.main_model_part.CloneTimeStep(new_time)
         if (not self.IsAdjoint()): # NS
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] += 1
         else: 
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
         return new_time
-    
-    def _CustomCloneTimeStep(self, new_time):
-        if self.IsAdjoint():
-            dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-            velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, self.min_buffer_size-1, dim))
-            pressure = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE, self.min_buffer_size-1))
-        self.main_model_part.CloneTimeStep(new_time)
-        if self.IsAdjoint():
-            KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, velocity, 0)
-            KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE, pressure, 0)
     
     def IsAdjoint(self):
         return self.is_adjoint

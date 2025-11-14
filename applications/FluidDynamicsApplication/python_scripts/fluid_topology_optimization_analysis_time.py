@@ -1691,8 +1691,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
                     self.PrintTimeOutputProcess(output_process, istep+1)
 
     def PrintTimeOutputProcess(self, output_process, time_step_id):
-        time_step_max_length = len(str(self.n_time_steps))
-        time_step_counter = str(time_step_id).zfill(time_step_max_length) 
+        time_step_counter = str(time_step_id).zfill(len(str(self.n_time_steps))) 
         file_name = "time_step_" + time_step_counter
         if type(output_process).__name__ == "VtkOutputProcess":
             output_process.vtk_io.PrintOutput(file_name)
@@ -1716,9 +1715,10 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
 
     def _PrintOptimizationSolution(self):
         self.OptimizationOutputSolutionStep()
+        self._CorrectPvtuFilesInOptimizationVtuOutput()
         if self._IsTopologyOptimizationSolutionEnd():
             self.TimeOutputSolutionStep()
-        self._CorrectPvtuFilesInOptimizationVtuOutput()
+            self._CorrectPvtuFilesInTimeVtuOutput()
         self._PrintFunctionalsToFile()
         if self.first_iteration:
             self._CopyInputFiles()
@@ -1773,7 +1773,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
                                             )
             remesh_param = KratosMultiphysics.Parameters("""{ }""")
             if (self.dim == 2):
-                self.local_hessian = KratosW.ComputeHessianSolMetricProcess2D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
+                self.local_hessian = KratosMultiphysics.ComputeHessianSolMetricProcess2D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
                 self.mmg_process = KratosMMG.MmgProcess2D(main_mp, remesh_param)
             elif (self.dim == 3):
                 self.local_hessian = KratosMMG.ComputeHessianSolMetricProcess3D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
@@ -2561,6 +2561,25 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
                                 text = pvtu_path.read_text(encoding='utf-8')
                                 fixed_text = text.replace(folder_name+"/", "")
                                 pvtu_path.write_text(fixed_text, encoding='utf-8')
+
+    def _CorrectPvtuFilesInTimeVtuOutput(self):
+        if (self.MpiRunOnlyRank(0)):
+            output_processes_list_names = ["time_output_processes"]
+            for output_process_list_name in output_processes_list_names:
+                if (self.project_parameters.Has(output_process_list_name)):
+                    if (self.project_parameters[output_process_list_name].Has("vtu_output")):
+                        vtu_output_settings = self.project_parameters[output_process_list_name]["vtu_output"][0]
+                        if (vtu_output_settings.Has("Parameters")):
+                            vtu_output_parameters = vtu_output_settings["Parameters"]
+                            folder_name = vtu_output_parameters["output_path"].GetString()
+                            for istep in range(self.n_time_steps):
+                                time_step_counter = str(istep+1).zfill(len(str(self.n_time_steps))) 
+                                file_name = "time_step_" + time_step_counter + ".pvtu"
+                                pvtu_path = Path(folder_name) / file_name
+                                if pvtu_path.exists():
+                                    text = pvtu_path.read_text(encoding='utf-8')
+                                    fixed_text = text.replace(folder_name+"/", "")
+                                    pvtu_path.write_text(fixed_text, encoding='utf-8')
 
 ###########################################################
 ### METHODS FOR MPI UTILITIES

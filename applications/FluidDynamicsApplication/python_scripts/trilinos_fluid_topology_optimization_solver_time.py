@@ -62,8 +62,9 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
         self._InitializeModelPartImporter()
         self.InitializeDataCommunicator()
         self.CheckModelPartImportSettings(custom_settings)
-        super().__init__(model,custom_settings)
         self._DefineAdjointSolver(is_adjoint_solver)
+        init_model = self._GetInitModel(model)
+        super().__init__(init_model,custom_settings)
         self._DefineElementsAndConditions()
         print_str = "Construction of FluidTopologyOptimizationSolver "
         if self.IsAdjoint():
@@ -81,6 +82,12 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
     def CheckModelPartImportSettings(self, settings):
         if (settings["model_import_settings"]["input_type"].GetString() != "mdpa"):
             raise RuntimeError("Executing MPI with the wrong model part import settings")
+        
+    def _GetInitModel(self, model):
+        if self.IsAdjoint():
+            return KratosMultiphysics.Model()
+        else:
+            return model
 
     def _DefineAdjointSolver(self, isAdjointSolver):
         self.is_adjoint = isAdjointSolver
@@ -233,13 +240,13 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
             return is_converged
     
     def AdvanceInTime(self, current_time):
+        dt = self._ComputeDeltaTime()
+        new_time = current_time + dt
+        self.main_model_part.CloneTimeStep(new_time)
         if (not self.IsAdjoint()): # NS
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] += 1
         else: 
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
-        dt = self._ComputeDeltaTime()
-        new_time = current_time + dt
-        self._CustomCloneTimeStep(new_time)
         return new_time
     
     def _CustomCloneTimeStep(self, new_time):
@@ -272,7 +279,13 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
     
     def ImportModelPart(self, model_parts=None, physics_solver_distributed_model_part_importer=None):
         if (self.IsPhysics()):
-            self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+            if not _CheckIsDistributed():
+                self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+            else:
+                self.distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(
+                    self.main_model_part,
+                    self.settings)
+                self.distributed_model_part_importer.ImportModelPart()
         else:
             source_mp = model_parts[0]
             modeler = KratosMultiphysics.ConnectivityPreserveModeler()
@@ -303,9 +316,14 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
         else:
             raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(resistance)}")
         
-    def _UpdateConvectionVelocityVariable(self, buffer_id):
+    def _UpdateConvectionVelocityVariable(self, convection_velocity):
+        dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         for node in self._GetLocalMeshNodes():
-            node.SetValue(KratosCFD.CONVECTION_VELOCITY, node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, buffer_id))
+            nodal_convection_velocity = convection_velocity[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
+            node.SetValue(KratosCFD.CONVECTION_VELOCITY_X, nodal_convection_velocity[0])
+            node.SetValue(KratosCFD.CONVECTION_VELOCITY_Y, nodal_convection_velocity[1])
+            if (dim == 3):
+                node.SetValue(KratosCFD.CONVECTION_VELOCITY_Z, nodal_convection_velocity[2])
     
     def InitializeSolutionStep(self):
         self.is_resistance_updated = False
