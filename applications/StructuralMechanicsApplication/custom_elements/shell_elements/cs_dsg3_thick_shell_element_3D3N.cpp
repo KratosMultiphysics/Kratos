@@ -148,19 +148,22 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetDofList(
 {
     KRATOS_TRY
 
-    const auto& r_geom = GetGeometry();
-    const SizeType number_of_nodes = r_geom.size();
+    const auto& r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, w, theta_x, theta_y, theta_z
     rElementalDofList.resize(dofs_per_node * number_of_nodes);
     IndexType index = 0;
 
+    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_X);
+
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_X);
-        rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_Y);
-        rElementalDofList[index++] = r_geom[i].pGetDof(DISPLACEMENT_Z);
-        rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_X);
-        rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Y);
-        rElementalDofList[index++] = r_geom[i].pGetDof(ROTATION_Z);
+        rElementalDofList[index++] = r_geometry[i].pGetDof(DISPLACEMENT_X, xpos    );
+        rElementalDofList[index++] = r_geometry[i].pGetDof(DISPLACEMENT_Y, xpos + 1);
+        rElementalDofList[index++] = r_geometry[i].pGetDof(DISPLACEMENT_Z, xpos + 2);
+        rElementalDofList[index++] = r_geometry[i].pGetDof(ROTATION_X, rot_pos     );
+        rElementalDofList[index++] = r_geometry[i].pGetDof(ROTATION_Y, rot_pos + 1 );
+        rElementalDofList[index++] = r_geometry[i].pGetDof(ROTATION_Z, rot_pos + 2 );
     }
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::GetDofList")
 }
