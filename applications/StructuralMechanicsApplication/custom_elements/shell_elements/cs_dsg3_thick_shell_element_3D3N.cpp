@@ -211,11 +211,11 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixGlobal
     if (this->Has(LOCAL_AXIS_1)) {
         noalias(v1) = this->GetValue(LOCAL_AXIS_1); // We assume that the user has set a unit vector
         noalias(v2) = aux_2 - aux_0;
-        v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
+        v2 -= inner_prod(v1, v2) * v1; // v2 orthogonal to v1
         const double norm_v2 = norm_2(v2);
         if (norm_v2 <= 1.0e-8) { // colineal
             noalias(v2) = aux_1 - aux_0;
-            v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
+            v2 -= inner_prod(v1, v2) * v1; // v2 orthogonal to v1
         }
         v2 /= norm_2(v2);
     } else {
@@ -224,7 +224,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixGlobal
         KRATOS_DEBUG_ERROR_IF_NOT(norm_v1 > 0.0) << "Zero length local axis 1 for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
         v1 /= norm_v1;
         noalias(v2) = aux_2 - aux_0;
-        v2 = v2 - inner_prod(v1, v2) * v1; // v2 orthogonal to v1
+        v2 -= inner_prod(v1, v2) * v1; // v2 orthogonal to v1
         const double norm_v2 = norm_2(v2);
         KRATOS_DEBUG_ERROR_IF_NOT(norm_v2 > 0.0) << "Zero length local axis 2 for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
         v2 /= norm_v2; 
