@@ -418,7 +418,7 @@ void KratosExecute::WriteCriticalHeadResultToFile() const
     out_stream.close();
 }
 
-void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart) const
+void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart)
 {
     // Pressure to head conversion
     rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);

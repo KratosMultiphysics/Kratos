@@ -44,17 +44,17 @@ void ApplyNormalLoadTableProcess::MakeInternalProcesses(const Parameters& rProce
     }
 }
 
-bool ApplyNormalLoadTableProcess::IsNormalComponentActive(const Parameters& rProcessSettings) const
+bool ApplyNormalLoadTableProcess::IsNormalComponentActive(const Parameters& rProcessSettings)
 {
     return IsComponentActive(rProcessSettings, normalComponentNumber);
 }
 
-bool ApplyNormalLoadTableProcess::IsTangentialComponentActive(const Parameters& rProcessSettings) const
+bool ApplyNormalLoadTableProcess::IsTangentialComponentActive(const Parameters& rProcessSettings)
 {
     return IsComponentActive(rProcessSettings, tangentialComponentNumber);
 }
 
-bool ApplyNormalLoadTableProcess::IsComponentActive(const Parameters& rProcessSettings, int componentNumber) const
+bool ApplyNormalLoadTableProcess::IsComponentActive(const Parameters& rProcessSettings, int componentNumber)
 {
     return rProcessSettings["active"][componentNumber].GetBool();
 }
