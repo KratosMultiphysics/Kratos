@@ -205,22 +205,24 @@ class FluidTopologyOptimizationSolverTime(NavierStokesMonolithicSolver):
             return is_converged
     
     def AdvanceInTime(self, current_time):
+        dt = self._ComputeDeltaTime()
+        new_time = current_time + dt
+        self._CustomCloneTimeStep(new_time)
         if (not self.IsAdjoint()): # NS
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] += 1
         else: 
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
-        dt = self._ComputeDeltaTime()
-        new_time = current_time + dt
-        self._CustomCloneTimeStep(new_time)
         return new_time
     
     def _CustomCloneTimeStep(self, new_time):
         if self.IsAdjoint():
             dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
             velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, self.min_buffer_size-1, dim))
+            pressure = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE, self.min_buffer_size-1))
         self.main_model_part.CloneTimeStep(new_time)
         if self.IsAdjoint():
             KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, velocity, 0)
+            KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE, pressure, 0)
     
     def IsAdjoint(self):
         return self.is_adjoint
@@ -262,9 +264,14 @@ class FluidTopologyOptimizationSolverTime(NavierStokesMonolithicSolver):
         else:
             raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(resistance)}")
         
-    def _UpdateConvectionVelocityVariable(self, buffer_id):
+    def _UpdateConvectionVelocityVariable(self, convection_velocity):
+        dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         for node in self._GetLocalMeshNodes():
-            node.SetValue(KratosCFD.CONVECTION_VELOCITY, node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, buffer_id))
+            nodal_convection_velocity = convection_velocity[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
+            node.SetValue(KratosCFD.CONVECTION_VELOCITY_X, nodal_convection_velocity[0])
+            node.SetValue(KratosCFD.CONVECTION_VELOCITY_Y, nodal_convection_velocity[1])
+            if (dim == 3):
+                node.SetValue(KratosCFD.CONVECTION_VELOCITY_Z, nodal_convection_velocity[2])
     
     def InitializeSolutionStep(self):
         self.is_resistance_updated = False

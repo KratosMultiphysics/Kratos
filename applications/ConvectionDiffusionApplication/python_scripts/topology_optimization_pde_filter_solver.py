@@ -130,7 +130,9 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
         
         if not self.is_restarted():
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self._get_element_condition_replace_settings()).Execute()
+            external_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             self._set_and_fill_buffer()
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, external_step)
 
         if (self.settings["echo_level"].GetInt() > 0):
             KratosMultiphysics.Logger.PrintInfo(self.model)

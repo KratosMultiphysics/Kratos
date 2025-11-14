@@ -169,7 +169,7 @@ class AnalysisStage(object):
                     for process in self._GetListOfProcesses():
                         process.ExecuteBeforeOutputStep()
                     execute_was_called = True
-
+                
                 output_process.PrintOutput()
 
         if execute_was_called:
