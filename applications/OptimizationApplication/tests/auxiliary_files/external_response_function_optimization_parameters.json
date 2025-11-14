@@ -1,0 +1,65 @@
+{
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 0
+    },
+    "model_parts": [
+        {
+            "type": "external_response_function_model_part_controller",
+            "settings": {
+                "model_part_name": "CustomMP",
+                "number_of_design_points": 4
+            }
+        }
+    ],
+    "analyses": [],
+    "responses": [
+        {
+            "name": "external_response_function_1",
+            "type": "external_response_function",
+            "settings": {
+                "evaluated_model_part_names": [
+                    "CustomMP"
+                ]
+            }
+        }
+    ],
+    "controls": [
+        {
+            "name": "custom_control",
+            "type": "external_response_function_control",
+            "settings": {
+                "controlled_model_part_names": [
+                    "CustomMP"
+                ]
+            }
+        }
+    ],
+    "algorithm_settings": {
+        "type": "algorithm_steepest_descent",
+        "settings": {
+            "echo_level": 0,
+            "line_search": {
+                "type": "const_step",
+                "init_step": 0.5,
+                "gradient_scaling": "inf_norm"
+            },
+            "conv_settings": {
+                "type": "max_iter",
+                "max_iter": 10
+            }
+        },
+        "controls": [
+            "custom_control"
+        ],
+        "objective": {
+            "response_name": "external_response_function_1",
+            "type": "minimization",
+            "scaling": 1.0
+        }
+    },
+    "processes": {
+        "kratos_processes": {},
+        "optimization_data_processes": {}
+    }
+}
