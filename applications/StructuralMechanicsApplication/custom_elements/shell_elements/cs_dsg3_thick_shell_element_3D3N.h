@@ -46,12 +46,14 @@ namespace Kratos
 /**
  * @class CSDSG3ThickShellElement3D3N
  * @ingroup StructuralMechanicsApplication
- * @brief This is the enhanced CS-DSG3 shell element. This element accounts for shear deformation using the Discrete Shear Gap (DSG) technique [1]. The shear and bending strain-displacement matrices are smoothed to improve the performance of the element in bending-dominated problems.
+ * @brief This is the enhanced CS-DSG3 shell element. This element accounts for shear deformation using the Discrete Shear Gap (DSG) technique [1] smoothed with the subtriangulation
+ * described in Rama et al [1] for an increased accuracy and stability. The shear and bending strain-displacement matrices are smoothed to improve the performance of the element in bending-dominated problems.
  * The membrane part is based on the ANDES membrane formulation proposed by Felippa [2]. 
- * This element can be used in both Linear and corotational formulations.
+ * This element can be used in both Linear and corotational formulations [3].
  * References:
  * [1]: Rama et al., "Efficient Co-Rotational 3-Node Shell Element", American Journal of Engineering and Applied Sciences 2016, 9 (2): 420.431 DOI: 10.3844/ajeassp.2016.420.431
  * [2]: Felippa, C. A., "A study of optimal membrane triangle with drilling freedoms", CMAME, 2003, 2125-2168 DOI:10.1016/S0045-7825(03)00253-6
+ * [3]: Felippa and Haugen, "A unified formulation of small-strain corotational finite elements: I. Theory", CMAME, 2005, 194(2285-2335) https://doi.org/10.1016/j.cma.2004.07.035
  * @author Alejandro Cornejo
  */
 template <bool IS_COROTATIONAL>
