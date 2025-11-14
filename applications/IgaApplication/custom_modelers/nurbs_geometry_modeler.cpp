@@ -436,7 +436,7 @@ namespace Kratos
             p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
             p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
 
-        KRATOS_WATCH(PointsRefined)
+        // KRATOS_WATCH(PointsRefined)
 
         // exit(0);
         

@@ -435,13 +435,7 @@ void SbmLaplacianConditionDirichlet::GetDofList(
 
 void SbmLaplacianConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    array_1d<double, 3> normal_parameter_space = - GetGeometry().Normal(0, GetIntegrationMethod());
-    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = GetGeometry().ShapeFunctionsLocalGradients(GetGeometry().GetDefaultIntegrationMethod());
-    const unsigned int dim = r_DN_De[0].size2();
-    if(dim == 3) {
-        GetGeometry().Calculate(NORMAL, normal_parameter_space);
-    }
-    SetValue(NORMAL_TO_WALL, normal_parameter_space);
+    SetValue(NORMAL_TO_WALL, mNormalParameterSpace);
 
     // TODO: delete
     // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess

@@ -816,6 +816,7 @@ private:
                 // KRATOS_WATCH(is_exiting_direction)
                 // KRATOS_WATCH(isExiting)
                 // KRATOS_WATCH(i_cond)
+                // KRATOS_WATCH(normal)
                 p_brep_surface_on_volume_sbm->SetNormalSbm(normal);
                 
                 rModelPart.AddGeometry(p_brep_surface_on_volume_sbm);
