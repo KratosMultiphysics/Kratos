@@ -18,6 +18,7 @@
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
+#include "custom_utilities/math_utilities.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 #include "lumped_integration_scheme.h"
@@ -187,23 +188,36 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
 
-    if (!mNeighbourElements.empty()) {
-        for (const auto& element : mNeighbourElements) {
-            std::vector<std::size_t> node_ids_common_with_element(1);
-            std::vector<Vector>      cauchy_stresses;
-            element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stresses, rCurrentProcessInfo);
-            const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(
-                node_ids_common_with_element, element->GetGeometry(),
-                element->GetIntegrationMethod(), cauchy_stresses, element->Id());
-            KRATOS_ERROR_IF_NOT(nodal_stresses.size() == node_ids_common_with_element.size())
-                << " vectors have different sizes" << std::endl;
-        }
-    }
-
     mConstitutiveLaws.clear();
-    for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
+    for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
         mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
-        mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
+    }
+    // Only interpolate when neighbouring elements that provide nodal stresses were found
+    if (this->Has(NEIGHBOUR_ELEMENTS)) {
+        // interface element can at maximum have 2 neighbours
+        KRATOS_DEBUG_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() > 2)
+            << "Too many neighbour elements for interface element " << this->Id() << std::endl;
+        const auto interface_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(GetGeometry());
+        std::vector<std::optional<Vector>> interface_nodal_cauchy_stresses(interface_node_ids.size());
+        for (auto& r_neighbour_element : this->GetValue(NEIGHBOUR_ELEMENTS)) {
+            KRATOS_INFO("InterfaceElement::Initialize")
+                << "kijk in neighbour element " << r_neighbour_element.Id() << std::endl;
+            std::vector<Vector> neighbour_cauchy_stresses;
+            r_neighbour_element.CalculateOnIntegrationPoints(
+                CAUCHY_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
+            KRATOS_INFO("InterfaceElement::Initialize")
+                << "neighbour element Cauchy stresses" << neighbour_cauchy_stresses << std::endl;
+            interface_nodal_cauchy_stresses = ExtrapolationUtilities::CalculateNodalVectors(
+                interface_node_ids, r_neighbour_element.GetGeometry(),
+                r_neighbour_element.GetIntegrationMethod(), neighbour_cauchy_stresses,
+                r_neighbour_element.Id());
+            // values of previous iteration completely overwritten. that should probably change
+        }
+        InterpolateNodalStressesToIntegrationPointTractions(interface_nodal_cauchy_stresses);
+    }
+    for (auto i = std::size_t{0}; i < mConstitutiveLaws.size(); ++i) {
+        mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(),
+                                                 shape_function_values_at_integration_points[i]);
     }
 }
 
@@ -323,9 +337,73 @@ std::vector<Vector> InterfaceElement::CalculateTractionsAtIntegrationPoints(cons
 void InterfaceElement::ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const
 {
     const auto dim = GetGeometry().WorkingSpaceDimension();
-    for (int i = 0; i + dim <= rBMatrix.size2(); i += dim) {
+    for (auto i = std::size_t{0}; i + dim <= rBMatrix.size2(); i += dim) {
         auto sub_matrix = subrange(rBMatrix, 0, rBMatrix.size1(), i, i + dim);
         sub_matrix.assign(Matrix{prod(sub_matrix, trans(rRotationMatrix))});
+    }
+}
+
+void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions(
+    const std::vector<std::optional<Vector>>& interface_nodal_cauchy_stresses) const
+{
+    // interpolate nodal stresses on a chosen side
+    auto& r_interface_geometry = GetGeometry();
+    const auto number_of_nodes_on_side = GeometryUtilities::GetNodeIdsFromGeometry(r_interface_geometry).size() / 2;
+    // check which side is shared with the neighbour geometry, by checking for the first nodes of the first side
+    //auto in_first_side = std::find(neighbour_nodes.begin(), neighbour_nodes.end(),
+    //                               interface_element_nodes[0]) != neighbour_nodes.end();
+    auto in_first_side = interface_nodal_cauchy_stresses[0].has_value();
+    // auto in_second_side = interface_nodal_cauchy_stresses[number_of_nodes_on_side].has_value();
+    // KRATOS_INFO("InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions") << "In first, second side " << in_first_side << ", " << in_second_side << std::endl;
+
+    std::size_t         start_index = in_first_side ? 0 : number_of_nodes_on_side;
+    std::vector<Vector> nodal_stresses;
+    for (auto i = 0; i < number_of_nodes_on_side; ++i) {
+        nodal_stresses.push_back(interface_nodal_cauchy_stresses[start_index + i].value());
+    }
+    KRATOS_INFO("InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions")
+        << "nodal_stresses" << nodal_stresses << std::endl;
+    KRATOS_DEBUG_ERROR_IF(nodal_stresses.size() < number_of_nodes_on_side)
+        << "Less stresses found than needed for 1 side of the interface element with Id."
+        << this->Id() << std::endl;
+
+    std::size_t integration_point_index = 0;
+    for (const auto& r_integration_point : mIntegrationScheme->GetIntegrationPoints()) {
+        // interpolate on interface
+        auto integration_point_stress                = Vector{ZeroVector(nodal_stresses[0].size())};
+        auto integration_point_shape_function_values = Vector{};
+        r_interface_geometry.ShapeFunctionsValues(integration_point_shape_function_values, r_integration_point);
+        for (std::size_t i = 0; i < GetGeometry().PointsNumber() / 2; ++i) {
+            integration_point_stress += integration_point_shape_function_values[i] * nodal_stresses[i];
+        }
+
+        auto rotation_matrix = Matrix(3, 3, 0.0);
+        if (r_interface_geometry.LocalSpaceDimension() == 1) {
+            auto two_d_rotation_matrix = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
+            GeoElementUtilities::AssembleUUBlockMatrix(rotation_matrix, two_d_rotation_matrix);
+            rotation_matrix(2, 2) = 1.0;
+        } else {
+            rotation_matrix = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
+        }
+
+        auto integration_point_stress_tensor = MathUtils<double>::StressVectorToTensor(integration_point_stress);
+        auto integration_point_local_stress_tensor = GeoMechanicsMathUtilities::RotateSecondOrderTensor(
+            integration_point_stress_tensor, rotation_matrix);
+
+        // extract normal and shear components to form initial traction
+        auto traction_vector = Vector(ZeroVector(mConstitutiveLaws[0]->GetStrainSize()));
+        if (r_interface_geometry.LocalSpaceDimension() == 1) {
+            traction_vector[0] = integration_point_local_stress_tensor(1, 1);
+            traction_vector[1] = integration_point_local_stress_tensor(0, 1);
+        } else {
+            traction_vector[0] = integration_point_local_stress_tensor(2, 2);
+            traction_vector[1] = integration_point_local_stress_tensor(0, 2);
+            traction_vector[2] = integration_point_local_stress_tensor(1, 2);
+        }
+        const auto initial_state =
+            make_intrusive<InitialState>(traction_vector, InitialState::InitialImposingType::STRESS_ONLY);
+        mConstitutiveLaws[integration_point_index]->SetInitialState(initial_state);
+        ++integration_point_index;
     }
 }
 

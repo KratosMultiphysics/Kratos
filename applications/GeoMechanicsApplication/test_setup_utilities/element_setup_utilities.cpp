@@ -150,6 +150,13 @@ Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<No
                                                        std::make_unique<PlaneStrainStressState>(), nullptr);
 }
 
+Element::Pointer ElementSetupUtilities::Create2D3NElement(std::size_t Id, const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<2, 3>>(Id, std::make_shared<Triangle2D3<Node>>(rNodes), rProperties,
+                                                       std::make_unique<PlaneStrainStressState>(), nullptr);
+}
+
 Element::Pointer ElementSetupUtilities::Create2D3NElement()
 {
     return Create2D3NElement(GenerateNodes(CreatePointsFor2D3NElement()), std::make_shared<Properties>(0));

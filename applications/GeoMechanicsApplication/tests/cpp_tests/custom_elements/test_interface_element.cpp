@@ -12,12 +12,15 @@
 //
 
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
+#include "custom_constitutive/plane_strain.h"
 #include "custom_elements/interface_element.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/interface_geometry.h"
 #include "geo_mechanics_application_variables.h"
+#include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -304,6 +307,18 @@ Matrix ExpectedLeftHandSideForTriangleElement()
     // clang-format on
 
     return expected_left_hand_side;
+}
+
+void CreateNeighbouringStressField(const Element::Pointer& pNeighbourElement)
+{
+    auto r_neighbour_geometry = pNeighbourElement->GetGeometry();
+    for (auto& r_node : r_neighbour_geometry) {
+        auto   x = r_node.GetInitialPosition().X();
+        auto   y = r_node.GetInitialPosition().Y();
+        Vector nodal_stress{4};
+        nodal_stress <<= x + y, 10.0 + x + y, 78.0, 5.0 + x + y;
+        r_node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR) = nodal_stress;
+    }
 }
 } // namespace
 
@@ -1289,6 +1304,91 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActi
 
     const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, -1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    // properties for neighbour elements
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
+                                                 std::make_unique<PlaneStrain>()));
+    p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
+    p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    // create a triangle neighbour element
+    auto        p_neighbour_element = ElementSetupUtilities::Create2D3NElement(2, nodes, p_properties);
+    ProcessInfo dummy_process_info;
+    p_neighbour_element->Initialize(dummy_process_info);
+    std::vector<ConstitutiveLaw::StressVectorType> rStressVectors;
+    rStressVectors.push_back(Vector(4, 2.0));
+    rStressVectors.push_back(Vector(4, 2.0));
+    rStressVectors.push_back(Vector(4, 2.0));
+
+    p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, dummy_process_info);
+
+    nodes.clear();
+    nodes.push_back(r_model_part.pGetNode(1));
+    nodes.push_back(r_model_part.pGetNode(3));
+    nodes.push_back(r_model_part.CreateNewNode(4, 0.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 1.0, 1.0, 0.0));
+    const auto     p_geometry       = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_interface_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    auto interface_element = CreateInterfaceElementWithUDofs<Interface2D>(p_interface_properties, p_geometry);
+    Variable<GlobalPointersVector<Element>>::Type neighbours{p_neighbour_element};
+    interface_element.SetValue(NEIGHBOUR_ELEMENTS, neighbours);
+    KRATOS_INFO("Na opzet 2 elementen") << std::endl;
+
+    // Act
+    interface_element.Initialize(dummy_process_info);
+
+    std::vector<Vector> actual_traction_vectors;
+    interface_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+
+    // Assert
+    auto expected_traction_vector = Vector{2};
+    // answers for 1st side
+    expected_traction_vector <<= 2.0, 2.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[0], expected_traction_vector, Defaults::relative_tolerance)
+    expected_traction_vector <<= 2.0, 2.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[1], expected_traction_vector, Defaults::relative_tolerance)
+
+    // Arrange a neighbour on the other side of the interface element
+    nodes.clear();
+    nodes.push_back(r_model_part.pGetNode(4));
+    nodes.push_back(r_model_part.pGetNode(5));
+    nodes.push_back(r_model_part.CreateNewNode(6, 0.0, 2.0, 0.0));
+    auto        p_other_neighbour_element = ElementSetupUtilities::Create2D3NElement(3, nodes, p_properties);
+    p_other_neighbour_element->Initialize(dummy_process_info);
+    rStressVectors.clear();
+    rStressVectors.push_back(Vector(4, 4.0));
+    rStressVectors.push_back(Vector(4, 4.0));
+    rStressVectors.push_back(Vector(4, 4.0));
+    p_other_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, dummy_process_info);
+
+    Variable<GlobalPointersVector<Element>>::Type other_neighbours{p_other_neighbour_element};
+    interface_element.SetValue(NEIGHBOUR_ELEMENTS, other_neighbours);
+
+    // Act
+    interface_element.Initialize(dummy_process_info);
+    interface_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+
+    // Assert
+    // answers for 2nd side
+    expected_traction_vector <<= 4.0, 4.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[0], expected_traction_vector, Defaults::relative_tolerance)
+    expected_traction_vector <<= 4.0, 4.0;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[1], expected_traction_vector, Defaults::relative_tolerance)
 }
 
 } // namespace Kratos::Testing
