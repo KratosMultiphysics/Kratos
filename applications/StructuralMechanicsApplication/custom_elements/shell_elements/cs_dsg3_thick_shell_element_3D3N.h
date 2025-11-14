@@ -46,7 +46,7 @@ namespace Kratos
 /**
  * @class CSDSG3ThickShellElement3D3N
  * @ingroup StructuralMechanicsApplication
- * @brief This is the enhanced CS-DSG3 shell element. This element accounts for shear deformation using the Discrete Shear Gap (DSG) technique [1] smoothed with the subtriangulation
+ * @brief This is the enhanced CS-DSG3 shell element. This element accounts for shear deformation using the Discrete Shear Gap (DSG) technique smoothed with the sub-triangulation
  * described in Rama et al [1] for an increased accuracy and stability. The shear and bending strain-displacement matrices are smoothed to improve the performance of the element in bending-dominated problems.
  * The membrane part is based on the ANDES membrane formulation proposed by Felippa [2]. 
  * This element can be used in both Linear and corotational formulations [3].
