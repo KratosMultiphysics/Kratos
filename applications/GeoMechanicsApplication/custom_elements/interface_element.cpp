@@ -16,6 +16,7 @@
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "interface_stress_state.h"
@@ -182,15 +183,29 @@ void InterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const Proce
 void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Element::Initialize(rCurrentProcessInfo);
+
     const auto shape_function_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
+
     mConstitutiveLaws.clear();
     for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
         mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
     }
     // Only interpolate when neighbouring elements that provide nodal stresses were found
-    if (this->Has(NEIGHBOUR_ELEMENTS)) InterpolateNodalStressesToIntegrationPointTractions();
+    if (this->Has(NEIGHBOUR_ELEMENTS)) {
+        for (auto& r_neighbour_element : this->GetValue(NEIGHBOUR_ELEMENTS)) {
+            std::vector<std::size_t> node_ids_common_with_element(1);
+            std::vector<Vector>      cauchy_stresses;
+            r_neighbour_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stresses, rCurrentProcessInfo);
+            const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(
+                node_ids_common_with_element, r_neighbour_element.GetGeometry(),
+                r_neighbour_element.GetIntegrationMethod(), cauchy_stresses, r_neighbour_element.Id());
+            KRATOS_ERROR_IF_NOT(nodal_stresses.size() == node_ids_common_with_element.size())
+                << " vectors have different sizes" << std::endl;
+        }
+        InterpolateNodalStressesToIntegrationPointTractions();
+    }
     for (auto i = std::size_t{0}; i < mConstitutiveLaws.size(); ++i) {
         mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(),
                                                  shape_function_values_at_integration_points[i]);
