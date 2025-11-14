@@ -274,11 +274,11 @@ public:
         
         // IndexType p = mpNurbsVolume->PolynomialDegreeU() + mpNurbsVolume->PolynomialDegreeV() +1;
 
-        const int degree_u = mpNurbsVolume->PolynomialDegreeU();
-        const int degree_v = mpNurbsVolume->PolynomialDegreeV();
-        const int degree_w = mpNurbsVolume->PolynomialDegreeW();
+        const std::size_t  degree_u = mpNurbsVolume->PolynomialDegreeU();
+        const std::size_t  degree_v = mpNurbsVolume->PolynomialDegreeV();
+        const std::size_t degree_w = mpNurbsVolume->PolynomialDegreeW();
 
-        const int maximum_polynomial_order = std::max({degree_u, degree_v, degree_w});
+        const std::size_t  maximum_polynomial_order = std::max({degree_u, degree_v, degree_w});
 
 
         return IntegrationInfo(
