@@ -102,6 +102,7 @@ from structural_mechanics_test_factory import SimpleMeshMovingTest as TSimpleMes
 
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
+from structural_mechanics_test_factory import LinearReissnerMindlinTest as TLinearReissnerMindlinTest
 from structural_mechanics_test_factory import MixedUEElementTest as TMixedUEElementTest
 from structural_mechanics_test_factory import LinearTruss2D2NTest as TLinearTruss2D2NTest
 from structural_mechanics_test_factory import LinearTruss2D3NTest as TLinearTruss2D3NTest
@@ -361,6 +362,7 @@ def AssembleTestSuites():
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
+    smallSuite.addTest(TLinearReissnerMindlinTest('test_execution'))
     smallSuite.addTest(TMixedUEElementTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D2NTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D3NTest('test_execution'))
