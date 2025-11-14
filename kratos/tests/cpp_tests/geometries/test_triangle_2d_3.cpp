@@ -144,9 +144,7 @@ namespace Testing {
   KRATOS_TEST_CASE_IN_SUITE(Triangle2D3FacesNumber, KratosCoreGeometriesFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
-    // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
-    // that for planar geometries it also return the number of edges.
-    KRATOS_EXPECT_EQ(geom->FacesNumber(), 3);
+    KRATOS_EXPECT_EQ(geom->FacesNumber(), 1);
   }
 
   /** Checks if the area of the triangle is calculated correctly.

@@ -74,7 +74,7 @@ namespace {
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D10FacesNumber, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle2D10();
-        KRATOS_EXPECT_EQ(geom->FacesNumber(), 3);
+        KRATOS_EXPECT_EQ(geom->FacesNumber(), 1);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D10Area, KratosCoreGeometriesFastSuite) {
