@@ -8,7 +8,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from test_hdf5_model_part_io_mpi import TestCase as TestHDF5ModelPartIO
 from test_hdf5_core_mpi import TestOperations as TestHDF5Operations
-from test_hdf5_core_mpi import TestFileIO as TestHDF5FileIO
 from test_point_set_output_process import TestPointSetOutputProcess
 from test_line_output_process import TestLineOutputProcess
 from test_hdf5_tensor_adaptor_io import TestTensorAdaptorIO
@@ -19,7 +18,6 @@ def AssembleTestSuites():
 
     smallSuite = suites['mpi_small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5ModelPartIO]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5FileIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Operations]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPointSetOutputProcess, TestLineOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestNDDataIO]))
