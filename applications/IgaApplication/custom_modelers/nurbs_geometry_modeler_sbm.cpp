@@ -280,10 +280,10 @@ namespace Kratos
         SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
         snake_sbm_process.Execute();
 
-        KRATOS_WATCH(surrogate_sub_model_part_outer)
-        for (auto cond : surrogate_sub_model_part_outer.Conditions()) {
-            KRATOS_WATCH(cond)
-        }
+        // KRATOS_WATCH(surrogate_sub_model_part_outer)
+        // for (auto cond : surrogate_sub_model_part_outer.Conditions()) {
+        //     KRATOS_WATCH(cond)
+        // }
         // exit(0);
 
         // Create the breps for the outer sbm boundary // TODO: extend this in 3D

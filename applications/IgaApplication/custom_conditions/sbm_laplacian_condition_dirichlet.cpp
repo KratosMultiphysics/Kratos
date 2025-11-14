@@ -435,13 +435,13 @@ void SbmLaplacianConditionDirichlet::GetDofList(
 
 void SbmLaplacianConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    SetValue(NORMAL_TO_WALL, mNormalParameterSpace);
+    // SetValue(NORMAL_TO_WALL, mNormalParameterSpace);
 
-    // TODO: delete
-    // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
-    std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
-    outputFile << mpProjectionNode->X() << " " << mpProjectionNode->Y() << " " << mpProjectionNode->Z() << " " << GetGeometry().Center().X() << " " << GetGeometry().Center().Y() << " " << GetGeometry().Center().Z() <<"\n";
-    outputFile.close();
+    // // TODO: delete
+    // // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
+    // std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+    // outputFile << mpProjectionNode->X() << " " << mpProjectionNode->Y() << " " << mpProjectionNode->Z() << " " << GetGeometry().Center().X() << " " << GetGeometry().Center().Y() << " " << GetGeometry().Center().Z() <<"\n";
+    // outputFile.close();
 }
 
 } // Namespace Kratos
