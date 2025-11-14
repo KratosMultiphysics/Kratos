@@ -197,7 +197,7 @@ def buildWheel (CURRENT_CONFIG: dict, paths: dict, platform: str, python_ver: st
     # Build
     python_interpreter = getPythonInterpreter(platform, python_ver)
 
-    res = subprocess.run([python_interpreter, "-m", "build", "--wheel"], check=True, cwd=Path(CURRENT_CONFIG['WHEEL_ROOT']))
+    res = subprocess.run([python_interpreter, "-m", "build", "--wheel", "--outdir", f"{Path(CURRENT_CONFIG['WHEEL_OUT'])}"], check=True, cwd=Path(CURRENT_CONFIG['WHEEL_ROOT']))
     logResult(res)
 
     cleanupWheelDir(wheel_staging_path)
