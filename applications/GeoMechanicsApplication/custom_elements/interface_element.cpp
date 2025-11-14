@@ -194,17 +194,26 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     }
     // Only interpolate when neighbouring elements that provide nodal stresses were found
     if (this->Has(NEIGHBOUR_ELEMENTS)) {
+        // interface element can at maximum have 2 neighbours
+        KRATOS_DEBUG_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() > 2)
+            << "Too many neighbour elements for interface element " << this->Id() << std::endl;
+        const auto interface_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(GetGeometry());
+        std::vector<std::optional<Vector>> interface_nodal_cauchy_stresses(interface_node_ids.size());
         for (auto& r_neighbour_element : this->GetValue(NEIGHBOUR_ELEMENTS)) {
-            std::vector<std::size_t> node_ids_common_with_element(1);
-            std::vector<Vector>      cauchy_stresses;
-            r_neighbour_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stresses, rCurrentProcessInfo);
-            const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(
-                node_ids_common_with_element, r_neighbour_element.GetGeometry(),
-                r_neighbour_element.GetIntegrationMethod(), cauchy_stresses, r_neighbour_element.Id());
-            KRATOS_ERROR_IF_NOT(nodal_stresses.size() == node_ids_common_with_element.size())
-                << " vectors have different sizes" << std::endl;
+            KRATOS_INFO("InterfaceElement::Initialize")
+                << "kijk in neighbour element " << r_neighbour_element.Id() << std::endl;
+            std::vector<Vector> neighbour_cauchy_stresses;
+            r_neighbour_element.CalculateOnIntegrationPoints(
+                CAUCHY_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
+            KRATOS_INFO("InterfaceElement::Initialize")
+                << "neighbour element Cauchy stresses" << neighbour_cauchy_stresses << std::endl;
+            interface_nodal_cauchy_stresses = ExtrapolationUtilities::CalculateNodalVectors(
+                interface_node_ids, r_neighbour_element.GetGeometry(),
+                r_neighbour_element.GetIntegrationMethod(), neighbour_cauchy_stresses,
+                r_neighbour_element.Id());
+            // values of previous iteration completely overwritten. that should probably change
         }
-        InterpolateNodalStressesToIntegrationPointTractions();
+        InterpolateNodalStressesToIntegrationPointTractions(interface_nodal_cauchy_stresses);
     }
     for (auto i = std::size_t{0}; i < mConstitutiveLaws.size(); ++i) {
         mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(),
@@ -334,25 +343,29 @@ void InterfaceElement::ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rR
     }
 }
 
-void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions() const
+void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions(
+    const std::vector<std::optional<Vector>>& interface_nodal_cauchy_stresses) const
 {
-    auto neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
-    // so far pick the first ( this may have to change when an interface is between 2 soils
-    const auto& r_neighbour_geometry = neighbour_elements[0].GetGeometry();
-    const auto  neighbour_nodes = GeometryUtilities::GetNodeIdsFromGeometry(r_neighbour_geometry);
-
     // interpolate nodal stresses on a chosen side
     auto& r_interface_geometry = GetGeometry();
-    const auto interface_element_nodes = GeometryUtilities::GetNodeIdsFromGeometry(r_interface_geometry);
+    const auto number_of_nodes_on_side = GeometryUtilities::GetNodeIdsFromGeometry(r_interface_geometry).size() / 2;
     // check which side is shared with the neighbour geometry, by checking for the first nodes of the first side
-    auto in_first_side = std::find(neighbour_nodes.begin(), neighbour_nodes.end(),
-                                   interface_element_nodes[0]) != neighbour_nodes.end();
+    //auto in_first_side = std::find(neighbour_nodes.begin(), neighbour_nodes.end(),
+    //                               interface_element_nodes[0]) != neighbour_nodes.end();
+    auto in_first_side = interface_nodal_cauchy_stresses[0].has_value();
+    // auto in_second_side = interface_nodal_cauchy_stresses[number_of_nodes_on_side].has_value();
+    // KRATOS_INFO("InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions") << "In first, second side " << in_first_side << ", " << in_second_side << std::endl;
 
-    std::size_t         start_index = in_first_side ? 0 : interface_element_nodes.size() / 2;
+    std::size_t         start_index = in_first_side ? 0 : number_of_nodes_on_side;
     std::vector<Vector> nodal_stresses;
-    for (auto i = 0; i < interface_element_nodes.size() / 2; ++i) {
-        nodal_stresses.push_back(r_interface_geometry[start_index + i].FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR));
+    for (auto i = 0; i < number_of_nodes_on_side; ++i) {
+        nodal_stresses.push_back(interface_nodal_cauchy_stresses[start_index + i].value());
     }
+    KRATOS_INFO("InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions")
+        << "nodal_stresses" << nodal_stresses << std::endl;
+    KRATOS_DEBUG_ERROR_IF(nodal_stresses.size() < number_of_nodes_on_side)
+        << "Less stresses found than needed for 1 side of the interface element with Id."
+        << this->Id() << std::endl;
 
     std::size_t integration_point_index = 0;
     for (const auto& r_integration_point : mIntegrationScheme->GetIntegrationPoints()) {
