@@ -25,7 +25,7 @@ Geometry<Node>::GeometriesArrayType EdgesGenerator::operator()(const Geometry<No
 {
     try {
         return rGeometry.GenerateEdges();
-    } catch (const Exception& e) {
+    } catch (const Exception&) {
         // Since some of the surface geometries in core do not implement GenerateEdges, but we
         // know how to recover if the local dimension is 1, we do so here.
         if (rGeometry.LocalSpaceDimension() == 1) {
@@ -42,7 +42,7 @@ Geometry<Node>::GeometriesArrayType FacesGenerator::operator()(const Geometry<No
 {
     try {
         return rGeometry.GenerateFaces();
-    } catch (const Exception& e) {
+    } catch (const Exception&) {
         // Since some of the surface geometries in core do not implement GenerateFaces, but we
         // know how to recover if the local dimension is 2, we do so here.
         if (rGeometry.LocalSpaceDimension() == 2) {
