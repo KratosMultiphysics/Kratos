@@ -311,6 +311,6 @@ if __name__ == "__main__":
                 paths['project_toml'] = Path(CURRENT_CONFIG['KRATOS_ROOT']) / "applications" / APP / "pyproject.toml"
                 paths['project_read'] = Path(CURRENT_CONFIG['KRATOS_ROOT']) / "applications" / APP / "README.md"
 
-                buildWheel(CURRENT_CONFIG, paths)
+                buildWheel(CURRENT_CONFIG, paths, OS, PYTHON)
             
 
