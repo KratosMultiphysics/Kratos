@@ -47,6 +47,31 @@ using DenseSpaceType   = UblasSpace<double, Matrix, Vector>;
 using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
 using SolvingStrategyFactoryType = SolvingStrategyFactory<SparseSpaceType, DenseSpaceType, LinearSolverType>;
 
+struct StringHash {
+    using is_transparent = void; // Enables heterogeneous operations.
+
+    std::size_t operator()(std::string_view sv) const
+    {
+        std::hash<std::string_view> hasher;
+        return hasher(sv);
+    }
+};
+
+void ExtractModelPartNames(const auto& process_list,
+                           std::unordered_set<std::string, StringHash, std::equal_to<>>& domain_condition_names,
+                           std::string_view root_name,
+                           std::string_view prefix)
+{
+    for (const auto& process : process_list) {
+        if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
+            auto model_part_name = process["Parameters"]["model_part_name"].GetString();
+            if (model_part_name == root_name) continue;
+            if (model_part_name.rfind(prefix, 0) == 0) model_part_name.erase(0, prefix.size());
+            domain_condition_names.insert(model_part_name);
+        }
+    }
+};
+
 double GetStartTimeFrom(const Parameters& rProjectParameters)
 {
     return rProjectParameters["problem_data"]["start_time"].GetDouble();
@@ -196,7 +221,10 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
         }
 
-        PrepareModelPart(project_parameters["solver_settings"]);
+        static const Parameters empty_parameters("{}");
+        const Parameters&       processes_parameters =
+            project_parameters.Has("processes") ? project_parameters["processes"] : empty_parameters;
+        PrepareModelPart(project_parameters["solver_settings"], processes_parameters);
 
         if (project_parameters["solver_settings"].Has("material_import_settings")) {
             const auto material_file_name =
@@ -378,7 +406,7 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
                                                         rWorkingDirectory, rProjectParameters);
 }
 
-void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
+void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, const Parameters& rProcesses)
 {
     auto& main_model_part = GetMainModelPart();
     main_model_part.GetProcessInfo().SetValue(TIME_UNIT_CONVERTER, 1.0);
@@ -405,13 +433,16 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         domain_part_names.emplace_back(sub_model_part.GetString());
     }
 
-    // Add nodes to computing model part
+    auto collect_ids_from_part = [](auto& container, auto& id_set) {
+        for (const auto& item : container) {
+            id_set.insert(item.Id());
+        }
+    };
+
     std::set<Node::IndexType> node_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& node : domain_part.Nodes()) {
-            node_id_set.insert(node.Id());
-        }
+        collect_ids_from_part(domain_part.Nodes(), node_id_set);
     }
     GetComputationalModelPart().AddNodes(
         std::vector<Node::IndexType>{node_id_set.begin(), node_id_set.end()});
@@ -419,27 +450,31 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::set<IndexedObject::IndexType> element_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& element : domain_part.Elements()) {
-            element_id_set.insert(element.Id());
-        }
+        collect_ids_from_part(domain_part.Elements(), element_id_set);
     }
     GetComputationalModelPart().AddElements(
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
-    GetComputationalModelPart().Conditions().clear();
-    const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
-    std::vector<std::string> domain_condition_names;
-    for (const auto& sub_model_part : processes_sub_model_part_list) {
-        domain_condition_names.emplace_back(sub_model_part.GetString());
+    std::unordered_set<std::string, StringHash, std::equal_to<>> domain_condition_names;
+    const auto root_name = rSolverSettings["model_part_name"].GetString();
+    const auto prefix    = root_name + ".";
+
+    const std::vector<std::string> process_lists_to_be_checked = {
+        "constraints_process_list", "loads_process_list", "auxiliary_process_list"};
+    for (const auto& process_list_name : process_lists_to_be_checked) {
+        if (rProcesses.Has(process_list_name))
+            ExtractModelPartNames(rProcesses[process_list_name], domain_condition_names, root_name, prefix);
     }
+
+    KRATOS_INFO_IF("PrepareModelPart", rSolverSettings.Has("processes_sub_model_part_list"))
+        << " processes_sub_model_part_list is deprecated" << std::endl;
 
     std::set<IndexedObject::IndexType> condition_id_set;
     for (const auto& name : domain_condition_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& condition : domain_part.Conditions()) {
-            condition_id_set.insert(condition.Id());
-        }
+        collect_ids_from_part(domain_part.Conditions(), condition_id_set);
     }
+    GetComputationalModelPart().Conditions().clear();
     GetComputationalModelPart().AddConditions(
         std::vector<IndexedObject::IndexType>{condition_id_set.begin(), condition_id_set.end()});
 

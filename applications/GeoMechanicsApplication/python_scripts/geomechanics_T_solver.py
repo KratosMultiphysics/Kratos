@@ -11,7 +11,7 @@ class TSolver(GeoSolver):
     """Solver for the solution of thermal problems."""
 
     def __init__(self, model, custom_settings):
-        super().__init__(model, custom_settings)
+        super().__init__(model, custom_settings["solver_settings"])
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "Construction of Solver finished.")
 
