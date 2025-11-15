@@ -32,11 +32,14 @@ public:
 
     [[nodiscard]] bool   IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
     [[nodiscard]] Vector DoReturnMapping(const Vector& rTrialSigmaTau,
-                                         CoulombYieldSurface::CoulombAveragingType AveragingType) const;
-
+                                         CoulombYieldSurface::CoulombAveragingType AveragingType);
 private:
     CoulombYieldSurface mCoulombYieldSurface;
     TensionCutoff       mTensionCutOff;
+
+    double CalculateEquivalentPlasticStrain(const Vector&                             rSigmaTau,
+                                            CoulombYieldSurface::CoulombAveragingType AveragingType,
+                                            double                                    lambda) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;
