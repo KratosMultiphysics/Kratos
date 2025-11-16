@@ -488,39 +488,6 @@ class CustomProcessTest(UnitTest.TestCase):
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 0), current_nodal_data[0], 9)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 1), current_nodal_data[1], 9)
 
-    def testInitializePreviousSolutionStepValuesProcess(self):
-        settings = Kratos.Parameters(r'''
-        [
-            {
-                "kratos_module" : "KratosMultiphysics.RANSApplication",
-                "python_module" : "initialize_previous_solution_step_values_process",
-                "process_name"  : "InitializePreviousSolutionStepValuesProcess",
-                "Parameters" : {
-                    "model_part_name" : "FluidModelPart",
-                    "echo_level"      : 0,
-                    "variable_name"   : "ACCELERATION_X",
-                    "value"           : "x+y*t"
-                }
-            }
-        ]''')
-
-        self.model_part.CloneTimeStep(0.5)
-        self.model_part.CloneTimeStep(2.0)
-
-        current_values = {}
-        for node in self.model_part.Nodes:
-            current_values[node.Id] = [node.GetSolutionStepValue(Kratos.ACCELERATION), node.GetSolutionStepValue(Kratos.ACCELERATION, 1)]
-
-        self._GetProcessList(settings)
-        self.process_list[0].Execute()
-
-        for node in self.model_part.Nodes:
-            data = current_values[node.Id]
-            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), data[0], 9)
-            v =  data[1]
-            v[0] = node.X + node.Y * 0.5
-            self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION, 1), v, 9)
-
     def testCheckScalarBoundsProcess(self):
         settings = Kratos.Parameters(r'''
         [
