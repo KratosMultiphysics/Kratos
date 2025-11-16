@@ -13,14 +13,13 @@
 // System includes
 
 // Project includes
-#include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/variables.h"
 
 // Application includes
+#include "custom_conditions/data_containers/k_epsilon/condition_data_utilities.h"
 #include "custom_utilities/fluid_calculation_utilities.h"
-#include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -43,32 +42,26 @@ void EpsilonUBasedWallConditionData::Check(
 
     const auto& r_geometry = rCondition.GetGeometry();
     const auto& r_properties = rCondition.GetProperties();
+    const int number_of_nodes = r_geometry.PointsNumber();
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA))
         << "TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
-    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN))
-        << "VON_KARMAN is not found in process info.\n";
-    KRATOS_ERROR_IF_NOT(r_properties.Has(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT))
-        << "RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT is not found in condition properties [ Condition.Id() = "
-        << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+
     KRATOS_ERROR_IF_NOT(r_properties.Has(WALL_SMOOTHNESS_BETA))
         << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
-    for (const auto& r_node: r_geometry) {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
+    {
+        const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
     }
 
     KRATOS_CATCH("");
-}
-GeometryData::IntegrationMethod EpsilonUBasedWallConditionData::GetIntegrationMethod()
-{
-    return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 void EpsilonUBasedWallConditionData::CalculateConstants(
@@ -77,53 +70,28 @@ void EpsilonUBasedWallConditionData::CalculateConstants(
     KRATOS_TRY
 
     mEpsilonSigma = rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
-    mKappa = rCurrentProcessInfo[VON_KARMAN];
-
-    KRATOS_ERROR_IF(!(this->GetGeometry().Has(RANS_Y_PLUS)))
-        << "RANS_Y_PLUS value is not set at " << this->GetGeometry() << "\n";
-
-    mDensity = this->GetElementProperties()[DENSITY];
-
-    const auto& r_properties = this->GetConditionProperties();
-    mBeta = r_properties[WALL_SMOOTHNESS_BETA];
-    const double y_plus_limit = r_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
-
-    mInvKappa = 1.0 / mKappa;
-    mYPlus = std::max(this->GetGeometry().GetValue(RANS_Y_PLUS), y_plus_limit);
+    mBeta = this->GetConditionProperties()[WALL_SMOOTHNESS_BETA];
 
     KRATOS_CATCH("");
 }
 
-bool EpsilonUBasedWallConditionData::IsWallFluxComputable() const
-{
-    return true;
-}
-
 double EpsilonUBasedWallConditionData::CalculateWallFlux(
-    const Vector& rShapeFunctions)
+    const Vector& rShapeFunctions,
+    const ScalarWallFluxConditionData::Parameters& rParameters)
 {
-    using namespace RansCalculationUtilities;
-
-    auto& cl_parameters = this->GetConstitutiveLawParameters();
-    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
-
-    double nu, nu_t;
-    array_1d<double, 3> velocity;
-
-    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
-    nu /= mDensity;
-
+    array_1d<double, 3> velocity, fluid_velocity, mesh_velocity;
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions,
-        std::tie(nu_t, TURBULENT_VISCOSITY),
-        std::tie(velocity, VELOCITY));
+        std::tie(fluid_velocity, VELOCITY),
+        std::tie(mesh_velocity, MESH_VELOCITY));
 
-    const double velocity_magnitude = norm_2(velocity);
+    noalias(velocity) = fluid_velocity - mesh_velocity;
 
-    const double u_tau = velocity_magnitude / (mInvKappa * std::log(mYPlus) + mBeta);
+    const double u_tau = norm_2(velocity) / ((1.0 / rParameters.mKappa) * std::log(rParameters.mYPlus) + mBeta);
 
-    return (nu + nu_t / mEpsilonSigma) * std::pow(u_tau, 5) /
-           (mKappa * std::pow(mYPlus * nu, 2));
+    return KEpsilonConditionDataUtilities::CalculateWallFlux(
+        rParameters.mKinematicViscosity, mEpsilonSigma, u_tau,
+        rParameters.mKappa, rParameters.mYPlus);
 }
 
 } // namespace KEpsilonWallConditionData

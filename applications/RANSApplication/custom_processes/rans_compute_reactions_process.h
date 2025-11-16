@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Dharmin Shah
+//  Main authors:    Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_RANS_COMPUTE_REACTIONS_PROCESS_H_INCLUDED)
@@ -20,7 +20,9 @@
 
 // Project includes
 #include "containers/model.h"
-#include "processes/process.h"
+
+// Application includes
+#include "rans_point_execution_formulation_process.h"
 
 namespace Kratos
 {
@@ -31,25 +33,30 @@ namespace Kratos
 ///@{
 
 /**
- * @brief Computes the reaction forces for slip modelpart, can be
- *        further used for drag calculation
+ * @brief Clips given scalar variable to a range
  *
- * This process sets epsilon values based on the following formula
- *
- * \[
- *
- *  \REACTION = p.n + tau
- *
- * \]
- *
+ * This process clips a given scalar variable to a range in all nodes in the model part.
  *
  */
 
-class KRATOS_API(RANS_APPLICATION) RansComputeReactionsProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansComputeReactionsProcess
+: public RansPointExecutionFormulationProcess
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    using BaseType = RansPointExecutionFormulationProcess;
+
+    using IndexType = std::size_t;
+
+    using NodeType = Node;
+
+    using GeometryType = Geometry<NodeType>;
+
+    using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
+
+    using ConditionType = ModelPart::ConditionType;
 
     /// Pointer definition of RansComputeReactionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansComputeReactionsProcess);
@@ -59,14 +66,22 @@ public:
     ///@{
 
     /// Constructor
-    RansComputeReactionsProcess(Model& rModel, Parameters rParameters);
+
+    RansComputeReactionsProcess(
+        Model& rModel,
+        Parameters rParameters);
+
+    RansComputeReactionsProcess(
+        Model& rModel,
+        const std::string& rModelPartName,
+        const std::vector<std::string>& rExecutionPoints,
+        const int EchoLevel);
 
     /// Destructor.
     ~RansComputeReactionsProcess() override = default;
 
     /// Assignment operator.
-    RansComputeReactionsProcess& operator=(
-        RansComputeReactionsProcess const& rOther) = delete;
+    RansComputeReactionsProcess& operator=(RansComputeReactionsProcess const& rOther) = delete;
 
     /// Copy constructor.
     RansComputeReactionsProcess(RansComputeReactionsProcess const& rOther) = delete;
@@ -74,10 +89,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    void ExecuteInitialize() override;
-
-    void ExecuteFinalizeSolutionStep() override;
 
     int Check() override;
 
@@ -105,41 +116,36 @@ private:
     Model& mrModel;
 
     std::string mModelPartName;
-
     int mEchoLevel;
-    bool mPeriodic;
+
+    bool mIsInitialized = false;
 
     ///@}
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief Calculates reaction on condition nodes
-     *
-     * Calculates reaction based on condition FRICTION_VELOCITY and PRESSURE values
-     * where wall laws are activated.
-     *
-     * @param rCondition
-     */
-    void CalculateReactionValues(
-        ModelPart::ConditionType& rCondition);
+    void Initialize();
 
-    /**
-     * @brief Corrects given variable for periodic conditions
-     *
-     * This method adds contributions from its periodic neighbour node's rVariable value
-     * to own rVariable value and averages them.
-     *
-     * @param rModelPart
-     * @param rVariable
-     */
-    void CorrectPeriodicNodes(
-        ModelPart& rModelPart,
-        const Variable<array_1d<double, 3>>& rVariable);
+    template<unsigned int TDim>
+    void CalculateStrainRate(
+        Vector& rStrainRate,
+        const GeometryType& rElementGeometry,
+        const Matrix& rdNdX) const;
+
+    template<unsigned int TDim>
+    void CalculateViscousStressTensorReactionContribution(
+        array_1d<double, 3>& rReaction,
+        const Vector& rViscousStress,
+        const array_1d<double, 3>& rNormal) const;
+
+    template<unsigned int TDim>
+    void CalculateReactions(
+        ModelPart& rModelPart) const;
+
+    void ExecuteOperation() override;
 
     ///@}
-
-}; // Class RansComputeReactionsProcess
+};
 
 ///@}
 ///@name Input and output
@@ -151,6 +157,7 @@ inline std::ostream& operator<<(
     const RansComputeReactionsProcess& rThis);
 
 ///@}
+
 ///@} addtogroup block
 
 } // namespace Kratos.

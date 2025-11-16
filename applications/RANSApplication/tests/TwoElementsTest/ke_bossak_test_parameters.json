@@ -1,0 +1,186 @@
+{
+    "problem_data": {
+        "problem_name": "two_element",
+        "start_time": 0.0,
+        "end_time": 5.0,
+        "echo_level": 0,
+        "parallel_type": "OpenMP"
+    },
+    "output_processes": {},
+    "solver_settings": {
+        "model_part_name": "MainModelPart",
+        "domain_size": 2,
+        "solver_type": "CoupledRANS",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "./TwoElementsTest/two_elements_test",
+            "partition_in_memory": true
+        },
+        "echo_level": -1,
+        "volume_model_part_name": "Parts_Fluid",
+        "skin_parts": [
+            "Inlet",
+            "Outlet",
+            "Boundary",
+            "Structure"
+        ],
+        "time_stepping": {
+            "automatic_time_step": false,
+            "time_step": 1.0
+        },
+        "time_scheme_settings": {
+            "scheme_type": "bossak"
+        },
+        "material_import_settings": {
+            "materials_filename": "./TwoElementsTest/ke_test_materials.json"
+        },
+        "no_skin_parts": [],
+        "formulation_settings": {
+            "formulation_name": "monolithic_k_epsilon",
+            "incompressible_potential_flow_initialization_settings": {},
+            "monolithic_flow_solver_settings": {
+                "maximum_iterations": 20,
+                "echo_level": 0,
+                "compute_reactions": false,
+                "reform_dofs_at_each_step": false,
+                "relative_velocity_tolerance": 1e-3,
+                "absolute_velocity_tolerance": 1e-5,
+                "relative_pressure_tolerance": 0.001,
+                "absolute_pressure_tolerance": 1e-3,
+                "velocity_relaxation": 0.9,
+                "pressure_relaxation": 0.9,
+                "linear_solver_settings": {
+                    "solver_type": "LinearSolversApplication.sparse_lu",
+                    "tolerance": 1e-12
+                },
+                "move_mesh_strategy": 0,
+                "move_mesh_flag": false,
+                "flow_solver_formulation": {
+                    "element_type": "qsvms",
+                    "use_orthogonal_subscales": false,
+                    "dynamic_tau": 1.0
+                },
+                "wall_function_settings": {
+                    "wall_function_region_type": "logarithmic_region_only",
+                    "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
+                }
+            },
+            "k_epsilon_solver_settings": {
+                "stabilization_method": "residual_based_flux_corrected",
+                "turbulent_kinetic_energy_solver_settings": {
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-5,
+                    "max_iterations": 3,
+                    "echo_level": 0,
+                    "relaxation_factor": 0.9,
+                    "linear_solver_settings": {
+                        "solver_type": "LinearSolversApplication.sparse_lu",
+                        "tolerance": 1e-9,
+                        "verbosity": 0
+                    }
+                },
+                "turbulent_energy_dissipation_rate_solver_settings": {
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-5,
+                    "max_iterations": 3,
+                    "echo_level": 0,
+                    "relaxation_factor": 0.9,
+                    "linear_solver_settings": {
+                        "solver_type": "LinearSolversApplication.sparse_lu",
+                        "tolerance": 1e-9,
+                        "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
+                    }
+                },
+                "echo_level": 0,
+                "coupling_settings": {
+                    "relative_tolerance": 1e-3,
+                    "absolute_tolerance": 1e-5,
+                    "max_iterations": 1
+                },
+                "auxiliar_process_list": []
+            }
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list": [],
+        "boundary_conditions_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Inlet",
+                    "variable_name": "VELOCITY",
+                    "modulus": 1.4142135623730951,
+                    "direction": [
+                        0.70710678118654746,
+                        -0.70710678118654746,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Outlet",
+                    "variable_name": "PRESSURE",
+                    "value": 0
+                }
+            },
+            {
+                "python_module": "apply_wall_function_process",
+                "kratos_module": "KratosMultiphysics.RANSApplication",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Boundary"
+                }
+            },
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Outlet",
+                    "variable_name": "VELOCITY",
+                    "constrained": [
+                        false,
+                        true,
+                        true
+                    ],
+                    "value": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Inlet",
+                    "variable_name": "TURBULENT_KINETIC_ENERGY",
+                    "value": 1.0
+                }
+            },
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Inlet",
+                    "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE",
+                    "value": 10.0
+                }
+            }
+        ],
+        "gravity": [],
+        "auxiliar_process_list": []
+    }
+}

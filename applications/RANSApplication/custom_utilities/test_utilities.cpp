@@ -25,6 +25,7 @@
 #include "includes/cfd_variables.h"
 
 // Application includes
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
 
@@ -124,8 +125,6 @@ ModelPart& CreateTestModelPart(
     r_model_part.CreateNewCondition(rConditionName, 2, nid_list{2, 3}, p_elem_prop)->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>{&r_element});
     r_model_part.CreateNewCondition(rConditionName, 3, nid_list{3, 1}, p_elem_prop)->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<Element>{&r_element});
 
-    RansVariableUtilities::SetElementConstitutiveLaws(r_model_part.Elements());
-
     return r_model_part;
 }
 
@@ -133,19 +132,20 @@ ModelPart& CreateScalarVariableTestModelPart(
     Model& rModel,
     const std::string& rElementName,
     const std::string& rConditionName,
-    const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,\
-    const std::function<void(Properties&)>& rSetProperties,
+    const std::function<void(Properties&)>& rSetElementProperties,
+    const std::function<void(Properties&)>& rSetConditionProperties,
+    const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
     const Variable<double>& rDofVariable,
     const int BufferSize,
     const bool DoInitializeElements,
     const bool DoInitializeConditions)
 {
-    auto& r_model_part = CreateTestModelPart(
-        rModel, rElementName, rConditionName, rAddNodalSolutionStepVariablesFuncion,
+    auto& r_model_part = FluidTestUtilities::CreateTestModelPart(
+        rModel, "test", rElementName, rConditionName, rSetElementProperties,
+        rSetConditionProperties, rAddNodalSolutionStepVariablesFuncion,
         [&rDofVariable](ModelPart::NodeType& rNode) {
             rNode.AddDof(rDofVariable).SetEquationId(rNode.Id());
         },
-        rSetProperties,
         BufferSize);
 
     if (DoInitializeElements) {

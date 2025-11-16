@@ -21,6 +21,7 @@
 #include "includes/node.h"
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
+#include "includes/element.h"
 
 // Application includes
 #include "custom_elements/convection_diffusion_reaction_element_data.h"
@@ -101,7 +102,7 @@ protected:
     double mTurbulentKineticEnergy;
     double mKinematicViscosity;
     double mVelocityDivergence;
-    double mInvTurbulentKineticEnergySigma;
+    double mInvTkeSigma;
     double mCmu;
     double mDensity;
 

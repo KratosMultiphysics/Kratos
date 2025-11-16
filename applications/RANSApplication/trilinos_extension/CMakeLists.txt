@@ -15,8 +15,6 @@ file(
 
 ## Python module
 pybind11_add_module( KratosRANSTrilinosExtension MODULE THIN_LTO ${KRATOS_RANS_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
-
-target_include_directories(KratosRANSTrilinosExtension SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
 target_link_libraries( KratosRANSTrilinosExtension PRIVATE KratosRANSCore KratosTrilinosCore KratosMPICore )
 set_target_properties( KratosRANSTrilinosExtension PROPERTIES PREFIX "")
 

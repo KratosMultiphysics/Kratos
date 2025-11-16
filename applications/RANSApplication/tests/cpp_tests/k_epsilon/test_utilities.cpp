@@ -23,6 +23,8 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
+#include "custom_utilities/fluid_test_utilities.h"
+#include "custom_utilities/rans_variable_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "rans_application_variables.h"
 
@@ -39,8 +41,9 @@ ModelPart& RansKEpsilonK2D3NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
+        rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
+        rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY_RATE);
         rModelPart.AddNodalSolutionStepVariable(RANS_AUXILIARY_VARIABLE_1);
     };
@@ -48,20 +51,27 @@ ModelPart& RansKEpsilonK2D3NSetUp(
     const auto set_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 1.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
+        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansKEpsilonNewtonian2DLaw").Clone());
     };
 
     using namespace RansApplicationTestUtilities;
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
-        rModel, rElementName, "LineCondition2D2N", add_variables_function, set_properties,
+        rModel, rElementName, "LineCondition2D2N", set_properties, [](Properties&){}, add_variables_function,
         TURBULENT_KINETIC_ENERGY, 1);
 
     // set nodal historical variables
-    RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1e-3, 1e-1);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 50.0);
-    RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, MESH_VELOCITY, 10.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY_RATE, 1.0, 50.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
+
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.SetValue(TURBULENT_KINETIC_ENERGY, r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY));
+        r_node.SetValue(TURBULENT_ENERGY_DISSIPATION_RATE, r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE));
+    }
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
@@ -77,7 +87,7 @@ ModelPart& RansKEpsilonEpsilon2D3NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
+        rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE_2);
@@ -87,21 +97,27 @@ ModelPart& RansKEpsilonEpsilon2D3NSetUp(
     const auto set_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 1.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
+        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansKEpsilonNewtonian2DLaw").Clone());
     };
 
     using namespace RansApplicationTestUtilities;
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
-        rModel, rElementName, "LineCondition2D2N", add_variables_function, set_properties,
-        TURBULENT_ENERGY_DISSIPATION_RATE, 1);
+        rModel, rElementName, "LineCondition2D2N", set_properties, [](Properties&) {},
+        add_variables_function, TURBULENT_ENERGY_DISSIPATION_RATE, 1);
 
     // set nodal historical variables
-    RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1e-3, 1e-1);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
-    RandomFillNodalHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, MESH_VELOCITY, 10.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 1.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, RANS_AUXILIARY_VARIABLE_2, 1.0, 10.0);
+
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.SetValue(TURBULENT_KINETIC_ENERGY, r_node.FastGetSolutionStepValue(TURBULENT_KINETIC_ENERGY));
+        r_node.SetValue(TURBULENT_ENERGY_DISSIPATION_RATE, r_node.FastGetSolutionStepValue(TURBULENT_ENERGY_DISSIPATION_RATE));
+    }
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();
@@ -119,15 +135,19 @@ ModelPart& RansKEpsilonEpsilon2D2NSetUp(
 {
     const auto add_variables_function = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
+        rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_KINETIC_ENERGY);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE);
         rModelPart.AddNodalSolutionStepVariable(TURBULENT_ENERGY_DISSIPATION_RATE_2);
     };
 
-    const auto set_properties = [](Properties& rProperties) {
+    const auto set_element_properties = [](Properties& rProperties) {
         rProperties.SetValue(DENSITY, 1.0);
         rProperties.SetValue(DYNAMIC_VISCOSITY, 1e-2);
+        rProperties.SetValue(CONSTITUTIVE_LAW, KratosComponents<ConstitutiveLaw>::Get("RansKEpsilonNewtonian2DLaw").Clone());
+    };
+
+    const auto set_condition_properties = [](Properties& rProperties) {
         rProperties.SetValue(WALL_SMOOTHNESS_BETA, 4.2);
         rProperties.SetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT, 12.0);
     };
@@ -135,18 +155,22 @@ ModelPart& RansKEpsilonEpsilon2D2NSetUp(
     using namespace RansApplicationTestUtilities;
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
-        rModel, "Element2D3N", rConditionName, add_variables_function, set_properties,
-        TURBULENT_ENERGY_DISSIPATION_RATE, 1);
+        rModel, "Element2D3N", rConditionName, set_element_properties, set_condition_properties,
+        add_variables_function, TURBULENT_ENERGY_DISSIPATION_RATE, 1);
 
     // set nodal historical variables
-    RandomFillNodalHistoricalVariable(r_model_part, VELOCITY, -100.0, 100.0);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_VISCOSITY, 1.5, 10.2);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
-    RandomFillNodalHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY, -100.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, MESH_VELOCITY, 10.0, 100.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_KINETIC_ENERGY, 10.0, 40.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE, 1.0, 1000.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, TURBULENT_ENERGY_DISSIPATION_RATE_2, 1.0, 1000.0);
 
-    RandomFillContainerVariable<ModelPart::ConditionsContainerType>(
-        r_model_part, RANS_Y_PLUS, 10.0, 100.0);
+    for (auto& r_condition : r_model_part.Conditions()) {
+        Vector values(2);
+        values[0] = r_condition.Id();
+        values[1] = 20.0 * r_condition.Id();
+        r_condition.SetValue(GAUSS_RANS_Y_PLUS, values);
+    }
 
     // set process info variables
     auto& r_process_info = r_model_part.GetProcessInfo();

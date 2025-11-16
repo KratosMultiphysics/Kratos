@@ -56,21 +56,15 @@
                 "element_type": "<FLOW_SOLVER_FORMULATION>",
                 "use_orthogonal_subscales": false,
                 "dynamic_tau": 1.0
+            },
+            "wall_function_settings": {
+                "wall_function_region_type": "logarithmic_region_only",
+                "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
             }
         }
     },
     "processes": {
         "initial_conditions_process_list": [
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "VISCOSITY",
-                    "value": 100.0
-                }
-            },
             {
                 "python_module": "process_factory",
                 "kratos_module": "KratosMultiphysics",
@@ -84,16 +78,6 @@
                         0.0,
                         0.0
                     ]
-                }
-            },
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "DENSITY",
-                    "value": 1.0
                 }
             }
         ],
@@ -201,7 +185,7 @@
                         "VELOCITY_Y",
                         "PRESSURE"
                 ],
-                "output_file_name": "backward_facing_step_mon_up_flow_<TIME_SCHEME_TYPE>_results.json",
+                "output_file_name": "backward_facing_step_mon_up_flow_<FLOW_SOLVER_FORMULATION>_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
                 "time_frequency": -2
             }

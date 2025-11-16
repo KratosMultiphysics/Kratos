@@ -46,6 +46,7 @@ void OmegaElementData<TDim>::Check(
 
     const auto& r_geometry = rElement.GetGeometry();
     const auto& r_properties = rElement.GetProperties();
+    const int number_of_nodes = r_geometry.PointsNumber();
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_BETA_1))
         << "TURBULENCE_RANS_BETA_1 is not found in process info.\n";
@@ -53,10 +54,15 @@ void OmegaElementData<TDim>::Check(
         << "TURBULENCE_RANS_BETA_2 is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1))
         << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1 is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2))
+        << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2 is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN))
         << "VON_KARMAN is not found in process info.\n";
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_A1))
+        << "TURBULENCE_RANS_A1 is not found in process info.\n";
+
     KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
         << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
@@ -64,14 +70,22 @@ void OmegaElementData<TDim>::Check(
         << "DENSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
-    for (const auto& r_node : r_geometry) {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+        const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+
+        KRATOS_ERROR_IF_NOT(r_node.Has(TURBULENT_KINETIC_ENERGY))
+            << "TURBULENT_KINETIC_ENERGY is not found in non-historical data "
+               "value container of node with id "
+            << r_node.Id() << ".\n";
+        KRATOS_ERROR_IF_NOT(r_node.Has(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE))
+            << "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE is not found in non-historical data value container of node with id "
+            << r_node.Id() << ".\n";
 
         KRATOS_CHECK_DOF_IN_NODE(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
     }
@@ -89,8 +103,11 @@ void OmegaElementData<TDim>::CalculateConstants(
     mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     mKappa = rCurrentProcessInfo[VON_KARMAN];
+    mA1 = rCurrentProcessInfo[TURBULENCE_RANS_A1];
 
-    mDensity = this->GetProperties().GetValue(DENSITY);
+    const auto& r_properties = this->GetProperties();
+    mDensity = r_properties[DENSITY];
+    mKinematicViscosity = r_properties[DYNAMIC_VISCOSITY] / mDensity;
 }
 
 template <unsigned int TDim>
@@ -103,19 +120,12 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
-    auto& cl_parameters = this->GetConstitutiveLawParameters();
-    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
-
-    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, mKinematicViscosity);
-    mKinematicViscosity /= mDensity;
-
     const auto& r_geometry = this->GetGeometry();
 
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
         std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
         std::tie(mWallDistance, DISTANCE),
         std::tie(mEffectiveVelocity, VELOCITY));
 
@@ -148,16 +158,33 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
 
     mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
 
+    double tke_old, omega_old;
+    FluidCalculationUtilities::EvaluateNonHistoricalInPoint(
+        this->GetGeometry(), rShapeFunctions,
+        std::tie(tke_old, TURBULENT_KINETIC_ENERGY),
+        std::tie(omega_old, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE));
+
+    const double f_2 = KOmegaSSTElementData::CalculateF2(tke_old, omega_old, mKinematicViscosity, mWallDistance, mBetaStar);
+
+    const BoundedMatrix<double, TDim, TDim> symmetric_velocity_gradient =
+        (mVelocityGradient + trans(mVelocityGradient)) * 0.5;
+
+    const double t = norm_frobenius(symmetric_velocity_gradient) * 1.414;
+
+    mTurbulentKinematicViscosity = KOmegaSSTElementData::CalculateTurbulentKinematicViscosity(tke_old, omega_old, t, f_2, mA1);
+    mTurbulentKinematicViscosity = std::max(mTurbulentKinematicViscosity, 1e-12);
+
+    mEffectiveVelocity -= mTurbulentKineticEnergyGradient * (2.0 * (1-mF1) * mSigmaOmega2 / omega_old);
+
     mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mBlendedSigmaOmega;
 
-    // omega needs to be always positive, hence we use the bracketing.
     const double omega = std::max(mTurbulentSpecificEnergyDissipationRate, 1e-12);
     mReactionTerm = mBlendedBeta * omega;
     mReactionTerm -= (1.0 - mF1) * mCrossDiffusion / omega;
     mReactionTerm += mBlendedGamma * 2.0 * mVelocityDivergence / 3.0;
     mReactionTerm = std::max(mReactionTerm, 0.0);
 
-    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity) * (mBlendedGamma / mTurbulentKinematicViscosity);
+    mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, 1.0) * (mBlendedGamma);
 
     KRATOS_CATCH("");
 }

@@ -16,7 +16,9 @@
 // Project includes
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "rans_application_variables.h"
 
 // Include base h
 #include "element_data_utilities.h"
@@ -25,12 +27,28 @@ namespace Kratos
 {
 namespace KEpsilonElementData
 {
+
 double CalculateTurbulentViscosity(
-    const double Cmu,
-    const double TurbulentKineticEnergy,
-    const double TurbulentEnergyDissipationRate)
+    const Geometry<Node>& rGeometry,
+    const Vector& rN,
+    const double Cmu)
 {
-    return Cmu * std::pow(TurbulentKineticEnergy, 2) / TurbulentEnergyDissipationRate;
+    // we calculate tke and epsilon based on the values
+    // stored in non-historical nodal container
+    // historical container values are transferred to non-historical
+    // container after each coupling step of two equation turbulence model
+    // this is done to achieve convergence easily.
+    double tke, epsilon;
+    FluidCalculationUtilities::EvaluateNonHistoricalInPoint(
+        rGeometry, rN,
+        std::tie(tke, TURBULENT_KINETIC_ENERGY),
+        std::tie(epsilon, TURBULENT_ENERGY_DISSIPATION_RATE));
+
+    if (epsilon > 0.0) {
+        return std::max(Cmu * std::pow(tke, 2) / epsilon, 1e-12);
+    } else {
+        return 1e-12;
+    }
 }
 
 template <unsigned int TDim>

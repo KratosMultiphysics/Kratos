@@ -5,7 +5,7 @@
             "properties_id": 2,
             "Material": {
                 "constitutive_law" : {
-                    "name" : "RansNewtonian2DLaw"
+                    "name" : "<CONSTITUTIVE_LAW>"
                 },
                 "Variables": {
                     "DENSITY": 1.0,

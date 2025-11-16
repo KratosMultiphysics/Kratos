@@ -25,6 +25,9 @@
 
 // Application includes
 #include "convection_diffusion_reaction_stabilization_utilities.h"
+#include "custom_elements/data_containers/stabilization_validation/circular_convection_element_data.h"
+#include "custom_elements/data_containers/stabilization_validation/body_force_governed_cdr_element_data.h"
+#include "custom_elements/data_containers/stabilization_validation/diffusion_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/epsilon_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/k_element_data.h"
 #include "custom_elements/data_containers/k_omega/k_element_data.h"
@@ -90,13 +93,20 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
     BoundedVector<double, TNumNodes> velocity_convective_terms;
+    ArrayD  mesh_velocity; // added for Chimera_RANS simulation
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector gauss_shape_functions = row(shape_functions, g);
 
+        // Get MESH_VELOCITY for Chimera_RANS simulation
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, gauss_shape_functions,
+            std::tie(mesh_velocity, MESH_VELOCITY));
+
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const auto& velocity = r_current_data.GetEffectiveVelocity();
+        const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
+        const ArrayD& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
         const double source = r_current_data.GetSourceTerm();
@@ -162,6 +172,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
     BoundedVector<double, TNumNodes> velocity_convective_terms;
+    ArrayD  mesh_velocity; // added for Chimera_RANS simulation
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -170,8 +181,14 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
         const double mass = gauss_weights[g] * (1.0 / TNumNodes);
         this->AddLumpedMassMatrix(rMassMatrix, mass);
 
+        // Get MESH_VELOCITY for Chimera_RANS simulation
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, gauss_shape_functions,
+            std::tie(mesh_velocity, MESH_VELOCITY));
+
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const auto& velocity = r_current_data.GetEffectiveVelocity();
+        const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
+        const ArrayD& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
 
@@ -194,39 +211,32 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     MatrixType& rDampingMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    const double scalar_multiplier =
-        this->CalculatePrimalDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
-    this->SetValue(ERROR_OVERALL, scalar_multiplier);
-
-    double local_matrix_norm = norm_frobenius(rDampingMatrix);
-    local_matrix_norm = (local_matrix_norm > 0.0 ? local_matrix_norm : 1.0);
+    const double residual_factor = this->CalculatePrimalDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+    double diagonal_coefficient = ConvectionDiffusionReactionStabilizationUtilities::CalculatePositivityPreservingMatrix(rDampingMatrix);
+    const double acceleration_factor = rCurrentProcessInfo[RANS_RESIDUAL_BASED_FLUX_CORRECTED_ACCELERATON_FACTOR];
+    const double scaling_factor = acceleration_factor * std::log(residual_factor + 1);
+    const double domain_size = this->GetGeometry().DomainSize();
 
     const double discrete_upwind_operator_coefficient =
         rCurrentProcessInfo[RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT];
     const double diagonal_positivity_preserving_coefficient =
         rCurrentProcessInfo[RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT];
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> discrete_diffusion_matrix;
-    double matrix_norm;
-    ConvectionDiffusionReactionStabilizationUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(
-        matrix_norm, discrete_diffusion_matrix, rDampingMatrix);
+    BoundedMatrix<double, TNumNodes, TNumNodes> stabilization_diffusion_matrix;
+    ConvectionDiffusionReactionStabilizationUtilities::CalculateDiscreteUpwindOperator<TNumNodes>(stabilization_diffusion_matrix, rDampingMatrix);
 
-    double diagonal_coefficient =
-        ConvectionDiffusionReactionStabilizationUtilities::CalculatePositivityPreservingMatrix(
-            rDampingMatrix);
+    this->SetValue(ERROR_OVERALL, scaling_factor);
+    this->SetValue(LAMBDA, residual_factor);
+    this->SetValue(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, norm_frobenius(stabilization_diffusion_matrix) / domain_size);
+    this->SetValue(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, diagonal_coefficient / domain_size);
 
-    diagonal_coefficient *= diagonal_positivity_preserving_coefficient * scalar_multiplier;
+    diagonal_coefficient *= diagonal_positivity_preserving_coefficient * residual_factor;
 
-    noalias(rDampingMatrix) += discrete_diffusion_matrix *
-                             (discrete_upwind_operator_coefficient * scalar_multiplier);
+    noalias(rDampingMatrix) += stabilization_diffusion_matrix *
+                             (discrete_upwind_operator_coefficient * residual_factor);
     noalias(rDampingMatrix) += IdentityMatrix(TNumNodes) * (diagonal_coefficient);
 
-    this->SetValue(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT,
-                   discrete_upwind_operator_coefficient * matrix_norm *
-                       scalar_multiplier / local_matrix_norm);
-    this->SetValue(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT,
-                   diagonal_coefficient / local_matrix_norm);
-
+    // noalias(rDampingMatrix) += (stabilization_diffusion_matrix + IdentityMatrix(TNumNodes) * diagonal_coefficient) * residual_factor;
 }
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
@@ -270,14 +280,21 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
     BoundedVector<double, TNumNodes> velocity_convective_terms;
+    ArrayD  mesh_velocity; // added for Chimera_RANS simulation
 
     double scalar_multiplier = 0.0;
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector& gauss_shape_functions = row(shape_functions, g);
 
+        // Get MESH_VELOCITY for Chimera_RANS simulation
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, gauss_shape_functions,
+            std::tie(mesh_velocity, MESH_VELOCITY));
+
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const auto& velocity = r_current_data.GetEffectiveVelocity();
+        const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
+        const ArrayD& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
         const double source = r_current_data.GetSourceTerm();
@@ -329,7 +346,7 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
 GeometryData::IntegrationMethod ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>::GetIntegrationMethod() const
 {
-    return GeometryData::IntegrationMethod::GI_GAUSS_1;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 template <IndexType TDim, IndexType TNumNodes, class TConvectionDiffusionReactionData>
@@ -340,6 +357,10 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
 }
 
 // template instantiations
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidationElementData::CircularConvectionElementData>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidationElementData::BodyForceGovernedCDRElementData>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidationElementData::DiffusionElementData>;
+
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, KEpsilonElementData::KElementData<2>>;
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, KEpsilonElementData::EpsilonElementData<2>>;
 

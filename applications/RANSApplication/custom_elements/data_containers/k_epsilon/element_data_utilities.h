@@ -16,6 +16,8 @@
 // System includes
 
 // Project includes
+#include "includes/node.h"
+#include "geometries/geometry.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
@@ -28,9 +30,9 @@ namespace Kratos
 namespace KEpsilonElementData
 {
 double CalculateTurbulentViscosity(
-    const double Cmu,
-    const double TurbulentKineticEnergy,
-    const double TurbulentEnergyDissipationRate);
+    const Geometry<Node>& rGeometry,
+    const Vector& rN,
+    const double Cmu);
 
 template <unsigned int TDim>
 double CalculateProductionTerm(

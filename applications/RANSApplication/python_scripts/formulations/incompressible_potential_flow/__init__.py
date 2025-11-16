@@ -16,7 +16,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBloc
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 
 class IncompressiblePotentialFlowRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings_dict):
         """Incompressible potential flow rans formulation
 
         This RansFormulation solves incompressible potential flow equation for steady
@@ -31,7 +31,11 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
         """
         super().__init__(model_part, settings)
 
-        default_settings = Kratos.Parameters(r'''
+        self.GetParameters().ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.SetMaxCouplingIterations(1)
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters(r'''
         {
             "formulation_name": "incompressible_potential_flow",
             "linear_solver_settings": {
@@ -41,8 +45,6 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
             "relative_tolerance": 1e-12,
             "absolute_tolerance": 1e-12
         }''')
-        self.GetParameters().ValidateAndAssignDefaults(default_settings)
-        self.SetMaxCouplingIterations(1)
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)
@@ -144,7 +146,6 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
 
     def SolveCouplingStep(self):
         if (not self.IsConverged()):
-            self.velocity_strategy.Predict()
             self.is_converged = self.velocity_strategy.SolveSolutionStep()
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved  formulation.")
@@ -188,3 +189,6 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
 
     def GetMaxCouplingIterations(self):
         return 0
+
+    def GetSolvingVariables(self):
+        return [KratosRANS.VELOCITY_POTENTIAL]

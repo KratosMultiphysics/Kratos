@@ -1,5 +1,6 @@
 # import kratos
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 # import RANS
 import KratosMultiphysics.RANSApplication as KratosRANS
@@ -18,6 +19,32 @@ class KOmegaKRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetConditionNamePrefix(self):
         return ""
 
+    def SetWallFunctionSettings(self, settings=None):
+        formulation_settings = self.GetParameters()["wall_function_settings"]
+        if settings is not None:
+            if not formulation_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Global and specialized \"wall_function_settings\" are defined. Using specialized settings and global settings are discarded for this formulation.")
+                settings = formulation_settings
+            else:
+                IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
+        else:
+            settings = formulation_settings
+
+        if (settings.Has("wall_function_region_type")):
+            wall_function_region_type = settings["wall_function_region_type"].GetString()
+        else:
+            wall_function_region_type = "logarithmic_region_only"
+
+        if (wall_function_region_type == "logarithmic_region_only"):
+            self.condition_name = ""
+        elif (wall_function_region_type == "viscous_region_only"):
+            self.condition_name = "RansKEpsilonKVisBasedWall"
+        else:
+            msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
+            msg += "Supported wall function region types are:\n"
+            msg += "\tlogarithmic_region_only\n"
+            msg += "\tviscous_region_only\n"
+            raise Exception(msg)
 
 class KOmegaOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetSolvingVariable(self):
@@ -29,10 +56,64 @@ class KOmegaOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetConditionNamePrefix(self):
         return "RansKOmegaOmega"
 
+    def SetWallFunctionSettings(self, settings=None):
+        formulation_settings = self.GetParameters()["wall_function_settings"]
+        if settings is not None:
+            if not formulation_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Global and specialized \"wall_function_settings\" are defined. Using specialized settings and global settings are discarded for this formulation.")
+                settings = formulation_settings
+            else:
+                IssueDeprecationWarning(self.__class__.__name__, "Using deprecated global \"wall_function_settings\". Please define formulation specialized \"wall_function_settings\" in each leaf formulation.")
+        else:
+            settings = formulation_settings
+
+        self.condition_name = self.GetConditionNamePrefix()
+
+        if (self.condition_name != ""):
+            if (settings.Has("wall_function_region_type")):
+                wall_function_region_type = settings["wall_function_region_type"].GetString()
+            else:
+                wall_function_region_type = "logarithmic_region_only"
+
+            if (settings.Has("wall_friction_velocity_calculation_method")):
+                wall_friction_velocity_calculation_method = settings["wall_friction_velocity_calculation_method"].GetString()
+            else:
+                wall_friction_velocity_calculation_method = "velocity_based"
+
+            if (wall_function_region_type == "logarithmic_region_only"):
+                if (wall_friction_velocity_calculation_method == "velocity_based"):
+                    self.condition_name = self.condition_name + "UBasedWall"
+                elif (wall_friction_velocity_calculation_method ==
+                    "turbulent_kinetic_energy_based"):
+                    self.condition_name = self.condition_name + "KBasedWall"
+                else:
+                    msg = "Unsupported wall friction velocity calculation method. [ wall_friction_velocity_calculation_method = \"" + wall_friction_velocity_calculation_method + "\" ].\n"
+                    msg += "Supported methods are:\n"
+                    msg += "\tvelocity_based\n"
+                    msg += "\tturbulent_kinetic_energy_based\n"
+                    raise Exception(msg)
+            elif (wall_function_region_type == "viscous_region_only"):
+                self.condition_name = self.condition_name + "VisLogBasedWall"
+            else:
+                msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
+                msg += "Supported wall function region types are:\n"
+                msg += "\tlogarithmic_region_only\n"
+                msg += "\tviscous_region_only\n"
+                raise Exception(msg)
 
 class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
-    def __init__(self, model_part, settings):
-        default_settings = Kratos.Parameters(r'''
+    def __init__(self, model_part, settings, deprecated_settings_dict):
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
+        super().__init__(
+            model_part,
+            settings,
+            deprecated_settings_dict,
+            KOmegaKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"], deprecated_settings_dict),
+            KOmegaOmegaRansFormulation(model_part, settings["turbulent_specific_energy_dissipation_rate_solver_settings"], deprecated_settings_dict))
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters(r'''
         {
             "formulation_name": "k_omega",
             "stabilization_method": "algebraic_flux_corrected",
@@ -49,21 +130,10 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             "minimum_turbulent_viscosity": 1e-12
         }''')
 
-        settings.ValidateAndAssignDefaults(default_settings)
-
-        super().__init__(
-            model_part,
-            settings,
-            KOmegaKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"]),
-            KOmegaOmegaRansFormulation(model_part, settings["turbulent_specific_energy_dissipation_rate_solver_settings"]))
-
     def AddVariables(self):
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.MESH_VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE)
@@ -79,30 +149,6 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         Kratos.VariableUtils().AddDof(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, self.GetBaseModelPart())
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step dofs.")
-
-    def Initialize(self):
-        model_part = self.GetBaseModelPart()
-        model = model_part.GetModel()
-
-        process_info = model_part.ProcessInfo
-        wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
-        minimum_nut = self.GetParameters()["minimum_turbulent_viscosity"].GetDouble()
-
-        nut_process = KratosRANS.RansNutKOmegaUpdateProcess(
-                                            model,
-                                            self.GetBaseModelPart().Name,
-                                            minimum_nut,
-                                            self.echo_level)
-        self.AddProcess(nut_process)
-
-        nut_wall_process = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
-                                            model,
-                                            wall_model_part_name,
-                                            minimum_nut,
-                                            self.echo_level)
-        self.AddProcess(nut_wall_process)
-
-        super().Initialize()
 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{

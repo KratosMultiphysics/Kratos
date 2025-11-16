@@ -8,7 +8,11 @@ import KratosMultiphysics.RANSApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
 import KratosMultiphysics.kratos_utilities as kratos_utilities
+
+# Import the tests o test_classes to create the suites
+import run_cpp_unit_tests
 
 # process test_classes
 from custom_process_tests import CustomProcessTest
@@ -33,6 +37,12 @@ from fractional_step_k_omega_formulation_tests import FractionalStepKOmegaTest
 from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTTest
 from monolithic_k_omega_sst_formulation_tests import MonolithicKOmegaSSTPeriodicTest
 from fractional_step_k_omega_sst_formulation_tests import FractionalStepKOmegaSSTTest
+
+### adjoint two element test_classes
+from adjoint_cc_two_elements_tests import AdjointCircularConvectionTwoElementsTest
+from adjoint_diffusion_two_elements_tests import AdjointDiffusionTwoElementsTest
+from adjoint_ke_two_elements_tests import AdjointKEpsilonTwoElementsTest
+from adjoint_kw_two_elements_tests import AdjointKOmegaTwoElementsTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -67,6 +77,13 @@ def AssembleTestSuites():
     smallSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcVelocityTransient"))
     smallSuite.addTest(MonolithicKOmegaSSTTest("testVMSRfcVelocityTransient"))
     smallSuite.addTest(MonolithicKOmegaSSTTest("testQSVMSRfcVelocityTransient"))
+
+    # adding adjoint two element tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointKEpsilonTwoElementsTest]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointCircularConvectionTwoElementsTest]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointDiffusionTwoElementsTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -107,13 +124,13 @@ def AssembleTestSuites():
     nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcTkeTransient"))
 
     # For very long tests that should not be in nighly and you can use to validate
-    # validationSuite = suites['validation']
+    validationSuite = suites['validation']
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointKOmegaTwoElementsTest]))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
-
-    # allSuite.addTests(validationSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 
@@ -121,7 +138,11 @@ def AssembleTestSuites():
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(
         KratosMultiphysics.Logger.Severity.WARNING)
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
+

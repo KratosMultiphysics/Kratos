@@ -43,6 +43,8 @@ public:
 
     using BaseType = Scheme<TSparseSpace, TDenseSpace>;
 
+    using DofType = typename BaseType::TDofType;
+
     using DofsArrayType = typename BaseType::DofsArrayType;
 
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
@@ -72,6 +74,27 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dv,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        if (rModelPart.GetBufferSize() > 1) {
+            block_for_each(rDofSet, [](DofType& pDof) {
+                if (pDof.IsFree()) {
+                    const double value = pDof.GetSolutionStepValue(1);
+                    pDof.GetSolutionStepValue() = value;
+                }
+            });
+        }
+
+        KRATOS_CATCH("");
+    }
 
     void Update(
         ModelPart& rModelPart,
@@ -166,6 +189,10 @@ public:
         KRATOS_CATCH("");
     }
 
+    void InitializeDofUpdater() {
+        mpDofUpdater->InitializeAitken();
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -213,16 +240,18 @@ protected:
         KRATOS_CATCH("");
     }
 
+    using DofUpdaterType = RelaxedDofUpdater<TSparseSpace>;
+    using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
+
+    DofUpdaterPointerType mpDofUpdater;
+
     ///@}
 
 private:
     ///@name Member Variables
     ///@{
 
-    using DofUpdaterType = RelaxedDofUpdater<TSparseSpace>;
-    using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
 
-    DofUpdaterPointerType mpDofUpdater;
 
     ///@}
 };

@@ -14,14 +14,16 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 // Project includes
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rans_calculation_utilities.h"
+#include "custom_utilities/rans_adjoint_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
-#include "custom_utilities/rans_variable_difference_norm_calculation_utility.h"
+#include "custom_utilities/rans_nut_utility.h"
 #include "custom_utilities/test_utilities.h"
 
 namespace Kratos
@@ -32,11 +34,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using RansScalarVariableDifferenceNormCalculationUtilityType = RansVariableDifferenceNormsCalculationUtility<double>;
-    py::class_<RansScalarVariableDifferenceNormCalculationUtilityType, RansScalarVariableDifferenceNormCalculationUtilityType::Pointer>(m, "ScalarVariableDifferenceNormCalculationUtility")
-        .def(py::init<const ModelPart&, const Variable<double>&>())
-        .def("InitializeCalculation", &RansScalarVariableDifferenceNormCalculationUtilityType::InitializeCalculation)
-        .def("CalculateDifferenceNorm", &RansScalarVariableDifferenceNormCalculationUtilityType::CalculateDifferenceNorm);
+    py::class_<RansNutUtility, RansNutUtility::Pointer>(m, "RansNutUtility")
+        .def(py::init<ModelPart&, const double, const double, const int>())
+        .def("Initialize", &RansNutUtility::Initialize)
+        .def("InitializeCalculation", &RansNutUtility::InitializeCalculation)
+        .def("CheckConvergence", &RansNutUtility::CheckConvergence)
+        .def("UpdateTurbulentViscosity", &RansNutUtility::UpdateTurbulentViscosity)
+        ;
 
     m.def_submodule("RansVariableUtilities")
         .def("ClipScalarVariable", &RansVariableUtilities::ClipScalarVariable)
@@ -50,21 +54,25 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CopyNodalSolutionStepVariablesList", &RansVariableUtilities::CopyNodalSolutionStepVariablesList)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<double>)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<array_1d<double, 3>>)
-        .def("SetElementConstitutiveLaws", &RansVariableUtilities::SetElementConstitutiveLaws)
+        .def("InitializeContainerEntities", &RansVariableUtilities::InitializeContainerEntities<ModelPart::ConditionsContainerType>)
+        .def("InitializeContainerEntities", &RansVariableUtilities::InitializeContainerEntities<ModelPart::ElementsContainerType>)
+        .def("AssignMaximumVectorComponents", &RansVariableUtilities::AssignMaximumVectorComponents)
+        .def("AssignMinimumVectorComponents", &RansVariableUtilities::AssignMinimumVectorComponents)
+        .def("CalculateNodalNormal", &RansVariableUtilities::CalculateNodalNormal)
+        .def("GetSolutionstepVariableNamesList", &RansVariableUtilities::GetSolutionstepVariableNamesList)
         ;
 
     m.def_submodule("RansCalculationUtilities")
-        .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit, py::arg("kappa"), py::arg("beta"), py::arg("max_iterations") = 20, py::arg("tolerance") = 1e-6);
+        .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit, py::arg("kappa"), py::arg("beta"), py::arg("max_iterations") = 20, py::arg("tolerance") = 1e-6)
+        .def("CalculateWallHeight", &RansCalculationUtilities::CalculateWallHeight)
+        .def("CalculateWallDistances", &RansCalculationUtilities::CalculateWallDistances, py::arg("model_part"), py::arg("structure_line_node_ids"))
+        ;
 
-    m.def_submodule("RansTestUtilities")
-        .def("RandomFillNodalHistoricalVariable", &RansApplicationTestUtilities::RandomFillNodalHistoricalVariable<double>)
-        .def("RandomFillNodalHistoricalVariable", &RansApplicationTestUtilities::RandomFillNodalHistoricalVariable<array_1d<double, 3>>)
-        .def("RandomFillNodalNonHistoricalVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::NodesContainerType, double>)
-        .def("RandomFillNodalNonHistoricalVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::NodesContainerType, array_1d<double, 3>>)
-        .def("RandomFillConditionVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ConditionsContainerType, double>)
-        .def("RandomFillConditionVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def("RandomFillElementVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ElementsContainerType, double>)
-        .def("RandomFillElementVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>)
+    m.def_submodule("RansAdjointUtilities")
+        .def("CopyAdjointSolutionToNonHistorical", &RansAdjointUtilities::CopyAdjointSolutionToNonHistorical)
+        .def("RescaleAdjointSolution", &RansAdjointUtilities::RescaleAdjointSolution)
+        .def("RescaleShapeSensitivity", &RansAdjointUtilities::RescaleShapeSensitivity)
+        .def("CalculateTransientReponseFunctionInterpolationError", &RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError)
         ;
 }
 

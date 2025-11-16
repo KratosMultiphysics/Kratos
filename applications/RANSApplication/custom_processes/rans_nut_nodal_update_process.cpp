@@ -20,8 +20,10 @@
 #include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 // Application includes
+#include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -64,13 +66,18 @@ int RansNutNodalUpdateProcess::Check()
         << "VISCOSITY is not found in nodal solution step variables list of "
         << mModelPartName << ".";
 
-    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(TURBULENT_VISCOSITY))
-        << "TURBULENT_VISCOSITY is not found in nodal solution step variables list of "
-        << mModelPartName << ".";
-
     return 0;
 
     KRATOS_CATCH("");
+}
+
+void RansNutNodalUpdateProcess::ExecuteInitialize()
+{
+    RansCalculationUtilities::CalculateNumberOfNeighbourEntities<ModelPart::ElementsContainerType>(
+        mrModel.GetModelPart(mModelPartName), NUMBER_OF_NEIGHBOUR_ELEMENTS);
+
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
+        << "Calculated number of neighbour elements in " << mModelPartName << ".\n";
 }
 
 void RansNutNodalUpdateProcess::ExecuteInitializeSolutionStep()
@@ -96,10 +103,21 @@ void RansNutNodalUpdateProcess::ExecuteAfterCouplingSolveStep()
     const double rho = r_properties.GetValue(DENSITY);
     const double nu = r_properties.GetValue(DYNAMIC_VISCOSITY) / rho;
 
-    block_for_each(r_nodes, [&](ModelPart::NodeType& rNode) {
-        rNode.FastGetSolutionStepValue(VISCOSITY) =
-            nu + rNode.FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+    // clear all the nodes
+    VariableUtils().SetHistoricalVariableToZero(VISCOSITY, r_nodes);
+
+    // compute nu with nu_t for elemental nodes
+    block_for_each(r_model_part.Elements(), [&](ModelPart::ElementType& rElement) {
+        const double nu_t = rElement.GetValue(TURBULENT_VISCOSITY);
+        for (auto& r_node : rElement.GetGeometry()) {
+            r_node.SetLock();
+            r_node.FastGetSolutionStepValue(VISCOSITY) += (nu + nu_t) / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+            r_node.UnSetLock();
+        }
     });
+
+    // assemble elemental nu_t computations
+    r_model_part.GetCommunicator().AssembleCurrentData(VISCOSITY);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << "Updated nu_t for nodes in " << mModelPartName << ".\n";

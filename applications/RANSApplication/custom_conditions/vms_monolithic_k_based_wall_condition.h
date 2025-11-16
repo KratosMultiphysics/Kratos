@@ -20,7 +20,7 @@
 // Project includes
 
 // Application includes
-#include "custom_conditions/monolithic_wall_condition.h"
+#include "includes/condition.h"
 
 namespace Kratos
 {
@@ -37,7 +37,7 @@ namespace Kratos
  * @tparam TNumNodes  Number of nodes in the condition
  */
 template <unsigned int TDim, unsigned int TNumNodes = TDim>
-class VMSMonolithicKBasedWallCondition : public MonolithicWallCondition<TDim, TNumNodes>
+class VMSMonolithicKBasedWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
@@ -46,7 +46,7 @@ public:
     /// Pointer definition of VMSMonolithicKBasedWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VMSMonolithicKBasedWallCondition);
 
-    using BaseType = MonolithicWallCondition<TDim, TNumNodes>;
+    using BaseType = Condition;
     using NodeType = Node;
     using PropertiesType = Properties;
     using GeometryType = Geometry<NodeType>;
@@ -182,6 +182,46 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalVelocityContribution(
+        MatrixType& rDampingMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void GetDofList(
+        DofsVectorType& ConditionDofList,
+        const ProcessInfo& CurrentProcessInfo) const override;
+
+    void GetFirstDerivativesVector(
+        Vector& Values,
+        int Step = 0) const override;
+
+    void GetSecondDerivativesVector(
+        Vector& Values,
+        int Step = 0) const override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -219,15 +259,13 @@ protected:
     void ApplyWallLaw(
         MatrixType& rLocalMatrix,
         VectorType& rLocalVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
 
 private:
     ///@name Member Variables
     ///@{
-
-    double mWallHeight;
 
     ///@}
     ///@name Serialization

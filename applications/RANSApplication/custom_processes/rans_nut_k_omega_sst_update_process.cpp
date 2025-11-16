@@ -171,7 +171,7 @@ double RansNutKOmegaSSTUpdateProcess::CalculateElementNuT(
 
     auto& r_geometry = rElement.GetGeometry();
     const auto& r_properties = rElement.GetProperties();
-    auto constitutive_law = rElement.GetValue(CONSTITUTIVE_LAW);
+    auto constitutive_law = rElement.GetProperties().GetValue(CONSTITUTIVE_LAW);
 
     // Get Shape function data
     Vector gauss_weights;

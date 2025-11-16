@@ -43,19 +43,7 @@
         }
     },
     "processes": {
-        "initial_conditions_process_list": [
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "DENSITY",
-                    "is_fixed": false,
-                    "value": 1.2
-                }
-            }
-        ],
+        "initial_conditions_process_list": [],
         "boundary_conditions_process_list": [
             {
                 "python_module": "apply_inlet_process",
@@ -81,13 +69,6 @@
                     "value": 0.0,
                     "hydrostatic_outlet": false,
                     "h_top": 0.0
-                }
-            },
-            {
-                "python_module": "apply_wall_function_process",
-                "kratos_module": "KratosMultiphysics.RANSApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.Slip2D"
                 }
             }
         ],

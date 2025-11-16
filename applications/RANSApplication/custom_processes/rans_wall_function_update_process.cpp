@@ -59,11 +59,26 @@ int RansWallFunctionUpdateProcess::Check()
 {
     KRATOS_TRY
 
-    const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
+    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(VELOCITY))
         << "VELOCITY is not found in nodal solution step variables list of "
         << mModelPartName << ".";
+
+    if (r_model_part.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE) == 0) {
+        return 0;
+    }
+
+    block_for_each(r_model_part.Conditions(), [&](const ModelPart::ConditionType& rCondition) {
+        KRATOS_ERROR_IF_NOT(rCondition.Has(GAUSS_RANS_Y_PLUS))
+            << "GAUSS_RANS_Y_PLUS is not found in condition data value container [ Condition.Id() = "
+            << rCondition.Id() << " ].\n";
+
+        const std::size_t number_of_gauss_points = rCondition.GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
+        KRATOS_ERROR_IF(rCondition.GetValue(GAUSS_RANS_Y_PLUS).size() != number_of_gauss_points)
+            << "GAUSS_RANS_Y_PLUS is not properly initialized. [ GAUSS_RANS_Y_PLUS.size() = " << rCondition.GetValue(GAUSS_RANS_Y_PLUS).size()
+            << ", required size = " << number_of_gauss_points << " ].\n";
+    });
 
     return 0;
 
@@ -88,9 +103,12 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
+    if (r_model_part.GetValue(RANS_IS_WALL_FUNCTION_ACTIVE) == 0) {
+        return;
+    }
+
     const auto& r_process_info = r_model_part.GetProcessInfo();
     const double von_karman = r_process_info[VON_KARMAN];
-    const double c_mu_25 = std::pow(r_process_info[TURBULENCE_RANS_C_MU], 0.25);
 
     auto& r_conditions = r_model_part.Conditions();
 
@@ -99,7 +117,11 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
 
         // get parent element
         auto& r_parent_element = r_geometry.GetValue(NEIGHBOUR_ELEMENTS)[0];
-        auto constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
+
+        // get fluid properties from parent element
+        const auto& r_elem_properties = r_parent_element.GetProperties();
+        const double rho = r_elem_properties[DENSITY];
+        const double nu = r_elem_properties[DYNAMIC_VISCOSITY] / rho;
 
         // get surface properties
         const auto& r_cond_properties = rCondition.GetProperties();
@@ -109,60 +131,34 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
         auto& gauss_weights = rTLS.first;
         auto& shape_functions = rTLS.second;
         RansCalculationUtilities::CalculateConditionGeometryData(
-            r_geometry, rCondition.GetIntegrationMethod(),
+            r_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2,
             gauss_weights, shape_functions);
         const IndexType num_gauss_points = gauss_weights.size();
 
-        const auto& r_normal = rCondition.GetValue(NORMAL);
-        const double wall_height =
-            RansCalculationUtilities::CalculateWallHeight(rCondition, r_normal);
+        const double wall_height = rCondition.GetValue(DISTANCE);
 
-        double condition_y_plus{0.0}, nu, tke;
-        array_1d<double, 3> condition_u_tau = ZeroVector(3);
+        double tke;
         array_1d<double, 3> wall_velocity;
 
-        // get fluid properties
-        const auto& r_elem_properties = r_parent_element.GetProperties();
-        const double density = r_elem_properties[DENSITY];
-
-        ConstitutiveLaw::Parameters cl_parameters(
-            r_geometry, r_elem_properties, r_model_part.GetProcessInfo());
+        auto& gauss_y_plus = rCondition.GetValue(GAUSS_RANS_Y_PLUS);
 
         for (size_t g = 0; g < num_gauss_points; ++g) {
+            double& y_plus = gauss_y_plus[g];
             const auto& gauss_shape_functions = row(shape_functions, g);
-            cl_parameters.SetShapeFunctionsValues(gauss_shape_functions);
 
             FluidCalculationUtilities::EvaluateInPoint(
                 r_geometry, gauss_shape_functions,
                 std::tie(wall_velocity, VELOCITY),
                 std::tie(tke, TURBULENT_KINETIC_ENERGY));
 
-            constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
-            nu /= density;
-
             const double wall_velocity_magnitude = norm_2(wall_velocity);
 
-            double y_plus{0.0}, u_tau{0.0};
+            double u_tau{0.0};
             RansCalculationUtilities::CalculateYPlusAndUtau(
                 y_plus, u_tau, wall_velocity_magnitude, wall_height, nu,
                 von_karman, beta);
             y_plus = std::max(y_plus, y_plus_limit);
-
-            u_tau = RansCalculationUtilities::SoftMax(
-                c_mu_25 * std::sqrt(std::max(tke, 0.0)),
-                wall_velocity_magnitude / (std::log(y_plus) / von_karman + beta));
-
-            condition_y_plus += y_plus;
-
-            if (wall_velocity_magnitude > 0.0) {
-                noalias(condition_u_tau) += wall_velocity * u_tau / wall_velocity_magnitude;
-            }
         }
-
-        const double inv_number_of_gauss_points = 1.0 / num_gauss_points;
-
-        rCondition.SetValue(RANS_Y_PLUS, condition_y_plus * inv_number_of_gauss_points);
-        rCondition.SetValue(FRICTION_VELOCITY, condition_u_tau * inv_number_of_gauss_points);
     });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)

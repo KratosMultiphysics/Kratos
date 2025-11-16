@@ -45,24 +45,35 @@ void KElementData<TDim>::Check(
 
     const auto& r_geometry = rElement.GetGeometry();
     const auto& r_properties = rElement.GetProperties();
+    const int number_of_nodes = r_geometry.PointsNumber();
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C_MU))
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_KINETIC_ENERGY_SIGMA))
         << "TURBULENT_KINETIC_ENERGY_SIGMA is not found in process info.\n";
+
     KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
         << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
+
     KRATOS_ERROR_IF_NOT(r_properties.Has(DENSITY))
         << "DENSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
-    for (const auto& r_node : r_geometry) {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+        const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_1, r_node);
+
+        KRATOS_ERROR_IF_NOT(r_node.Has(TURBULENT_KINETIC_ENERGY))
+            << "TURBULENT_KINETIC_ENERGY is not found in non-historical data "
+               "value container of node with id "
+            << r_node.Id() << ".\n";
+        KRATOS_ERROR_IF_NOT(r_node.Has(TURBULENT_ENERGY_DISSIPATION_RATE))
+            << "TURBULENT_ENERGY_DISSIPATION_RATE is not found in non-historical data value container of node with id "
+            << r_node.Id() << ".\n";
 
         KRATOS_CHECK_DOF_IN_NODE(TURBULENT_KINETIC_ENERGY, r_node);
     }
@@ -77,8 +88,11 @@ void KElementData<TDim>::CalculateConstants(
     KRATOS_TRY
 
     mCmu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    mInvTurbulentKineticEnergySigma = 1.0 / rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
-    mDensity = this->GetProperties().GetValue(DENSITY);
+    mInvTkeSigma = 1.0 / rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
+
+    const auto& r_properties = this->GetProperties();
+    mDensity = r_properties[DENSITY];
+    mKinematicViscosity = r_properties[DYNAMIC_VISCOSITY] / mDensity;
 
     KRATOS_CATCH("");
 }
@@ -93,17 +107,13 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
-    auto& cl_parameters = this->GetConstitutiveLawParameters();
-    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
-
-    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, mKinematicViscosity);
-    mKinematicViscosity /= mDensity;
-
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
-        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
         std::tie(mEffectiveVelocity, VELOCITY));
+
+    mTurbulentKinematicViscosity = KEpsilonElementData::CalculateTurbulentViscosity(
+        this->GetGeometry(), rShapeFunctions, mCmu);
 
     mGamma = KEpsilonElementData::CalculateGamma(mCmu, mTurbulentKineticEnergy, mTurbulentKinematicViscosity);
 
@@ -113,7 +123,7 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     mVelocityDivergence = CalculateMatrixTrace<TDim>(mVelocityGradient);
 
-    mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mInvTurbulentKineticEnergySigma;
+    mEffectiveKinematicViscosity = mKinematicViscosity + mTurbulentKinematicViscosity * mInvTkeSigma;
     mReactionTerm = std::max(mGamma + (2.0 / 3.0) * mVelocityDivergence, 0.0);
     mSourceTerm = KEpsilonElementData::CalculateProductionTerm<TDim>(mVelocityGradient, mTurbulentKinematicViscosity);
 

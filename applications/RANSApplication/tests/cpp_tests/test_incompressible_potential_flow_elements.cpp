@@ -19,6 +19,7 @@
 #include "testing/testing.h"
 
 // Application includes
+#include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/test_utilities.h"
 #include "includes/cfd_variables.h"
 #include "rans_application_variables.h"
@@ -43,10 +44,11 @@ ModelPart& RansIncompressiblePotentialFlowVelocity2D3NSetUp(
 
     auto& r_model_part = CreateScalarVariableTestModelPart(
         rModel, "RansIncompressiblePotentialFlowVelocity2D3N",
-        "LineCondition2D2N", add_variables_function, set_properties, VELOCITY_POTENTIAL, 1);
+        "LineCondition2D2N", set_properties, set_properties,
+        add_variables_function, VELOCITY_POTENTIAL, 1);
 
     // set nodal historical variables
-    RandomFillNodalHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
+    FluidTestUtilities::RandomFillHistoricalVariable(r_model_part, VELOCITY_POTENTIAL, -10.0, 10.0);
 
     RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
 
@@ -62,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_EquationId
     auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestEquationIdVector<ModelPart::ElementsContainerType>(r_model_part);
+    FluidTestUtilities::RunEntityEquationIdVectorTest(r_model_part.Elements(), r_model_part.GetProcessInfo(), {&VELOCITY_POTENTIAL});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_GetDofList, KratosRansFastSuite)
@@ -72,8 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_GetDofList
     auto& r_model_part = RansIncompressiblePotentialFlowVelocity2D3NSetUp(model);
 
     // Test:
-    RansApplicationTestUtilities::TestGetDofList<ModelPart::ElementsContainerType>(
-        r_model_part, VELOCITY_POTENTIAL);
+    FluidTestUtilities::RunEntityGetDofListTest(r_model_part.Elements(), r_model_part.GetProcessInfo(), {&VELOCITY_POTENTIAL});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateLocalSystem,
@@ -91,9 +92,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateL
         LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] = -5.1041666666666670e+00;
-    ref_RHS[1] = 1.2165570175438596e+01;
-    ref_RHS[2] = -7.0614035087719298e+00;
+    ref_RHS[0] = 1.3295291530269968e+00;
+    ref_RHS[1] = 8.9192309670427861e-01;
+    ref_RHS[2] = -2.2214522497312754e+00;
     ref_LHS(0, 0) = 5.0000000000000000e-01;
     ref_LHS(0, 1) = -5.0000000000000000e-01;
     ref_LHS(1, 0) = -5.0000000000000000e-01;
@@ -102,8 +103,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateL
     ref_LHS(2, 1) = -5.0000000000000000e-01;
     ref_LHS(2, 2) = 5.0000000000000000e-01;
 
-    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateLeftHandSide,
@@ -128,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateL
     ref_LHS(2, 1) = -5.0000000000000000e-01;
     ref_LHS(2, 2) = 5.0000000000000000e-01;
 
-    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateRightHandSide,
@@ -145,11 +146,11 @@ KRATOS_TEST_CASE_IN_SUITE(RansIncompressiblePotentialFlowVelocity2D3N_CalculateR
         RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] = -5.1041666666666670e+00;
-    ref_RHS[1] = 1.2165570175438596e+01;
-    ref_RHS[2] = -7.0614035087719298e+00;
+    ref_RHS[0] = 1.3295291530269968e+00;
+    ref_RHS[1] = 8.9192309670427861e-01;
+    ref_RHS[2] = -2.2214522497312754e+00;
 
-    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
 
 } // namespace Testing

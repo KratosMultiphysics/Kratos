@@ -51,6 +51,18 @@ double KRATOS_API(RANS_APPLICATION) GetMaximumScalarValue(
     const ModelPart& rModelPart,
     const Variable<double>& rVariable);
 
+void KRATOS_API(RANS_APPLICATION) AssignMinimumVectorComponents(
+    const ModelPart& rModelPart,
+    const Variable<Vector>& rOutputVariable,
+    const Variable<Vector>& rInputVariable1,
+    const Variable<Vector>& rInputVariable2);
+
+void KRATOS_API(RANS_APPLICATION) AssignMaximumVectorComponents(
+    const ModelPart& rModelPart,
+    const Variable<Vector>& rOutputVariable,
+    const Variable<Vector>& rInputVariable1,
+    const Variable<Vector>& rInputVariable2);
+
 void KRATOS_API(RANS_APPLICATION) GetNodalVariablesVector(
     Vector& rValues,
     const ModelPart::NodesContainerType& rNodes,
@@ -102,8 +114,19 @@ void KRATOS_API(RANS_APPLICATION) CopyNodalSolutionStepVariablesList(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart);
 
+template<class TContainerType>
 void KRATOS_API(RANS_APPLICATION)
-    SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements);
+    InitializeContainerEntities(
+        TContainerType& rEntities,
+        const ProcessInfo& rProcessInfo);
+
+void KRATOS_API(RANS_APPLICATION)
+    CalculateNodalNormal(
+        ModelPart& rModelPart);
+
+std::vector<std::string> KRATOS_API(RANS_APPLICATION)
+    GetSolutionstepVariableNamesList(
+        const ModelPart& rModelPart);
 
 ///@}
 } // namespace RansVariableUtilities

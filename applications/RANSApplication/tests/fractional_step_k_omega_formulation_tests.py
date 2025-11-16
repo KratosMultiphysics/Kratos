@@ -9,9 +9,11 @@ class FractionalStepKOmegaTest(turbulence_modelling_test_case.TurbulenceModellin
         super(FractionalStepKOmegaTest, cls).setUpCase(
             "BackwardFacingStepTest",
             "backward_facing_step_fs_kw_parameters.json",
+            "backward_facing_step_material_properties.json",
             False)
 
         cls.transient_scheme_type = "bdf2"
+        cls.parameters["<CONSTITUTIVE_LAW>"] = "RansKOmegaNewtonian2DLaw"
 
 
 if __name__ == '__main__':

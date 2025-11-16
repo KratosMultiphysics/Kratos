@@ -33,10 +33,6 @@
         "material_import_settings": {
             "materials_filename": "backward_facing_step_material_properties.json"
         },
-        "wall_function_settings": {
-            "wall_function_region_type": "logarithmic_region_only",
-            "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
-        },
         "formulation_settings": {
             "formulation_name": "fractional_step_k_epsilon",
             "incompressible_potential_flow_initialization_settings": {},
@@ -59,6 +55,9 @@
                 "velocity_linear_solver_settings": {
                     "solver_type": "amgcl",
                     "tolerance": 1e-12
+                },
+                "wall_function_settings": {
+                    "wall_function_region_type": "logarithmic_region_only"
                 }
             },
             "k_epsilon_solver_settings": {
@@ -73,6 +72,10 @@
                         "solver_type": "amgcl",
                         "tolerance": 1e-9,
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "turbulent_energy_dissipation_rate_solver_settings": {
@@ -85,6 +88,10 @@
                         "solver_type": "amgcl",
                         "tolerance": 1e-9,
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "echo_level": 0,
@@ -112,26 +119,6 @@
             {
                 "python_module": "process_factory",
                 "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "VISCOSITY",
-                    "value": 100.0
-                }
-            },
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "TURBULENT_VISCOSITY",
-                    "value": 100.0
-                }
-            },
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
                 "process_name": "ApplyConstantVectorValueProcess",
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
@@ -152,16 +139,6 @@
                     "model_part_name": "FluidModelPart",
                     "variable_name": "TURBULENT_ENERGY_DISSIPATION_RATE",
                     "value": 9.422e-5
-                }
-            },
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "DENSITY",
-                    "value": 1.0
                 }
             }
         ],
@@ -244,12 +221,11 @@
                 "process_name": "FromJsonCheckResultProcess",
                 "Parameters": {
                     "check_variables": [
-                            "VELOCITY_X",
-                            "VELOCITY_Y",
-                            "PRESSURE",
-                            "TURBULENT_KINETIC_ENERGY",
-                            "TURBULENT_ENERGY_DISSIPATION_RATE",
-                            "TURBULENT_VISCOSITY"
+                        "VELOCITY_X",
+                        "VELOCITY_Y",
+                        "PRESSURE",
+                        "TURBULENT_KINETIC_ENERGY",
+                        "TURBULENT_ENERGY_DISSIPATION_RATE"
                     ],
                     "input_file_name": "backward_facing_step_fs_ke_flow_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
@@ -268,12 +244,11 @@
             "process_name": "FromJsonCheckResultProcess",
             "Parameters": {
                 "check_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE",
-                        "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_ENERGY_DISSIPATION_RATE",
-                        "TURBULENT_VISCOSITY"
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE",
+                    "TURBULENT_KINETIC_ENERGY",
+                    "TURBULENT_ENERGY_DISSIPATION_RATE"
                 ],
                 "input_file_name": "backward_facing_step_fs_ke_flow_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
@@ -289,12 +264,11 @@
             "process_name": "JsonOutputProcess",
             "Parameters": {
                 "output_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE",
-                        "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_ENERGY_DISSIPATION_RATE",
-                        "TURBULENT_VISCOSITY"
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE",
+                    "TURBULENT_KINETIC_ENERGY",
+                    "TURBULENT_ENERGY_DISSIPATION_RATE"
                 ],
                 "output_file_name": "backward_facing_step_fs_ke_flow_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_<TIME_SCHEME_TYPE>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",

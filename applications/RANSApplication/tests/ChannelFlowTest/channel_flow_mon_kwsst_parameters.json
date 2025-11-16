@@ -30,10 +30,6 @@
             "materials_filename": "channel_flow_material_properties.json"
         },
         "consider_periodic_conditions": true,
-        "wall_function_settings": {
-            "wall_function_region_type": "logarithmic_region_only",
-            "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
-        },
         "formulation_settings": {
             "formulation_name": "monolithic_k_omega_sst",
             "monolithic_flow_solver_settings": {
@@ -56,10 +52,14 @@
                     "element_type": "<FLOW_SOLVER_FORMULATION>",
                     "use_orthogonal_subscales": false,
                     "dynamic_tau": 1.0
+                },
+                "wall_function_settings": {
+                    "wall_function_region_type": "logarithmic_region_only",
+                    "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
                 }
             },
             "k_omega_sst_solver_settings": {
-                "stabilization_method": "algebraic_flux_corrected",
+                "stabilization_method": "<STABILIZATION_METHOD>",
                 "turbulent_kinetic_energy_solver_settings": {
                     "relative_tolerance": 5e-16,
                     "absolute_tolerance": 1e-4,
@@ -69,6 +69,10 @@
                     "linear_solver_settings": {
                         "solver_type": "<LINEAR_SOLVER_TYPE>",
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "turbulent_specific_energy_dissipation_rate_solver_settings": {
@@ -80,6 +84,10 @@
                     "linear_solver_settings": {
                         "solver_type": "<LINEAR_SOLVER_TYPE>",
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "echo_level": 0,
@@ -88,8 +96,7 @@
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 1
                 },
-                "wall_distance_calculation_settings":
-                {
+                "wall_distance_calculation_settings": {
                     "max_levels": 10
                 },
                 "auxiliar_process_list": []
@@ -127,36 +134,6 @@
             {
                 "python_module": "process_factory",
                 "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "VISCOSITY",
-                    "value": 0.20
-                }
-            },
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "DENSITY",
-                    "value": 1.0
-                }
-            },
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "ApplyConstantScalarValueProcess",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart",
-                    "variable_name": "TURBULENT_VISCOSITY",
-                    "value": 0.19
-                }
-            },
-            {
-                "python_module": "process_factory",
-                "kratos_module": "KratosMultiphysics",
                 "process_name": "ApplyConstantVectorValueProcess",
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
@@ -164,8 +141,12 @@
                     "is_fixed_x": false,
                     "is_fixed_y": false,
                     "is_fixed_z": false,
-                    "modulus" : 474.0,
-                    "direction": [1.0, 0.0, 0.0]
+                    "modulus": 474.0,
+                    "direction": [
+                        1.0,
+                        0.0,
+                        0.0
+                    ]
                 }
             }
         ],
@@ -246,12 +227,11 @@
                 "process_name": "FromJsonCheckResultProcess",
                 "Parameters": {
                     "check_variables": [
-                            "VELOCITY_X",
-                            "VELOCITY_Y",
-                            "PRESSURE",
-                            "TURBULENT_KINETIC_ENERGY",
-                            "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
-                            "TURBULENT_VISCOSITY"
+                        "VELOCITY_X",
+                        "VELOCITY_Y",
+                        "PRESSURE",
+                        "TURBULENT_KINETIC_ENERGY",
+                        "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"
                     ],
                     "input_file_name": "channel_flow_mon_kwsst_flow_<FLOW_SOLVER_FORMULATION>_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_results.json",
                     "model_part_name": "FluidModelPart.Parts_fluid",
@@ -270,12 +250,11 @@
             "process_name": "FromJsonCheckResultProcess",
             "Parameters": {
                 "check_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE",
-                        "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
-                        "TURBULENT_VISCOSITY"
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE",
+                    "TURBULENT_KINETIC_ENERGY",
+                    "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"
                 ],
                 "input_file_name": "channel_flow_mon_kwsst_flow_<FLOW_SOLVER_FORMULATION>_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",
@@ -291,12 +270,11 @@
             "process_name": "JsonOutputProcess",
             "Parameters": {
                 "output_variables": [
-                        "VELOCITY_X",
-                        "VELOCITY_Y",
-                        "PRESSURE",
-                        "TURBULENT_KINETIC_ENERGY",
-                        "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
-                        "TURBULENT_VISCOSITY"
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE",
+                    "TURBULENT_KINETIC_ENERGY",
+                    "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE"
                 ],
                 "output_file_name": "channel_flow_mon_kwsst_flow_<FLOW_SOLVER_FORMULATION>_<SHORT_STABILIZATION_METHOD>_<SHORT_WALL_FRICTION_VELOCITY_CALCULATION_METHOD>_results.json",
                 "model_part_name": "FluidModelPart.Parts_fluid",

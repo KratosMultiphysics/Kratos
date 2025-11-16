@@ -48,32 +48,52 @@ def Factory(settings, Model):
             KratosRANS.RansNutNodalUpdateProcess
         ],
         [
-            "NutKEpsilonUpdateProcess",
-            KratosRANS.RansNutKEpsilonUpdateProcess
-        ],
-        [
-            "NutKOmegaUpdateProcess",
-            KratosRANS.RansNutKOmegaUpdateProcess
-        ],
-        [
-            "NutKOmegaSSTUpdateProcess",
-            KratosRANS.RansNutKOmegaSSTUpdateProcess
-        ],
-        [
-            "NutYPlusWallFunctionUpdateProcess",
-            KratosRANS.RansNutYPlusWallFunctionUpdateProcess
-        ],
-        [
             "WallFunctionUpdateProcess",
             KratosRANS.RansWallFunctionUpdateProcess
+        ],
+        [
+            "CheckScalarBoundsProcess",
+            RansCheckScalarBoundsProcess
         ],
         [
             "ComputeReactionsProcess",
             KratosRANS.RansComputeReactionsProcess
         ],
         [
-            "CheckScalarBoundsProcess",
-            RansCheckScalarBoundsProcess
+            "VariableDataTransferProcess",
+            KratosRANS.RansVariableDataTransferProcess
+        ],
+        [
+            "InitializeBossakPreviousStepVariableDerivatives",
+            KratosRANS.RansInitializeBossakPreviousStepVariableDerivatives
+        ],
+        [
+            "OmegaViscousLogWallProcess",
+            KratosRANS.RansOmegaViscousLogWallProcess
+        ],
+        [
+            "OmegaViscousLogBinomialWallProcess",
+            KratosRANS.RansOmegaViscousLogBinomialWallProcess
+        ],
+        [
+            "WallPropertiesUpdateProcess",
+            KratosRANS.RansWallPropertiesUpdateProcess
+        ],
+        [
+            "ComputeYPlusProcess",
+            KratosRANS.RansComputeYPlusProcess
+        ],
+        [
+            "VTKOutputProcess",
+            KratosRANS.RansVTKOutputProcess
+        ],
+        [
+            "OmegaAutomaticInletProcess",
+            KratosRANS.RansOmegaAutomaticInletProcess
+        ],
+        [
+            "SmoothClipScalarVariableProcess",
+            KratosRANS.RansSmoothClipScalarVariableProcess
         ]
     ]
 

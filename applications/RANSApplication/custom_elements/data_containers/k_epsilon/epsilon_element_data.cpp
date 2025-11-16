@@ -45,6 +45,7 @@ void EpsilonElementData<TDim>::Check(
 
     const auto& r_geometry = rElement.GetGeometry();
     const auto& r_properties = rElement.GetProperties();
+    const int number_of_nodes = r_geometry.PointsNumber();
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENCE_RANS_C1))
         << "TURBULENCE_RANS_C1 is not found in process info.\n";
@@ -54,6 +55,7 @@ void EpsilonElementData<TDim>::Check(
         << "TURBULENCE_RANS_C_MU is not found in process info.\n";
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA))
         << "TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA is not found in process info.\n";
+
     KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
         << "DYNAMIC_VISCOSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
@@ -61,13 +63,21 @@ void EpsilonElementData<TDim>::Check(
         << "DENSITY is not found in element properties [ Element.Id() = "
         << rElement.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
-    for (const auto& r_node : r_geometry) {
+    for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+        const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_ENERGY_DISSIPATION_RATE_2, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
+
+        KRATOS_ERROR_IF_NOT(r_node.Has(TURBULENT_KINETIC_ENERGY))
+            << "TURBULENT_KINETIC_ENERGY is not found in non-historical data "
+               "value container of node with id "
+            << r_node.Id() << ".\n";
+        KRATOS_ERROR_IF_NOT(r_node.Has(TURBULENT_ENERGY_DISSIPATION_RATE))
+            << "TURBULENT_ENERGY_DISSIPATION_RATE is not found in non-historical data value container of node with id "
+            << r_node.Id() << ".\n";
 
         KRATOS_CHECK_DOF_IN_NODE(TURBULENT_ENERGY_DISSIPATION_RATE, r_node);
     }
@@ -83,7 +93,10 @@ void EpsilonElementData<TDim>::CalculateConstants(
     mC2 = rCurrentProcessInfo[TURBULENCE_RANS_C2];
     mCmu = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
     mInvEpsilonSigma = 1.0 / rCurrentProcessInfo[TURBULENT_ENERGY_DISSIPATION_RATE_SIGMA];
-    mDensity = this->GetProperties().GetValue(DENSITY);
+
+    const auto& r_properties = this->GetProperties();
+    mDensity = r_properties[DENSITY];
+    mKinematicViscosity = r_properties[DYNAMIC_VISCOSITY] / mDensity;
 }
 
 template <unsigned int TDim>
@@ -96,17 +109,13 @@ void EpsilonElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
-    auto& cl_parameters = this->GetConstitutiveLawParameters();
-    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
-
-    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, mKinematicViscosity);
-    mKinematicViscosity /= mDensity;
-
     FluidCalculationUtilities::EvaluateInPoint(
         this->GetGeometry(), rShapeFunctions, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
-        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
         std::tie(mEffectiveVelocity, VELOCITY));
+
+    mTurbulentKinematicViscosity = KEpsilonElementData::CalculateTurbulentViscosity(
+        this->GetGeometry(), rShapeFunctions, mCmu);
 
     mGamma = KEpsilonElementData::CalculateGamma(mCmu, mTurbulentKineticEnergy, mTurbulentKinematicViscosity);
 

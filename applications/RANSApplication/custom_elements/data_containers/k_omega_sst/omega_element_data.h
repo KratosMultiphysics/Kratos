@@ -122,6 +122,7 @@ protected:
     double mTurbulentKinematicViscosity;
     double mKappa;
     double mDensity;
+    double mA1;
 
     ///@}
 };

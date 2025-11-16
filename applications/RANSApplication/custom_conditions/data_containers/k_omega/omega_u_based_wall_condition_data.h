@@ -16,10 +16,9 @@
 // System includes
 
 // Project includes
-#include "containers/variable.h"
-#include "geometries/geometry_data.h"
-#include "includes/node.h"
+#include "includes/condition.h"
 #include "includes/process_info.h"
+#include "includes/properties.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
@@ -35,9 +34,16 @@ namespace KOmegaWallConditionData
 class OmegaUBasedWallConditionData : public ScalarWallFluxConditionData
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
     using BaseType = ScalarWallFluxConditionData;
-    using NodeType = Node;
-    using GeometryType = BaseType::GeometryType;
+
+    using GeometryType = typename BaseType::GeometryType;
+
+    ///@}
+    ///@name Static Operations
+    ///@{
 
     static const Variable<double>& GetScalarVariable();
 
@@ -45,12 +51,11 @@ public:
         const Condition& rCondition,
         const ProcessInfo& rCurrentProcessInfo);
 
-    static GeometryData::IntegrationMethod GetIntegrationMethod();
+    static const std::string GetName() { return "KOmegaOmegaUBasedConditionData"; }
 
-    static const std::string GetName()
-    {
-        return "KOmegaOmegaUBasedConditionData";
-    }
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     OmegaUBasedWallConditionData(
         const GeometryType& rGeometry,
@@ -60,22 +65,28 @@ public:
     {
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     void CalculateConstants(
         const ProcessInfo& rCurrentProcessInfo);
 
-    bool IsWallFluxComputable() const;
-
     double CalculateWallFlux(
-        const Vector& rShapeFunctions);
+        const Vector& rShapeFunctions,
+        const ScalarWallFluxConditionData::Parameters& rParameters);
+
+    ///@}
 
 protected:
+    ///@name Protected Members
+    ///@{
+
     double mOmegaSigma;
-    double mKappa;
-    double mInvKappa;
     double mBeta;
-    double mYPlus;
     double mCmu25;
-    double mDensity;
+
+    ///@}
 };
 
 ///@}

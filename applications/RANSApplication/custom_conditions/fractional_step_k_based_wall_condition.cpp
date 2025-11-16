@@ -295,6 +295,12 @@ void FractionalStepKBasedWallCondition<TDim, TNumNodes>::ApplyNeumannCondition(
     }
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+GeometryData::IntegrationMethod FractionalStepKBasedWallCondition<TDim, TNumNodes>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 ///////////////////////////////////////////////////////////////////////////////////////////////////

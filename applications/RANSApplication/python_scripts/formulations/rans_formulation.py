@@ -1,7 +1,10 @@
+from abc import abstractmethod, ABC
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
+from KratosMultiphysics.process_factory import KratosProcessFactory
 
-class RansFormulation:
+class RansFormulation(ABC):
     def __init__(self, base_computing_model_part, settings):
         """RansFormulation base class
 
@@ -20,6 +23,15 @@ class RansFormulation:
         self.__list_of_processes = []
         self.__move_mesh = False
 
+    @abstractmethod
+    def GetDefaultParameters(self):
+        """Returns default parameters used in this formulation
+
+        Returns:
+            Kratos.Parameters: Parameters of this formulation
+        """
+        pass
+
     def GetParameters(self):
         """Returns parameters used in this formulation
 
@@ -27,6 +39,11 @@ class RansFormulation:
             Kratos.Parameters: Parameters of this formulation
         """
         return self.__settings
+
+    def BackwardCompatibilityHelper(self, settings, deprecated_settings_dict):
+        """Recursively calls BackwardCompatibilityHelper methods of existing formulations in this formulaton
+        """
+        self.__ExecuteRansFormulationMethods("BackwardCompatibilityHelper", [settings, deprecated_settings_dict])
 
     def GetDomainSize(self):
         """Returns domain size
@@ -56,6 +73,12 @@ class RansFormulation:
         else:
             msg = str(process).rstrip() + " is not a RansFormulationProcess. Please use only RansFormulationProcess objects."
             raise Exception(msg)
+
+    def AddProcessesList(self, kratos_parameters_processes_list):
+        factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
+        self.auxiliar_process_list = factory.ConstructListOfProcesses(kratos_parameters_processes_list)
+        for process in self.auxiliar_process_list:
+            self.AddProcess(process)
 
     def AddVariables(self):
         """Recursively calls AddVariables methods of existing formulations in this formulaton
@@ -107,6 +130,13 @@ class RansFormulation:
         if (self.GetStrategy() is not None):
             self.GetStrategy().InitializeSolutionStep()
 
+    def Predict(self):
+        for formulation in self.__list_of_formulations:
+            formulation.Predict()
+
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Predict()
+
     def SolveCouplingStep(self):
         """Solves current formulation
 
@@ -123,6 +153,9 @@ class RansFormulation:
                     return False
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+            if (self.IsConverged()):
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Coupling iter. {:d}/{:d} - *** CONVERGENCE ACHIEVED ***".format(iteration + 1, max_iterations))
+                return True
 
         return True
 
@@ -193,6 +226,50 @@ class RansFormulation:
 
         return True
 
+    def ElementHasNodalProperties(self):
+        """Recursively checks whether any one of the formulations require nodal properties.
+
+        Returns:
+            bool: True if one of them require nodal properties
+        """
+
+        for formulation in self.__list_of_formulations:
+            if (formulation.ElementHasNodalProperties()):
+                return True
+
+        return False
+
+    def GetElementNames(self):
+        """Returns list of element names used in this formulation
+
+        This method returns element names used in this formulation and
+        child formulations
+
+        Returns:
+            list: a string list containing all the element names
+        """
+        element_names_list = []
+        for formulation in self.__list_of_formulations:
+            element_names_list.extend(formulation.GetElementNames())
+
+        return element_names_list
+
+    def GetConditionNames(self):
+        """Returns list of condition names used in this formulation
+
+        This method returns condition names used in this formulation and
+        child formulations
+
+        Returns:
+            list: a string list containing all the condition names
+        """
+
+        condition_names_list = []
+        for formulation in self.__list_of_formulations:
+            condition_names_list.extend(formulation.GetConditionNames())
+
+        return condition_names_list
+
     def GetMoveMeshFlag(self):
         """Returns move mesh flag
 
@@ -258,20 +335,10 @@ class RansFormulation:
         else:
             raise Exception(self.__class__.__name__ + " needs to use \"SetTimeSchemeSettings\" first before calling \"GetTimeSchemeSettings\".")
 
-    def SetWallFunctionSettings(self, settings):
-        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings", [settings])
-        self.__wall_function_settings = settings
-
-    def GetWallFunctionSettings(self):
-        """Returns wall function settings
-
-        Returns:
-            Kratos.Parameters: Wall function settings used for formulations
+    def SetWallFunctionSettings(self):
+        """Sets wall function settings
         """
-        if (hasattr(self, "_RansFormulation__wall_function_settings")):
-            return self.__wall_function_settings
-        else:
-            raise Exception(self.__class__.__name__ + " needs to use \"SetWallFunctionSettings\" first before calling \"GetWallFunctionSettings\".")
+        self.__ExecuteRansFormulationMethods("SetWallFunctionSettings")
 
     def GetBaseModelPart(self):
         """Returns base model part used in the formulation
@@ -330,6 +397,18 @@ class RansFormulation:
         """
         return self.__list_of_formulations
 
+    def GetSolvingVariables(self):
+        """Returns list of variables being solved in this formulation
+
+        Returns:
+            List(RansFormulation): List of variables
+        """
+        variables = []
+        for formulation in self.__list_of_formulations:
+            variables.extend(formulation.GetSolvingVariables())
+
+        return variables
+
     def GetProcessList(self):
         """Returns list of processes used in this formulation
 
@@ -349,6 +428,13 @@ class RansFormulation:
             return self.GetStrategy().GetModelPart()
         return None
 
+    def DeleteModelPartsRecursively(self):
+        for formulation in self.__list_of_formulations:
+            formulation.DeleteModelPartsRecursively()
+
+        if (self.GetModelPart() is not None):
+            self.GetModelPart().GetModel().DeleteModelPart(self.GetModelPart().FullName())
+
     def GetStrategy(self):
         """Returns strategy used in this formulation, if used any.
 
@@ -365,7 +451,7 @@ class RansFormulation:
         """
         info = "\n" + self.__class__.__name__
         if (self.GetModelPart() is not None):
-            info += "\n   Model part    : " + str(self.GetModelPart().Name)
+            info += "\n   Model part    : " + str(self.GetModelPart().FullName())
 
         if (self.GetMaxCouplingIterations() != 0):
             info += "\n   Max iterations: " + str(self.GetMaxCouplingIterations())

@@ -27,8 +27,10 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/time_discretization.h"
 #include "utilities/parallel_utilities.h"
+#include "input_output/vtk_output.h"
 
 // Application includes
+#include "custom_utilities/rans_variable_utilities.h"
 #include "custom_strategies/steady_scalar_scheme.h"
 
 namespace Kratos
@@ -77,9 +79,9 @@ public:
         const double AlphaBossak,
         const double RelaxationFactor,
         const Variable<double>& rScalarVariable)
-    : BaseType(RelaxationFactor),
-        mAlphaBossak(AlphaBossak),
-        mrScalarVariable(rScalarVariable)
+        : BaseType(RelaxationFactor),
+          mAlphaBossak(AlphaBossak),
+          mrScalarVariable(rScalarVariable)
     {
         // Allocate auxiliary memory.
         const int num_threads = OpenMPUtils::GetNumThreads();
@@ -87,6 +89,74 @@ public:
         mMassMatrix.resize(num_threads);
         mSecondDerivativeValuesVector.resize(num_threads);
         mSecondDerivativeValuesVectorOld.resize(num_threads);
+        mpVtkOutput = nullptr;
+        mIndex = 0;
+    }
+
+    BossakRelaxationScalarScheme(
+        const double AlphaBossak,
+        const double RelaxationFactor,
+        const Variable<double>& rScalarVariable,
+        VtkOutput::Pointer pVtkOutput)
+        : BaseType(RelaxationFactor),
+          mAlphaBossak(AlphaBossak),
+          mrScalarVariable(rScalarVariable),
+          mpVtkOutput(pVtkOutput)
+    {
+        // Allocate auxiliary memory.
+        const int num_threads = OpenMPUtils::GetNumThreads();
+
+        mMassMatrix.resize(num_threads);
+        mSecondDerivativeValuesVector.resize(num_threads);
+        mSecondDerivativeValuesVectorOld.resize(num_threads);
+        mIndex = 0;
+    }
+
+    BossakRelaxationScalarScheme(
+        const double AlphaBossak,
+        const double RelaxationFactor,
+        const Variable<double>& rScalarVariable,
+        const double MinValue,
+        const double MaxValue)
+        : BaseType(RelaxationFactor),
+          mAlphaBossak(AlphaBossak),
+          mrScalarVariable(rScalarVariable),
+          mClipScalarVariable(true),
+          mMinValue(MinValue),
+          mMaxValue(MaxValue)
+    {
+        // Allocate auxiliary memory.
+        const int num_threads = OpenMPUtils::GetNumThreads();
+
+        mMassMatrix.resize(num_threads);
+        mSecondDerivativeValuesVector.resize(num_threads);
+        mSecondDerivativeValuesVectorOld.resize(num_threads);
+        mIndex = 0;
+        mpVtkOutput = nullptr;
+    }
+
+    BossakRelaxationScalarScheme(
+        const double AlphaBossak,
+        const double RelaxationFactor,
+        const Variable<double>& rScalarVariable,
+        const double MinValue,
+        const double MaxValue,
+        VtkOutput::Pointer pVtkOutput)
+        : BaseType(RelaxationFactor),
+          mAlphaBossak(AlphaBossak),
+          mrScalarVariable(rScalarVariable),
+          mpVtkOutput(pVtkOutput),
+          mClipScalarVariable(true),
+          mMinValue(MinValue),
+          mMaxValue(MaxValue)
+    {
+        // Allocate auxiliary memory.
+        const int num_threads = OpenMPUtils::GetNumThreads();
+
+        mMassMatrix.resize(num_threads);
+        mSecondDerivativeValuesVector.resize(num_threads);
+        mSecondDerivativeValuesVectorOld.resize(num_threads);
+        mIndex = 0;
     }
 
     /// Destructor.
@@ -121,6 +191,24 @@ public:
         KRATOS_CATCH("");
     }
 
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        SystemMatrixType& A,
+        SystemVectorType& Dv,
+        SystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        // update the solving variables
+        BaseType::Predict(rModelPart, rDofSet, A, Dv, b);
+
+        // update the solving variables time derivatives
+        UpdateScalarRateVariables(rModelPart);
+
+        KRATOS_CATCH("");
+    }
+
     void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -132,9 +220,47 @@ public:
 
         BaseType::Update(rModelPart, rDofSet, rA, rDx, rb);
 
+        if (mClipScalarVariable) {
+            const auto v = RansVariableUtilities::ClipScalarVariable(mMinValue, mMaxValue, mrScalarVariable, rModelPart);
+            const auto below_lower_bound = std::get<0>(v);
+            const auto above_upper_bound = std::get<1>(v);
+
+            KRATOS_INFO_IF("BossakRelaxationScalarScheme", below_lower_bound > 0 || above_upper_bound > 0)
+                << "Clipped " << mrScalarVariable.Name() << " between [ "
+                << mMinValue << ", " << mMaxValue << " ]. [ "
+                << below_lower_bound << " nodes < " << mMinValue << " and "
+                << above_upper_bound << " > " << mMaxValue << " ].\n";
+        }
+
         this->UpdateScalarRateVariables(rModelPart);
 
         KRATOS_CATCH("");
+    }
+
+    void FinalizeNonLinIteration(
+        ModelPart& rModelPart,
+        SystemMatrixType& rA,
+        SystemVectorType& rDx,
+        SystemVectorType& rb) override
+    {
+        KRATOS_TRY
+
+        BaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        if (mpVtkOutput) {
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
+            std::stringstream file_name;
+            file_name << rModelPart.FullName() << "_step_"
+                      << r_process_info[STEP] << "_local_index_" << mIndex++
+                      << "_non_lin_itr_" << r_process_info[NL_ITERATION_NUMBER];
+
+            mpVtkOutput->PrintOutput(file_name.str());
+
+            KRATOS_INFO("BossakRelaxationScalarScheme") << "Written vtk output " + file_name.str() << ".\n";
+        }
+
+        KRATOS_CATCH("")
     }
 
     int Check(ModelPart& rModelPart) override
@@ -199,6 +325,23 @@ public:
                                        rEquationIdVector, rCurrentProcessInfo);
     }
 
+    void UpdateScalarRateVariables(ModelPart& rModelPart)
+    {
+        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            double& r_current_rate = rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative());
+            const double old_rate = rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative(), 1);
+            const double current_value = rNode.FastGetSolutionStepValue(mrScalarVariable);
+            const double old_value = rNode.FastGetSolutionStepValue(mrScalarVariable, 1);
+
+            // update scalar rate variable
+            r_current_rate = mBossak.C2 * (current_value - old_value) - mBossak.C3 * old_rate;
+
+            // update relaxed scalar rate variable
+            rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative().GetTimeDerivative()) =
+                this->mAlphaBossak * old_rate + (1.0 - this->mAlphaBossak) * r_current_rate;
+        });
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -242,6 +385,16 @@ private:
     const Variable<double>& mrScalarVariable;
 
     BossakConstants mBossak;
+
+    VtkOutput::Pointer mpVtkOutput;
+
+    long unsigned int mIndex;
+
+    bool mClipScalarVariable;
+
+    double mMinValue = std::numeric_limits<double>::lowest();
+
+    double mMaxValue = std::numeric_limits<double>::max();
 
     ///@}
     ///@name Private Operations
@@ -365,23 +518,6 @@ private:
         }
 
         KRATOS_CATCH("");
-    }
-
-    void UpdateScalarRateVariables(ModelPart& rModelPart)
-    {
-        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
-            double& r_current_rate = rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative());
-            const double old_rate = rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative(), 1);
-            const double current_value = rNode.FastGetSolutionStepValue(mrScalarVariable);
-            const double old_value = rNode.FastGetSolutionStepValue(mrScalarVariable, 1);
-
-            // update scalar rate variable
-            r_current_rate = mBossak.C2 * (current_value - old_value) - mBossak.C3 * old_rate;
-
-            // update relaxed scalar rate variable
-            rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative().GetTimeDerivative()) =
-                this->mAlphaBossak * old_rate + (1.0 - this->mAlphaBossak) * r_current_rate;
-        });
     }
 
     ///@}

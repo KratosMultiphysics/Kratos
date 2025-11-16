@@ -114,7 +114,7 @@ void RansNutYPlusWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
         const double y_plus = std::max(rCondition.GetValue(RANS_Y_PLUS), y_plus_limit);
 
         auto& r_parent_element = r_geometry.GetValue(NEIGHBOUR_ELEMENTS)[0];
-        auto constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
+        auto constitutive_law = r_parent_element.GetProperties().GetValue(CONSTITUTIVE_LAW);
         const auto& r_elem_properties = r_parent_element.GetProperties();
         Vector gauss_weights;
         Matrix shape_functions;

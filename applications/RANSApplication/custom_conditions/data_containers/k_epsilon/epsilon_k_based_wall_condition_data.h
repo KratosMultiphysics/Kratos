@@ -10,16 +10,15 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_K_EPSILON_HIGH_RE_WALL_CONDITION_DATA_EPSILON_K_BASED_CONDITION_DATA_H_INCLUDED)
-#define KRATOS_K_EPSILON_HIGH_RE_WALL_CONDITION_DATA_EPSILON_K_BASED_CONDITION_DATA_H_INCLUDED
+#if !defined(KRATOS_K_EPSILON_WALL_CONDITION_DATA_EPSILON_K_BASED_CONDITION_DATA_H_INCLUDED)
+#define KRATOS_K_EPSILON_WALL_CONDITION_DATA_EPSILON_K_BASED_CONDITION_DATA_H_INCLUDED
 
 // System includes
 
 // Project includes
-#include "containers/variable.h"
-#include "geometries/geometry_data.h"
-#include "includes/node.h"
+#include "includes/condition.h"
 #include "includes/process_info.h"
+#include "includes/properties.h"
 #include "includes/ublas_interface.h"
 
 // Application includes
@@ -35,9 +34,16 @@ namespace KEpsilonWallConditionData
 class EpsilonKBasedWallConditionData : public ScalarWallFluxConditionData
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
     using BaseType = ScalarWallFluxConditionData;
-    using NodeType = Node;
-    using GeometryType = BaseType::GeometryType;
+
+    using GeometryType = typename BaseType::GeometryType;
+
+    ///@}
+    ///@name Static Operations
+    ///@{
 
     static const Variable<double>& GetScalarVariable();
 
@@ -45,12 +51,11 @@ public:
         const Condition& rCondition,
         const ProcessInfo& rCurrentProcessInfo);
 
-    static GeometryData::IntegrationMethod GetIntegrationMethod();
+    static const std::string GetName() { return "KEpsilonEpsilonKBasedConditionData"; }
 
-    static const std::string GetName()
-    {
-        return "KEpsilonEpsilonKBasedConditionData";
-    }
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     EpsilonKBasedWallConditionData(
         const GeometryType& rGeometry,
@@ -60,20 +65,27 @@ public:
     {
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     void CalculateConstants(
         const ProcessInfo& rCurrentProcessInfo);
 
-    bool IsWallFluxComputable() const;
-
     double CalculateWallFlux(
-        const Vector& rShapeFunctions);
+        const Vector& rShapeFunctions,
+        const ScalarWallFluxConditionData::Parameters& rParameters);
+
+    ///@}
 
 protected:
+    ///@name Protected Members
+    ///@{
+
     double mEpsilonSigma;
-    double mKappa;
-    double mYPlus;
     double mCmu25;
-    double mDensity;
+
+    ///@}
 };
 
 ///@}
@@ -82,4 +94,4 @@ protected:
 
 } // namespace Kratos
 
-#endif
+#endif // KRATOS_K_EPSILON_WALL_CONDITION_DATA_EPSILON_K_BASED_CONDITION_DATA_H_INCLUDED

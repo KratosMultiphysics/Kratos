@@ -81,7 +81,7 @@ class FluidDynamicsAnalysisRve(FluidDynamicsAnalysis):
         self.min_corner, self.max_corner = self._DetectBoundingBox(self.averaging_mp)
         self._ConstructFaceModelParts(self.min_corner, self.max_corner, boundary_mp)
 
-    def ModifyAfterSolverInitialize(self):
+    def (self):
         super().ModifyAfterSolverInitialize()
 
         self._ApplyPeriodicity(self.strain, self.averaging_mp)

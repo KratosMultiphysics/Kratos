@@ -61,11 +61,10 @@ void CalculateStabilizationTau(
     const double DeltaTime,
     const double DynamicTau)
 {
-
+    const array_1d<double, TDim> temp = prod(rContravariantMetricTensor, rVelocity);
     const double velocity_norm = norm_2(rVelocity);
 
     if (velocity_norm > 0.0) {
-        const array_1d<double, TDim> temp = prod(rContravariantMetricTensor, rVelocity);
         rElementLength = 2.0 * velocity_norm / std::sqrt(inner_prod(rVelocity, temp));
     } else {
         rElementLength = 0.0;
@@ -143,7 +142,6 @@ inline void CalculateCrossWindDiffusionParameters(
 
 template <unsigned int TSize>
 inline void CalculateDiscreteUpwindOperator(
-    double& rScalarCoeff,
     BoundedMatrix<double, TSize, TSize>& rDiffusionMatrix,
     const BoundedMatrix<double, TSize, TSize>& rInputMatrix)
 {
@@ -166,7 +164,7 @@ inline void CalculateDiscreteUpwindOperator(
         rDiffusionMatrix(a, a) = -row_sum;
     }
 
-    rScalarCoeff = norm_frobenius(rDiffusionMatrix);
+    // rScalarCoeff = norm_frobenius(rDiffusionMatrix);
 }
 
 inline double CalculatePositivityPreservingMatrix(
