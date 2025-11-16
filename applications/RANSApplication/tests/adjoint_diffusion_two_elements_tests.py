@@ -76,11 +76,11 @@ class AdjointDiffusionTwoElementsTest(KratosUnittest.TestCase):
         parameters["output_processes"].AddEmptyList("hdf5_output")
         parameters["output_processes"]["hdf5_output"].Append(process_parameters)
 
-    # @classmethod
-    # def tearDownClass(_):
-    #     with KratosUnittest.WorkFolderScope('.', __file__):
-    #         DeleteH5Files()
-    #         DeleteTimeFiles(".")
+    @classmethod
+    def tearDownClass(_):
+        with KratosUnittest.WorkFolderScope('.', __file__):
+            DeleteH5Files()
+            DeleteTimeFiles(".")
 
 if __name__ == '__main__':
     KratosUnittest.main()
