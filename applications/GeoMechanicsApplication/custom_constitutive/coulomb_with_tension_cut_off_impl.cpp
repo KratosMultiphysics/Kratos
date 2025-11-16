@@ -14,6 +14,7 @@
 //
 
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
+#include "custom_processes/set_automated_initial_variable_process.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
@@ -24,26 +25,11 @@ namespace
 
 using namespace Kratos;
 
-double CalculatePlasticMultiplier(const Vector& rSigmaTau,
-                                        const Vector& rDerivativeOfFlowFunction,
-                                        double        FrictionAngleInRadians,
-                                        double        Cohesion)
-{
-    const auto sin_phi   = std::sin(FrictionAngleInRadians);
-    const auto numerator = sin_phi * rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1];
-    return (Cohesion * std::cos(FrictionAngleInRadians) - rSigmaTau[0] * sin_phi - rSigmaTau[1]) / numerator;
-}
-
-double CalculateApex(double FrictionAngleInRadians, double Cohesion)
-{
-    return Cohesion / std::tan(FrictionAngleInRadians);
-}
-
-Vector CalculateCornerPoint(double FrictionAngleInRadians, double Cohesion, double TensileStrength)
+Vector CalculateCornerPoint(double FrictionAngleInRadians, double Cohesion, double TensileStrength, double Apex)
 {
     // Check whether the tension cut-off lies beyond the apex
     auto result = Vector{ZeroVector(2)};
-    result[0]   = CalculateApex(FrictionAngleInRadians, Cohesion);
+    result[0]   = Apex;
     if (TensileStrength > result[0]) return result;
 
     result[0] = (TensileStrength - Cohesion * std::cos(FrictionAngleInRadians)) /
@@ -89,13 +75,11 @@ Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rSigmaTau,
     return rSigmaTau + lambda * rDerivativeOfFlowFunction;
 }
 
-Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
-                                        const Vector& rDerivativeOfFlowFunction,
-                                        double        FrictionAngleInRadians,
-                                        double        Cohesion)
+Vector ReturnStressAtRegularFailureZone(const Vector&        rSigmaTau,
+                                        CoulombYieldSurface& rCoulombYieldSurface,
+                                        const Vector&        rDerivativeOfFlowFunction)
 {
-    const auto lambda =
-        CalculatePlasticMultiplier(rSigmaTau, rDerivativeOfFlowFunction, FrictionAngleInRadians, Cohesion);
+    const auto lambda = rCoulombYieldSurface.CalculatePlasticMultiplier(rSigmaTau, rDerivativeOfFlowFunction);
     return rSigmaTau + lambda * rDerivativeOfFlowFunction;
 }
 
@@ -122,14 +106,12 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigm
 Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTau,
                                                      CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
-    Vector result = ZeroVector(2);
+    Vector       result                            = ZeroVector(2);
+    const double kappa_start                       = mCoulombYieldSurface.GetKappa();
+    unsigned int user_defined_number_of_iterations = 50; // TODO: add keyword in input
 
-    const double kappa_start = mCoulombYieldSurface.GetKappa();
-    double       error       = 1.0;
-    int          counter     = 0;
-    while (error > 1.0e-8) {
-        const auto apex = CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(),
-                                        mCoulombYieldSurface.GetCohesion());
+    for (unsigned int counter = 0; counter < user_defined_number_of_iterations; ++counter) {
+        const auto apex = mCoulombYieldSurface.CalculateApex();
 
         if (IsStressAtTensionApexReturnZone(rTrialSigmaTau, mTensionCutOff.GetTensileStrength(), apex)) {
             return ReturnStressAtTensionApexReturnZone(mTensionCutOff.GetTensileStrength());
@@ -137,7 +119,8 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
 
         const auto corner_point = CalculateCornerPoint(mCoulombYieldSurface.GetFrictionAngleInRadians(),
                                                        mCoulombYieldSurface.GetCohesion(),
-                                                       mTensionCutOff.GetTensileStrength());
+                                                       mTensionCutOff.GetTensileStrength(), apex);
+
         if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau, mTensionCutOff.GetTensileStrength(),
                                               apex, corner_point)) {
             return ReturnStressAtTensionCutoffReturnZone(
@@ -149,24 +132,20 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
                 rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
                 corner_point)) {
             result = corner_point;
-        }
-
-        else { // Regular failure region
+        } else { // Regular failure region
             result = ReturnStressAtRegularFailureZone(
-                rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
-                mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
+                rTrialSigmaTau, mCoulombYieldSurface,
+                mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType));
         }
 
-        const auto lambda = CalculatePlasticMultiplier(
-            rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
-            mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
-        const double kappa =
-            kappa_start + CalculateEquivalentPlasticStrain(rTrialSigmaTau, AveragingType, lambda);
+        const auto lambda = mCoulombYieldSurface.CalculatePlasticMultiplier(
+            rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType));
+        const double kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrain(
+                                               rTrialSigmaTau, AveragingType, lambda);
         mCoulombYieldSurface.SetKappa(kappa);
 
-        error = std::abs(mCoulombYieldSurface.YieldFunctionValue(result));
-        counter++;
-        if (counter > 50) break;
+        double error = std::abs(mCoulombYieldSurface.YieldFunctionValue(result));
+        if (error < 1.0e-8) break;
     }
     return result;
 }
@@ -181,20 +160,6 @@ void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
 {
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
-}
-
-double CoulombWithTensionCutOffImpl::CalculateEquivalentPlasticStrain(const Vector& rSigmaTau,
-                                                                      CoulombYieldSurface::CoulombAveragingType AveragingType,
-                                                                      double lambda) const
-{
-    Vector     dGdsigma   = mCoulombYieldSurface.DerivativeOfFlowFunction(rSigmaTau, AveragingType);
-    const auto g1         = (dGdsigma[0] + dGdsigma[1]) * 0.5;
-    const auto g3         = (dGdsigma[0] - dGdsigma[1]) * 0.5;
-    const auto mean       = (g1 + g3) / 3.0;
-    const auto deviatoric = std::sqrt(std::pow(g1 - mean, 2) + std::pow(g3 - mean, 2));
-    const auto alpha      = std::sqrt(2.0 / 3.0) * deviatoric;
-    return -alpha * lambda;
-    ;
 }
 
 } // namespace Kratos

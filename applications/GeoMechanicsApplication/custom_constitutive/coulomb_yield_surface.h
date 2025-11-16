@@ -42,12 +42,17 @@ public:
     [[nodiscard]] double GetCohesion() const;
     [[nodiscard]] double GetDilatancyAngleInRadians() const;
     [[nodiscard]] double GetKappa() const;
-
-    void SetKappa(double kappa);
+    void                 SetKappa(double kappa);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;
+
+    [[nodiscard]] double CalculateApex();
+    [[nodiscard]] double CalculatePlasticMultiplier(const Vector& rSigmaTau, const Vector& rDerivativeOfFlowFunction);
+    [[nodiscard]] double CalculateEquivalentPlasticStrain(const Vector&        rSigmaTau,
+                                                          CoulombAveragingType AveragingType,
+                                                          double               lambda) const;
 
 private:
     void InitializeKappaDependentFunctions();
