@@ -21,6 +21,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "utilities/string_utilities.h"
 
 // Application includes
 #include "rans_application_variables.h"
@@ -297,11 +298,10 @@ void AddAnalysisStep(
     const std::string& rStepName)
 {
     auto& r_process_info = rModelPart.GetProcessInfo();
-    if (!r_process_info.Has(ANALYSIS_STEPS))
-    {
-        r_process_info.SetValue(ANALYSIS_STEPS, std::vector<std::string>());
+    if (!r_process_info.Has(ANALYSIS_STEPS)) {
+        r_process_info.SetValue(ANALYSIS_STEPS, std::string{});
     }
-    r_process_info[ANALYSIS_STEPS].push_back(rStepName);
+    r_process_info[ANALYSIS_STEPS] += rStepName + ";";
 }
 
 bool IsAnalysisStepCompleted(
@@ -309,13 +309,10 @@ bool IsAnalysisStepCompleted(
     const std::string& rStepName)
 {
     const auto& r_process_info = rModelPart.GetProcessInfo();
-    if (r_process_info.Has(ANALYSIS_STEPS))
-    {
-        const std::vector<std::string>& r_steps = r_process_info[ANALYSIS_STEPS];
+    if (r_process_info.Has(ANALYSIS_STEPS)) {
+        const auto& r_steps = StringUtilities::SplitStringByDelimiter(r_process_info[ANALYSIS_STEPS], ';');
         return (std::find(r_steps.begin(), r_steps.end(), rStepName) != r_steps.end());
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
