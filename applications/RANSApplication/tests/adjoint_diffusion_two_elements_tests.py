@@ -53,21 +53,34 @@ class AdjointDiffusionTwoElementsTest(KratosUnittest.TestCase):
     def _AddHDF5PrimalOutputProcess(parameters):
         process_parameters = Kratos.Parameters("""
             {
-                "python_module": "primal_hdf5_output_process",
-                "kratos_module": "KratosMultiphysics.RANSApplication",
+                "python_module": "single_mesh_temporal_output_process",
+                "kratos_module": "KratosMultiphysics.HDF5Application",
                 "Parameters": {
-                    "model_part_name": "MainModelPart"
+                    "model_part_name": "MainModelPart",
+                    "file_settings": {
+                        "file_name": "<model_part_name>-<time>.h5",
+                        "file_access_mode": "truncate"
+                    },
+                    "nodal_solution_step_data_settings": {
+                        "list_of_variables": ["MESH_VELOCITY", "NORMAL", "RANS_AUXILIARY_VARIABLE_1", "VELOCITY_POTENTIAL", "VELOCITY_POTENTIAL_RATE"]
+                    },
+                    "nodal_data_value_settings": {
+                        "list_of_variables": ["RELAXED_ACCELERATION"]
+                    },
+                    "condition_data_value_settings": {
+                        "list_of_variables": ["RANS_IS_WALL_FUNCTION_ACTIVE"]
+                    }
                 }
             }
         """)
         parameters["output_processes"].AddEmptyList("hdf5_output")
         parameters["output_processes"]["hdf5_output"].Append(process_parameters)
 
-    @classmethod
-    def tearDownClass(_):
-        with KratosUnittest.WorkFolderScope('.', __file__):
-            DeleteH5Files()
-            DeleteTimeFiles(".")
+    # @classmethod
+    # def tearDownClass(_):
+    #     with KratosUnittest.WorkFolderScope('.', __file__):
+    #         DeleteH5Files()
+    #         DeleteTimeFiles(".")
 
 if __name__ == '__main__':
     KratosUnittest.main()

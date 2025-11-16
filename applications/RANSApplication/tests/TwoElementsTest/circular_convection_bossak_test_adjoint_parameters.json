@@ -72,10 +72,22 @@
         "gravity": [],
         "auxiliar_process_list": [
             {
-                "kratos_module": "KratosMultiphysics.RANSApplication",
-                "python_module": "primal_hdf5_input_process",
+                "kratos_module": "KratosMultiphysics.HDF5Application",
+                "python_module": "single_mesh_temporal_input_process",
                 "Parameters": {
-                    "model_part_name": "MainModelPart"
+                    "model_part_name": "MainModelPart",
+                    "file_settings":{
+                        "file_name": "<model_part_name>-<time>.h5"
+                    },
+                    "nodal_solution_step_data_settings": {
+                        "list_of_variables": ["MESH_VELOCITY", "NORMAL", "RANS_AUXILIARY_VARIABLE_1", "VELOCITY_POTENTIAL", "VELOCITY_POTENTIAL_RATE"]
+                    },
+                    "nodal_data_value_settings": {
+                        "list_of_variables": ["RELAXED_ACCELERATION"]
+                    },
+                    "condition_data_value_settings": {
+                        "list_of_variables": ["RANS_IS_WALL_FUNCTION_ACTIVE"]
+                    }
                 }
             }
         ]
