@@ -913,6 +913,7 @@ public:
         return edges;
     }
 
+    /// @copydoc Geometry::FacesNumber
     SizeType FacesNumber() const override
     {
         return 1;

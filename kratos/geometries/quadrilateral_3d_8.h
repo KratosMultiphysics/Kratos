@@ -63,6 +63,11 @@ public:
     typedef Line3D3<TPointType> EdgeType;
 
     /**
+     * Type of face geometry
+     */
+    using FaceType = Quadrilateral3D8<TPointType>;
+
+    /**
      * Pointer definition of Quadrilateral3D8
      */
     KRATOS_CLASS_POINTER_DEFINITION( Quadrilateral3D8 );
@@ -886,6 +891,27 @@ public:
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ), this->pGetPoint( 6 ) ) );
         edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ), this->pGetPoint( 7 ) ) );
         return edges;
+    }
+
+    /// @copydoc Geometry::FacesNumber
+    SizeType FacesNumber() const override
+    {
+        return 1;
+    }
+
+    /// @copydoc Geometry::GenerateFaces
+    GeometriesArrayType GenerateFaces() const override
+    {
+        GeometriesArrayType faces;
+        faces.push_back( Kratos::make_shared<FaceType>( this->pGetPoint( 0 ),
+                                                           this->pGetPoint( 1 ),
+                                                           this->pGetPoint( 2 ),
+                                                           this->pGetPoint( 3 ),
+                                                           this->pGetPoint( 4 ),
+                                                           this->pGetPoint( 5 ),
+                                                           this->pGetPoint( 6 ),
+                                                           this->pGetPoint( 7 )) );
+        return faces;
     }
 
     /**

@@ -53,6 +53,22 @@ namespace {
         KRATOS_EXPECT_EQ(geom->EdgesNumber(), 3);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D6FacesNumber, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateReferenceTriangle3D6();
+        KRATOS_EXPECT_EQ(p_geom->FacesNumber(), 1);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D6Faces, KratosCoreGeometriesFastSuite) {
+        auto p_geom = GenerateReferenceTriangle3D6();
+        const auto& r_faces = p_geom->GenerateFaces();
+        ASSERT_EQ(r_faces.size(), 1);
+        for (std::size_t i = 0; i < r_faces.front().PointsNumber(); ++i) {
+            KRATOS_EXPECT_NEAR(r_faces.front()[i].X(), (p_geom->pGetPoint(i))->X(), TOLERANCE);
+            KRATOS_EXPECT_NEAR(r_faces.front()[i].Y(), (p_geom->pGetPoint(i))->Y(), TOLERANCE);
+            KRATOS_EXPECT_NEAR(r_faces.front()[i].Z(), (p_geom->pGetPoint(i))->Z(), TOLERANCE);
+        }
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D6Area, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceTriangle3D6();
         KRATOS_EXPECT_NEAR(geom->Area(), 0.5, TOLERANCE);

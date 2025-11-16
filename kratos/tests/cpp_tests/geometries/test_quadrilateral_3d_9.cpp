@@ -95,6 +95,29 @@ KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9Edges, KratosCoreGeometriesFastSuite)
     CheckSamePoint(r_edges[3][2], p_geom->GetPoint(7));
 }
 
+/** Checks if the number of faces is correct.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9FacesNumber, KratosCoreGeometriesFastSuite)
+{
+    auto geom = GenerateFlatQuadrilateral3D9<Node>();
+
+    KRATOS_EXPECT_EQ(geom->FacesNumber(), 1);
+}
+
+/** Checks if the faces are correct.
+*/
+KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9Faces, KratosCoreGeometriesFastSuite) {
+    auto p_geom = GenerateFlatQuadrilateral3D9<Node>();
+
+    const auto& r_faces = p_geom->GenerateFaces();
+    ASSERT_EQ(r_faces.size(), 1);
+    for (std::size_t i = 0; i < r_faces.front().PointsNumber(); ++i) {
+        KRATOS_EXPECT_NEAR(r_faces.front()[i].X(), (p_geom->pGetPoint(i))->X(), TOLERANCE);
+        KRATOS_EXPECT_NEAR(r_faces.front()[i].Y(), (p_geom->pGetPoint(i))->Y(), TOLERANCE);
+        KRATOS_EXPECT_NEAR(r_faces.front()[i].Z(), (p_geom->pGetPoint(i))->Z(), TOLERANCE);
+    }
+}
+
 /** Checks if the area of the quadrilateral is calculated correctly.
 * Checks if the area of the quadrilateral is calculated correctly.
 */
