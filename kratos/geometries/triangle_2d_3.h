@@ -79,12 +79,12 @@ public:
     /**
      * Geometry as base class.
      */
-    typedef Geometry<TPointType> BaseType;
+    using BaseType = Geometry<TPointType>;
 
     /**
      * Type of edge geometry
      */
-    typedef Line2D2<TPointType> EdgeType;
+    using EdgeType = Line2D2<TPointType>;
 
     /**
      * Type of face geometry
@@ -99,18 +99,18 @@ public:
     /**
      * Integration methods implemented in geometry.
      */
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /**
      * A Vector of counted pointers to Geometries.
      * Used for returning edges of the geometry.
      */
-    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+    using GeometriesArrayType = typename BaseType::GeometriesArrayType;
 
     /**
      * Redefinition of template parameter TPointType.
      */
-    typedef TPointType PointType;
+    using PointType = TPointType;
 
     /**
      * Type used for indexing in geometry class.
@@ -118,31 +118,31 @@ public:
      * point or integration point access methods and also all other
      * methods which need point or integration point index.
      */
-    typedef typename BaseType::IndexType IndexType;
+    using IndexType = typename BaseType::IndexType;
 
     /**
      * This type is used to return size or dimension in
      * geometry. Dimension, WorkingDimension, PointsNumber and
      * ... return this type as their results.
      */
-    typedef typename BaseType::SizeType SizeType;
+    using SizeType = typename BaseType::SizeType;
 
     /**
      * Array of counted pointers to point.
      * This type used to hold geometry's points.
      */
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
+    using PointsArrayType = typename BaseType::PointsArrayType;
 
     /**
      * Array of coordinates. Can be Nodes, Points or IntegrationPoints
      */
-    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    using CoordinatesArrayType = typename BaseType::CoordinatesArrayType;
 
     /**
      * This type used for representing an integration point in geometry.
      * This integration point is a point with an additional weight component.
      */
-    typedef typename BaseType::IntegrationPointType IntegrationPointType;
+    using IntegrationPointType = typename BaseType::IntegrationPointType;
 
     /**
      * A Vector of IntegrationPointType which used to hold
@@ -151,61 +151,59 @@ public:
      * IntegrationPoints functions used this type to return
      * their results.
      */
-    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = typename BaseType::IntegrationPointsArrayType;
 
     /**
      * A Vector of IntegrationPointsArrayType which used to hold
      * integration points related to different integration method
      * implemented in geometry.
      */
-    typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
+    using IntegrationPointsContainerType = typename BaseType::IntegrationPointsContainerType;
 
     /**
      * A third order tensor used as shape functions' values
      * container.
      */
-    typedef typename BaseType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
+    using ShapeFunctionsValuesContainerType = typename BaseType::ShapeFunctionsValuesContainerType;
 
     /**
      * A fourth order tensor used as shape functions' local
      * gradients container in geometry.
      */
-    typedef typename BaseType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+    using ShapeFunctionsLocalGradientsContainerType = typename BaseType::ShapeFunctionsLocalGradientsContainerType;
 
     /**
      * A third order tensor to hold jacobian matrices evaluated at
      * integration points. Jacobian and InverseOfJacobian functions
      * return this type as their result.
      */
-    typedef typename BaseType::JacobiansType JacobiansType;
+    using JacobiansType = typename BaseType::JacobiansType;
 
     /**
      * A third order tensor to hold shape functions' local
      * gradients. ShapefunctionsLocalGradients function return this
      * type as its result.
      */
-    typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    using ShapeFunctionsGradientsType = typename BaseType::ShapeFunctionsGradientsType;
 
     /**
      * A third order tensor to hold shape functions' local second derivatives.
      * ShapefunctionsLocalGradients function return this
      * type as its result.
      */
-    typedef typename BaseType::ShapeFunctionsSecondDerivativesType
-    ShapeFunctionsSecondDerivativesType;
+    using ShapeFunctionsSecondDerivativesType = typename BaseType::ShapeFunctionsSecondDerivativesType;
 
     /**
     * A third order tensor to hold shape functions' local third derivatives.
     * ShapefunctionsLocalGradients function return this
     * type as its result.
     */
-    typedef typename BaseType::ShapeFunctionsThirdDerivativesType
-    ShapeFunctionsThirdDerivativesType;
+    using ShapeFunctionsThirdDerivativesType = typename BaseType::ShapeFunctionsThirdDerivativesType;
 
     /**
      * Type of the normal vector used for normal to edges in geometry.
      */
-    typedef typename BaseType::NormalType NormalType;
+    using NormalType = typename BaseType::NormalType;
 
     ///@}
     ///@name Life Cycle
