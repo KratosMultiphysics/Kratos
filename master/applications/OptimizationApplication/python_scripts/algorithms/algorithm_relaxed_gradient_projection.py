@@ -290,6 +290,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                     inner_iter += 1
 
                 self._FinalizeIteration()
+                print("Printing output")
                 self.Output()
                 self.UpdateControl()
 
