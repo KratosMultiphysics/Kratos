@@ -1,5 +1,5 @@
 import sympy
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
+from KratosMultiphysics.FluidDynamicsApplication.compressible_navier_stokes.src.defines \
     import CompressibleNavierStokesDefines as defs
 
 class FormulationParameters:

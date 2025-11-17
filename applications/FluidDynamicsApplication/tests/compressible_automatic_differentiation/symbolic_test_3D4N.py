@@ -1,0 +1,1 @@
+This file is currently being processed byD:\WORK\Kratos\bin\Release\KratosMultiphysics\FluidDynamicsApplication\compressible_navier_stokes\compressible_navier_stokes_symbolic_generator.py

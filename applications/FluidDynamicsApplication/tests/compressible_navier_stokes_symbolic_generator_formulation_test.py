@@ -3,7 +3,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnitTest
 
-from KratosMultiphysics.FluidDynamicsApplication.automatic_differentiation.compressible_navier_stokes \
+from KratosMultiphysics.FluidDynamicsApplication.compressible_navier_stokes \
     .compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
 
 import KratosMultiphysics.FluidDynamicsApplication

@@ -2,7 +2,7 @@ import pathlib
 import os
 
 import KratosMultiphysics
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
+from KratosMultiphysics.FluidDynamicsApplication.compressible_navier_stokes \
     .compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
 
 parameters = KratosMultiphysics.Parameters("""
