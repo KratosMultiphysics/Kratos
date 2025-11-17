@@ -184,16 +184,12 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Element::Initialize(rCurrentProcessInfo);
 
-    const auto shape_function_values_at_integration_points =
-        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
-            mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
-
     mConstitutiveLaws.clear();
     for (auto i = std::size_t{0}; i < mIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
         mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
     }
     // Only interpolate when neighbouring elements that provide nodal stresses were found
-    if (this->Has(NEIGHBOUR_ELEMENTS)) {
+    if (this->Has(NEIGHBOUR_ELEMENTS) && this->GetValue(NEIGHBOUR_ELEMENTS).size() > 0) {
         // interface element can at maximum have 2 neighbours
         KRATOS_DEBUG_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() > 2)
             << "Too many neighbour elements for interface element " << this->Id() << std::endl;
@@ -211,6 +207,9 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         }
         InterpolateNodalStressesToIntegrationPointTractions(interface_nodal_cauchy_stresses);
     }
+    const auto shape_function_values_at_integration_points =
+        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
+            mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
     for (auto i = std::size_t{0}; i < mConstitutiveLaws.size(); ++i) {
         mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(),
                                                  shape_function_values_at_integration_points[i]);
@@ -343,9 +342,8 @@ void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions(
     const std::vector<std::optional<Vector>>& interface_nodal_cauchy_stresses) const
 {
     // interpolate nodal stresses on a chosen side
-    auto&      r_interface_geometry = GetGeometry();
-    const auto number_of_nodes_on_side =
-        GeometryUtilities::GetNodeIdsFromGeometry(r_interface_geometry).size() / 2;
+    auto&      r_interface_geometry    = GetGeometry();
+    const auto number_of_nodes_on_side = r_interface_geometry.PointsNumber() / 2;
     // check which side is shared with the neighbour geometry, by checking for the first nodes of the first side
     auto in_first_side = interface_nodal_cauchy_stresses[0].has_value();
 
@@ -354,9 +352,6 @@ void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions(
     for (auto i = 0; i < number_of_nodes_on_side; ++i) {
         nodal_stresses.push_back(interface_nodal_cauchy_stresses[start_index + i].value());
     }
-    KRATOS_DEBUG_ERROR_IF(nodal_stresses.size() < number_of_nodes_on_side)
-        << "Less stresses found than needed for 1 side of the interface element with Id."
-        << this->Id() << std::endl;
 
     std::size_t integration_point_index = 0;
     for (const auto& r_integration_point : mIntegrationScheme->GetIntegrationPoints()) {
@@ -368,18 +363,18 @@ void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions(
             integration_point_stress += integration_point_shape_function_values[i] * nodal_stresses[i];
         }
 
-        auto rotation_matrix = Matrix(3, 3, 0.0);
+        auto rotation_tensor = Matrix(3, 3, 0.0);
         if (r_interface_geometry.LocalSpaceDimension() == 1) {
-            auto two_d_rotation_matrix = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
-            GeoElementUtilities::AssembleUUBlockMatrix(rotation_matrix, two_d_rotation_matrix);
-            rotation_matrix(2, 2) = 1.0;
+            auto two_d_rotation_tensor = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
+            GeoElementUtilities::AddMatrixAtPosition(two_d_rotation_tensor, rotation_tensor, 0, 0);
+            rotation_tensor(2, 2) = 1.0;
         } else {
-            rotation_matrix = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
+            rotation_tensor = mfpCalculateRotationMatrix(GetGeometry(), r_integration_point);
         }
 
-        auto integration_point_stress_tensor = MathUtils<double>::StressVectorToTensor(integration_point_stress);
+        auto integration_point_stress_tensor = MathUtils<>::StressVectorToTensor(integration_point_stress);
         auto integration_point_local_stress_tensor = GeoMechanicsMathUtilities::RotateSecondOrderTensor(
-            integration_point_stress_tensor, rotation_matrix);
+            integration_point_stress_tensor, rotation_tensor);
 
         // extract normal and shear components to form initial traction
         auto traction_vector = Vector(mConstitutiveLaws[0]->GetStrainSize());

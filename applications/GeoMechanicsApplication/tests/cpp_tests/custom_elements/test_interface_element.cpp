@@ -19,6 +19,7 @@
 #include "custom_elements/interface_element.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/interface_geometry.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -309,17 +310,6 @@ Matrix ExpectedLeftHandSideForTriangleElement()
     return expected_left_hand_side;
 }
 
-void CreateNeighbouringStressField(const Element::Pointer& pNeighbourElement)
-{
-    auto r_neighbour_geometry = pNeighbourElement->GetGeometry();
-    for (auto& r_node : r_neighbour_geometry) {
-        auto   x = r_node.GetInitialPosition().X();
-        auto   y = r_node.GetInitialPosition().Y();
-        Vector nodal_stress{4};
-        nodal_stress <<= x + y, 10.0 + x + y, 78.0, 5.0 + x + y;
-        r_node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR) = nodal_stress;
-    }
-}
 } // namespace
 
 namespace Kratos::Testing
@@ -1348,7 +1338,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
     auto interface_element = CreateInterfaceElementWithUDofs<Interface2D>(p_interface_properties, p_geometry);
-    Variable<GlobalPointersVector<Element>>::Type neighbours{p_neighbour_element};
+    GlobalPointersVector<Element> neighbours{p_neighbour_element};
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, neighbours);
 
     // Act
@@ -1360,10 +1350,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     // Assert
     auto expected_traction_vector = Vector{2};
     // answers for 1st side
-    expected_traction_vector <<= 2.0, 1.0;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[0], expected_traction_vector, Defaults::relative_tolerance)
-    expected_traction_vector <<= 3.0, 1.0;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[1], expected_traction_vector, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[0], UblasUtilities::CreateVector({2.0, 1.0}), Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[1], UblasUtilities::CreateVector({3.0, 1.0}), Defaults::relative_tolerance)
 
     // Arrange a neighbour on the other side of the interface element
     nodes.clear();
@@ -1382,7 +1372,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     p_other_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors,
                                                             dummy_process_info);
 
-    Variable<GlobalPointersVector<Element>>::Type other_neighbours{p_other_neighbour_element};
+    GlobalPointersVector<Element> other_neighbours{p_other_neighbour_element};
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, other_neighbours);
 
     // Act
@@ -1391,10 +1381,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
 
     // Assert
     // answers for 2nd side
-    expected_traction_vector <<= 4.0, 0.0;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[0], expected_traction_vector, Defaults::relative_tolerance)
-    expected_traction_vector <<= 4.0, 5.0;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[1], expected_traction_vector, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[0], UblasUtilities::CreateVector({4.0, 0.0}), Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[1], UblasUtilities::CreateVector({4.0, 5.0}), Defaults::relative_tolerance)
 }
 
 } // namespace Kratos::Testing

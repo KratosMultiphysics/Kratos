@@ -146,8 +146,7 @@ std::vector<Point> ElementSetupUtilities::CreatePointsFor3D8NElement()
 Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return make_intrusive<UPwSmallStrainElement<2, 3>>(1, std::make_shared<Triangle2D3<Node>>(rNodes), rProperties,
-                                                       std::make_unique<PlaneStrainStressState>(), nullptr);
+    return Create2D3NElement(1, rNodes, rProperties);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D3NElement(std::size_t                Id,
