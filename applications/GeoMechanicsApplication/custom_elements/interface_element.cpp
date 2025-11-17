@@ -349,7 +349,7 @@ void InterfaceElement::InterpolateNodalStressesToIntegrationPointTractions(
     // check which side is shared with the neighbour geometry, by checking for the first nodes of the first side
     auto in_first_side = interface_nodal_cauchy_stresses[0].has_value();
 
-    constexpr std::size_t start_index = in_first_side ? 0 : number_of_nodes_on_side;
+    const std::size_t start_index = in_first_side ? 0 : number_of_nodes_on_side;
     std::vector<Vector>   nodal_stresses;
     for (auto i = 0; i < number_of_nodes_on_side; ++i) {
         nodal_stresses.push_back(interface_nodal_cauchy_stresses[start_index + i].value());
