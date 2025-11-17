@@ -167,7 +167,7 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::vector<std::size_t>{4, 2, 1},
                                            std::vector<std::size_t>{1, 3, 4}));
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighboursWithMultipleNeighbouringElements_AddsLastElementAsNeighbour)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighboursWithMultipleNeighbouringElements_AddsAllElementsAsNeighbour)
 {
     // Arrange
     Model model;
@@ -193,8 +193,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighboursWithMultipleNeigh
     process.Execute();
 
     // Assert
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 2);
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 2);
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
+    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS)[1].GetId(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoFindNeighbourElementsOfConditionsProcess, KratosGeoMechanicsFastSuiteWithoutKernel)

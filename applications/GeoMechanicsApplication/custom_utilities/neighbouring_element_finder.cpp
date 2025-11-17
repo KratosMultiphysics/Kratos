@@ -80,11 +80,9 @@ void NeighbouringElementFinder::SetElementAsNeighbourOfAllEntitiesWithIdenticalN
     const auto [start, end] = mGeometryNodeIdsToEntities.equal_range(rEntityNodeIds);
     for (auto it = start; it != end; ++it) {
         const auto& r_entities    = it->second;
-        auto vector_of_neighbours = GlobalPointersVector<Element>{Element::WeakPointer{pElement}};
-
         for (auto& rp_entity : r_entities) {
             if (rp_entity->GetGeometry().Id() == pElement->GetGeometry().Id()) continue;
-            rp_entity->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
+            rp_entity->GetValue(NEIGHBOUR_ELEMENTS).push_back(Element::WeakPointer{pElement});
         }
     }
 }
