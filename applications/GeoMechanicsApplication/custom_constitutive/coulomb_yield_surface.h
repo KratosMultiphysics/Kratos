@@ -38,11 +38,13 @@ public:
     CoulombYieldSurface();
     explicit CoulombYieldSurface(const Properties& rMaterialProperties);
 
-    [[nodiscard]] double GetFrictionAngleInRadians() const;
-    [[nodiscard]] double GetCohesion() const;
-    [[nodiscard]] double GetDilatancyAngleInRadians() const;
-    [[nodiscard]] double GetKappa() const;
-    void                 SetKappa(double kappa);
+    [[nodiscard]] double       GetFrictionAngleInRadians() const;
+    [[nodiscard]] double       GetCohesion() const;
+    [[nodiscard]] double       GetDilatancyAngleInRadians() const;
+    [[nodiscard]] unsigned int GetMaxIterations() const;
+    [[nodiscard]] double       GetConvergenceTolerance() const;
+    [[nodiscard]] double       GetKappa() const;
+    void                       SetKappa(double kappa);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;

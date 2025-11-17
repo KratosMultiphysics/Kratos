@@ -106,11 +106,10 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigm
 Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTau,
                                                      CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
-    Vector       result                            = ZeroVector(2);
-    const double kappa_start                       = mCoulombYieldSurface.GetKappa();
-    unsigned int user_defined_number_of_iterations = 50; // TODO: add keyword in input
+    Vector     result      = ZeroVector(2);
+    const auto kappa_start = mCoulombYieldSurface.GetKappa();
 
-    for (unsigned int counter = 0; counter < user_defined_number_of_iterations; ++counter) {
+    for (unsigned int counter = 0; counter < mCoulombYieldSurface.GetMaxIterations(); ++counter) {
         const auto apex = mCoulombYieldSurface.CalculateApex();
 
         if (IsStressAtTensionApexReturnZone(rTrialSigmaTau, mTensionCutOff.GetTensileStrength(), apex)) {
@@ -145,7 +144,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
         mCoulombYieldSurface.SetKappa(kappa);
 
         double error = std::abs(mCoulombYieldSurface.YieldFunctionValue(result));
-        if (error < 1.0e-8) break;
+        if (error < mCoulombYieldSurface.GetConvergenceTolerance()) break;
     }
     return result;
 }

@@ -645,10 +645,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    auto cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 0.0, -40.0, 0.0});
-    auto expected_cauchy_stress_vector =
-        UblasUtilities::CreateVector({5.0, 0.0, -35.0, 0.0});
-    constexpr auto tolerance = 1.0e-8;
+    auto cauchy_stress_vector          = UblasUtilities::CreateVector({10.0, 0.0, -40.0, 0.0});
+    auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({5.0, 0.0, -35.0, 0.0});
+    constexpr auto tolerance           = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
 
