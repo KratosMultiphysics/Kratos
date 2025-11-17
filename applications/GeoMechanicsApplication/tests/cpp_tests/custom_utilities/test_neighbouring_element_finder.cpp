@@ -85,6 +85,39 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsCorrectNeighbouringEl
     EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 42);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsCorrectNeighbouringElementOfElement_WhenRunningSearchTwice,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+
+    auto& r_model_part_for_entities_for_finding =
+        ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
+
+    auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("Main");
+
+    std::vector<std::size_t> neighbour_node_ids = {1, 2};
+    PointerVector<Node>      neighbour_nodes =
+        GetNodesFromIds(r_model_part_for_entities_for_finding, neighbour_node_ids);
+    auto p_element = ElementSetupUtilities::Create2D2NElement(neighbour_nodes, {});
+    p_element->SetId(42);
+    r_model_part_for_neighbouring_elements.AddElement(p_element);
+
+    std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
+    boundary_generators[std::size_t{2}] = std::make_unique<EdgesGenerator>();
+    NeighbouringElementFinder finder;
+    finder.FindEntityNeighbours(r_model_part_for_entities_for_finding.Elements(),
+                                r_model_part_for_neighbouring_elements.Elements(), boundary_generators);
+
+    // The second run should clear the previous results and find the same neighbour again.
+    // This would happen when running a multi-stage analysis (where the search is called
+    // at the start of each stage).
+    finder.FindEntityNeighbours(r_model_part_for_entities_for_finding.Elements(),
+                                r_model_part_for_neighbouring_elements.Elements(), boundary_generators);
+
+    ASSERT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 42);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_NeverRefersToItselfAsNeighbour, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;

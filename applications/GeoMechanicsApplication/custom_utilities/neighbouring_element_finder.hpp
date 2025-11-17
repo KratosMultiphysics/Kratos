@@ -74,6 +74,10 @@ public:
                               ModelPart::ElementsContainerType& rCandidateElements,
                               BoundaryGeneratorByLocalDim&      rBoundaryGenerators)
     {
+        for (auto& r_entity : rEntities) {
+            r_entity.GetValue(NEIGHBOUR_ELEMENTS).clear();
+        }
+
         for (std::size_t local_space_dimension = 0; local_space_dimension < 4; ++local_space_dimension) {
             if (!rBoundaryGenerators.contains(local_space_dimension)) continue;
 
