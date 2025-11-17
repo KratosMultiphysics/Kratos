@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
+#include "iga_application_variables.h"
 
 // Geometries
 #include "geometries/nurbs_curve_geometry.h"
@@ -274,6 +275,12 @@ private:
                     pSurface, p_trimming_curve, brep_active_range, curve_direction);
 
                 p_brep_curve_on_surface->SetId(id_brep_curve_on_surface);
+                i_cond.SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                auto& r_geom_cond = i_cond.GetGeometry();
+                if (r_geom_cond.size() >= 2) {
+                    r_geom_cond[0].SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                    r_geom_cond[1].SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                }
 
                 rModelPart.AddGeometry(p_brep_curve_on_surface);
                 id_brep_curve_on_surface++;

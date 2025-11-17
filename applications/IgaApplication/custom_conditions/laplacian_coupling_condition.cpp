@@ -76,7 +76,25 @@ void LaplacianCouplingCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
-{
+{   
+    const auto& r_patch_A = GetGeometry();
+    const auto& r_patch_B = GetGeometryMirror();
+    const SizeType n_patch_A = r_patch_A.PointsNumber();
+    const SizeType n_patch_B = r_patch_B.PointsNumber();
+    const SizeType total_size = n_patch_A + n_patch_B;
+
+    //resizing as needed the LHS
+    if(rLeftHandSideMatrix.size1() != total_size)
+        rLeftHandSideMatrix.resize(total_size,total_size,false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(total_size,total_size); //resetting LHS
+
+    if (rRightHandSideVector.size() != total_size) {
+        rRightHandSideVector.resize(total_size, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(total_size);
+
+
+
     CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
     CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
@@ -170,7 +188,7 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
     double nitsche_penalty_free = 1.0;
     if (GetProperties().Has(PENALTY_FACTOR)) {
         penalty_factor = GetProperties()[PENALTY_FACTOR];
-        penalty_factor = 10000000; 
+        // penalty_factor = 1000; 
         if (penalty_factor <= 0.0) {
             penalty_factor = 0.0;
             nitsche_penalty_free = -1.0;
@@ -286,6 +304,8 @@ void LaplacianCouplingCondition::CalculateLeftHandSide(
 
     }
 
+    // rLeftHandSideMatrix = ZeroMatrix(total_size, total_size); // to be removed
+
 
     KRATOS_CATCH("")
 }
@@ -323,65 +343,80 @@ void LaplacianCouplingCondition::CalculateRightHandSide(
 
 
 
-    // analytical flux 
+//     // analytical flux 
 
-    // const auto& r_patch_A = GetGeometry();
-    // const auto& r_patch_B = GetGeometryMirror();
-    // const SizeType n_patch_A = r_patch_A.PointsNumber();
-    // const SizeType n_patch_B = r_patch_B.PointsNumber();
-    // const SizeType total_size = n_patch_A + n_patch_B;
+//     const auto& r_patch_A = GetGeometry();
+//     const auto& r_patch_B = GetGeometryMirror();
+//     const SizeType n_patch_A = r_patch_A.PointsNumber();
+//     const SizeType n_patch_B = r_patch_B.PointsNumber();
+//     const SizeType total_size = n_patch_A + n_patch_B;
 
-    // if (rRightHandSideVector.size() != total_size) {
-    //     rRightHandSideVector.resize(total_size, false);
-    // }
-    // noalias(rRightHandSideVector) = ZeroVector(total_size);
+//     if (rRightHandSideVector.size() != total_size) {
+//         rRightHandSideVector.resize(total_size, false);
+//     }
+//     noalias(rRightHandSideVector) = ZeroVector(total_size);
 
-    // const auto& integration_points_patch_A = r_patch_A.IntegrationPoints();
-    // const auto& integration_points_patch_B = r_patch_B.IntegrationPoints();
+//     const auto& integration_points_patch_A = r_patch_A.IntegrationPoints();
+//     const auto& integration_points_patch_B = r_patch_B.IntegrationPoints();
 
-    // KRATOS_ERROR_IF(integration_points_patch_A.empty() || integration_points_patch_B.empty())
-    //     << "LaplacianCouplingCondition expects at least one integration point." << std::endl;
+//     KRATOS_ERROR_IF(integration_points_patch_A.empty() || integration_points_patch_B.empty())
+//         << "LaplacianCouplingCondition expects at least one integration point." << std::endl;
 
-    // const Matrix& N_patch_A = r_patch_A.ShapeFunctionsValues();
-    // const Matrix& N_patch_B = r_patch_B.ShapeFunctionsValues();
+//     const Matrix& N_patch_A = r_patch_A.ShapeFunctionsValues();
+//     Matrix N_patch_B = r_patch_B.ShapeFunctionsValues();
 
-    // GeometryType::JacobiansType J_patch_A;
-    // r_patch_A.Jacobian(J_patch_A, r_patch_A.GetDefaultIntegrationMethod());
-    // Matrix jacobian_patch_A = ZeroMatrix(3, 3);
-    // jacobian_patch_A(0, 0) = J_patch_A[0](0, 0);
-    // jacobian_patch_A(0, 1) = J_patch_A[0](0, 1);
-    // jacobian_patch_A(1, 0) = J_patch_A[0](1, 0);
-    // jacobian_patch_A(1, 1) = J_patch_A[0](1, 1);
-    // jacobian_patch_A(2, 2) = 1.0;
-    // array_1d<double, 3> tangent_patch_A;
-    // r_patch_A.Calculate(LOCAL_TANGENT, tangent_patch_A);
-    // Vector determinant_factor_patch_A = prod(jacobian_patch_A, tangent_patch_A);
-    // determinant_factor_patch_A[2] = 0.0;
-    // const double detJ_patch_A = norm_2(determinant_factor_patch_A);
-    // const double weight = integration_points_patch_A[0].Weight() * detJ_patch_A;
+//     if (mIsGapSbmCoupling) {
+//         Vector N_sum_B_vector(n_patch_B);
+//         ComputeTaylorExpansionContribution(r_patch_B, mDistanceVectorB, N_sum_B_vector);
+//         for (IndexType j = 0; j < n_patch_B; ++j) {
+//             N_patch_B(0, j) = N_sum_B_vector[j];
+//         }
+//     }
 
-    // array_1d<double, 3> global_coords_A;
-    // r_patch_A.GlobalCoordinates(global_coords_A, integration_points_patch_A[0].Coordinates());
-    // const double x_A = global_coords_A[0];
-    // const double y_A = global_coords_A[1];
-    // const double gradx_A = std::cos(x_A) * std::sinh(y_A);
-    // const double grady_A = std::sin(x_A) * std::cosh(y_A);
-    // const double flux_A = gradx_A * mNormalPhysicalSpaceA[0] + grady_A * mNormalPhysicalSpaceA[1];
+//     GeometryType::JacobiansType J_patch_A;
+//     r_patch_A.Jacobian(J_patch_A, r_patch_A.GetDefaultIntegrationMethod());
+//     Matrix jacobian_patch_A = ZeroMatrix(3, 3);
+//     jacobian_patch_A(0, 0) = J_patch_A[0](0, 0);
+//     jacobian_patch_A(0, 1) = J_patch_A[0](0, 1);
+//     jacobian_patch_A(1, 0) = J_patch_A[0](1, 0);
+//     jacobian_patch_A(1, 1) = J_patch_A[0](1, 1);
+//     jacobian_patch_A(2, 2) = 1.0;
+//     array_1d<double, 3> tangent_patch_A;
+//     r_patch_A.Calculate(LOCAL_TANGENT, tangent_patch_A);
+//     Vector determinant_factor_patch_A = prod(jacobian_patch_A, tangent_patch_A);
+//     determinant_factor_patch_A[2] = 0.0;
+//     const double detJ_patch_A = norm_2(determinant_factor_patch_A);
+//     const double weight = integration_points_patch_A[0].Weight() * detJ_patch_A;
 
-    // array_1d<double, 3> global_coords_B;
-    // r_patch_B.GlobalCoordinates(global_coords_B, integration_points_patch_B[0].Coordinates());
-    // const double x_B = global_coords_B[0];
-    // const double y_B = global_coords_B[1];
-    // const double gradx_B = std::cos(x_B) * std::sinh(y_B);
-    // const double grady_B = std::sin(x_B) * std::cosh(y_B);
-    // const double flux_B = gradx_B * mNormalPhysicalSpaceB[0] + grady_B * mNormalPhysicalSpaceB[1];
+//     array_1d<double, 3> global_coords_A;
+//     r_patch_A.GlobalCoordinates(global_coords_A, integration_points_patch_A[0].Coordinates());
+//     const double x_A = global_coords_A[0];
+//     const double y_A = global_coords_A[1];
+//     const double gradx_A = std::cos(x_A) * std::sinh(y_A);
+//     const double grady_A = std::sin(x_A) * std::cosh(y_A);
+//     const double flux_A = gradx_A * mNormalPhysicalSpaceA[0] + grady_A * mNormalPhysicalSpaceA[1];
 
-    // for (IndexType i = 0; i < n_patch_A; ++i) {
-    //     rRightHandSideVector[i] += weight * flux_A * N_patch_A(0, i);
-    // }
-    // for (IndexType i = 0; i < n_patch_B; ++i) {
-    //     rRightHandSideVector[n_patch_A + i] += weight * flux_B * N_patch_B(0, i);
-    // }
+//     array_1d<double, 3> global_coords_B;
+//     r_patch_B.GlobalCoordinates(global_coords_B, integration_points_patch_B[0].Coordinates());
+//     const double x_B = global_coords_B[0];
+//     const double y_B = global_coords_B[1];
+//     const double gradx_B = std::cos(x_B) * std::sinh(y_B);
+//     const double grady_B = std::sin(x_B) * std::cosh(y_B);
+//     const double flux_B = gradx_B * mNormalPhysicalSpaceB[0] + grady_B * mNormalPhysicalSpaceB[1];
+
+// //     KRATOS_WATCH(mNormalPhysicalSpaceB)
+// //     KRATOS_WATCH(mNormalPhysicalSpaceA)
+// // KRATOS_WATCH("\n")
+
+//     for (IndexType i = 0; i < n_patch_A; ++i) {
+//         rRightHandSideVector[i] += weight * flux_A * N_patch_A(0, i);
+//     }
+//     for (IndexType i = 0; i < n_patch_B; ++i) {
+//         rRightHandSideVector[n_patch_A + i] -= weight * flux_A * N_patch_B(0, i);
+//     }
+
+
+
 }
 
 void LaplacianCouplingCondition::EquationIdVector(
