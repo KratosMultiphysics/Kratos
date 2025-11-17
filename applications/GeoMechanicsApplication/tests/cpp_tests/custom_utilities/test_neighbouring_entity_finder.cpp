@@ -15,6 +15,27 @@
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+namespace
+{
+using namespace Kratos;
+
+void CreateNumberOfNewNodes(ModelPart& rModelPart, std::size_t NumberOfNodes)
+{
+    for (std::size_t i = 0; i < NumberOfNodes; ++i) {
+        rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0);
+    }
+}
+
+PointerVector<Node> GetNodesFromIds(ModelPart& rModelPart, const std::vector<std::size_t>& rNodeIds)
+{
+    PointerVector<Node> result(rNodeIds.size());
+    std::ranges::transform(rNodeIds, result.ptr_begin(),
+                           [&rModelPart](auto Id) { return rModelPart.pGetNode(Id); });
+    return result;
+}
+
+} // namespace
+
 namespace Kratos::Testing
 {
 
@@ -42,25 +63,21 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsCorrectNeighbouringEle
 {
     Model model;
 
-    NeighbouringEntityFinder finder;
-
     auto& r_model_part_for_entities_for_finding =
         ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
-    auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("empty");
+    auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("Main");
 
-    std::vector         neighbour_node_ids = {1, 2};
-    PointerVector<Node> neighbour_nodes(neighbour_node_ids.size());
-    std::ranges::transform(neighbour_node_ids, neighbour_nodes.ptr_begin(),
-                           [&r_model_part_for_entities_for_finding](auto Id) {
-        return r_model_part_for_entities_for_finding.pGetNode(Id);
-    });
+    std::vector<std::size_t> neighbour_node_ids = {1, 2};
+    PointerVector<Node>      neighbour_nodes =
+        GetNodesFromIds(r_model_part_for_entities_for_finding, neighbour_node_ids);
     auto p_element = ElementSetupUtilities::Create2D2NElement(neighbour_nodes, {});
     p_element->SetId(42);
     r_model_part_for_neighbouring_elements.AddElement(p_element);
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{2}] = std::make_unique<EdgesGenerator>();
+    NeighbouringEntityFinder finder;
     finder.FindEntityNeighbours(r_model_part_for_entities_for_finding.Elements(),
                                 r_model_part_for_neighbouring_elements.Elements(), boundary_generators);
 
@@ -88,22 +105,15 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenTwoCont
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
-    r_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
+    CreateNumberOfNewNodes(r_model_part, 4);
 
     std::vector<std::size_t> node_ids_element_1 = {1, 2, 3};
-    PointerVector<Node>      nodes_element_1(node_ids_element_1.size());
-    std::ranges::transform(node_ids_element_1, nodes_element_1.ptr_begin(),
-                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    PointerVector<Node>      nodes_element_1 = GetNodesFromIds(r_model_part, node_ids_element_1);
     auto p_element_1 = ElementSetupUtilities::Create2D3NElement(nodes_element_1, {});
     r_model_part.AddElement(p_element_1);
 
     std::vector<std::size_t> node_ids_element_2 = {1, 3, 4};
-    PointerVector<Node>      nodes_element_2(node_ids_element_2.size());
-    std::ranges::transform(node_ids_element_2, nodes_element_2.ptr_begin(),
-                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    PointerVector<Node>      nodes_element_2 = GetNodesFromIds(r_model_part, node_ids_element_2);
     auto p_element_2 = ElementSetupUtilities::Create2D3NElement(nodes_element_2, {});
     p_element_2->SetId(2);
     r_model_part.AddElement(p_element_2);
@@ -127,11 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenInterfa
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(3, 0.0, 0.1, 0.0);
-    r_model_part.CreateNewNode(4, 1.0, 0.1, 0.0);
-    r_model_part.CreateNewNode(5, 0.5, 1.0, 0.0);
+    CreateNumberOfNewNodes(r_model_part, 5);
 
     std::vector<std::size_t> node_ids_continuum_element = {3, 4, 5};
     PointerVector<Node>      nodes_continuum_element(node_ids_continuum_element.size());
@@ -167,15 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadrat
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(3, 0.5, 0.0, 0.0);
-    r_model_part.CreateNewNode(4, 0.0, 0.1, 0.0);
-    r_model_part.CreateNewNode(5, 1.0, 0.1, 0.0);
-    r_model_part.CreateNewNode(6, 0.5, 0.1, 0.0);
-    r_model_part.CreateNewNode(7, 0.25, 0.5, 0.0);
-    r_model_part.CreateNewNode(8, 0.5, 1.0, 0.0);
-    r_model_part.CreateNewNode(9, 0.75, 0.5, 0.0);
+    CreateNumberOfNewNodes(r_model_part, 9);
 
     std::vector<std::size_t> node_ids_continuum_element = {4, 5, 8, 6, 9, 7};
     PointerVector<Node>      nodes_continuum_element(node_ids_continuum_element.size());
@@ -211,18 +209,15 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadrat
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
+    CreateNumberOfNewNodes(r_model_part, 16);
 
-    PointerVector<Node> nodes_3d10n(10);
-    for (std::size_t i = 0; i < nodes_3d10n.size(); ++i) {
-        nodes_3d10n(i) = r_model_part.CreateNewNode(i + 1, 0.0, 0.0, 0.0);
-    }
-    auto p_continuum_element = ElementSetupUtilities::Create3D10NElement(nodes_3d10n, {});
-    p_continuum_element->SetId(1);
+    std::vector<std::size_t> node_ids_continuum_element = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    PointerVector<Node>      nodes_continuum_element(node_ids_continuum_element.size());
+    std::ranges::transform(node_ids_continuum_element, nodes_continuum_element.ptr_begin(),
+                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    auto p_continuum_element = ElementSetupUtilities::Create3D10NElement(nodes_continuum_element, {});
     r_model_part.AddElement(p_continuum_element);
-
-    for (int i = 0; i < 6; ++i) {
-        r_model_part.CreateNewNode(11 + i, 0.0, 0.0, 0.0);
-    }
+    p_continuum_element->SetId(1);
 
     // The node ordering of the interface element is chosen such that it is both reversed and
     // permutated, to test the robustness of the neighbour finding.
