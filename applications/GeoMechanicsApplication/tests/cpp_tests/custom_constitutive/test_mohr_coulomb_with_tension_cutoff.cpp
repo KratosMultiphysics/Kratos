@@ -635,7 +635,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
-    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.3301270189}));
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.53589838486}));
     properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
 
     ConstitutiveLaw::Parameters parameters;
@@ -647,29 +647,33 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Act and Assert
     auto cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 0.0, -40.0, 0.0});
     auto expected_cauchy_stress_vector =
-        UblasUtilities::CreateVector({4.69104576482, 0.0, -34.69104576482, 0.0});
+        UblasUtilities::CreateVector({5.0, 0.0, -35.0, 0.0});
     constexpr auto tolerance = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
 
     // Arrange
-    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.0}));
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.1}));
     properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
+    parameters.SetMaterialProperties(properties);
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
     cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 0.0, -40.0, 0.0});
     expected_cauchy_stress_vector =
-        UblasUtilities::CreateVector({6.811560518996, 0.0, -36.811560518996, 0.0});
+        UblasUtilities::CreateVector({3.0004227197012, 0.0, -33.0004227197012, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
 
     // Arrange
     properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
     properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.0}));
+    parameters.SetMaterialProperties(properties);
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
     cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 0.0, -40.0, 0.0});
-    expected_cauchy_stress_vector = UblasUtilities::CreateVector({8.08509437348, 0.0, -38.08509437348, 0.0});
+    expected_cauchy_stress_vector = UblasUtilities::CreateVector({1.16025403784, 0.0, -31.16025403784, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
 }

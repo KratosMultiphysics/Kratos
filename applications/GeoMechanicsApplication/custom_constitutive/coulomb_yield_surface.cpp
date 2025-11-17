@@ -188,7 +188,7 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrain(const Vector&      
     const auto g1         = (dGdsigma[0] + dGdsigma[1]) * 0.5;
     const auto g3         = (dGdsigma[0] - dGdsigma[1]) * 0.5;
     const auto mean       = (g1 + g3) / 3.0;
-    const auto deviatoric = std::sqrt(std::pow(g1 - mean, 2) + std::pow(g3 - mean, 2));
+    const auto deviatoric = std::sqrt(std::pow(g1 - mean, 2) + std::pow(g3 - mean, 2) + std::pow(mean, 2));
     const auto alpha      = std::sqrt(2.0 / 3.0) * deviatoric;
     return -alpha * lambda;
 }
