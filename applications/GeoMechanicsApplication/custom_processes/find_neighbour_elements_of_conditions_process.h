@@ -35,7 +35,7 @@ public:
     void                      PrintData(std::ostream& rOStream) const override;
 
 private:
-    ModelPart&               mrModelPart;
+    ModelPart& mrModelPart;
 
     void FindNeighbouringElementsForAllBoundaryTypes();
 
