@@ -8,13 +8,13 @@
     },
     "output_processes": {
         "hdf5_output": [
-            {
-                "python_module": "primal_hdf5_output_process",
-                "kratos_module": "KratosMultiphysics.RANSApplication",
-                "Parameters": {
-                    "model_part_name": "MainModelPart"
-                }
-            }
+            // {
+            //     "python_module": "primal_hdf5_output_process",
+            //     "kratos_module": "KratosMultiphysics.RANSApplication",
+            //     "Parameters": {
+            //         "model_part_name": "MainModelPart"
+            //     }
+            // }
         ]
     },
     "solver_settings": {
