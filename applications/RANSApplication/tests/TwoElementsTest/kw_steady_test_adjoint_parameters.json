@@ -102,10 +102,50 @@
         "gravity": [],
         "auxiliar_process_list": [
             {
-                "kratos_module": "KratosMultiphysics.RANSApplication",
-                "python_module": "primal_hdf5_input_process",
+                "kratos_module": "KratosMultiphysics.HDF5Application",
+                "python_module": "single_mesh_temporal_input_process",
                 "Parameters": {
-                    "model_part_name": "MainModelPart"
+                    "model_part_name": "MainModelPart",
+                    "file_settings": {
+                        "file_name": "<model_part_name>.h5"
+                    },
+                    "nodal_solution_step_data_settings": {
+                        "list_of_variables": [
+                            "ACCELERATION",
+                            "PRESSURE",
+                            "MESH_VELOCITY",
+                            "VELOCITY",
+                            "TURBULENT_KINETIC_ENERGY",
+                            "RANS_AUXILIARY_VARIABLE_2",
+                            "DISPLACEMENT",
+                            "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
+                            "TURBULENT_KINETIC_ENERGY_RATE",
+                            "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2",
+                            "RANS_AUXILIARY_VARIABLE_1"
+                        ]
+                    },
+                    "nodal_data_value_settings": {
+                        "list_of_variables": [
+                            "RELAXED_ACCELERATION"
+                        ]
+                    },
+                    "nodal_flag_value_settings": {
+                        "list_of_variables": [
+                            "SLIP"
+                        ]
+                    },
+                    "condition_data_value_settings": {
+                        "list_of_variables": [
+                            "DISTANCE",
+                            "GAUSS_RANS_Y_PLUS",
+                            "RANS_IS_WALL_FUNCTION_ACTIVE"
+                        ]
+                    },
+                    "condition_flag_value_settings": {
+                        "list_of_variables": [
+                            "SLIP"
+                        ]
+                    }
                 }
             }
         ]
