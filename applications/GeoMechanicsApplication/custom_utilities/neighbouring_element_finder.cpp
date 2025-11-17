@@ -10,19 +10,19 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "neighbouring_entity_finder.h"
+#include "neighbouring_element_finder.hpp"
 #include "geometry_utilities.h"
 #include <algorithm>
 
 namespace Kratos
 {
 
-NeighbouringEntityFinder::NeighbouringEntityFinder(bool alsoSearchReverse)
+NeighbouringElementFinder::NeighbouringElementFinder(bool alsoSearchReverse)
     : mAlsoSearchReverse(alsoSearchReverse)
 {
 }
 
-void NeighbouringEntityFinder::InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping)
+void NeighbouringElementFinder::InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping)
 {
     mGeometryNodeIdsToEntities = std::move(GeometryNodeIdsToEntityMapping);
 
@@ -37,8 +37,8 @@ void NeighbouringEntityFinder::InitializeBoundaryMaps(NodeIdsToEntitiesHashMap G
     });
 }
 
-void NeighbouringEntityFinder::FindEntityNeighboursBasedOnBoundaryType(const BoundaryGenerator& rBoundaryGenerator,
-                                                                       ModelPart::ElementsContainerType& rElements)
+void NeighbouringElementFinder::FindEntityNeighboursBasedOnBoundaryType(const BoundaryGenerator& rBoundaryGenerator,
+                                                                        ModelPart::ElementsContainerType& rElements)
 {
     for (auto& r_element : rElements) {
         const auto& r_element_geometry  = r_element.GetGeometry();
@@ -47,7 +47,7 @@ void NeighbouringEntityFinder::FindEntityNeighboursBasedOnBoundaryType(const Bou
     }
 }
 
-void NeighbouringEntityFinder::AddNeighbouringElementsToEntitiesBasedOnOverlappingBoundaryGeometries(
+void NeighbouringElementFinder::AddNeighbouringElementsToEntitiesBasedOnOverlappingBoundaryGeometries(
     Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
@@ -74,7 +74,7 @@ void NeighbouringEntityFinder::AddNeighbouringElementsToEntitiesBasedOnOverlappi
     }
 }
 
-void NeighbouringEntityFinder::SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(
+void NeighbouringElementFinder::SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(
     const std::vector<std::size_t>& rEntityNodeIds, Element* pElement)
 {
     const auto [start, end] = mGeometryNodeIdsToEntities.equal_range(rEntityNodeIds);
@@ -89,7 +89,7 @@ void NeighbouringEntityFinder::SetElementAsNeighbourOfAllEntitiesWithIdenticalNo
     }
 }
 
-void NeighbouringEntityFinder::SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
+void NeighbouringElementFinder::SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
     Element& rElement, const std::vector<std::size_t>& rElementBoundaryNodeIds, GeometryData::KratosGeometryOrderType OrderType)
 {
     auto sorted_boundary_node_ids = rElementBoundaryNodeIds;
@@ -104,9 +104,9 @@ void NeighbouringEntityFinder::SetElementAsNeighbourIfRotatedNodeIdsAreEquivalen
     }
 }
 
-bool NeighbouringEntityFinder::AreRotatedEquivalents(const std::vector<std::size_t>& rFirst,
-                                                     const std::vector<std::size_t>& rSecond,
-                                                     GeometryData::KratosGeometryOrderType OrderType)
+bool NeighbouringElementFinder::AreRotatedEquivalents(const std::vector<std::size_t>& rFirst,
+                                                      const std::vector<std::size_t>& rSecond,
+                                                      GeometryData::KratosGeometryOrderType OrderType)
 {
     switch (OrderType) {
         using enum GeometryData::KratosGeometryOrderType;
@@ -119,16 +119,16 @@ bool NeighbouringEntityFinder::AreRotatedEquivalents(const std::vector<std::size
     }
 }
 
-bool NeighbouringEntityFinder::AreLinearRotatedEquivalents(std::vector<std::size_t>        First,
-                                                           const std::vector<std::size_t>& rSecond)
+bool NeighbouringElementFinder::AreLinearRotatedEquivalents(std::vector<std::size_t>        First,
+                                                            const std::vector<std::size_t>& rSecond)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
     std::rotate(First.begin(), First.begin() + amount_of_needed_rotations, First.end());
     return First == rSecond;
 }
 
-bool NeighbouringEntityFinder::AreQuadraticRotatedEquivalents(std::vector<std::size_t> First,
-                                                              const std::vector<std::size_t>& rSecond)
+bool NeighbouringElementFinder::AreQuadraticRotatedEquivalents(std::vector<std::size_t> First,
+                                                               const std::vector<std::size_t>& rSecond)
 {
     const auto amount_of_needed_rotations = std::ranges::find(First, rSecond[0]) - First.begin();
     const auto first_mid_side_node_id     = First.begin() + First.size() / 2;

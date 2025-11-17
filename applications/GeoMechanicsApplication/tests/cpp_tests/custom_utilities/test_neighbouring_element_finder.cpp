@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_utilities/neighbouring_entity_finder.h"
+#include "custom_utilities/neighbouring_element_finder.hpp"
 #include "test_setup_utilities/element_setup_utilities.h"
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -39,13 +39,13 @@ PointerVector<Node> GetNodesFromIds(ModelPart& rModelPart, const std::vector<std
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsEmptyListWhenNoNeighbouringElements,
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsEmptyListWhenNoNeighbouringElements,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("empty");
 
-    NeighbouringEntityFinder finder;
+    NeighbouringElementFinder finder;
 
     auto& r_model_part_for_entities_for_finding =
         ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
@@ -58,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsEmptyListWhenNoNeighbo
     EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsCorrectNeighbouringElementOfElement,
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsCorrectNeighbouringElementOfElement,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
@@ -77,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsCorrectNeighbouringEle
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{2}] = std::make_unique<EdgesGenerator>();
-    NeighbouringEntityFinder finder;
+    NeighbouringElementFinder finder;
     finder.FindEntityNeighbours(r_model_part_for_entities_for_finding.Elements(),
                                 r_model_part_for_neighbouring_elements.Elements(), boundary_generators);
 
@@ -85,7 +85,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_ReturnsCorrectNeighbouringEle
     EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 42);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_NeverRefersToItselfAsNeighbour, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_NeverRefersToItselfAsNeighbour, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
 
@@ -94,14 +94,14 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_NeverRefersToItselfAsNeighbou
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{2}] = std::make_unique<EdgesGenerator>();
-    NeighbouringEntityFinder finder;
+    NeighbouringElementFinder finder;
     finder.FindEntityNeighbours(r_model_part_for_entities_for_finding.Elements(),
                                 r_model_part_for_entities_for_finding.Elements(), boundary_generators);
 
     ASSERT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenTwoContinua, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenTwoContinua, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
@@ -118,8 +118,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenTwoCont
     p_element_2->SetId(2);
     r_model_part.AddElement(p_element_2);
 
-    constexpr auto           alsoSearchReverse = true;
-    NeighbouringEntityFinder finder(alsoSearchReverse);
+    constexpr auto            alsoSearchReverse = true;
+    NeighbouringElementFinder finder(alsoSearchReverse);
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{2}] = std::make_unique<EdgesGenerator>();
@@ -132,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenTwoCont
     EXPECT_EQ(p_element_2->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenInterfaceAndContinuum,
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenInterfaceAndContinuum,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
@@ -153,8 +153,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenInterfa
     auto& r_interface_model_part = model.CreateModelPart("Interfaces");
     r_interface_model_part.AddElement(p_interface_element);
 
-    constexpr auto           alsoSearchReverse = true;
-    NeighbouringEntityFinder finder(alsoSearchReverse);
+    constexpr auto            alsoSearchReverse = true;
+    NeighbouringElementFinder finder(alsoSearchReverse);
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{1}] = std::make_unique<EdgesGenerator>();
@@ -164,7 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenInterfa
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadraticInterfaceAndContinuum,
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenQuadraticInterfaceAndContinuum,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
@@ -185,8 +185,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadrat
     auto& r_interface_model_part = model.CreateModelPart("Interfaces");
     r_interface_model_part.AddElement(p_interface_element);
 
-    constexpr auto           alsoSearchReverse = true;
-    NeighbouringEntityFinder finder(alsoSearchReverse);
+    constexpr auto            alsoSearchReverse = true;
+    NeighbouringElementFinder finder(alsoSearchReverse);
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{1}] = std::make_unique<EdgesGenerator>();
@@ -196,7 +196,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadrat
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadraticSurfaceInterfaceAnd3DContinuum,
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenQuadraticSurfaceInterfaceAnd3DContinuum,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
@@ -221,8 +221,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadrat
     auto& r_interface_model_part = model.CreateModelPart("Interfaces");
     r_interface_model_part.AddElement(p_interface_element);
 
-    constexpr auto           alsoSearchReverse = true;
-    NeighbouringEntityFinder finder(alsoSearchReverse);
+    constexpr auto            alsoSearchReverse = true;
+    NeighbouringElementFinder finder(alsoSearchReverse);
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{2}] = std::make_unique<FacesGenerator>();

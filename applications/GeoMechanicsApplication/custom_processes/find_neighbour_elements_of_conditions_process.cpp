@@ -12,8 +12,9 @@
 //
 
 #include "find_neighbour_elements_of_conditions_process.h"
-
+#include "custom_utilities/neighbouring_element_finder.hpp"
 #include "geometries/geometry.h"
+
 #include <algorithm>
 #include <iterator>
 
@@ -43,7 +44,7 @@ void FindNeighbourElementsOfConditionsProcess::FindNeighbouringElementsForAllBou
     boundary_generator_map[1] = std::make_unique<EdgesGenerator>();
     boundary_generator_map[2] = std::make_unique<FacesGenerator>();
 
-    NeighbouringEntityFinder finder;
+    NeighbouringElementFinder finder;
     finder.FindEntityNeighbours(mrModelPart.Conditions(), mrModelPart.Elements(), boundary_generator_map);
 }
 

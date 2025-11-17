@@ -34,13 +34,13 @@ using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::
                                                                KeyComparorRange<std::vector<std::size_t>>>;
 
 /**
- * @class NeighbouringEntityFinder
+ * @class NeighbouringElementFinder
  * @brief Utility class for finding neighbouring elements of generic geometrical objects based on shared boundary geometries.
  * @details This class identifies neighbour relationships between geometrical entities by comparing their boundary
  * geometries (edges, faces, etc.). It supports both forward and reverse search modes, and can handle linear and
  * quadratic elements with potentially rotated or permuted node orderings.
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringEntityFinder
+class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringElementFinder
 {
 public:
     /**
@@ -48,7 +48,7 @@ public:
      * @param alsoSearchReverse If true, also searches for reversed node orderings when matching boundaries.
      * This is useful when elements may have opposite orientations but share the same boundary.
      */
-    explicit NeighbouringEntityFinder(bool alsoSearchReverse = false);
+    explicit NeighbouringElementFinder(bool alsoSearchReverse = false);
 
     using BoundaryGeneratorByLocalDim = std::map<std::size_t, std::unique_ptr<BoundaryGenerator>>;
 
