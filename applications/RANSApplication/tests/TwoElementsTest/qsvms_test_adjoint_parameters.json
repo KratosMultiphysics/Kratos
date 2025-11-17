@@ -81,13 +81,13 @@
         ],
         "gravity": [],
         "auxiliar_process_list": [
-            {
-                "kratos_module": "KratosMultiphysics.RANSApplication",
-                "python_module": "primal_hdf5_input_process",
-                "Parameters": {
-                    "model_part_name": "MainModelPart"
-                }
-            }
+            // {
+            //     "kratos_module": "KratosMultiphysics.RANSApplication",
+            //     "python_module": "primal_hdf5_input_process",
+            //     "Parameters": {
+            //         "model_part_name": "MainModelPart"
+            //     }
+            // }
         ]
     }
 }
