@@ -87,7 +87,7 @@ class AdjointCircularConvectionTwoElementsTest(KratosUnittest.TestCase):
                         "list_of_variables": ["RELAXED_ACCELERATION"]
                     },
                     "condition_data_value_settings": {
-                        "list_of_variables": ["RANS_IS_WALL_FUNCTION_ACTIVE"]
+                        "list_of_variables": []
                     }
                 }
             }
