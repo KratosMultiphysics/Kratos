@@ -134,7 +134,25 @@ def CreateCoreSettings(user_settings, model):
             core_settings[i]["io_settings"]["io_type"] = "serial_hdf5_file_io"
     core_settings[0]["list_of_operations"] = [
         CreateOperationSettings(model_part_output_type,
-                                user_settings["model_part_output_settings"])
+                                user_settings["model_part_output_settings"]),
+        CreateOperationSettings("nodal_solution_step_data_output",
+                                user_settings["nodal_solution_step_data_settings"]),
+        CreateOperationSettings("nodal_data_value_output",
+                                user_settings["nodal_data_value_settings"]),
+        CreateOperationSettings("element_data_value_output",
+                                user_settings["element_data_value_settings"]),
+        CreateOperationSettings("nodal_flag_value_output",
+                                user_settings["nodal_flag_value_settings"]),
+        CreateOperationSettings("element_flag_value_output",
+                                user_settings["element_flag_value_settings"]),
+        CreateOperationSettings("element_gauss_point_output",
+                                user_settings["element_gauss_point_value_settings"]),
+        CreateOperationSettings("condition_flag_value_output",
+                                user_settings["condition_flag_value_settings"]),
+        CreateOperationSettings("condition_data_value_output",
+                                user_settings["condition_data_value_settings"]),
+        CreateOperationSettings("condition_gauss_point_output",
+                                user_settings["condition_gauss_point_value_settings"])
     ]
     core_settings[1]["list_of_operations"] = [
         CreateOperationSettings("nodal_solution_step_data_output",

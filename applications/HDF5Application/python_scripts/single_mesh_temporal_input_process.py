@@ -64,6 +64,16 @@ def CreateCoreSettings(user_settings, model):
     core_settings = ParametersWrapper("""
         [{
             "model_part_name" : "",
+            "process_step": "initialize",
+            "io_settings": {
+                "io_type": "serial_hdf5_file_io",
+                "file_name": "<model_part_name>-<time>.h5",
+                "file_access_mode": "read_only"
+            },
+            "list_of_operations": []
+        },
+        {
+            "model_part_name" : "",
             "process_step": "initialize_solution_step",
             "io_settings": {
                 "io_type": "serial_hdf5_file_io",
@@ -90,28 +100,29 @@ def CreateCoreSettings(user_settings, model):
             """)
     )
     user_settings = ParametersWrapper(user_settings)
-    core_settings[0]["model_part_name"] = user_settings["model_part_name"]
-    for key in user_settings["file_settings"]:
-        core_settings[0]["io_settings"][key] = user_settings["file_settings"][key]
-    model_part_name = user_settings["model_part_name"]
-    if model[model_part_name].IsDistributed():
-        core_settings[0]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
-    else:
-        core_settings[0]["io_settings"]["io_type"] = "serial_hdf5_file_io"
-    core_settings[0]["list_of_operations"] = [
-        CreateOperationSettings("nodal_solution_step_data_input",
-                                user_settings["nodal_solution_step_data_settings"]),
-        CreateOperationSettings("nodal_data_value_input",
-                                user_settings["nodal_data_value_settings"]),
-        CreateOperationSettings("element_data_value_input",
-                                user_settings["element_data_value_settings"]),
-        CreateOperationSettings("nodal_flag_value_input",
-                                user_settings["nodal_flag_value_settings"]),
-        CreateOperationSettings("element_flag_value_input",
-                                user_settings["element_flag_value_settings"]),
-        CreateOperationSettings("condition_flag_value_input",
-                                user_settings["condition_flag_value_settings"]),
-        CreateOperationSettings("condition_data_value_input",
-                                user_settings["condition_data_value_settings"])
-    ]
+    for i in core_settings:
+        core_settings[i]["model_part_name"] = user_settings["model_part_name"]
+        for key in user_settings["file_settings"]:
+            core_settings[i]["io_settings"][key] = user_settings["file_settings"][key]
+        model_part_name = user_settings["model_part_name"]
+        if model[model_part_name].IsDistributed():
+            core_settings[i]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
+        else:
+            core_settings[i]["io_settings"]["io_type"] = "serial_hdf5_file_io"
+        core_settings[i]["list_of_operations"] = [
+            CreateOperationSettings("nodal_solution_step_data_input",
+                                    user_settings["nodal_solution_step_data_settings"]),
+            CreateOperationSettings("nodal_data_value_input",
+                                    user_settings["nodal_data_value_settings"]),
+            CreateOperationSettings("element_data_value_input",
+                                    user_settings["element_data_value_settings"]),
+            CreateOperationSettings("nodal_flag_value_input",
+                                    user_settings["nodal_flag_value_settings"]),
+            CreateOperationSettings("element_flag_value_input",
+                                    user_settings["element_flag_value_settings"]),
+            CreateOperationSettings("condition_flag_value_input",
+                                    user_settings["condition_flag_value_settings"]),
+            CreateOperationSettings("condition_data_value_input",
+                                    user_settings["condition_data_value_settings"])
+        ]
     return core_settings
