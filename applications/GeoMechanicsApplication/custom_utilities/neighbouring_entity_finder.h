@@ -33,16 +33,45 @@ using SortedToUnsortedNodeIdsHashMap = std::unordered_multimap<std::vector<std::
                                                                KeyHasherRange<std::vector<std::size_t>>,
                                                                KeyComparorRange<std::vector<std::size_t>>>;
 
+/**
+ * @class NeighbouringEntityFinder
+ * @brief Utility class for finding neighbouring elements of generic geometrical objects based on shared boundary geometries.
+ * @details This class identifies neighbour relationships between geometrical entities by comparing their boundary
+ * geometries (edges, faces, etc.). It supports both forward and reverse search modes, and can handle linear and
+ * quadratic elements with potentially rotated or permuted node orderings.
+ */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringEntityFinder
 {
 public:
+    /**
+     * @brief Constructor for NeighbouringEntityFinder
+     * @param alsoSearchReverse If true, also searches for reversed node orderings when matching boundaries.
+     * This is useful when elements may have opposite orientations but share the same boundary.
+     */
     explicit NeighbouringEntityFinder(bool alsoSearchReverse = false);
 
     using BoundaryGeneratorByLocalDim = std::map<std::size_t, std::unique_ptr<BoundaryGenerator>>;
 
+    /**
+     * @brief Finds and assigns neighbour elements based on shared boundary geometries.
+     * @details This method iterates through all local space dimensions (0-3) and uses the appropriate boundary
+     * generators to extract boundary geometries (e.g., edges for 2D elements, faces for 3D elements). It then
+     * compares these boundaries with those of candidate elements to identify neighbours. Matched elements are
+     * stored in the NEIGHBOUR_ELEMENTS variable of the entity.
+     *
+     * The method supports both linear and quadratic elements and can handle node orderings that are rotated or
+     * permuted, as long as the node IDs of shared boundaries match.
+     *
+     * @tparam EntityContainerType Container type for entities (e.g., ModelPart::ElementsContainerType,
+     * ModelPart::ConditionsContainerType)
+     * @param rEntities Container of entities for which to find neighbours
+     * @param rCandidateElements Container of candidate elements that may be neighbours
+     * @param rBoundaryGenerators Map of local space dimensions to boundary generators (e.g., EdgesGenerator for
+     * 2D, FacesGenerator for 3D). The key is the local space dimension and the value is the generator.
+     */
     template <typename EntityContainerType>
     void FindEntityNeighbours(EntityContainerType&              rEntities,
-                              ModelPart::ElementsContainerType& rCandidates,
+                              ModelPart::ElementsContainerType& rCandidateElements,
                               BoundaryGeneratorByLocalDim&      rBoundaryGenerators)
     {
         for (std::size_t local_space_dimension = 0; local_space_dimension < 4; ++local_space_dimension) {
@@ -61,7 +90,7 @@ public:
             if (map.empty()) continue;
 
             InitializeBoundaryMaps(map);
-            FindEntityNeighboursBasedOnBoundaryType(r_boundary_generator, rCandidates);
+            FindEntityNeighboursBasedOnBoundaryType(r_boundary_generator, rCandidateElements);
         }
     }
 
