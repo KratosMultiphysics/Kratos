@@ -45,10 +45,10 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringElementFinder
 public:
     /**
      * @brief Constructor for NeighbouringEntityFinder
-     * @param alsoSearchReverse If true, also searches for reversed node orderings when matching boundaries.
+     * @param AlsoSearchReverse If true, also searches for reversed node orderings when matching boundaries.
      * This is useful when elements may have opposite orientations but share the same boundary.
      */
-    explicit NeighbouringElementFinder(bool alsoSearchReverse = false);
+    explicit NeighbouringElementFinder(bool AlsoSearchReverse = false);
 
     using BoundaryGeneratorByLocalDim = std::map<std::size_t, std::unique_ptr<BoundaryGenerator>>;
 
@@ -104,6 +104,9 @@ private:
                                                  ModelPart::ElementsContainerType& rElements);
     void AddNeighbouringElementsToEntitiesBasedOnOverlappingBoundaryGeometries(
         Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries);
+    void AddNeighbouringElementsBasedOnBoundaryGeometry(Element&              rElement,
+                                                        const Geometry<Node>& rBoundaryGeometry,
+                                                        bool ReverseSearch = false);
     void SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(const std::vector<std::size_t>& rEntityNodeIds,
                                                                 Element* pElement);
     void        SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(Element& rElement,

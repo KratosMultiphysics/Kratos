@@ -151,8 +151,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenTwoCon
     p_element_2->SetId(2);
     r_model_part.AddElement(p_element_2);
 
-    constexpr auto            alsoSearchReverse = true;
-    NeighbouringElementFinder finder(alsoSearchReverse);
+    constexpr auto            also_search_reverse = true;
+    NeighbouringElementFinder finder(also_search_reverse);
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{2}] = std::make_unique<EdgesGenerator>();
@@ -186,8 +186,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenInterf
     auto& r_interface_model_part = model.CreateModelPart("Interfaces");
     r_interface_model_part.AddElement(p_interface_element);
 
-    constexpr auto            alsoSearchReverse = true;
-    NeighbouringElementFinder finder(alsoSearchReverse);
+    constexpr auto            also_search_reverse = true;
+    NeighbouringElementFinder finder(also_search_reverse);
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{1}] = std::make_unique<EdgesGenerator>();
@@ -218,8 +218,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenQuadra
     auto& r_interface_model_part = model.CreateModelPart("Interfaces");
     r_interface_model_part.AddElement(p_interface_element);
 
-    constexpr auto            alsoSearchReverse = true;
-    NeighbouringElementFinder finder(alsoSearchReverse);
+    constexpr auto            also_search_reverse = true;
+    NeighbouringElementFinder finder(also_search_reverse);
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{1}] = std::make_unique<EdgesGenerator>();
@@ -254,8 +254,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenQuadra
     auto& r_interface_model_part = model.CreateModelPart("Interfaces");
     r_interface_model_part.AddElement(p_interface_element);
 
-    constexpr auto            alsoSearchReverse = true;
-    NeighbouringElementFinder finder(alsoSearchReverse);
+    constexpr auto            also_search_reverse = true;
+    NeighbouringElementFinder finder(also_search_reverse);
 
     std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generators;
     boundary_generators[std::size_t{2}] = std::make_unique<FacesGenerator>();

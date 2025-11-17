@@ -17,8 +17,8 @@
 namespace Kratos
 {
 
-NeighbouringElementFinder::NeighbouringElementFinder(bool alsoSearchReverse)
-    : mAlsoSearchReverse(alsoSearchReverse)
+NeighbouringElementFinder::NeighbouringElementFinder(bool AlsoSearchReverse)
+    : mAlsoSearchReverse(AlsoSearchReverse)
 {
 }
 
@@ -41,8 +41,7 @@ void NeighbouringElementFinder::FindEntityNeighboursBasedOnBoundaryType(const Bo
                                                                         ModelPart::ElementsContainerType& rElements)
 {
     for (auto& r_element : rElements) {
-        const auto& r_element_geometry  = r_element.GetGeometry();
-        const auto  boundary_geometries = rBoundaryGenerator(r_element_geometry);
+        const auto boundary_geometries = rBoundaryGenerator(r_element.GetGeometry());
         AddNeighbouringElementsToEntitiesBasedOnOverlappingBoundaryGeometries(r_element, boundary_geometries);
     }
 }
@@ -51,26 +50,30 @@ void NeighbouringElementFinder::AddNeighbouringElementsToEntitiesBasedOnOverlapp
     Element& rElement, const Geometry<Node>::GeometriesArrayType& rBoundaryGeometries)
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
-        auto element_boundary_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry);
-        if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
-            SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
-        } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
-            // No entity is directly found for this boundary, but it might be a rotated equivalent
-            SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
-                rElement, element_boundary_node_ids, r_boundary_geometry.GetGeometryOrderType());
-        }
-
+        AddNeighbouringElementsBasedOnBoundaryGeometry(rElement, r_boundary_geometry);
         if (mAlsoSearchReverse) {
-            GeometryUtilities::ReverseNodes(element_boundary_node_ids, r_boundary_geometry.GetGeometryFamily(),
-                                            r_boundary_geometry.GetGeometryOrderType());
-            if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
-                SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
-            } else if (r_boundary_geometry.LocalSpaceDimension() == 2) {
-                // No entity is directly found for this boundary, but it might be a rotated equivalent
-                SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
-                    rElement, element_boundary_node_ids, r_boundary_geometry.GetGeometryOrderType());
-            }
+            constexpr auto reverse_search = true;
+            AddNeighbouringElementsBasedOnBoundaryGeometry(rElement, r_boundary_geometry, reverse_search);
         }
+    }
+}
+
+void NeighbouringElementFinder::AddNeighbouringElementsBasedOnBoundaryGeometry(Element& rElement,
+                                                                               const Geometry<Node>& rBoundaryGeometry,
+                                                                               bool ReverseSearch)
+{
+    auto element_boundary_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(rBoundaryGeometry);
+    if (ReverseSearch) {
+        GeometryUtilities::ReverseNodes(element_boundary_node_ids, rBoundaryGeometry.GetGeometryFamily(),
+                                        rBoundaryGeometry.GetGeometryOrderType());
+    }
+
+    if (mGeometryNodeIdsToEntities.contains(element_boundary_node_ids)) {
+        SetElementAsNeighbourOfAllEntitiesWithIdenticalNodeIds(element_boundary_node_ids, &rElement);
+    } else if (rBoundaryGeometry.LocalSpaceDimension() == 2) {
+        // No entity is directly found for this boundary, but it might be a rotated equivalent
+        SetElementAsNeighbourIfRotatedNodeIdsAreEquivalent(
+            rElement, element_boundary_node_ids, rBoundaryGeometry.GetGeometryOrderType());
     }
 }
 
@@ -79,7 +82,7 @@ void NeighbouringElementFinder::SetElementAsNeighbourOfAllEntitiesWithIdenticalN
 {
     const auto [start, end] = mGeometryNodeIdsToEntities.equal_range(rEntityNodeIds);
     for (auto it = start; it != end; ++it) {
-        const auto& r_entities    = it->second;
+        const auto& r_entities = it->second;
         for (auto& rp_entity : r_entities) {
             if (rp_entity->GetGeometry().Id() == pElement->GetGeometry().Id()) continue;
             rp_entity->GetValue(NEIGHBOUR_ELEMENTS).push_back(Element::WeakPointer{pElement});
@@ -113,6 +116,7 @@ bool NeighbouringElementFinder::AreRotatedEquivalents(const std::vector<std::siz
     case Kratos_Quadratic_Order:
         return AreQuadraticRotatedEquivalents(rFirst, rSecond);
     default:
+        // Rotations are not supported for orders higher than quadratic
         return false;
     }
 }
