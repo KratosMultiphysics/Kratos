@@ -140,16 +140,12 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenInterfa
     CreateNumberOfNewNodes(r_model_part, 5);
 
     std::vector<std::size_t> node_ids_continuum_element = {3, 4, 5};
-    PointerVector<Node>      nodes_continuum_element(node_ids_continuum_element.size());
-    std::ranges::transform(node_ids_continuum_element, nodes_continuum_element.ptr_begin(),
-                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    PointerVector<Node>      nodes_continuum_element = GetNodesFromIds(r_model_part, node_ids_continuum_element);
     auto p_continuum_element = ElementSetupUtilities::Create2D3NElement(nodes_continuum_element, {});
     r_model_part.AddElement(p_continuum_element);
 
     std::vector<std::size_t> node_ids_element_2 = {1, 2, 3, 4};
-    PointerVector<Node>      nodes_element_2(node_ids_element_2.size());
-    std::ranges::transform(node_ids_element_2, nodes_element_2.ptr_begin(),
-                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    PointerVector<Node>      nodes_element_2 = GetNodesFromIds(r_model_part, node_ids_element_2);
     auto p_interface_element = ElementSetupUtilities::Create2D4NInterfaceElement(nodes_element_2, {});
     p_interface_element->SetId(2);
     r_model_part.AddElement(p_interface_element);
@@ -176,16 +172,12 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadrat
     CreateNumberOfNewNodes(r_model_part, 9);
 
     std::vector<std::size_t> node_ids_continuum_element = {4, 5, 8, 6, 9, 7};
-    PointerVector<Node>      nodes_continuum_element(node_ids_continuum_element.size());
-    std::ranges::transform(node_ids_continuum_element, nodes_continuum_element.ptr_begin(),
-                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    PointerVector<Node>      nodes_continuum_element = GetNodesFromIds(r_model_part, node_ids_continuum_element);
     auto p_continuum_element = ElementSetupUtilities::Create2D6NElement(nodes_continuum_element, {});
     r_model_part.AddElement(p_continuum_element);
 
     std::vector<std::size_t> node_ids_element_2 = {1, 2, 3, 4, 5, 6};
-    PointerVector<Node>      nodes_element_2(node_ids_element_2.size());
-    std::ranges::transform(node_ids_element_2, nodes_element_2.ptr_begin(),
-                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    PointerVector<Node>      nodes_element_2 = GetNodesFromIds(r_model_part, node_ids_element_2);
     auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_element_2, {});
     p_interface_element->SetId(2);
     r_model_part.AddElement(p_interface_element);
@@ -212,9 +204,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadrat
     CreateNumberOfNewNodes(r_model_part, 16);
 
     std::vector<std::size_t> node_ids_continuum_element = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    PointerVector<Node>      nodes_continuum_element(node_ids_continuum_element.size());
-    std::ranges::transform(node_ids_continuum_element, nodes_continuum_element.ptr_begin(),
-                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    PointerVector<Node>      nodes_continuum_element = GetNodesFromIds(r_model_part, node_ids_continuum_element);
     auto p_continuum_element = ElementSetupUtilities::Create3D10NElement(nodes_continuum_element, {});
     r_model_part.AddElement(p_continuum_element);
     p_continuum_element->SetId(1);
@@ -222,9 +212,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringEntityFinder_FindsNeighboursBetweenQuadrat
     // The node ordering of the interface element is chosen such that it is both reversed and
     // permutated, to test the robustness of the neighbour finding.
     std::vector<std::size_t> node_ids_element_2 = {3, 1, 2, 7, 5, 6, 11, 12, 13, 14, 15, 16};
-    PointerVector<Node>      nodes_element_2(node_ids_element_2.size());
-    std::ranges::transform(node_ids_element_2, nodes_element_2.ptr_begin(),
-                           [&r_model_part](auto Id) { return r_model_part.pGetNode(Id); });
+    PointerVector<Node>      nodes_element_2 = GetNodesFromIds(r_model_part, node_ids_element_2);
     auto p_interface_element = ElementSetupUtilities::Create3D12NInterfaceElement(nodes_element_2, {});
 
     p_interface_element->SetId(2);
