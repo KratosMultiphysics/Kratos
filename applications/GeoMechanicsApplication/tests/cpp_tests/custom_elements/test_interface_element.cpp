@@ -1324,15 +1324,18 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
     // create a triangle neighbour element
-    auto        p_neighbour_element = ElementSetupUtilities::Create2D3NElement(2, nodes, p_properties);
+    auto p_neighbour_element = ElementSetupUtilities::Create2D3NElement(2, nodes, p_properties);
     ProcessInfo dummy_process_info;
     p_neighbour_element->Initialize(dummy_process_info);
-    std::vector<ConstitutiveLaw::StressVectorType> rStressVectors;
-    rStressVectors.push_back(Vector(4, 2.0));
-    rStressVectors.push_back(Vector(4, 2.0));
-    rStressVectors.push_back(Vector(4, 2.0));
+    std::vector<ConstitutiveLaw::StressVectorType> r_stress_vectors;
+    ConstitutiveLaw::StressVectorType              stress_vector(4);
+    stress_vector <<= 3.0, 13.0 / 6.0, 4.0, 1.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    stress_vector <<= 3.0, 8.0 / 3.0, 4.0, 1.0;
+    r_stress_vectors.emplace_back(stress_vector);
 
-    p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, dummy_process_info);
+    p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
 
     nodes.clear();
     nodes.push_back(r_model_part.pGetNode(1));
@@ -1347,7 +1350,6 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     auto interface_element = CreateInterfaceElementWithUDofs<Interface2D>(p_interface_properties, p_geometry);
     Variable<GlobalPointersVector<Element>>::Type neighbours{p_neighbour_element};
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, neighbours);
-    KRATOS_INFO("Na opzet 2 elementen") << std::endl;
 
     // Act
     interface_element.Initialize(dummy_process_info);
@@ -1358,9 +1360,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     // Assert
     auto expected_traction_vector = Vector{2};
     // answers for 1st side
-    expected_traction_vector <<= 2.0, 2.0;
+    expected_traction_vector <<= 2.0, 1.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[0], expected_traction_vector, Defaults::relative_tolerance)
-    expected_traction_vector <<= 2.0, 2.0;
+    expected_traction_vector <<= 3.0, 1.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[1], expected_traction_vector, Defaults::relative_tolerance)
 
     // Arrange a neighbour on the other side of the interface element
@@ -1368,13 +1370,17 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     nodes.push_back(r_model_part.pGetNode(4));
     nodes.push_back(r_model_part.pGetNode(5));
     nodes.push_back(r_model_part.CreateNewNode(6, 0.0, 2.0, 0.0));
-    auto        p_other_neighbour_element = ElementSetupUtilities::Create2D3NElement(3, nodes, p_properties);
+    auto p_other_neighbour_element = ElementSetupUtilities::Create2D3NElement(3, nodes, p_properties);
     p_other_neighbour_element->Initialize(dummy_process_info);
-    rStressVectors.clear();
-    rStressVectors.push_back(Vector(4, 4.0));
-    rStressVectors.push_back(Vector(4, 4.0));
-    rStressVectors.push_back(Vector(4, 4.0));
-    p_other_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, dummy_process_info);
+    r_stress_vectors.clear();
+    stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    stress_vector <<= 7.0, 4.0, 11.0, 10.0 / 3.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    p_other_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors,
+                                                            dummy_process_info);
 
     Variable<GlobalPointersVector<Element>>::Type other_neighbours{p_other_neighbour_element};
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, other_neighbours);
@@ -1385,9 +1391,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
 
     // Assert
     // answers for 2nd side
-    expected_traction_vector <<= 4.0, 4.0;
+    expected_traction_vector <<= 4.0, 0.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[0], expected_traction_vector, Defaults::relative_tolerance)
-    expected_traction_vector <<= 4.0, 4.0;
+    expected_traction_vector <<= 4.0, 5.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_traction_vectors[1], expected_traction_vector, Defaults::relative_tolerance)
 }
 
