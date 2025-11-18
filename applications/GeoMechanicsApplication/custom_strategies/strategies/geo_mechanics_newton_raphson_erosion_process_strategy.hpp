@@ -288,7 +288,7 @@ private:
             }
 
             for (auto p_open_pipe_element : rOpenPipeElements) {
-                UpdatePipeElement(p_open_pipe_element, MaxPipeHeight, mPipeHeightAccuracy, pipe_height_increment, equilibrium);
+                UpdatePipeElement(p_open_pipe_element, MaxPipeHeight,  pipe_height_increment, equilibrium);
 
                 if (const auto numberOpenPipeElements = std::ranges::distance(rOpenPipeElements);
                     numberOpenPipeElements == numberPipingElements) {
@@ -307,7 +307,7 @@ private:
         return equilibrium;
     }
 
-    void UpdatePipeElement(auto* p_open_pipe_element, double MaxPipeHeight, double mPipeHeightAccuracy, double pipe_height_increment, bool& equilibrium) {
+    void UpdatePipeElement(auto* p_open_pipe_element, double MaxPipeHeight, double pipe_height_increment, bool& equilibrium) {
         auto& r_prop = p_open_pipe_element->GetProperties();
         double eq_height = p_open_pipe_element->CalculateEquilibriumPipeHeight(
             r_prop, p_open_pipe_element->GetGeometry(), p_open_pipe_element->GetValue(PIPE_ELEMENT_LENGTH));
@@ -465,11 +465,6 @@ private:
                 KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
             }
         }
-
-        auto filter = [](auto p_element) {
-            return p_element->Has(PIPE_ACTIVE) && p_element->GetValue(PIPE_ACTIVE);
-        };
-
     }
 }; // Class GeoMechanicsNewtonRaphsonErosionProcessStrategy
 } // namespace Kratos
