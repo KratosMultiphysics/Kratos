@@ -737,7 +737,7 @@ class TestPressureSensor(UnitTest.TestCase):
         self.assertVectorAlmostEqual(values, self.ref_values, 7)
 
     def test_CalculateGradient(self):
-        residual_matrix = Kratos.Matrix(18, 18)
+        residual_matrix = Kratos.Matrix(15, 15)
         response_sensitivities = Kratos.Vector()
         for i, sensor in enumerate(self.sensors):
             ref_value = self.ref_values[i]
@@ -749,7 +749,7 @@ class TestPressureSensor(UnitTest.TestCase):
                 node.SetSolutionStepValue(Kratos.PRESSURE, node.GetSolutionStepValue(Kratos.PRESSURE) + delta)
                 perturbed_value = sensor.CalculateValue(self.model_part)
                 sensitivity = (perturbed_value - ref_value) / delta
-                self.assertAlmostEqual(sensitivity, response_sensitivities[j * 6 + 3])
+                self.assertAlmostEqual(sensitivity, response_sensitivities[j * 5 + 2])
                 node.SetSolutionStepValue(Kratos.PRESSURE, node.GetSolutionStepValue(Kratos.PRESSURE) - delta)
 
 class TestVelocitySensor(UnitTest.TestCase):
@@ -953,7 +953,7 @@ class TestVelocitySensor(UnitTest.TestCase):
         self.assertVectorAlmostEqual(values, self.ref_values, 7)
 
     def test_CalculateGradient(self):
-        residual_matrix = Kratos.Matrix(18, 18)
+        residual_matrix = Kratos.Matrix(15, 15)
         response_sensitivities = Kratos.Vector()
         for i, sensor in enumerate(self.sensors):
             ref_value = self.ref_values[i]
@@ -965,13 +965,13 @@ class TestVelocitySensor(UnitTest.TestCase):
                 node.SetSolutionStepValue(Kratos.VELOCITY_X, node.GetSolutionStepValue(Kratos.VELOCITY_X) + delta)
                 perturbed_value = sensor.CalculateValue(self.model_part)
                 sensitivity = (perturbed_value - ref_value) / delta
-                self.assertAlmostEqual(sensitivity, response_sensitivities[j * 6])
+                self.assertAlmostEqual(sensitivity, response_sensitivities[j * 5])
                 node.SetSolutionStepValue(Kratos.VELOCITY_X, node.GetSolutionStepValue(Kratos.VELOCITY_X) - delta)
 
                 node.SetSolutionStepValue(Kratos.VELOCITY_Y, node.GetSolutionStepValue(Kratos.VELOCITY_Y) + delta)
                 perturbed_value = sensor.CalculateValue(self.model_part)
                 sensitivity = (perturbed_value - ref_value) / delta
-                self.assertAlmostEqual(sensitivity, response_sensitivities[j * 6 + 1])
+                self.assertAlmostEqual(sensitivity, response_sensitivities[j * 5 + 1])
                 node.SetSolutionStepValue(Kratos.VELOCITY_Y, node.GetSolutionStepValue(Kratos.VELOCITY_Y) - delta)
 
 if __name__ == '__main__':

@@ -199,19 +199,17 @@ void VelocitySensor::CalculateGradient(
     if (rAdjointElement.Id() == mElementId) {
         const auto& r_geometry = rAdjointElement.GetGeometry();
         const IndexType block_size = rResidualGradient.size1() / r_geometry.size();
+        const std::size_t dimension = rProcessInfo.GetValue(DOMAIN_SIZE);
 
-        if (block_size == 5) { // 2D case
-            for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                rResponseGradient[i * block_size] = mNs[i] * mDirection[0];
-                rResponseGradient[i * block_size + 1] = mNs[i] * mDirection[1];
-            }
-        } else if (block_size == 6) { // 3D case
-            for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                rResponseGradient[i * block_size] = mNs[i] * mDirection[0];
-                rResponseGradient[i * block_size + 1] = mNs[i] * mDirection[1];
+        for (IndexType i = 0; i < r_geometry.size(); ++i) {
+            rResponseGradient[i * block_size] = mNs[i] * mDirection[0];
+            rResponseGradient[i * block_size + 1] = mNs[i] * mDirection[1];
+
+            if (dimension == 3) {
                 rResponseGradient[i * block_size + 2] = mNs[i] * mDirection[2];
             }
         }
+        
     }
 
     KRATOS_CATCH("");

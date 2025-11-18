@@ -180,20 +180,18 @@ void PressureSensor::CalculateGradient(
     if (rAdjointElement.Id() == mElementId) {
         const auto& r_geometry = rAdjointElement.GetGeometry();
         const IndexType block_size = rResponseGradient.size() / r_geometry.size();
+        const std::size_t dimension = rProcessInfo.GetValue(DOMAIN_SIZE);
 
-        if (block_size == 5) { // 2D case
-            for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                //rResponseGradient[i * block_size] = -1.0 * mNs[i];
+        for (IndexType i = 0; i < r_geometry.size(); ++i) {
+            if (dimension == 2) {
                 rResponseGradient[i * block_size + 2] = mNs[i];
             }
-        } else if (block_size == 6) { // 3D case
-            for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                //rResponseGradient[i * block_size] = -1.0 * mNs[i];
+            else if (dimension == 3) {
                 rResponseGradient[i * block_size + 3] = mNs[i];
+            }
         }
     }
-    }
-
+    
     KRATOS_CATCH("");
 }
 
