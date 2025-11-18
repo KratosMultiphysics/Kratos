@@ -23,19 +23,7 @@ Geometry<Node>::GeometriesArrayType PointsGenerator::operator()(const Geometry<N
 
 Geometry<Node>::GeometriesArrayType EdgesGenerator::operator()(const Geometry<Node>& rGeometry) const
 {
-    try {
-        return rGeometry.GenerateEdges();
-    } catch (const Exception&) {
-        // Since some of the surface geometries in core do not implement GenerateEdges, but we
-        // know how to recover if the local dimension is 1, we do so here.
-        if (rGeometry.LocalSpaceDimension() == 1) {
-            Geometry<Node>::GeometriesArrayType result;
-            result.push_back(std::make_shared<Geometry<Node>>(rGeometry));
-            return result;
-        }
-
-        throw;
-    }
+    return rGeometry.GenerateEdges();
 }
 
 Geometry<Node>::GeometriesArrayType FacesGenerator::operator()(const Geometry<Node>& rGeometry) const
