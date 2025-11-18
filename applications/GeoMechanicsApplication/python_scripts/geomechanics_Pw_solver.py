@@ -14,7 +14,7 @@ class PwSolver(GeoSolver):
     '''Solver for the solution of pore pressure problems.'''
 
     def __init__(self, model, custom_settings):
-        super().__init__(model, custom_settings["solver_settings"])
+        super().__init__(model, custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "Construction of Solver finished.")
 
