@@ -22,6 +22,8 @@
 #include "custom_sensors/sensor_view.h"
 #include "custom_sensors/displacement_sensor.h"
 #include "custom_sensors/strain_sensor.h"
+#include "custom_sensors/velocity_sensor.h"
+#include "custom_sensors/pressure_sensor.h"
 
 // Include base h
 #include "custom_python/add_custom_sensors_to_python.h"
@@ -116,6 +118,28 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def_static("GetDefaultParameters", &StrainSensor::GetDefaultParameters)
         .def_static("Create", &StrainSensor::Create, py::arg("domain_model_part"), py::arg("sensor_model_part"), py::arg("sensor_id"), py::arg("sensor_parameters"))
         ;
+
+    py::class_<VelocitySensor, VelocitySensor::Pointer, Sensor>(sensor_module, "VelocitySensor")
+        .def(py::init<const std::string&,Node::Pointer,const array_1d<double, 3>&,const Element&,const double>(),
+            py::arg("name"),
+            py::arg("node"),
+            py::arg("direction"),
+            py::arg("element"),
+            py::arg("weight"))
+        .def_static("GetDefaultParameters", &VelocitySensor::GetDefaultParameters)
+        .def_static("Create", &VelocitySensor::Create, py::arg("domain_model_part"), py::arg("sensor_model_part"), py::arg("sensor_id"), py::arg("sensor_parameters"))
+        ;
+
+    py::class_<PressureSensor, PressureSensor::Pointer, Sensor>(sensor_module, "PressureSensor")
+        .def(py::init<const std::string&,Node::Pointer,const Element&,const double>(),
+            py::arg("name"),
+            py::arg("node"),
+            py::arg("element"),
+            py::arg("weight"))
+        .def_static("GetDefaultParameters", &PressureSensor::GetDefaultParameters)
+        .def_static("Create", &PressureSensor::Create, py::arg("domain_model_part"), py::arg("sensor_model_part"), py::arg("sensor_id"), py::arg("sensor_parameters"))
+        ;
+
 }
 
 } // namespace Kratos::Python

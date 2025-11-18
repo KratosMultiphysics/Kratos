@@ -3,6 +3,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStruct
+import KratosMultiphysics.RANSApplication as KratosRANS
 import KratosMultiphysics.KratosUnittest as UnitTest
 
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
@@ -564,6 +565,414 @@ class TestStrainSensorSolids(UnitTest.TestCase):
                 sensitivity = (perturbed_value - ref_value) / delta
                 self.assertAlmostEqual(sensitivity, response_sensitivities[j * 3 + 2], 4)
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_Z, node.GetSolutionStepValue(Kratos.DISPLACEMENT_Z) - delta)
+
+class TestPressureSensor(UnitTest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("Test")
+        cls.sensor_model_part = cls.model.CreateModelPart("SensorModelPart")
+        # add required variables to solution step list
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.NODAL_AREA)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_1)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
+
+        cls.model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 2)
+        cls.model_part.ProcessInfo.SetValue(Kratos.STEP, 1)
+        cls.model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0.1)
+
+        cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+        cls.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+
+        prop = cls.model_part.CreateNewProperties(1)
+
+        cls.model_part.CreateNewElement("Element2D3N", 1, [1, 2, 4], prop)
+        cls.model_part.CreateNewElement("Element2D3N", 2, [2, 3, 4], prop)
+
+        for node in cls.model_part.Nodes:
+            node.SetSolutionStepValue(Kratos.VELOCITY, [node.Id, node.Id + 1, node.Id + 2])
+            node.SetSolutionStepValue(Kratos.PRESSURE, node.Id)
+
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_1",
+                "value"        : 0,
+                "location"     : [0.3333333333333333, 0.3333333333333333, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_2",
+                "value"        : 0,
+                "location"     : [0.6666666666666667, 0.6666666666666667, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
+        cls.ref_values = [7/3, 3]
+
+    def test_SensorsOnNodes(self):
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_1",
+                "value"        : 0,
+                "location"     : [0.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_2",
+                "value"        : 0,
+                "location"     : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_3",
+                "value"        : 0,
+                "location"     : [1.0, 1.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_4",
+                "value"        : 0,
+                "location"     : [0.0, 1.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        sensors = CreateSensors(self.model.CreateModelPart("SensorsOnNodes"), self.model_part, parameters)
+        for sensor, ref_node_id in zip(sensors, [1, 2, 3, 4]):
+            self.assertAlmostEqual(sensor.CalculateValue(self.model_part), self.model_part.GetNode(ref_node_id).GetSolutionStepValue(Kratos.PRESSURE))
+
+    def test_SensorsOnEdges(self):
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_1",
+                "value"        : 0,
+                "location"     : [0.5, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_2",
+                "value"        : 0,
+                "location"     : [1.0, 0.5, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_3",
+                "value"        : 0,
+                "location"     : [0.5, 0.5, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_4",
+                "value"        : 0,
+                "location"     : [0.5, 1.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "pressure_sensor",
+                "name"         : "pres_5",
+                "value"        : 0,
+                "location"     : [0.0, 0.5, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        sensors = CreateSensors(self.model.CreateModelPart("SensorsOnEdges"), self.model_part, parameters)
+        for sensor, (ref_node_id_1, ref_node_id_2) in zip(sensors, [(1, 2), (2, 3), (2, 4), (3, 4), (1, 4)]):
+            ref_value = (self.model_part.GetNode(ref_node_id_1).GetSolutionStepValue(Kratos.PRESSURE) + self.model_part.GetNode(ref_node_id_2).GetSolutionStepValue(Kratos.PRESSURE)) / 2.0
+            self.assertAlmostEqual(sensor.CalculateValue(self.model_part), ref_value)
+
+    def test_CalculateValue(self):
+        values = [sensor.CalculateValue(self.model_part) for sensor in self.sensors]
+        self.assertVectorAlmostEqual(values, self.ref_values, 7)
+
+    def test_CalculateGradient(self):
+        residual_matrix = Kratos.Matrix(18, 18)
+        response_sensitivities = Kratos.Vector()
+        for i, sensor in enumerate(self.sensors):
+            ref_value = self.ref_values[i]
+            delta = 1e-5
+
+            element: Kratos.Element = self.model_part.GetElement(sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID))
+            sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
+            for j, node in enumerate(element.GetGeometry()):
+                node.SetSolutionStepValue(Kratos.PRESSURE, node.GetSolutionStepValue(Kratos.PRESSURE) + delta)
+                perturbed_value = sensor.CalculateValue(self.model_part)
+                sensitivity = (perturbed_value - ref_value) / delta
+                self.assertAlmostEqual(sensitivity, response_sensitivities[j * 6 + 3])
+                node.SetSolutionStepValue(Kratos.PRESSURE, node.GetSolutionStepValue(Kratos.PRESSURE) - delta)
+
+class TestVelocitySensor(UnitTest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("Test")
+        cls.sensor_model_part = cls.model.CreateModelPart("SensorModelPart")
+        # add required variables to solution step list
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.NODAL_AREA)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_1)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
+
+        cls.model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 2)
+        cls.model_part.ProcessInfo.SetValue(Kratos.STEP, 1)
+        cls.model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0.1)
+
+        cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+        cls.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+
+        prop = cls.model_part.CreateNewProperties(1)
+
+        cls.model_part.CreateNewElement("Element2D3N", 1, [1, 2, 4], prop)
+        cls.model_part.CreateNewElement("Element2D3N", 2, [2, 3, 4], prop)
+
+        for node in cls.model_part.Nodes:
+            node.SetSolutionStepValue(Kratos.VELOCITY, [node.Id, node.Id + 1, node.Id + 2])
+
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_1",
+                "value"        : 0,
+                "location"     : [0.3333333333333, 0.3333333333333, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_2",
+                "value"        : 0,
+                "location"     : [0.6666666666667, 0.6666666666667, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_1",
+                "value"        : 0,
+                "location"     : [0.3333333333333, 0.3333333333333, 0.0],
+                "direction"    : [1.0, 1.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_2",
+                "value"        : 0,
+                "location"     : [0.6666666666667, 0.6666666666667, 0.0],
+                "direction"    : [1.0, 1.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
+        cls.ref_values = [7/3, 3, (7/3 + 10/3)/sqrt(2), (3 + 4)/sqrt(2)]
+
+    def test_SensorsOnNodes(self):
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_1",
+                "value"        : 0,
+                "location"     : [0.0, 0.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_2",
+                "value"        : 0,
+                "location"     : [1.0, 0.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_3",
+                "value"        : 0,
+                "location"     : [1.0, 1.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_4",
+                "value"        : 0,
+                "location"     : [0.0, 1.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        sensors = CreateSensors(self.model.CreateModelPart("SensorsOnNodes"), self.model_part, parameters)
+        for sensor, ref_node_id in zip(sensors, [1, 2, 3, 4]):
+            self.assertAlmostEqual(sensor.CalculateValue(self.model_part), self.model_part.GetNode(ref_node_id).GetSolutionStepValue(Kratos.VELOCITY_X))
+
+    def test_SensorsOnEdges(self):
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_1",
+                "value"        : 0,
+                "location"     : [0.5, 0.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_2",
+                "value"        : 0,
+                "location"     : [1.0, 0.5, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_3",
+                "value"        : 0,
+                "location"     : [0.5, 0.5, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_4",
+                "value"        : 0,
+                "location"     : [0.5, 1.0, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "velocity_sensor",
+                "name"         : "vel_x_5",
+                "value"        : 0,
+                "location"     : [0.0, 0.5, 0.0],
+                "direction"    : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        sensors = CreateSensors(self.model.CreateModelPart("SensorsOnEdges"), self.model_part, parameters)
+        for sensor, (ref_node_id_1, ref_node_id_2) in zip(sensors, [(1, 2), (2, 3), (2, 4), (3, 4), (1, 4)]):
+            ref_value = (self.model_part.GetNode(ref_node_id_1).GetSolutionStepValue(Kratos.VELOCITY_X) + self.model_part.GetNode(ref_node_id_2).GetSolutionStepValue(Kratos.VELOCITY_X)) / 2.0
+            self.assertAlmostEqual(sensor.CalculateValue(self.model_part), ref_value)
+
+    def test_CalculateValue(self):
+        values = [sensor.CalculateValue(self.model_part) for sensor in self.sensors]
+        self.assertVectorAlmostEqual(values, self.ref_values, 7)
+
+    def test_CalculateGradient(self):
+        residual_matrix = Kratos.Matrix(18, 18)
+        response_sensitivities = Kratos.Vector()
+        for i, sensor in enumerate(self.sensors):
+            ref_value = self.ref_values[i]
+            delta = 1e-5
+
+            element: Kratos.Element = self.model_part.GetElement(sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID))
+            sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
+            for j, node in enumerate(element.GetGeometry()):
+                node.SetSolutionStepValue(Kratos.VELOCITY_X, node.GetSolutionStepValue(Kratos.VELOCITY_X) + delta)
+                perturbed_value = sensor.CalculateValue(self.model_part)
+                sensitivity = (perturbed_value - ref_value) / delta
+                self.assertAlmostEqual(sensitivity, response_sensitivities[j * 6])
+                node.SetSolutionStepValue(Kratos.VELOCITY_X, node.GetSolutionStepValue(Kratos.VELOCITY_X) - delta)
+
+                node.SetSolutionStepValue(Kratos.VELOCITY_Y, node.GetSolutionStepValue(Kratos.VELOCITY_Y) + delta)
+                perturbed_value = sensor.CalculateValue(self.model_part)
+                sensitivity = (perturbed_value - ref_value) / delta
+                self.assertAlmostEqual(sensitivity, response_sensitivities[j * 6 + 1])
+                node.SetSolutionStepValue(Kratos.VELOCITY_Y, node.GetSolutionStepValue(Kratos.VELOCITY_Y) - delta)
 
 if __name__ == '__main__':
     UnitTest.main()
