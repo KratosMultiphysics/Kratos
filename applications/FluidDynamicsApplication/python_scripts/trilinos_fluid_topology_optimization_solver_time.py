@@ -249,6 +249,9 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
             self.main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] += 1
         return new_time
     
+    def _SetStartingTime(self, start_time):
+        self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.TIME, start_time)
+    
     def _CustomCloneTimeStep(self, new_time):
         if (not self.IsAdjoint()):
             self.main_model_part.CloneTimeStep(new_time)
@@ -327,6 +330,9 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
     
     def InitializeSolutionStep(self):
         self.is_resistance_updated = False
+        # If required, compute the BDF coefficients
+        if hasattr(self, 'time_discretization'):
+            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def PrintPhysicsParametersUpdateStatus(self, problem_phase_str):

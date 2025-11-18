@@ -69,14 +69,12 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     // COMMON STABILIZATION QUANTITIES
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     this->FillFromProcessInfo(TopOptProblemStage,FLUID_TOP_OPT_PROBLEM_STAGE,rProcessInfo);
+
     // TIME DEPENDENT PROBLEMS NOT YET IMPLEMENTED
-    // const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
-    // bdf0 = BDFVector[0];
-    // bdf1 = BDFVector[1];
-    // bdf2 = BDFVector[2];
-    bdf0 = 1.0;
-    bdf1 = 1.0;
-    bdf2 = 1.0;
+    const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
+    bdf0 = BDFVector[0];
+    bdf1 = BDFVector[1];
+    bdf2 = BDFVector[2];
 
     // Functionals Database
     // 0: resistance  : int_{\Omega}{alpha*||u||^2}
@@ -95,8 +93,8 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
     // TIME DEPENDENT PROBLEMS NOT YET IMPLEMENTED
-    // this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
-    // this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
+    this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
+    this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
     // this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
     // this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2);
 
@@ -109,8 +107,8 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     this->FillFromHistoricalNodalData(Temperature,TEMPERATURE,r_geometry);
     this->FillFromHistoricalNodalData(Temperature_adj,TEMPERATURE_ADJ,r_geometry);
     // TIME DEPENDENT PROBLEMS NOT YET IMPLEMENTED
-    // this->FillFromHistoricalNodalData(Velocity_adj_OldStep1,VELOCITY_ADJ,r_geometry,1);
-    // this->FillFromHistoricalNodalData(Velocity_adj_OldStep2,VELOCITY_ADJ,r_geometry,2);
+    this->FillFromHistoricalNodalData(Velocity_adj_OldStep1,VELOCITY_ADJ,r_geometry,1);
+    this->FillFromHistoricalNodalData(Velocity_adj_OldStep2,VELOCITY_ADJ,r_geometry,2);
     // this->FillFromHistoricalNodalData(Pressure_adj_OldStep1,PRESSURE_ADJ,r_geometry,1);
     // this->FillFromHistoricalNodalData(Pressure_adj_OldStep2,PRESSURE_ADJ,r_geometry,2);
 }

@@ -976,6 +976,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
 
     def SetupStageSolutionLoopTimeSettings(self):
         self.time = self.start_time
+        self._GetSolver()._SetStartingTime(self.start_time)
         self.time_step_counter = 0
         if (self.IsPhysicsStage()):
             self._GetPhysicsSolver().main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] = 0
@@ -1042,7 +1043,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| RE-INITIALIZE PHYSICS")
         self.time = self.start_time
-        self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
+        self._GetSolver()._SetStartingTime(self.start_time)
 
     def _EvaluateOptimizationProblem(self, design_parameter = [], print_results = False):
         self.MpiPrint("\n--|EVALUATE OPTIMIZATION PROBLEM|")
