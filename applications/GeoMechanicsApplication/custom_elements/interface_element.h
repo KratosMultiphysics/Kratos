@@ -80,7 +80,12 @@ private:
                                                               const ProcessInfo& rProcessInfo);
     void ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const;
     void MakeIntegrationSchemeAndAssignFunction();
-    void InterpolateNodalStressesToIntegrationPointTractions(const std::vector<std::optional<Vector>>& interface_nodal_cauchy_stresses) const;
+    void InterpolateNodalStressesToInitialTractions(const std::vector<std::optional<Vector>>& InterfaceNodalCauchyStresses) const;
+    Vector InterpolateNodalStressToIntegrationPoints(const Geo::IntegrationPointType& rIntegrationPoint,
+                                                     std::vector<Vector> NodalStresses) const;
+    Matrix RotateStressToLocalCoordinates(const Geo::IntegrationPointType& rIntegrationPoint,
+                                          Vector& GlobalStressVector) const;
+    Vector ConvertLocalStressToTraction(const Matrix& LocalStress) const;
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
     std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
