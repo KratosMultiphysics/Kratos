@@ -16,6 +16,7 @@
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
@@ -185,6 +186,19 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     const auto shape_function_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
+
+    if (!mNeighbourElements.empty()) {
+        for (const auto& element : mNeighbourElements) {
+            std::vector<std::size_t> node_ids_common_with_element(1);
+            std::vector<Vector>      cauchy_stresses;
+            element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, cauchy_stresses, rCurrentProcessInfo);
+            const auto nodal_stresses = ExtrapolationUtilities::CalculateNodalVectors(
+                node_ids_common_with_element, element->GetGeometry(),
+                element->GetIntegrationMethod(), cauchy_stresses, element->Id());
+            KRATOS_ERROR_IF_NOT(nodal_stresses.size() == node_ids_common_with_element.size())
+                << " vectors have different sizes" << std::endl;
+        }
+    }
 
     mConstitutiveLaws.clear();
     for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {

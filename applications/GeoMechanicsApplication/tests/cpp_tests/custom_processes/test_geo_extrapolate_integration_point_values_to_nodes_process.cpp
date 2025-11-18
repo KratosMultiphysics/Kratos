@@ -29,7 +29,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElementForNodalExtrapolationTest);
 
     StubElementForNodalExtrapolationTest(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
+        : Element(NewId, std::move(pGeometry))
     {
     }
 
