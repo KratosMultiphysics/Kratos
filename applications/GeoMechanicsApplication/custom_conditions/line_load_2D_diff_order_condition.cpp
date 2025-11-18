@@ -24,7 +24,7 @@ LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition() : GeneralUPwDiffOrd
 
 // Constructor 1
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : GeneralUPwDiffOrderCondition(NewId, pGeometry)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
@@ -32,7 +32,7 @@ LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType NewId, Geom
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType               NewId,
                                                            GeometryType::Pointer   pGeometry,
                                                            PropertiesType::Pointer pProperties)
-    : GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
