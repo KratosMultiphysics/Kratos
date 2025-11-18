@@ -5,6 +5,7 @@ import basic_mapper_tests
 import blade_mapping_test
 import quadratic_mapper_tests
 from pathlib import Path
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 def GetFilePath(file_name):
     return Path(__file__).resolve().parent / "mdpa_files" / file_name
@@ -163,10 +164,11 @@ class QuadraticMapperTestsSwitchedSides(quadratic_mapper_tests.QuadraticMapperTe
         }""")
         super().setUpMapper(mapper_params, switch_sides=True)
 
-@KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")
 class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
+        if not CheckIfApplicationsAvailable("IgaApplication"):
+            cls.skipTest("The IgaApplication is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
@@ -310,6 +312,8 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
 class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
+        if not CheckIfApplicationsAvailable("IgaApplication"):
+            cls.skipTest("The IgaApplication is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
