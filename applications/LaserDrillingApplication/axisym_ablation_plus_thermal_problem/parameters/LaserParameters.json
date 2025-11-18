@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "Variables" : {
-                "average_laser_power" : 18,
+                "average_laser_power" : 5,
                 "pulse_frequency" : 2e5,
                 "beam_waist_diameter": 0.0179,
                 "Rayleigh_length": 0.409,
