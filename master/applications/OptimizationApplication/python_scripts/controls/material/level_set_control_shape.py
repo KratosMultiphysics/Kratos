@@ -284,8 +284,8 @@ class LevelSetControlShape(Control):
             self.control_phi = Kratos.Expression.Utils.Collapse(self.control_phi)
 
             # Reinitialize the LSF as Signed Distance Function
-            if self.optimization_problem.GetStep() % self.reinit_interval == 0:
-                self._ReinitializePhiSussman(num_iterations=15)
+            # if self.optimization_problem.GetStep() % self.reinit_interval == 0:
+            #     self._ReinitializePhiSussman(num_iterations=15)
 
             self._UpdateAndOutputFields(new_update)
             self.filter.Update()
@@ -388,7 +388,7 @@ if __name__ == "__main__":
     Kratos.Expression.VariableExpressionIO.Read(phi, Kratos.DENSITY, is_historical=False)
 
     # Calculate heaviside with fuction
-    haviside_phi = LevelSetControlHJ.ComputeHeavisideValue(phi, k)
+    haviside_phi = LevelSetControlShape.ComputeHeavisideValue(phi, k)
 
     print(f"Heaviside function: \n{haviside_phi.Evaluate()}")
 
@@ -399,13 +399,13 @@ if __name__ == "__main__":
     print(f"Numpy Heaviside: \n{numpy_heaviside}")
 
     # Calculate Heaviside gradient with function
-    heaviside_gradient_phi = LevelSetControlHJ.ComputeHevisideGradientValue(phi, k)
+    heaviside_gradient_phi = LevelSetControlShape.ComputeHevisideGradientValue(phi, k)
 
     print(f"Heaviside gradient function: \n{heaviside_gradient_phi.Evaluate()}")
 
     # Calculate Heaviside gradient manually with finite differences
     perturbation = 1e-5
-    FD_heaviside_gradient = (LevelSetControlHJ.ComputeHeavisideValue(phi + perturbation, k) - LevelSetControlHJ.ComputeHeavisideValue(phi, k))/perturbation
+    FD_heaviside_gradient = (LevelSetControlShape.ComputeHeavisideValue(phi + perturbation, k) - LevelSetControlShape.ComputeHeavisideValue(phi, k))/perturbation
 
     print(f"Heaviside gradient FD: \n{FD_heaviside_gradient.Evaluate()}")
 

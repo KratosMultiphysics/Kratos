@@ -5,20 +5,29 @@ from pathlib import Path
 import numpy as np
 from typing import Dict, Tuple, List, Optional
 
+
 # -----------------------------------------------------------------------------
 # Factory
 # -----------------------------------------------------------------------------
 def Factory(Model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Kratos.OutputProcess:
+    """Kratos factory."""
     if type(parameters) != Kratos.Parameters:
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return MarchingCubesInterfaceOutputProcess2(Model, parameters["settings"], optimization_problem)
 
 
 class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
+    """
+    Interface extractor using a watertight Marching Cubes variant for interior
+    cells and marching squares caps on boundary faces. Includes robust handling
+    for φ≈0 and consistent face pairing (asymptotic decider).
+    """
+
     # ---------------------------------------------------------------------
     # Defaults
     # ---------------------------------------------------------------------
-    def GetDefaultParameters(self):
+    def GetDefaultParameters(self) -> Kratos.Parameters:
+        """Return default Kratos parameters."""
         return Kratos.Parameters(
             """
             {
@@ -28,14 +37,16 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 "output_interval"             : 1,
                 "model_part_name"             : "",
 
-                "flip_sign"                   : true,      // if true, multiplies phi by -1 before processing
+                "flip_sign"                   : true,       // if true, multiplies phi by -1 before processing
                 "zero_tol"                    : 1e-12,      // classification stabilizer for phi≈0
                 "min_triangle_area"           : 0.0,        // absolute area threshold for sliver filtering
 
                 // Debug for capping
-                "debug_caps"                  : true,
+                "debug_caps"                  : false,
                 "debug_first_n_caps"          : 1400,
-                "debug_interior"              : true,
+
+                // Debug for interior
+                "debug_interior"              : false,
                 "debug_first_n_interior"      : 300,
                 "debug_elem_ids"              : [],
 
@@ -49,7 +60,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
     # ---------------------------------------------------------------------
     # Init
     # ---------------------------------------------------------------------
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> None:
         super().__init__()
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
@@ -68,11 +79,12 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         self.zero_tol = parameters["zero_tol"].GetDouble()
         self.min_triangle_area = parameters["min_triangle_area"].GetDouble()
 
-        # Debug
+        # Debug (caps)
         self.debug_caps = parameters["debug_caps"].GetBool()
         self.debug_first_n_caps = parameters["debug_first_n_caps"].GetInt()
         self._caps_debug_count = 0
 
+        # Debug (interior)
         self.debug_interior = parameters["debug_interior"].GetBool()
         self.debug_first_n_interior = parameters["debug_first_n_interior"].GetInt()
         self.debug_elem_ids = set()
@@ -82,24 +94,26 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         self._dbg_interior_count = 0
 
         # Node registries per PrintOutput() call
-        self.created_nodes_by_coord: Dict[Tuple[float,float,float], int] = {}
-        self.created_nodes_by_edge: Dict[Tuple[int,int], int] = {}
+        self.created_nodes_by_coord: Dict[Tuple[float, float, float], int] = {}
+        self.created_nodes_by_edge: Dict[Tuple[int, int], int] = {}
 
-        # Load MC lookup tables (edge + tri). If not present, generate.
+        # MC lookup tables (edge + tri). If not present, generate.
         edge_path = parameters["mc_edge_table_path"].GetString()
-        tri_path  = parameters["mc_tri_table_path"].GetString()
+        tri_path = parameters["mc_tri_table_path"].GetString()
         self._MC_EDGE_TABLE, self._MC_TRI_TABLE = self._load_mc_tables(edge_path, tri_path)
 
     # ---------------------------------------------------------------------
     # Step gating
     # ---------------------------------------------------------------------
-    def IsOutputStep(self):
+    def IsOutputStep(self) -> bool:
+        """Return True when it's time to write output for current step."""
         return self.optimization_problem.GetStep() % self.output_interval == 0
 
     # ---------------------------------------------------------------------
     # PrintOutput entry point
     # ---------------------------------------------------------------------
-    def PrintOutput(self):
+    def PrintOutput(self) -> None:
+        """Entry: construct the interface and write it out."""
         if not self.IsOutputStep():
             return
 
@@ -109,12 +123,12 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         if self.flip_sign:
             self.control_field = -1.0 * self.control_field
 
-        # Build a temporary model part for the interface
+        # Temporary model part for the interface
         model = Kratos.Model()
         mp = model.CreateModelPart("Interface")
         mp.CreateNewProperties(2)
 
-        # Reset node registries
+        # Reset per-call registries
         self.created_nodes_by_coord.clear()
         self.created_nodes_by_edge.clear()
         self._caps_debug_count = 0
@@ -124,7 +138,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         # Build surfaces: interior MC + boundary caps
         self._build_interface_surfaces(mp)
 
-        # === saving ===
+        # Saving
         if self.save_output_files_in_folder:
             self.output_path = Path(self.output_path)
             if not self.model_part.ProcessInfo[Kratos.IS_RESTARTED]:
@@ -145,9 +159,14 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
 
         vtu_output = Kratos.VtuOutput(mp)
         vtu_output.PrintOutput(str(self.output_path / output_file_name))
-        Kratos.Logger.PrintInfo("InterfaceOutputProcess", f"✅ Interface written to {self.output_path / output_file_name}.vtu")
+        Kratos.Logger.PrintInfo(
+            "InterfaceOutputProcess",
+            f"✅ Interface written to {self.output_path / output_file_name}.vtu"
+        )
 
+    # Debug gating ---------------------------------------------------------
     def _dbg_e(self, elem_id: int) -> bool:
+        """Should we print interior debug for this element?"""
         if not self.debug_interior:
             return False
         if self.debug_first_n_interior and self._dbg_interior_count >= self.debug_first_n_interior:
@@ -157,62 +176,71 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
     # ---------------------------------------------------------------------
     # Main builder: interior MC + boundary caps
     # ---------------------------------------------------------------------
-    def _build_interface_surfaces(self, mp_interface: Kratos.ModelPart):
+    def _build_interface_surfaces(self, mp_interface: Kratos.ModelPart) -> None:
+        """Build MC interior and cap surfaces, write to `mp_interface`."""
+
         # Vertex ordering (Hex8)
-        EDGE_VERTS = np.array([
-            [0,1],[1,2],[2,3],[3,0],
-            [4,5],[5,6],[6,7],[7,4],
-            [0,4],[1,5],[2,6],[3,7]
-        ], dtype=int)
+        EDGE_VERTS = np.array(
+            [
+                [0, 1], [1, 2], [2, 3], [3, 0],
+                [4, 5], [5, 6], [6, 7], [7, 4],
+                [0, 4], [1, 5], [2, 6], [3, 7],
+            ],
+            dtype=int,
+        )
 
         # Face to vertex cyclic order
         FACE_NODES = [
-            (0,1,2,3),  # z-
-            (4,5,6,7),  # z+
-            (0,1,5,4),  # y-
-            (1,2,6,5),  # x+
-            (2,3,7,6),  # y+
-            (3,0,4,7)   # x-
-        ]
-        # Face to global edge indices (cyclic, matching FACE_NODES)
-        FACE_EDGES = [
-            (0, 1, 2, 3),    # face 0: (0,1,2,3)
-            (4, 5, 6, 7),    # face 1: (4,5,6,7)
-            (0, 9, 4, 8),    # face 2: (0,1,5,4)  -> e0,e9,e4,e8
-            (1,10, 5, 9),    # face 3: (1,2,6,5)  -> e1,e10,e5,e9
-            (2,11, 6,10),    # face 4: (2,3,7,6)  -> e2,e11,e6,e10
-            (3, 8, 7,11),    # face 5: (3,0,4,7)  -> e3,e8,e7,e11
+            (0, 1, 2, 3),  # z-
+            (4, 5, 6, 7),  # z+
+            (0, 1, 5, 4),  # y-
+            (1, 2, 6, 5),  # x+
+            (2, 3, 7, 6),  # y+
+            (3, 0, 4, 7),  # x-
         ]
 
-        # Build a quick lookup: (elem_id, face_idx) is boundary?
+        # Face to global edge indices (cyclic, matching FACE_NODES)
+        FACE_EDGES = [
+            (0,  1,  2,  3),   # face 0: (0,1,2,3)
+            (4,  5,  6,  7),   # face 1: (4,5,6,7)
+            (0,  9,  4,  8),   # face 2: (0,1,5,4)  -> e0,e9,e4,e8
+            (1, 10,  5,  9),   # face 3: (1,2,6,5)  -> e1,e10,e5,e9
+            (2, 11,  6, 10),   # face 4: (2,3,7,6)  -> e2,e11,e6,e10
+            (3,  8,  7, 11),   # face 5: (3,0,4,7)  -> e3,e8,e7,e11
+        ]
+
+        # Build a quick lookup: is (elem_id, face_idx) a boundary face?
         boundary_face_set = set()
-        # We can call the collector once here; cap step can call it again later (cheap).
         for _elem_b, _fidx_b, _ in self._collect_boundary_faces_hex8():
             boundary_face_set.add((_elem_b.Id, _fidx_b))
 
-
-        # quick assert: each FACE_EDGES cycle must follow the FACE_NODES ring
-        # (only runs on the very first element)
+        # One-time assertion: FACE_EDGES cycles match FACE_NODES rings
         if not hasattr(self, "_checked_face_edges"):
             geom = next(iter(self.model_part.Elements)).GetGeometry()
             for f_idx, verts in enumerate(FACE_NODES):
-                a,b,c,d = verts
+                a, b, c, d = verts
                 cyc = FACE_EDGES[f_idx]
-                ring = [(a,b),(b,c),(c,d),(d,a)]
-                ed = [(0,1),(1,2),(2,3),(3,0),(4,5),(5,6),(6,7),(7,4),(0,4),(1,5),(2,6),(3,7)]
-                for k,(u,v) in enumerate(ring):
-                    assert (u,v) in ed or (v,u) in ed, f"Bad ring {f_idx}"
+                ring = [(a, b), (b, c), (c, d), (d, a)]
+                ed = [
+                    (0, 1), (1, 2), (2, 3), (3, 0),
+                    (4, 5), (5, 6), (6, 7), (7, 4),
+                    (0, 4), (1, 5), (2, 6), (3, 7),
+                ]
+                for k, (u, v) in enumerate(ring):
+                    assert (u, v) in ed or (v, u) in ed, f"Bad ring {f_idx}"
                     e = cyc[k]
-                    eu,ev = ed[e]
-                    assert {u,v}=={eu,ev}, f"FACE_EDGES mismatch on face {f_idx}"
+                    eu, ev = ed[e]
+                    assert {u, v} == {eu, ev}, f"FACE_EDGES mismatch on face {f_idx}"
             self._checked_face_edges = True
 
-
+        # Small utils ------------------------------------------------------
         def tri_area(p0, p1, p2) -> float:
-            a = np.asarray(p0, float); b = np.asarray(p1, float); c = np.asarray(p2, float)
+            a = np.asarray(p0, float)
+            b = np.asarray(p1, float)
+            c = np.asarray(p2, float)
             return 0.5 * float(np.linalg.norm(np.cross(b - a, c - a)))
 
-        def get_or_create_edge_node(edge_key: Tuple[int,int], p: np.ndarray) -> int:
+        def get_or_create_edge_node(edge_key: Tuple[int, int], p: np.ndarray) -> int:
             """Deduplicate by mesh edge id; also register by rounded coordinate so caps can reuse."""
             if edge_key[0] > edge_key[1]:
                 edge_key = (edge_key[1], edge_key[0])
@@ -238,6 +266,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             return nid
 
         def interp_zero(p0, p1, f0, f1) -> np.ndarray:
+            """Robust interpolation of the φ=0 point on segment (p0, p1)."""
             eps = 1e-15
             if abs(f0) < eps and abs(f1) < eps:
                 t = 0.5
@@ -260,7 +289,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             # element scale for tolerances
             all_xyz = np.array([[n.X, n.Y, n.Z] for n in geom], dtype=float)
             h_elem = np.max(np.linalg.norm(all_xyz - all_xyz.mean(axis=0), axis=1))
-            plane_tol = max(1e-12, 1e-8 * h_elem)  # you can tighten/loosen if needed
+            plane_tol = max(1e-12, 1e-8 * h_elem)
 
             # precompute planes (n, d) for the 6 faces; n is unit normal, d s.t. n·x + d = 0 on the face
             face_planes = []
@@ -275,11 +304,10 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                     d = -float(np.dot(n, P[0]))
                     face_planes.append((n, d))
 
-
             # raw nodal field (for interpolation & decider)
             phi_raw = np.array([self.control_field[node.Id - 1] for node in geom], dtype=float)
 
-            # biased copy for *classification only* (prevents random flips on φ≈0)
+            # biased copy for classification only (prevents flips on φ≈0)
             eps = float(self.zero_tol) if self.zero_tol > 0.0 else 0.0
             bias_sign = -1.0 if np.sum(phi_raw) < 0.0 else 1.0
             phi_cls = phi_raw.copy()
@@ -290,7 +318,6 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 if phi_cls[i] < 0.0:
                     cubeindex |= (1 << i)
 
-
             edge_mask = int(self._MC_EDGE_TABLE[cubeindex])
             if edge_mask == 0:
                 continue
@@ -299,7 +326,8 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 Kratos.Logger.PrintInfo(
                     "InteriorMC",
                     f"elem={elem.Id} cubeindex={cubeindex} edge_mask=0x{edge_mask:03x} "
-                    f"phi_raw={np.round(phi_raw,12).tolist()}")
+                    f"phi_raw={np.round(phi_raw,12).tolist()}"
+                )
 
             # Compute all used edge intersections and create/reuse nodes
             edge_points: List[Optional[np.ndarray]] = [None] * 12
@@ -309,31 +337,32 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                     v0, v1 = EDGE_VERTS[e]
                     p0 = np.array([geom[v0].X, geom[v0].Y, geom[v0].Z], dtype=float)
                     p1 = np.array([geom[v1].X, geom[v1].Y, geom[v1].Z], dtype=float)
-                    f0 = float(phi_raw[v0]); f1 = float(phi_raw[v1])
+                    f0 = float(phi_raw[v0])
+                    f1 = float(phi_raw[v1])
                     p = interp_zero(p0, p1, f0, f1)
                     edge_points[e] = p
-                    g0 = geom[v0].Id; g1 = geom[v1].Id
-                    nid = get_or_create_edge_node((min(g0,g1), max(g0,g1)), p)
+                    g0 = geom[v0].Id
+                    g1 = geom[v1].Id
+                    nid = get_or_create_edge_node((min(g0, g1), max(g0, g1)), p)
                     edge_node_ids[e] = nid
 
             # ---- Emit triangles WITHOUT TRI_TABLE (Lewiner-style, with face-labeled adjacency) ----
-
-            def asymptotic_inside_face(f00, f10, f01, f11, eps=1e-30):
+            def asymptotic_inside_face(f00, f10, f01, f11, eps_dec=1e-30) -> bool:
                 a = f00 - f01 - f10 + f11
-                if abs(a) < eps:
-                    return (0.25*(f00+f10+f01+f11) < 0.0)
-                u = (f00 - f01)/a
-                v = (f00 - f10)/a
+                if abs(a) < eps_dec:
+                    return (0.25 * (f00 + f10 + f01 + f11) < 0.0)
+                u = (f00 - f01) / a
+                v = (f00 - f10) / a
                 if 0.0 <= u <= 1.0 and 0.0 <= v <= 1.0:
-                    val = a*u*v + (f10 - f00)*u + (f01 - f00)*v + f00
+                    val = a * u * v + (f10 - f00) * u + (f01 - f00) * v + f00
                 else:
-                    val = 0.25*(f00 + f10 + f01 + f11)
+                    val = 0.25 * (f00 + f10 + f01 + f11)
                 return (val < 0.0)
 
             # adjacency: edge -> list of (neighbor_edge, face_id)
-            neighbors: Dict[int, List[Tuple[int,int]]] = {e: [] for e in range(12) if (edge_mask & (1 << e))}
+            neighbors: Dict[int, List[Tuple[int, int]]] = {e: [] for e in range(12) if (edge_mask & (1 << e))}
 
-            def add_pair(ea: int, eb: int, f_id: int):
+            def add_pair(ea: int, eb: int, f_id: int) -> None:
                 if (edge_mask & (1 << ea)) and (edge_mask & (1 << eb)):
                     neighbors[ea].append((eb, f_id))
                     neighbors[eb].append((ea, f_id))
@@ -342,7 +371,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 fv = FACE_NODES[f_idx]
                 Gf = phi_raw[list(fv)]  # RAW φ for decider
 
-                # --- NEW: skip pure zero faces to avoid duplicate sheets on that face
+                # Skip pure zero faces to avoid duplicate sheets on that face
                 face_eps = max(1e-14, 1e-12 * float(np.max(np.abs(Gf)) or 1.0))
                 if np.all(np.abs(Gf) <= face_eps):
                     continue
@@ -352,22 +381,24 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                     add_pair(fcuts[0], fcuts[1], f_idx)
 
                 elif len(fcuts) == 4:
-                    # Asymptotic decider to choose the *same* pairing as MC
-                    # map to bilinear (f00,f10,f01,f11) using order (0,1,3,2)
+                    # Asymptotic decider -> choose same pairing as MC
+                    # Map to bilinear (f00,f10,f01,f11) using order (0,1,3,2)
                     f00, f10, f01, f11 = Gf[0], Gf[1], Gf[3], Gf[2]
                     center_in = asymptotic_inside_face(f00, f10, f01, f11)
                     e0, e1, e2, e3 = face_edges
+
                     if self._dbg_e(elem.Id):
                         Kratos.Logger.PrintInfo(
                             "InteriorDecider",
                             f"elem={elem.Id} face={f_idx} four_cuts=True "
                             f"diag={'13' if center_in else '02'} center_in={center_in} "
-                            f"phi_face={np.round(Gf,12).tolist()}")
+                            f"phi_face={np.round(Gf,12).tolist()}"
+                        )
                     if center_in:
-                        pairs = [(e0, e1), (e2, e3)]     # consecutive pairing
+                        pairs = [(e0, e1), (e2, e3)]  # consecutive pairing
                         self._face_pairing_by_elem[(elem.Id, f_idx)] = "consecutive"
                     else:
-                        pairs = [(e0, e3), (e1, e2)]     # across-the-face pairing
+                        pairs = [(e0, e3), (e1, e2)]  # across-the-face pairing
                         self._face_pairing_by_elem[(elem.Id, f_idx)] = "across"
                     for a, b in pairs:
                         add_pair(a, b, f_idx)
@@ -394,12 +425,16 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                     for nb, fid in options:
                         # prefer the neighbor that uses a different face than the one we came from
                         if nb != prev and fid != last_face:
-                            nxt = nb; next_face = fid; break
+                            nxt = nb
+                            next_face = fid
+                            break
                     if nxt is None:
                         # fallback: just take the other neighbor (if exists)
                         for nb, fid in options:
                             if nb != prev:
-                                nxt = nb; next_face = fid; break
+                                nxt = nb
+                                next_face = fid
+                                break
                     if nxt is None:
                         break  # open path (shouldn't happen in MC)
 
@@ -412,7 +447,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
 
                 # finalize polygon edges (drop repeated start if present)
                 edges_in_loop = loop_edges[:-1] if loop_edges and loop_edges[-1] == start else loop_edges
-                faces_in_loop = loop_faces[:len(edges_in_loop)-1] if loop_faces else []
+                faces_in_loop = loop_faces[: len(edges_in_loop) - 1] if loop_faces else []
 
                 if len(edges_in_loop) < 3:
                     continue
@@ -425,11 +460,13 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 pts: List[np.ndarray] = []
                 ids: List[int] = []
                 for e in edges_in_loop:
-                    p = edge_points[e]; n = edge_node_ids[e]
+                    p = edge_points[e]
+                    n = edge_node_ids[e]
                     if p is None or n is None:
                         continue
                     if not pts or not np.allclose(p, pts[-1]):
-                        pts.append(p); ids.append(n)
+                        pts.append(p)
+                        ids.append(n)
 
                 if len(pts) < 3:
                     continue
@@ -456,8 +493,10 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                     # (a) area filter (optional)
                     if self.min_triangle_area > 0.0:
                         a2 = 0.5 * float(np.linalg.norm(np.cross(p1 - p0, p2 - p0)))
-                        if a2 <= self.min_triangle_area:
-                            continue
+                    else:
+                        a2 = 1.0
+                    if self.min_triangle_area > 0.0 and a2 <= self.min_triangle_area:
+                        continue
 
                     # (b) cull triangles that lie on a *boundary* face plane of this element
                     cull = False
@@ -490,13 +529,13 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         for elem, face_idx, face_node_ids in self._collect_boundary_faces_hex8():
             geom = elem.GetGeometry()
 
-            # Get the 4 local vertex indices in cyclic order for this face
+            # 4 local vertex indices in cyclic order for this face
             local_face = FACE_NODES[face_idx]
 
             # Coordinates and phi (signed)
-            P4  = np.array([[geom[i].X, geom[i].Y, geom[i].Z] for i in local_face], dtype=float)
-            F4  = np.array([self.control_field[geom[i].Id - 1] for i in local_face], dtype=float)
-            F8  = np.array([self.control_field[n.Id - 1] for n in geom], dtype=float)  # for bias + edge φ
+            P4 = np.array([[geom[i].X, geom[i].Y, geom[i].Z] for i in local_face], dtype=float)
+            F4 = np.array([self.control_field[geom[i].Id - 1] for i in local_face], dtype=float)
+            F8 = np.array([self.control_field[n.Id - 1] for n in geom], dtype=float)  # for bias + edge φ
 
             # element size for snapping tol
             all_xyz = np.array([[n.X, n.Y, n.Z] for n in geom], dtype=float)
@@ -506,7 +545,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             # Element-wide bias sign to resolve near-zero faces consistently (info only)
             bias_sign = -1.0 if np.sum(F8) < 0.0 else 1.0
 
-            # --- build cap + get debug payload
+            # build cap + get debug payload
             pairing = self._face_pairing_by_elem.get((elem.Id, face_idx))  # "consecutive" | "across" | None
             cap_tris, dbg = self._cap_face_from_edges(P4, F4, bias_sign, return_debug=True, pairing_override=pairing)
 
@@ -542,7 +581,8 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 #    compute the expected interpolation point and compare to 'pt'
                 for e_idx in face_edge_ids:
                     v0, v1 = EDGE_VERTS[e_idx]
-                    g0 = geom[v0].Id; g1 = geom[v1].Id
+                    g0 = geom[v0].Id
+                    g1 = geom[v1].Id
                     key_edge = (min(g0, g1), max(g0, g1))
                     nid_edge = self.created_nodes_by_edge.get(key_edge)
                     if nid_edge is None:
@@ -550,15 +590,16 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                     # expected intersection on this edge using element φ
                     p0 = np.array([geom[v0].X, geom[v0].Y, geom[v0].Z], dtype=float)
                     p1 = np.array([geom[v1].X, geom[v1].Y, geom[v1].Z], dtype=float)
-                    f0 = float(F8[v0]); f1 = float(F8[v1])
+                    f0 = float(F8[v0])
+                    f1 = float(F8[v1])
                     if abs(f0) < 1e-15 and abs(f1) < 1e-15:
-                        p_expected = 0.5*(p0 + p1)
+                        p_expected = 0.5 * (p0 + p1)
                     elif abs(f0) < 1e-15:
                         p_expected = p0
                     elif abs(f1) < 1e-15:
                         p_expected = p1
                     else:
-                        p_expected = p0 + (f0/(f0 - f1)) * (p1 - p0)
+                        p_expected = p0 + (f0 / (f0 - f1)) * (p1 - p0)
                     if np.linalg.norm(pt - p_expected) <= snap_tol:
                         return nid_edge
                 return None
@@ -586,22 +627,24 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             if self.debug_caps and (self.debug_first_n_caps == 0 or self._caps_debug_count < self.debug_first_n_caps):
                 self._caps_debug_count += 1
 
-
     # ---------------------------------------------------------------------
     # Boundary face collector (unique faces only)
     # ---------------------------------------------------------------------
     def _collect_boundary_faces_hex8(self):
-        """Yield (elem, face_index, face_node_ids) for faces that appear only once in the mesh."""
+        """
+        Yield (elem, face_index, face_node_ids) for faces that appear only once
+        in the mesh.
+        """
         FACE_NODES = [
-            (0,1,2,3),  # z-
-            (4,5,6,7),  # z+
-            (0,1,5,4),  # y-
-            (1,2,6,5),  # x+
-            (2,3,7,6),  # y+
-            (3,0,4,7)   # x-
+            (0, 1, 2, 3),  # z-
+            (4, 5, 6, 7),  # z+
+            (0, 1, 5, 4),  # y-
+            (1, 2, 6, 5),  # x+
+            (2, 3, 7, 6),  # y+
+            (3, 0, 4, 7),  # x-
         ]
-        # map: sorted tuple of 4 global node ids -> list of (elem, face_idx, local_face_ids)
-        face_map: Dict[Tuple[int,int,int,int], Tuple[Kratos.Element, int, Tuple[int,int,int,int]]] = {}
+        # map: sorted tuple of 4 global node ids -> (elem, face_idx, local_face_ids)
+        face_map: Dict[Tuple[int, int, int, int], Tuple[Kratos.Element, int, Tuple[int, int, int, int]]] = {}
         for elem in self.model_part.Elements:
             geom = elem.GetGeometry()
             for face_idx, local in enumerate(FACE_NODES):
@@ -611,13 +654,14 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 else:
                     # seen twice -> interior face; remove to save memory
                     face_map.pop(ids, None)
+
         # remaining are boundary
         for (_, (elem, face_idx, local)) in face_map.items():
             geom = elem.GetGeometry()
             yield elem, face_idx, [geom[i].Id for i in local]
 
     # ---------------------------------------------------------------------
-    # Cap construction on a quad face using marching-squares w/ decider + degeneracy fixes
+    # Cap construction: marching-squares w/ decider + degeneracy fixes
     # ---------------------------------------------------------------------
     def _cap_face_from_edges(
         self,
@@ -632,12 +676,12 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
 
         - Uses only edge cut points + existing face corners (no interior points).
         - Asymptotic decider for 5/10 ambiguities; honors `pairing_override`
-        ("consecutive" | "across") to match the interior pairing.
+          ("consecutive" | "across") to match the interior pairing.
         - When center is inside ("consecutive") we keep the 4-tri diamond (watertight).
         - Vertices are snapped to the computed cut points to avoid FP drift.
         """
         P4 = np.asarray(P4, float)
-        G  = np.asarray(F4s, float).astype(float)
+        G = np.asarray(F4s, float).astype(float)
 
         eps = max(1e-14, 1e-12 * float(np.max(np.abs(G)) or 1.0))
 
@@ -649,59 +693,69 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             ]
             if return_debug:
                 dbg = {
-                    "case": 15, "inside": [True, True, True, True],
-                    "phi": np.round(G,12).tolist(),
-                    "cut_flags": [False]*4, "cut_points": [None]*4,
-                    "n_tris": 2, "diag": "02", "override_used": False,
+                    "case": 15,
+                    "inside": [True, True, True, True],
+                    "phi": np.round(G, 12).tolist(),
+                    "cut_flags": [False] * 4,
+                    "cut_points": [None] * 4,
+                    "n_tris": 2,
+                    "diag": "02",
+                    "override_used": False,
                 }
                 return tris, dbg
             return tris
 
         # classification (same bias as interior) for case id
         Gcls = G.copy()
-        if bias_sign == 0.0: bias_sign = 1.0
+        if bias_sign == 0.0:
+            bias_sign = 1.0
         Gcls[np.abs(Gcls) < eps] = eps * (-1.0 if bias_sign < 0.0 else 1.0)
         inside = (Gcls < 0.0) | np.isclose(Gcls, 0.0)
         b0, b1, b2, b3 = [int(x) for x in inside]
         case = (b0) | (b1 << 1) | (b2 << 2) | (b3 << 3)
 
         # compute edge cut points with zero-preserving values (exactly on edges)
-        pairs = [(0,1),(1,2),(2,3),(3,0)]
-        Gz = G.copy(); Gz[np.abs(Gz) < eps] = 0.0
+        pairs = [(0, 1), (1, 2), (2, 3), (3, 0)]
+        Gz = G.copy()
+        Gz[np.abs(Gz) < eps] = 0.0
         cut = [None, None, None, None]
         cut_flags = [False, False, False, False]
 
         def edge_point(i, j, gi, gj):
-            if gi == 0.0 and gj == 0.0: return 0.5*(P4[i] + P4[j])
-            if gi == 0.0 and gj != 0.0: return P4[i]
-            if gj == 0.0 and gi != 0.0: return P4[j]
+            if gi == 0.0 and gj == 0.0:
+                return 0.5 * (P4[i] + P4[j])
+            if gi == 0.0 and gj != 0.0:
+                return P4[i]
+            if gj == 0.0 and gi != 0.0:
+                return P4[j]
             denom = gi - gj
-            t = 0.5 if abs(denom) < 1e-30 else gi/denom
-            return P4[i] + t*(P4[j] - P4[i])
+            t = 0.5 if abs(denom) < 1e-30 else gi / denom
+            return P4[i] + t * (P4[j] - P4[i])
 
-        for e,(i,j) in enumerate(pairs):
+        for e, (i, j) in enumerate(pairs):
             gi, gj = float(Gz[i]), float(Gz[j])
             if (gi < 0.0) != (gj < 0.0) or gi == 0.0 or gj == 0.0:
                 cut_flags[e] = True
                 cut[e] = edge_point(i, j, gi, gj)
 
         # asymptotic decider on RAW values
-        def asymptotic_inside(f00, f10, f01, f11):
+        def asymptotic_inside(f00, f10, f01, f11) -> bool:
             a = f00 - f01 - f10 + f11
             if abs(a) < 1e-30:
-                return (0.25*(f00 + f10 + f01 + f11) < 0.0)
-            u = (f00 - f01)/a; v = (f00 - f10)/a
+                return (0.25 * (f00 + f10 + f01 + f11) < 0.0)
+            u = (f00 - f01) / a
+            v = (f00 - f10) / a
             if 0.0 <= u <= 1.0 and 0.0 <= v <= 1.0:
-                val = a*u*v + (f10 - f00)*u + (f01 - f00)*v + f00
+                val = a * u * v + (f10 - f00) * u + (f01 - f00) * v + f00
             else:
-                val = 0.25*(f00 + f10 + f01 + f11)
+                val = 0.25 * (f00 + f10 + f01 + f11)
             return (val < 0.0)
 
         f00, f10, f01, f11 = float(G[0]), float(G[1]), float(G[3]), float(G[2])
         center_inside = asymptotic_inside(f00, f10, f01, f11)
 
         override_used = False
-        if case in (5,10):
+        if case in (5, 10):
             if pairing_override in ("consecutive", "across"):
                 use_center = (pairing_override == "consecutive")
                 override_used = True
@@ -709,18 +763,20 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 use_center = center_inside
         else:
             if pairing_override == "consecutive":
-                use_center = True;  override_used = True
+                use_center = True
+                override_used = True
             elif pairing_override == "across":
-                use_center = False; override_used = True
+                use_center = False
+                override_used = True
             else:
-                use_center = False  # default
+                use_center = False  # default for other cases
 
         tris: List[np.ndarray] = []
 
-        def add(a,b,c):
-            tri = np.array([a,b,c], float)
+        def add(a, b, c):
+            tri = np.array([a, b, c], float)
             if self.min_triangle_area > 0.0:
-                area = 0.5*float(np.linalg.norm(np.cross(tri[1]-tri[0], tri[2]-tri[0])))
+                area = 0.5 * float(np.linalg.norm(np.cross(tri[1] - tri[0], tri[2] - tri[0])))
                 if area <= self.min_triangle_area:
                     return
             tris.append(tri)
@@ -729,42 +785,63 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         if case == 0:
             pass
         elif case == 15:
-            add(P4[0], P4[1], P4[2]); add(P4[0], P4[2], P4[3])
+            add(P4[0], P4[1], P4[2])
+            add(P4[0], P4[2], P4[3])
 
-        elif case == 1:   add(P4[0], cut[3], cut[0])
-        elif case == 2:   add(P4[1], cut[0], cut[1])
-        elif case == 4:   add(P4[2], cut[1], cut[2])
-        elif case == 8:   add(P4[3], cut[2], cut[3])
+        elif case == 1:
+            add(P4[0], cut[3], cut[0])
+        elif case == 2:
+            add(P4[1], cut[0], cut[1])
+        elif case == 4:
+            add(P4[2], cut[1], cut[2])
+        elif case == 8:
+            add(P4[3], cut[2], cut[3])
 
-        elif case == 3:   add(P4[0], P4[1], cut[1]); add(P4[0], cut[1], cut[3])
-        elif case == 6:   add(P4[1], P4[2], cut[2]); add(P4[1], cut[2], cut[0])
-        elif case == 12:  add(P4[2], P4[3], cut[3]); add(P4[2], cut[3], cut[1])
-        elif case == 9:   add(P4[3], P4[0], cut[0]); add(P4[3], cut[0], cut[2])
+        elif case == 3:
+            add(P4[0], P4[1], cut[1])
+            add(P4[0], cut[1], cut[3])
+        elif case == 6:
+            add(P4[1], P4[2], cut[2])
+            add(P4[1], cut[2], cut[0])
+        elif case == 12:
+            add(P4[2], P4[3], cut[3])
+            add(P4[2], cut[3], cut[1])
+        elif case == 9:
+            add(P4[3], P4[0], cut[0])
+            add(P4[3], cut[0], cut[2])
 
         elif case == 7:
-            A,B = cut[2], cut[3]
-            if A is None or B is None or np.allclose(A,B):
+            A, B = cut[2], cut[3]
+            if A is None or B is None or np.allclose(A, B):
                 add(P4[0], P4[1], P4[2])
             else:
-                add(A, P4[2], P4[1]); add(A, P4[1], P4[0]); add(A, P4[0], B)
+                add(A, P4[2], P4[1])
+                add(A, P4[1], P4[0])
+                add(A, P4[0], B)
         elif case == 11:
-            A,B = cut[1], cut[2]
-            if A is None or B is None or np.allclose(A,B):
+            A, B = cut[1], cut[2]
+            if A is None or B is None or np.allclose(A, B):
                 add(P4[0], P4[1], P4[3])
             else:
-                add(A, P4[1], P4[0]); add(A, P4[0], P4[3]); add(A, P4[3], B)
+                add(A, P4[1], P4[0])
+                add(A, P4[0], P4[3])
+                add(A, P4[3], B)
         elif case == 13:
-            A,B = cut[0], cut[1]
-            if A is None or B is None or np.allclose(A,B):
+            A, B = cut[0], cut[1]
+            if A is None or B is None or np.allclose(A, B):
                 add(P4[0], P4[3], P4[2])
             else:
-                add(A, P4[0], P4[3]); add(A, P4[3], P4[2]); add(A, P4[2], B)
+                add(A, P4[0], P4[3])
+                add(A, P4[3], P4[2])
+                add(A, P4[2], B)
         elif case == 14:
-            A,B = cut[3], cut[0]
-            if A is None or B is None or np.allclose(A,B):
+            A, B = cut[3], cut[0]
+            if A is None or B is None or np.allclose(A, B):
                 add(P4[1], P4[2], P4[3])
             else:
-                add(A, P4[3], P4[2]); add(A, P4[2], P4[1]); add(A, P4[1], B)
+                add(A, P4[3], P4[2])
+                add(A, P4[2], P4[1])
+                add(A, P4[1], B)
 
         elif case == 5:
             if use_center:  # consecutive → “diamond”, 4 tris (watertight)
@@ -789,24 +866,28 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             if self.debug_caps:
                 Kratos.Logger.PrintWarning("CapFace", f"Unhandled case {case}")
 
-        # --- snap every vertex that lies on an edge back to the exact cut point
+        # snap every vertex that lies on an edge back to the exact cut point
         if tris:
-            # face size scale for snap epsilon
-            L = float(np.linalg.norm(P4.max(axis=0) - P4.min(axis=0)))
-            snap_eps = max(1e-12*L, 1e-14)
+            L = float(np.linalg.norm(P4.max(axis=0) - P4.min(axis=0)))  # face size scale
+            snap_eps = max(1e-12 * L, 1e-14)
             cut_np = [None if c is None else np.asarray(c, float) for c in cut]
 
             def snap_to_cuts(pt):
-                best = None; bestd = 1e30
+                best = None
+                bestd = 1e30
                 for c in cut_np:
-                    if c is None: continue
+                    if c is None:
+                        continue
                     d = float(np.linalg.norm(pt - c))
                     if d < bestd:
-                        bestd = d; best = c
-                return (best if best is not None and bestd <= snap_eps else pt)
+                        bestd = d
+                        best = c
+                return best if best is not None and bestd <= snap_eps else pt
 
             for t in tris:
-                t[0] = snap_to_cuts(t[0]); t[1] = snap_to_cuts(t[1]); t[2] = snap_to_cuts(t[2])
+                t[0] = snap_to_cuts(t[0])
+                t[1] = snap_to_cuts(t[1])
+                t[2] = snap_to_cuts(t[2])
 
         if not return_debug:
             return tris
@@ -814,22 +895,22 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         dbg = {
             "case": case,
             "inside": inside.tolist(),
-            "phi": np.round(G,12).tolist(),
+            "phi": np.round(G, 12).tolist(),
             "cut_flags": cut_flags,
-            "cut_points": [None if c is None else np.round(c,12).tolist() for c in cut],
+            "cut_points": [None if c is None else np.round(c, 12).tolist() for c in cut],
             "n_tris": len(tris),
-            "diag": ("13" if (case in (5,10) and use_center) else "02"),
+            "diag": ("13" if (case in (5, 10) and use_center) else "02"),
             "override_used": override_used,
         }
         return tris, dbg
-
-
 
     # ---------------------------------------------------------------------
     # Lookup-table loading (txt/json) with programmatic fallback
     # ---------------------------------------------------------------------
     def _load_mc_tables(self, edge_path: str, tri_path: str):
+        """Load or generate EDGE_TABLE and TRI_TABLE for MC."""
         here = Path(__file__).resolve().parent
+
         # Candidate files in order
         edge_candidates = []
         tri_candidates = []
@@ -838,10 +919,21 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         if tri_path:
             tri_candidates.append(Path(tri_path))
         # defaults next to this file
-        edge_candidates += [here / "mc_edge_table_generated.txt", here / "mc_edge_table.txt", here / "mc_edge_table_generated.json", here / "mc_edge_table.json"]
-        tri_candidates  += [here / "mc_tri_table_generated.txt",  here / "mc_tri_table.txt",  here / "mc_tri_table_generated.json",  here / "mc_tri_table.json"]
+        edge_candidates += [
+            here / "mc_edge_table_generated.txt",
+            here / "mc_edge_table.txt",
+            here / "mc_edge_table_generated.json",
+            here / "mc_edge_table.json",
+        ]
+        tri_candidates += [
+            here / "mc_tri_table_generated.txt",
+            here / "mc_tri_table.txt",
+            here / "mc_tri_table_generated.json",
+            here / "mc_tri_table.json",
+        ]
 
-        edge = None; tri = None
+        edge = None
+        tri = None
 
         def read_txt_ints(p: Path) -> Optional[np.ndarray]:
             try:
@@ -849,10 +941,11 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 return arr
             except Exception:
                 return None
+
         def read_json_ints(p: Path) -> Optional[np.ndarray]:
             try:
                 import json
-                with open(p, 'r') as f:
+                with open(p, "r") as f:
                     data = json.load(f)
                 return np.asarray(data, dtype=np.int32)
             except Exception:
@@ -860,18 +953,14 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
 
         # Try to read edge table
         for p in edge_candidates:
-            if p.suffix.lower() == ".json":
-                arr = read_json_ints(p)
-            else:
-                arr = read_txt_ints(p)
+            arr = read_json_ints(p) if p.suffix.lower() == ".json" else read_txt_ints(p)
             if arr is not None:
                 edge = arr
                 break
+
+        # Try to read tri table
         for p in tri_candidates:
-            if p.suffix.lower() == ".json":
-                arr = read_json_ints(p)
-            else:
-                arr = read_txt_ints(p)
+            arr = read_json_ints(p) if p.suffix.lower() == ".json" else read_txt_ints(p)
             if arr is not None:
                 tri = arr
                 break
@@ -880,41 +969,40 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         if edge is not None:
             edge = np.asarray(edge, dtype=np.int32).reshape(256,)
         if tri is not None:
-            tri = np.asarray(tri, dtype=np.int32).reshape(256,16)
+            tri = np.asarray(tri, dtype=np.int32).reshape(256, 16)
 
-        # If any missing, generate programmatically (watertight; consistent pairing)
+        # Generate programmatically if missing (watertight; consistent pairing)
         if edge is None or tri is None:
             edge, tri = self._generate_mc_tables()
-            # Try to persist next to file for future runs
+            # Persist next to file for future runs
             try:
                 np.savetxt(here / "mc_edge_table_generated.txt", edge, fmt="%d")
-                np.savetxt(here / "mc_tri_table_generated.txt",  tri,  fmt="%d")
+                np.savetxt(here / "mc_tri_table_generated.txt", tri, fmt="%d")
             except Exception:
                 pass
 
         # Final sanity
-        if edge.shape != (256,) or tri.shape != (256,16):
+        if edge.shape != (256,) or tri.shape != (256, 16):
             raise RuntimeError(f"Invalid MC tables: edge {edge.shape}, tri {tri.shape}")
         return edge, tri
 
     # ---------------------------------------------------------------------
-    # Programmatic generation of EDGE_TABLE and TRI_TABLE (consistent face pairing)
+    # Programmatic generation of EDGE_TABLE and TRI_TABLE (consistent pairing)
     # ---------------------------------------------------------------------
     def _generate_mc_tables(self):
-        # Standard edge list
+        """Generate MC lookup tables with consistent face pairing."""
         EDGES = [
-            (0,1), (1,2), (2,3), (3,0),
-            (4,5), (5,6), (6,7), (7,4),
-            (0,4), (1,5), (2,6), (3,7)
+            (0, 1), (1, 2), (2, 3), (3, 0),
+            (4, 5), (5, 6), (6, 7), (7, 4),
+            (0, 4), (1, 5), (2, 6), (3, 7),
         ]
-        # Faces as edge indices in cyclic order (same mapping used elsewhere)
         FACES = [
-            [0,1,2,3],     # z-
-            [4,5,6,7],     # z+
-            [3,11,7,8],    # x-
-            [1,10,5,9],    # x+
-            [2,10,6,11],   # y+
-            [0,9,4,8],     # y-
+            [0, 1, 2, 3],     # z-
+            [4, 5, 6, 7],     # z+
+            [3, 11, 7, 8],    # x-
+            [1, 10, 5, 9],    # x+
+            [2, 10, 6, 11],   # y+
+            [0, 9, 4, 8],     # y-
         ]
 
         EDGE_TABLE = np.zeros(256, dtype=np.int32)
@@ -924,7 +1012,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             inside = [(case >> i) & 1 == 1 for i in range(8)]
             cut_edges = []
             mask = 0
-            for e,(a,b) in enumerate(EDGES):
+            for e, (a, b) in enumerate(EDGES):
                 if inside[a] != inside[b]:
                     mask |= (1 << e)
                     cut_edges.append(e)
@@ -937,15 +1025,17 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             for face in FACES:
                 fcuts = [e for e in face if e in neighbors]
                 if len(fcuts) == 2:
-                    a,b = fcuts
-                    neighbors[a].append(b); neighbors[b].append(a)
+                    a, b = fcuts
+                    neighbors[a].append(b)
+                    neighbors[b].append(a)
                 elif len(fcuts) == 4:
-                    a,b,c,d = fcuts
-                    for u,v in [(a,b),(c,d)]:
-                        neighbors[u].append(v); neighbors[v].append(u)
+                    a, b, c, d = fcuts
+                    for u, v in [(a, b), (c, d)]:
+                        neighbors[u].append(v)
+                        neighbors[v].append(u)
 
             # Extract loops and fan-triangulate
-            tris: List[Tuple[int,int,int]] = []
+            tris: List[Tuple[int, int, int]] = []
             visited = set()
             for start in cut_edges:
                 if start in visited or len(neighbors.get(start, [])) == 0:
@@ -975,19 +1065,22 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 # fan from 0
                 if len(verts) >= 3:
                     v0 = verts[0]
-                    for i in range(1, len(verts)-1):
-                        tris.append((v0, verts[i], verts[i+1]))
+                    for i in range(1, len(verts) - 1):
+                        tris.append((v0, verts[i], verts[i + 1]))
 
             flat = [x for tri in tris for x in tri]
-            flat = flat[:16] + [-1]*(16-len(flat))
-            TRI_TABLE[case,:] = np.array(flat, dtype=np.int32)
+            flat = flat[:16] + [-1] * (16 - len(flat))
+            TRI_TABLE[case, :] = np.array(flat, dtype=np.int32)
 
         return EDGE_TABLE, TRI_TABLE
 
-
+    # ---------------------------------------------------------------------
+    # Helper: interpolation and clipping
+    # ---------------------------------------------------------------------
     def _interp_on_edge(self, p0: np.ndarray, p1: np.ndarray, f0: float, f1: float) -> np.ndarray:
         """Robust linear interpolation of the φ=0 point on segment (p0,p1)."""
-        p0 = np.asarray(p0, float); p1 = np.asarray(p1, float)
+        p0 = np.asarray(p0, float)
+        p1 = np.asarray(p1, float)
         eps = 1e-30
         if abs(f0) < eps and abs(f1) < eps:
             return 0.5 * (p0 + p1)
@@ -997,9 +1090,11 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             return p1
         denom = (f0 - f1)
         t = 0.5 if abs(denom) < eps else (f0 / denom)
-        # (optional) clamp tiny overshoots from FP noise
-        if t < -1e-12: t = 0.0
-        if t > 1.0 + 1e-12: t = 1.0
+        # clamp tiny overshoots from FP noise
+        if t < -1e-12:
+            t = 0.0
+        if t > 1.0 + 1e-12:
+            t = 1.0
         return p0 + t * (p1 - p0)
 
     def _clip_triangle_phi_le_zero(self, P3x3: np.ndarray, F3: np.ndarray) -> list:
@@ -1008,11 +1103,11 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         against the half-space φ <= 0 (using self.zero_tol). Returns list of triangles.
         """
         P = np.asarray(P3x3, float)
-        F = np.asarray(F3,   float)
+        F = np.asarray(F3, float)
         tol = float(self.zero_tol)
 
         inside = [F[i] <= tol for i in range(3)]
-        idx_in  = [i for i, s in enumerate(inside) if s]
+        idx_in = [i for i, s in enumerate(inside) if s]
         idx_out = [i for i, s in enumerate(inside) if not s]
 
         # all in / all out
@@ -1023,23 +1118,28 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
 
         # 1 inside, 2 outside -> one clipped triangle
         if len(idx_in) == 1:
-            i = idx_in[0]; j, k = idx_out
+            i = idx_in[0]
+            j, k = idx_out
             A = self._interp_on_edge(P[i], P[j], F[i], F[j])
             B = self._interp_on_edge(P[i], P[k], F[i], F[k])
             return [np.array([P[i], A, B], dtype=float)]
 
         # 2 inside, 1 outside -> quad -> two triangles
         if len(idx_in) == 2:
-            i, j = idx_in; k = idx_out[0]
+            i, j = idx_in
+            k = idx_out[0]
             A = self._interp_on_edge(P[i], P[k], F[i], F[k])
             B = self._interp_on_edge(P[j], P[k], F[j], F[k])
             # Fan triangulation of polygon [Pi, Pj, B, A]
             return [
                 np.array([P[i], P[j], B], dtype=float),
-                np.array([P[i], B,       A], dtype=float),
+                np.array([P[i], B, A], dtype=float),
             ]
 
-    def _triangulate_polygon_3d(self, pts3: List[np.ndarray]) -> List[Tuple[int,int,int]]:
+    # ---------------------------------------------------------------------
+    # Triangulation of a 3D polygon
+    # ---------------------------------------------------------------------
+    def _triangulate_polygon_3d(self, pts3: List[np.ndarray]) -> List[Tuple[int, int, int]]:
         """
         Triangulate a simple polygon given as an ordered list of 3D points.
         1) fit best-fit plane by SVD,
@@ -1053,73 +1153,83 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         if n < 3:
             return []
 
-        # -- best-fit plane (PCA)
+        # best-fit plane (PCA)
         C = P.mean(axis=0)
         Q = P - C
         try:
-            # Vt rows are principal directions
             _, _, Vt = np.linalg.svd(Q, full_matrices=False)
-            u = Vt[0]; v = Vt[1]
+            u = Vt[0]
+            v = Vt[1]
         except Exception:
             # degenerate fallback
-            u = np.array([1.0,0.0,0.0]); v = np.array([0.0,1.0,0.0])
+            u = np.array([1.0, 0.0, 0.0])
+            v = np.array([0.0, 1.0, 0.0])
 
-        # -- project to 2D
+        # project to 2D
         U = Q @ u
         V = Q @ v
         poly2 = np.column_stack([U, V])
 
-        # -- signed area to get orientation
+        # signed area (orientation)
         def signed_area(poly):
             s = 0.0
             m = len(poly)
             for i in range(m):
-                x1,y1 = poly[i]
-                x2,y2 = poly[(i+1) % m]
-                s += x1*y2 - x2*y1
-            return 0.5*s
+                x1, y1 = poly[i]
+                x2, y2 = poly[(i + 1) % m]
+                s += x1 * y2 - x2 * y1
+            return 0.5 * s
 
         orient = np.sign(signed_area(poly2))
         if abs(orient) < 1e-18:
             # nearly collinear: fall back to fan
-            return [(0, i, i+1) for i in range(1, n-1)]
+            return [(0, i, i + 1) for i in range(1, n - 1)]
 
-        # -- ear clipping in 2D
-        def is_convex(i0,i1,i2):
-            x0,y0 = poly2[i0]; x1,y1 = poly2[i1]; x2,y2 = poly2[i2]
-            cross = (x2 - x1)*(y0 - y1) - (y2 - y1)*(x0 - x1)
+        # ear clipping in 2D
+        def is_convex(i0, i1, i2):
+            x0, y0 = poly2[i0]
+            x1, y1 = poly2[i1]
+            x2, y2 = poly2[i2]
+            cross = (x2 - x1) * (y0 - y1) - (y2 - y1) * (x0 - x1)
             return (orient * cross) > 0.0
 
         def point_in_tri(p, a, b, c):
             # barycentric test
-            v0 = c - a; v1 = b - a; v2 = p - a
-            d00 = v0 @ v0; d01 = v0 @ v1; d11 = v1 @ v1
-            d20 = v2 @ v0; d21 = v2 @ v1
+            v0 = c - a
+            v1 = b - a
+            v2 = p - a
+            d00 = v0 @ v0
+            d01 = v0 @ v1
+            d11 = v1 @ v1
+            d20 = v2 @ v0
+            d21 = v2 @ v1
             denom = d00 * d11 - d01 * d01
             if abs(denom) < 1e-30:
                 return False
-            v = (d11 * d20 - d01 * d21) / denom
-            w = (d00 * d21 - d01 * d20) / denom
-            u_b = 1.0 - v - w
-            eps = -1e-14
-            return (u_b >= eps) and (v >= eps) and (w >= eps)
+            v_b = (d11 * d20 - d01 * d21) / denom
+            w_b = (d00 * d21 - d01 * d20) / denom
+            u_b = 1.0 - v_b - w_b
+            eps_b = -1e-14
+            return (u_b >= eps_b) and (v_b >= eps_b) and (w_b >= eps_b)
 
         Vidx = list(range(n))
-        tris: List[Tuple[int,int,int]] = []
+        tris: List[Tuple[int, int, int]] = []
         guard = 0
         while len(Vidx) >= 3 and guard < 5_000:
             guard += 1
             ear_found = False
             m = len(Vidx)
             for k in range(m):
-                i0 = Vidx[(k-1) % m]
+                i0 = Vidx[(k - 1) % m]
                 i1 = Vidx[k]
-                i2 = Vidx[(k+1) % m]
+                i2 = Vidx[(k + 1) % m]
 
                 if not is_convex(i0, i1, i2):
                     continue
 
-                a = poly2[i0]; b = poly2[i1]; c = poly2[i2]
+                a = poly2[i0]
+                b = poly2[i1]
+                c = poly2[i2]
                 ok = True
                 for j in Vidx:
                     if j in (i0, i1, i2):
@@ -1138,8 +1248,8 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             if not ear_found:
                 # self-intersection or numerical trouble: fallback to fan
                 base = Vidx[0]
-                for t in range(1, len(Vidx)-1):
-                    tris.append((base, Vidx[t], Vidx[t+1]))
+                for t in range(1, len(Vidx) - 1):
+                    tris.append((base, Vidx[t], Vidx[t + 1]))
                 break
 
         return tris
