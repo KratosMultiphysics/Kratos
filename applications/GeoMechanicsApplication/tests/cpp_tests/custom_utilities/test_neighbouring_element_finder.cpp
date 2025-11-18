@@ -66,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsCorrectNeighbouringEl
     auto& r_model_part_for_entities_for_finding =
         ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
-    auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("Main");
+    auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("Neighbours");
 
     const auto neighbour_node_ids = std::vector<std::size_t>{1, 2};
     const auto neighbour_nodes = GetNodesFromIds(r_model_part_for_entities_for_finding, neighbour_node_ids);
@@ -92,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsCorrectNeighbouringEl
     auto& r_model_part_for_entities_for_finding =
         ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(model);
 
-    auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("Main");
+    auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("Neighbours");
 
     const auto neighbour_node_ids = std::vector<std::size_t>{1, 2};
     const auto neighbour_nodes = GetNodesFromIds(r_model_part_for_entities_for_finding, neighbour_node_ids);
