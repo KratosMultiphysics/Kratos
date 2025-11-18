@@ -87,7 +87,8 @@ public:
                 if (r_entity.GetGeometry().LocalSpaceDimension() != local_space_dimension) continue;
 
                 for (const auto& r_boundary_geometry : r_boundary_generator(r_entity.GetGeometry())) {
-                    mGeometryNodeIdsToEntities.insert({GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry), {&r_entity}});
+                    mGeometryNodeIdsToEntities.insert(
+                        {GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry), {&r_entity}});
                 }
             }
 
