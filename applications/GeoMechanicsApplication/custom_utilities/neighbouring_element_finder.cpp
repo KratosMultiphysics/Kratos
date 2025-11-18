@@ -17,15 +17,13 @@
 namespace Kratos
 {
 
-NeighbouringElementFinder::NeighbouringElementFinder(bool AlsoSearchReverse)
-    : mAlsoSearchReverse(AlsoSearchReverse)
+NeighbouringElementFinder::NeighbouringElementFinder(bool EnableReverseSearch)
+    : mEnableReverseSearch(EnableReverseSearch)
 {
 }
 
-void NeighbouringElementFinder::InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping)
+void NeighbouringElementFinder::InitializeSortedToUnsortedEntityNodeIds()
 {
-    mGeometryNodeIdsToEntities = std::move(GeometryNodeIdsToEntityMapping);
-
     mSortedToUnsortedEntityNodeIds.clear();
     std::ranges::transform(
         mGeometryNodeIdsToEntities,
@@ -51,7 +49,7 @@ void NeighbouringElementFinder::AddNeighbouringElementsToEntitiesBasedOnOverlapp
 {
     for (const auto& r_boundary_geometry : rBoundaryGeometries) {
         AddNeighbouringElementsBasedOnBoundaryGeometry(rElement, r_boundary_geometry);
-        if (mAlsoSearchReverse) {
+        if (mEnableReverseSearch) {
             constexpr auto reverse_search = true;
             AddNeighbouringElementsBasedOnBoundaryGeometry(rElement, r_boundary_geometry, reverse_search);
         }

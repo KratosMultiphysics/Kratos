@@ -44,11 +44,11 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) NeighbouringElementFinder
 {
 public:
     /**
-     * @brief Constructor for NeighbouringEntityFinder
-     * @param AlsoSearchReverse If true, also searches for reversed node orderings when matching boundaries.
+     * @brief Constructor for NeighbouringElementFinder
+     * @param EnableReverseSearch If true, also searches for reversed node orderings when matching boundaries.
      * This is useful when elements may have opposite orientations but share the same boundary.
      */
-    explicit NeighbouringElementFinder(bool AlsoSearchReverse = false);
+    explicit NeighbouringElementFinder(bool EnableReverseSearch = false);
 
     using BoundaryGeneratorByLocalDim = std::map<std::size_t, std::unique_ptr<BoundaryGenerator>>;
 
@@ -75,31 +75,31 @@ public:
                               BoundaryGeneratorByLocalDim&      rBoundaryGenerators)
     {
         for (auto& r_entity : rEntities) {
-            r_entity.GetValue(NEIGHBOUR_ELEMENTS).clear();
+            r_entity.SetValue(NEIGHBOUR_ELEMENTS, {});
         }
 
         for (std::size_t local_space_dimension = 0; local_space_dimension < 4; ++local_space_dimension) {
             if (!rBoundaryGenerators.contains(local_space_dimension)) continue;
 
-            NodeIdsToEntitiesHashMap map;
+            mGeometryNodeIdsToEntities.clear();
             const auto& r_boundary_generator = *rBoundaryGenerators.at(local_space_dimension);
             for (auto& r_entity : rEntities) {
                 if (r_entity.GetGeometry().LocalSpaceDimension() != local_space_dimension) continue;
 
                 for (const auto& r_boundary_geometry : r_boundary_generator(r_entity.GetGeometry())) {
-                    map.insert({GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry), {&r_entity}});
+                    mGeometryNodeIdsToEntities.insert({GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry), {&r_entity}});
                 }
             }
 
-            if (map.empty()) continue;
+            if (mGeometryNodeIdsToEntities.empty()) continue;
 
-            InitializeBoundaryMaps(map);
+            InitializeSortedToUnsortedEntityNodeIds();
             FindEntityNeighboursBasedOnBoundaryType(r_boundary_generator, rCandidateElements);
         }
     }
 
 private:
-    void InitializeBoundaryMaps(NodeIdsToEntitiesHashMap GeometryNodeIdsToEntityMapping);
+    void InitializeSortedToUnsortedEntityNodeIds();
     void FindEntityNeighboursBasedOnBoundaryType(const BoundaryGenerator& rBoundaryGenerator,
                                                  ModelPart::ElementsContainerType& rElements);
     void AddNeighbouringElementsToEntitiesBasedOnOverlappingBoundaryGeometries(
@@ -122,6 +122,6 @@ private:
 
     NodeIdsToEntitiesHashMap       mGeometryNodeIdsToEntities;
     SortedToUnsortedNodeIdsHashMap mSortedToUnsortedEntityNodeIds;
-    bool                           mAlsoSearchReverse = false;
+    bool                           mEnableReverseSearch = false;
 };
 } // namespace Kratos

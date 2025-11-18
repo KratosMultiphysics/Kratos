@@ -39,10 +39,10 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
 void FindNeighbourElementsOfConditionsProcess::FindNeighbouringElementsForAllBoundaryTypes()
 {
-    std::map<std::size_t, std::unique_ptr<BoundaryGenerator>> boundary_generator_map;
-    boundary_generator_map[0] = std::make_unique<PointsGenerator>();
-    boundary_generator_map[1] = std::make_unique<EdgesGenerator>();
-    boundary_generator_map[2] = std::make_unique<FacesGenerator>();
+    NeighbouringElementFinder::BoundaryGeneratorByLocalDim boundary_generator_map;
+    boundary_generator_map[std::size_t{0}] = std::make_unique<PointsGenerator>();
+    boundary_generator_map[std::size_t{1}] = std::make_unique<EdgesGenerator>();
+    boundary_generator_map[std::size_t{2}] = std::make_unique<FacesGenerator>();
 
     NeighbouringElementFinder finder;
     finder.FindEntityNeighbours(mrModelPart.Conditions(), mrModelPart.Elements(), boundary_generator_map);
