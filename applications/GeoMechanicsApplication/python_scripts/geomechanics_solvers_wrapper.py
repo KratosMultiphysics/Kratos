@@ -34,7 +34,7 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
     module_full_name = 'KratosMultiphysics.GeoMechanicsApplication.' + solver_module_name
     return import_module(module_full_name).CreateSolver(model, custom_settings)
 
-def ExtractModelPartNames(process_list, domain_condition_names, root_name, prefix):
+def _ExtractModelPartNames(process_list, domain_condition_names, root_name, prefix):
     for i in range(process_list.size()):
         process = process_list[i]
         if process.Has("Parameters") and process["Parameters"].Has("model_part_name"):
@@ -45,8 +45,7 @@ def ExtractModelPartNames(process_list, domain_condition_names, root_name, prefi
                model_part_name = model_part_name[len(prefix):]
             domain_condition_names.add(model_part_name)
 
-def CreateSolver(model, custom_settings):
-    solver_settings = custom_settings["solver_settings"]
+def _AddProcessesSubModelPartList(custom_settings, solver_settings):
     if solver_settings.Has("processes_sub_model_part_list"):
         solver_settings.RemoveValue("processes_sub_model_part_list")
     solver_settings.AddEmptyArray("processes_sub_model_part_list")
@@ -61,14 +60,18 @@ def CreateSolver(model, custom_settings):
     prefix = root_name + "."
     for process_list_name in process_lists_to_be_checked:
         if custom_settings["processes"].Has(process_list_name):
-            ExtractModelPartNames(
-               custom_settings["processes"][process_list_name],
-               domain_condition_names,
-               root_name,
-               prefix
-        )
+            _ExtractModelPartNames(
+                custom_settings["processes"][process_list_name],
+                domain_condition_names,
+                root_name,
+                prefix
+            )
     for name in domain_condition_names:
         solver_settings["processes_sub_model_part_list"].Append(KratosMultiphysics.Parameters(f'"{name}"'))
+
+def CreateSolver(model, custom_settings):
+    solver_settings = custom_settings["solver_settings"]
+    _AddProcessesSubModelPartList(custom_settings, solver_settings)
 
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
     return CreateSolverByParameters(model, solver_settings, parallelism)
