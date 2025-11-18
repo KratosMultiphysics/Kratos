@@ -146,12 +146,12 @@ std::vector<Point> ElementSetupUtilities::CreatePointsFor3D8NElement()
 Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return Create2D3NElement(1, rNodes, rProperties);
+    return Create2D3NElement(rNodes, rProperties, 1);
 }
 
-Element::Pointer ElementSetupUtilities::Create2D3NElement(std::size_t                Id,
-                                                          const PointerVector<Node>& rNodes,
-                                                          const Properties::Pointer& rProperties)
+Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties,
+                                                          std::size_t                Id)
 {
     return make_intrusive<UPwSmallStrainElement<2, 3>>(
         Id, std::make_shared<Triangle2D3<Node>>(rNodes), rProperties,
@@ -267,6 +267,15 @@ Element::Pointer ElementSetupUtilities::Create3D6NInterfaceElement(const Pointer
                                             rProperties, std::make_unique<SurfaceInterfaceStressState>());
 }
 
+Element::Pointer ElementSetupUtilities::Create3D8NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                                   const Properties::Pointer& rProperties,
+                                                                   std::size_t Id)
+{
+    return make_intrusive<InterfaceElement>(
+        Id, std::make_shared<InterfaceGeometry<Quadrilateral3D4<Node>>>(rNodes), rProperties,
+        std::make_unique<SurfaceInterfaceStressState>());
+}
+
 Element::Pointer ElementSetupUtilities::Create3D4NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
@@ -290,7 +299,14 @@ Element::Pointer ElementSetupUtilities::Create3D10NElement()
 Element::Pointer ElementSetupUtilities::Create3D8NElement(const PointerVector<Node>& rNodes,
                                                           const Properties::Pointer& rProperties)
 {
-    return make_intrusive<UPwSmallStrainElement<3, 8>>(1, std::make_shared<Hexahedra3D8<Node>>(rNodes), rProperties,
+    return Create3D8NElement(rNodes, rProperties, 1);
+}
+
+Element::Pointer ElementSetupUtilities::Create3D8NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties,
+                                                          std::size_t                Id)
+{
+    return make_intrusive<UPwSmallStrainElement<3, 8>>(Id, std::make_shared<Hexahedra3D8<Node>>(rNodes), rProperties,
                                                        std::make_unique<ThreeDimensionalStressState>());
 }
 
