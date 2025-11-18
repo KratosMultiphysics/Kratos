@@ -1136,8 +1136,7 @@ protected:
     void BuildRHSNoDirichlet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemVectorType& b)
-    {
+        TSystemVectorType& b) {
         KRATOS_TRY
 
         //Getting the Elements
@@ -1158,32 +1157,34 @@ protected:
 
         // assemble all elements
         //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+        const int nelements = static_cast<int>(pElements.size());
+#pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
+        {
+            block_for_each(pElements, [&](Element& rElement){
+                // If the element is active
+                if(rElement.IsActive()) {
+                    //calculate elemental Right Hand Side Contribution
+                    pScheme->CalculateRHSContribution(rElement, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-        block_for_each(pElements, [&](Element& rElement){
-            // If the element is active
-            if(rElement.IsActive()) {
-                //calculate elemental Right Hand Side Contribution
-                pScheme->CalculateRHSContribution(rElement, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
+            });
 
-                //assemble the elemental contribution
-                AssembleRHS(b, RHS_Contribution, EquationId);
-            }
-        });
+            LHS_Contribution.resize(0, 0, false);
+            RHS_Contribution.resize(0, false);
 
-        LHS_Contribution.resize(0, 0, false);
-        RHS_Contribution.resize(0, false);
+            // assemble all conditions
+            block_for_each(ConditionsArray, [&](Condition& rCondition) {
+                if(rCondition.IsActive())  {
+                    //calculate elemental contribution
+                    pScheme->CalculateRHSContribution(rCondition, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-        // assemble all conditions
-        block_for_each(ConditionsArray, [&](Condition& rCondition) {
-            if(rCondition.IsActive())  {
-                //calculate elemental contribution
-                pScheme->CalculateRHSContribution(rCondition, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                //assemble the elemental contribution
-                AssembleRHS(b, RHS_Contribution, EquationId);
-            }
-        });
-
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
+            });
+        }
         KRATOS_CATCH("")
 
     }
