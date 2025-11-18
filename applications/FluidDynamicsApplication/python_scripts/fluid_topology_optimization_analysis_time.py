@@ -822,7 +822,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
     def _ComputePhysicsParameter(self, physics_parameters, design_parameter):
         parameter = np.zeros(self.n_nodes)
         parameter_derivative_wrt_design_base = np.zeros(self.n_nodes)
-        for subdomain_physics_parameters in physics_parameters:
+        for subdomain_physics_parameters in physics_parameters.values():
             domain = subdomain_physics_parameters["domain"].GetString()
             mp = self._GetSubModelPart(self._GetMainModelPart(), domain)
             if (mp is not None):
@@ -890,7 +890,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         return slope_initial, slope_final, start_it, end_it
     
     def _EvaluatePhysicsParameterCurrentValue(self, physics_parameters):
-        for subdomain_physics_parameters in physics_parameters:
+        for subdomain_physics_parameters in physics_parameters.values():
             # Adjust void value
             if (subdomain_physics_parameters["change_value_void"]["change_value"].GetBool()):
                 start_it      = subdomain_physics_parameters["change_value_void"]["iterations"][0].GetInt()
