@@ -60,24 +60,9 @@
         "newmark_beta": 0.25,
         "newmark_gamma": 0.5,
         "newmark_theta": 0.5,
-        "problem_domain_sub_model_part_list": [
-            "Soil_Top",
-            "Soil_Bottom",
-            "Interface"
-        ],
-        "processes_sub_model_part_list": [
-            "Bottom_Fixed",
-            "Side_Rollers",
-            "Top_Load",
-            "Interface",
-            "Master_side_1",
-            "Slave_side_1"
-        ],
-        "body_domain_sub_model_part_list": [
-            "Soil_Top",
-            "Soil_Bottom",
-            "Interface"
-        ],
+        "problem_domain_sub_model_part_list": ["Soil_Top", "Soil_Bottom", "Interface"],
+        "processes_sub_model_part_list": ["Bottom_Fixed", "Side_Rollers", "Top_Load", "Interface", "Master_side_1", "Slave_side_1"],
+        "body_domain_sub_model_part_list": ["Soil_Top", "Soil_Bottom", "Interface"],
         "linear_solver_settings": {
             "solver_type": "skyline_lu_factorization",
             "scaling": true
@@ -92,26 +77,10 @@
                 "Parameters": {
                     "model_part_name": "PorousDomain.Bottom_Fixed",
                     "variable_name": "DISPLACEMENT",
-                    "active": [
-                        true,
-                        true,
-                        false
-                    ],
-                    "is_fixed": [
-                        true,
-                        true,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "active": [true, true, false],
+                    "is_fixed": [true, true, false],
+                    "value": [0.0, 0.0, 0.0],
+                    "table": [0, 0, 0]
                 }
             },
             {
@@ -121,26 +90,10 @@
                 "Parameters": {
                     "model_part_name": "PorousDomain.Side_Rollers",
                     "variable_name": "DISPLACEMENT",
-                    "active": [
-                        true,
-                        false,
-                        false
-                    ],
-                    "is_fixed": [
-                        true,
-                        false,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "active": [true, false, false],
+                    "is_fixed": [true, false, false],
+                    "value": [0.0, 0.0, 0.0],
+                    "table": [0, 0, 0]
                 }
             },
             {
@@ -151,25 +104,13 @@
                     "model_part_name": "PorousDomain",
                     "variable_name": "WATER_PRESSURE",
                     "is_fixed": true,
-                    "table": [
-                        0,
-                        0
-                    ],
+                    "table": [0, 0],
                     "fluid_pressure_type": "Phreatic_Multi_Line",
                     "gravity_direction": 1,
                     "out_of_plane_direction": 2,
-                    "x_coordinates": [
-                        0.0,
-                        1.0
-                    ],
-                    "y_coordinates": [
-                        0.0,
-                        0.0
-                    ],
-                    "z_coordinates": [
-                        0.0,
-                        0.0
-                    ],
+                    "x_coordinates": [0.0, 1.0],
+                    "y_coordinates": [0.0, 0.0],
+                    "z_coordinates": [0.0, 0.0],
                     "specific_weight": 10000.0
                 }
             },
@@ -179,10 +120,7 @@
                 "process_name": "AssignMasterSlaveConstraintsToNeighboursUtility",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "variable_names": [
-                        "DISPLACEMENT",
-                        "WATER_PRESSURE"
-                    ],
+                    "variable_names": ["DISPLACEMENT", "WATER_PRESSURE"],
                     "minimum_number_of_neighbouring_nodes": 2,
                     "reform_constraints_at_each_step": true,
                     "master_model_part_name": "PorousDomain.Master_side_1",
@@ -199,21 +137,9 @@
                 "Parameters": {
                     "model_part_name": "PorousDomain.Top_Load",
                     "variable_name": "LINE_LOAD",
-                    "active": [
-                        true,
-                        true,
-                        true
-                    ],
-                    "value": [
-                        0.0,
-                        -1000,
-                        0.0
-                    ],
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "active": [true, true, true],
+                    "value": [0.0, -1000, 0.0],
+                    "table": [0, 0, 0]
                 }
             },
             {
@@ -252,15 +178,9 @@
                             "node_output": false,
                             "skin_output": false,
                             "plane_output": [],
-                            "nodal_results": [
-                                "DISPLACEMENT",
-                                "WATER_PRESSURE"
-                            ],
+                            "nodal_results": ["DISPLACEMENT", "WATER_PRESSURE"],
                             "nodal_nonhistorical_results": [],
-                            "gauss_point_results": [
-                                "VON_MISES_STRESS",
-                                "HYDRAULIC_HEAD"
-                            ]
+                            "gauss_point_results": ["VON_MISES_STRESS", "HYDRAULIC_HEAD"]
                         },
                         "point_data_configuration": []
                     },
