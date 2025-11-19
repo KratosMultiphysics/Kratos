@@ -320,6 +320,7 @@ private:
     std::size_t mGapApproximationOrder;
     std::size_t mGapInterpolationOrder;
     std::string mGapSbmType;
+    bool mUseForMultipatch = false;
 
     /**
      * @brief Attaches the surrogate middle geometry to skin nodes.

@@ -47,13 +47,16 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
 
     if (ThisParameters.Has("gap_approximation_order"))
         mGapApproximationOrder = ThisParameters["gap_approximation_order"].GetInt();
+    if (ThisParameters.Has("use_for_multipatch")) 
+        mUseForMultipatch = ThisParameters["use_for_multipatch"].GetBool();
+    if (ThisParameters.Has("polynomial_order"))
+        mGapInterpolationOrder = ThisParameters["polynomial_order"].GetVector()[0];
 
-    mLambdaInner = 0.001;
+    mLambdaInner = 0.0;
     mLambdaOuter = 1.0;
     mInternalDivisions = ThisParameters["number_internal_divisions"].GetInt();
 
-    if (ThisParameters.Has("polynomial_order"))
-        mGapInterpolationOrder = ThisParameters["polynomial_order"].GetVector()[0];
+    if (mUseForMultipatch) mLambdaInner = 0.001;    
 }
 
 SnakeGapSbmProcess::KnotSpanIdsCSR
@@ -837,17 +840,21 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
             }
         }
 
-        // Attach the surrogate middle geometry to all associated skin nodes
-        AttachSurrogateMiddleGeometryToSkinNodes(
-            rSkinSubModelPart,
-            segment_projection_ids,
-            surrogate_brep_middle_geometry,
-            projection_node_1,
-            projection_node_2);
+        if (mUseForMultipatch) {
+            // Attach the surrogate middle geometry to all associated skin nodes
+            AttachSurrogateMiddleGeometryToSkinNodes(
+                rSkinSubModelPart,
+                segment_projection_ids,
+                surrogate_brep_middle_geometry,
+                projection_node_1,
+                projection_node_2);
+        }
     }
 
-    // Ensure first and last skin nodes share the same neighbour geometries
-    SynchronizeEndSkinNodeNeighbourGeometries(rSkinSubModelPart);
+    if (mUseForMultipatch) {
+        // Ensure first and last skin nodes share the same neighbour geometries
+        SynchronizeEndSkinNodeNeighbourGeometries(rSkinSubModelPart);
+    }
 
     //---------------------------------------------------------------------------
     bool is_entering = false;
@@ -1019,10 +1026,12 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
 
     // For the inner loop, create multipatch coupling conditions on the skin
     if constexpr (TIsInnerLoop) {
-        CreateInnerSkinMultipatchCouplingConditions(
-            rSkinSubModelPart,
-            knot_span_sizes,
-            p_nurbs_surface);
+        if (mUseForMultipatch) {
+            CreateInnerSkinMultipatchCouplingConditions(
+                rSkinSubModelPart,
+                knot_span_sizes,
+                p_nurbs_surface);
+        }
     }
 
 }
@@ -1273,10 +1282,10 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     //     quad_geom.SetValue(NEIGHBOUR_NODES, empty_vector);
     // }
     
-    // Commented this cause for coupling I don't need it. TODO:
-    // this->CreateConditions(
-    //     brep_quadrature_point_list_skin1_skin2.ptr_begin(), brep_quadrature_point_list_skin1_skin2.ptr_end(),
-    //     r_layer_model_part, condition_name, id, PropertiesPointerType(), rIntegrationParameters.rKnotSpanSizes, neighbour_geometries_skin1_skin2);
+    if (!mUseForMultipatch)
+        this->CreateConditions(
+            brep_quadrature_point_list_skin1_skin2.ptr_begin(), brep_quadrature_point_list_skin1_skin2.ptr_end(),
+            r_layer_model_part, condition_name, id, PropertiesPointerType(), rIntegrationParameters.rKnotSpanSizes, neighbour_geometries_skin1_skin2);
 
     // check for void elements/true coincident with surrogate boundary
     if (
@@ -2704,7 +2713,8 @@ const Parameters SnakeGapSbmProcess::GetDefaultParameters() const
         "lower_point_uvw": [0.0, 0.0, 0.0],
         "upper_point_uvw": [1.0, 1.0, 0.0],
         "polynomial_order" : [2, 2],
-        "number_of_knot_spans" : [10, 10]
+        "number_of_knot_spans" : [10, 10],
+        "use_for_multipatch": false
     })");
 }
 
@@ -2729,7 +2739,8 @@ const Parameters SnakeGapSbmProcess::GetValidParameters() const
         "skin_model_part_inner_initial_name": "initial_skin_model_part_in",           
         "skin_model_part_name": "skin_model_part",
         "gap_element_name": "CutSbmSolidElement",
-        "gap_interface_condition_name": "CutSbmSolidInterfaceCondition"
+        "gap_interface_condition_name": "CutSbmSolidInterfaceCondition",
+        "use_for_multipatch": false
     })");
 }
 
