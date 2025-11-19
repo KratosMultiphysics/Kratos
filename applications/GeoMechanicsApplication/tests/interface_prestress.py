@@ -19,7 +19,6 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
 
         for nodal_displacement in nodal_displacements:
             y_displacement = nodal_displacement[1]
-            # The following assertion is commented out, since the process doesn't exist yet.
             self.assertAlmostEqual(y_displacement, 0, places=6)
 
 
