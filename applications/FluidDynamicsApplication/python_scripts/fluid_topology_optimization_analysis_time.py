@@ -1485,7 +1485,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
             self.diffusive_filter_type = self.diffusive_filter_settings["filter_type"].GetString()
             self.diffusive_filter_radius = self.diffusive_filter_settings["radius"].GetDouble()
             self.diffusive_filter_type_settings = self.diffusive_filter_settings["type_settings"]
-            if (self.apply_diffusive_filter) and (self.CurrentDomainHasOptimizationNodes()):
+            if self.apply_diffusive_filter:
                 if self.diffusive_filter_type == "pde":
                     self._InitializePdeDiffusiveFilter()
                 else:
@@ -1615,7 +1615,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
                 
     def _ApplyDiffusiveFilter(self, scalar_variable):
         scalar_variable_in_opt_domain = scalar_variable[self._GetOptimizationDomainNodesMask()]
-        if (self.apply_diffusive_filter) and (self.CurrentDomainHasOptimizationNodes()):
+        if self.apply_diffusive_filter:
             if (self.diffusive_filter_type == "pde"):
                 self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Design Parameter")
                 self._InitializePdeDiffusiveFilterExecution(scalar_variable)
@@ -1635,7 +1635,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
     
     def _ApplyDiffusiveFilterDerivative(self, scalar_variable_derivative):
         scalar_variable_derivative_in_opt_domain = scalar_variable_derivative[self._GetOptimizationDomainNodesMask()]
-        if (self.apply_diffusive_filter) and (self.CurrentDomainHasOptimizationNodes()):
+        if self.apply_diffusive_filter:
             if (self.diffusive_filter_type == "pde"):
                 self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Functional Derivative")
                 self._InitializePdeDiffusiveFilterExecution(scalar_variable_derivative)

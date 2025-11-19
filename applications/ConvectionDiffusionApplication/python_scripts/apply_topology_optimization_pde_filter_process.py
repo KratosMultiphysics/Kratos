@@ -29,6 +29,8 @@ from KratosMultiphysics.ConvectionDiffusionApplication import topology_optimizat
 
 from KratosMultiphysics import assign_vector_by_direction_process
 
+from KratosMultiphysics import DataCommunicator
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -38,9 +40,11 @@ def Factory(settings, Model):
 class ApplyTopologyOptimizationPdeFilterProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings, radius, main_model_part, optimization_model_part, optimization_domain_nodes_mask, nodes_ids_global_to_local_partition_dictionary):
         KratosMultiphysics.Process.__init__(self)
+        self.data_communicator = DataCommunicator.GetDefault()
         self.model = Model
         self.main_model_part = main_model_part
         self.domain_size = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
+        self._SetNumNodesInElements()
         self.optimization_model_part = optimization_model_part
         self.optimization_domain_nodes_mask = optimization_domain_nodes_mask
         self.nodes_ids_global_to_local_partition_dictionary = nodes_ids_global_to_local_partition_dictionary
@@ -53,9 +57,16 @@ class ApplyTopologyOptimizationPdeFilterProcess(KratosMultiphysics.Process):
                                     """)
         self.filter_radius = radius
         self.filter_reaction = 1.0
-        self.pde_solver = topology_optimization_pde_filter_solver.CreateSolver(self.model, self.settings, self.optimization_model_part)
+        self.pde_solver = topology_optimization_pde_filter_solver.CreateSolver(self.model, self.settings, self.optimization_model_part, self.num_nodes_elements)
         self.pde_solver_set_up = False
 
+    def _SetNumNodesInElements(self):
+        ## Elements
+        self.num_nodes_elements = 0
+        for el in self.main_model_part.Elements:
+            self.num_nodes_elements = len(el.GetNodes())
+            break
+         
     def Execute(self):
         self._InitializePdeFilterExecution()
         self._SolvePdeFilter()

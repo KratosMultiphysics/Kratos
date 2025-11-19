@@ -34,20 +34,20 @@ import KratosMultiphysics.ConvectionDiffusionApplication as KratosCD
 from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_stationary_solver import ConvectionDiffusionStationarySolver
 import KratosMultiphysics.FluidDynamicsApplication
 
-def CreateSolver(model, custom_settings, optimization_model_part):
+def CreateSolver(model, custom_settings, optimization_model_part, num_nodes_elements):
     solver_settings = custom_settings["solver_settings"]
-    return TopologyOptimizationPdeFilterSolver(model, solver_settings, optimization_model_part)
+    return TopologyOptimizationPdeFilterSolver(model, solver_settings, optimization_model_part, num_nodes_elements)
 
 class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
 
-    def __init__(self, model, custom_settings, optimization_model_part):
+    def __init__(self, model, custom_settings, optimization_model_part, num_nodes_elements):
         self._DisableSettingsComputeReactions(custom_settings)
         self._SetSettingsModelPartName(custom_settings)
-        super().__init__(model,custom_settings)
         self.base_optimization_model_part = optimization_model_part
         self.solver_imports_model_part = False
-        self._DefineElementsAndConditions()
+        self._DefineElementsAndConditions(num_nodes_elements)
         self.InitializeDataCommunicator()
+        super().__init__(model,custom_settings)
     
     def _DisableSettingsComputeReactions(self, custom_settings):
         if not custom_settings.Has("compute_reactions"):
@@ -61,33 +61,28 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
         else:
             custom_settings["model_part_name"].SetString("PdeFilterModelPart")
 
-    def _DefineElementsAndConditions(self):
+    def _DefineElementsAndConditions(self, num_nodes_elements):
         self.element_name = "TopologyOptimizationPdeFilterElement"
         self.condition_name = "ThermalFace"
         self.element_integrates_in_time = True
+        self.domain_size = self.base_optimization_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.num_nodes_elements = num_nodes_elements
+        self.num_nodes_conditions = self.domain_size
 
     def InitializeDataCommunicator(self):
         self.data_communicator = DataCommunicator.GetDefault()
 
     def _get_element_condition_replace_settings(self):
-        ## Get and check domain size
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if domain_size not in [2,3]:
-            raise Exception("DOMAIN_SIZE is not set in ProcessInfo container.")
-
         ## Validate the replace settings
         default_replace_settings = self.GetDefaultParameters()["element_replace_settings"]
         self.settings["element_replace_settings"].ValidateAndAssignDefaults(default_replace_settings)
 
         ## Elements
-        for el in self.main_model_part.Elements:
-            num_nodes_elements = len(el.GetNodes())
-            break
-        name_string = f"{self.element_name}{domain_size}D{num_nodes_elements}N"
+        name_string = f"{self.element_name}{self.domain_size}D{self.num_nodes_elements}N"
         self.settings["element_replace_settings"]["element_name"].SetString(name_string)
+
         ## Conditions
-        num_nodes_conditions = domain_size
-        name_string = f"{self.condition_name}{domain_size}D{num_nodes_conditions}N"
+        name_string = f"{self.condition_name}{self.domain_size}D{self.num_nodes_conditions}N"
         self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
 
         return self.settings["element_replace_settings"]
@@ -110,11 +105,6 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
         self.min_buffer_size = 1
 
     def ImportModelPart(self):
-        if _CheckIsDistributed():
-            self.comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
-            ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart(), self.comm)
-            ParallelFillCommunicator.Execute()
-
         element_name, condition_name = self.__GetElementAndConditionNames()
         # Here the optimization model part is cloned to be pde filter model part so that the nodes are shared
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
@@ -123,6 +113,11 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
             self.main_model_part,
             element_name,
             condition_name)
+
+        if _CheckIsDistributed():
+            self.comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
+            ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart(), self.comm)
+            ParallelFillCommunicator.Execute()
 
     def PrepareModelPart(self):
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCD.PDE_FILTER_DIFFUSION, 0.0, self.main_model_part.Nodes)
@@ -184,43 +179,10 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def __GetElementAndConditionNames(self):
-        ''' Auxiliary function to get the element and condition names for the connectivity preserve modeler call
-        This function returns the element and condition names from the domain size and number of nodes.
-        Note that throughout all the substitution process a unique element type and condition is assumed.
-        Also note that the connectivity preserve modeler call will create standard base elements as these are to
-        be substituted by the corresponding ones in the PrepareModelPart call of the transport solver.
-        MODIFIED: now it provides already the correct element and condition names. In this way it works with the MPI simulations. The problem was that in
-        PrepareModelPart the ReplaceElementsAndConditions doesn't work in MPI. Therefore they must be already passed correctly.
-        '''
-        ## Get and check domain size
-        model_part = self.base_optimization_model_part
-        domain_size = model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if domain_size not in [2,3]:
-            raise Exception("DOMAIN_SIZE is not set in ProcessInfo container.")
         ## Elements
-        ## Get the number of nodes from the fluid mesh elements (if there are no elements simplicial are assumed)
-        num_nodes_elements = 0
-        if (len(model_part.Elements) > 0):
-            for elem in model_part.Elements:
-                num_nodes_elements = len(elem.GetNodes())
-                break
-        num_nodes_elements = model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
-        if not num_nodes_elements:
-            num_nodes_elements = domain_size + 1
-
-        element_name = f"{self.element_name}{domain_size}D{num_nodes_elements}N"
+        element_name = f"{self.element_name}{self.domain_size}D{self.num_nodes_elements}N"
         ## Conditions
-        ## Get the number of nodes from the fluid mesh conditions (if there are no elements simplicial are assumed)
-        num_nodes_conditions = 0
-        if (len(model_part.Conditions) > 0):
-            for cond in model_part.Conditions:
-                num_nodes_conditions = len(cond.GetNodes())
-                break
-        num_nodes_conditions = model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
-        if not num_nodes_conditions:
-            num_nodes_conditions = domain_size
-        aux_condition_name = "LineCondition" if domain_size == 2 else "SurfaceCondition"
-        condition_name = f"{self.condition_name}{domain_size}D{num_nodes_conditions}N"
+        condition_name = f"{self.condition_name}{self.domain_size}D{self.num_nodes_conditions}N"
         return element_name, condition_name
     
     def MpiBarrier(self):
