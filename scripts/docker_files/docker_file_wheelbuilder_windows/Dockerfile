@@ -52,8 +52,8 @@ RUN powershell.exe -Command \
     mkdir c:\python\38; \
     Start-Process c:\temp\python38.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\38' -Wait; \
     c:\python\38\python.exe -m pip install --upgrade pip; \
-    c:\python\38\python.exe -m pip install mypy; \
-    c:\python\38\python.exe -m pip install --upgrade setuptools wheel
+    c:\python\38\python.exe -m pip install mypy toml build hatchling; \
+    c:\python\38\python.exe -m pip install --upgrade setuptools wheel 
 
 #Install python 3.9
 RUN powershell.exe -Command \
@@ -62,7 +62,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\39; \
     Start-Process c:\temp\python39.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\39' -Wait; \
     c:\python\39\python.exe -m pip install --upgrade pip; \
-    c:\python\39\python.exe -m pip install mypy; \
+    c:\python\39\python.exe -m pip install mypy toml build hatchling; \
     c:\python\39\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.10
@@ -72,6 +72,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\310; \
     Start-Process c:\temp\python310.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\310' -Wait; \
     c:\python\310\python.exe -m pip install --upgrade pip; \
+    c:\python\310\python.exe -m pip install mypy toml build hatchling; \
     c:\python\310\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.11
@@ -81,6 +82,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\311; \
     Start-Process c:\temp\python311.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\311' -Wait; \
     c:\python\311\python.exe -m pip install --upgrade pip; \
+    c:\python\311\python.exe -m pip install mypy toml build hatchling; \
     c:\python\311\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.12
@@ -90,6 +92,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\312; \
     Start-Process c:\temp\python312.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\312' -Wait; \
     c:\python\312\python.exe -m pip install --upgrade pip; \
+    c:\python\312\python.exe -m pip install mypy toml build hatchling; \
     c:\python\312\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.13
@@ -99,6 +102,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\313; \
     Start-Process c:\temp\python313.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\313' -Wait; \
     c:\python\313\python.exe -m pip install --upgrade pip; \
+    c:\python\313\python.exe -m pip install mypy toml build hatchling; \
     c:\python\313\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.14
@@ -108,6 +112,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\314; \
     Start-Process c:\temp\python314.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\314' -Wait; \
     c:\python\314\python.exe -m pip install --upgrade pip; \
+    c:\python\314\python.exe -m pip install mypy toml build hatchling; \
     c:\python\314\python.exe -m pip install --upgrade setuptools wheel
 
 # Download and extract hdf5
