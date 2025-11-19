@@ -43,6 +43,7 @@ private:
     [[nodiscard]] bool   IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau) const;
     [[nodiscard]] bool   IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
                                                     CoulombYieldSurface::CoulombAveragingType AveragingType) const;
+    [[nodiscard]] Vector ReturnStressAtTensionApexReturnZone() const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;

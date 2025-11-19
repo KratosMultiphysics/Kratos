@@ -15,6 +15,7 @@
 
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
 #include "includes/serializer.h"
@@ -23,13 +24,6 @@ namespace
 {
 
 using namespace Kratos;
-
-Vector ReturnStressAtTensionApexReturnZone(double TensileStrength)
-{
-    auto result = Vector{ZeroVector{2}};
-    result[0]   = TensileStrength;
-    return result;
-}
 
 Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rSigmaTau,
                                              const Vector& rDerivativeOfFlowFunction,
@@ -75,13 +69,9 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
     const auto kappa_start = mCoulombYieldSurface.GetKappa();
 
     for (unsigned int counter = 0; counter < mCoulombYieldSurface.GetMaxIterations(); ++counter) {
-        const auto apex = mCoulombYieldSurface.CalculateApex();
-
         if (IsStressAtTensionApexReturnZone(rTrialSigmaTau)) {
-            return ReturnStressAtTensionApexReturnZone(mTensionCutOff.GetTensileStrength());
+            return ReturnStressAtTensionApexReturnZone();
         }
-
-        const auto corner_point = CalculateCornerPoint();
 
         if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau)) {
             return ReturnStressAtTensionCutoffReturnZone(
@@ -90,7 +80,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
         }
 
         if (IsStressAtCornerReturnZone(rTrialSigmaTau, AveragingType)) {
-            result = corner_point;
+            result = CalculateCornerPoint();
         } else { // Regular failure region
             result = ReturnStressAtRegularFailureZone(
                 rTrialSigmaTau, mCoulombYieldSurface,
@@ -148,6 +138,11 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Vector& rTri
     return (rTrialSigmaTau[0] - corner_point[0]) * derivative_of_flow_function[1] -
                (rTrialSigmaTau[1] - corner_point[1]) * derivative_of_flow_function[0] >=
            0.0;
+}
+
+Vector CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone() const
+{
+    return UblasUtilities::CreateVector({mTensionCutOff.GetTensileStrength(), 0.0});
 }
 
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
