@@ -278,7 +278,8 @@ public:
         }
         if (MaxStress > Sth) { //In those cases with no fatigue in course (MaxStress < Sth), tbe fatigue reduction factor does not evolve.
             rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
-            const double min_fatigue_reduction_factor = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0];
+            rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+            const double min_fatigue_reduction_factor = rMaterialParameters.Has(MINIMUM_FATIGUE_REDUCTION_FACTOR) ? rMaterialParameters[MINIMUM_FATIGUE_REDUCTION_FACTOR] : rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0];
             rFatigueReductionFactor = (rFatigueReductionFactor < min_fatigue_reduction_factor) ? min_fatigue_reduction_factor : rFatigueReductionFactor;
         }
     }
