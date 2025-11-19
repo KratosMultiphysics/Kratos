@@ -45,6 +45,8 @@ private:
                                                     CoulombYieldSurface::CoulombAveragingType AveragingType) const;
     [[nodiscard]] Vector ReturnStressAtTensionApexReturnZone() const;
     [[nodiscard]] Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rSigmaTau) const;
+    [[nodiscard]] Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
+                                                          CoulombYieldSurface::CoulombAveragingType AveragingType) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;

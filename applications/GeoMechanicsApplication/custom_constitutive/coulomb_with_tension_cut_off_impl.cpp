@@ -20,21 +20,6 @@
 #include "includes/properties.h"
 #include "includes/serializer.h"
 
-namespace
-{
-
-using namespace Kratos;
-
-Vector ReturnStressAtRegularFailureZone(const Vector&        rSigmaTau,
-                                        CoulombYieldSurface& rCoulombYieldSurface,
-                                        const Vector&        rDerivativeOfFlowFunction)
-{
-    const auto lambda = rCoulombYieldSurface.CalculatePlasticMultiplier(rSigmaTau, rDerivativeOfFlowFunction);
-    return rSigmaTau + lambda * rDerivativeOfFlowFunction;
-}
-
-} // namespace
-
 namespace Kratos
 {
 
@@ -71,9 +56,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
         if (IsStressAtCornerReturnZone(rTrialSigmaTau, AveragingType)) {
             result = CalculateCornerPoint();
         } else { // Regular failure region
-            result = ReturnStressAtRegularFailureZone(
-                rTrialSigmaTau, mCoulombYieldSurface,
-                mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType));
+            result = ReturnStressAtRegularFailureZone(rTrialSigmaTau, AveragingType);
         }
 
         const auto lambda = mCoulombYieldSurface.CalculatePlasticMultiplier(
@@ -140,6 +123,15 @@ Vector CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZone(const
     const auto lambda_tc = (mTensionCutOff.GetTensileStrength() - rSigmaTau[0] - rSigmaTau[1]) /
                            (derivative_of_flow_function[0] + derivative_of_flow_function[1]);
     return rSigmaTau + lambda_tc * derivative_of_flow_function;
+}
+
+Vector CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
+                                                                      CoulombYieldSurface::CoulombAveragingType AveragingType) const
+{
+    const auto derivative_of_flow_function =
+        mCoulombYieldSurface.DerivativeOfFlowFunction(rSigmaTau, AveragingType);
+    const auto lambda = mCoulombYieldSurface.CalculatePlasticMultiplier(rSigmaTau, derivative_of_flow_function);
+    return rSigmaTau + lambda * derivative_of_flow_function;
 }
 
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
