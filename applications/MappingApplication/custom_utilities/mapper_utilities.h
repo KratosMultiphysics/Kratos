@@ -195,6 +195,16 @@ void UpdateModelPartFromSystemVector(
 */
 void KRATOS_API(MAPPING_APPLICATION) AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
+/**
+* @brief Assigning INTERFACE_EQUATION_IDs to the conditions, with and without MPI
+* This function assigns the INTERFACE_EQUATION_IDs to the conditions, which
+* act as EquationIds for the MappingMatrix in the case of IGA. This work with and without MPI,
+* in MPI a ScanSum is performed with the local number of nodes
+* @param rModelPartCommunicator The Modelpart-Communicator to be used
+* @author Juan I. Camarotti
+*/
+void KRATOS_API(MAPPING_APPLICATION) AssignInterfaceEquationIdsOnConditions(Communicator& rModelPartCommunicator);
+
 void KRATOS_API(MAPPING_APPLICATION) CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
                                        const Communicator& rModelPartCommunicator,
                                        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems);
