@@ -29,11 +29,13 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighboursOfInterfacesProcess : 
 public:
     FindNeighboursOfInterfacesProcess(Model& rModel, const Parameters& rProcessSettings);
     ~FindNeighboursOfInterfacesProcess() override;
+    void ExecuteInitialize() override;
 
     [[nodiscard]] std::string Info() const override;
 
 private:
     std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
+    ModelPart& mrMainModelPart;
 };
 
 } // namespace Kratos
