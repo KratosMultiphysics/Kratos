@@ -59,7 +59,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
             result = ReturnStressAtRegularFailureZone(rTrialSigmaTau, AveragingType);
         }
 
-        const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrain(
+        const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrainIncrement(
                                              rTrialSigmaTau, AveragingType);
         mCoulombYieldSurface.SetKappa(kappa);
 

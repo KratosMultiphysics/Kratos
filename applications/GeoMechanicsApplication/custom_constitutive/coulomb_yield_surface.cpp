@@ -13,6 +13,7 @@
 
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
 
@@ -201,16 +202,19 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Vector& rSigmaTau,
     return (GetCohesion() * std::cos(GetFrictionAngleInRadians()) - rSigmaTau[0] * sin_phi - rSigmaTau[1]) / numerator;
 }
 
-double CoulombYieldSurface::CalculateEquivalentPlasticStrain(const Vector& rSigmaTau,
-                                                             CoulombAveragingType AveragingType) const
+double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Vector& rSigmaTau,
+                                                                      CoulombAveragingType AveragingType) const
 {
-    Vector     dGdsigma = DerivativeOfFlowFunction(rSigmaTau, AveragingType);
-    const auto g1       = (dGdsigma[0] + dGdsigma[1]) * 0.5;
-    const auto g3       = (dGdsigma[0] - dGdsigma[1]) * 0.5;
-    const auto mean     = (g1 + g3) / 3.0;
-    const auto deviatoric = std::sqrt(std::pow(g1 - mean, 2) + std::pow(g3 - mean, 2) + std::pow(mean, 2));
-    const auto alpha = std::sqrt(2.0 / 3.0) * deviatoric;
-    return -alpha * CalculatePlasticMultiplier(rSigmaTau, DerivativeOfFlowFunction(rSigmaTau, AveragingType));
+    const auto derivative              = DerivativeOfFlowFunction(rSigmaTau, AveragingType);
+    const auto principal_stress_vector = UblasUtilities::CreateVector(
+        {(derivative[0] + derivative[1]) / 2.0, 0.0, (derivative[0] - derivative[1]) / 2.0});
+    const auto mean =
+        std::accumulate(principal_stress_vector.begin(), principal_stress_vector.end(), 0.0) / 3.0;
+    auto deviatoric_principle_stress_vector = Vector{3};
+    std::ranges::transform(principal_stress_vector, deviatoric_principle_stress_vector.begin(),
+                           [mean](auto sigma) { return sigma - mean; });
+    return -std::sqrt(2.0 / 3.0) * MathUtils<>::Norm(deviatoric_principle_stress_vector) *
+           CalculatePlasticMultiplier(rSigmaTau, DerivativeOfFlowFunction(rSigmaTau, AveragingType));
 }
 
 void CoulombYieldSurface::save(Serializer& rSerializer) const
