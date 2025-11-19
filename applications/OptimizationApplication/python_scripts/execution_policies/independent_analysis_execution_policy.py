@@ -41,6 +41,7 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
         else:
             self.analysis_full_module = f"{self.analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(self.analysis_type)}"
 
+        self.current_analysis = None
 
     def Initialize(self) -> None:
         pass
@@ -66,13 +67,10 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
     def GetAnalysisModelPart(self):
         if self.current_analysis is not None:
             if isinstance(self.current_analysis, AnalysisStage):
-                if self.analysis_model_part_name == "" or self.analysis_model_part_name == self.current_analysis._GetSolver().GetComputingModelPart().FullName():
-                    return self.current_analysis._GetSolver().GetComputingModelPart()
-                else:
-                    raise RuntimeError(f"The specified analysis model part name mismatch [ specified analysis model part name = {self.analysis_model_part_name}, used analysis model part name = {self.current_analysis._GetSolver().GetComputingModelPart().FullName()} ].")
+                return self.current_analysis._GetSolver().GetComputingModelPart()
             elif isinstance(self.current_analysis, Orchestrator):
                 return self.current_analysis.GetProject().GetModel()[self.analysis_model_part_name]
             else:
                 raise RuntimeError(f"Unsupported analysis type = {self.current_analysis}.")
         else:
-            raise RuntimeError("The analysis is not run yet.")
+            return self.model[self.analysis_model_part_name]
