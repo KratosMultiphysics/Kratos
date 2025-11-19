@@ -35,7 +35,7 @@ class TestIgaFEMCouplingGeometryMapper(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(self):
         if not CheckIfApplicationsAvailable("IgaApplication"):
-            raise KratosUnittest.skipTest("The IgaApplication is not available!")
+            raise KratosUnittest.SkipTest("The IgaApplication is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         self.mapper_parameters = KM.Parameters("""{
             "mapper_type": "coupling_geometry",
@@ -69,7 +69,7 @@ class TestDualMortarIgaFEMCouplingGeometryMapper(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(self):
         if not CheckIfApplicationsAvailable("IgaApplication"):
-            raise KratosUnittest.skipTest("The IgaApplication is not available!")
+            raise KratosUnittest.SkipTest("The IgaApplication is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         self.mapper_parameters = KM.Parameters("""{
             "mapper_type": "coupling_geometry",

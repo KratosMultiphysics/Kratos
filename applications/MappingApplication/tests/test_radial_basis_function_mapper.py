@@ -22,9 +22,9 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         if not CheckIfApplicationsAvailable("IgaApplication"):
-            raise KratosUnittest.skipTest("The IgaApplication is not available!")
+            raise KratosUnittest.SkipTest("The IgaApplication is not available!")
         if not LSA.HasMKL():
-            raise KratosUnittest.skipTest("Intel MKL is not available!")
+            raise KratosUnittest.SkipTest("Intel MKL is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
                     "mapper_type": "radial_basis_function",
@@ -176,9 +176,9 @@ class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         if not CheckIfApplicationsAvailable("IgaApplication"):
-           raise KratosUnittest.skipTest("The IgaApplication is not available!")
+           raise KratosUnittest.SkipTest("The IgaApplication is not available!")
         if not LSA.HasMKL():
-           raise KratosUnittest.skipTest("Intel MKL is not available!")
+           raise KratosUnittest.SkipTest("Intel MKL is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_neighbor_iga",
