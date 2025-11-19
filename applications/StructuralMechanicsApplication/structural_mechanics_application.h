@@ -60,6 +60,7 @@
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_elements/shell_thick_element_3D3N.hpp"
 
+#include "custom_elements/shell_elements/shell_thin_shifted_boundary_element_3D3N.hpp"
 
 /* Adding the bushing element */
 #include "custom_elements/nodal_elements/bushing_element.h"
@@ -110,6 +111,7 @@
 
 /* Adding the displacement-based SBM condition */
 #include "custom_conditions/displacement_shifted_boundary_condition.h"
+#include "custom_conditions/displacement_shell_shifted_boundary_condition.h"
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
@@ -302,6 +304,8 @@ private:
     const ShellThinElement3D3N<ShellKinematics::LINEAR>                  mShellThinElement3D3N;
     const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D3N;
     const ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D3N;
+
+    const ShellThinShiftedBoundaryElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalShiftedBoundaryElement3D3N; //TO DO
 
     // Adding the membrane elements
     const MembraneElement mMembraneElement3D4N;
@@ -516,6 +520,7 @@ private:
 
     // SBM displacement conditions
     const DisplacementShiftedBoundaryCondition mDisplacementShiftedBoundaryCondition;
+    const DisplacementShellShiftedBoundaryCondition mDisplacementShellShiftedBoundaryCondition;
 
     // Moving load
     const MovingLoadCondition<2,2> mMovingLoadCondition2D2N;

@@ -87,6 +87,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThinCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThickCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+
+      mShellThinCorotationalShiftedBoundaryElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       // Adding the membrane elements
       mMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
@@ -284,6 +286,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
 
       // Adding the SBM displacement conditions
       mDisplacementShiftedBoundaryCondition(0, Element::GeometryType::Pointer(new Geometry<Node>())),
+      mDisplacementShellShiftedBoundaryCondition(0, Element::GeometryType::Pointer(new Geometry<Node>())),
 
       // Adding moving load conditions
       mMovingLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
@@ -583,6 +586,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D3N", mShellThickCorotationalElement3D3N)
     KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
 
+    KRATOS_REGISTER_ELEMENT("ShellThinCorotationalShiftedBoundaryElement3D3N", mShellThinCorotationalShiftedBoundaryElement3D3N)
+
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT("MembraneElement3D4N", mMembraneElement3D4N)
     KRATOS_REGISTER_ELEMENT("MembraneElement3D3N", mMembraneElement3D3N)
@@ -798,6 +803,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // SBM displacement conditions
     KRATOS_REGISTER_CONDITION("DisplacementShiftedBoundaryCondition", mDisplacementShiftedBoundaryCondition)
+    KRATOS_REGISTER_CONDITION("DisplacementShellShiftedBoundaryCondition", mDisplacementShellShiftedBoundaryCondition)
 
     // Moving loads
     KRATOS_REGISTER_CONDITION("MovingLoadCondition2D2N", mMovingLoadCondition2D2N)

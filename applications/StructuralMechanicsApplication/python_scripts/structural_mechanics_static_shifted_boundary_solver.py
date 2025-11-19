@@ -26,7 +26,8 @@ class StaticMechanicalShiftedBoundarySolver(structural_mechanics_static_solver.S
         this_defaults = KratosMultiphysics.Parameters(r"""{
             "conforming_basis" : true,
             "extension_operator_type" : "MLS",
-            "mls_extension_operator_order" : 1
+            "mls_extension_operator_order" : 1,
+            "sbm_interface_condition_name" : "DisplacementShiftedBoundaryCondition"                                    
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
@@ -59,7 +60,7 @@ class StaticMechanicalShiftedBoundarySolver(structural_mechanics_static_solver.S
         settings.AddEmptyValue("conforming_basis").SetBool(self.settings["conforming_basis"].GetBool())
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["extension_operator_type"].GetString())
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["mls_extension_operator_order"].GetInt())
-        settings.AddEmptyValue("sbm_interface_condition_name").SetString("DisplacementShiftedBoundaryCondition")
+        settings.AddEmptyValue("sbm_interface_condition_name").SetString(self.settings["sbm_interface_condition_name"].GetString())
         sbm_interface_utility = KratosMultiphysics.ShiftedBoundaryMeshlessInterfaceUtility(self.model, settings)
         sbm_interface_utility.CalculateExtensionOperator()
 

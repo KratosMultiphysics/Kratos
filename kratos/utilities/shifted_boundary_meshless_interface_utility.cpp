@@ -117,6 +117,9 @@ namespace
             case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
                 return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
                     return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
+            case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
+                return [](const GeometryType::Pointer pGeometry, const Vector& rNodalDistances)->ModifiedShapeFunctions::UniquePointer{
+                    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rNodalDistances);};
             default:
                 KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
         }
@@ -608,7 +611,7 @@ namespace
 
                     // Initialize the extension operator containers
                     const std::size_t n_cl_nodes = cloud_nodes_vector.size();
-                    const std::size_t n_dim = r_geom.WorkingSpaceDimension();
+                    const std::size_t n_dim = r_geom.LocalSpaceDimension(); // TODO
                     Vector N_container = ZeroVector(n_cl_nodes);
                     Matrix DN_DX_container = ZeroMatrix(n_cl_nodes, n_dim);
 
@@ -814,7 +817,7 @@ namespace
         for (auto& rElement : mpModelPart->Elements()) {
             if (rElement.Is(BOUNDARY)) {
                 const auto& r_geom = rElement.GetGeometry();
-                const std::size_t n_faces = r_geom.FacesNumber();
+                const std::size_t n_faces = 3; // TODO r_geom.FacesNumber();
                 auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
                 for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
                     // The neighbour corresponding to the current face is ACTIVE means that the current face is surrogate boundary
@@ -905,6 +908,8 @@ namespace
                 return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
             case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
                 return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
+            case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
+                return [](const GeometryType& rGeometry)->double{return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
             default:
                 KRATOS_ERROR << "Asking for a non-implemented modified shape functions geometry.";
         }
@@ -1094,7 +1099,7 @@ namespace
 
     std::size_t ShiftedBoundaryMeshlessInterfaceUtility::GetRequiredNumberOfPoints()
     {
-        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE]; //TO DO
         switch (n_dim) {
             case 2:
                 switch (mMLSExtensionOperatorOrder) {
