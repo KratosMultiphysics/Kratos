@@ -100,7 +100,7 @@ def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
                 "bash", 
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
                 python_interpreter,
-                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}" / "libs"
+                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}"
             ],
             check=True
         )
@@ -111,7 +111,7 @@ def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
                 "bash", 
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
                 python_interpreter,
-                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}" / "libs"
+                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}"
             ],
             check=True
         )
