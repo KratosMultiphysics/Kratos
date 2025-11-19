@@ -39,6 +39,7 @@ private:
     TensionCutoff       mTensionCutOff;
 
     [[nodiscard]] Vector CalculateCornerPoint() const;
+    [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;
