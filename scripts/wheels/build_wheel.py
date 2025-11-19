@@ -79,45 +79,26 @@ def getPythonInterpreter(platform: str, python_ver: str):
 
 def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
     python_interpreter = getPythonInterpreter(platform, python_ver)
+    build_command = []
 
     if platform == "Windows":
-        res = subprocess.run(
-            [
-                "powershell", 
-                "-Command", 
-                Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
-                python_interpreter,
-                Path(CURRENT_CONFIG['KRATOS_ROOT']),
-                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}",
-                "24"
-            ], 
-            check=True
-        )
-        logResult(res)
+        build_command += ["powershell", "-Command"]
     elif platform == "Linux":
-        res = subprocess.run(
-            [
-                "bash", 
-                Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
-                python_interpreter,
-                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}"
-            ],
-            check=True
-        )
-        logResult(res)
+        build_command += ["bash"]
     elif platform == "Darwin":
-        res = subprocess.run(
-            [
-                "bash", 
-                Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
-                python_interpreter,
-                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}"
-            ],
-            check=True
-        )
-        logResult(res)
+        build_command += ["bash"]
     else:
         logging.critical(f"Cannot build for platform: {platform}")
+
+    build_command += [
+        Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
+        python_interpreter,
+        Path(CURRENT_CONFIG['KRATOS_ROOT']),
+        Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}",  
+    ]
+    
+    res = subprocess.run(build_command, check=True)
+    logResult(res)
       
 def buildKernel(CURRENT_CONFIG: dict, platform: str, python_ver: str):
     if platform == "Windows":

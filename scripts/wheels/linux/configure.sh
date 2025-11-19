@@ -12,13 +12,13 @@ export MPI_C=`which mpicc`
 export MPI_CXX=`which mpicxx`
 
 # Set variables
-export KRATOS_SOURCE=${KRATOS_ROOT}
+export KRATOS_SOURCE=$1
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 # export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 export KRATOS_BUILD_TYPE="Release"
-export PYTHON_EXECUTABLE=$1
+export PYTHON_EXECUTABLE=$2
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
@@ -65,7 +65,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
 -DCMAKE_POLICY_VERSION_MINIMUM=3.5                                     \
 -DKRATOS_USE_FUTURE=ON                                                 \
--DCMAKE_INSTALL_PREFIX=$2                                              \
+-DCMAKE_INSTALL_PREFIX=$3                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=ON                                                           \
 -DMAKE_TRILINOS_OPTIONAL=ON                                            \
