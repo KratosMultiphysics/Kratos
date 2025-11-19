@@ -14,7 +14,6 @@
 //
 
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
-#include "custom_processes/set_automated_initial_variable_process.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
