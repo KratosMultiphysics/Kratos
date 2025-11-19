@@ -24,20 +24,6 @@ namespace
 
 using namespace Kratos;
 
-Vector CalculateCornerPoint(double FrictionAngleInRadians, double Cohesion, double TensileStrength, double Apex)
-{
-    // Check whether the tension cut-off lies beyond the apex
-    auto result = Vector{ZeroVector(2)};
-    result[0]   = Apex;
-    if (TensileStrength > result[0]) return result;
-
-    result[0] = (TensileStrength - Cohesion * std::cos(FrictionAngleInRadians)) /
-                (1.0 - std::sin(FrictionAngleInRadians));
-    result[1] = (Cohesion * std::cos(FrictionAngleInRadians) - TensileStrength * std::sin(FrictionAngleInRadians)) /
-                (1.0 - std::sin(FrictionAngleInRadians));
-    return result;
-}
-
 bool IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau, double TensileStrength, double Apex)
 {
     return TensileStrength < Apex && rTrialSigmaTau[0] - rTrialSigmaTau[1] - TensileStrength > 0.0;
@@ -115,9 +101,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
             return ReturnStressAtTensionApexReturnZone(mTensionCutOff.GetTensileStrength());
         }
 
-        const auto corner_point = CalculateCornerPoint(mCoulombYieldSurface.GetFrictionAngleInRadians(),
-                                                       mCoulombYieldSurface.GetCohesion(),
-                                                       mTensionCutOff.GetTensileStrength(), apex);
+        const auto corner_point = CalculateCornerPoint();
 
         if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau, mTensionCutOff.GetTensileStrength(),
                                               apex, corner_point)) {
@@ -145,6 +129,22 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
         double error = std::abs(mCoulombYieldSurface.YieldFunctionValue(result));
         if (error < mCoulombYieldSurface.GetConvergenceTolerance()) break;
     }
+    return result;
+}
+
+Vector CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
+{
+    // Check whether the tension cut-off lies beyond the apex
+    auto result                 = Vector{ZeroVector(2)};
+    result[0]                   = mCoulombYieldSurface.CalculateApex();
+    const auto tensile_strength = mTensionCutOff.GetTensileStrength();
+    if (tensile_strength > result[0]) return result;
+
+    const auto cohesion = mCoulombYieldSurface.GetCohesion();
+    const auto sin_phi  = std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians());
+    const auto cos_phi  = std::cos(mCoulombYieldSurface.GetFrictionAngleInRadians());
+    result[0]           = (tensile_strength - cohesion * cos_phi) / (1.0 - sin_phi);
+    result[1]           = (cohesion * cos_phi - tensile_strength * sin_phi) / (1.0 - sin_phi);
     return result;
 }
 
