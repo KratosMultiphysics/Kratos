@@ -100,7 +100,7 @@ class RBFSupportAccumulator {
 
         const std::vector<Candidate>& Candidates() const { return mCandidates; }
 
-        const IndexType GetRequiredRBFPoints() const {return mRequiredRBFSupportPoints;}
+        IndexType GetRequiredRBFPoints() const {return mRequiredRBFSupportPoints;}
 
         bool HasEnough() const { return mNumNeighbors >= mRequiredRBFSupportPoints; }
 
