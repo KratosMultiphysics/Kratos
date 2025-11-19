@@ -824,8 +824,6 @@ private:
 
     std::vector<IndexType> InitializePolynomialEquationIdsIga(const ModelPart* pModelPart);
 
-    std::vector<double> CalculateValuesOnIntegrationPoints(const Variable<double>& rVariable);
-
     void CalculateMappingMatrix();
     
     // For IGA, compute the mapping matrix mapping from origin control points to destination nodes
