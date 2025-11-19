@@ -188,6 +188,24 @@ void VelocitySensor::CalculateGradient(
     Vector& rResponseGradient,
     const ProcessInfo& rProcessInfo)
 {
+    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
+}
+
+void VelocitySensor::CalculateGradient(
+    const Condition& rAdjointCondition,
+    const Matrix& rResidualGradient,
+    Vector& rResponseGradient,
+    const ProcessInfo& rProcessInfo)
+{
+    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
+}
+
+void VelocitySensor::CalculateFirstDerivativesGradient(
+    const Element& rAdjointElement,
+    const Matrix& rResidualGradient,
+    Vector& rResponseGradient,
+    const ProcessInfo& rProcessInfo)
+{
     KRATOS_TRY;
 
     if (rResponseGradient.size() != rResidualGradient.size1()) {
@@ -209,28 +227,10 @@ void VelocitySensor::CalculateGradient(
                 rResponseGradient[i * block_size + 2] = mNs[i] * mDirection[2];
             }
         }
-        
+
     }
 
     KRATOS_CATCH("");
-}
-
-void VelocitySensor::CalculateGradient(
-    const Condition& rAdjointCondition,
-    const Matrix& rResidualGradient,
-    Vector& rResponseGradient,
-    const ProcessInfo& rProcessInfo)
-{
-    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
-}
-
-void VelocitySensor::CalculateFirstDerivativesGradient(
-    const Element& rAdjointElement,
-    const Matrix& rResidualGradient,
-    Vector& rResponseGradient,
-    const ProcessInfo& rProcessInfo)
-{
-    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
 }
 
 void VelocitySensor::CalculateFirstDerivativesGradient(

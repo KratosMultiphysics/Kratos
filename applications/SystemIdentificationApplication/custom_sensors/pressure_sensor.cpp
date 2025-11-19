@@ -169,6 +169,24 @@ void PressureSensor::CalculateGradient(
     Vector& rResponseGradient,
     const ProcessInfo& rProcessInfo)
 {
+    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
+}
+
+void PressureSensor::CalculateGradient(
+    const Condition& rAdjointCondition,
+    const Matrix& rResidualGradient,
+    Vector& rResponseGradient,
+    const ProcessInfo& rProcessInfo)
+{
+    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
+}
+
+void PressureSensor::CalculateFirstDerivativesGradient(
+    const Element& rAdjointElement,
+    const Matrix& rResidualGradient,
+    Vector& rResponseGradient,
+    const ProcessInfo& rProcessInfo)
+{
     KRATOS_TRY;
 
     if (rResponseGradient.size() != rResidualGradient.size1()) {
@@ -191,26 +209,8 @@ void PressureSensor::CalculateGradient(
             }
         }
     }
-    
+
     KRATOS_CATCH("");
-}
-
-void PressureSensor::CalculateGradient(
-    const Condition& rAdjointCondition,
-    const Matrix& rResidualGradient,
-    Vector& rResponseGradient,
-    const ProcessInfo& rProcessInfo)
-{
-    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
-}
-
-void PressureSensor::CalculateFirstDerivativesGradient(
-    const Element& rAdjointElement,
-    const Matrix& rResidualGradient,
-    Vector& rResponseGradient,
-    const ProcessInfo& rProcessInfo)
-{
-    SetVectorToZero(rResponseGradient, rResidualGradient.size1());
 }
 
 void PressureSensor::CalculateFirstDerivativesGradient(
