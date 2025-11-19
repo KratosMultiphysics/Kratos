@@ -73,8 +73,14 @@ public:
                                                const Properties::Pointer& rProperties);
     static Element::Pointer Create2D15NElement();
 
+    static Element::Pointer Create2D4NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                       const Properties::Pointer& rProperties);
+    static Element::Pointer Create2D6NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                       const Properties::Pointer& rProperties);
     static Element::Pointer Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
                                                        const Properties::Pointer& rProperties);
+    static Element::Pointer Create3D12NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                        const Properties::Pointer& rProperties);
 
     static Element::Pointer Create3D8NInterfaceElement(const PointerVector<Node>& rNodes,
                                                        const Properties::Pointer& rProperties,

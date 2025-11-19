@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include "custom_utilities/neighbouring_entity_finder.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 
@@ -35,8 +34,7 @@ public:
     void                      PrintData(std::ostream& rOStream) const override;
 
 private:
-    ModelPart&               mrModelPart;
-    NeighbouringEntityFinder mNeighbouringEntityFinder;
+    ModelPart& mrModelPart;
 
     void FindNeighbouringElementsForAllBoundaryTypes();
 
