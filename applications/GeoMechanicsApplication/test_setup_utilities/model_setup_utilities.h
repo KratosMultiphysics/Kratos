@@ -59,6 +59,8 @@ public:
     static ModelPart&          CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel);
     static Triangle2D3<Node>   Create2D3NTriangleGeometry();
     static Tetrahedra3D4<Node> Create3D4NTetrahedraGeometry();
+    static void CreateNumberOfNewNodes(ModelPart& rModelPart, std::size_t NumberOfNodes);
+    static PointerVector<Node> GetNodesFromIds(ModelPart& rModelPart, const std::vector<std::size_t>& rNodeIds);
 };
 
 } // namespace Kratos::Testing

@@ -21,21 +21,6 @@ namespace
 {
 using namespace Kratos;
 
-void CreateNumberOfNewNodes(ModelPart& rModelPart, std::size_t NumberOfNodes)
-{
-    for (std::size_t i = 0; i < NumberOfNodes; ++i) {
-        rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0);
-    }
-}
-
-PointerVector<Node> GetNodesFromIds(ModelPart& rModelPart, const std::vector<std::size_t>& rNodeIds)
-{
-    PointerVector<Node> result(rNodeIds.size());
-    std::ranges::transform(rNodeIds, result.ptr_begin(),
-                           [&rModelPart](auto Id) { return rModelPart.pGetNode(Id); });
-    return result;
-}
-
 } // namespace
 
 namespace Kratos::Testing
@@ -80,15 +65,17 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighb
 {
     Model model;
     auto& r_computational_model_part = model.CreateModelPart("Main");
-    CreateNumberOfNewNodes(r_computational_model_part, 9);
+    ModelSetupUtilities::CreateNumberOfNewNodes(r_computational_model_part, 9);
 
     const auto node_ids_continuum_element = std::vector<std::size_t>{4, 5, 8, 6, 9, 7};
-    const auto nodes_continuum_element = GetNodesFromIds(r_computational_model_part, node_ids_continuum_element);
+    const auto nodes_continuum_element =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_continuum_element);
     auto p_continuum_element = ElementSetupUtilities::Create2D6NElement(nodes_continuum_element, {});
     r_computational_model_part.AddElement(p_continuum_element);
 
     const auto node_ids_element_2 = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
-    const auto nodes_element_2    = GetNodesFromIds(r_computational_model_part, node_ids_element_2);
+    const auto nodes_element_2 =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_element_2);
     auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_element_2, {});
     p_interface_element->SetId(2);
     r_computational_model_part.AddElement(p_interface_element);
@@ -110,15 +97,17 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_OnlyFindsNeighbourWh
 {
     Model model;
     auto& r_computational_model_part = model.CreateModelPart("Main");
-    CreateNumberOfNewNodes(r_computational_model_part, 6);
+    ModelSetupUtilities::CreateNumberOfNewNodes(r_computational_model_part, 6);
 
     const auto node_ids_line_element = std::vector<std::size_t>{1, 2, 3};
-    const auto nodes_line_element = GetNodesFromIds(r_computational_model_part, node_ids_line_element);
+    const auto nodes_line_element =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_line_element);
     auto p_line_element = ElementSetupUtilities::Create2D3NLineElement(nodes_line_element, {});
     r_computational_model_part.AddElement(p_line_element);
 
     const auto node_ids_element_2 = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
-    const auto nodes_element_2    = GetNodesFromIds(r_computational_model_part, node_ids_element_2);
+    const auto nodes_element_2 =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_element_2);
     auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_element_2, {});
     p_interface_element->SetId(2);
     r_computational_model_part.AddElement(p_interface_element);
