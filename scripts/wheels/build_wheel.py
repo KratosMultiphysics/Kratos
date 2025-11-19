@@ -16,6 +16,7 @@ PLATFORM_CONFIG = {
         'PYTHONS': ["38", "39", "310", "311", "312", "313", "314"],
         'PYTHON_BUILD_VER': "314",
         'BUILD_SCRIPT': "scripts/wheels/linux/configure.sh",
+        'BUILD_CORES': 24,
         'KRATOS_ROOT': "/workspace/kratos/Kratos",
         'WHEEL_ROOT': "/workspace/wheel",
         'WHEEL_OUT': "/data_swap_guest"
@@ -24,6 +25,7 @@ PLATFORM_CONFIG = {
         'PYTHONS': ["38", "39", "310", "311", "312", "313", "314"],
         'PYTHON_BUILD_VER': "39",
         'BUILD_SCRIPT': "scripts/wheels/windows/configure.bat",
+        'BUILD_CORES': 24,
         'BASE_LD_LIBRARY_PATH': "",
         'KRATOS_ROOT': "C:/kratos/Kratos",
         'WHEEL_ROOT': "C:/dist/wheel",
@@ -33,6 +35,7 @@ PLATFORM_CONFIG = {
         'PYTHONS': ["39"],
         'PYTHON_BUILD_VER': "39",
         'BUILD_SCRIPT': "scripts/wheels/darwin/configure.sh",
+        'BUILD_CORES': 8,
         'KRATOS_ROOT': "/workspace/kratos/Kratos",
         'WHEEL_ROOT': "/workspace/wheel",
         'WHEEL_OUT': "/workspace/dist",
@@ -106,7 +109,7 @@ def buildKernel(CURRENT_CONFIG: dict, platform: str, python_ver: str):
         pass
     else:
         configure(CURRENT_CONFIG, platform, python_ver)
-        res = subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosKernel"], check=True)
+        res = subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosKernel", "--", f"-j{CURRENT_CONFIG['BUILD_CORES']}"], check=True)
         logResult(res)
 
 def buildInterface(CURRENT_CONFIG: dict, platform: str, python_ver: str):
