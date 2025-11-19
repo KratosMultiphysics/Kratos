@@ -69,7 +69,6 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Beam-auto-1"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Structural_Rotation-auto-1","Point_Load-auto-1"],
         "body_domain_sub_model_part_list":    ["Beam-auto-1"]
     },
     "output_processes": {
