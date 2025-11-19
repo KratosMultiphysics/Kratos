@@ -122,6 +122,15 @@
                     "variable_name": "EXCAVATION",
                     "deactivate_soil_part": false
                 }
+            },
+            {
+                "python_module": "find_neighbours_of_interfaces_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "FindNeighboursOfInterfacesProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Interface",
+                    "model_part_name_for_neighbouring_elements": "PorousDomain.porous_computational_model_part"
+                }
             }
         ]
     },
