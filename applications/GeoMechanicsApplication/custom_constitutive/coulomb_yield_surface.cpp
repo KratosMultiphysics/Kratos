@@ -181,7 +181,7 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAvera
     return result;
 }
 
-double CoulombYieldSurface::CalculateApex()
+double CoulombYieldSurface::CalculateApex() const
 {
     return GetCohesion() / std::tan(GetFrictionAngleInRadians());
 }
@@ -193,7 +193,8 @@ void CoulombYieldSurface::InitializeKappaDependentFunctions()
     mDilatancyAngleCalculator = MakeDilatancyAngleCalculator(mMaterialProperties);
 }
 
-double CoulombYieldSurface::CalculatePlasticMultiplier(const Vector& rSigmaTau, const Vector& rDerivativeOfFlowFunction)
+double CoulombYieldSurface::CalculatePlasticMultiplier(const Vector& rSigmaTau,
+                                                       const Vector& rDerivativeOfFlowFunction) const
 {
     const auto sin_phi   = std::sin(GetFrictionAngleInRadians());
     const auto numerator = sin_phi * rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1];

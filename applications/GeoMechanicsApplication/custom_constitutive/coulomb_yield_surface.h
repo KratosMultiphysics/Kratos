@@ -50,8 +50,9 @@ public:
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;
 
-    [[nodiscard]] double CalculateApex();
-    [[nodiscard]] double CalculatePlasticMultiplier(const Vector& rSigmaTau, const Vector& rDerivativeOfFlowFunction);
+    [[nodiscard]] double CalculateApex() const;
+    [[nodiscard]] double CalculatePlasticMultiplier(const Vector& rSigmaTau,
+                                                    const Vector& rDerivativeOfFlowFunction) const;
     [[nodiscard]] double CalculateEquivalentPlasticStrain(const Vector&        rSigmaTau,
                                                           CoulombAveragingType AveragingType,
                                                           double               lambda) const;
