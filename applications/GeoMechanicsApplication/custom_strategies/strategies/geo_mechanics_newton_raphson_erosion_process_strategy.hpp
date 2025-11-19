@@ -288,7 +288,7 @@ private:
             }
 
             for (auto p_open_pipe_element : rOpenPipeElements) {
-                UpdatePipeElement(p_open_pipe_element, MaxPipeHeight,  pipe_height_increment, equilibrium);
+                UpdatePipeElementHeight(p_open_pipe_element, MaxPipeHeight,  pipe_height_increment, equilibrium);
 
                 if (const auto numberOpenPipeElements = std::ranges::distance(rOpenPipeElements);
                     numberOpenPipeElements == numberPipingElements) {
@@ -307,20 +307,21 @@ private:
         return equilibrium;
     }
 
-    void UpdatePipeElement(auto* p_open_pipe_element, double MaxPipeHeight, double pipe_height_increment, bool& equilibrium) {
+    void UpdatePipeElementHeight(auto* p_open_pipe_element, double MaxPipeHeight, double pipe_height_increment, bool& equilibrium) {
         auto& r_prop = p_open_pipe_element->GetProperties();
+        auto primary_erosion_enabled = r_prop[PIPE_PRIMARY_EROSION_ENABLED];
         double eq_height = p_open_pipe_element->CalculateEquilibriumPipeHeight(
             r_prop, p_open_pipe_element->GetGeometry(), p_open_pipe_element->GetValue(PIPE_ELEMENT_LENGTH));
         const auto current_height = p_open_pipe_element->GetValue(PIPE_HEIGHT);
 
         p_open_pipe_element->SetValue(PIPE_EROSION, p_open_pipe_element->GetValue(PIPE_EROSION) || current_height > eq_height);
 
-        if ((!p_open_pipe_element->GetValue(PIPE_EROSION) || current_height > eq_height) &&
+        if (((!p_open_pipe_element->GetValue(PIPE_EROSION) && !primary_erosion_enabled) || current_height > eq_height) &&
             current_height < MaxPipeHeight - mPipeHeightAccuracy) {
             if (current_height < r_prop[PIPE_HEIGHT] - mPipeHeightAccuracy) {
                 p_open_pipe_element->SetValue(PIPE_HEIGHT, r_prop[PIPE_HEIGHT]);
             } else {
-                p_open_pipe_element->SetValue(PIPE_HEIGHT, current_height + pipe_height_increment);
+                p_open_pipe_element->SetValue(PIPE_HEIGHT, std::min(current_height + pipe_height_increment, MaxPipeHeight));
             }
             equilibrium = false;
             }
@@ -374,7 +375,7 @@ private:
                                                        }
 
             auto pipe_height = p_tip_element->GetValue(PIPE_HEIGHT);
-            if (pipe_height <= mPipeHeightAccuracy && isPrimaryErosion) {
+            if (pipe_height <= mPipeHeightAccuracy  && isPrimaryErosion) {
                 isPrimaryErosion = false;
                 p_tip_element->SetValue(PIPE_HEIGHT, p_tip_element->GetProperties()[PIPE_HEIGHT]);
             }
