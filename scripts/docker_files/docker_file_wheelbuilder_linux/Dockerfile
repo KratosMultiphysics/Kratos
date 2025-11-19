@@ -1,7 +1,7 @@
 FROM quay.io/pypa/manylinux_2_28_x86_64
 
 ENV MMG_ROOT=/external_libraries/mmg/mmg_5_5_1
-ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
+ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
 
 # Prepare package dependencies
 RUN yum install -y git wget zip mpich mpich-devel metis metis-devel
@@ -34,25 +34,25 @@ RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /workspace/m
 # Install setuptools
 # 3.8
 RUN /opt/python/cp38-cp38/bin/python -m pip install --upgrade pip
-RUN /opt/python/cp38-cp38/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp38-cp38/bin/python -m pip install --upgrade setuptools wheel mypy toml build hatchling
 # 3.9
 RUN /opt/python/cp39-cp39/bin/python -m pip install --upgrade pip
-RUN /opt/python/cp39-cp39/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp39-cp39/bin/python -m pip install --upgrade setuptools wheel mypy toml build hatchling 
 # 3.10
 RUN /opt/python/cp310-cp310/bin/python -m pip install --upgrade pip
-RUN /opt/python/cp310-cp310/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp310-cp310/bin/python -m pip install --upgrade setuptools wheel mypy toml build hatchling
 # 3.11
 RUN /opt/python/cp311-cp311/bin/python -m pip install --upgrade pip
-RUN /opt/python/cp311-cp311/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp311-cp311/bin/python -m pip install --upgrade setuptools wheel mypy toml build hatchling
 # 3.12
 RUN /opt/python/cp312-cp312/bin/python -m pip install --upgrade pip
-RUN /opt/python/cp312-cp312/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp312-cp312/bin/python -m pip install --upgrade setuptools wheel mypy toml build hatchling
 # 3.13
 RUN /opt/python/cp313-cp313/bin/python -m pip install --upgrade pip
-RUN /opt/python/cp313-cp313/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp313-cp313/bin/python -m pip install --upgrade setuptools wheel mypy toml build hatchling
 # 3.14
 RUN /opt/python/cp314-cp314/bin/python -m pip install --upgrade pip
-RUN /opt/python/cp314-cp314/bin/python -m pip install --upgrade setuptools wheel
+RUN /opt/python/cp314-cp314/bin/python -m pip install --upgrade setuptools wheel mypy toml build hatchling
 
 
 COPY start.sh /workspace/scripts/start.sh
