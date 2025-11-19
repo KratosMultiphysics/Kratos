@@ -24,12 +24,6 @@ namespace
 
 using namespace Kratos;
 
-bool IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau, double TensileStrength, double Apex, const Vector& rCornerPoint)
-{
-    return TensileStrength < Apex &&
-           rCornerPoint[1] - rTrialSigmaTau[1] - rCornerPoint[0] + rTrialSigmaTau[0] > 0.0;
-}
-
 bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
                                 const Vector& rDerivativeOfFlowFunction,
                                 const Vector& rCornerPoint)
@@ -98,8 +92,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
 
         const auto corner_point = CalculateCornerPoint();
 
-        if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau, mTensionCutOff.GetTensileStrength(),
-                                              apex, corner_point)) {
+        if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau)) {
             return ReturnStressAtTensionCutoffReturnZone(
                 rTrialSigmaTau, mTensionCutOff.DerivativeOfFlowFunction(rTrialSigmaTau),
                 mTensionCutOff.GetTensileStrength());
@@ -148,6 +141,13 @@ bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Vector&
     const auto tensile_strength = mTensionCutOff.GetTensileStrength();
     return tensile_strength < mCoulombYieldSurface.CalculateApex() &&
            rTrialSigmaTau[0] - rTrialSigmaTau[1] - tensile_strength > 0.0;
+}
+
+bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau) const
+{
+    const auto corner_point = CalculateCornerPoint();
+    return mTensionCutOff.GetTensileStrength() < mCoulombYieldSurface.CalculateApex() &&
+           corner_point[1] - rTrialSigmaTau[1] - corner_point[0] + rTrialSigmaTau[0] > 0.0;
 }
 
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
