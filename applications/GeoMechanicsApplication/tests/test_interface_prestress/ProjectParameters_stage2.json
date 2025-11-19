@@ -23,7 +23,7 @@
             "input_filename": "interface_prestress_test"
         },
         "material_import_settings": {
-            "materials_filename": "Stage_1_Materials.json"
+            "materials_filename": "Materials.json"
         },
         "buffer_size": 2,
         "clear_storage": false,
@@ -32,31 +32,16 @@
         "reform_dofs_at_each_step": false,
         "block_builder": true,
         "reset_displacements": false,
-        "rayleigh_m": 0.0,
-        "rayleigh_k": 0.0,
         "convergence_criterion": "residual_criterion",
-        "displacement_relative_tolerance": 0.0001,
-        "displacement_absolute_tolerance": 1e-09,
         "residual_relative_tolerance": 0.0001,
         "residual_absolute_tolerance": 1e-09,
-        "water_pressure_relative_tolerance": 0.0001,
-        "water_pressure_absolute_tolerance": 1e-09,
         "min_iterations": 6,
         "max_iterations": 15,
-        "number_cycles": 100,
+        "number_cycles": 1,
         "reduction_factor": 0.5,
         "increase_factor": 2.0,
-        "desired_iterations": 4,
-        "max_radius_factor": 10.0,
-        "min_radius_factor": 0.1,
         "calculate_reactions": true,
-        "max_line_search_iterations": 5,
-        "first_alpha_value": 0.5,
-        "second_alpha_value": 1.0,
-        "min_alpha": 0.1,
-        "max_alpha": 2.0,
-        "line_search_tolerance": 0.5,
-        "rotation_dofs": true,
+        "rotation_dofs": false,
         "newmark_beta": 0.25,
         "newmark_gamma": 0.5,
         "newmark_theta": 0.5,
@@ -138,8 +123,7 @@
                     "deactivate_soil_part": false
                 }
             }
-        ],
-        "list_other_processes": []
+        ]
     },
     "output_processes": {
         "gid_output": [
@@ -163,18 +147,14 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "plane_output": [],
                             "nodal_results": ["DISPLACEMENT", "WATER_PRESSURE"],
-                            "nodal_nonhistorical_results": [],
-                            "gauss_point_results": ["VON_MISES_STRESS", "HYDRAULIC_HEAD"]
-                        },
-                        "point_data_configuration": []
+                            "gauss_point_results": []
+                        }
                     },
                     "output_name": "gid_output/interface_prestress_test_Stage_2"
                 }
             }
-        ],
-        "vtk_output": []
+        ]
     },
     "analysis_stage": "KratosMultiphysics.GeoMechanicsApplication.staged_geo_mechanics_analysis"
 }

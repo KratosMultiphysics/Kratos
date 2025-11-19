@@ -24,8 +24,7 @@
                 "SATURATED_SATURATION" : 1.0,
                 "K0_MAIN_DIRECTION"    : 1,
                 "K0_NC"                : 0.5
-            },
-            "Tables"           : null
+            }
         }
     },{
         "model_part_name" : "PorousDomain.Soil_Bottom",
@@ -52,8 +51,7 @@
                 "SATURATED_SATURATION" : 1.0,
                 "K0_MAIN_DIRECTION"    : 1,
                 "K0_NC"                : 0.5
-            },
-            "Tables"           : null
+            }
         }
     },{
         "model_part_name" : "PorousDomain.Interface",
@@ -65,8 +63,7 @@
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 300000,
                 "INTERFACE_SHEAR_STIFFNESS"  : 15000000
-            },
-            "Tables"           : null
+            }
         }
     }]
 }
