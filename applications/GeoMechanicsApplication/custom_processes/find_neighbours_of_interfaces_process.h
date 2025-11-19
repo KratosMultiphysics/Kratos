@@ -34,6 +34,9 @@ public:
     [[nodiscard]] std::string Info() const override;
 
 private:
+    void FindAllNeighboursOfElements();
+    void FilterOutNeighboursWhichDoNotHaveHigherLocalDimension() const;
+
     std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
     ModelPart&                                     mrMainModelPart;
 };
