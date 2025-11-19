@@ -12,9 +12,18 @@
 
 #include "find_neighbours_of_interfaces_process.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos
 {
 
 FindNeighboursOfInterfacesProcess::~FindNeighboursOfInterfacesProcess() = default;
+
+std::string FindNeighboursOfInterfacesProcess::Info() const
+{
+    return "FindNeighboursOfInterfacesProcess"s;
+}
 
 }

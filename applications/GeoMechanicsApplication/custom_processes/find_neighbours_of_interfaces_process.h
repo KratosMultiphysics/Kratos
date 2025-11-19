@@ -22,6 +22,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighboursOfInterfacesProcess : 
 {
 public:
     ~FindNeighboursOfInterfacesProcess() override;
+
+    [[nodiscard]] std::string Info() const override;
 };
 
 } // namespace Kratos
