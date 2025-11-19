@@ -55,7 +55,8 @@ public:
 
 private:
     ModelPart& AddNewModelPart(const std::string& rModelPartName);
-    void       PrepareModelPart(const Parameters& rSolverSettings, const Parameters& rProcesses);
+    void       PrepareModelPart(const Parameters& rSolverSettings);
+    void AddProcessesSubModelPartList(const Parameters& rProjectParameters, Parameters& rSolverSettings);
 
     ModelPart& GetMainModelPart();
     ModelPart& GetComputationalModelPart();

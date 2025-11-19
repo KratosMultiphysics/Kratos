@@ -221,10 +221,9 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
         }
 
-        static const Parameters empty_parameters("{}");
-        const Parameters&       processes_parameters =
-            project_parameters.Has("processes") ? project_parameters["processes"] : empty_parameters;
-        PrepareModelPart(project_parameters["solver_settings"], processes_parameters);
+        auto solver_settings = project_parameters["solver_settings"];
+        AddProcessesSubModelPartList(project_parameters, solver_settings);
+        PrepareModelPart(solver_settings);
 
         if (project_parameters["solver_settings"].Has("material_import_settings")) {
             const auto material_file_name =
@@ -406,7 +405,7 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
                                                         rWorkingDirectory, rProjectParameters);
 }
 
-void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, const Parameters& rProcesses)
+void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
 {
     auto& main_model_part = GetMainModelPart();
     main_model_part.GetProcessInfo().SetValue(TIME_UNIT_CONVERTER, 1.0);
@@ -455,20 +454,11 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
     GetComputationalModelPart().AddElements(
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
-    std::unordered_set<std::string, StringHash, std::equal_to<>> domain_condition_names;
-    const auto root_name = rSolverSettings["model_part_name"].GetString();
-    const auto prefix    = root_name + ".";
-
-    const std::vector<std::string> process_lists_to_be_checked = {
-        "constraints_process_list", "loads_process_list", "auxiliary_process_list"};
-    for (const auto& process_list_name : process_lists_to_be_checked) {
-        if (rProcesses.Has(process_list_name))
-            ExtractModelPartNames(rProcesses[process_list_name], domain_condition_names, root_name, prefix);
+    const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
+    std::vector<std::string> domain_condition_names;
+    for (const auto& sub_model_part : processes_sub_model_part_list) {
+        domain_condition_names.emplace_back(sub_model_part.GetString());
     }
-
-    KRATOS_INFO_IF("PrepareModelPart", rSolverSettings.Has("processes_sub_model_part_list"))
-        << " processes_sub_model_part_list is deprecated" << std::endl;
-
     std::set<IndexedObject::IndexType> condition_id_set;
     for (const auto& name : domain_condition_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
@@ -480,6 +470,32 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings, co
 
     // NOTE TO SELF: here we don't yet "Adding Computing Sub Sub Model Parts" (see check_and_prepare_model_process_geo.py)
     // We are not sure yet whether that piece of code is relevant or not.
+}
+
+void KratosGeoSettlement::AddProcessesSubModelPartList(const Parameters& rProjectParameters, Parameters& rSolverSettings)
+{
+    std::unordered_set<std::string, StringHash, std::equal_to<>> domain_condition_names;
+    const auto root_name = rSolverSettings["model_part_name"].GetString();
+    const auto prefix    = root_name + ".";
+
+    const std::vector<std::string> process_lists_to_be_checked = {
+        "constraints_process_list", "loads_process_list", "auxiliary_process_list"};
+    if (rProjectParameters.Has("processes")) {
+        const auto processes = rProjectParameters["processes"];
+        for (const auto& process_list_name : process_lists_to_be_checked) {
+            if (processes.Has(process_list_name))
+                ExtractModelPartNames(processes[process_list_name], domain_condition_names, root_name, prefix);
+        }
+    }
+    if (rSolverSettings.Has("processes_sub_model_part_list")) {
+        KRATOS_INFO("KratosGeoSettlement") << "processes_sub_model_part_list is deprecated" << std::endl;
+        rSolverSettings.RemoveValue("processes_sub_model_part_list");
+    }
+    rSolverSettings.AddEmptyArray("processes_sub_model_part_list");
+
+    for (const auto& name : domain_condition_names) {
+        rSolverSettings["processes_sub_model_part_list"].Append(Kratos::Parameters("\"" + name + "\""));
+    }
 }
 
 ModelPart& KratosGeoSettlement::GetMainModelPart() { return mModel.GetModelPart(mModelPartName); }
