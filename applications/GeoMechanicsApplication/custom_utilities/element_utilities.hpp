@@ -16,7 +16,6 @@
 // Project includes
 #include "includes/element.h"
 #include "includes/kratos_export_api.h"
-#include "utilities/math_utils.h"
 
 // Application includes
 #include "geo_aliases.h"
@@ -113,8 +112,6 @@ public:
         }
     }
 
-    static void CheckPermeabilityProperties(const Element::PropertiesType& rProp, size_t Dimension);
-
     static void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
                                        const Element::PropertiesType& Prop);
 
@@ -125,13 +122,6 @@ public:
                                        const Element::PropertiesType& Prop);
 
     static Matrix FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension);
-
-    static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
-                              const BoundedMatrix<double, 2, 2>& InputMatrix,
-                              double&                            InputMatrixDet);
-
-    static void InvertMatrix2(BoundedMatrix<double, 2, 2>&       rInvertedMatrix,
-                              const BoundedMatrix<double, 2, 2>& InputMatrix);
 
     template <typename MatrixType1, typename MatrixType2>
     static inline void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUUBlockMatrix)
@@ -179,38 +169,15 @@ public:
         AddVectorAtPosition(rPBlockVector, rRightHandSideVector, offset);
     }
 
-    static void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double, 2, 2>& DN_DeContainer);
-
-    static void CalculateNewtonCotesLocalShapeFunctionsGradients(BoundedMatrix<double, 3, 3>& DN_DeContainer);
-
-    static void CalculateNewtonCotesShapeFunctions(BoundedMatrix<double, 3, 3>& NContainer);
-
-    static void CalculateEquallyDistributedPointsLineShapeFunctions3N(Matrix& NContainer);
-
-    static void CalculateEquallyDistributedPointsLineGradientShapeFunctions3N(GeometryData::ShapeFunctionsGradientsType& DN_DeContainer);
-
     /**
      * Calculates the radius of axisymmetry
-     * @param N: The Gauss Point shape function
-     * @param Geom: The geometry studied
+     * @param rN: The Gauss Point shape function
+     * @param rGeometry: The geometry studied
      * @return Radius: The radius of axisymmetry
      */
+    static double CalculateRadius(const Vector& rN, const GeometryType& rGeometry);
 
-    static double CalculateRadius(const Vector& N, const GeometryType& Geom);
-
-    static double CalculateAxisymmetricCircumference(const Vector& N, const GeometryType& Geom);
-
-    static void CalculateExtrapolationMatrixTriangle(Matrix& rExtrapolationMatrix,
-                                                     const GeometryData::IntegrationMethod& rIntegrationMethod);
-
-    static void CalculateExtrapolationMatrixQuad(Matrix& rExtrapolationMatrix,
-                                                 const GeometryData::IntegrationMethod& rIntegrationMethod);
-
-    static void CalculateExtrapolationMatrixTetra(Matrix& rExtrapolationMatrix,
-                                                  const GeometryData::IntegrationMethod& rIntegrationMethod);
-
-    static void CalculateExtrapolationMatrixHexa(Matrix& rExtrapolationMatrix,
-                                                 const GeometryData::IntegrationMethod& rIntegrationMethod);
+    static double CalculateAxisymmetricCircumference(const Vector& rN, const GeometryType& rGeometry);
 
     static Vector CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom,
                                                                 const Properties&   rProp);
@@ -227,20 +194,22 @@ private:
     }
 
     template <typename MatrixType1, typename MatrixType2>
-    static void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
-                                    MatrixType2&       rDestinationMatrix,
-                                    std::size_t        RowOffset,
-                                    std::size_t        ColumnOffset)
+    static inline void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
+                                           MatrixType2&       rDestinationMatrix,
+                                           const std::size_t  RowOffset,
+                                           const std::size_t  ColumnOffset)
     {
-        for (auto i = std::size_t{0}; i < rSourceMatrix.size1(); ++i) {
-            for (auto j = std::size_t{0}; j < rSourceMatrix.size2(); ++j) {
-                rDestinationMatrix(i + RowOffset, j + ColumnOffset) += rSourceMatrix(i, j);
+        const std::size_t size1 = rSourceMatrix.size1();
+        const std::size_t size2 = rSourceMatrix.size2();
+
+        for (std::size_t i = 0; i < size1; ++i) {
+            const std::size_t di = i + RowOffset;
+
+            for (std::size_t j = 0; j < size2; ++j) {
+                rDestinationMatrix(di, j + ColumnOffset) += rSourceMatrix(i, j);
             }
         }
     }
-
-    static int CheckPropertyExistsAndIsNotNegative(const Variable<double>&        rVariable,
-                                                   const Element::PropertiesType& rProp);
 
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/

@@ -26,6 +26,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
+#include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/geometry_utilities.h"
 
@@ -1725,6 +1726,8 @@ private:
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1748,7 +1751,9 @@ private:
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
@@ -1767,7 +1772,8 @@ private:
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 )
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_local_gradients;

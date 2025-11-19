@@ -54,10 +54,12 @@ bool IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau, double Tens
            rCornerPoint[1] - rTrialSigmaTau[1] - rCornerPoint[0] + rTrialSigmaTau[0] > 0.0;
 }
 
-bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau, double DilatancyAngleInRadians, const Vector& rCornerPoint)
+bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
+                                const Vector& rDerivativeOfFlowFunction,
+                                const Vector& rCornerPoint)
 {
-    return rTrialSigmaTau[0] - rCornerPoint[0] -
-               (rTrialSigmaTau[1] - rCornerPoint[1]) * std::sin(DilatancyAngleInRadians) >=
+    return (rTrialSigmaTau[0] - rCornerPoint[0]) * rDerivativeOfFlowFunction[1] -
+               (rTrialSigmaTau[1] - rCornerPoint[1]) * rDerivativeOfFlowFunction[0] >=
            0.0;
 }
 
@@ -93,12 +95,9 @@ Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
 
 namespace Kratos
 {
-CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(double FrictionAngleInRadians,
-                                                           double Cohesion,
-                                                           double DilatancyAngleInRadians,
-                                                           double TensileStrength)
-    : mCoulombYieldSurface{FrictionAngleInRadians, Cohesion, DilatancyAngleInRadians},
-      mTensionCutOff{TensileStrength}
+
+CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties)
+    : mCoulombYieldSurface{rMaterialProperties}, mTensionCutOff{rMaterialProperties[GEO_TENSILE_STRENGTH]}
 {
 }
 
@@ -112,34 +111,35 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigm
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
 }
 
-Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Properties& rProperties, const Vector& rTrialSigmaTau) const
+Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTau,
+                                                     CoulombYieldSurface::CoulombAveragingType AveragingType) const
 {
-    const auto apex = CalculateApex(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties),
-                                    ConstitutiveLawUtilities::GetCohesion(rProperties));
+    const auto apex = CalculateApex(mCoulombYieldSurface.GetFrictionAngleInRadians(),
+                                    mCoulombYieldSurface.GetCohesion());
 
-    if (IsStressAtTensionApexReturnZone(rTrialSigmaTau, rProperties[GEO_TENSILE_STRENGTH], apex)) {
-        return ReturnStressAtTensionApexReturnZone(rProperties[GEO_TENSILE_STRENGTH]);
+    if (IsStressAtTensionApexReturnZone(rTrialSigmaTau, mTensionCutOff.GetTensileStrength(), apex)) {
+        return ReturnStressAtTensionApexReturnZone(mTensionCutOff.GetTensileStrength());
     }
 
-    const auto corner_point = CalculateCornerPoint(
-        ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties),
-        ConstitutiveLawUtilities::GetCohesion(rProperties), rProperties[GEO_TENSILE_STRENGTH]);
-    if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau, rProperties[GEO_TENSILE_STRENGTH], apex, corner_point)) {
+    const auto corner_point =
+        CalculateCornerPoint(mCoulombYieldSurface.GetFrictionAngleInRadians(),
+                             mCoulombYieldSurface.GetCohesion(), mTensionCutOff.GetTensileStrength());
+    if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau, mTensionCutOff.GetTensileStrength(), apex, corner_point)) {
         return ReturnStressAtTensionCutoffReturnZone(
             rTrialSigmaTau, mTensionCutOff.DerivativeOfFlowFunction(rTrialSigmaTau),
-            rProperties[GEO_TENSILE_STRENGTH]);
+            mTensionCutOff.GetTensileStrength());
     }
 
     if (IsStressAtCornerReturnZone(
-            rTrialSigmaTau, MathUtils<>::DegreesToRadians(rProperties[GEO_DILATANCY_ANGLE]), corner_point)) {
+            rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
+            corner_point)) {
         return corner_point;
     }
 
     // Regular failure region
     return ReturnStressAtRegularFailureZone(
-        rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau),
-        ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties),
-        ConstitutiveLawUtilities::GetCohesion(rProperties));
+        rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType),
+        mCoulombYieldSurface.GetFrictionAngleInRadians(), mCoulombYieldSurface.GetCohesion());
 }
 
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const

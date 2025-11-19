@@ -20,9 +20,9 @@
 #include "apply_phreatic_multi_line_pressure_table_process.h"
 #include "apply_phreatic_surface_pressure_table_process.hpp"
 #include "custom_utilities/parameters_utilities.h"
+#include "geo_apply_constant_scalar_value_process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "processes/apply_constant_scalarvalue_process.h"
 
 namespace Kratos
 {
@@ -79,7 +79,7 @@ void ApplyScalarConstraintTableProcess::MakeScalarConstraintProcess(const Parame
         mProcess = std::make_unique<ApplyComponentTableProcess>(
             mrModelPart, ParametersUtilities::CopyRequiredParameters(rProcessSettings, NamesOfSettingsToCopy));
     } else {
-        mProcess = std::make_unique<ApplyConstantScalarValueProcess>(
+        mProcess = std::make_unique<GeoApplyConstantScalarValueProcess>(
             mrModelPart, ParametersUtilities::CopyRequiredParameters(rProcessSettings, NamesOfSettingsToCopy));
     }
 }

@@ -43,7 +43,6 @@ const std::string testParameters = R"(
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",
@@ -205,32 +204,6 @@ KRATOS_TEST_CASE_IN_SUITE(IncrementStepNumberFromStrategyWrapper, KratosGeoMecha
     KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 4);
     wrapper.IncrementStepNumber();
     KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 5);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMechanicsFastSuite)
-{
-    Model model;
-    auto& r_model_part     = CreateDummyModelPart(model);
-    auto  strategy_wrapper = CreateWrapperWithEmptyProcessInfo(r_model_part);
-    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    r_model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
-
-    auto       p_node                                = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    const auto original_total_displacement           = array_1d<double, 3>{1.0, 2.0, 3.0};
-    p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT) = original_total_displacement;
-
-    // Saving the total displacement field twice should still result in the same expected result.
-    strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
-    strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
-
-    const auto displacement_in_time_step       = array_1d<double, 3>{3.0, 2.0, 1.0};
-    p_node->GetSolutionStepValue(DISPLACEMENT) = displacement_in_time_step;
-    strategy_wrapper.AccumulateTotalDisplacementField();
-
-    const auto expected_total_displacement =
-        array_1d<double, 3>{original_total_displacement + displacement_in_time_step};
-
-    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT), expected_total_displacement);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ComputeIncrementalDisplacementField, KratosGeoMechanicsFastSuite)

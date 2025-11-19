@@ -7,6 +7,7 @@ Documented processes:
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
 - [ApplyFinalStressesOfPreviousStageToInitialState](#apply-final-stresses-of-previous-stage-to-initial-state-process)
 - [$K_0$ procedure process](#K_0-procedure-process)
+- [ApplyInitialUniformStress](#apply-initial-uniform-stress)
 
 ## $c-\phi$ reduction process
 For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
@@ -121,13 +122,29 @@ The process is defined as follows in "ProjectParameters.json" (also found in som
       "process_name": "ApplyK0ProcedureProcess",
       "Parameters": {
         "model_part_name": "PorousDomain.porous_computational_model_part",
-        "variable_name": "CAUCHY_STRESS_TENSOR",
         "use_standard_procedure": true
       }
     }
   ]
 }
 ```
+Next to specifying a single model part, it is also possible to provide a list:
+```json
+{
+  "auxiliary_process_list": [
+    {
+      "python_module": "apply_k0_procedure_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "ApplyK0ProcedureProcess",
+      "Parameters": {
+        "model_part_name_list": ["PorousDomain.Clay", "PorousDomain.Sand"],
+        "use_standard_procedure": true
+      }
+    }
+  ]
+}
+```
+
 The "apply_k0_procedure_process" needs the following material parameter input to be added in the "MaterialParameters.json".
 ```json
 {
@@ -147,6 +164,32 @@ The "apply_k0_procedure_process" needs the following material parameter input to
     "POISSON_UNLOADING_RELOADING": 0.35,
     "POP":                         800.0
   }
+}
+```
+
+## Apply Initial Uniform Stress
+
+This process applies an initial uniform stress field to all elements in a model part.
+The elements in the model part need to be able to calculate and set the CAUCHY_STRESS_VECTOR variable.
+The Parameters object should contain a "value" field, which is a vector representing the stress components.
+The vector should have a length equal to the strain size (e.g. 4 for plane strain and axisymmetric cases, 6 for 3D).
+Note that this means that if you want to apply a uniform stress field to 
+elements with different strain sizes, you will need to apply the process multiple times with separate model parts.
+
+Example usage for a case with 3D elements in a ProjectParameters.json file:
+```json
+{
+    "loads_process_list": [
+      {
+        "python_module": "apply_initial_uniform_stress_field",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyInitialUniformStressField",
+        "Parameters":    {
+        "model_part_name": "PorousDomain.Soil",
+        "value": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+        }
+      }
+    ]
 }
 ```
 

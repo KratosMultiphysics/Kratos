@@ -9,8 +9,14 @@
 //
 //  Main authors:    Anne van de Graaf
 //
+
+#include "utilities/variable_utils.h"
+
 #include "dgeosettlement.h"
+#include "geo_mechanics_application.h"
 #include "input_output/logger.h"
+#include "linear_solvers_application.h"
+#include "structural_mechanics_application.h"
 #include "time_loop_executor_interface.h"
 
 #include "custom_processes/apply_excavation_process.h"
@@ -18,11 +24,12 @@
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
+#include "custom_processes/fix_water_pressures_above_phreatic_line.h"
 #include "custom_processes/set_parameter_field_process.hpp"
 
 #include "adaptive_time_incrementor.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
-#include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
+#include "custom_processes/find_neighbour_elements_of_conditions_process.h"
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_info_parser.h"
@@ -72,7 +79,10 @@ double GetIncreaseFactorFrom(const Parameters& rProjectParameters)
 
 double GetMaxDeltaTimeFactorFrom(const Parameters& rProjectParameters)
 {
-    return rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble();
+    // The provided default value here must match the one found in GeoMechanicsAnalysis.__init__
+    return rProjectParameters["solver_settings"]["time_stepping"].Has("max_delta_time_factor")
+               ? rProjectParameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble()
+               : 1000.0;
 }
 
 std::optional<double> GetUserMinDeltaTimeFrom(const Parameters& rProjectParameters)
@@ -145,11 +155,12 @@ void KratosGeoSettlement::InitializeProcessFactory()
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
                                 MakeCreatorFor<ApplyVectorConstraintTableProcess>());
     mProcessFactory->AddCreator("SetParameterFieldProcess", MakeCreatorFor<SetParameterFieldProcess>());
-    mProcessFactory->AddCreator("ApplyExcavationProcess", MakeCreatorFor<ApplyExcavationProcess>());
-    mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorFor<ApplyK0ProcedureProcess>());
+    mProcessFactory->AddCreator("ApplyExcavationProcess", MakeCreatorWithModelFor<ApplyExcavationProcess>());
+    mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorWithModelFor<ApplyK0ProcedureProcess>());
     mProcessFactory->AddCreator("GeoExtrapolateIntegrationPointValuesToNodesProcess",
                                 MakeCreatorFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
-
+    mProcessFactory->AddCreator("FixWaterPressuresAbovePhreaticLineProcess",
+                                MakeCreatorFor<FixWaterPressuresAbovePhreaticLineProcess>());
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName) {
         KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";
     });
@@ -202,10 +213,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
 
         for (const auto& process : processes) {
             process->ExecuteInitialize();
-        }
-
-        for (const auto& process : processes) {
-            process->ExecuteBeforeSolutionLoop();
         }
 
         if (mpTimeLoopExecutor) {
@@ -294,7 +301,7 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart& rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
 
-LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const
+LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& rKratosLogBuffer)
 {
     auto logger_output = std::make_shared<LoggerOutput>(rKratosLogBuffer);
     Logger::AddOutput(logger_output);
@@ -303,10 +310,10 @@ LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream
 
 void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback,
                                              LoggerOutput::Pointer                   pLoggerOutput,
-                                             const std::stringstream& rKratosLogBuffer) const
+                                             const std::stringstream& rKratosLogBuffer)
 {
     rLogCallback(rKratosLogBuffer.str().c_str());
-    Logger::RemoveOutput(pLoggerOutput);
+    Logger::RemoveOutput(std::move(pLoggerOutput));
 }
 
 const InputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const
@@ -347,15 +354,22 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
 
     GetMainModelPart().CloneTimeStep();
 
-    if (rProjectParameters["solver_settings"]["reset_displacements"].GetBool()) {
-        ResetValuesOfNodalVariable(DISPLACEMENT);
-        ResetValuesOfNodalVariable(ROTATION);
+    // Displacement and rotation variables are defined as stage displacement and rotation,
+    // so they need to be reset at the start of a stage
+    ResetValuesOfNodalVariable(DISPLACEMENT);
+    ResetValuesOfNodalVariable(ROTATION);
+
+    if (GetResetDisplacementsFrom(rProjectParameters)) {
+        ResetValuesOfNodalVariable(TOTAL_DISPLACEMENT);
 
         VariableUtils{}.UpdateCurrentToInitialConfiguration(GetComputationalModelPart().Nodes());
     }
 
     FindNeighbourElementsOfConditionsProcess{GetComputationalModelPart()}.Execute();
     DeactivateConditionsOnInactiveElements{GetComputationalModelPart()}.Execute();
+
+    GetComputationalModelPart().GetProcessInfo()[START_TIME] = GetStartTimeFrom(rProjectParameters);
+    GetComputationalModelPart().GetProcessInfo()[END_TIME]   = GetEndTimeFrom(rProjectParameters);
 
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
@@ -373,13 +387,8 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         main_model_part.CreateSubModelPart(mComputationalSubModelPartName);
     }
 
-    if (rSolverSettings.Has("nodal_smoothing")) {
-        main_model_part.GetProcessInfo().SetValue(NODAL_SMOOTHING,
-                                                  rSolverSettings["nodal_smoothing"].GetBool());
-    }
-
     // Note that the computing part and the main model part _share_ their process info and properties
-    GetComputationalModelPart().SetProcessInfo(main_model_part.GetProcessInfo());
+    GetComputationalModelPart().SetProcessInfo(main_model_part.pGetProcessInfo());
     for (auto i = ModelPart::SizeType{0}; i < main_model_part.NumberOfMeshes(); ++i) {
         auto& mesh = main_model_part.GetMesh(i);
         for (const auto& property : mesh.Properties()) {

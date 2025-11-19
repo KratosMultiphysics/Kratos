@@ -538,6 +538,7 @@ public:
      * @brief This method returns the whole data container
      * @return Data container
      */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     ContainerType& Data()
     {
         return mData;
@@ -547,7 +548,18 @@ public:
      * @brief This method returns the whole data container (constant)
      * @return Data container
      */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     ContainerType const& Data() const
+    {
+        return mData;
+    }
+
+    const ContainerType& GetData() const
+    {
+        return mData;
+    }
+
+    ContainerType& GetData()
     {
         return mData;
     }

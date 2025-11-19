@@ -86,7 +86,7 @@ public:
     ///@{
 
     /// Geometries map type definition
-    using GeometriesMapType = ModelPart::GeometriesMapType;
+    using GeometryContainerType = ModelPart::GeometryContainerType;
 
     /// The nodes array type definition
     using NodesArrayType = Element::NodesArrayType;
@@ -295,7 +295,7 @@ private:
      * @details Writes a geometry block to the destination.
      * @param rThisGeometries Reference to the geometries to write.
      */
-    void WriteGeometryBlock(const GeometriesMapType& rThisGeometries);
+    void WriteGeometryBlock(const GeometryContainerType& rThisGeometries);
 
     /**
      * @brief Writes an entity block (MPI version).
@@ -317,7 +317,7 @@ private:
      * @param rDataCommunicator The data communicator considered for MPI.
      */
     void WriteGeometryBlockMPI(
-        const GeometriesMapType& rThisGeometries,
+        const GeometryContainerType& rThisGeometries,
         const DataCommunicator& rDataCommunicator
         );
 

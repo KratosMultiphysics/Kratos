@@ -905,6 +905,10 @@ void QSVMSDEMCoupled<TElementData>::CalculateLocalVelocityContribution(MatrixTyp
     }
 }
 
+template < class TElementData >
+void QSVMSDEMCoupled<TElementData>::CalculateResistanceTensor(
+    const TElementData& rData)
+{}
 
 template< class TElementData >
 void QSVMSDEMCoupled<TElementData>::AddMassLHS(

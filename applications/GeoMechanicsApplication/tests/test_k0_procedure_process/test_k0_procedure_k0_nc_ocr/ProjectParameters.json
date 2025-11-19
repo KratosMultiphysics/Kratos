@@ -28,7 +28,6 @@
     "compute_reactions": true,
     "move_mesh_flag": false,
     "reform_dofs_at_each_step": false,
-    "nodal_smoothing": false,
     "block_builder": true,
     "solution_type": "quasi_static",
     "scheme_type": "Newmark",
@@ -178,8 +177,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyK0ProcedureProcess",
         "Parameters":    {
-          "model_part_name": "PorousDomain.porous_computational_model_part",
-          "variable_name":   "CAUCHY_STRESS_TENSOR"
+          "model_part_name": "PorousDomain.porous_computational_model_part"
         }
       }
     ]

@@ -31,6 +31,9 @@
 #include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_io/hdf5_vertex_container_io.h"
 #include "custom_io/hdf5_container_component_io.h"
+#include "custom_io/hdf5_properties_io.h"
+#include "custom_io/hdf5_nd_data_io.h"
+#include "custom_io/hdf5_tensor_adaptor_io.h"
 
 #include "custom_utilities/container_io_utils.h"
 
@@ -193,14 +196,14 @@ public:
         mAlphaBossak = AlphaBossak;
     }
 
-    void Write(const ModelPart& rModelPart)
+    void Write(const ModelPart& rModelPart, const Parameters Attributes)
     {
-        BaseType::Write(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak), Parameters("""{}"""));
+        BaseType::Write(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak), Attributes);
     }
 
-    void Read(ModelPart& rModelPart)
+    std::map<std::string, Parameters> Read(ModelPart& rModelPart)
     {
-        BaseType::Read(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak));
+        return BaseType::Read(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak));
     }
 
     ///@}
@@ -243,7 +246,13 @@ void AddCustomIOToPython(pybind11::module& m)
         ;
 
     py::class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
-        .def(py::init<HDF5::File::Pointer, std::string const&>())
+        .def(py::init([](HDF5::File::Pointer pFile, const std::string& rPrefix) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated constructor in \"HDF5::ModelPartIO\". Please use (Parameters, HDF5File) constructor.\n";
+                auto parameters = Parameters(R"({"prefix": ""})");
+                parameters["prefix"].SetString(rPrefix);
+                return Kratos::make_shared<HDF5::ModelPartIO>(parameters, pFile);
+            }), py::arg("hdf5_file"), py::arg("prefix"))
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         ;
 
     using nodal_solution_step_data_io = VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::HistoricalIO>::ContainerIOType;
@@ -283,7 +292,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("WriteNodalResults", [](PythonNodalSolutionStepBossakIO& rSelf, const ModelPart& rModelPart) {
                 KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteNodalResults\" method in \"HDF5NodalSolutionStepBossakIO\". Please use \"Write\" method instead.\n";
-                rSelf.Write(rModelPart);
+                rSelf.Write(rModelPart, Parameters("""{}"""));
             },
             py::arg("model_part"))
         .def("ReadNodalResults", [](PythonNodalSolutionStepBossakIO& rSelf, ModelPart& rModelPart) {
@@ -291,7 +300,7 @@ void AddCustomIOToPython(pybind11::module& m)
                 return rSelf.Read(rModelPart);
             },
             py::arg("model_part"))
-        .def("Write", &PythonNodalSolutionStepBossakIO::Write, py::arg("model_part"))
+        .def("Write", &PythonNodalSolutionStepBossakIO::Write, py::arg("model_part"), py::arg("attributes") = Parameters("""{}"""))
         .def("Read", &PythonNodalSolutionStepBossakIO::Read, py::arg("model_part"))
         .def("SetAlphaBossak", &PythonNodalSolutionStepBossakIO::SetAlphaBossak, py::arg("alpha_bossak"))
         ;
@@ -350,15 +359,52 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("Write", &HDF5::VertexContainerCoordinateIO::Write, py::arg("vertices"), py::arg("attributes") = Parameters("""{}"""))
         ;
 
-    py::class_<HDF5::VertexContainerVariableIO, HDF5::VertexContainerVariableIO::Pointer>(m, "VertexContainerVariableIO")
+    using historical_vertex_output = HDF5::VertexContainerVariableIO<HDF5::Internals::VertexHistoricalValueIO>;
+    py::class_<historical_vertex_output, historical_vertex_output::Pointer>(m, "VertexContainerHistoricalVariableIO")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
-        .def("Write", &HDF5::VertexContainerVariableIO::Write, py::arg("vertices"), py::arg("attributes") = Parameters("""{}"""))
+        .def("Write", [](historical_vertex_output& rSelf, const HDF5::Detail::VertexContainerType& rVertices, const Parameters Attributes, const IndexType StepIndex) {
+                rSelf.Write(rVertices, HDF5::Internals::VertexHistoricalValueIO(StepIndex), Attributes);
+            },
+            py::arg("vertices"),
+            py::arg("attributes") = Parameters("""{}"""),
+            py::arg("step_index") = 0)
+        ;
+
+    using non_historical_vertex_output = HDF5::VertexContainerVariableIO<HDF5::Internals::VertexNonHistoricalValueIO>;
+    py::class_<non_historical_vertex_output, non_historical_vertex_output::Pointer>(m, "VertexContainerNonHistoricalVariableIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def("Write", [](non_historical_vertex_output& rSelf, const HDF5::Detail::VertexContainerType& rVertices, const Parameters Attributes) {
+                rSelf.Write(rVertices, HDF5::Internals::VertexNonHistoricalValueIO{}, Attributes);
+            },
+            py::arg("vertices"),
+            py::arg("attributes") = Parameters("""{}"""))
+        ;
+
+    auto hdf5_properties_io = m.def_submodule("HDF5PropertiesIO");
+    hdf5_properties_io.def("Read", &HDF5::Internals::ReadProperties, py::arg("hdf5_file"), py::arg("prefix"), py::arg("list_of_properties"));
+    hdf5_properties_io.def("Write", &HDF5::Internals::WriteProperties, py::arg("hdf5_file"), py::arg("prefix"), py::arg("list_of_properties"));
+
+    py::class_<HDF5::NDDataIO, HDF5::NDDataIO::Pointer>(m, "NDDataIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def("Write", &HDF5::NDDataIO::Write, py::arg("nd_data_name"), py::arg("nd_data"), py::arg("attributes") = Parameters("""{}"""))
+        .def("Read", &HDF5::NDDataIO::Read, py::arg("nd_data_name"))
+    ;
+
+    py::class_<HDF5::TensorAdaptorIO, HDF5::TensorAdaptorIO::Pointer>(m, "TensorAdaptorIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def("Write", &HDF5::TensorAdaptorIO::Write, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"), py::arg("attributes") = Parameters("""{}"""))
+        .def("Read", &HDF5::TensorAdaptorIO::Read, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
         ;
 
 #ifdef KRATOS_USING_MPI
-    py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
-        (m,"HDF5PartitionedModelPartIO")
-        .def(py::init<HDF5::File::Pointer, std::string const&>())
+    py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>(m,"HDF5PartitionedModelPartIO")
+        .def(py::init([](HDF5::File::Pointer pFile, const std::string& rPrefix) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated constructor in \"HDF5::PartitionedModelPartIO\". Please use (Parameters, HDF5File) constructor.\n";
+                auto parameters = Parameters(R"({"prefix": ""})");
+                parameters["prefix"].SetString(rPrefix);
+                return Kratos::make_shared<HDF5::PartitionedModelPartIO>(parameters, pFile);
+            }), py::arg("prefix"), py::arg("hdf5_file"))
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         ;
 #endif
 
