@@ -12,13 +12,13 @@ export MPI_C=`which mpicc`
 export MPI_CXX=`which mpicxx`
 
 # Set variables
-export KRATOS_SOURCE=$1
+export KRATOS_SOURCE=$2
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 # export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 export KRATOS_BUILD_TYPE="Release"
-export PYTHON_EXECUTABLE=$2
+export PYTHON_EXECUTABLE=$1
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
