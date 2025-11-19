@@ -79,6 +79,9 @@ class RANSAnalysis(FluidDynamicsAnalysis):
         """
         return self.end_time - self.time > 0.5 * self.delta_time and not self._GetSolver().IsConverged()
 
+class RansAnalysis(RANSAnalysis):
+    pass
+
 if __name__ == '__main__':
     if len(argv) > 2:
         err_msg =  'Too many input arguments!\n'
