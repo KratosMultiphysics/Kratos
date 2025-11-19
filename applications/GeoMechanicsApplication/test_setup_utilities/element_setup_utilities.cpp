@@ -252,10 +252,31 @@ Element::Pointer ElementSetupUtilities::Create2D15NElement()
     return Create2D15NElement(GenerateNodes(CreatePointsFor2D15NElement()), std::make_shared<Properties>(0));
 }
 
+Element::Pointer ElementSetupUtilities::Create2D4NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                                   const Properties::Pointer& rProperties)
+{
+    return make_intrusive<InterfaceElement>(1, std::make_shared<InterfaceGeometry<Line2D2<Node>>>(rNodes),
+                                            rProperties, std::make_unique<Line2DInterfaceStressState>());
+}
+
+Element::Pointer ElementSetupUtilities::Create2D6NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                                   const Properties::Pointer& rProperties)
+{
+    return make_intrusive<InterfaceElement>(1, std::make_shared<InterfaceGeometry<Line2D3<Node>>>(rNodes),
+                                            rProperties, std::make_unique<Line2DInterfaceStressState>());
+}
+
 Element::Pointer ElementSetupUtilities::Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
                                                                    const Properties::Pointer& rProperties)
 {
     return make_intrusive<InterfaceElement>(1, std::make_shared<InterfaceGeometry<Triangle3D3<Node>>>(rNodes),
+                                            rProperties, std::make_unique<SurfaceInterfaceStressState>());
+}
+
+Element::Pointer ElementSetupUtilities::Create3D12NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                                    const Properties::Pointer& rProperties)
+{
+    return make_intrusive<InterfaceElement>(1, std::make_shared<InterfaceGeometry<Triangle3D6<Node>>>(rNodes),
                                             rProperties, std::make_unique<SurfaceInterfaceStressState>());
 }
 

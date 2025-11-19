@@ -15,9 +15,9 @@
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
-#include <custom_utilities/stress_strain_utilities.h>
 
 namespace Kratos
 {
@@ -111,8 +111,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Initialize(const ProcessIn
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         r_geometry.IntegrationPoints(mThisIntegrationMethod);
     const unsigned int NumGPoints = IntegrationPoints.size();
-    const unsigned int VoigtSize  = TDim;
-    if ((mStressVector.size() != NumGPoints) || (mStressVector[0].size() != VoigtSize)) {
+    if (const auto VoigtSize = TDim;
+        (mStressVector.size() != NumGPoints) || (mStressVector[0].size() != VoigtSize)) {
         mStressVector.resize(NumGPoints);
         for (unsigned int i = 0; i < mStressVector.size(); ++i) {
             mStressVector[i].resize(VoigtSize);

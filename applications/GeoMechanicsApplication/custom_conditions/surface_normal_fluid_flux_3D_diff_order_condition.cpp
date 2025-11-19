@@ -30,14 +30,14 @@ SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCon
 // Constructor 1
 SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCondition(IndexType NewId,
                                                                                        GeometryType::Pointer pGeometry)
-    : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry)
+    : SurfaceLoad3DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
 // Constructor 2
 SurfaceNormalFluidFlux3DDiffOrderCondition::SurfaceNormalFluidFlux3DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : SurfaceLoad3DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
