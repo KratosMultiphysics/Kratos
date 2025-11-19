@@ -63,8 +63,10 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
                                              rTrialSigmaTau, AveragingType);
         mCoulombYieldSurface.SetKappa(kappa);
 
-        double error = std::abs(mCoulombYieldSurface.YieldFunctionValue(result));
-        if (error < mCoulombYieldSurface.GetConvergenceTolerance()) break;
+        if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) <
+            mCoulombYieldSurface.GetConvergenceTolerance()) {
+            break;
+        }
     }
     return result;
 }
