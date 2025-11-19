@@ -493,6 +493,26 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
         rOutput.clear();
         AddFluidShapeDerivatives(rOutput, rCurrentProcessInfo);
         AddTurbulenceShapeDerivatives(rOutput, rCurrentProcessInfo);
+    } else if (rSensitivityVariable == VELOCITY_SENSITIVITY) {
+        if (rOutput.size1() != TCoordLocalSize || rOutput.size2() != TElementLocalSize) {
+            rOutput.resize(TCoordLocalSize, TElementLocalSize, false);
+        }
+
+        rOutput.clear();
+
+        // compute the lhs which is \partial R \ partial u
+        Matrix lhs(TElementLocalSize, TElementLocalSize);
+        lhs.clear();
+        AddFluidFirstDerivatives(lhs, rCurrentProcessInfo);
+        AddTurbulenceFirstDerivatives(lhs, rCurrentProcessInfo);
+
+        // now need to take a sub set of this matrix
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
+                const BoundedVector<double, TElementLocalSize>& row_values = row(lhs, i_node * TBlockSize + i_dim);
+                AssembleSubVectorToMatrix(rOutput, i_node * TDim + i_dim, 0, row_values);
+            }
+        }
     } else {
         KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
                      << " not supported." << std::endl;
