@@ -13,16 +13,20 @@
 #pragma once
 
 // System includes
+#include <variant>
 
 // External includes
 
 // Project includes
-#include "utilities/rbf_shape_functions_utility.h"
 #include "mappers/mapper_define.h"
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/mapper_backend.h"
 #include "custom_utilities/mapper_local_system.h"
+#include "custom_utilities/radial_basis_functions_utilities.h"
+#include "utilities/rbf_shape_functions_utility.h"
 #include "linear_solvers/linear_solver.h"
+#include "factories/linear_solver_factory.h"
+#include "custom_searching/interface_communicator.h"
 
 
 namespace Kratos
@@ -30,11 +34,299 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class RadialBasisFunctionMapperLocalSystem : public MapperLocalSystem
+class RBFSupportAccumulator {
+    public:
+
+        ///@name Type Definitions
+        ///@{
+        using NodeType = Node;
+        using GeometryType = Geometry<NodeType>;
+        using CoordinatesArrayType = GeometryType::CoordinatesArrayType;
+
+        struct Candidate {
+            double mDistance{};
+            IndexType mInterfaceEquationId;
+            CoordinatesArrayType  mCoordinates = ZeroVector(3);
+
+            friend class Serializer;
+            void save(Serializer& rSerializer) const {
+                rSerializer.save("Distance", mDistance);
+                rSerializer.save("Coordinates", mCoordinates);
+            }
+            void load(Serializer& rSerializer) {
+                rSerializer.load("Distance", mDistance);
+                rSerializer.load("Coordinates", mCoordinates);
+            }
+        };
+
+        explicit RBFSupportAccumulator(IndexType required_points)
+                : mRequiredRBFSupportPoints(required_points) {}
+
+        void AddNodeCandidate(IndexType eq_id, double distance, const CoordinatesArrayType& rCoordinates)
+        {
+            Candidate node_candidate;
+            node_candidate.mDistance = distance;
+            node_candidate.mInterfaceEquationId = eq_id;
+            node_candidate.mCoordinates = rCoordinates;
+
+            mCandidates.push_back(std::move(node_candidate));
+            mNotOrdered = true;
+        }
+
+        void AddGeometryCandidate(IndexType interface_equation_id, double distance, const CoordinatesArrayType& rCoordinates)
+        {
+            Candidate geometry_candidate;
+            geometry_candidate.mDistance = distance;
+            geometry_candidate.mInterfaceEquationId = interface_equation_id;
+            geometry_candidate.mCoordinates = rCoordinates;
+
+            mCandidates.push_back(std::move(geometry_candidate)); 
+            mNotOrdered = true;
+        }
+
+        void ReorderSupportPoints()
+        {
+            if (!mNotOrdered) return;
+
+            std::stable_sort(mCandidates.begin(), mCandidates.end(),
+                [](const Candidate& a, const Candidate& b){ return a.mDistance < b.mDistance; });
+
+            mNumNeighbors = mCandidates.size();
+
+            mNotOrdered = false;
+        }
+
+        IndexType NumNeighbors() const { return mNumNeighbors; }
+
+        const std::vector<Candidate>& Candidates() const { return mCandidates; }
+
+        const IndexType GetRequiredRBFPoints() const {return mRequiredRBFSupportPoints;}
+
+        bool HasEnough() const { return mNumNeighbors >= mRequiredRBFSupportPoints; }
+
+        bool HasSome() const { return mNumNeighbors > 0; }
+
+        // Get a matrix with the coordinates of the candidates
+        Matrix GetCandidateCoordinatesMatrix() const
+        {
+            const IndexType n_points = mCandidates.size(); 
+            Matrix coords(n_points, 3, 0.0);
+
+            for (IndexType i = 0; i < n_points; ++i) {
+                const CoordinatesArrayType& p = mCandidates[i].mCoordinates;
+                coords(i, 0) = p[0];
+                coords(i, 1) = p[1];
+                coords(i, 2) = p[2];
+            }
+
+            return coords;
+        }
+
+    private:
+        IndexType mRequiredRBFSupportPoints{0};
+        std::vector<Candidate> mCandidates;
+        IndexType           mNumNeighbors{0};
+        bool                mNotOrdered{false};
+
+        friend class Serializer;
+        void save(Serializer& rSerializer) const {
+            rSerializer.save("RequiredRBFSupportPoints", mRequiredRBFSupportPoints);
+            rSerializer.save("Candidates", mCandidates);
+            rSerializer.save("NeighborsNumber", mNumNeighbors);
+            rSerializer.save("Dirty", mNotOrdered);
+        }
+
+        void load(Serializer& rSerializer) {
+            rSerializer.load("RequiredRBFSupportPoints", mRequiredRBFSupportPoints);
+            rSerializer.load("Candidates", mCandidates);
+            rSerializer.load("NeighborsNumber", mNumNeighbors);
+            rSerializer.load("Dirty", mNotOrdered);
+        }
+};   
+
+class KRATOS_API(MAPPING_APPLICATION) RadialBasisFunctionsMapperInterfaceInfoIGA : public MapperInterfaceInfo
 {
 public:
 
-    explicit RadialBasisFunctionMapperLocalSystem(){}
+    /// Constructor with support points
+    RadialBasisFunctionsMapperInterfaceInfoIGA(const IndexType RequiredRBFSupportPoints)
+        : mRequiredRBFSupportPoints(RequiredRBFSupportPoints),
+        mRBFSupportAccumulator(RequiredRBFSupportPoints)
+    {}
+
+    explicit RadialBasisFunctionsMapperInterfaceInfoIGA(const CoordinatesArrayType& rCoordinates,
+                                             const IndexType SourceLocalSystemIndex,
+                                             const IndexType SourceRank,
+                                             const IndexType RequiredRBFSupportPoints)
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank),  
+        mRequiredRBFSupportPoints(RequiredRBFSupportPoints),
+        mRBFSupportAccumulator(RequiredRBFSupportPoints) {}
+
+    MapperInterfaceInfo::Pointer Create() const override
+    {
+        return Kratos::make_shared<RadialBasisFunctionsMapperInterfaceInfoIGA>(mRequiredRBFSupportPoints);
+    }
+
+    MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
+                                        const IndexType SourceLocalSystemIndex,
+                                        const IndexType SourceRank) const override
+    {
+        return Kratos::make_shared<RadialBasisFunctionsMapperInterfaceInfoIGA>(
+            rCoordinates,
+            SourceLocalSystemIndex,
+            SourceRank,
+            mRequiredRBFSupportPoints);
+    }
+
+    InterfaceObject::ConstructionType GetInterfaceObjectType() const override
+    {
+        return InterfaceObject::ConstructionType::Geometry_Center;
+    }
+
+    void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
+
+    const RBFSupportAccumulator& GetRBFSupportAccumulator() const override
+    {
+        return mRBFSupportAccumulator;
+    }
+
+    void GetValue(IndexType& rValue,
+                  const InfoType ValueType) const override
+    {
+        rValue = mRequiredRBFSupportPoints;
+    }
+
+private:
+    IndexType mRequiredRBFSupportPoints = 0;
+    RBFSupportAccumulator mRBFSupportAccumulator;
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+        rSerializer.save("RequiredRBFSupportPoints", mRequiredRBFSupportPoints);
+        rSerializer.save("RBFSupportAccumulator", mRBFSupportAccumulator);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+        rSerializer.load("RequiredRBFSupportPoints", mRequiredRBFSupportPoints);
+        rSerializer.load("RBFSupportAccumulator", mRBFSupportAccumulator);
+    }
+};
+
+class KRATOS_API(MAPPING_APPLICATION) RadialBasisFunctionsMapperInterfaceInfoFEM : public MapperInterfaceInfo
+{
+public:
+
+    RadialBasisFunctionsMapperInterfaceInfoFEM(const IndexType RequiredRBFSupportPoints)
+        : mRequiredRBFSupportPoints(RequiredRBFSupportPoints),
+          mRBFSupportAccumulator(RequiredRBFSupportPoints) {}
+
+    explicit RadialBasisFunctionsMapperInterfaceInfoFEM(const CoordinatesArrayType& rCoordinates,
+                                             const IndexType SourceLocalSystemIndex,
+                                             const IndexType SourceRank,
+                                             const IndexType RequiredRBFSupportPoints)
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank),  
+          mRequiredRBFSupportPoints(RequiredRBFSupportPoints),
+          mRBFSupportAccumulator(RequiredRBFSupportPoints) {}
+
+    MapperInterfaceInfo::Pointer Create() const override
+    {
+        return Kratos::make_shared<RadialBasisFunctionsMapperInterfaceInfoFEM>(mRequiredRBFSupportPoints);
+    }
+
+    MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
+                                        const IndexType SourceLocalSystemIndex,
+                                        const IndexType SourceRank) const override
+    {
+        return Kratos::make_shared<RadialBasisFunctionsMapperInterfaceInfoFEM>(
+            rCoordinates,
+            SourceLocalSystemIndex,
+            SourceRank,
+            mRequiredRBFSupportPoints);
+    }
+
+    InterfaceObject::ConstructionType GetInterfaceObjectType() const override
+    {
+        return InterfaceObject::ConstructionType::Node_Coords;
+    }
+
+    void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
+
+    const RBFSupportAccumulator& GetRBFSupportAccumulator() const override
+    {
+        return mRBFSupportAccumulator;
+    }
+
+    void GetValue(IndexType& rValue,
+                  const InfoType ValueType) const override
+    {
+        rValue = mRequiredRBFSupportPoints;
+    }
+
+private:
+    IndexType mRequiredRBFSupportPoints = 0;
+    RBFSupportAccumulator mRBFSupportAccumulator;
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+        rSerializer.save("RequiredRBFSupportPoints", mRequiredRBFSupportPoints);
+        rSerializer.save("RBFSupportAccumulator", mRBFSupportAccumulator);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+        rSerializer.load("RequiredRBFSupportPoints", mRequiredRBFSupportPoints);
+        rSerializer.load("RBFSupportAccumulator", mRBFSupportAccumulator);
+    }
+};
+
+class RadialBasisFunctionMapperLocalSystem : public MapperLocalSystem
+{
+public:
+    // Default constructor
+    RadialBasisFunctionMapperLocalSystem(): mpNode(nullptr), mpGeometry(nullptr), mRBFTypeString(""), mRBFTypeEnum(), mpPolynomialEquationIds(nullptr) {}
+
+    // Construct from a node and a geometry (dummy constructor needed)
+    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, std::string RBFType, IndexType PolynomialDegree,
+                                                  const std::vector<IndexType>* pPolynomialEquationIds)
+            : mpNode(pNode), 
+              mpGeometry(pGeometry),
+              mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
+              mRBFTypeString(RBFType),
+              mRBFTypeEnum(ParseRBFType(RBFType)),
+              mPolynomialDegree(PolynomialDegree), 
+              mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
+              mpPolynomialEquationIds(pPolynomialEquationIds){}
+
+    // Construct from a node
+    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, bool BuildOriginInterpolationMatrix, std::string RBFType, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
+             mpNode(std::move(pNode)), 
+             mpGeometry(nullptr),
+             mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
+             mRBFTypeString(RBFType),
+             mRBFTypeEnum(ParseRBFType(RBFType)),
+             mPolynomialDegree(PolynomialDegree),
+             mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
+             mpPolynomialEquationIds(pPolynomialEquationIds){}
+
+    // Construct from a geometry (e.g. an integration-point “geometry” in IGA)
+    explicit RadialBasisFunctionMapperLocalSystem(GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, std::string RBFType, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
+             mpNode(nullptr), 
+             mpGeometry(std::move(pGeometry)),
+             mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
+             mRBFTypeString(RBFType),
+             mRBFTypeEnum(ParseRBFType(RBFType)),
+             mPolynomialDegree(PolynomialDegree),
+             mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
+             mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
                       EquationIdVectorType& rOriginIds,
@@ -43,41 +335,137 @@ public:
 
     CoordinatesArrayType& Coordinates() const override
     {
-        // KRATOS_DEBUG_ERROR_IF_NOT(mpGeom) << "Members are not initialized!" << std::endl;
-        // return mpGeom->Center(); // check why not compiling...
-        KRATOS_ERROR << "not implemented, needs checking" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(!mpNode && !mpGeometry) << "LocalSystem not initialized" << std::endl;
+        if (mpNode != nullptr){
+            mCoordinates = mpNode->Coordinates();
+            return mCoordinates;
+        } else if (mpGeometry != nullptr) {
+            mCoordinates = mpGeometry->Center();
+            return mCoordinates;
+        } else{
+            KRATOS_ERROR << "RadialBasisFunctionMapperLocalSystem::Coordinates(): "
+                 << "neither node nor geometry is set!" << std::endl;
+
+            static CoordinatesArrayType dummy = ZeroVector(3);
+            return dummy;
+        }
+    }
+
+    MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
+    {
+       KRATOS_DEBUG_ERROR_IF(!pNode) << "Create(Node) received nullptr" << std::endl;
+       return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pNode, mBuildOriginInterpolationMatrix, mRBFTypeString, mPolynomialDegree, mpPolynomialEquationIds);
     }
 
     MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const override
     {
-        return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>();
+        KRATOS_DEBUG_ERROR_IF(!pGeometry) << "Create(Geometry) received nullptr" << std::endl;
+        return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pGeometry, mBuildOriginInterpolationMatrix, mRBFTypeString, mPolynomialDegree, mpPolynomialEquationIds);
+    }
+
+    void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo) override 
+    {
+        mInterfaceInfos.clear();
+        mInterfaceInfos.push_back(pInterfaceInfo);
     }
 
     /// Turn back information as a string.
     void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override {KRATOS_ERROR << "Not implemented!"<<std::endl;}
 
 private:
-    // GeometryPointerType mpGeom;
-    // bool mIsProjection; // Set to true is we are projecting the master onto the slave.
-    //                     // Set to false if we are projecting the slave onto the slave.
-    // bool mIsDualMortar = false;
-    // bool mIsDestinationIsSlave = true;
+    NodePointerType     mpNode{nullptr};
+    GeometryPointerType mpGeometry{nullptr};
 
+    bool mBuildOriginInterpolationMatrix{};
+
+    using RBFVariant = std::variant<
+        RadialBasisFunctionsUtilities::InverseMultiquadric,
+        RadialBasisFunctionsUtilities::Multiquadric,
+        RadialBasisFunctionsUtilities::Gaussian,
+        RadialBasisFunctionsUtilities::ThinPlateSpline,
+        RadialBasisFunctionsUtilities::WendlandC2
+    >;
+    mutable RBFVariant mRBFKernel;
+    mutable bool mIsRBFInitialized = false;
+    mutable CoordinatesArrayType mCoordinates;
+
+    std::string mRBFTypeString;
+    RadialBasisFunctionsUtilities::RBFType mRBFTypeEnum;
+    IndexType mPolynomialDegree = 0;
+    IndexType mNumberOfPolynomialTerms;
+    const std::vector<IndexType>* mpPolynomialEquationIds; // reference to the polynomial ids
+
+    std::vector<double> EvaluatePolynomialBasis(const CoordinatesArrayType& rCoords, unsigned int degree) const;
+
+    RadialBasisFunctionsUtilities::RBFType ParseRBFType(const std::string& rName) const
+    {
+        static const std::unordered_map<std::string, RadialBasisFunctionsUtilities::RBFType> rbf_type_map = {
+            {"inverse_multiquadric", RadialBasisFunctionsUtilities::RBFType::InverseMultiquadric},
+            {"multiquadric",         RadialBasisFunctionsUtilities::RBFType::Multiquadric},
+            {"gaussian",             RadialBasisFunctionsUtilities::RBFType::Gaussian},
+            {"thin_plate_spline",    RadialBasisFunctionsUtilities::RBFType::ThinPlateSpline},
+            {"wendland_c2",          RadialBasisFunctionsUtilities::RBFType::WendlandC2}
+        };
+
+        const auto it = rbf_type_map.find(rName);
+        if (it == rbf_type_map.end()) {
+            KRATOS_ERROR << "Unrecognized RBF type: " << rName << std::endl;
+        }
+        return it->second;
+    }
+
+    void InitializeRBFKernel(const Matrix& coords) const
+    {
+        if (mIsRBFInitialized) {return;}
+
+        switch (mRBFTypeEnum)
+        {
+            case RadialBasisFunctionsUtilities::RBFType::InverseMultiquadric:
+            {
+                const double h = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(coords);
+                mRBFKernel = RadialBasisFunctionsUtilities::InverseMultiquadric{h};
+                break;
+            }
+            case RadialBasisFunctionsUtilities::RBFType::Multiquadric:
+            {
+                const double h = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(coords);
+                mRBFKernel = RadialBasisFunctionsUtilities::Multiquadric{h};
+                break;
+            }
+            case RadialBasisFunctionsUtilities::RBFType::Gaussian:
+            {
+                const double h = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(coords);
+                mRBFKernel = RadialBasisFunctionsUtilities::Gaussian{h};
+                break;
+            }
+            case RadialBasisFunctionsUtilities::RBFType::ThinPlateSpline:
+            {
+                mRBFKernel = RadialBasisFunctionsUtilities::ThinPlateSpline{};
+                break;
+            }
+            case RadialBasisFunctionsUtilities::RBFType::WendlandC2:
+            {
+                const double h = RadialBasisFunctionsUtilities::CalculateWendlandC2SupportRadius(coords);
+                mRBFKernel = RadialBasisFunctionsUtilities::WendlandC2{h};
+                break;
+            }
+            default:
+                KRATOS_ERROR << "Invalid RBF type. Available types are: inverse_multiquadric, multiquadric, gaussian, thin-plate spline and wendland C2" << std::endl;
+        }
+        mIsRBFInitialized = true;
+    }
 };
 
-
-// RadialBasisFunctionMapper
-//
-// The mapper always forward maps from the master to the slave.
-// Normally:
-//      master  =   interface origin
-//      slave   =   interface destination
-//
-// However, this can be reversed by setting 'destination_is_slave' = false.
-// This yields:
-//      master  =   interface destination
-//      slave   =   interface origin
-
+/// Radial Basis Functions (RBF) Mapper
+/** This class implements the Radial Basis Functions mapping technique.
+ * Each node on the destination side uses its N closest support points
+ * on the origin side to build the RBF interpolation system,
+ * optionally enriched with polynomial terms.
+ *
+ * The mapping matrix can be precomputed once and reused in every coupling step,
+ * or a linear system can be solved at each step. For IGA-based mappings,
+ * only the precomputed mapping matrix option is supported.
+*/
 template<class TSparseSpace, class TDenseSpace>
 class RadialBasisFunctionMapper : public Mapper<TSparseSpace, TDenseSpace>
 {
@@ -91,28 +479,36 @@ public:
     /// Pointer definition of RadialBasisFunctionMapper
     KRATOS_CLASS_POINTER_DEFINITION(RadialBasisFunctionMapper);
 
-    typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
+    using BaseType = Mapper<TSparseSpace, TDenseSpace>;
 
-    typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
-    typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
+    using MapperLocalSystemPointer       = Kratos::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
 
-    typedef InterfaceVectorContainer<TSparseSpace, TDenseSpace> InterfaceVectorContainerType;
-    typedef Kratos::unique_ptr<InterfaceVectorContainerType> InterfaceVectorContainerPointerType;
+    using InterfaceVectorContainerType        = InterfaceVectorContainer<TSparseSpace, TDenseSpace>;
+    using InterfaceVectorContainerPointerType = Kratos::unique_ptr<InterfaceVectorContainerType>;
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename BaseType::TMappingMatrixType MappingMatrixType;
-    typedef Kratos::unique_ptr<MappingMatrixType> MappingMatrixUniquePointerType;
+    using MapperUniquePointerType  = typename BaseType::MapperUniquePointerType;
+    using MappingMatrixType        = typename BaseType::TMappingMatrixType;
+    using MappingMatrixUniquePointerType = Kratos::unique_ptr<MappingMatrixType>;
 
-    typedef LinearSolver<TSparseSpace, TDenseSpace> LinearSolverType;
-    typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
+    using LinearSolverType               = LinearSolver<TSparseSpace, TDenseSpace>;
+    using LinearSolverSharedPointerType  = Kratos::shared_ptr<LinearSolverType>;
 
-    typedef typename TSparseSpace::VectorType TSystemVectorType;
-    typedef Kratos::unique_ptr<TSystemVectorType> TSystemVectorUniquePointerType;
+    using TSystemVectorType           = typename TSparseSpace::VectorType;
+    using TSystemVectorUniquePointerType = Kratos::unique_ptr<TSystemVectorType>;
 
     using SparseMatrixType = typename TSparseSpace::MatrixType;
-    using DenseMatrixType = typename TDenseSpace::MatrixType;
+    using DenseMatrixType  = typename TDenseSpace::MatrixType;
+
+    using InterfaceCommunicatorPointerType = Kratos::unique_ptr<InterfaceCommunicator>;
+    using MapperInterfaceInfoUniquePointerType = typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType;
+
+    using MappingSparseSpaceType = typename MapperDefinitions::SparseSpaceType;
+    using DenseSpaceType = typename MapperDefinitions::DenseSpaceType;
+    using MappingMatrixUtilitiesType = MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType>;
+
 
     ///@}
     ///@name Life Cycle
@@ -140,11 +536,7 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
-        // mpModeler->PrepareGeometryModel();
-
-        // AssignInterfaceEquationIds();
-
-        // KRATOS_ERROR << "Not implemented!" << std::endl;
+        KRATOS_ERROR << "UpdateInterface() is not implemented for this mapper" << std::endl;
     }
 
     void Map(
@@ -307,28 +699,63 @@ protected:
         return mpInterfaceVectorContainerDestination.get();
     }
 
+    void ValidateInput()
+    {
+        // backward compatibility
+        if (mMapperSettings.Has("search_radius")) {
+            KRATOS_WARNING("Mapper") << "DEPRECATION-WARNING: \"search_radius\" should be specified under \"search_settings\"!" << std::endl;
+            const double search_radius = mMapperSettings["search_radius"].GetDouble();
+
+            if (mMapperSettings.Has("search_settings")) {
+                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("search_radius")) << "\"search_radius\" specified twice, please only specify it in \"search_settings\"!" << std::endl;
+            } else {
+                mMapperSettings.AddValue("search_settings", Parameters());
+            }
+
+            mMapperSettings["search_settings"].AddEmptyValue("search_radius").SetDouble(search_radius);
+            mMapperSettings.RemoveValue("search_radius");
+        }
+
+        if (mMapperSettings.Has("search_iterations")) {
+            KRATOS_WARNING("Mapper") << "DEPRECATION-WARNING: \"search_iterations\" should be specified as \"max_num_search_iterations\" under \"search_settings\"!" << std::endl;
+            const int search_iterations = mMapperSettings["search_iterations"].GetInt();
+
+            if (mMapperSettings.Has("search_settings")) {
+                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("max_num_search_iterations")) << "\"search_iterations\" specified twice, please only specify it in \"search_settings\" (as \"max_num_search_iterations\")!" << std::endl;
+            } else {
+                mMapperSettings.AddValue("search_settings", Parameters());
+            }
+
+            mMapperSettings["search_settings"].AddEmptyValue("max_num_search_iterations").SetInt(search_iterations);
+            mMapperSettings.RemoveValue("search_iterations");
+        }
+
+        MapperUtilities::CheckInterfaceModelParts(0);
+
+        const Parameters mapper_default_settings(GetMapperDefaultSettings());
+
+        mMapperSettings.ValidateAndAssignDefaults(mapper_default_settings);
+
+        if (!mMapperSettings["search_settings"].Has("echo_level")) {
+            // use the echo level of the mapper in case none was specified for the search
+            mMapperSettings["search_settings"].AddEmptyValue("echo_level").SetInt(mMapperSettings["echo_level"].GetInt());
+        }
+    }
+
 private:
 
     ///@name Private Operations
     ///@{
-    // typename Modeler::Pointer mpModeler = nullptr;
     ModelPart& mrModelPartOrigin;
     ModelPart& mrModelPartDestination;
+    bool mOriginIsIga = false;
+    IndexType mRequiredRBFSupportPoints;
+
     ModelPart* mpCouplingMP = nullptr;
     ModelPart* mpCouplingInterfaceOrigin = nullptr;
     ModelPart* mpCouplingInterfaceDestination = nullptr;
 
     Parameters mMapperSettings;
-
-    MapperUniquePointerType mpInverseMapper = nullptr;
-
-    MappingMatrixUniquePointerType mpMappingMatrix;
-    // MappingMatrixUniquePointerType mpMappingMatrixProjector;
-    // MappingMatrixUniquePointerType mpMappingMatrixSlave;
-    MappingMatrixUniquePointerType mpOriginInterpolationMatrix;
-    MappingMatrixUniquePointerType mpDestinationEvaluationMatrix;
-
-    //TSystemVectorUniquePointerType mpTempVector;
 
     MapperLocalSystemPointerVector mMapperLocalSystemsOrigin;
     MapperLocalSystemPointerVector mMapperLocalSystemsDestination;
@@ -336,10 +763,30 @@ private:
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
 
+    // Matrices for the mapping operation
+    MappingMatrixUniquePointerType mpMappingMatrix;
+    MappingMatrixUniquePointerType mpOriginInterpolationMatrix;
+    MappingMatrixUniquePointerType mpDestinationEvaluationMatrix;
+
+    MapperUniquePointerType mpInverseMapper = nullptr;
+
     LinearSolverSharedPointerType mpLinearSolver = nullptr;
-    using MappingSparseSpaceType = typename MapperDefinitions::SparseSpaceType;
-    using DenseSpaceType = typename MapperDefinitions::DenseSpaceType;
-    using MappingMatrixUtilitiesType = MappingMatrixUtilities<MappingSparseSpaceType, DenseSpaceType>;
+
+    std::vector<IndexType> mPolynomialEquationIdsOrigin;
+    std::vector<IndexType> mPolynomialEquationIdsDestination;
+
+    std::string mRBFType;
+    IndexType mPolynomialDegree;
+    IndexType mNumberOfPolynomialTerms;
+
+    MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo(const IndexType RequiredRBFSupportPoints) const 
+    {
+        if (mOriginIsIga){
+            return Kratos::make_unique<RadialBasisFunctionsMapperInterfaceInfoIGA>(RequiredRBFSupportPoints);
+        } else {
+            return Kratos::make_unique<RadialBasisFunctionsMapperInterfaceInfoFEM>(RequiredRBFSupportPoints);
+        }
+    }
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
@@ -347,6 +794,12 @@ private:
     {
         MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceDestination->GetCommunicator());
         MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceOrigin->GetCommunicator());
+    }
+
+    void AssignInterfaceEquationIdsIga()
+    {
+        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceDestination->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsOnConditions(mpCouplingInterfaceOrigin->GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,
@@ -367,45 +820,28 @@ private:
 
     void CreateLinearSolver();
 
-    //void CalculateMappingMatrixWithSolver(MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix);
-    void FillCoordinatesMatrix(const ModelPart& ModelPart, const std::vector<Condition::Pointer>& IntegrationPointsPointerVector, DenseMatrixType& rCoordinatesMatrix, bool IsDomainIGA);
+    std::vector<IndexType> InitializePolynomialEquationIds(const ModelPart* pModelPart);
 
-    // Get scaling factor stabilising numerics, maximum distance between spline support points in either X or Y direction
-    double CalculateScaleFactor(DenseMatrixType& rOriginCoords);
+    std::vector<IndexType> InitializePolynomialEquationIdsIga(const ModelPart* pModelPart);
 
-    // This function calculates the number of polynomial terms from the degree
-    IndexType CalculateNumberOfPolynomialTermsFromDegree(IndexType PolyDegree, bool project_origin_nodes_to_destination_domain);
-    
-    // Evaluate the polynomial required for the radial basis function interpolation
-    std::vector<double> EvaluatePolynomialBasis(const array_1d<double, 3>& rCoords, unsigned int degree, bool project_origin_nodes_to_destination_domain) const;
+    std::vector<double> CalculateValuesOnIntegrationPoints(const Variable<double>& rVariable);
 
-    // Create and invert the coefficient matrix of the spline C. This depends only on the positions of the origin support points 
-    void CreateAndInvertOriginRBFMatrix(DenseMatrixType& rInvCMatrix, const DenseMatrixType& rOriginCoords, bool project_origin_nodes_to_destination_domain,
-        IndexType Poly_Degree, RBFShapeFunctionsUtility::RBFType RBF_Type, double Factor = 1.0, double eps = 1.0);
-
-    // Compute Aij splining matrix, relating origin and destination interpolation points
-    void CreateDestinationRBFMatrix(DenseMatrixType& rAMatrix, const DenseMatrixType& rOriginCoords, const DenseMatrixType& rDestinationCoords,
-        bool project_origin_nodes_to_destination_domain, IndexType Poly_Degree, RBFShapeFunctionsUtility::RBFType RBF_Type, bool map_displacements_to_rotations, double rbf_shape_parameter);
+    void CalculateMappingMatrix();
     
     // For IGA, compute the mapping matrix mapping from origin control points to destination nodes
-    std::unique_ptr<MappingMatrixType> ComputeMappingMatrixIga(const MappingMatrixType& rMappingMatrixGP, const std::vector<Condition::Pointer>& rOriginIntegrationPoints,
-        const ModelPart& rOriginModelPart) const;
-
+    std::unique_ptr<MappingMatrixType> ComputeMappingMatrixIgaOnControlPoints(const MappingMatrixType& rMappingMatrixGP, const ModelPart& rOriginModelPart) const;
 
     Parameters GetMapperDefaultSettings() const 
     {
         return Parameters(R"({
-            "echo_level"                    : 0,
-            "radial_basis_function_type" : "thin_plate_spline",
-            "additional_polynomial_degree": 0,
-            "is_destination_slave"          : true,
-            "is_origin_iga"             : false,
-            "is_destination_iga"             : false,
-            "precompute_mapping_matrix"      : true, 
-            "destination_solver_settings": {
-                "project_origin_nodes_to_destination_domain": false,
-                "map_displacements_to_rotations": false
-            }
+            "echo_level"                     : 0,
+            "radial_basis_function_type"     : "thin_plate_spline",
+            "additional_polynomial_degree"   : 0,
+            "origin_is_iga"                  : false,
+            "destination_is_iga"             : false,
+            "precompute_mapping_matrix"      : true,
+            "search_settings"                : {},
+            "linear_solver_settings"         : {}
         })");
     }
 

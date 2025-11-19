@@ -21,15 +21,214 @@
 #include "custom_utilities/mapper_utilities.h"
 
 // External includes
-#include <unordered_set>
 
 namespace Kratos {
 
-/* Naming convention for the different matrices involved:
-    origin_interpolation_matrix = [ 0  Ps^T ; Ps  Ks ] ---> [beta gamma]^T = inverse_origin_interpolation_matrix * [0 us]^T
-    origin_interpolation_vector = [ us ; 0 ]
-    destination_interpolation_matrix = [ Pf  Kf ]
-*/
+void RadialBasisFunctionsMapperInterfaceInfoIGA::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
+{
+    KRATOS_TRY
+
+    const double distance = MapperUtilities::ComputeDistance(this->Coordinates(), rInterfaceObject.Coordinates());
+    
+    const auto p_geom = rInterfaceObject.pGetBaseGeometry();
+
+    // Add a geometry candidate to the RBF support accumulator
+    mRBFSupportAccumulator.AddGeometryCandidate(p_geom->GetValue(INTERFACE_EQUATION_ID), distance, p_geom->Center());
+
+    // Reorder the support points according to the distance (starting from the closest)
+    mRBFSupportAccumulator.ReorderSupportPoints();
+
+    // If the accumulator has enough support points, stop searching 
+    if (mRBFSupportAccumulator.HasEnough()) {
+        SetLocalSearchWasSuccessful();
+    } else if (mRBFSupportAccumulator.HasSome()) {
+        SetIsApproximation();
+    }
+
+    KRATOS_CATCH("")
+}
+
+void RadialBasisFunctionsMapperInterfaceInfoFEM::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
+{
+    KRATOS_TRY
+
+    const double distance = MapperUtilities::ComputeDistance(this->Coordinates(), rInterfaceObject.Coordinates());
+
+    const Node& r_node = *rInterfaceObject.pGetBaseNode();
+
+    // Add a node candidate to the RBF support accumulator
+    mRBFSupportAccumulator.AddNodeCandidate(r_node.GetValue(INTERFACE_EQUATION_ID), distance, r_node.Coordinates());
+
+    // Reorder the support points according to the distance (starting from the closest)
+    mRBFSupportAccumulator.ReorderSupportPoints();
+
+    // If the accumulator has enough support points, stop searching 
+    if (mRBFSupportAccumulator.HasEnough()) {
+        SetLocalSearchWasSuccessful();
+    } else if (mRBFSupportAccumulator.HasSome()) {
+        SetIsApproximation();
+    }
+
+    KRATOS_CATCH("")
+
+}
+
+void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
+                    EquationIdVectorType& rOriginIds,
+                    EquationIdVectorType& rDestinationIds,
+                    MapperLocalSystem::PairingStatus& rPairingStatus) const
+{
+    KRATOS_TRY
+
+    // If we don't have any interface info => nothing to do
+    if (mInterfaceInfos.empty()) {
+        ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
+        return;
+    }
+    
+    //  Get the support accumulator for this local system. We only have one InterfaceInfo per LocalSystem
+    const auto& rbf_support_accumulator = mInterfaceInfos[0]->GetRBFSupportAccumulator();
+    const auto& rbf_support_points = rbf_support_accumulator.Candidates();
+    const IndexType rbf_support_points_number = rbf_support_accumulator.NumNeighbors();
+    const Matrix rbf_support_points_coordinates = rbf_support_accumulator.GetCandidateCoordinatesMatrix();
+
+    // Initialize the RBF Kernel for this mapping local system
+    this->InitializeRBFKernel(rbf_support_points_coordinates);
+
+    if (mBuildOriginInterpolationMatrix){
+        // Initialize the local mapping matrix and ids vectors
+        const IndexType num_rows = 1 + mNumberOfPolynomialTerms;
+        const IndexType num_cols = rbf_support_points_number + mNumberOfPolynomialTerms;
+
+        if (rLocalMappingMatrix.size1() != num_rows || rLocalMappingMatrix.size2() != num_cols) {
+            rLocalMappingMatrix.resize(num_rows, num_cols, false);
+        }
+        // Resize IDs consistent with BuildMatrix
+        rDestinationIds.resize(num_rows);
+        rOriginIds.resize(num_cols);
+
+        noalias(rLocalMappingMatrix) = ZeroMatrix(num_rows, num_cols);
+
+        // Get the origin ids, first with the rbf part and secondly with the polynomial part
+        for (IndexType j = 0; j < rbf_support_points_number; ++j) {
+            rOriginIds[j] = rbf_support_points[j].mInterfaceEquationId;
+        }
+        for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
+            const IndexType col = rbf_support_points_number + k;
+            const IndexType poly_eq_id =(*mpPolynomialEquationIds)[k];;
+            rOriginIds[col] = poly_eq_id;
+        }
+        
+        // Get the destination ids
+        if (mpNode)
+            rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
+        if (mpGeometry)
+            rDestinationIds[0] = mpGeometry->GetValue(INTERFACE_EQUATION_ID);
+        for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
+            rDestinationIds[1 + k] = (*mpPolynomialEquationIds)[k];
+        }
+        
+        for (IndexType j = 0; j < rbf_support_points_number; ++j) {
+            const double distance = rbf_support_points[j].mDistance;
+            const double phi = std::visit(
+                [distance](const auto& kernel) {
+                    return kernel(distance); 
+                },
+                mRBFKernel
+            );
+
+            rLocalMappingMatrix(0, j) = phi;
+        }
+
+        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree);
+
+        for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
+            rLocalMappingMatrix(0, rbf_support_points_number + k) = polynomial[k];
+        }
+        
+        // Build the polynomial constraint
+        for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
+            const IndexType row = 1 + k;
+    
+            // Put P_s[k] in the first polynomial column
+            rLocalMappingMatrix(row, 0) = polynomial[k];
+        }
+    } else{
+        // Initialize the local mapping matrix and ids vectors
+        const IndexType num_rows = 1 ;
+        const IndexType num_cols = rbf_support_points_number + mNumberOfPolynomialTerms;
+
+        if (rLocalMappingMatrix.size1() != num_rows || rLocalMappingMatrix.size2() != num_cols) {
+            rLocalMappingMatrix.resize(num_rows, num_cols, false);
+        }
+        // Resize IDs consistent with BuildMatrix
+        rDestinationIds.resize(num_rows);
+        rOriginIds.resize(num_cols);
+
+        noalias(rLocalMappingMatrix) = ZeroMatrix(num_rows, num_cols);
+
+        // Get the origin ids, first with the rbf part and secondly with the polynomial part
+        for (IndexType j = 0; j < rbf_support_points_number; ++j) {
+            rOriginIds[j] = rbf_support_points[j].mInterfaceEquationId;
+        }
+        for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
+            const IndexType col = rbf_support_points_number + k;
+            const IndexType poly_eq_id =(*mpPolynomialEquationIds)[k];;
+            rOriginIds[col] = poly_eq_id;
+        }
+        
+        // Get the destination ids
+        if (mpNode)
+            rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
+        if (mpGeometry)
+            rDestinationIds[0] = mpGeometry->GetValue(INTERFACE_EQUATION_ID);
+        
+        for (IndexType j = 0; j < rbf_support_points_number; ++j) {
+            const double distance = rbf_support_points[j].mDistance;
+            const double phi = std::visit(
+                [distance](const auto& kernel) {
+                    return kernel(distance); 
+                },
+                mRBFKernel
+            );
+
+            rLocalMappingMatrix(0, j) = phi;
+        }
+
+        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree);
+
+        for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
+            rLocalMappingMatrix(0, rbf_support_points_number + k) = polynomial[k];
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+std::vector<double> RadialBasisFunctionMapperLocalSystem::EvaluatePolynomialBasis(
+    const CoordinatesArrayType& rCoords, 
+    unsigned int degree) const
+{
+    std::vector<double> polynomial_values;
+    polynomial_values.reserve((degree + 3) * (degree + 2) * (degree + 1) / 6); // number of monomials in 3D
+
+    const double x = rCoords[0];
+    const double y = rCoords[1];
+    const double z = rCoords[2];
+
+    for (unsigned int n = 0; n <= degree; ++n) {
+        // i = exponente de x
+        for (int i = static_cast<int>(n); i >= 0; --i) {
+            // j = exponente de y
+            for (int j = static_cast<int>(n - i); j >= 0; --j) {
+                unsigned int k = n - i - j; // exponente de z
+                polynomial_values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
+            }
+        }
+    }
+
+    return polynomial_values;
+}
 
 template<class TSparseSpace, class TDenseSpace>
 RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::RadialBasisFunctionMapper(
@@ -40,23 +239,20 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::RadialBasisFunctionMapper(
        mrModelPartDestination(rModelPartDestination),
        mMapperSettings(JsonParameters)
 {
-    mLocalMapperSettings.ValidateAndAssignDefaults(this->GetMapperDefaultSettings());
+    mMapperSettings.ValidateAndAssignDefaults(this->GetMapperDefaultSettings());
 
-    //const bool is_destination_slave = mLocalMapperSettings["is_destination_slave"].GetBool();
+    mOriginIsIga = mMapperSettings["origin_is_iga"].GetBool();
 
-    // Define the master and slave interfaces
+    // Define the origin and destination interfaces
     mpCouplingInterfaceOrigin = &rModelPartOrigin;
     mpCouplingInterfaceDestination = &rModelPartDestination;
-
-    MappingMatrixUtilitiesType::InitializeSystemVector(
-        this->pGetInterfaceVectorContainerOrigin()->pGetVector(),
-        mpCouplingInterfaceOrigin->NumberOfNodes());
-
-    MappingMatrixUtilitiesType::InitializeSystemVector(
-        this->pGetInterfaceVectorContainerDestination()->pGetVector(),
-        mpCouplingInterfaceDestination->NumberOfNodes());
     
-    // This function creates the mapping matrix required for the linear mapping
+    // Construct the InterfaceVectorContainers for the origin and destination domain
+    mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
+    mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
+    
+    this->ValidateInput();
+    this->CreateLinearSolver();
     this->InitializeInterface();
 }
 
@@ -64,455 +260,197 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::RadialBasisFunctionMapper(
 template<class TSparseSpace, class TDenseSpace>
 void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags MappingOptions)
 {
-    // Get a vector with the integration points in the origin and destination coordinates
-    std::vector<Condition::Pointer> origin_integration_points;
-    std::vector<Condition::Pointer> destination_integration_points;
+    const IndexType num_nodes_interface_destination = mpCouplingInterfaceDestination->NumberOfNodes();
+    const IndexType num_nodes_interface_origin = mpCouplingInterfaceOrigin->NumberOfNodes();
+    const IndexType num_conditions_interface_origin = mpCouplingInterfaceOrigin->NumberOfConditions();
+    mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(num_nodes_interface_destination, num_nodes_interface_origin);
 
-     // Determine whether we project or not the origin nodes coordinates to the plane of the panel mesh 
-    const bool project_origin_nodes_to_destination_domain = mLocalMapperSettings["destination_solver_settings"]["project_origin_nodes_to_destination_domain"].GetBool();
-    // Determine whether we map structural displacements to panels angle of attack or not
-    const bool map_displacements_to_rotations = mLocalMapperSettings["destination_solver_settings"]["map_displacements_to_rotations"].GetBool();
+    const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
+
+    // Read the RBF type from the settings
+    mRBFType = mMapperSettings["radial_basis_function_type"].GetString();
+    std::transform(mRBFType.begin(), mRBFType.end(), mRBFType.begin(), ::tolower);
 
     // Obtain the polynomial degree and calculate number of polynomial terms
-    const unsigned int poly_degree = mLocalMapperSettings["additional_polynomial_degree"].GetInt();
-    IndexType n_polynomial = CalculateNumberOfPolynomialTermsFromDegree(poly_degree, project_origin_nodes_to_destination_domain);
+    mPolynomialDegree = mMapperSettings["additional_polynomial_degree"].GetInt();
+    mNumberOfPolynomialTerms = (mPolynomialDegree + 3) * (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 6;
 
-    // Determine whether the origin and destination domain are IGA discretizations or not
-    const bool is_origin_iga = mLocalMapperSettings["is_origin_iga"].GetBool();
-    const bool is_destination_iga = mLocalMapperSettings["is_destination_iga"].GetBool();
+    // Determine whether the destination domain is IGA or not
+    const bool destination_is_iga = mMapperSettings["destination_is_iga"].GetBool();
 
-    // Throw an error iF the destination domain is discretized with IBRA
-    KRATOS_ERROR_IF(is_destination_iga)<< "This mapper is not available when the destination domain is discretized with IBRA" << std::endl;
+    // Throw an error if the destination domain is discretized with IBRA
+    KRATOS_ERROR_IF(destination_is_iga)<< "This mapper is not yet available when the destination domain is discretized with IGA" << std::endl;
 
-    // Remember that in the IgaApplication, conditions are represented geometrically by integrtion points
-    auto collect_conditions = [](const ModelPart& model_part, auto& integration_points_vector) {
-        for(auto condition_it = model_part.ConditionsBegin(); condition_it != model_part.ConditionsEnd(); ++condition_it){
-            integration_points_vector.push_back(*condition_it.base());
-        }
-    };
-
-    if (is_origin_iga) {
-        collect_conditions(this->GetOriginModelPart(), origin_integration_points);
+    bool use_all_support_points = false;
+    if (mMapperSettings["search_settings"].Has("use_all_rbf_support_points")) {
+        use_all_support_points = mMapperSettings["search_settings"]["use_all_rbf_support_points"].GetBool();
     }
 
-    if (is_destination_iga) {
-        collect_conditions(this->GetDestinationModelPart(), destination_integration_points);
-    }
-    
-    // Get the sizes of the origin and interpolation interfaces for the mapping
-    IndexType n_origin = is_origin_iga
-        ? origin_integration_points.size()
-        : this->GetOriginModelPart().NumberOfNodes();
-    IndexType n_destination = is_destination_iga
-        ? destination_integration_points.size()
-        : this->GetDestinationModelPart().NumberOfNodes();
+    IndexType required_rbf_support_points = 0;
+    if (!use_all_support_points) {
+        KRATOS_ERROR_IF_NOT(mMapperSettings["search_settings"].Has("required_rbf_support_points"))
+            << "Missing 'required_rbf_support_points' in search_settings when 'use_all_rbf_support_points' is false." << std::endl;
 
-
-    // Create and fill the matrix with the coordinates of the origin interpolation points
-    DenseMatrixType origin_coords(n_origin, 3);
-    FillCoordinatesMatrix(this->GetOriginModelPart(), origin_integration_points, origin_coords, is_origin_iga);
-
-    // Create and fill the matrix with the coordinates of the destination interpolation points
-    DenseMatrixType destination_coords(n_destination, 3);
-    FillCoordinatesMatrix(this->GetDestinationModelPart(), destination_integration_points, destination_coords, is_destination_iga);
-
-    // Allocate mapping matrix
-    this->mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(n_destination, n_origin);
-
-    // Read string from settings
-    std::string rbf_string = mLocalMapperSettings["radial_basis_function_type"].GetString();
-    std::transform(rbf_string.begin(), rbf_string.end(), rbf_string.begin(), ::tolower);
-
-    // Convert to enum using a local static map
-    static const std::unordered_map<std::string, RBFShapeFunctionsUtility::RBFType> rbf_type_map = {
-        {"inverse_multiquadric", RBFShapeFunctionsUtility::RBFType::InverseMultiquadric},
-        {"gaussian",             RBFShapeFunctionsUtility::RBFType::Gaussian},
-        {"thin_plate_spline",    RBFShapeFunctionsUtility::RBFType::ThinPlateSpline},
-        {"wendland_c2",          RBFShapeFunctionsUtility::RBFType::WendlandC2}
-    };
-
-    auto it = rbf_type_map.find(rbf_string);
-    if (it == rbf_type_map.end()) {
-        KRATOS_ERROR << "Unrecognized RBF type: " << rbf_string << std::endl;
-    }
-
-    // Now rbf_type is an enum  
-    RBFShapeFunctionsUtility::RBFType rbf_type = it->second;
-
-    // Compute shape parameter
-    double rbf_shape_parameter = 0.1; // default shape parameter
-    if (rbf_type == RBFShapeFunctionsUtility::RBFType::InverseMultiquadric || rbf_type == RBFShapeFunctionsUtility::RBFType::Gaussian) 
-    {
-        rbf_shape_parameter = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(origin_coords);
-    }
-    else if (rbf_type == RBFShapeFunctionsUtility::RBFType::WendlandC2) 
-    {
-        rbf_shape_parameter = RBFShapeFunctionsUtility::CalculateWendlandC2SupportRadius(origin_coords, 2.5);
-    }
-
-    double rbf_scale_factor = CalculateScaleFactor(origin_coords);
-
-    // Build origin interpolation matrix and invert it
-    const IndexType origin_interpolation_matrix_size = n_origin + n_polynomial;
-    DenseMatrixType inverse_origin_interpolation_matrix(origin_interpolation_matrix_size, origin_interpolation_matrix_size);
-    CreateAndInvertOriginRBFMatrix(inverse_origin_interpolation_matrix, origin_coords, project_origin_nodes_to_destination_domain,
-        poly_degree, rbf_type, rbf_scale_factor, rbf_shape_parameter);
-
-    // Build destination interpolation matrix (considering distances between origin and destination interpolation points)
-    DenseMatrixType destination_interpolation_matrix(n_destination, n_origin + n_polynomial);
-    CreateDestinationRBFMatrix(destination_interpolation_matrix, origin_coords, destination_coords, project_origin_nodes_to_destination_domain, poly_degree,
-        rbf_type, map_displacements_to_rotations, rbf_shape_parameter);
-    
-    // Compute the mapping matrix
-    DenseMatrixType dense_mapping = prod(destination_interpolation_matrix, inverse_origin_interpolation_matrix);
-
-    // Adjusting the size of mpMappingMatrix
-    const IndexType n_rows = dense_mapping.size1();
-    const IndexType n_cols = dense_mapping.size2() - n_polynomial; // eliminamos columnas polinomiales
-    this->mpMappingMatrix->resize(n_rows, n_cols, false);
-
-    // we copy only the required columns for the mapping
-    for (IndexType i = 0; i < n_rows; ++i) {
-        for (IndexType j = 0; j < n_cols; ++j) {
-            if (std::abs(dense_mapping(i, j + n_polynomial)) > 1e-12) { // shift por columnas polinomiales
-                (*this->mpMappingMatrix)(i, j) = dense_mapping(i, j + n_polynomial);
-            }
-        }
-    }
-
-    if (is_origin_iga) {
-        this->mpMappingMatrix = ComputeMappingMatrixIga(*this->mpMappingMatrix, origin_integration_points, this->GetOriginModelPart());
-    }
-}
-
-template<class TSparseSpace, class TDenseSpace>
-void Kratos::RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::FillCoordinatesMatrix(
-    const ModelPart& ModelPart, 
-    const std::vector<Condition::Pointer>& Integration_pointsPointerVector, 
-    DenseMatrixType& rCoordinatesMatrix, 
-    bool IsDomainIGA)
-{
-    if(IsDomainIGA){
-        // If the origin domain is discretized with a NURBS mesh, we consider the integration points (conditions) as the interpolation points
-         for (IndexType i = 0; i < Integration_pointsPointerVector.size(); ++i) {
-            const auto& p_geometry = Integration_pointsPointerVector[i]->pGetGeometry();
-            const auto& integration_point_coords = p_geometry->Center(); 
-
-            rCoordinatesMatrix(i, 0) = integration_point_coords[0];
-            rCoordinatesMatrix(i, 1) = integration_point_coords[1];
-            rCoordinatesMatrix(i, 2) = integration_point_coords[2];
-        }
-    } else{
-        // If the origin domain is discretized with a FEM mesh, we consider the nodes as the interpolation points
-        IndexType i = 0;
-        for (const auto& node : ModelPart.Nodes()) {
-            const auto& node_coords = node.Coordinates();
-
-            rCoordinatesMatrix(i, 0) = node_coords[0];
-            rCoordinatesMatrix(i, 1) = node_coords[1];
-            rCoordinatesMatrix(i, 2) = node_coords[2];
-
-            i++;
-        }
-    } 
-}
-template<class TSparseSpace, class TDenseSpace>
-IndexType RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateNumberOfPolynomialTermsFromDegree(
-    IndexType PolyDegree, 
-    bool ProjectToAerodynamicPanels)
-{
-    if (!ProjectToAerodynamicPanels){
-        return (PolyDegree + 3) * (PolyDegree + 2) * (PolyDegree + 1) / 6;
-    } else{
-        return (PolyDegree + 2) * (PolyDegree + 1) / 2;
-    }
-}
-
-template<class TSparseSpace, class TDenseSpace>
-std::vector<double> RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::EvaluatePolynomialBasis(
-    const array_1d<double, 3>& rCoords, 
-    unsigned int degree, 
-    bool ProjectToPanelsPlane) const
-{
-    std::vector<double> values;
-    const double x = rCoords[0];
-    const double y = rCoords[1];
-    const double z = rCoords[2];
-
-    if (ProjectToPanelsPlane) {
-        // 2D polynomial basis in standard order: 1, x, y, x^2, xy, y^2, ...
-        for (unsigned int j = 0; j <= degree; ++j) {           // power of y
-            for (unsigned int i = 0; i <= degree - j; ++i) {   // power of x
-                values.push_back(std::pow(x, i) * std::pow(y, j));
-            }
-        }
+        required_rbf_support_points = mMapperSettings["search_settings"]["required_rbf_support_points"].GetInt();
+        mRequiredRBFSupportPoints = required_rbf_support_points;
+    } else if (use_all_support_points && mOriginIsIga) {
+        mRequiredRBFSupportPoints = num_conditions_interface_origin;
     } else {
-        // 3D polynomial basis
-        for (unsigned int i = 0; i <= degree; ++i) {
-            for (unsigned int j = 0; j <= degree - i; ++j) {
-                for (unsigned int k = 0; k <= degree - i - j; ++k) {
-                    values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
-                }
+        mRequiredRBFSupportPoints = num_nodes_interface_origin;
+    }
+
+    if(mOriginIsIga){
+        KRATOS_ERROR_IF(mRequiredRBFSupportPoints > num_conditions_interface_origin) << 
+            "The required support points for the RBF Mapping cannot excede the number of integrations points in the IGA origin domain" << std::endl;
+        KRATOS_ERROR_IF(!precompute_mapping_matrix) << 
+            "The RBF Mapper for IGA only works by precomputing the mapping matrix" << std::endl;
+    } else{
+        KRATOS_ERROR_IF(mRequiredRBFSupportPoints > num_nodes_interface_origin) << 
+            "The required support points for the RBF Mapping cannot excede the number of nodes in the FEM origin domain" << std::endl;
+    }
+
+    // Assign the INTERFACE_EQUATION_IDs required to build the interpolation matrices
+    if (!mOriginIsIga){
+        AssignInterfaceEquationIds();
+    } else{
+        AssignInterfaceEquationIdsIga();
+    }
+
+    // Initialize the polynomial equation ids
+    if (!mOriginIsIga){
+        mPolynomialEquationIdsOrigin = InitializePolynomialEquationIds(mpCouplingInterfaceOrigin);
+    } else {
+        mPolynomialEquationIdsOrigin = InitializePolynomialEquationIdsIga(mpCouplingInterfaceOrigin);
+    }
+
+    // Create dummy local systems for the origin and destination domains
+    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mRBFType, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mRBFType, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
+
+    // Create the local systems for the origin and destination domains
+    if (mOriginIsIga) {
+        MapperUtilities::CreateMapperLocalSystemsFromGeometries(
+            origin_local_system,
+            mrModelPartOrigin.GetCommunicator(),
+            mMapperLocalSystemsOrigin);
+    } else {
+        MapperUtilities::CreateMapperLocalSystemsFromNodes(
+            origin_local_system,
+            mrModelPartOrigin.GetCommunicator(),
+            mMapperLocalSystemsOrigin);
+    }
+
+    // The destination is always FEM
+    MapperUtilities::CreateMapperLocalSystemsFromNodes(
+        destination_local_system,
+        mrModelPartDestination.GetCommunicator(),
+        mMapperLocalSystemsDestination);
+
+    auto p_interface_comm_origin_with_origin = Kratos::make_unique<InterfaceCommunicator>(
+            mrModelPartOrigin,
+            mMapperLocalSystemsOrigin,
+            mMapperSettings["search_settings"]);
+    
+    auto p_interface_comm_origin_with_destination = Kratos::make_unique<InterfaceCommunicator>(
+        mrModelPartOrigin,
+        mMapperLocalSystemsDestination,
+        mMapperSettings["search_settings"]);
+    
+    MapperInterfaceInfoUniquePointerType p_ref_interface_info_origin_with_origin;
+    MapperInterfaceInfoUniquePointerType p_ref_interface_info_origin_with_destination;
+    
+
+    p_ref_interface_info_origin_with_origin = GetMapperInterfaceInfo(mRequiredRBFSupportPoints);
+    p_ref_interface_info_origin_with_destination = GetMapperInterfaceInfo(mRequiredRBFSupportPoints);
+    
+    // Perform the local search to find the N nearest support points for each local system (The FEM local systems are always centered on the nodes while the IGA local systems are always
+    // centered on the integration points (geometries))
+    p_interface_comm_origin_with_origin->ExchangeInterfaceData(mrModelPartOrigin.GetCommunicator(),
+                                                      p_ref_interface_info_origin_with_origin);
+    p_interface_comm_origin_with_destination->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
+                                                      p_ref_interface_info_origin_with_destination);
+    
+    // Build the origin interpolation matrix
+    MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrixRBFMapper(
+        mpOriginInterpolationMatrix,
+        mpInterfaceVectorContainerOrigin->pGetVector(),
+        mpInterfaceVectorContainerOrigin->pGetVector(),
+        mpInterfaceVectorContainerOrigin->GetModelPart(),
+        mpInterfaceVectorContainerOrigin->GetModelPart(),
+        mMapperLocalSystemsOrigin,
+        mNumberOfPolynomialTerms,
+        true,
+        mOriginIsIga,
+        0);
+    
+    // Build the destination evaluation matrix
+    MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrixRBFMapper(
+        mpDestinationEvaluationMatrix,
+        mpInterfaceVectorContainerOrigin->pGetVector(),
+        mpInterfaceVectorContainerDestination->pGetVector(),
+        mpInterfaceVectorContainerOrigin->GetModelPart(),
+        mpInterfaceVectorContainerDestination->GetModelPart(),
+        mMapperLocalSystemsDestination,
+        mNumberOfPolynomialTerms,
+        false,
+        mOriginIsIga,
+        0);
+    
+    if (precompute_mapping_matrix){
+        CalculateMappingMatrix();
+    }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+std::vector<IndexType> RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializePolynomialEquationIds(const ModelPart* pModelPart)
+{
+    // Use the local mesh nodes you already grabbed
+    const auto& r_nodes = pModelPart->GetCommunicator().LocalMesh().Nodes();
+
+    IndexType max_eq_id = 0; // or std::numeric_limits<IndexType>::min() if needed
+
+    for (const auto& r_node : r_nodes) {
+        if (r_node.Has(INTERFACE_EQUATION_ID)) {
+            const IndexType eq_id = r_node.GetValue(INTERFACE_EQUATION_ID);
+            if (eq_id > max_eq_id) {
+                max_eq_id = eq_id;
             }
         }
     }
 
-    return values;
+    // Fill polynomial_equation_ids as a simple consecutive range
+    std::vector<IndexType> polynomial_equation_ids(mNumberOfPolynomialTerms);
+    std::iota(polynomial_equation_ids.begin(),
+              polynomial_equation_ids.end(),
+              max_eq_id + 1);
+
+    return polynomial_equation_ids;
 }
 
 template<class TSparseSpace, class TDenseSpace>
-double RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateScaleFactor(
-    DenseMatrixType& rOriginCoords)
+std::vector<IndexType> RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializePolynomialEquationIdsIga(const ModelPart* pModelPart)
 {
-    // rOriginCoords is (n_points x 3), columns: 0=x, 1=y, 2=z (ignored)
-    const IndexType n_origin = rOriginCoords.size1(); // number of points
-    if (n_origin == 0) {
-        // handle error or return 0
-        return 0.0;
-    }
+    // Use the local mesh nodes you already grabbed
+    const auto& r_conditions = pModelPart->GetCommunicator().LocalMesh().Conditions();
 
-    // Initialize min/max with the first point
-    double minx = rOriginCoords(0, 0);
-    double maxx = minx;
-    double miny = rOriginCoords(0, 1);
-    double maxy = miny;
+    IndexType max_eq_id = 0; // or std::numeric_limits<IndexType>::min() if needed
 
-    for (IndexType i = 0; i < n_origin; ++i) {
-        double x = rOriginCoords(i, 0);
-        double y = rOriginCoords(i, 1);
-
-        if (x > maxx) maxx = x;
-        if (x < minx) minx = x;
-        if (y > maxy) maxy = y;
-        if (y < miny) miny = y;
-    }
-
-    // Compute ranges
-    double rangeX = maxx - minx;
-    double rangeY = maxy - miny;
-
-    // Return the larger of the two ranges
-    return (rangeX >= rangeY) ? rangeX : rangeY;
-}
-
-template<class TSparseSpace, class TDenseSpace>
-void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateAndInvertOriginRBFMatrix(
-    DenseMatrixType& rInvCMatrix, // OUT: inverted RBF + poly matrix
-    const DenseMatrixType& rOriginCoords,
-    bool ProjectToAerodynamicPanels,
-    IndexType Poly_Degree,
-    RBFShapeFunctionsUtility::RBFType RBF_Type,
-    double Factor,
-    double eps)
-{
-    // Determine number of points in the origin domain
-    const IndexType n_points = rOriginCoords.size1(); // n_points x 3
-
-    IndexType n_polynomial = CalculateNumberOfPolynomialTermsFromDegree(Poly_Degree, ProjectToAerodynamicPanels);
-    IndexType n_total = n_points + n_polynomial;
-
-    // Initialize the matrix
-    noalias(rInvCMatrix) = ZeroMatrix(n_total, n_total);
-
-    for (IndexType i = 0; i < n_points; ++i) {
-        array_1d<double,3> point;
-        point[0] = rOriginCoords(i,0);
-        point[1] = rOriginCoords(i,1);
-        point[2] = rOriginCoords(i,2);
-
-        const auto poly_vals = EvaluatePolynomialBasis(point, Poly_Degree, ProjectToAerodynamicPanels);
-
-        for (IndexType j = 0; j < n_polynomial; ++j) {
-            // P block: rows n_poly..n_poly+n_points-1, columns 0..n_poly-1
-            rInvCMatrix(i + n_polynomial, j) = poly_vals[j];
-
-            // P^T block: top-left n_poly x n_points
-            rInvCMatrix(j, i + n_polynomial) = poly_vals[j]; // transpose
-        }
-    }
-    for (IndexType i = 0; i < n_points; ++i) {
-        for (IndexType j = i; j < n_points; ++j) {
-            double dx = rOriginCoords(i,0) - rOriginCoords(j,0);
-            double dy = rOriginCoords(i,1) - rOriginCoords(j,1);
-            double dz = ProjectToAerodynamicPanels ? 0.0 : rOriginCoords(i,2) - rOriginCoords(j,2);
-            double r = std::sqrt(dx*dx + dy*dy + dz*dz);
-
-            double k = RBFShapeFunctionsUtility::EvaluateRBF(r, eps, RBF_Type); 
-
-            rInvCMatrix(i + n_polynomial, j + n_polynomial) = k;
-            rInvCMatrix(j + n_polynomial, i + n_polynomial) = k; // symmetry
-        }
-    }
-
-    // Scale the coefficient matrix to improve its conditioning using the semispan or chord as a scaling factor
-   double scale_factor = 1.0/Factor;
-   double scale_factor_2 = std::pow(scale_factor, 2);
-
-    // Scale the polynomial block (first n_polynomial columns)
-    for (IndexType i = 0; i < n_polynomial; ++i) {
-        for (IndexType j = 0; j < n_points; ++j) {
-            // Rows corresponding to points (offset by n_polynomial), columns = polynomial
-            rInvCMatrix(j + n_polynomial, i) *= scale_factor;
-
-            // Symmetric block: top-left
-            rInvCMatrix(i, j + n_polynomial) = rInvCMatrix(j + n_polynomial, i);
-        }
-    }
-
-    // Scale the RBF submatrix (distance part)
-    for (IndexType i = 0; i < n_points; ++i) {
-        for (IndexType j = i; j < n_points; ++j) {
-            rInvCMatrix(i + n_polynomial, j + n_polynomial) *= scale_factor_2;
-            rInvCMatrix(j + n_polynomial, i + n_polynomial) = rInvCMatrix(i + n_polynomial, j + n_polynomial); // symmetry
-        }
-    }
-
-    DenseMatrixType C = rInvCMatrix; // your coefficient matrix, size (n_points+n_polynomial) x (n_points+n_polynomial)
-    double det_c_inv;
-
-    // Assuming C is your filled coefficient matrix
-    MathUtils<double>::InvertMatrix(C, rInvCMatrix, det_c_inv);
-
-    // First n_polynomial columns/rows (polynomial part)
-    for (IndexType i = 0; i < n_polynomial; ++i) {
-        for (IndexType j = n_polynomial; j < n_total; ++j) {
-            rInvCMatrix(j, i) *= scale_factor;
-            rInvCMatrix(i, j) = rInvCMatrix(j, i); // symmetric
-        }
-    }
-
-    // RBF submatrix block
-    for (IndexType i = n_polynomial; i < n_total; ++i) {
-        for (IndexType j = i; j < n_total; ++j) {
-            rInvCMatrix(j, i) *= scale_factor_2;
-            rInvCMatrix(i, j) = rInvCMatrix(j, i); // symmetric
-        }
-    }
-}
-
-template<class TSparseSpace, class TDenseSpace>
-void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateDestinationRBFMatrix(
-    DenseMatrixType& rAMatrix,
-    const DenseMatrixType& rOriginCoords, 
-    const DenseMatrixType& rDestinationCoords,
-    bool ProjectToAerodynamicPanels, 
-    IndexType Poly_Degree, 
-    RBFShapeFunctionsUtility::RBFType RBF_Type, 
-    bool map_displacements_to_rotations,
-    double rbf_shape_parameter)
-{
-    const IndexType n_origin = rOriginCoords.size1();
-    const IndexType n_destination = rDestinationCoords.size1();
-
-    IndexType n_polynomial = CalculateNumberOfPolynomialTermsFromDegree(Poly_Degree, ProjectToAerodynamicPanels);
-
-    // === Main assembly ===
-    for (IndexType i_dest = 0; i_dest < n_destination; ++i_dest) {
-        array_1d<double, 3> dest_point;
-        dest_point[0] = rDestinationCoords(i_dest, 0);
-        dest_point[1] = rDestinationCoords(i_dest, 1);
-        dest_point[2] = rDestinationCoords(i_dest, 2);
-
-        // === Polynomial block ===
-        std::vector<double> poly_vals(n_polynomial, 0.0);
-        if (!map_displacements_to_rotations) {
-            poly_vals = EvaluatePolynomialBasis(dest_point, Poly_Degree, ProjectToAerodynamicPanels);
-        } else {
-            // Slope/AOA mode: constant derivative in x as per Fortran [0, -1, 0]
-            // (extendable if higher polynomial degrees are used)
-            if (n_polynomial >= 3) {
-                poly_vals[0] = 0.0;
-                poly_vals[1] = -1.0;
-                poly_vals[2] = 0.0;
-            } else {
-                poly_vals[0] = 0.0;
+    for (const auto& r_condition : r_conditions) {
+        if (r_condition.Has(INTERFACE_EQUATION_ID)) {
+            const IndexType eq_id = r_condition.GetValue(INTERFACE_EQUATION_ID);
+            if (eq_id > max_eq_id) {
+                max_eq_id = eq_id;
             }
         }
-
-        for (IndexType j = 0; j < n_polynomial; ++j) {
-            rAMatrix(i_dest, j) = poly_vals[j];
-        }
-
-        // === RBF block ===
-        for (IndexType j_origin = 0; j_origin < n_origin; ++j_origin) {
-            array_1d<double, 3> origin_point;
-            origin_point[0] = rOriginCoords(j_origin, 0);
-            origin_point[1] = rOriginCoords(j_origin, 1);
-            origin_point[2] = rOriginCoords(j_origin, 2);
-
-            double dx = dest_point[0] - origin_point[0];
-            double dy = dest_point[1] - origin_point[1];
-            double dz = ProjectToAerodynamicPanels ? 0.0 : (dest_point[2] - origin_point[2]);
-
-            const double distance_2 = dx * dx + dy * dy + dz * dz;
-
-            double value = 0.0;
-            if (!map_displacements_to_rotations) {
-                const double r = std::sqrt(distance_2);
-                value = RBFShapeFunctionsUtility::EvaluateRBF(r, rbf_shape_parameter, RBF_Type);
-            } else {
-                // slope / angle of attack version: -dK/dx = -2*dx*(1 + log(r^2))
-                const double dkdx = 2.0 * dx * (1.0 + std::log(distance_2));
-                value = -dkdx;
-            }
-
-            rAMatrix(i_dest, n_polynomial + j_origin) = value;
-        }
-    }
-}
-
-
-template<class TSparseSpace, class TDenseSpace>
-std::unique_ptr<typename RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MappingMatrixType>
-RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIga(
-    const typename RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MappingMatrixType& rMappingMatrixGP,
-    const std::vector<Condition::Pointer>& rOriginIntegrationPoints,
-    const ModelPart& rOriginModelPart) const
-{
-    // Determine sizes
-    const IndexType n_gp = rOriginIntegrationPoints.size();
-    const IndexType n_nodes = rOriginModelPart.GetRootModelPart().NumberOfNodes();
-
-    // Build full N matrix (GP x nodes)
-    SparseMatrixType N = ZeroMatrix(n_gp, n_nodes);
-    for (IndexType i_gp = 0; i_gp < n_gp; ++i_gp) {
-        auto p_geometry = rOriginIntegrationPoints[i_gp]->pGetGeometry();
-        const auto& shape_functions_values = p_geometry->ShapeFunctionsValues();
-
-        for (IndexType j = 0; j < p_geometry->size(); ++j) {
-            IndexType node_id = (*p_geometry)[j].Id() - 1; // Convert 1-based ID to 0-based
-            N(i_gp, node_id) = shape_functions_values(0, j);
-        }
     }
 
-    // Determine valid columns corresponding to nodes in the origin model part
-    std::unordered_set<IndexType> existing_node_ids;
-    for (const auto& node : rOriginModelPart.Nodes()) {
-        existing_node_ids.insert(node.Id());
-    }
+    // Fill polynomial_equation_ids as a simple consecutive range
+    std::vector<IndexType> polynomial_equation_ids(mNumberOfPolynomialTerms);
+    std::iota(polynomial_equation_ids.begin(),
+              polynomial_equation_ids.end(),
+              max_eq_id + 1);
 
-    std::vector<IndexType> valid_columns;
-    valid_columns.reserve(n_nodes);
-    for (IndexType j = 0; j < n_nodes; ++j) {
-        if (existing_node_ids.count(j + 1)) {
-            valid_columns.push_back(j);
-        }
-    }
-
-    // Build reduced N matrix with just the control points belonging to the coupling interface 
-    SparseMatrixType N_reduced(n_gp, valid_columns.size());
-    for (IndexType i = 0; i < n_gp; ++i) {
-        for (IndexType j = 0; j < valid_columns.size(); ++j) {
-            N_reduced(i, j) = N(i, valid_columns[j]);
-        }
-    }
-
-
-    // Compute final mapping: H = H_tilde @ N_reduced
-    auto pMappingMatrix = Kratos::make_unique<MappingMatrixType>(rMappingMatrixGP.size1(), N_reduced.size2());
-    noalias(*pMappingMatrix) = prod(rMappingMatrixGP, N_reduced);
-
-    return pMappingMatrix;
+    return polynomial_equation_ids;
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -521,23 +459,47 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternal(
     const Variable<double>& rDestinationVariable,
     Flags MappingOptions)
 {
-    const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
+    const bool precompute_mapping_matrix =
+        mMapperSettings["precompute_mapping_matrix"].GetBool();
 
+    // 1. Read origin vector (nodes for FEM, control points for IGA)
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
-    // if (precompute_mapping_matrix) {
-    //     TSparseSpace::Mult(
-    //         *mpMappingMatrix,
-    //         mpInterfaceVectorContainerMaster->GetVector(),
-    //         mpInterfaceVectorContainerSlave->GetVector()); // rQd = rMdo * rQo
-    // } else {
-    //     TSparseSpace::Mult(
-    //         *mpMappingMatrixProjector,
-    //         mpInterfaceVectorContainerMaster->GetVector(),
-    //         *mpTempVector); // rQd = rMdo * rQo
+    auto& r_origin_vec      = mpInterfaceVectorContainerOrigin->GetVector();
+    auto& r_destination_vec = mpInterfaceVectorContainerDestination->GetVector();
 
-    //     mpLinearSolver->Solve(*mpMappingMatrixSlave, mpInterfaceVectorContainerSlave->GetVector(), *mpTempVector);
-    // }
+    if (precompute_mapping_matrix) {
+        KRATOS_ERROR_IF(!mpMappingMatrix) << "MapInternal: mapping matrix is not computed but 'precompute_mapping_matrix' is true.\n";
+
+        r_destination_vec.resize(mpMappingMatrix->size1(), false);
+        
+        // u_dest = M * u_orig
+        TSparseSpace::Mult(
+            *mpMappingMatrix, 
+            r_origin_vec, 
+            r_destination_vec);
+    } else {
+        // solve RBF system on the fly 
+        const IndexType system_size  = mpOriginInterpolationMatrix->size1();
+        const IndexType n_origin_dof = r_origin_vec.size();
+        const IndexType n_poly       = system_size - n_origin_dof;
+
+        Vector rhs(system_size);
+        for (IndexType i = 0; i < n_origin_dof; ++i)
+            rhs[i] = r_origin_vec[i];
+        for (IndexType i = 0; i < n_poly; ++i)
+            rhs[n_origin_dof + i] = 0.0;
+
+        Vector solution(system_size);
+        mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
+
+        r_destination_vec.resize(mpDestinationEvaluationMatrix->size1(), false);
+
+        TSparseSpace::Mult(
+            *mpDestinationEvaluationMatrix, 
+            solution, 
+            r_destination_vec);
+    }
 
     mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
 }
@@ -548,26 +510,46 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     const Variable<double>& rDestinationVariable,
     Flags MappingOptions)
 {
-    const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
+    const bool precompute_mapping_matrix =
+        mMapperSettings["precompute_mapping_matrix"].GetBool();
 
+    // Read destination variable from the FEM nodes
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
-    // if (dual_mortar || precompute_mapping_matrix) {
-    //     TSparseSpace::TransposeMult(
-    //         *mpMappingMatrix,
-    //         mpInterfaceVectorContainerSlave->GetVector(),
-    //         mpInterfaceVectorContainerMaster->GetVector()); // rQo = rMdo^T * rQd
-    // } else {
-    //     mpLinearSolver->Solve(*mpMappingMatrixSlave, *mpTempVector, mpInterfaceVectorContainerSlave->GetVector());
+    auto& r_dest_vec   = mpInterfaceVectorContainerDestination->GetVector();
+    auto& r_origin_vec = mpInterfaceVectorContainerOrigin->GetVector();
 
-    //     TSparseSpace::TransposeMult(
-    //         *mpMappingMatrixProjector,
-    //         *mpTempVector,
-    //         mpInterfaceVectorContainerMaster->GetVector()); // rQo = rMdo^T * rQd
-    // }
+    if (precompute_mapping_matrix) {
+        r_origin_vec.resize(mpMappingMatrix->size2(), false);
+
+        // f_orig = M^T * f_dest
+        TSparseSpace::TransposeMult(
+            *mpMappingMatrix, 
+            r_dest_vec, 
+            r_origin_vec);
+    } else {
+        // solve RBF system on the fly 
+        const IndexType system_size = mpOriginInterpolationMatrix->size1();
+
+        Vector temp_vector_1(system_size);
+        TSparseSpace::TransposeMult(
+            *mpDestinationEvaluationMatrix,
+            r_dest_vec,
+            temp_vector_1
+        );
+
+        Vector temp_vector_2(system_size);
+        mpLinearSolver->Solve(*mpOriginInterpolationMatrix, temp_vector_2, temp_vector_1);
+
+        const IndexType n_origin_dof = r_origin_vec.size();
+        r_origin_vec.resize(n_origin_dof, false);
+        for (IndexType i = 0; i < n_origin_dof; ++i)
+            r_origin_vec[i] = temp_vector_2[i];
+    }
 
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 }
+
 
 template<class TSparseSpace, class TDenseSpace>
 void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternal(
@@ -597,8 +579,148 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     }
 }
 
+template<class TSparseSpace, class TDenseSpace>
+void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrix()
+{
+    KRATOS_DEBUG_ERROR_IF_NOT(mpOriginInterpolationMatrix)
+        << "CalculateMappingMatrix: mpOriginInterpolationMatrix is nullptr." << std::endl;
+    KRATOS_DEBUG_ERROR_IF_NOT(mpDestinationEvaluationMatrix)
+        << "CalculateMappingMatrix: mpDestinationEvaluationMatrix is nullptr." << std::endl;
+
+    const IndexType system_size = mpOriginInterpolationMatrix->size1(); // n_support + n_poly
+    const IndexType n_dest      = mpDestinationEvaluationMatrix->size1();
+
+    // Number of RBF centers (support points) used to build A and B
+    IndexType n_support = 0;
+    if (!mOriginIsIga) {
+        // FEM origin: one center per origin node
+        n_support = mpInterfaceVectorContainerOrigin->GetVector().size();
+    } else {
+        // IGA origin: one center per interface integration point (condition)
+        n_support = mpCouplingInterfaceOrigin->NumberOfConditions();
+    }
+
+    // Build GP-based mapping matrix H_tilde: (n_dest x n_support)
+    auto pMappingMatrixGP = Kratos::make_unique<MappingMatrixType>(n_dest, n_support);
+    noalias(*pMappingMatrixGP) = ZeroMatrix(n_dest, n_support);
+
+    Vector rhs(system_size);
+    Vector solution(system_size);
+    Vector dest_column(n_dest);
+
+    for (IndexType j = 0; j < n_support; ++j)
+    {
+        // rhs = [ e_j ; 0 ]
+        noalias(rhs) = ZeroVector(system_size);
+        rhs[j] = 1.0;
+
+        // Solve A * solution = rhs
+        mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
+
+        // dest_column = B * solution
+        TSparseSpace::Mult(
+            *mpDestinationEvaluationMatrix,
+            solution,
+            dest_column
+        );
+
+        // Column j of H_tilde
+        for (IndexType i = 0; i < n_dest; ++i) {
+            (*pMappingMatrixGP)(i, j) = dest_column[i];
+        }
+    }
+
+    // If IGA origin, project from GP-based to CP-based mapping:
+    // M = M_tilde * N_reduced
+    if (mOriginIsIga) {
+        mpMappingMatrix = ComputeMappingMatrixIgaOnControlPoints(
+            *pMappingMatrixGP,
+            this->GetOriginModelPart()
+        );
+    } else {
+        mpMappingMatrix = std::move(pMappingMatrixGP);
+    }
+}
+
+template<class TSparseSpace, class TDenseSpace>
+std::unique_ptr<typename RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MappingMatrixType>
+RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnControlPoints(
+    const MappingMatrixType& rMappingMatrixGP,
+    const ModelPart& rOriginModelPart) const
+{
+    using MappingMatrixType = typename RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MappingMatrixType;
+
+    // Number of "origin interface objects" = number of GPs (here: 1 GP per condition)
+    const IndexType n_gp = mpCouplingInterfaceOrigin->NumberOfConditions();
+
+    // 1) Build map: NodeId -> local control-point index (column index in N_reduced)
+    std::unordered_map<IndexType, IndexType> node_id_to_cp_index;
+    node_id_to_cp_index.reserve(mpCouplingInterfaceOrigin->NumberOfNodes());
+
+    IndexType n_cp = 0;
+    for (auto& r_node : mpCouplingInterfaceOrigin->Nodes()) {
+        const IndexType node_id = r_node.Id();
+        node_id_to_cp_index.emplace(node_id, n_cp++);
+    }
+
+    // 2) Build N_reduced (n_gp x n_cp) with shape functions of interface GPs
+    Matrix N_reduced(n_gp, n_cp);
+    noalias(N_reduced) = ZeroMatrix(n_gp, n_cp);
+
+    IndexType gp_idx = 0;
+    for (auto& r_cond : mpCouplingInterfaceOrigin->Conditions())
+    {
+        auto& r_geom = r_cond.GetGeometry();
+
+        const Matrix& Ncontainer = r_geom.ShapeFunctionsValues();
+
+        const auto& r_N = row(Ncontainer, 0);
+        const IndexType num_points = r_geom.PointsNumber();
+
+        for (IndexType j = 0; j < num_points; ++j) {
+            const auto& r_node   = r_geom[j];
+            const IndexType node_id = r_node.Id();
+
+            auto it = node_id_to_cp_index.find(node_id);
+            const IndexType cp_col = it->second;
+
+            N_reduced(gp_idx, cp_col) = r_N[j];
+        }
+
+        ++gp_idx;
+    }
+
+    // 3) Compute final mapping: M = M_tilde * N_reduced
+    //    rMappingMatrixGP: (n_dest x n_gp)
+    //    N_reduced      : (n_gp  x n_cp)
+    //    -> H           : (n_dest x n_cp)
+    auto pMappingMatrix = Kratos::make_unique<MappingMatrixType>(
+        rMappingMatrixGP.size1(),  // n_dest
+        n_cp                       // number of control points on origin interface
+    );
+
+    noalias(*pMappingMatrix) = prod(rMappingMatrixGP, N_reduced);
+
+    return pMappingMatrix;
+}
+
+
+
+template<class TSparseSpace, class TDenseSpace>
+void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
+{
+    if (mMapperSettings["linear_solver_settings"].Has("solver_type")) {
+        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
+    }
+    else {
+        // TODO - replicate 'get fastest solver'
+        mMapperSettings.AddString("solver_type", "pardiso_lu");
+        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings);
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class RadialBasisFunctionMapper< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
+template class RadialBasisFunctionMapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>;
 
 }  // namespace Kratos.
