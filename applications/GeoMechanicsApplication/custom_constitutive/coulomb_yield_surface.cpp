@@ -201,9 +201,8 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Vector& rSigmaTau,
     return (GetCohesion() * std::cos(GetFrictionAngleInRadians()) - rSigmaTau[0] * sin_phi - rSigmaTau[1]) / numerator;
 }
 
-double CoulombYieldSurface::CalculateEquivalentPlasticStrain(const Vector&        rSigmaTau,
-                                                             CoulombAveragingType AveragingType,
-                                                             double               lambda) const
+double CoulombYieldSurface::CalculateEquivalentPlasticStrain(const Vector& rSigmaTau,
+                                                             CoulombAveragingType AveragingType) const
 {
     Vector     dGdsigma = DerivativeOfFlowFunction(rSigmaTau, AveragingType);
     const auto g1       = (dGdsigma[0] + dGdsigma[1]) * 0.5;
@@ -211,7 +210,7 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrain(const Vector&      
     const auto mean     = (g1 + g3) / 3.0;
     const auto deviatoric = std::sqrt(std::pow(g1 - mean, 2) + std::pow(g3 - mean, 2) + std::pow(mean, 2));
     const auto alpha = std::sqrt(2.0 / 3.0) * deviatoric;
-    return -alpha * lambda;
+    return -alpha * CalculatePlasticMultiplier(rSigmaTau, DerivativeOfFlowFunction(rSigmaTau, AveragingType));
 }
 
 void CoulombYieldSurface::save(Serializer& rSerializer) const

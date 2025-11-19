@@ -54,8 +54,7 @@ public:
     [[nodiscard]] double CalculatePlasticMultiplier(const Vector& rSigmaTau,
                                                     const Vector& rDerivativeOfFlowFunction) const;
     [[nodiscard]] double CalculateEquivalentPlasticStrain(const Vector&        rSigmaTau,
-                                                          CoulombAveragingType AveragingType,
-                                                          double               lambda) const;
+                                                          CoulombAveragingType AveragingType) const;
 
 private:
     void InitializeKappaDependentFunctions();

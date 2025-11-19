@@ -59,10 +59,8 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
             result = ReturnStressAtRegularFailureZone(rTrialSigmaTau, AveragingType);
         }
 
-        const auto lambda = mCoulombYieldSurface.CalculatePlasticMultiplier(
-            rTrialSigmaTau, mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType));
-        const double kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrain(
-                                               rTrialSigmaTau, AveragingType, lambda);
+        const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrain(
+                                             rTrialSigmaTau, AveragingType);
         mCoulombYieldSurface.SetKappa(kappa);
 
         double error = std::abs(mCoulombYieldSurface.YieldFunctionValue(result));
