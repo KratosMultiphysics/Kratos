@@ -15,10 +15,13 @@ Begin Nodes
   11 0.0 2.0 0.0
   12 0.5 2.0 0.0
   13 1.0 2.0 0.0
+  14 1.0 1.0 0.0
+  15 0.0 1.0 0.0
+  16 0.5 1.0 0.0
 End Nodes
 
 Begin Elements SmallStrainUPwDiffOrderElement2D8N
-  2 0 11 4 8 13 9 6 10 12
+  2 0 11 15 14 13 9 16 10 12
   1 0 4 1 5 8 3 2 7 6
 End Elements
 
@@ -50,14 +53,16 @@ Begin SubModelPart Side_Rollers
     10
     11
     13
+    14
+    15
   End SubModelPartNodes
 End SubModelPart
 
 Begin SubModelPart Soil_Top
   Begin SubModelPartNodes
-    4
-    6
-    8
+    15
+    16
+    14
     9
     10
     11
