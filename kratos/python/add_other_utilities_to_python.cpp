@@ -19,7 +19,7 @@
 // Project includes
 #include "python/add_other_utilities_to_python.h"
 #include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
+#include "linear_solvers/linear_solver_ublas.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "includes/fill_communicator.h"
@@ -253,8 +253,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("GetTime", &Timer::GetTime)
         .def_static("SetOutputFile", &Timer::SetOutputFile)
         .def_static("CloseOutputFile", &Timer::CloseOutputFile)
-        .def_static("SetOuputFile", &Timer::SetOuputFile) // TODO: Remove this line eventually, it is a typo
-        .def_static("CloseOuputFile", &Timer::CloseOuputFile) // TODO: Remove this line eventually, it is a typo
         .def_static("GetPrintOnScreen", &Timer::GetPrintOnScreen)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)

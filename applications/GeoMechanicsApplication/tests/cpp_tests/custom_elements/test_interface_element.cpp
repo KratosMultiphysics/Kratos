@@ -12,12 +12,16 @@
 //
 
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
+#include "custom_constitutive/plane_strain.h"
 #include "custom_elements/interface_element.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/interface_geometry.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -28,12 +32,13 @@ namespace
 {
 
 using namespace Kratos;
-using LineInterfaceGeometry2D2Plus2Noded     = InterfaceGeometry<Line2D2<Node>>;
-using LineInterfaceGeometry2D3Plus3Noded     = InterfaceGeometry<Line2D3<Node>>;
-using TriangleInterfaceGeometry3D3Plus3Noded = InterfaceGeometry<Triangle3D3<Node>>;
-using TriangleInterfaceGeometry3D6Plus6Noded = InterfaceGeometry<Triangle3D6<Node>>;
-using Interface2D                            = Line2DInterfaceStressState;
-using Interface3D                            = SurfaceInterfaceStressState;
+using LineInterfaceGeometry2D2Plus2Noded          = InterfaceGeometry<Line2D2<Node>>;
+using LineInterfaceGeometry2D3Plus3Noded          = InterfaceGeometry<Line2D3<Node>>;
+using TriangleInterfaceGeometry3D3Plus3Noded      = InterfaceGeometry<Triangle3D3<Node>>;
+using TriangleInterfaceGeometry3D6Plus6Noded      = InterfaceGeometry<Triangle3D6<Node>>;
+using QuadrilateralInterfaceGeometry3D4Plus4Noded = InterfaceGeometry<Quadrilateral3D4<Node>>;
+using Interface2D                                 = Line2DInterfaceStressState;
+using Interface3D                                 = SurfaceInterfaceStressState;
 using PrescribedDisplacements = std::vector<std::pair<std::size_t, array_1d<double, 3>>>;
 
 PointerVector<Node> CreateNodesFor2Plus2LineInterfaceGeometry()
@@ -169,10 +174,42 @@ InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Mo
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(5, 1.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
+    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
+    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+}
+
+InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs(Model& rModel,
+                                                                                     const Properties::Pointer& rProperties)
+{
+    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, -1.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(4, 0.0, 0.0, -1.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
+    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
+    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+}
+
+InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs(Model& rModel,
+                                                                                     const Properties::Pointer& rProperties)
+{
+    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 1.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 0.0, 1.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
@@ -207,10 +244,26 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacemen
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, 0.5 * std::sqrt(3.0) - 0.5, 0.5 + 0.5 * std::sqrt(3.0), 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, -0.5, 0.5 * std::sqrt(3.0), 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(5, 0.5 * std::sqrt(3.0) - 0.5, 0.5 + 0.5 * std::sqrt(3.0), 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, -0.5, 0.5 * std::sqrt(3.0), 0.0));
+    const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
+    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+}
+
+InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithDisplacementDoF(
+    Model& rModel, const Properties::Pointer& rProperties)
+{
+    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.0, -0.5));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.0, -0.5));
+    nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
@@ -235,28 +288,29 @@ Matrix ExpectedLeftHandSideForTriangleElement()
     auto expected_left_hand_side = Matrix(18, 18);
     // clang-format off
     expected_left_hand_side <<=
-    3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,
-    0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,
-    0,0,6.666666667,0,0,0,0,0,0,0,0,-6.666666667,0,0,0,0,0,0,
-    0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,
-    0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,
-    0,0,0,0,0,6.666666667,0,0,0,0,0,0,0,0,-6.666666667,0,0,0,
-    0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,
-    0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,
-    0,0,0,0,0,0,0,0,6.666666667,0,0,0,0,0,0,0,0,-6.666666667,
-    -3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,
-    0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,
-    0,0,-6.666666667,0,0,0,0,0,0,0,0,6.666666667,0,0,0,0,0,0,
-    0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,
-    0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,
-    0,0,0,0,0,-6.666666667,0,0,0,0,0,0,0,0,6.666666667,0,0,0,
-    0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,
-    0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,
-    0,0,0,0,0,0,0,0,-6.666666667,0,0,0,0,0,0,0,0,6.666666667;
+        1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,
+        0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,
+        0,0,3.3333333333333321,0,0,0,0,0,0,0,0,-3.3333333333333321,0,0,0,0,0,0,
+        0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,
+        0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,
+        0,0,0,0,0,3.3333333333333321,0,0,0,0,0,0,0,0,-3.3333333333333321,0,0,0,
+        0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,
+        0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,
+        0,0,0,0,0,0,0,0,3.3333333333333321,0,0,0,0,0,0,0,0,-3.3333333333333321,
+        -1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,
+        0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,
+        0,0,-3.3333333333333321,0,0,0,0,0,0,0,0,3.3333333333333321,0,0,0,0,0,0,
+        0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,
+        0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,
+        0,0,0,0,0,-3.3333333333333321,0,0,0,0,0,0,0,0,3.3333333333333321,0,0,0,
+        0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,
+        0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,
+        0,0,0,0,0,0,0,0,-3.3333333333333321,0,0,0,0,0,0,0,0,3.3333333333333321;
     // clang-format on
 
     return expected_left_hand_side;
 }
+
 } // namespace
 
 namespace Kratos::Testing
@@ -413,7 +467,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
          0.0,         0.0,        -6.25,        2.16506351,  0.0,         0.0,         6.25,       -2.16506351,
          0.0,         0.0,         2.16506351, -8.75,        0.0,         0.0,        -2.16506351,  8.75;
     // clang-format on
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
@@ -792,27 +846,53 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     // Assert
     auto expected_left_hand_side = Matrix{18, 18};
     // clang-format off
+
+    // Since the rotation is about the z-axis (the normal of the triangle) and the two shear
+    // stiffnesses are equal, the left-hand side matrix is equal to the left-hand side of a
+    // non-rotated surface interface element.
+    KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, ExpectedLeftHandSideForTriangleElement(), Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_RotatedAboutYAxis,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
+
+    auto element = CreateAndInitializeElement(
+        CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithDisplacementDoF, p_properties);
+
+    // Act
+    Matrix actual_left_hand_side;
+    element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
+
+    // Assert
+    auto expected_left_hand_side = Matrix{18, 18};
     expected_left_hand_side <<=
-    4.166666667,0,-1.443375673,0,0,0,0,0,0,-4.166666667,0,1.443375673,0,0,0,0,0,0,
-    0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,
-    -1.443375673,0,5.833333333,0,0,0,0,0,0,1.443375673,0,-5.833333333,0,0,0,0,0,0,
-    0,0,0,4.166666667,0,-1.443375673,0,0,0,0,0,0,-4.166666667,0,1.443375673,0,0,0,
-    0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,0,0,0,
-    0,0,0,-1.443375673,0,5.833333333,0,0,0,0,0,0,1.443375673,0,-5.833333333,0,0,0,
-    0,0,0,0,0,0,4.166666667,0,-1.443375673,0,0,0,0,0,0,-4.166666667,0,1.443375673,
-    0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,0,-3.333333333,0,
-    0,0,0,0,0,0,-1.443375673,0,5.833333333,0,0,0,0,0,0,1.443375673,0,-5.833333333,
-    -4.166666667,0,1.443375673,0,0,0,0,0,0,4.166666667,0,-1.443375673,0,0,0,0,0,0,
-    0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,0,0,0,
-    1.443375673,0,-5.833333333,0,0,0,0,0,0,-1.443375673,0,5.833333333,0,0,0,0,0,0,
-    0,0,0,-4.166666667,0,1.443375673,0,0,0,0,0,0,4.166666667,0,-1.443375673,0,0,0,
-    0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,0,0,0,
-    0,0,0,1.443375673,0,-5.833333333,0,0,0,0,0,0,-1.443375673,0,5.833333333,0,0,0,
-    0,0,0,0,0,0,-4.166666667,0,1.443375673,0,0,0,0,0,0,4.166666667,0,-1.443375673,
-    0,0,0,0,0,0,0,-3.333333333,0,0,0,0,0,0,0,0,3.333333333,0,
-    0,0,0,0,0,0,1.443375673,0,-5.833333333,0,0,0,0,0,0,-1.443375673,0,5.833333333;
-    // clang-format on
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    2.083333333333333,0,0.72168783648703216,0,0,0,0,0,0,-2.083333333333333,0,-0.72168783648703216,0,0,0,0,0,0,
+    0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,
+    0.72168783648703216,0,2.9166666666666661,0,0,0,0,0,0,-0.72168783648703216,0,-2.9166666666666661,0,0,0,0,0,0,
+    0,0,0,2.083333333333333,0,0.72168783648703216,0,0,0,0,0,0,-2.083333333333333,0,-0.72168783648703216,0,0,0,
+    0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,
+    0,0,0,0.72168783648703216,0,2.9166666666666661,0,0,0,0,0,0,-0.72168783648703216,0,-2.9166666666666661,0,0,0,
+    0,0,0,0,0,0,2.083333333333333,0,0.72168783648703216,0,0,0,0,0,0,-2.083333333333333,0,-0.72168783648703216,
+    0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,
+    0,0,0,0,0,0,0.72168783648703216,0,2.9166666666666661,0,0,0,0,0,0,-0.72168783648703216,0,-2.9166666666666661,
+    -2.083333333333333,0,-0.72168783648703216,0,0,0,0,0,0,2.083333333333333,0,0.72168783648703216,0,0,0,0,0,0,
+    0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,
+    -0.72168783648703216,0,-2.9166666666666661,0,0,0,0,0,0,0.72168783648703216,0,2.9166666666666661,0,0,0,0,0,0,
+    0,0,0,-2.083333333333333,0,-0.72168783648703216,0,0,0,0,0,0,2.083333333333333,0,0.72168783648703216,0,0,0,
+    0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,
+    0,0,0,-0.72168783648703216,0,-2.9166666666666661,0,0,0,0,0,0,0.72168783648703216,0,2.9166666666666661,0,0,0,
+    0,0,0,0,0,0,-2.083333333333333,0,-0.72168783648703216,0,0,0,0,0,0,2.083333333333333,0,0.72168783648703216,
+    0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,
+    0,0,0,0,0,0,-0.72168783648703216,0,-2.9166666666666661,0,0,0,0,0,0,0.72168783648703216,0,2.9166666666666661;
+    // clang-format off
+
+    KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
@@ -835,9 +915,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
 
     // Assert
     auto expected_right_hand_side = Vector{18};
-    expected_right_hand_side <<= 0.6666666667, 1.666666667, -0, -0, -0, -0, -0.6666666667,
-        -1.666666667, -0, -0.6666666667, -1.666666667, -0, -0, -0, -0, 0.6666666667, 1.666666667, -0;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+    expected_right_hand_side <<= 0.333333,0.833333,0,0,0,0,-0.333333,-0.833333,0,-0.333333,-0.833333,0,0,0,0,0.333333,0.833333,0;
+    constexpr auto tolerance=1e-5;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
@@ -850,8 +930,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+        PrescribedDisplacements{{3, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {4, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {5, array_1d<double, 3>{1.0, 2.0, 3.0}}};
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -862,10 +943,10 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     // Assert
     auto expected_right_hand_side = Vector{18};
     // clang-format off
-    expected_right_hand_side <<=
-        -0.3199788333,1.776709,0.1108439193,-0,-0,-0,0.3199788333,-1.776709,-0.1108439193,0.3199788333,-1.776709,-0.1108439193,-0,-0,-0,-0.3199788333,1.776709,0.1108439193;
+    expected_right_hand_side <<= 1.66667,3.33333,10,1.66667,3.33333,10,1.66667,3.33333,10,-1.66667,-3.33333,-10,-1.66667,-3.33333,-10,-1.66667,-3.33333,-10;
     // clang-format on
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+    constexpr auto tolerance = 1e-5;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization,
@@ -940,10 +1021,10 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHa
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{18};
-    // clang-format off
-    expected_right_hand_side <<= 0.6666666667,1.666666667,-0,-0,-0,-0,-0.6666666667,-1.666666667,-0,-0.6666666667,-1.666666667,-0,-0,-0,-0,0.6666666667,1.666666667,-0;
-    // clang-format on
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+    expected_right_hand_side <<= 0.333333, 0.833333, 0, 0, 0, 0, -0.333333, -0.833333, 0, -0.333333,
+        -0.833333, 0, 0, 0, 0, 0.333333, 0.833333, 0;
+    constexpr auto tolerance = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelativeDisplacement,
@@ -956,8 +1037,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+        PrescribedDisplacements{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -967,17 +1049,108 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
 
     // Assert
     Vector expected_relative_displacement{3};
-    expected_relative_displacement <<= 0.03839746, -0.0665063516, 0.5330127;
-    std::vector<Vector> expected_relative_displacements;
-    expected_relative_displacements.push_back(expected_relative_displacement);
-    expected_relative_displacements.emplace_back(ZeroVector(3));
-    expected_relative_displacement <<= -0.03839746, 0.0665063516, -0.5330127;
-    expected_relative_displacements.push_back(expected_relative_displacement);
+    expected_relative_displacement <<= -3.0, -0.5 * std::sqrt(3.0) - 1.0, 0.5 - std::sqrt(3);
 
     KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
-    for (std::size_t i = 0; i < relative_displacements_at_integration_points.size(); i++) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_displacements_at_integration_points[i],
-                                           expected_relative_displacements[i], Defaults::relative_tolerance)
+    for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
+                                           Defaults::relative_tolerance)
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateStrain_ReturnsRelativeDisplacement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
+
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 0.0, 1.0}},
+                                {1, array_1d<double, 3>{0.0, 0.0, 1.0}},
+                                {2, array_1d<double, 3>{0.0, 0.0, 1.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs,
+                                              p_properties, prescribed_displacements);
+
+    // Act
+    std::vector<Vector> relative_displacements_at_integration_points;
+    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+
+    // Assert
+    Vector expected_relative_displacement{3};
+    expected_relative_displacement <<= -1.0, 0.0, 0.0;
+
+    KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
+    for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
+                                           Defaults::relative_tolerance)
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateStrain_ReturnsRelativeDisplacement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
+
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{3, array_1d<double, 3>{1.0, 0.0, 0.0}},
+                                {4, array_1d<double, 3>{1.0, 0.0, 0.0}},
+                                {5, array_1d<double, 3>{1.0, 0.0, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs,
+                                              p_properties, prescribed_displacements);
+
+    // Act
+    std::vector<Vector> relative_displacements_at_integration_points;
+    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+
+    // Assert
+    Vector expected_relative_displacement{3};
+    expected_relative_displacement <<= 1.0, 0.0, 0.0;
+
+    KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
+    for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
+                                           Defaults::relative_tolerance)
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_ReturnsRelativeDisplacement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
+
+    // The prescribed displacements are in the direction of the normal of the interface
+    // which is the -y direction. This results in a positive normal relative displacement,
+    // since the second side of the interface is moved.
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{3, array_1d<double, 3>{0.0, -1.0, 0.0}},
+                                {4, array_1d<double, 3>{0.0, -1.0, 0.0}},
+                                {5, array_1d<double, 3>{0.0, -1.0, 0.0}}};
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs,
+                                              p_properties, prescribed_displacements);
+
+    // Act
+    std::vector<Vector> relative_displacements_at_integration_points;
+    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+
+    // Assert
+    Vector expected_relative_displacement{3};
+    expected_relative_displacement <<= 1.0, 0.0, 0.0;
+
+    KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
+    for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_relative_displacement, expected_relative_displacement,
+                                           Defaults::relative_tolerance)
     }
 }
 
@@ -991,8 +1164,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+        PrescribedDisplacements{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
+                                {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
                                               p_properties, prescribed_displacements);
 
@@ -1002,16 +1176,11 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
 
     // Assert
     Vector expected_traction{3};
-    expected_traction <<= 0.7679492, -0.665063516, 5.330127;
-    std::vector<Vector> expected_tractions;
-    expected_tractions.push_back(expected_traction);
-    expected_tractions.emplace_back(ZeroVector(3));
-    expected_traction <<= -0.7679492, 0.665063516, -5.330127;
-    expected_tractions.push_back(expected_traction);
+    expected_traction <<= -3.0 * normal_stiffness, (-0.5 * std::sqrt(3.0) - 1.0) * shear_stiffness,
+        (0.5 - std::sqrt(3)) * shear_stiffness;
     KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 3);
-    for (std::size_t i = 0; i < tractions_at_integration_points.size(); i++) {
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(tractions_at_integration_points[i],
-                                           expected_tractions[i], Defaults::relative_tolerance)
+    for (const auto& r_traction : tractions_at_integration_points) {
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_traction, expected_traction, Defaults::relative_tolerance)
     }
 }
 
@@ -1040,52 +1209,52 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_6Plus6NodedElement_ReturnsExp
     auto expected_left_hand_side = Matrix(36, 36); // the values are taken from the element
     // clang-format off
     expected_left_hand_side <<=
-    0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6.009389671,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6.009389671,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6.009389671,
-    -0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,-0.3286384977,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.3286384977,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,-0.6572769953,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.6572769953,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,-6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6.009389671,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6.009389671,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.004694836,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.004694836,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-6.009389671,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6.009389671;
+    0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.32863849765258246,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,1.5023474178403748,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.5023474178403748,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,1.5023474178403748,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.5023474178403748,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,3.0046948356807497,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.0046948356807497,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,1.502347417840376,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.502347417840376,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,1.502347417840376,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.502347417840376,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.0046948356807519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.0046948356807519,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.5023474178403753,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.5023474178403753,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.5023474178403753,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.5023474178403753,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.0046948356807506,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.0046948356807506,
+    -0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,-0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,-0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,-0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.32863849765258246,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,-1.5023474178403748,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.5023474178403748,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,-1.5023474178403748,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.5023474178403748,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,-3.0046948356807497,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.0046948356807497,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,-1.502347417840376,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.502347417840376,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,-1.502347417840376,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.502347417840376,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.0046948356807519,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.0046948356807519,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.5023474178403753,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.5023474178403753,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1.5023474178403753,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1.5023474178403753,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.0046948356807506,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.0046948356807506;
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector(36);
-    expected_right_hand_side <<= -0, -0, -0, -0, -0, -0, -0, -0, -0, -0.6009389671, -1.502347418,
-        -0, -0.6009389671, -1.502347418, -0, -0.6009389671, -1.502347418, -0, -0, -0, -0, -0, -0,
-        -0, -0, -0, -0, 0.6009389671, 1.502347418, -0, 0.6009389671, 1.502347418, -0, 0.6009389671,
-        1.502347418, -0;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+    expected_right_hand_side <<= 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.300469, -0.751174, 0, -0.300469,
+        -0.751174, 0, -0.300469, -0.751174, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.300469, 0.751174, 0,
+        0.300469, 0.751174, 0, 0.300469, 0.751174, 0;
+    constexpr auto tolerance = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -1128,4 +1297,212 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActi
     KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, -1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    // properties for neighbour elements
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
+                                                 std::make_unique<PlaneStrain>()));
+    p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
+    p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    // create a triangle neighbour element
+    auto p_neighbour_element = ElementSetupUtilities::Create2D3NElement(nodes, p_properties, 2);
+    ProcessInfo dummy_process_info;
+    p_neighbour_element->Initialize(dummy_process_info);
+    std::vector<ConstitutiveLaw::StressVectorType> r_stress_vectors;
+    ConstitutiveLaw::StressVectorType              stress_vector(4);
+    stress_vector <<= 3.0, 13.0 / 6.0, 4.0, 1.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    stress_vector <<= 3.0, 8.0 / 3.0, 4.0, 1.0;
+    r_stress_vectors.emplace_back(stress_vector);
+
+    p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
+
+    nodes.clear();
+    nodes.push_back(r_model_part.pGetNode(1));
+    nodes.push_back(r_model_part.pGetNode(3));
+    nodes.push_back(r_model_part.CreateNewNode(4, 0.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 1.0, 1.0, 0.0));
+    const auto     p_geometry       = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_interface_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    auto interface_element = CreateInterfaceElementWithUDofs<Interface2D>(p_interface_properties, p_geometry);
+    GlobalPointersVector<Element> neighbours{p_neighbour_element};
+    interface_element.SetValue(NEIGHBOUR_ELEMENTS, neighbours);
+
+    // Act
+    interface_element.Initialize(dummy_process_info);
+
+    std::vector<Vector> actual_traction_vectors;
+    interface_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+
+    // Assert
+    // answers for 1st side
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[0], UblasUtilities::CreateVector({2.0, 1.0}), Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[1], UblasUtilities::CreateVector({3.0, 1.0}), Defaults::relative_tolerance)
+
+    // Arrange a neighbour on the other side of the interface element
+    nodes.clear();
+    nodes.push_back(r_model_part.pGetNode(4));
+    nodes.push_back(r_model_part.pGetNode(5));
+    nodes.push_back(r_model_part.CreateNewNode(6, 0.0, 2.0, 0.0));
+    auto p_other_neighbour_element = ElementSetupUtilities::Create2D3NElement(nodes, p_properties, 3);
+    p_other_neighbour_element->Initialize(dummy_process_info);
+    r_stress_vectors.clear();
+    stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    stress_vector <<= 7.0, 4.0, 11.0, 10.0 / 3.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    p_other_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors,
+                                                            dummy_process_info);
+
+    GlobalPointersVector<Element> other_neighbours{p_other_neighbour_element};
+    interface_element.SetValue(NEIGHBOUR_ELEMENTS, other_neighbours);
+
+    // Act
+    interface_element.Initialize(dummy_process_info);
+    interface_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+
+    // Assert
+    // answers for 2nd side
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[0], UblasUtilities::CreateVector({4.0, 0.0}), Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[1], UblasUtilities::CreateVector({4.0, 5.0}), Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.5, -1.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.5, -0.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, -0.5, -0.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(4, -0.5, -1.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, 0.5, -1.5, 1.0));
+    nodes.push_back(r_model_part.CreateNewNode(6, 0.5, -0.5, 1.0));
+    nodes.push_back(r_model_part.CreateNewNode(7, -0.5, -0.5, 1.0));
+    nodes.push_back(r_model_part.CreateNewNode(8, -0.5, -1.5, 1.0));
+    // properties for neighbour elements
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
+                                                 std::make_unique<PlaneStrain>()));
+    p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
+    p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    // create a hexagonal neighbour element
+    auto p_neighbour_element = ElementSetupUtilities::Create3D8NElement(nodes, p_properties, 2);
+
+    ProcessInfo dummy_process_info;
+    p_neighbour_element->Initialize(dummy_process_info);
+    std::vector<ConstitutiveLaw::StressVectorType> r_stress_vectors;
+    ConstitutiveLaw::StressVectorType              stress_vector(6);
+    stress_vector <<= 3.0, (std::sqrt(3.0) - 1.0) / (2.0 * std::sqrt(3.0)), 4.0, 1.0, 2.0, 4.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    stress_vector <<= 3.0, (std::sqrt(3.0) + 1.0) / (2.0 * std::sqrt(3.0)), 4.0, 1.0, 2.0, 4.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
+
+    nodes.clear();
+    nodes.push_back(r_model_part.pGetNode(2));
+    nodes.push_back(r_model_part.pGetNode(3));
+    nodes.push_back(r_model_part.pGetNode(7));
+    nodes.push_back(r_model_part.pGetNode(6));
+    nodes.push_back(r_model_part.CreateNewNode(11, 0.5, 0.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(14, -0.5, 0.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(18, -0.5, 0.5, 1.0));
+    nodes.push_back(r_model_part.CreateNewNode(15, 0.5, 0.5, 1.0));
+    const auto p_geometry = std::make_shared<QuadrilateralInterfaceGeometry3D4Plus4Noded>(nodes);
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_interface_properties =
+        CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
+    auto interface_element = CreateInterfaceElementWithUDofs<Interface3D>(p_interface_properties, p_geometry);
+    GlobalPointersVector<Element> neighbours{p_neighbour_element};
+    interface_element.SetValue(NEIGHBOUR_ELEMENTS, neighbours);
+
+    // Act
+    interface_element.Initialize(dummy_process_info);
+
+    std::vector<Vector> actual_traction_vectors;
+    interface_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+
+    // Assert
+    // answers for 1st side
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[0], UblasUtilities::CreateVector({0.0, -1.0, 2.0}), Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[1], UblasUtilities::CreateVector({0.0, -1.0, 2.0}), Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[2], UblasUtilities::CreateVector({1.0, -1.0, 2.0}), Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[3], UblasUtilities::CreateVector({1.0, -1.0, 2.0}), Defaults::relative_tolerance)
+
+    // Arrange a neighbour on the other side of the interface element
+    nodes.clear();
+    nodes.push_back(r_model_part.pGetNode(11));
+    nodes.push_back(r_model_part.CreateNewNode(12, 0.5, 1.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(13, -0.5, 1.5, 0.0));
+    nodes.push_back(r_model_part.pGetNode(14));
+    nodes.push_back(r_model_part.pGetNode(15));
+    nodes.push_back(r_model_part.CreateNewNode(16, 0.5, 1.5, 1.0));
+    nodes.push_back(r_model_part.CreateNewNode(17, -0.5, 1.5, 1.0));
+    nodes.push_back(r_model_part.pGetNode(18));
+    auto p_other_neighbour_element = ElementSetupUtilities::Create3D8NElement(nodes, p_properties, 3);
+    p_other_neighbour_element->Initialize(dummy_process_info);
+    r_stress_vectors.clear();
+    stress_vector <<= 3.0, 4.0, 1.0, 2.0, (std::sqrt(3.0) - 1.0) / (2.0 * std::sqrt(3.0)), 4.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    stress_vector <<= 3.0, 4.0, 1.0, 2.0, (std::sqrt(3.0) + 1.0) / (2.0 * std::sqrt(3.0)), 4.0;
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    r_stress_vectors.emplace_back(stress_vector);
+    p_other_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors,
+                                                            dummy_process_info);
+
+    GlobalPointersVector<Element> other_neighbours{p_other_neighbour_element};
+    interface_element.SetValue(NEIGHBOUR_ELEMENTS, other_neighbours);
+
+    // Act
+    interface_element.Initialize(dummy_process_info);
+    interface_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+
+    // Assert
+    // answers for 2nd side
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[0], UblasUtilities::CreateVector({4.0, -2.0, 0.0}), Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[1], UblasUtilities::CreateVector({4.0, -2.0, 0.0}), Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[2], UblasUtilities::CreateVector({4.0, -2.0, 1.0}), Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
+        actual_traction_vectors[3], UblasUtilities::CreateVector({4.0, -2.0, 1.0}), Defaults::relative_tolerance)
+}
 } // namespace Kratos::Testing

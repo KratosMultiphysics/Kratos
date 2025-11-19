@@ -14,19 +14,17 @@
 
 #pragma once
 
-// System includes
 #include <cmath>
 
-// Project includes
+#include "geo_mechanics_application_variables.h"
 #include "includes/condition.h"
 #include "includes/define.h"
 #include "includes/process_info.h"
-#include "includes/serializer.h"
-
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
+
+class Serializer;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeneralUPwDiffOrderCondition : public Condition
 {
@@ -90,7 +88,7 @@ protected:
 
     void InitializeConditionVariables(ConditionVariables& rVariables);
 
-    void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber) const;
+    static void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber);
 
     virtual void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber);
 
@@ -106,17 +104,8 @@ private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
-
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; // class GeneralUPwDiffOrderCondition.
 
 } // namespace Kratos.

@@ -45,20 +45,12 @@ std::vector<std::size_t> SupportedNumbersOfPointsForQuadrilateralLumpedIntegrati
     return {4, 8};
 }
 
-std::vector<std::size_t> SupportedNumbersOfPointsForLumpedIntegration()
-{
-    auto       result       = SupportedNumbersOfPointsForTriangleLumpedIntegration();
-    const auto sup_quad_num = SupportedNumbersOfPointsForQuadrilateralLumpedIntegration();
-    std::copy(sup_quad_num.begin(), sup_quad_num.end(), std::back_inserter(result));
-    return result;
-}
-
 double SumOfWeights(const Geo::IntegrationPointVectorType& rIntegrationPoints)
 {
     auto weights = std::vector<double>{};
     weights.reserve(rIntegrationPoints.size());
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), std::back_inserter(weights),
-                   [](const auto& rIntegrationPoint) { return rIntegrationPoint.Weight(); });
+    std::ranges::transform(rIntegrationPoints, std::back_inserter(weights),
+                           [](const auto& rIntegrationPoint) { return rIntegrationPoint.Weight(); });
     return std::accumulate(weights.cbegin(), weights.cend(), 0.0);
 }
 
@@ -182,12 +174,21 @@ KRATOS_TEST_CASE_IN_SUITE(ALumpedIntegrationSchemeIsAnIntegrationScheme, KratosG
     KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&p_scheme), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLumpedSchemesEqualsOne,
+KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLumpedSchemesEqualsArea,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    for (auto number : SupportedNumbersOfPointsForLumpedIntegration()) {
+    constexpr auto area_quadrilateral = 4.0;
+    for (auto number : SupportedNumbersOfPointsForQuadrilateralLumpedIntegration()) {
         const auto p_scheme = MakeLumpedIntegrationScheme(number);
-        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(p_scheme->GetIntegrationPoints()), 1.0, Defaults::relative_tolerance)
+        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(p_scheme->GetIntegrationPoints()),
+                                    area_quadrilateral, Defaults::relative_tolerance)
+    }
+
+    constexpr auto area_triangle = 0.5;
+    for (auto number : SupportedNumbersOfPointsForTriangleLumpedIntegration()) {
+        const auto p_scheme = MakeLumpedIntegrationScheme(number);
+        KRATOS_EXPECT_RELATIVE_NEAR(SumOfWeights(p_scheme->GetIntegrationPoints()), area_triangle,
+                                    Defaults::relative_tolerance)
     }
 }
 
@@ -237,33 +238,53 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedTriangleLumpedSchemesMustBeInRange
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle6LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const std::vector<double> expected_weights{0.0328638, 0.0328638, 0.0328638, 0.300469,
-                                               0.300469,  0.300469}; // regression values see core test test_triangle_2d_6
-    auto                      actual_weights = ComputeWeightsForLumpedIntegration(6);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, Defaults::relative_tolerance)
+    std::vector<double> expected_weights{0.0328638, 0.0328638, 0.0328638, 0.300469,
+                                         0.300469,  0.300469}; // regression values see core test test_triangle_2d_6
+    std::transform(expected_weights.begin(), expected_weights.end(), expected_weights.begin(),
+                   [](const auto& rWeight) {
+        return rWeight * 0.5; // Adjust weights for the area of the triangle
+    });
+    const auto     actual_weights = ComputeWeightsForLumpedIntegration(6);
+    constexpr auto tolerance      = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle3LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const std::vector<double> expected_weights{1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0};
-    auto                      actual_weights = ComputeWeightsForLumpedIntegration(3);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, Defaults::relative_tolerance)
+    std::vector<double> expected_weights{1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0};
+    std::transform(expected_weights.begin(), expected_weights.end(), expected_weights.begin(),
+                   [](const auto& rWeight) {
+        return rWeight * 0.5; // Adjust weights for the area of the triangle
+    });
+    const auto     actual_weights = ComputeWeightsForLumpedIntegration(3);
+    constexpr auto tolerance      = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral4LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const std::vector<double> expected_weights{1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0};
-    auto                      actual_weights = ComputeWeightsForLumpedIntegration(4);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, Defaults::relative_tolerance)
+    std::vector<double> expected_weights{1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0};
+    std::transform(expected_weights.begin(), expected_weights.end(), expected_weights.begin(),
+                   [](const auto& rWeight) {
+        return rWeight * 4.0; // Adjust weights for the area of the quadrilateral
+    });
+    const auto     actual_weights = ComputeWeightsForLumpedIntegration(4);
+    constexpr auto tolerance      = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral8LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const std::vector<double> expected_weights{
+    std::vector<double> expected_weights{
         0.0394737, 0.0394737, 0.0394737, 0.0394737, 0.210526,
-        0.210526,  0.210526,  0.210526}; // regression values see core test test_quadrilateral_2d_8
-    auto actual_weights = ComputeWeightsForLumpedIntegration(8);
-    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, Defaults::relative_tolerance)
+        0.210526,  0.210526,  0.210526}; // regression lumping values see core test test_quadrilateral_2d_8
+    std::transform(expected_weights.begin(), expected_weights.end(), expected_weights.begin(),
+                   [](const auto& rWeight) {
+        return rWeight * 4.0; // Adjust weights for the area of the quadrilateral
+    });
+    const auto     actual_weights = ComputeWeightsForLumpedIntegration(8);
+    constexpr auto tolerance      = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
 } // namespace Kratos::Testing

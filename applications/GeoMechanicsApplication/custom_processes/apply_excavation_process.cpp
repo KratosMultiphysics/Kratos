@@ -13,6 +13,8 @@
 //                   Marjan Fathian
 //
 #include "apply_excavation_process.h"
+#include "containers/model.h"
+#include "custom_utilities/process_utilities.h"
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
@@ -22,28 +24,38 @@
 namespace Kratos
 {
 
-ApplyExcavationProcess::ApplyExcavationProcess(ModelPart& rModelPart, const Parameters& rProcessSettings)
-    : Process(Flags()),
-      mrModelPart{rModelPart},
-      mDeactivateSoilPart{rProcessSettings["deactivate_soil_part"].GetBool()}
+ApplyExcavationProcess::ApplyExcavationProcess(Model& rModel, const Parameters& rProcessSettings)
+    : mDeactivateSoilPart{rProcessSettings["deactivate_soil_part"].GetBool()}
 {
+    mrModelParts = ProcessUtilities::GetModelPartsFromSettings(rModel, rProcessSettings,
+                                                               ApplyExcavationProcess::Info());
 }
 
 void ApplyExcavationProcess::ExecuteInitialize()
 {
     KRATOS_TRY
-    VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, mrModelPart.Elements());
-
-    if (mDeactivateSoilPart) {
-        block_for_each(mrModelPart.Elements(),
-                       [](Element& rElement) { rElement.ResetConstitutiveLaw(); });
-    } else {
-        VariableUtils{}.SetFlag(ACTIVE, true, mrModelPart.Nodes());
+    for (const auto& r_model_part : mrModelParts) {
+        VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, r_model_part.get().Elements());
     }
 
-    VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, mrModelPart.Conditions());
+    if (mDeactivateSoilPart) {
+        for (const auto& r_model_part : mrModelParts) {
+            block_for_each(r_model_part.get().Elements(),
+                           [](Element& rElement) { rElement.ResetConstitutiveLaw(); });
+        }
+    } else {
+        for (const auto& r_model_part : mrModelParts) {
+            VariableUtils{}.SetFlag(ACTIVE, true, r_model_part.get().Nodes());
+        }
+    }
+
+    for (const auto& r_model_part : mrModelParts) {
+        VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, r_model_part.get().Conditions());
+    }
     KRATOS_CATCH("")
 }
+
+std::string ApplyExcavationProcess::Info() const { return "ApplyExcavationProcess"; }
 
 ApplyExcavationProcess::~ApplyExcavationProcess() = default;
 

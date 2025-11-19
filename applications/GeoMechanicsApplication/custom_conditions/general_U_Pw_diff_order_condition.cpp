@@ -12,15 +12,14 @@
 //                   Vahid Galavi
 //
 
+#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_utilities/dof_utilities.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_2d_4.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/triangle_3d_3.h"
-
-// Project includes
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
-#include "custom_utilities/dof_utilities.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -92,7 +91,7 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem(Matrix& rLeftHandSideMat
     rLeftHandSideMatrix  = ZeroMatrix(condition_size, condition_size);
     rRightHandSideVector = ZeroVector(condition_size);
 
-    const auto CalculateResidualVectorFlag = true;
+    constexpr auto CalculateResidualVectorFlag = true;
     CalculateAll(rRightHandSideVector, CalculateResidualVectorFlag);
 
     KRATOS_CATCH("")
@@ -123,18 +122,18 @@ void GeneralUPwDiffOrderCondition::CalculateAll(Vector& rRightHandSideVector, bo
     KRATOS_TRY
 
     ConditionVariables Variables;
-    this->InitializeConditionVariables(Variables);
+    InitializeConditionVariables(Variables);
 
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
         GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     for (unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++) {
-        this->CalculateKinematics(Variables, PointNumber);
+        CalculateKinematics(Variables, PointNumber);
 
-        this->CalculateConditionVector(Variables, PointNumber);
+        CalculateConditionVector(Variables, PointNumber);
 
         Variables.IntegrationCoefficient =
-            this->CalculateIntegrationCoefficient(PointNumber, Variables.JContainer, IntegrationPoints);
+            CalculateIntegrationCoefficient(PointNumber, Variables.JContainer, IntegrationPoints);
 
         if (CalculateResidualVectorFlag) this->CalculateAndAddRHS(rRightHandSideVector, Variables);
     }
@@ -162,7 +161,7 @@ void GeneralUPwDiffOrderCondition::InitializeConditionVariables(ConditionVariabl
     r_geom.Jacobian(rVariables.JContainer, this->GetIntegrationMethod());
 }
 
-void GeneralUPwDiffOrderCondition::CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber) const
+void GeneralUPwDiffOrderCondition::CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
 
@@ -202,7 +201,7 @@ void GeneralUPwDiffOrderCondition::CalculateAndAddRHS(Vector& rRightHandSideVect
 {
     KRATOS_TRY
 
-    this->CalculateAndAddConditionForce(rRightHandSideVector, rVariables);
+    CalculateAndAddConditionForce(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("")
 }
@@ -227,5 +226,19 @@ Condition::DofsVectorType GeneralUPwDiffOrderCondition::GetDofs() const
 }
 
 std::string GeneralUPwDiffOrderCondition::Info() const { return "GeneralUPwDiffOrderCondition"; }
+
+void GeneralUPwDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+
+    rSerializer.save("PressureGeometry", mpPressureGeometry);
+}
+
+void GeneralUPwDiffOrderCondition::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+
+    rSerializer.load("PressureGeometry", mpPressureGeometry);
+}
 
 } // Namespace Kratos.

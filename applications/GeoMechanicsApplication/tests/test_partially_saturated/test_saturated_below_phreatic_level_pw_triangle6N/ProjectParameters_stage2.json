@@ -12,8 +12,7 @@
     "model_part_name"                  : "PorousDomain",
     "domain_size"                      : 2,
     "model_import_settings": {
-      "input_type"                     : "mdpa",
-      "input_filename"                 : "column"
+      "input_type"                     : "use_input_model_part"
     },
     "material_import_settings": {
       "materials_filename"             : "../Common/MaterialParameters_stage2.json"
@@ -26,7 +25,6 @@
     "clear_storage"                    : false,
     "compute_reactions"                : true,
     "reform_dofs_at_each_step"         : false,
-    "nodal_smoothing"                  : false,
     "block_builder"                    : true,
     "solution_type"                    : "Steady_State_Groundwater_Flow",
     "scheme_type"                      : "Backward_Euler",

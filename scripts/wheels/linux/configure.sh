@@ -61,12 +61,13 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                     \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=OFF                                                          \
--DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc               \
--DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++             \
+-DCMAKE_C_COMPILER=/opt/rh/devtoolset-10/root/usr/bin/gcc               \
+-DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-10/root/usr/bin/g++             \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
 -DCMAKE_C_FLAGS="-msse3"                                               \
 -DBOOST_ROOT="/workspace/boost/boost_1_87_0"                           \

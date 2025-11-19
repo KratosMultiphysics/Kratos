@@ -11,9 +11,7 @@
 //                   Carlos Roig
 //
 
-
-#if !defined(KRATOS_LOGGER_H_INCLUDED )
-#define  KRATOS_LOGGER_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -24,42 +22,41 @@
 #include "input_output/logger_output.h"
 #include "includes/exception.h"
 
-
-
 namespace Kratos
 {
-  ///@addtogroup Kratos
-  ///@{
+///@addtogroup Kratos
+///@{
 
-  ///@name Type Definitions
-  ///@{
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Logger is in charge of writing the messages to output streams.
-  /** Logger is the main class in message writing pipeline which holds an
-    array of logger outputs and dispach the arriving logger messages
-    to them. Implements a singletone for the list of the outputs and
-    also has public constructors and destructors to perform the
-    streaming.
-  */
-  class KRATOS_API(KRATOS_CORE) Logger
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
+/// Logger is in charge of writing the messages to output streams.
+/** Logger is the main class in message writing pipeline which holds an
+  array of logger outputs and dispach the arriving logger messages
+  to them. Implements a singletone for the list of the outputs and
+  also has public constructors and destructors to perform the
+  streaming.
+*/
+class KRATOS_API(KRATOS_CORE) Logger
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
     using LoggerOutputContainerType = std::vector<LoggerOutput::Pointer>;
+
     ///@}
     ///@name Enums
     ///@{
@@ -71,48 +68,45 @@ namespace Kratos
     using DistributedFilter = LoggerMessage::DistributedFilter;
 
     ///@}
-      ///@name Life Cycle
-      ///@{
+    ///@name Life Cycle
+    ///@{
 
-      explicit Logger(std::string const& TheLabel);
+    explicit Logger(std::string const& TheLabel);
 
-      Logger();
+    Logger();
 
     /// Avoiding Logger to be copied
     Logger(Logger const& rOther) = delete;
 
+    /// Destructor is in charge of passing the message into outputs
+    virtual ~Logger();
 
-      /// Destructor is in charge of passing the message into outputs
-      virtual ~Logger();
-
-
-      ///@}
-      ///@name Operators
-      ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
     /// Loggers can not be assigned.
     Logger& operator=(Logger const& rOther) = delete;
 
-      ///@}
-      ///@name Operations
-      ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-
-      ///@}
-      ///@name Static Methods
-      ///@{
+    ///@}
+    ///@name Static Methods
+    ///@{
 
     static LoggerOutputContainerType& GetOutputsInstance()
     {
-      static LoggerOutputContainerType instance;
-      return instance;
-      }
+        static LoggerOutputContainerType instance;
+        return instance;
+    }
 
-      static LoggerOutput& GetDefaultOutputInstance()
-      {
-          static LoggerOutput defaultOutputInstance(std::cout);
-          return defaultOutputInstance;
-      }
+    static LoggerOutput& GetDefaultOutputInstance()
+    {
+        static LoggerOutput defaultOutputInstance(std::cout);
+        return defaultOutputInstance;
+    }
 
     static void AddOutput(LoggerOutput::Pointer pTheOutput);
 
@@ -120,33 +114,30 @@ namespace Kratos
 
     static void Flush();
 
-
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
     std::string const& GetCurrentMessage() {
-      return mCurrentMessage.GetMessage();
-        }
+        return mCurrentMessage.GetMessage();
+    }
 
-      ///@}
-      ///@name Inquiry
-      ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
+    ///@}
+    ///@name Input and output
+    ///@{
 
-      ///@}
-      ///@name Input and output
-      ///@{
+    /// Turn back information as a string.
+    virtual std::string Info() const;
 
-      /// Turn back information as a string.
-      virtual std::string Info() const;
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
-
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const;
 
     /// string stream function
     template<class StreamValueType>
@@ -172,77 +163,66 @@ namespace Kratos
     /// Category stream function
     Logger& operator << (Category const& TheCategory);
 
+    ///@}
+  private:
+    ///@name Static Member Variables
+    ///@{
 
-      ///@}
-     private:
-      ///@name Static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Member Variables
-      ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     LoggerMessage mCurrentMessage;
 
-      ///@}
-      ///@name Private Operators
-      ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-      ///@}
-      ///@name Private Operations
-      ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-      ///@}
-      ///@name Private  Access
-      ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
+    ///@}
+  }; // Class Logger
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{
+///@}
+///@name Type Definitions
+///@{
 
+///@}
+///@name Input and output
+///@{
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+          Logger& rThis);
 
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+          const Logger& rThis)
+  {
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-      ///@}
+    return rOStream;
+  }
+///@}
 
-    }; // Class Logger
-
-  ///@}
-
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
-
-
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-            Logger& rThis);
-
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-            const Logger& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }
-  ///@}
-
-  ///@name Kratos Macros
-  ///@{
+///@name Kratos Macros
+///@{
 // Each-N block
 #define KRATOS_LOG_OCCURRENCES_LINE(line) kratos_log_loop_counter##line
 #define KRATOS_LOG_OCCURRENCES KRATOS_LOG_OCCURRENCES_LINE(__LINE__)
@@ -316,12 +296,8 @@ namespace Kratos
   if (false)                      \
     Kratos::Logger(label) << Kratos::Logger::Category::CHECKING
 #endif
-    ///@}
+///@}
 
-    ///@} addtogroup block
+///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LOGGER_H_INCLUDED  defined
-
-
