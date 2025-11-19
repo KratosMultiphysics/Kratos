@@ -44,23 +44,6 @@ RansNutUtility::RansNutUtility(
     mRelativeTolerance(RelativeTolerance),
     mAbsoluteTolerance(AbsoluteTolerance)
 {
-    KRATOS_TRY
-
-    block_for_each(mrModelPart.Elements(),[&](const ElementType& rElement) {
-        KRATOS_ERROR_IF_NOT(rElement.GetProperties().Has(CONSTITUTIVE_LAW)) << "CONSTITUTIVE_LAW is not found in element"
-            <<" data value container. [ Element.Id() = " << rElement.Id() << " ].\n";
-
-        const auto p_constitutive = rElement.GetProperties().GetValue(CONSTITUTIVE_LAW);
-        const auto rans_cl_name = p_constitutive->Info();
-
-        KRATOS_ERROR_IF(rans_cl_name.substr(0, 4) != "Rans")
-            << "Incompatible constitutive law is used. Please use constitutive "
-               "laws which starts with \"Rans*\" [ Constitutive law "
-               "name = "
-            << rans_cl_name << ", Element.Id() = " << rElement.Id() << " ].\n";
-    });
-
-    KRATOS_CATCH("");
 }
 
 void RansNutUtility::Initialize()
