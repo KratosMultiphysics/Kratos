@@ -35,7 +35,7 @@ public:
 
 private:
     std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
-    ModelPart& mrMainModelPart;
+    ModelPart&                                     mrMainModelPart;
 };
 
 } // namespace Kratos

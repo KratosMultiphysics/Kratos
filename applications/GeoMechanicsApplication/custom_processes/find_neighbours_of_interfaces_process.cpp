@@ -43,6 +43,18 @@ void FindNeighboursOfInterfacesProcess::ExecuteInitialize()
         element_finder.FindEntityNeighbours(r_model_part.get().Elements(), mrMainModelPart.Elements(),
                                             boundary_generator_by_local_dim);
     }
+    for (const auto& r_model_part : mrModelParts) {
+        for (auto& r_element : r_model_part.get().Elements()) {
+            auto& r_neighbour_elements = r_element.GetValue(NEIGHBOUR_ELEMENTS);
+            r_neighbour_elements.erase(
+                std::remove_if(r_neighbour_elements.begin(), r_neighbour_elements.end(),
+                               [&r_element](const Element& r_neighbour_element) {
+                return r_neighbour_element.GetGeometry().LocalSpaceDimension() <=
+                       r_element.GetGeometry().LocalSpaceDimension();
+            }),
+                r_neighbour_elements.end());
+        }
+    }
 }
 
 std::string FindNeighboursOfInterfacesProcess::Info() const
