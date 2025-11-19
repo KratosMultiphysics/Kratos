@@ -98,7 +98,7 @@ def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
         res = subprocess.run(
             [
                 "bash", 
-                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "Scripts" / "Wheels" / platform.lower() / "configure.sh",
+                Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
                 python_interpreter,
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}" / "libs"
             ],
@@ -109,7 +109,7 @@ def configure(CURRENT_CONFIG: dict, platform: str, python_ver: str):
         res = subprocess.run(
             [
                 "bash", 
-                Path(CURRENT_CONFIG['KRATOS_ROOT']) / "Scripts" / "Wheels" / platform.lower() / "configure.sh",
+                Path(CURRENT_CONFIG['KRATOS_ROOT']) / Path(CURRENT_CONFIG['BUILD_SCRIPT']),
                 python_interpreter,
                 Path(CURRENT_CONFIG['KRATOS_ROOT']) / "bin" / "Release" / f"Python-{python_ver}" / "libs"
             ],
