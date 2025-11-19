@@ -112,15 +112,15 @@
             }
         }],
         "loads_process_list"       : [{
-            "python_module" : "assign_vector_by_direction_to_condition_process",
-            "kratos_module" : "KratosMultiphysics",
-            "check"         : "DirectorVectorNonZero direction",
-            "process_name"  : "AssignVectorByDirectionToConditionProcess",
-            "Parameters"    : {
-                "model_part_name" : "PorousDomain.Top_Load",
-                "variable_name"   : "LINE_LOAD",
-                "modulus"         : 1.0,
-                "direction"       : [0.0,-1000,0.0]
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name":  "ApplyVectorConstraintTableProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.Top_Load",
+                "variable_name":   "LINE_LOAD",
+                "active":          [true,true,true],
+                "value":           [0.0,-1000,0.0],
+                "table":           [0,0,0]
             }
         },{
             "python_module" : "apply_excavation_process",

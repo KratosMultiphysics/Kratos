@@ -29,7 +29,7 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N
   5 0 4 8 6 15 14 16
 End Elements
 
-Begin Conditions LineLoadCondition2D3N
+Begin Conditions LineLoadDiffOrderCondition2D3N
   1 0 13 11 12
 End Conditions
 
