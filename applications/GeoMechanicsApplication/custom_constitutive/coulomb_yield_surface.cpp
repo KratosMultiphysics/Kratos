@@ -32,7 +32,7 @@ CoulombYieldSurface::KappaDependentFunction MakeConstantFunction(double Value)
 
 CoulombYieldSurface::KappaDependentFunction MakeLinearFunction(double Value, double Coefficient)
 {
-    return [Value, Coefficient](double kappa) { return std::max(Value + Coefficient * kappa, 0.0); };
+    return [Value, Coefficient](double kappa) { return Value + Coefficient * kappa; };
 }
 
 std::string GetCoulombHardeningTypeFrom(const Properties& rMaterialProperties)
