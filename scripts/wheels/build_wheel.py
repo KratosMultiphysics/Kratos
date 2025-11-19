@@ -119,7 +119,7 @@ def buildInterface(CURRENT_CONFIG: dict, platform: str, python_ver: str):
         res = subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "install", "--", "/property:configuration=Release", "/p:Platform=x64"], check=True)
         logResult(res)
     else:
-        res = subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosPythonInterface"], check=True)
+        res = subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "KratosPythonInterface", "--", f"-j{CURRENT_CONFIG['BUILD_CORES']}"], check=True)
         logResult(res)
         res = subprocess.run(['cmake', '--build', Path(CURRENT_CONFIG['KRATOS_ROOT']) / "build" / "Release", "--target", "install"], check=True)
         logResult(res)
