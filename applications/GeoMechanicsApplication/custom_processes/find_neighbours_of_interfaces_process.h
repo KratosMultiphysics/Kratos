@@ -27,6 +27,8 @@ class Parameters;
 class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighboursOfInterfacesProcess : public Process
 {
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(FindNeighboursOfInterfacesProcess);
+
     FindNeighboursOfInterfacesProcess(Model& rModel, const Parameters& rProcessSettings);
     ~FindNeighboursOfInterfacesProcess() override;
     void ExecuteInitialize() override;
