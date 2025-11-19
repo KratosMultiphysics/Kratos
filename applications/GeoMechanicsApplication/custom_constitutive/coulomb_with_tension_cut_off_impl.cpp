@@ -25,15 +25,6 @@ namespace
 
 using namespace Kratos;
 
-Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rSigmaTau,
-                                             const Vector& rDerivativeOfFlowFunction,
-                                             double        TensileStrength)
-{
-    const auto lambda = (TensileStrength - rSigmaTau[0] - rSigmaTau[1]) /
-                        (rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1]);
-    return rSigmaTau + lambda * rDerivativeOfFlowFunction;
-}
-
 Vector ReturnStressAtRegularFailureZone(const Vector&        rSigmaTau,
                                         CoulombYieldSurface& rCoulombYieldSurface,
                                         const Vector&        rDerivativeOfFlowFunction)
@@ -74,9 +65,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
         }
 
         if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau)) {
-            return ReturnStressAtTensionCutoffReturnZone(
-                rTrialSigmaTau, mTensionCutOff.DerivativeOfFlowFunction(rTrialSigmaTau),
-                mTensionCutOff.GetTensileStrength());
+            return ReturnStressAtTensionCutoffReturnZone(rTrialSigmaTau);
         }
 
         if (IsStressAtCornerReturnZone(rTrialSigmaTau, AveragingType)) {
@@ -143,6 +132,14 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Vector& rTri
 Vector CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone() const
 {
     return UblasUtilities::CreateVector({mTensionCutOff.GetTensileStrength(), 0.0});
+}
+
+Vector CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZone(const Vector& rSigmaTau) const
+{
+    const auto derivative_of_flow_function = mTensionCutOff.DerivativeOfFlowFunction(rSigmaTau);
+    const auto lambda_tc = (mTensionCutOff.GetTensileStrength() - rSigmaTau[0] - rSigmaTau[1]) /
+                           (derivative_of_flow_function[0] + derivative_of_flow_function[1]);
+    return rSigmaTau + lambda_tc * derivative_of_flow_function;
 }
 
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
