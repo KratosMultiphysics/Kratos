@@ -95,12 +95,10 @@ namespace Kratos
 
 CoulombYieldSurface::CoulombYieldSurface()
 {
-    mMaterialProperties[GEO_COULOMB_HARDENING_TYPE]                  = "None";
-    mMaterialProperties[GEO_FRICTION_ANGLE]                          = 0.0;
-    mMaterialProperties[GEO_COHESION]                                = 0.0;
-    mMaterialProperties[GEO_DILATANCY_ANGLE]                         = 0.0;
-    mMaterialProperties[GEO_COULOMB_HARDENING_MAX_ITERATIONS]        = 100;
-    mMaterialProperties[GEO_COULOMB_HARDENING_CONVERGENCE_TOLERANCE] = 1.0e-8;
+    mMaterialProperties[GEO_COULOMB_HARDENING_TYPE] = "None";
+    mMaterialProperties[GEO_FRICTION_ANGLE]         = 0.0;
+    mMaterialProperties[GEO_COHESION]               = 0.0;
+    mMaterialProperties[GEO_DILATANCY_ANGLE]        = 0.0;
 
     InitializeKappaDependentFunctions();
 }
@@ -111,14 +109,6 @@ CoulombYieldSurface::CoulombYieldSurface(const Properties& rMaterialProperties)
     // For backward compatibility, if no hardening type is given, we assume no hardening at all
     if (!mMaterialProperties.Has(GEO_COULOMB_HARDENING_TYPE)) {
         mMaterialProperties[GEO_COULOMB_HARDENING_TYPE] = "None";
-    }
-
-    if (!mMaterialProperties.Has(GEO_COULOMB_HARDENING_MAX_ITERATIONS)) {
-        mMaterialProperties[GEO_COULOMB_HARDENING_MAX_ITERATIONS] = 100;
-    }
-
-    if (!mMaterialProperties.Has(GEO_COULOMB_HARDENING_CONVERGENCE_TOLERANCE)) {
-        mMaterialProperties[GEO_COULOMB_HARDENING_CONVERGENCE_TOLERANCE] = 1.0e-8;
     }
 
     InitializeKappaDependentFunctions();
@@ -134,16 +124,6 @@ double CoulombYieldSurface::GetCohesion() const { return mCohesionCalculator(mKa
 double CoulombYieldSurface::GetDilatancyAngleInRadians() const
 {
     return mDilatancyAngleCalculator(mKappa);
-}
-
-unsigned int CoulombYieldSurface::GetMaxIterations() const
-{
-    return mMaterialProperties[GEO_COULOMB_HARDENING_MAX_ITERATIONS];
-}
-
-double CoulombYieldSurface::GetConvergenceTolerance() const
-{
-    return mMaterialProperties[GEO_COULOMB_HARDENING_CONVERGENCE_TOLERANCE];
 }
 
 double CoulombYieldSurface::GetKappa() const { return mKappa; }

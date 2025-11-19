@@ -37,6 +37,8 @@ public:
 private:
     CoulombYieldSurface mCoulombYieldSurface;
     TensionCutoff       mTensionCutOff;
+    double              mAbsoluteYieldFunctionValueTolerance{1.0e-8};
+    std::size_t         mMaxNumberOfPlasticIterations{100};
 
     [[nodiscard]] Vector CalculateCornerPoint() const;
     [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau) const;

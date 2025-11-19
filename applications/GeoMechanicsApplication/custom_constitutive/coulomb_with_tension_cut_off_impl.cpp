@@ -26,6 +26,13 @@ namespace Kratos
 CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties)
     : mCoulombYieldSurface{rMaterialProperties}, mTensionCutOff{rMaterialProperties[GEO_TENSILE_STRENGTH]}
 {
+    if (rMaterialProperties.Has(GEO_COULOMB_HARDENING_CONVERGENCE_TOLERANCE)) {
+        mAbsoluteYieldFunctionValueTolerance = rMaterialProperties[GEO_COULOMB_HARDENING_CONVERGENCE_TOLERANCE];
+    }
+
+    if (rMaterialProperties.Has(GEO_COULOMB_HARDENING_MAX_ITERATIONS)) {
+        mMaxNumberOfPlasticIterations = rMaterialProperties[GEO_COULOMB_HARDENING_MAX_ITERATIONS];
+    }
 }
 
 bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const
@@ -44,7 +51,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
     Vector     result      = ZeroVector(2);
     const auto kappa_start = mCoulombYieldSurface.GetKappa();
 
-    for (unsigned int counter = 0; counter < mCoulombYieldSurface.GetMaxIterations(); ++counter) {
+    for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
         if (IsStressAtTensionApexReturnZone(rTrialSigmaTau)) {
             return ReturnStressAtTensionApexReturnZone();
         }
@@ -63,8 +70,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
                                              rTrialSigmaTau, AveragingType);
         mCoulombYieldSurface.SetKappa(kappa);
 
-        if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) <
-            mCoulombYieldSurface.GetConvergenceTolerance()) {
+        if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) < mAbsoluteYieldFunctionValueTolerance) {
             break;
         }
     }
