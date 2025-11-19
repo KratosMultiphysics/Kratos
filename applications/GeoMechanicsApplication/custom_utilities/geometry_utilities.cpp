@@ -47,6 +47,8 @@ std::size_t GetNumberOfEdgePoints(GeometryData::KratosGeometryFamily    Geometry
         return GetNumberOfCornerPoints(GeometryFamily);
     case Kratos_Cubic_Order:
         return 2 * GetNumberOfCornerPoints(GeometryFamily);
+    case Kratos_Quartic_Order:
+        return 3 * GetNumberOfCornerPoints(GeometryFamily);
     default:
         KRATOS_ERROR
             << "The specified geometry order type is not supported for getting the number of "
@@ -84,6 +86,10 @@ void ReverseNodes(InputIt                               Begin,
     }
 
     std::reverse(end_of_corner_points, end_of_edge_points);
+
+    if (std::distance(end_of_edge_points, End) > 1) {
+        std::reverse(end_of_edge_points + 1, End);
+    }
 }
 
 } // namespace
