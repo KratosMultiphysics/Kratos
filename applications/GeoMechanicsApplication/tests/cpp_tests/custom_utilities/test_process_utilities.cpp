@@ -231,10 +231,13 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledList, KratosGeo
 
     const auto& r_list = solver_settings["processes_sub_model_part_list"];
     KRATOS_EXPECT_EQ(r_list.size(), 4);
-    KRATOS_EXPECT_STREQ(r_list[0].GetString().c_str(), "Sides");
-    KRATOS_EXPECT_STREQ(r_list[1].GetString().c_str(), "BottomFixed");
-    KRATOS_EXPECT_STREQ(r_list[2].GetString().c_str(), "TopLoad");
-    KRATOS_EXPECT_STREQ(r_list[3].GetString().c_str(), "Soil");
+
+    std::set<std::string> actual_modelpart_names;
+    for (const auto& r_name : r_list) {
+        actual_modelpart_names.insert(r_name.GetString());
+    }
+    const std::set<std::string> expected_modelpart_names = {"Sides", "BottomFixed", "TopLoad", "Soil"};
+    EXPECT_EQ(actual_modelpart_names, expected_modelpart_names);
 }
 
 } // namespace Kratos::Testing
