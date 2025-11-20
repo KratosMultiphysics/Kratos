@@ -32,6 +32,7 @@ public:
     FindNeighboursOfInterfacesProcess(Model& rModel, const Parameters& rProcessSettings);
 
     void ExecuteInitialize() override;
+    void ExecuteFinalize() override;
 
     [[nodiscard]] std::string Info() const override;
 

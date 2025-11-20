@@ -70,4 +70,13 @@ std::string FindNeighboursOfInterfacesProcess::Info() const
     return "FindNeighboursOfInterfacesProcess"s;
 }
 
+void FindNeighboursOfInterfacesProcess::ExecuteFinalize()
+{
+    for (const auto& r_model_part : mrModelParts) {
+        for (auto& r_element : r_model_part.get().Elements()) {
+            r_element.GetValue(NEIGHBOUR_ELEMENTS).clear();
+        }
+    }
+}
+
 } // namespace Kratos

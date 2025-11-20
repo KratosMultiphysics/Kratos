@@ -123,4 +123,41 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_OnlyFindsNeighbourWh
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_RemovesNeighboursWhenProcessIsDone,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_computational_model_part = model.CreateModelPart("Main");
+    ModelSetupUtilities::CreateNumberOfNewNodes(r_computational_model_part, 9);
+
+    const auto node_ids_continuum_element = std::vector<std::size_t>{4, 5, 8, 6, 9, 7};
+    const auto nodes_continuum_element =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_continuum_element);
+    auto p_continuum_element = ElementSetupUtilities::Create2D6NElement(nodes_continuum_element, {});
+    r_computational_model_part.AddElement(p_continuum_element);
+
+    const auto node_ids_element_2 = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
+    const auto nodes_element_2 =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_element_2);
+    auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_element_2, {});
+    p_interface_element->SetId(2);
+    r_computational_model_part.AddElement(p_interface_element);
+
+    auto& r_interface_model_part = model.CreateModelPart("Interfaces");
+    r_interface_model_part.AddElement(p_interface_element);
+
+    // By explicitly setting the neighbouring elements, we don't need to call ExecuteInitialize
+    p_interface_element->SetValue(NEIGHBOUR_ELEMENTS, {Element::WeakPointer{p_continuum_element}});
+
+    FindNeighboursOfInterfacesProcess process(model, Parameters(R"({"model_part_name": "Interfaces",
+"model_part_name_for_neighbouring_elements": "Main"})"));
+
+    // Act
+    process.ExecuteFinalize();
+
+    // Assert
+    EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
+}
+
 } // namespace Kratos::Testing
