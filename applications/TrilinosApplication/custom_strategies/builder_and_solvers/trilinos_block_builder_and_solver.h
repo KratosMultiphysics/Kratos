@@ -108,9 +108,6 @@ public:
     /// Epetra definitions
     using EpetraCommunicatorType = Epetra_MpiComm;
 
-    /// DoF types definition
-    using NodeType = Node;
-
     /// Defining the sparse matrices and vectors
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
     using TSystemVectorType = typename BaseType::TSystemVectorType;
@@ -1141,6 +1138,24 @@ public:
     void SetScaleFactor(const double ScaleFactor)
     {
         mScaleFactor = ScaleFactor;
+    }
+
+    /**
+     * @brief Checks if the 'Constant Constraints' option is enabled.
+     * @return bool True if constant constraints are enabled, false otherwise.
+     */
+    bool IsConstantConstraints()
+    {
+        return mOptions.Is(CONSTANT_CONSTRAINTS);
+    }
+
+    /**
+     * @brief Sets the 'Constant Constraints' option.
+     * @param ConstantConstraints The new state for the option (true to enable, false to disable).
+     */
+    void SetConstantConstraints(const bool ConstantConstraints)
+    {
+        mOptions.Set(CONSTANT_CONSTRAINTS, ConstantConstraints);
     }
 
     ///@}
