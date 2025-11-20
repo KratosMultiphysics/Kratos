@@ -177,8 +177,8 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_RemovesNeighboursWhe
 {
     // Arrange
     Model model;
-    auto p_continuum_element = make_intrusive<Element>(1, make_shared<Geometry<Node>>());
-    auto p_interface_element = make_intrusive<Element>(2, make_shared<Geometry<Node>>());
+    auto  p_continuum_element = make_intrusive<Element>(1, make_shared<Geometry<Node>>());
+    auto  p_interface_element = make_intrusive<Element>(2, make_shared<Geometry<Node>>());
 
     auto& r_computational_model_part = model.CreateModelPart("Main");
     r_computational_model_part.AddElement(p_continuum_element);
