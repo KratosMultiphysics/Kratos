@@ -257,7 +257,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
     auto& r_properties = this->GetProperties();
     rOutput.resize(number_of_integration_points);
 
-    if (rVariable == VON_MISES_STRESS) {
+    if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
+        rOutput = GeoMechanicsMathUtilities::CalculateDeterminants(this->CalculateDeformationGradients());
+    } else if (rVariable == VON_MISES_STRESS) {
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             rOutput[integration_point] =
@@ -550,7 +552,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 
     rOutput.resize(number_of_integration_points);
 
-    if (rVariable == CAUCHY_STRESS_TENSOR) {
+    if (rVariable == REFERENCE_DEFORMATION_GRADIENT) {
+        rOutput = this->CalculateDeformationGradients();
+    } else if (rVariable == CAUCHY_STRESS_TENSOR) {
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             rOutput[integration_point] =
@@ -776,7 +780,14 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
             integration_coefficients_on_initial_configuration[integration_point];
 
         // Contributions to the left hand side
-        if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+        if (CalculateStiffnessMatrixFlag) {
+            this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+            if (Variables.ConsiderGeometricStiffness) {
+                this->CalculateAndAddGeometricStiffnessMatrix(
+                    rLeftHandSideMatrix, this->mStressVector[integration_point],
+                    Variables.DN_DXContainer[integration_point], Variables.IntegrationCoefficient);
+            }
+        }
 
         // Contributions to the right hand side
         if (CalculateResidualVectorFlag)
