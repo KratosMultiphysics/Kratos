@@ -84,8 +84,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighb
     auto& r_interface_model_part = model.CreateModelPart("Interfaces");
     r_interface_model_part.AddElement(p_interface_element);
 
-    FindNeighboursOfInterfacesProcess process(model, Parameters(R"({"model_part_name": "Interfaces",
-"model_part_name_for_neighbouring_elements": "Main"})"));
+    auto test_settings = Parameters{};
+    test_settings.AddString("model_part_name", "Interfaces");
+    test_settings.AddString("model_part_name_for_neighbouring_elements", "Main");
+    FindNeighboursOfInterfacesProcess process(model, test_settings);
 
     // Act
     process.ExecuteInitialize();
@@ -123,8 +125,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighb
     auto& r_interface_model_part = model.CreateModelPart("Interfaces");
     r_interface_model_part.AddElement(p_interface_element);
 
-    FindNeighboursOfInterfacesProcess process(model, Parameters(R"({"model_part_name": "Interfaces",
-"model_part_name_for_neighbouring_elements": "Main"})"));
+    auto test_settings = Parameters{};
+    test_settings.AddString("model_part_name", "Interfaces");
+    test_settings.AddString("model_part_name_for_neighbouring_elements", "Main");
+    FindNeighboursOfInterfacesProcess process(model, test_settings);
 
     // Act
     process.ExecuteInitialize();
@@ -158,8 +162,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_OnlyFindsNeighbourWh
     auto& r_interface_model_part = model.CreateModelPart("Interfaces");
     r_interface_model_part.AddElement(p_interface_element);
 
-    FindNeighboursOfInterfacesProcess process(model, Parameters(R"({"model_part_name": "Interfaces",
-"model_part_name_for_neighbouring_elements": "Main"})"));
+    auto test_settings = Parameters{};
+    test_settings.AddString("model_part_name", "Interfaces");
+    test_settings.AddString("model_part_name_for_neighbouring_elements", "Main");
+    FindNeighboursOfInterfacesProcess process(model, test_settings);
 
     // Act
     process.ExecuteInitialize();
@@ -195,8 +201,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_RemovesNeighboursWhe
     // By explicitly setting the neighbouring elements, we don't need to call ExecuteInitialize
     p_interface_element->SetValue(NEIGHBOUR_ELEMENTS, {Element::WeakPointer{p_continuum_element}});
 
-    FindNeighboursOfInterfacesProcess process(model, Parameters(R"({"model_part_name": "Interfaces",
-"model_part_name_for_neighbouring_elements": "Main"})"));
+    auto test_settings = Parameters{};
+    test_settings.AddString("model_part_name", "Interfaces");
+    test_settings.AddString("model_part_name_for_neighbouring_elements", "Main");
+    FindNeighboursOfInterfacesProcess process(model, test_settings);
 
     // Act
     process.ExecuteFinalize();
