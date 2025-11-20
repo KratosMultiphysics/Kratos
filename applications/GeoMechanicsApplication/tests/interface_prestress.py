@@ -9,6 +9,15 @@ import test_helper
 
 
 class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.test_path = test_helper.get_file_path("test_interface_prestress")
+
+    def read_interface_output_of_stage_2(self):
+        interface_output_file_path = Path(self.test_path) / "stage_2_interface_output.json"
+        with open(interface_output_file_path, 'r') as output_file:
+            return json.load(output_file)
+
     def check_output_times(self, output_data):
         times = output_data['TIME']
         self.assertEqual(len(times), 1)
@@ -34,13 +43,11 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         self._check_output_vectors(output_data, expected_relative_displacement_vector, output_item_label="STRAIN", name_of_output_item="relative displacement", name_of_normal_component="relative normal displacement", name_of_shear_component="relative shear displacment")
 
     def test_interface_pre_stress(self):
-        test_name    = 'test_interface_prestress'
-        project_path = test_helper.get_file_path(test_name)
-        n_stages     = 2
-        run_multiple_stages.run_stages(project_path, n_stages)
+        number_of_stages = 2
+        run_multiple_stages.run_stages(self.test_path, number_of_stages)
 
         reader = GiDOutputFileReader()
-        output_data_stage_2 = reader.read_output_from(os.path.join(project_path, 'gid_output', f'interface_prestress_test_Stage_2.post.res'))
+        output_data_stage_2 = reader.read_output_from(os.path.join(self.test_path, 'gid_output', f'interface_prestress_test_Stage_2.post.res'))
 
         nodal_displacements = reader.nodal_values_at_time('DISPLACEMENT', 2, output_data_stage_2)
 
@@ -48,14 +55,10 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
             y_displacement = nodal_displacement[1]
             self.assertAlmostEqual(y_displacement, 0, places=6)
 
-        interface_output_file_path = Path(project_path) / "stage_2_interface_output.json"
-        with open(interface_output_file_path, 'r') as output_file:
-            interface_output_data = json.load(output_file)
-
+        interface_output_data = self.read_interface_output_of_stage_2()
         self.check_output_times(interface_output_data)
         self.check_traction_vectors(interface_output_data, expected_normal_traction=-1000.0, expected_shear_traction=0.0)
         self.check_relative_displacement_vectors(interface_output_data, expected_relative_normal_displacement=0.0, expected_relative_shear_displacement=0.0)
-
 
 
 if __name__ == '__main__':
