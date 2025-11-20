@@ -5,36 +5,53 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 """
-This module provides functionality for creating a linear solver for use with the Trilinos application.
-It includes checking and converting deprecated solver types, checking if the desired solver is compiled, and creating the fastest available direct linear solver.
+@package trilinos_solver_factory
 
-Importing necessary Kratos modules:
-- `KratosMultiphysics` as `KM`
-- `KratosMultiphysics.TrilinosApplication` as `KratosTrilinos`
+@brief Module for creating Trilinos-based linear solvers in Kratos.
 
-Functions:
-- `_CheckIfTypeIsDeprecated(config)`: Checks and translates deprecated solver names to new names for backward compatibility.
-- `_CheckIfSolverIsCompiled(solver_type)`: Checks if the desired solver is compiled.
-- `ConstructSolver(configuration)`: Constructs the solver based on the given configuration.
-- `CreateFastestAvailableDirectLinearSolver()`: Creates the fastest available direct linear solver.
+This module provides essential functionality for configuring and instantiating 
+    linear solvers specifically designed for the Kratos Trilinos application. 
+    It ensures robustness and compatibility by:
+* Checking and automatically updating deprecated solver types.
+* Verifying the availability of desired solvers based on the Kratos compilation.
+* Providing a utility to automatically select the most efficient direct solver.
 
-Example:
-    config = KM.Parameters({
-        "solver_type": "CGSolver"
-    })
-    solver = ConstructSolver(config)
+@section Module_Functions Public and Internal Functions
+* @c _CheckIfTypeIsDeprecated(config): Internal function to check and translate deprecated solver names.
+* @c _CheckIfSolverIsCompiled(solver_type): Internal function to verify if the solver is available in the compilation.
+* @c ConstructSolver(configuration): Primary function to construct a solver based on user configuration.
+* @c CreateFastestAvailableDirectLinearSolver(): Convenience function to get the best available direct solver.
+
+@par Example Usage
+@code
+import KratosMultiphysics as KM
+from . import trilinos_solver_factory # Assuming this module is here
+
+config = KM.Parameters({
+"solver_type": "CGSolver",
+# ... other settings
+})
+solver = trilinos_solver_factory.ConstructSolver(config)
+@endcode
 """
 
 def _CheckIfTypeIsDeprecated(config):
     """
+    @brief Checks for deprecated solver types in the configuration.
+
     This function checks if the given solver type in the configuration is deprecated.
-    If the type is deprecated, a warning is printed and the solver type in the configuration is replaced with the new name.
+    If the type is deprecated, a warning is printed to the console, and the solver type 
+        in the configuration is automatically replaced with the new, non-deprecated name 
+        to ensure forward compatibility.
 
-    Args:
-        config (KM.Parameters): The configuration parameters for the solver.
+    @param config KM.Parameters: The configuration parameters object containing the solver settings.
 
-    Example:
-        _CheckIfTypeIsDeprecated(config)
+    @return None
+
+    @par Example
+    @code
+    _CheckIfTypeIsDeprecated(config)
+    @endcode
     """
     solver_type = config["solver_type"].GetString()
 
@@ -60,18 +77,19 @@ def _CheckIfTypeIsDeprecated(config):
 
 def _CheckIfSolverIsCompiled(solver_type):
     """
-    Checks if the specified solver type is compiled in KratosTrilinos.
-    
-    Args:
-        solver_type (str): The type of the solver to check.
-        
-    Returns:
-        bool: True if the solver is available and compiled.
-        
-    Raises:
-        Exception: If the required solver factory is completely disabled at compile time.
+    @brief Checks if a specific solver type is available in the KratosTrilinos compilation.
+
+    This function verifies whether the specified solver type, identified by a string, 
+        has been compiled and is accessible within the KratosTrilinos environment.
+
+    @param solver_type The type of the solver to check, provided as a string.
+
+    @return @c bool: Returns @c True if the solver is both available and compiled; otherwise, @c False.
+
+    @exception Exception Thrown if the required solver factory, which is responsible 
+        for creating solvers of this type, has been completely disabled during the Kratos 
+        compilation process.
     """
-    
     # --- 1. Define Solver Groups ---
     aztec_solvers = {"aztec", "cg", "bicgstab", "gmres"}
     ml_solvers = {"multi_level"}
@@ -79,13 +97,15 @@ def _CheckIfSolverIsCompiled(solver_type):
     # --- 2. Check Aztec Solvers ---
     if solver_type in aztec_solvers:
         if not hasattr(KratosTrilinos, 'AztecSolver'):
-            raise Exception('Trying to use Aztec-solver, which was disabled at compile time with "TRILINOS_EXCLUDE_AZTEC_SOLVER"!')
+            KM.Logger.PrintWarning("Trilinos-Linear-Solver-Factory", "Trying to use Aztec-solver, which was disabled at compile time with TRILINOS_EXCLUDE_AZTEC_SOLVER!")
+            return False
         return True
 
     # --- 3. Check MultiLevel Solvers ---
     if solver_type in ml_solvers:
         if not hasattr(KratosTrilinos, 'MultiLevelSolver'):
-            raise Exception('Trying to use MultiLevelSolver, which was disabled at compile time with "TRILINOS_EXCLUDE_ML_SOLVER"!')
+            KM.Logger.PrintWarning("Trilinos-Linear-Solver-Factory", "Trying to use MultiLevelSolver, which was disabled at compile time with TRILINOS_EXCLUDE_ML_SOLVER!")
+            return False
         return True
 
     # --- 4. Check Amesos (Direct) Solvers ---
@@ -102,13 +122,15 @@ def _CheckIfSolverIsCompiled(solver_type):
 
         # Case A: Neither is compiled
         if not has_amesos1 and not has_amesos2:
-            raise Exception('Trying to use Amesos-solver, which was disabled at compile time with "TRILINOS_EXCLUDE_AMESOS_SOLVER"!')
+            KM.Logger.PrintWarning("Trilinos-Linear-Solver-Factory", "Trying to use Amesos-solver, which was disabled at compile time with TRILINOS_EXCLUDE_AMESOS_SOLVER!")
+            return False
 
         # Case B: Only Amesos1 is compiled (Warning for performance)
         if has_amesos1 and not has_amesos2:
             KM.Logger.PrintWarning("Trilinos-Linear-Solver-Factory", "Amesos2 not compiled but Amesos is. Recommended to compile Amesos2 for better performance.")
             # 'basker' is strictly an Amesos2 solver, so it fails here
             if solver_type == "basker":
+                KM.Logger.PrintWarning("Trilinos-Linear-Solver-Factory", "basker is strictly an Amesos2 solver")
                 return False
 
         # Case C: specific internal solver check
@@ -148,40 +170,53 @@ def _CheckIfSolverIsCompiled(solver_type):
 
 def ConstructSolver(configuration):
     """
-    Constructs and returns a Trilinos linear solver based on the given configuration.
+    @brief Constructs a Trilinos linear solver instance.
 
-    Args:
-        configuration (KM.Parameters): The configuration parameters for the solver.
+    This function takes a configuration object and uses the KratosTrilinos factory
+        to create and return a fully configured Trilinos linear solver instance.
 
-    Returns:
-        KratosTrilinos.TrilinosLinearSolverFactory().Create: A Trilinos linear solver.
+    @param configuration KM.Parameters: The configuration parameters object containing 
+        all necessary settings for the linear solver (e.g., type, tolerance, maximum iterations).
 
-    Raises:
-        Exception: If the input is not a Kratos Parameters object.
+    @return @c KratosTrilinos.TrilinosLinearSolverFactory().Create: A newly constructed 
+        Trilinos linear solver object ready for use in simulations.
 
-    Example:
-        solver = ConstructSolver(config)
+    @exception Exception Thrown if the input \p configuration is not a valid 
+        Kratos Parameters object.
+
+    @par Example
+    @code
+    solver = ConstructSolver(config)
+    @endcode
     """
     if not isinstance(configuration, KM.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     _CheckIfTypeIsDeprecated(configuration) # for backwards-compatibility
-    _CheckIfSolverIsCompiled(configuration["solver_type"].GetString())
+    if not _CheckIfSolverIsCompiled(configuration["solver_type"].GetString()):
+        raise Exception(configuration["solver_type"].GetString() + " solver is not available")
 
     return KratosTrilinos.TrilinosLinearSolverFactory().Create(configuration)
 
 def CreateFastestAvailableDirectLinearSolver():
     """
-    Creates and returns the fastest available direct linear solver, based on a predefined order and availability.
+    @brief Creates the fastest available direct linear solver.
 
-    Returns:
-        ConstructSolver: The fastest available direct linear solver.
+    This function attempts to construct and return the most efficient direct linear 
+        solver available in the current compilation, following a predefined priority 
+        order (e.g., SuperLU, KLU, etc.) to ensure optimal performance.
 
-    Raises:
-        Exception: If no linear solver could be constructed.
+    @return @c ConstructSolver: The fastest direct linear solver instance found. 
+        The specific type depends on the compilation flags and availability.
 
-    Example:
-        fast_solver = CreateFastestAvailableDirectLinearSolver()
+    @exception Exception Thrown if, after checking all possibilities, no direct 
+        linear solver could be successfully constructed due to missing libraries or 
+        factory failures.
+
+    @par Example
+    @code
+    fast_solver = CreateFastestAvailableDirectLinearSolver()
+    @endcode
     """
     linear_solvers_by_speed = KratosTrilinos.TrilinosSparseSpace.FastestDirectSolverList()
 
