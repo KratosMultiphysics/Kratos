@@ -42,6 +42,7 @@ void FindNeighboursOfInterfacesProcess::FindAllNeighboursOfElements()
     NeighbouringElementFinder                              element_finder(enable_reverse_search);
     NeighbouringElementFinder::BoundaryGeneratorByLocalDim boundary_generator_by_local_dim;
     boundary_generator_by_local_dim[std::size_t{1}] = std::make_unique<EdgesGenerator>();
+    boundary_generator_by_local_dim[std::size_t{2}] = std::make_unique<FacesGenerator>();
 
     for (const auto& r_model_part : mrModelParts) {
         element_finder.FindEntityNeighbours(r_model_part.get().Elements(), mrMainModelPart.Elements(),
