@@ -13,8 +13,7 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         super().setUp()
         self.test_path = test_helper.get_file_path("test_interface_prestress")
 
-    def check_vertical_stage_displacements(self, output_data, expected_vertical_stage_displacement):
-        time = 2.0
+    def check_vertical_stage_displacements(self, output_data, time, expected_vertical_stage_displacement):
         stage_displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data)
         for displacement_vector in stage_displacements:
             self.assertAlmostEqual(displacement_vector[1], expected_vertical_stage_displacement, places=6)
@@ -24,10 +23,10 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         with open(interface_output_file_path, 'r') as output_file:
             return json.load(output_file)
 
-    def check_output_times(self, output_data):
+    def check_output_times(self, output_data, expected_time):
         times = output_data['TIME']
         self.assertEqual(len(times), 1)
-        self.assertAlmostEqual(times[0], 2.0)
+        self.assertAlmostEqual(times[0], expected_time)
 
     def _check_output_vectors(self, output_data, expected_vector, output_item_label, name_of_output_item, name_of_normal_component, name_of_shear_component):
         element_label = 'ELEMENT_3'
@@ -52,12 +51,13 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         number_of_stages = 2
         run_multiple_stages.run_stages(self.test_path, number_of_stages)
 
+        end_time = 2.0
         reader = GiDOutputFileReader()
         output_data_of_stage_2 = reader.read_output_from(os.path.join(self.test_path, 'gid_output', 'interface_prestress_test_Stage_2.post.res'))
-        self.check_vertical_stage_displacements(output_data_of_stage_2, expected_vertical_stage_displacement=0.0)
+        self.check_vertical_stage_displacements(output_data_of_stage_2, time=end_time, expected_vertical_stage_displacement=0.0)
 
         interface_output_data_of_stage_2 = self.read_interface_output_of_stage_2()
-        self.check_output_times(interface_output_data_of_stage_2)
+        self.check_output_times(interface_output_data_of_stage_2, expected_time=end_time)
         self.check_traction_vectors(interface_output_data_of_stage_2, expected_normal_traction=-1000.0, expected_shear_traction=0.0)
         self.check_relative_displacement_vectors(interface_output_data_of_stage_2, expected_relative_normal_displacement=0.0, expected_relative_shear_displacement=0.0)
 
