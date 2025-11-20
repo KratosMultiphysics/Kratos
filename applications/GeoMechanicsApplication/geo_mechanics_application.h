@@ -87,7 +87,6 @@
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
-#include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_elements/calculation_contribution.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_elements/interface_element.h"
