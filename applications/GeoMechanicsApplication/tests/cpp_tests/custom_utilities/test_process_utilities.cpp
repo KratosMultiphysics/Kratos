@@ -212,7 +212,7 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledList, KratosGeo
          },
          "solver_settings": {
              "model_part_name": "PorousDomain",
-             "processes_sub_model_part_list": ["Soil", "TopLoad", "Sides"]
+             "processes_sub_model_part_list": ["name1", "name2", "name3"]
          }
       })");
 
