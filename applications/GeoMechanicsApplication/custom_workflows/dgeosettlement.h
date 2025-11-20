@@ -67,10 +67,10 @@ private:
     static std::unique_ptr<TimeIncrementor> MakeTimeIncrementor(const Parameters& rProjectParameters);
     std::shared_ptr<StrategyWrapper> MakeStrategyWrapper(const Parameters& rProjectParameters,
                                                          const std::filesystem::path& rWorkingDirectory);
-    LoggerOutput::Pointer            CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const;
-    void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback,
-                            LoggerOutput::Pointer                   pLoggerOutput,
-                            const std::stringstream&                rKratosLogBuffer) const;
+    static LoggerOutput::Pointer     CreateLoggingOutput(std::stringstream& rKratosLogBuffer);
+    static void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback,
+                                   LoggerOutput::Pointer                   pLoggerOutput,
+                                   const std::stringstream&                rKratosLogBuffer);
 
     template <typename TVariableType>
     void ResetValuesOfNodalVariable(const TVariableType& rVariable)

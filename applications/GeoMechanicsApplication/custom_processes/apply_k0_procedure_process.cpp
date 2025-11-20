@@ -192,7 +192,7 @@ void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
 
     // K0 procedure for the model part:
     for (const auto& r_model_part : mrModelParts) {
-        block_for_each(r_model_part.get().Elements(), [&r_model_part, this](Element& rElement) {
+        block_for_each(r_model_part.get().Elements(), [&r_model_part](Element& rElement) {
             CalculateK0Stresses(rElement, r_model_part.get().GetProcessInfo());
         });
     }
@@ -225,7 +225,7 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
     return k0_vector;
 }
 
-void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement, const ProcessInfo& rProcessInfo) const
+void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement, const ProcessInfo& rProcessInfo)
 {
     // Get K0 material parameters of this element ( probably there is something more efficient )
     const Element::PropertiesType& rProp             = rElement.GetProperties();
