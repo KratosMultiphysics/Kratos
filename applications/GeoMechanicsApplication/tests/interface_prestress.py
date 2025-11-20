@@ -15,7 +15,7 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         output_data_stage_2 = reader.read_output_from(os.path.join(project_path, 'gid_output', f'interface_prestress_test_Stage_2.post.res'))
 
-        nodal_displacements = reader.nodal_values_at_time('DISPLACEMENT', 1, output_data_stage_2)
+        nodal_displacements = reader.nodal_values_at_time('DISPLACEMENT', 2, output_data_stage_2)
 
         for nodal_displacement in nodal_displacements:
             y_displacement = nodal_displacement[1]

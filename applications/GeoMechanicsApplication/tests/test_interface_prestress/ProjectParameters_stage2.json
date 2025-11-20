@@ -3,24 +3,21 @@
         "problem_name": "interface_prestress_test",
         "parallel_type": "OpenMP",
         "echo_level": 1,
-        "start_time": 0.0,
-        "end_time": 1.0
+        "start_time": 1.0,
+        "end_time": 2.0
     },
     "solver_settings": {
         "time_stepping": {
-            "time_step": 1.0,
-            "max_delta_time_factor": 1000.0
+            "time_step": 1.0
         },
         "solver_type": "U_Pw",
-        "solution_type": "Quasi-static",
+        "solution_type": "static",
         "strategy_type": "newton_raphson",
-        "scheme_type": "newmark",
         "model_part_name": "PorousDomain",
         "domain_size": 2,
         "echo_level": 0,
         "model_import_settings": {
-            "input_type": "mdpa",
-            "input_filename": "interface_prestress_test"
+            "input_type": "use_input_model_part"
         },
         "material_import_settings": {
             "materials_filename": "Materials.json"
@@ -42,9 +39,6 @@
         "increase_factor": 2.0,
         "calculate_reactions": true,
         "rotation_dofs": false,
-        "newmark_beta": 0.25,
-        "newmark_gamma": 0.5,
-        "newmark_theta": 0.5,
         "problem_domain_sub_model_part_list": ["Soil_Top", "Soil_Bottom", "Interface"],
         "processes_sub_model_part_list": ["Bottom_Fixed", "Side_Rollers", "Top_Load", "Interface", "Master_side_1", "Slave_side_1"],
         "body_domain_sub_model_part_list": ["Soil_Top", "Soil_Bottom", "Interface"],
@@ -84,19 +78,14 @@
             {
                 "python_module": "apply_scalar_constraint_table_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
-                "Parameters": {
+                "process_name":  "ApplyScalarConstraintTableProcess",
+                "Parameters":    {
                     "model_part_name": "PorousDomain",
                     "variable_name": "WATER_PRESSURE",
+                    "active": true,
                     "is_fixed": true,
-                    "table": [0, 0],
-                    "fluid_pressure_type": "Phreatic_Multi_Line",
-                    "gravity_direction": 1,
-                    "out_of_plane_direction": 2,
-                    "x_coordinates": [0.0, 1.0],
-                    "y_coordinates": [0.0, 0.0],
-                    "z_coordinates": [0.0, 0.0],
-                    "specific_weight": 10000.0
+                    "value": 0.0,
+                    "table": 0
                 }
             }
         ],
@@ -112,7 +101,9 @@
                     "value": [0.0, -1000, 0.0],
                     "table": [0, 0, 0]
                 }
-            },
+            }
+        ],
+        "auxiliary_process_list": [
             {
                 "python_module": "apply_excavation_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
