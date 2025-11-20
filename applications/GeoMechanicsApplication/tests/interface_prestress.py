@@ -14,26 +14,24 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         self.assertEqual(len(times), 1)
         self.assertAlmostEqual(times[0], 2.0)
 
-    def check_traction_vectors(self, output_data, expected_normal_traction, expected_shear_traction):
+    def _check_output_vectors(self, output_data, expected_vector, output_item_label, name_of_output_item, name_of_normal_component, name_of_shear_component):
         element_label = 'ELEMENT_3'
-        tractions_at_integration_points = output_data[element_label]['CAUCHY_STRESS_VECTOR']
+        output_vectors_by_integration_point_label = output_data[element_label][output_item_label]
         number_of_integration_points = 3
         for integration_point_label in [str(i) for i in range(number_of_integration_points)]:
-            output_list = tractions_at_integration_points[integration_point_label]
-            self.assertEqual(len(output_list), 1, msg=f"number of traction vectors per integration point of {element_label}")
-            self.assertAlmostEqual(output_list[0][0], expected_normal_traction, msg=f'normal traction at integration point {integration_point_label} of {element_label}')
-            self.assertAlmostEqual(output_list[0][1], expected_shear_traction, msg=f'shear traction at integration point {integration_point_label} of {element_label}')
+            output_vectors = output_vectors_by_integration_point_label[integration_point_label]
+            self.assertEqual(len(output_vectors), 1, msg=f"number of {name_of_output_item} vectors at integration point {integration_point_label} of {element_label}")
+            self.assertEqual(len(output_vectors[0]), 2, msg=f"number of {name_of_output_item} components at integration point {integration_point_label} of {element_label}")
+            self.assertAlmostEqual(output_vectors[0][0], expected_vector[0], msg=f'{name_of_normal_component} at integration point {integration_point_label} of {element_label}')
+            self.assertAlmostEqual(output_vectors[0][1], expected_vector[1], msg=f'{name_of_shear_component} at integration point {integration_point_label} of {element_label}')
+
+    def check_traction_vectors(self, output_data, expected_normal_traction, expected_shear_traction):
+        expected_traction_vector = [expected_normal_traction, expected_shear_traction]
+        self._check_output_vectors(output_data, expected_traction_vector, output_item_label="CAUCHY_STRESS_VECTOR", name_of_output_item="traction", name_of_normal_component="normal traction", name_of_shear_component="shear_traction")
 
     def check_relative_displacement_vectors(self, output_data, expected_relative_normal_displacement, expected_relative_shear_displacement):
-        element_label = 'ELEMENT_3'
-        relative_displacement_vectors_by_integration_point_label = output_data[element_label]['STRAIN']
-        number_of_integration_points = 3
-        for integration_point_label in [str(i) for i in range(number_of_integration_points)]:
-            relative_displacement_vectors = relative_displacement_vectors_by_integration_point_label[integration_point_label]
-            self.assertEqual(len(relative_displacement_vectors), 1, msg=f"number of relative displacement vectors at integration point {integration_point_label} of {element_label}")
-            self.assertEqual(len(relative_displacement_vectors[0]), 2, msg=f"number of relative displacement components at integration point {integration_point_label} of {element_label}")
-            self.assertAlmostEqual(relative_displacement_vectors[0][0], expected_relative_normal_displacement, msg=f'relative normal displacement at integration point {integration_point_label} of {element_label}')
-            self.assertAlmostEqual(relative_displacement_vectors[0][1], expected_relative_shear_displacement, msg=f'relative shear displacement at integration point {integration_point_label} of {element_label}')
+        expected_relative_displacement_vector = [expected_relative_normal_displacement, expected_relative_shear_displacement]
+        self._check_output_vectors(output_data, expected_relative_displacement_vector, output_item_label="STRAIN", name_of_output_item="relative displacement", name_of_normal_component="relative normal displacement", name_of_shear_component="relative shear displacment")
 
     def test_interface_pre_stress(self):
         test_name    = 'test_interface_prestress'
