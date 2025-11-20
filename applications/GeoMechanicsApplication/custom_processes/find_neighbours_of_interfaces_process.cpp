@@ -23,11 +23,11 @@ using namespace std::string_literals;
 namespace Kratos
 {
 FindNeighboursOfInterfacesProcess::FindNeighboursOfInterfacesProcess(Model& rModel, const Parameters& rProcessSettings)
-    : mrMainModelPart(
+    : mrModelParts{ProcessUtilities::GetModelPartsFromSettings(
+          rModel, rProcessSettings, FindNeighboursOfInterfacesProcess::Info())},
+      mrMainModelPart(
           rModel.GetModelPart(rProcessSettings["model_part_name_for_neighbouring_elements"].GetString()))
 {
-    mrModelParts = ProcessUtilities::GetModelPartsFromSettings(
-        rModel, rProcessSettings, FindNeighboursOfInterfacesProcess::Info());
 }
 
 FindNeighboursOfInterfacesProcess::~FindNeighboursOfInterfacesProcess() = default;
