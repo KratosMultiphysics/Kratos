@@ -446,13 +446,6 @@ public:
     void Clear();
 
     /**
-     * @brief Synchronize the container between partitions
-     * @details This method synchronizes the container between partitions
-     * @param rDataCommunicator The data communicator.
-     */
-    void SynchronizeAll(const DataCommunicator& rDataCommunicator);
-
-    /**
      * @brief Removes elements from the given ranks.
      * @details This function takes a list of ranks and removes the elements at those ranks from the list.
      * @param rRanks A constant reference to a std::vector<int> containing the ranks where no local solution is expected.
@@ -525,6 +518,24 @@ public:
     {
         // Assign index
         mLocalIndex = LocalIndex;
+    }
+
+    /**
+     * @brief Sets if the data is synchronized
+     * @param IsSynchronized true if the data is synchronized, false otherwise
+     */
+    void SetIsSynchronized(const bool IsSynchronized)
+    {
+        mIsSynchronized = IsSynchronized;
+    }
+
+    /**
+     * @brief Returns if the data is synchronized
+     * @return true if the data is synchronized, false otherwise
+     */
+    bool GetIsSynchronized() const
+    {
+        return mIsSynchronized;
     }
 
     /**

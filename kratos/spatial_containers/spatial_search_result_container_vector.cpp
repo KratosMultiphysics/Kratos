@@ -223,6 +223,9 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
                 r_global_results.push_back(std::move(r_gp));
                 all_global_results.push_back(std::move(r_gp));
             }
+
+            // 7. Mark the result as synchronized
+            p_result->SetIsSynchronized(true);
         }
     } else { // Serial code
         // Iterate over all the results
@@ -237,6 +240,9 @@ void SpatialSearchResultContainerVector<TObjectType, TSpatialSearchCommunication
                 r_global_results.push_back(&r_value);
                 all_global_results.push_back(&r_value);
             }
+
+            // Mark the result as synchronized
+            p_result->SetIsSynchronized(true);
         }
     }
 

@@ -122,7 +122,6 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
         self.AddResult(pObject, Distance);
     })
     .def("Clear", &ContainerType::Clear)
-    .def("SynchronizeAll", &ContainerType::SynchronizeAll)
     .def("GetGlobalIndex", &ContainerType::GetGlobalIndex)
     .def("SetGlobalIndex", &ContainerType::SetGlobalIndex)
     .def("GetLocalIndex", &ContainerType::GetLocalIndex)

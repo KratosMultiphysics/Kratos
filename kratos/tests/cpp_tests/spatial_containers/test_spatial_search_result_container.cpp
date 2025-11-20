@@ -76,32 +76,4 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerClear, KratosCoreFastSuite
     KRATOS_EXPECT_EQ(r_local_pointers.size(), container.NumberOfLocalResults());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerSynchronizeAll, KratosCoreFastSuite)
-{
-    // Create a test object
-    DataCommunicator data_communicator;
-    SpatialSearchResultContainer<GeometricalObject> container;
-
-    // Create a test result
-    GeometricalObject object = GeometricalObject(1);
-    SpatialSearchResult<GeometricalObject> result(&object);
-
-    // Add the result to the container
-    container.AddResult(result);
-
-    // Synchronize the container between partitions
-    container.SynchronizeAll(data_communicator);
-
-    // Check that the result was added correctly
-    auto& r_local_pointers = container.GetLocalResults();
-    KRATOS_EXPECT_EQ(r_local_pointers.size(), 1);
-    KRATOS_EXPECT_EQ(r_local_pointers.size(), container.NumberOfLocalResults());
-
-    // Check global pointers
-    KRATOS_EXPECT_TRUE(container.IsObjectFound());
-    auto& r_global_pointers = container.GetGlobalResults();
-    KRATOS_EXPECT_EQ(r_global_pointers.size(), 1);
-    KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults());
-}
-
 }  // namespace Kratos::Testing
