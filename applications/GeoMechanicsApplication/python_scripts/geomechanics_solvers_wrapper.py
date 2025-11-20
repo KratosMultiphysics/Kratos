@@ -1,6 +1,6 @@
 import KratosMultiphysics
 from importlib import import_module
-import KratosMultiphysics.GeoMechanicsApplication as GeoMechanicsApplication
+import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 def CreateSolverByParameters(model, custom_settings, parallelism):
     if (type(model) != KratosMultiphysics.Model):
@@ -36,6 +36,6 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
 
 def CreateSolver(model, custom_settings):
     solver_settings = custom_settings["solver_settings"]
-    GeoMechanicsApplication.ProcessUtilities.AddProcessesSubModelPartList(custom_settings, solver_settings)
+    KratosGeo.ProcessUtilities.AddProcessesSubModelPartList(custom_settings, solver_settings)
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
     return CreateSolverByParameters(model, solver_settings, parallelism)

@@ -28,17 +28,17 @@ struct StringHash {
     }
 };
 
-void ExtractModelPartNames(const auto& process_list,
-                           std::unordered_set<std::string, StringHash, std::equal_to<>>& domain_condition_names,
-                           std::string_view root_name,
-                           std::string_view prefix)
+void ExtractModelPartNames(const auto& rProcessList,
+                           std::unordered_set<std::string, StringHash, std::equal_to<>>& rDomainConditionNames,
+                           std::string_view RootName,
+                           std::string_view Prefix)
 {
-    for (const auto& process : process_list) {
-        if (process.Has("Parameters") && process["Parameters"].Has("model_part_name")) {
-            auto model_part_name = process["Parameters"]["model_part_name"].GetString();
-            if (model_part_name == root_name) continue;
-            if (model_part_name.rfind(prefix, 0) == 0) model_part_name.erase(0, prefix.size());
-            domain_condition_names.insert(model_part_name);
+    for (const auto& r_process : rProcessList) {
+        if (r_process.Has("Parameters") && r_process["Parameters"].Has("model_part_name")) {
+            auto model_part_name = r_process["Parameters"]["model_part_name"].GetString();
+            if (model_part_name == RootName) continue;
+            if (model_part_name.rfind(Prefix, 0) == 0) model_part_name.erase(0, Prefix.size());
+            rDomainConditionNames.insert(model_part_name);
         }
     }
 };
@@ -83,19 +83,19 @@ void ProcessUtilities::AddProcessesSubModelPartList(const Parameters& rProjectPa
         "constraints_process_list", "loads_process_list", "auxiliary_process_list"};
     if (rProjectParameters.Has("processes")) {
         const auto processes = rProjectParameters["processes"];
-        for (const auto& process_list_name : process_lists_to_be_checked) {
-            if (processes.Has(process_list_name))
-                ExtractModelPartNames(processes[process_list_name], domain_condition_names, root_name, prefix);
+        for (const auto& r_process_list_name : process_lists_to_be_checked) {
+            if (processes.Has(r_process_list_name))
+                ExtractModelPartNames(processes[r_process_list_name], domain_condition_names, root_name, prefix);
         }
     }
     if (rSolverSettings.Has("processes_sub_model_part_list")) {
-        KRATOS_INFO("KratosGeoSettlement") << "processes_sub_model_part_list is deprecated" << std::endl;
+        KRATOS_INFO("ProcessUtilities") << "processes_sub_model_part_list is deprecated" << std::endl;
         rSolverSettings.RemoveValue("processes_sub_model_part_list");
     }
     rSolverSettings.AddEmptyArray("processes_sub_model_part_list");
 
-    for (const auto& name : domain_condition_names) {
-        rSolverSettings["processes_sub_model_part_list"].Append(Kratos::Parameters("\"" + name + "\""));
+    for (const auto& r_name : domain_condition_names) {
+        rSolverSettings["processes_sub_model_part_list"].Append(Kratos::Parameters("\"" + r_name + "\""));
     }
 }
 
