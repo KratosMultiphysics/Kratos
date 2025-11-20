@@ -5,7 +5,7 @@ This test validates the functionality of applying prestress to interface element
 For details on how neighbouring elements of interfaces are found using the FindNeighboursOfInterfacesProcess, see the [process documentation](../../custom_processes/README.md#find-neighbours-of-interfaces).
 
 ## Setup
-The test consists of two stages. In the first stage, two U-Pw differential order continuum elements are created, connected by master-slave constraints at their coincident nodes. A uniform load is applied on the top surface of the model. In the second stage, a line interface element is activated between the two continuum elements (and the master-slave constraints are deactivated). Due to the prestress applied to the interface element from the first stage, no displacements should in the second stage. A schematic representation of the setup is shown below:
+The test consists of two stages. In the first stage, two U-Pw differential order continuum elements are created, connected by master-slave constraints at their coincident nodes. A uniform load of 1 kPa is applied on the top surface of the model. In the second stage, a line interface element is activated between the two continuum elements (and the master-slave constraints are deactivated). Due to the prestress applied to the interface element from the first stage, no displacements should in the second stage. A schematic representation of the setup is shown below:
 
 ```text
 === Stage 1 ===
@@ -54,5 +54,5 @@ A linear elastic material is used for both the continuum and the interface eleme
 
 The following assertions are done to validate the prestress functionality:
 - In the second stage, all displacements of the nodes are checked to be zero (within a small tolerance). This would not be the case if the interfaces were not prestressed based on the first stage stresses in the continuum elements.
-- The stresses at the integration points of the interface elements are checked to be equal to the stresses at the integration points of the neighbouring continuum elements from stage one.
-- The relative displacements of the interface elements are checked to be zero (within a small tolerance).
+- The stresses at the integration points of the interface elements are checked to be equal to the expected stresses at the integration points of the neighbouring continuum element. These are expected to be 1 kPa in the normal direction (following from the vertical equilibrium) and zero in the shear direction.
+- The relative (normal and shear) displacements of the interface elements are checked to be zero (within a small tolerance).
