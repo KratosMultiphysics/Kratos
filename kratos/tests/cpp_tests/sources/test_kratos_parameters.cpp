@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Riccardo Rossi
@@ -20,8 +20,7 @@
 #include "includes/kratos_parameters.h"
 #include "tests/test_utilities/scoped_file.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 // input string with ugly formatting
 std::string GetJSONString()
@@ -1069,5 +1068,118 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersWithCyclicInclude, KratosCoreFastSuite
     }
 }
 
-}  // namespace Testing.
-}  // namespace Kratos.
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersRemoveValueReturnValue, KratosCoreFastSuite)
+{
+    Parameters kp = Parameters(GetJSONString());
+    KRATOS_EXPECT_TRUE(kp.Has("int_value"));
+
+    // RemoveValue should return true on successful removal
+    KRATOS_EXPECT_TRUE(kp.RemoveValue("int_value"));
+    KRATOS_EXPECT_FALSE(kp.Has("int_value"));
+
+    // RemoveValue should return false if the key does not exist
+    KRATOS_EXPECT_FALSE(kp.RemoveValue("non_existent_key"));
+}
+
+// Helper string for a valid JSON Schema
+std::string GetSolverSchema()
+{
+    return R"({
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "SolverSettings",
+        "description": "Schema for solver settings in Kratos",
+        "type": "object",
+        "properties": {
+            "solver_type": {
+                "description": "The type of linear solver",
+                "type": "string",
+                "enum": ["AMGCL", "GMRES", "Direct"]
+            },
+            "max_iteration": {
+                "type": "integer",
+                "minimum": 1
+            },
+            "tolerance": {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+            },
+            "preconditioner": {
+                "type": "object",
+                "properties": {
+                    "preconditioner_type": { "type": "string" },
+                    "max_sweeps": { "type": "integer" }
+                },
+                "required": ["preconditioner_type"]
+            }
+        },
+        "required": ["solver_type", "max_iteration"]
+    })";
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersJSONSchemaValidation, KratosCoreFastSuite)
+{
+    Parameters schema(GetSolverSchema());
+
+    // Test Case 1: Successful Validation
+    Parameters valid_params(R"({
+        "solver_type": "AMGCL",
+        "max_iteration": 500,
+        "tolerance": 1e-9
+    })");
+    valid_params.Validate(schema);
+
+    // Test Case 2: Successful Validation with nested object
+    Parameters valid_params_nested(R"({
+        "solver_type": "GMRES",
+        "max_iteration": 1000,
+        "preconditioner": {
+            "preconditioner_type": "ILU0",
+            "max_sweeps": 5
+        }
+    })");
+    valid_params_nested.Validate(schema);
+
+    // Test Case 3: Failed validation due to wrong type
+    Parameters invalid_type_params(R"({
+        "solver_type": "AMGCL",
+        "max_iteration": "one_thousand"
+    })");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(invalid_type_params.Validate(schema), "JSON schema validation failed.");
+
+    // Test Case 4: Failed validation due to missing required property
+    Parameters missing_property_params(R"({
+        "solver_type": "Direct"
+    })");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(missing_property_params.Validate(schema), "JSON schema validation failed.");
+
+    // Test Case 5: Failed validation due to numerical constraint violation
+    Parameters constraint_violation_params(R"({
+        "solver_type": "GMRES",
+        "max_iteration": 200,
+        "tolerance": 0.0
+    })");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(constraint_violation_params.Validate(schema), "JSON schema validation failed.");
+
+    // Test Case 6: Failed validation in a nested object (proving recursion)
+    Parameters nested_error_params(R"({
+        "solver_type": "GMRES",
+        "max_iteration": 1000,
+        "preconditioner": {
+            "max_sweeps": 5
+        }
+    })");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(nested_error_params.Validate(schema), "JSON schema validation failed.");
+
+    // Test Case 7: Failed validation because the schema itself is invalid
+    Parameters invalid_schema(R"({
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "age": { "type": "integer", "minimum": "zero" }
+        }
+    })");
+    Parameters data_for_invalid_schema(R"({"name": "test", "age": 30})");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(data_for_invalid_schema.Validate(invalid_schema), "The provided JSON schema is invalid");
+}
+
+}  // namespace Kratos::Testing
