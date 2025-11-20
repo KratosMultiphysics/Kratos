@@ -384,8 +384,8 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
         KRATOS_ERROR << "No river boundary found.";
     }
 
-    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, pOutput, rKratosLogBuffer,
-                     p_river_boundary, pSolvingStrategy, rCallBackFunctions);
+    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, std::move(pOutput),
+                     rKratosLogBuffer, p_river_boundary, pSolvingStrategy, rCallBackFunctions);
 
     WriteCriticalHeadResultToFile();
 
@@ -529,7 +529,7 @@ void KratosExecute::HandleCleanUp(const CallBackFunctions& rCallBackFunctions,
                                   const std::stringstream& rKratosLogBuffer)
 {
     rCallBackFunctions.LogCallback(rKratosLogBuffer.str().c_str());
-    Logger::RemoveOutput(pOutput);
+    Logger::RemoveOutput(std::move(pOutput));
     ResetModelParts();
 }
 
