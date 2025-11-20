@@ -63,6 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsNoNeighboursWhe
 KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighbourOfLineInterface,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
     Model model;
     auto& r_computational_model_part = model.CreateModelPart("Main");
     ModelSetupUtilities::CreateNumberOfNewNodes(r_computational_model_part, 9);
@@ -86,8 +87,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighb
     FindNeighboursOfInterfacesProcess process(model, Parameters(R"({"model_part_name": "Interfaces",
 "model_part_name_for_neighbouring_elements": "Main"})"));
 
+    // Act
     process.ExecuteInitialize();
 
+    // Assert
     ASSERT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
@@ -95,6 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighb
 KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighbourOfSurfaceInterface,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
     ModelSetupUtilities::CreateNumberOfNewNodes(r_model_part, 16);
@@ -122,8 +126,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighb
     FindNeighboursOfInterfacesProcess process(model, Parameters(R"({"model_part_name": "Interfaces",
 "model_part_name_for_neighbouring_elements": "Main"})"));
 
+    // Act
     process.ExecuteInitialize();
 
+    // Assert
     ASSERT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
@@ -131,6 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighb
 KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_OnlyFindsNeighbourWhenLocalDimensionOfNeighbourIsHigher,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
     Model model;
     auto& r_computational_model_part = model.CreateModelPart("Main");
     ModelSetupUtilities::CreateNumberOfNewNodes(r_computational_model_part, 6);
@@ -154,8 +161,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_OnlyFindsNeighbourWh
     FindNeighboursOfInterfacesProcess process(model, Parameters(R"({"model_part_name": "Interfaces",
 "model_part_name_for_neighbouring_elements": "Main"})"));
 
+    // Act
     process.ExecuteInitialize();
 
+    // Assert
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
 }
 
