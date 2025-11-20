@@ -177,26 +177,16 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_RemovesNeighboursWhe
 {
     // Arrange
     Model model;
+    auto p_continuum_element = make_intrusive<Element>(1, make_shared<Geometry<Node>>());
+    auto p_interface_element = make_intrusive<Element>(2, make_shared<Geometry<Node>>());
+
     auto& r_computational_model_part = model.CreateModelPart("Main");
-    ModelSetupUtilities::CreateNumberOfNewNodes(r_computational_model_part, 9);
-
-    const auto node_ids_continuum_element = std::vector<std::size_t>{4, 5, 8, 6, 9, 7};
-    const auto nodes_continuum_element =
-        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_continuum_element);
-    auto p_continuum_element = ElementSetupUtilities::Create2D6NElement(nodes_continuum_element, {});
     r_computational_model_part.AddElement(p_continuum_element);
-
-    const auto node_ids_interface = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
-    const auto nodes_interface =
-        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_interface);
-    auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_interface, {});
-    p_interface_element->SetId(2);
     r_computational_model_part.AddElement(p_interface_element);
 
     auto& r_interface_model_part = model.CreateModelPart("Interfaces");
     r_interface_model_part.AddElement(p_interface_element);
 
-    // By explicitly setting the neighbouring elements, we don't need to call ExecuteInitialize
     p_interface_element->SetValue(NEIGHBOUR_ELEMENTS, {Element::WeakPointer{p_continuum_element}});
 
     auto test_settings = Parameters{};
