@@ -33,6 +33,7 @@
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_info_parser.h"
+#include "custom_utilities/process_utilities.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
 #include "solving_strategy_wrapper.hpp"
 #include "spaces/ublas_space.h"
@@ -196,7 +197,9 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
         }
 
-        PrepareModelPart(project_parameters["solver_settings"]);
+        auto solver_settings = project_parameters["solver_settings"];
+        ProcessUtilities::AddProcessesSubModelPartList(project_parameters, solver_settings);
+        PrepareModelPart(solver_settings);
 
         if (project_parameters["solver_settings"].Has("material_import_settings")) {
             const auto material_file_name =
@@ -405,13 +408,16 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         domain_part_names.emplace_back(sub_model_part.GetString());
     }
 
-    // Add nodes to computing model part
+    auto collect_ids_from_entity = [](auto& rContainer, auto& rIdSet) {
+        for (const auto& r_item : rContainer) {
+            rIdSet.insert(r_item.Id());
+        }
+    };
+
     std::set<Node::IndexType> node_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& node : domain_part.Nodes()) {
-            node_id_set.insert(node.Id());
-        }
+        collect_ids_from_entity(domain_part.Nodes(), node_id_set);
     }
     GetComputationalModelPart().AddNodes(
         std::vector<Node::IndexType>{node_id_set.begin(), node_id_set.end()});
@@ -419,27 +425,22 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::set<IndexedObject::IndexType> element_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& element : domain_part.Elements()) {
-            element_id_set.insert(element.Id());
-        }
+        collect_ids_from_entity(domain_part.Elements(), element_id_set);
     }
     GetComputationalModelPart().AddElements(
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
-    GetComputationalModelPart().Conditions().clear();
     const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
     std::vector<std::string> domain_condition_names;
     for (const auto& sub_model_part : processes_sub_model_part_list) {
         domain_condition_names.emplace_back(sub_model_part.GetString());
     }
-
     std::set<IndexedObject::IndexType> condition_id_set;
     for (const auto& name : domain_condition_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& condition : domain_part.Conditions()) {
-            condition_id_set.insert(condition.Id());
-        }
+        collect_ids_from_entity(domain_part.Conditions(), condition_id_set);
     }
+    GetComputationalModelPart().Conditions().clear();
     GetComputationalModelPart().AddConditions(
         std::vector<IndexedObject::IndexType>{condition_id_set.begin(), condition_id_set.end()});
 

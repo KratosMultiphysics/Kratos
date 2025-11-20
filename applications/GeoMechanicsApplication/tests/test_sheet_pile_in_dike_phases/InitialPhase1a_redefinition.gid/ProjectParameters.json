@@ -69,7 +69,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["32_Pleistoceen_zand","9_Basisveen_SS_verw","17_Klei_Gorkum_zwaar_SS_verw","18_Zand_siltig","15_Klei_Gorkum_licht_humeus_SSC_verw","16_Klei_Gorkum_SSC_verw","4_Hollandveen_SSC_verw","OB_Dijksmateriaal_SSC_verw","12_Klei_Tiel_SS_verw","deactivated_beam","strut","anchor"],
-        "processes_sub_model_part_list":      ["bottom_fixed","side_boundaries_fixed","global_test_water_line","deactivate_anchor","deactivate_beam","deactivate_strut","soil_excavation","gravity"],
         "body_domain_sub_model_part_list":    ["32_Pleistoceen_zand","9_Basisveen_SS_verw","17_Klei_Gorkum_zwaar_SS_verw","18_Zand_siltig","15_Klei_Gorkum_licht_humeus_SSC_verw","16_Klei_Gorkum_SSC_verw","4_Hollandveen_SSC_verw","OB_Dijksmateriaal_SSC_verw","12_Klei_Tiel_SS_verw","deactivated_beam","strut","anchor"]
     },
     "output_processes": {

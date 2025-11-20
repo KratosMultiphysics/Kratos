@@ -67,7 +67,6 @@
       "scaling":     true
     },
     "problem_domain_sub_model_part_list": ["Soil_two_phase"],
-    "processes_sub_model_part_list":      ["Bottom", "Side", "Line_velocity", "Soil_two_phase"],
     "body_domain_sub_model_part_list":    ["Soil_two_phase"]
   },
   "output_processes": {

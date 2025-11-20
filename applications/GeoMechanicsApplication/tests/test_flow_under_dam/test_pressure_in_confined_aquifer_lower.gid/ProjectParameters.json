@@ -67,7 +67,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Soil_Groundwater_Flow-auto-1"],
-        "processes_sub_model_part_list":      ["left_side","right_side","gravity"],
         "body_domain_sub_model_part_list":    ["Soil_Groundwater_Flow-auto-1"]
     },
     "output_processes": {

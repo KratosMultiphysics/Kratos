@@ -52,15 +52,6 @@
       "scaling": true
     },
     "problem_domain_sub_model_part_list": ["Soil-0"],
-    "processes_sub_model_part_list"   : ["gravity",
-                                         "PhreaticLineContactStress0",
-                                         "TopWaterPressure",
-                                         "Bottom1",
-                                         "BottomWaterPressure",
-                                         "LeftSide",
-                                         "RightSide",
-                                         "K0_model_part",
-                                         "Head_line0"],
     "body_domain_sub_model_part_list" : ["Soil-0"],
     "move_mesh_flag"                  : false
   },
