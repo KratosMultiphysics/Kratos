@@ -65,11 +65,6 @@ void FindNeighboursOfInterfacesProcess::FilterOutNeighboursWhichDoNotHaveHigherL
     }
 }
 
-std::string FindNeighboursOfInterfacesProcess::Info() const
-{
-    return "FindNeighboursOfInterfacesProcess"s;
-}
-
 void FindNeighboursOfInterfacesProcess::ExecuteFinalize()
 {
     for (const auto& r_model_part : mrModelParts) {
@@ -77,6 +72,11 @@ void FindNeighboursOfInterfacesProcess::ExecuteFinalize()
             r_element.GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
     }
+}
+
+std::string FindNeighboursOfInterfacesProcess::Info() const
+{
+    return "FindNeighboursOfInterfacesProcess"s;
 }
 
 } // namespace Kratos
