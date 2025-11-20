@@ -17,6 +17,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 #include "custom_utilities/node_utilities.h"
+#include "custom_utilities/process_utilities.h"
 #include "custom_workflows/custom_workflow_factory.h"
 #include "custom_workflows/dgeoflow.h"
 #include "custom_workflows/dgeosettlement.h"
@@ -43,6 +44,10 @@ void AddCustomUtilitiesToPython(const pybind11::module& rModule)
     pybind11::class_<KratosExecute::CallBackFunctions>(rModule, "KratosExecuteCallBackFunctions")
         .def(pybind11::init<std::function<void(const char*)>, std::function<void(double)>,
                             std::function<void(const char*)>, std::function<bool()>>());
+
+    pybind11::class_<ProcessUtilities>(rModule, "ProcessUtilities")
+        .def_static("AddProcessesSubModelPartList", &ProcessUtilities::AddProcessesSubModelPartList,
+                    pybind11::arg("custom_settings"), pybind11::arg("solver_settings"));
 }
 
 } // Namespace Kratos::Python.
