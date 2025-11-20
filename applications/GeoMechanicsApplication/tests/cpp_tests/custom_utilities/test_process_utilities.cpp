@@ -163,9 +163,9 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsEmptyList, KratosGeoM
     ProcessUtilities::AddProcessesSubModelPartList(project_parameters, solver_settings);
 
     // Assert
-    KRATOS_EXPECT_TRUE(solver_settings.Has("processes_sub_model_part_list"));
-    KRATOS_EXPECT_TRUE(solver_settings["processes_sub_model_part_list"].IsArray());
-    KRATOS_EXPECT_TRUE(solver_settings["processes_sub_model_part_list"].size() == 0);
+    KRATOS_EXPECT_TRUE(solver_settings.Has("processes_sub_model_part_list"))
+    KRATOS_EXPECT_TRUE(solver_settings["processes_sub_model_part_list"].IsArray())
+    KRATOS_EXPECT_TRUE(solver_settings["processes_sub_model_part_list"].size() == 0)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledList, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -219,24 +219,25 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledList, KratosGeo
     auto solver_settings = project_parameters["solver_settings"];
 
     std::stringstream buffer;
-    std::streambuf*   old = std::cout.rdbuf(buffer.rdbuf());
+    std::streambuf*   old = std::cout.rdbuf(buffer.rdbuf()); // NOSONAR
 
     // Act
     ProcessUtilities::AddProcessesSubModelPartList(project_parameters, solver_settings);
 
     // Assert
-    std::cout.rdbuf(old);
+    std::cout.rdbuf(old); // NOSONAR
     std::string output = buffer.str();
     EXPECT_NE(output.find("processes_sub_model_part_list is deprecated"), std::string::npos);
 
     const auto& r_list = solver_settings["processes_sub_model_part_list"];
     KRATOS_EXPECT_EQ(r_list.size(), 4);
 
-    std::set<std::string> actual_modelpart_names;
+    std::set<std::string, std::less<>> actual_modelpart_names;
     for (const auto& r_name : r_list) {
         actual_modelpart_names.insert(r_name.GetString());
     }
-    const std::set<std::string> expected_modelpart_names = {"Sides", "BottomFixed", "TopLoad", "Soil"};
+    const std::set<std::string, std::less<>> expected_modelpart_names = {"Sides", "BottomFixed",
+                                                                         "TopLoad", "Soil"};
     EXPECT_EQ(actual_modelpart_names, expected_modelpart_names);
 }
 
