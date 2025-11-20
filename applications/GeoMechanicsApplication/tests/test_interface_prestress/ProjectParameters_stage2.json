@@ -20,7 +20,7 @@
             "input_type": "use_input_model_part"
         },
         "material_import_settings": {
-            "materials_filename": "Materials.json"
+            "materials_filename": "MaterialParameters.json"
         },
         "buffer_size": 2,
         "clear_storage": false,
