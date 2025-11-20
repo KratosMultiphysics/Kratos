@@ -54,12 +54,13 @@ void FindNeighboursOfInterfacesProcess::FilterOutNeighboursWhichDoNotHaveHigherL
     for (const auto& r_model_part : mrModelParts) {
         for (auto& r_element : r_model_part.get().Elements()) {
             auto& r_neighbour_elements = r_element.GetValue(NEIGHBOUR_ELEMENTS);
-            r_neighbour_elements.erase(
-                std::remove_if(r_neighbour_elements.begin(), r_neighbour_elements.end(),
-                               [&r_element](const Element& rNeighbourElement) {
+            auto neighbour_does_not_have_higher_local_dimension = [&r_element](const Element& rNeighbourElement) {
                 return rNeighbourElement.GetGeometry().LocalSpaceDimension() <=
                        r_element.GetGeometry().LocalSpaceDimension();
-            }),
+            };
+            r_neighbour_elements.erase(
+                std::remove_if(r_neighbour_elements.begin(), r_neighbour_elements.end(),
+                               neighbour_does_not_have_higher_local_dimension),
                 r_neighbour_elements.end());
         }
     }
