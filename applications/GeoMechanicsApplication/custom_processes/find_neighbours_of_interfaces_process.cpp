@@ -30,8 +30,6 @@ FindNeighboursOfInterfacesProcess::FindNeighboursOfInterfacesProcess(Model& rMod
 {
 }
 
-FindNeighboursOfInterfacesProcess::~FindNeighboursOfInterfacesProcess() = default;
-
 void FindNeighboursOfInterfacesProcess::ExecuteInitialize()
 {
     FindAllNeighboursOfElements();

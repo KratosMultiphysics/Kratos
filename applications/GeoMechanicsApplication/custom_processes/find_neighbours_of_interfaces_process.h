@@ -30,7 +30,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FindNeighboursOfInterfacesProcess);
 
     FindNeighboursOfInterfacesProcess(Model& rModel, const Parameters& rProcessSettings);
-    ~FindNeighboursOfInterfacesProcess() override;
+
     void ExecuteInitialize() override;
 
     [[nodiscard]] std::string Info() const override;
