@@ -74,10 +74,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighb
     auto p_continuum_element = ElementSetupUtilities::Create2D6NElement(nodes_continuum_element, {});
     r_computational_model_part.AddElement(p_continuum_element);
 
-    const auto node_ids_element_2 = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
-    const auto nodes_element_2 =
-        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_element_2);
-    auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_element_2, {});
+    const auto node_ids_interface = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
+    const auto nodes_interface =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_interface);
+    auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_interface, {});
     p_interface_element->SetId(2);
     r_computational_model_part.AddElement(p_interface_element);
 
@@ -112,12 +112,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_FindsContinuumNeighb
     r_model_part.AddElement(p_continuum_element);
     p_continuum_element->SetId(1);
 
-    // The node ordering of the interface element is chosen such that it is both reversed and
-    // permutated, to test the robustness of the neighbour finding.
-    const auto node_ids_element_2 =
+    const auto node_ids_interface =
         std::vector<std::size_t>{3, 1, 2, 7, 5, 6, 11, 12, 13, 14, 15, 16};
-    const auto nodes_element_2 = ModelSetupUtilities::GetNodesFromIds(r_model_part, node_ids_element_2);
-    auto p_interface_element = ElementSetupUtilities::Create3D12NInterfaceElement(nodes_element_2, {});
+    const auto nodes_interface = ModelSetupUtilities::GetNodesFromIds(r_model_part, node_ids_interface);
+    auto p_interface_element = ElementSetupUtilities::Create3D12NInterfaceElement(nodes_interface, {});
 
     p_interface_element->SetId(2);
     r_model_part.AddElement(p_interface_element);
@@ -152,10 +150,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_OnlyFindsNeighbourWh
     auto p_line_element = ElementSetupUtilities::Create2D3NLineElement(nodes_line_element, {});
     r_computational_model_part.AddElement(p_line_element);
 
-    const auto node_ids_element_2 = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
-    const auto nodes_element_2 =
-        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_element_2);
-    auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_element_2, {});
+    const auto node_ids_interface = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
+    const auto nodes_interface =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_interface);
+    auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_interface, {});
     p_interface_element->SetId(2);
     r_computational_model_part.AddElement(p_interface_element);
 
@@ -188,10 +186,10 @@ KRATOS_TEST_CASE_IN_SUITE(FindNeighboursOfInterfacesProcess_RemovesNeighboursWhe
     auto p_continuum_element = ElementSetupUtilities::Create2D6NElement(nodes_continuum_element, {});
     r_computational_model_part.AddElement(p_continuum_element);
 
-    const auto node_ids_element_2 = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
-    const auto nodes_element_2 =
-        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_element_2);
-    auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_element_2, {});
+    const auto node_ids_interface = std::vector<std::size_t>{1, 2, 3, 4, 5, 6};
+    const auto nodes_interface =
+        ModelSetupUtilities::GetNodesFromIds(r_computational_model_part, node_ids_interface);
+    auto p_interface_element = ElementSetupUtilities::Create2D6NInterfaceElement(nodes_interface, {});
     p_interface_element->SetId(2);
     r_computational_model_part.AddElement(p_interface_element);
 
