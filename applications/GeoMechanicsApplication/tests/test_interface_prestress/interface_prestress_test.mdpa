@@ -90,6 +90,9 @@ Begin SubModelPart Interface
     4
     6
     8
+    14
+    15
+    16
   End SubModelPartNodes
   Begin SubModelPartElements
     3
