@@ -7,6 +7,7 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import Gi
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
+
 class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
     def check_output_times(self, output_data):
         times = output_data['TIME']
@@ -22,6 +23,17 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
             self.assertEqual(len(output_list), 1, msg=f"number of traction vectors per integration point of {element_label}")
             self.assertAlmostEqual(output_list[0][0], expected_normal_traction, msg=f'normal traction at integration point {integration_point_label} of {element_label}')
             self.assertAlmostEqual(output_list[0][1], expected_shear_traction, msg=f'shear traction at integration point {integration_point_label} of {element_label}')
+
+    def check_relative_displacement_vectors(self, output_data, expected_relative_normal_displacement, expected_relative_shear_displacement):
+        element_label = 'ELEMENT_3'
+        relative_displacement_vectors_by_integration_point_label = output_data[element_label]['STRAIN']
+        number_of_integration_points = 3
+        for integration_point_label in [str(i) for i in range(number_of_integration_points)]:
+            relative_displacement_vectors = relative_displacement_vectors_by_integration_point_label[integration_point_label]
+            self.assertEqual(len(relative_displacement_vectors), 1, msg=f"number of relative displacement vectors at integration point {integration_point_label} of {element_label}")
+            self.assertEqual(len(relative_displacement_vectors[0]), 2, msg=f"number of relative displacement components at integration point {integration_point_label} of {element_label}")
+            self.assertAlmostEqual(relative_displacement_vectors[0][0], expected_relative_normal_displacement, msg=f'relative normal displacement at integration point {integration_point_label} of {element_label}')
+            self.assertAlmostEqual(relative_displacement_vectors[0][1], expected_relative_shear_displacement, msg=f'relative shear displacement at integration point {integration_point_label} of {element_label}')
 
     def test_interface_pre_stress(self):
         test_name    = 'test_interface_prestress'
@@ -44,6 +56,7 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
 
         self.check_output_times(interface_output_data)
         self.check_traction_vectors(interface_output_data, expected_normal_traction=-1000.0, expected_shear_traction=0.0)
+        self.check_relative_displacement_vectors(interface_output_data, expected_relative_normal_displacement=0.0, expected_relative_shear_displacement=0.0)
 
 
 
