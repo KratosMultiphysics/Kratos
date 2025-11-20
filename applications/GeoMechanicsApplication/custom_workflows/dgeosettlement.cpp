@@ -408,16 +408,16 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         domain_part_names.emplace_back(sub_model_part.GetString());
     }
 
-    auto collect_ids_from_part = [](auto& container, auto& id_set) {
-        for (const auto& item : container) {
-            id_set.insert(item.Id());
+    auto collect_ids_from_entity = [](auto& rContainer, auto& rIdSet) {
+        for (const auto& r_item : rContainer) {
+            rIdSet.insert(r_item.Id());
         }
     };
 
     std::set<Node::IndexType> node_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        collect_ids_from_part(domain_part.Nodes(), node_id_set);
+        collect_ids_from_entity(domain_part.Nodes(), node_id_set);
     }
     GetComputationalModelPart().AddNodes(
         std::vector<Node::IndexType>{node_id_set.begin(), node_id_set.end()});
@@ -425,7 +425,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::set<IndexedObject::IndexType> element_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        collect_ids_from_part(domain_part.Elements(), element_id_set);
+        collect_ids_from_entity(domain_part.Elements(), element_id_set);
     }
     GetComputationalModelPart().AddElements(
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
@@ -438,7 +438,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::set<IndexedObject::IndexType> condition_id_set;
     for (const auto& name : domain_condition_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        collect_ids_from_part(domain_part.Conditions(), condition_id_set);
+        collect_ids_from_entity(domain_part.Conditions(), condition_id_set);
     }
     GetComputationalModelPart().Conditions().clear();
     GetComputationalModelPart().AddConditions(
