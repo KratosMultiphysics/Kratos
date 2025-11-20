@@ -115,6 +115,34 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
     //         }
     //     }
     // }
+    // // Write outer initial and outer skin boundary segments to txt files (for inspection)
+    // std::remove("skin_outer_initial_segments.txt");
+    // std::remove("skin_outer_segments.txt");
+    // if (mpSkinModelPartOuterInitial != nullptr) {
+    //     std::ofstream fout_skin_outer_initial("skin_outer_initial_segments.txt", std::ios::out | std::ios::trunc);
+    //     if (fout_skin_outer_initial.good()) {
+    //         for (const auto& r_cond : mpSkinModelPartOuterInitial->Conditions()) {
+    //             const auto& r_geom = r_cond.GetGeometry();
+    //             if (r_geom.size() < 2) continue;
+    //             const auto& n0 = r_geom[0];
+    //             const auto& n1 = r_geom[1];
+    //             fout_skin_outer_initial << n0.X() << ' ' << n0.Y() << ' ' << n1.X() << ' ' << n1.Y() << '\n';
+    //         }
+    //     }
+    // }
+    // if (mpSkinModelPart->HasSubModelPart("outer")) {
+    //     const auto& r_skin_outer = mpSkinModelPart->GetSubModelPart("outer");
+    //     std::ofstream fout_skin_outer("skin_outer_segments.txt", std::ios::out | std::ios::trunc);
+    //     if (fout_skin_outer.good()) {
+    //         for (const auto& r_cond : r_skin_outer.Conditions()) {
+    //             const auto& r_geom = r_cond.GetGeometry();
+    //             if (r_geom.size() < 2) continue;
+    //             const auto& n0 = r_geom[0];
+    //             const auto& n1 = r_geom[1];
+    //             fout_skin_outer << n0.X() << ' ' << n0.Y() << ' ' << n1.X() << ' ' << n1.Y() << '\n';
+    //         }
+    //     }
+    // }
     
 }   
 
@@ -266,7 +294,7 @@ void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
         else step_v = std::abs(knot_v[iv] - knot_v[iv - 1]);
     }
 
-    const double s = 2.0 * std::max(step_u, step_v);
+    const double s = 3.0 * std::max(step_u, step_v);
 
     std::vector<std::array<double,4>> segs;
     segs.reserve(r_inner.NumberOfConditions());
