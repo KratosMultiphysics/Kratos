@@ -39,9 +39,9 @@
         "increase_factor": 2.0,
         "calculate_reactions": true,
         "rotation_dofs": false,
-        "problem_domain_sub_model_part_list": ["Soil_Top", "Soil_Bottom", "Interface"],
+        "problem_domain_sub_model_part_list": ["Soil", "Interface"],
         "processes_sub_model_part_list": ["Bottom_Fixed", "Side_Rollers", "Top_Load", "Interface", "Master_side_1", "Slave_side_1"],
-        "body_domain_sub_model_part_list": ["Soil_Top", "Soil_Bottom", "Interface"],
+        "body_domain_sub_model_part_list": ["Soil", "Interface"],
         "linear_solver_settings": {
             "solver_type": "skyline_lu_factorization",
             "scaling": true
@@ -80,7 +80,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name":  "ApplyScalarConstraintTableProcess",
                 "Parameters":    {
-                    "model_part_name": "PorousDomain",
+                    "model_part_name": "PorousDomain.Soil",
                     "variable_name": "WATER_PRESSURE",
                     "active": true,
                     "is_fixed": true,

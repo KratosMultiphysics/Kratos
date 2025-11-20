@@ -26,12 +26,39 @@ Begin Elements SmallStrainUPwDiffOrderElement2D8N
 End Elements
 
 Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N
-  5  0  4 8 6 15 14 16
+  3  0  4 8 6 15 14 16
 End Elements
 
 Begin Conditions LineLoadDiffOrderCondition2D3N
   1  0  13 11 12
 End Conditions
+
+
+Begin SubModelPart Soil
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+  End SubModelPartElements
+End SubModelPart
+
 
 Begin SubModelPart Bottom_Fixed
   Begin SubModelPartNodes
@@ -58,38 +85,6 @@ Begin SubModelPart Side_Rollers
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Soil_Top
-  Begin SubModelPartNodes
-    15
-    16
-    14
-    9
-    10
-    11
-    12
-    13
-  End SubModelPartNodes
-  Begin SubModelPartElements
-    2
-  End SubModelPartElements
-End SubModelPart
-
-Begin SubModelPart Soil_Bottom
-  Begin SubModelPartNodes
-    1
-    2
-    3
-    4
-    5
-    6
-    7
-    8
-  End SubModelPartNodes
-  Begin SubModelPartElements
-    1
-  End SubModelPartElements
-End SubModelPart
-
 Begin SubModelPart Interface
   Begin SubModelPartNodes
     4
@@ -97,7 +92,7 @@ Begin SubModelPart Interface
     8
   End SubModelPartNodes
   Begin SubModelPartElements
-    5
+    3
   End SubModelPartElements
 End SubModelPart
 
