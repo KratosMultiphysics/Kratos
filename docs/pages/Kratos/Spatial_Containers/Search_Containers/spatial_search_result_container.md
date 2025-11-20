@@ -67,11 +67,6 @@ Reserves space in the container to accommodate additional results, improving eff
 ##### Clear
 Clears all contents of the container, resetting it to an empty state.
 
-##### SynchronizeAll
-Synchronizes the container's contents across all nodes or processes involved in the spatial search, ensuring consistency.
-
-See [Spatial Search Result Container Vector SynchronizeAll](spatial_search_result_container_vector#SynchronizeAll).
-
 ##### GetGlobalIndex
 Retrieves the global index of an object within the container.
 
@@ -100,9 +95,9 @@ Retrieves a list of results that are global, spanning all nodes or processes.
 The class `SpatialSearchResultContainer` defines the following member variables:
 
 ##### `mLocalResults`
-A vector (`std::vector`) of local search results, which stores instances of `SpatialSearchResultType` (templated by `TObjectType`). There are only the local results, until `SynchronizeAll` is invoked.
+A vector (`std::vector`) of local search results, which stores instances of `SpatialSearchResultType` (templated by `TObjectType`). There are only the local results, until `SynchronizeAll` from `SpatialSearchResultContainerVector` is invoked.
 ##### `mGlobalResults`
-A `GlobalPointersVector` of global search results, which stores global pointers to `SpatialSearchResultType`. This vector would be empty until `SynchronizeAll` is invoked.
+A `GlobalPointersVector` of global search results, which stores global pointers to `SpatialSearchResultType`. This vector would be empty until `SynchronizeAll` from `SpatialSearchResultContainerVector` is invoked.
 ##### `mLocalIndex`
 A signed index type (`std::ptrdiff_t`), used to identify local indices. Negative means that is not even a local point. This variable is added because once you pass a set of iterators to perform the search you need this information in order to identify the input point from the iterators sets from the result. This could be avoided if instead of `std::vector` we consider a map with a  certain hash, but then you need to define a hash, which could be problematic for a point which only information provided is a set of three floats with the potential issues of rounding errors. This could be avoiding using ids for nodes and hash of coordinates for the rest, but potential issues may still arise for the later.
 ##### `mGlobalIndex`
@@ -141,12 +136,11 @@ int main() {
     auto& local_results = search_results.GetLocalResults();
     std::cout << "[Rank " << rank << "] Local results count: " << local_results.size() << std::endl;
 
-    // Synchronize results across all MPI nodes, passing the communicator
-    search_results.SynchronizeAll(r_data_comm);
+    // NOTE: SynchronizeAll must be invoked from `SpatialSearchResultContainerVector`, so global results will be empty
 
     // Access synchronized results
     auto& global_results = search_results.GetGlobalResults();
-    std::cout << "[Rank " << rank << "] Global results count: " << global_results.size() << std::endl;
+    std::cout << "[Rank " << rank << "] Global results count: " << global_results.size() << std::endl; // Size will be 0 as is not synchronized
 
     // Clear the results in the container
     search_results.Clear();
@@ -168,10 +162,10 @@ int main() {
     - A `GeometricalObject` and corresponding `SpatialSearchResult` are created. The result is then added to the container. This represents a local operation.
 
 4. **Synchronizing results**:
-    - The `SynchronizeAll` method is called to sync results across all processes. This ensures that all nodes have the same global view of the search results.
+    - The `SynchronizeAll` method should be invoked in `SpatialSearchResultContainerVector` that holds the `SpatialSearchResultContainer` object, otherwise only local results can be accessed.
 
 5. **Accessing results**:
-    - After synchronization, you can access both local and global results through their respective methods.
+    - If synchronized, you can access both local and global results through their respective methods. Otherwise only local results could be reached.
 
 6. **Clearing results**:
     - The `Clear` method resets the container, removing all stored results, both locally and globally, if synchronized.
@@ -208,25 +202,7 @@ def run_python_example():
 
     print(f"[Rank {rank}] Local results before sync: {container.NumberOfLocalResults()}")
 
-    # 3. Synchronize results across all ranks
-    # Note: No explicit barrier is needed; the collective call handles synchronization.
-    if rank == 0:
-        print("\n2. Synchronizing all containers...")
-    container.SynchronizeAll(data_comm)
-
-    # 4. Access the global results (output from rank 0 for clarity)
-    if rank == 0:
-        print("\n3. Synchronization Complete.")
-        num_global = container.NumberOfGlobalResults()
-        print(f"   Total global results: {num_global}")
-
-        # In a test, we would assert this
-        assert num_global == world_size
-
-        for result_ptr in container: # Iterating over global results
-            print(f"     - Found result from Rank {result_ptr.Rank()}" \
-                  f" (Object ID: {result_ptr.Get().Id})")
-
+    # NOTE. No global results as must be synchronized from the `SpatialSearchResultContainerVector` holder.
 # To run this example, you would execute it within a Kratos MPI environment.
 # run_python_example()
 ```
@@ -238,12 +214,3 @@ def run_python_example():
 
 2.  **Creating and Adding Local Results**
     * A unique `Node` and a corresponding `GeometricalObject` are created on each **MPI** rank. This object is then added to the container using the `AddResult` method. At this stage, each container only knows about the result created on its own rank.
-
-3.  **Synchronization**
-    * The `SynchronizeAll` method is called, passing the `DataCommunicator`. This is the key step where the container communicates with all other ranks, gathering all the individual local results into one globally consistent list.
-
-4.  **Accessing Global Results**
-    * After synchronization, the container can be iterated over directly (e.g., `for result in container:`). This provides access to the complete list of results from **all** ranks, enabling global operations or analysis.
-
-5.  **Clearing the Container**
-    * The `Clear` method can be called to empty the container of both its local and global results, preparing it for a new search operation.
