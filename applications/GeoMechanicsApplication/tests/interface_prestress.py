@@ -16,8 +16,8 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
     def check_traction_vectors(self, output_data, expected_normal_traction, expected_shear_traction):
         element_label = 'ELEMENT_3'
         tractions_at_integration_points = output_data[element_label]['CAUCHY_STRESS_VECTOR']
-        integration_point_size_of_interface_element = 3
-        for integration_point_label in [str(i) for i in range(integration_point_size_of_interface_element)]:
+        number_of_integration_points = 3
+        for integration_point_label in [str(i) for i in range(number_of_integration_points)]:
             output_list = tractions_at_integration_points[integration_point_label]
             self.assertEqual(len(output_list), 1, msg=f"number of traction vectors per integration point of {element_label}")
             self.assertAlmostEqual(output_list[0][0], expected_normal_traction, msg=f'normal traction at integration point {integration_point_label} of {element_label}')
