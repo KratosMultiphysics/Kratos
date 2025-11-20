@@ -60,29 +60,91 @@ def _CheckIfTypeIsDeprecated(config):
 
 def _CheckIfSolverIsCompiled(solver_type):
     """
-    This function checks if the specified solver type is compiled.
-
+    Checks if the specified solver type is compiled in KratosTrilinos.
+    
     Args:
         solver_type (str): The type of the solver to check.
-
+        
+    Returns:
+        bool: True if the solver is available and compiled.
+        
     Raises:
-        Exception: If the solver type is not compiled.
-
-    Example:
-        _CheckIfSolverIsCompiled("aztec")
+        Exception: If the required solver factory is completely disabled at compile time.
     """
-    if solver_type in ["aztec", "cg", "bicgstab", "gmres"] and not hasattr(KratosTrilinos, 'AztecSolver'):
-        raise Exception('Trying to use Aztec-solver, which was disabled at compile time with "TRILINOS_EXCLUDE_AZTEC_SOLVER"!')
-    if solver_type in ["amesos", "klu", "super_lu_dist", "mumps"]:
-        has_amesos = hasattr(KratosTrilinos, 'AmesosSolver')
-        has_amesos_2 = hasattr(KratosTrilinos, 'Amesos2Solver')
-        if not has_amesos_2:
-            if has_amesos:
-                KM.Logger.PrintWarning("Trilinos-Linear-Solver-Factory", "Amesos2 not compiled but Amesos it is, recommended for better performance")
-            else:
-                raise Exception('Trying to use Amesos-solver, which was disabled at compile time with "TRILINOS_EXCLUDE_AMESOS_SOLVER"!')
-    if solver_type in ["multi_level"] and not hasattr(KratosTrilinos, 'MultiLevelSolver'):
-        raise Exception('Trying to use MultiLevelSolver-solver, which was diasbled at compile time with "TRILINOS_EXCLUDE_ML_SOLVER"!')
+    
+    # --- 1. Define Solver Groups ---
+    aztec_solvers = {"aztec", "cg", "bicgstab", "gmres"}
+    ml_solvers = {"multi_level"}
+    
+    # --- 2. Check Aztec Solvers ---
+    if solver_type in aztec_solvers:
+        if not hasattr(KratosTrilinos, 'AztecSolver'):
+            raise Exception('Trying to use Aztec-solver, which was disabled at compile time with "TRILINOS_EXCLUDE_AZTEC_SOLVER"!')
+        return True
+
+    # --- 3. Check MultiLevel Solvers ---
+    if solver_type in ml_solvers:
+        if not hasattr(KratosTrilinos, 'MultiLevelSolver'):
+            raise Exception('Trying to use MultiLevelSolver, which was disabled at compile time with "TRILINOS_EXCLUDE_ML_SOLVER"!')
+        return True
+
+    # --- 4. Check Amesos (Direct) Solvers ---
+    # This set includes generic names and specific implementation names
+    amesos_solvers = {
+        "amesos", "amesos2", "klu", "klu2", 
+        "super_lu_dist", "super_lu_dist2", 
+        "mumps", "mumps2", "basker"
+    }
+
+    if solver_type in amesos_solvers:
+        has_amesos1 = hasattr(KratosTrilinos, 'AmesosSolver')
+        has_amesos2 = hasattr(KratosTrilinos, 'Amesos2Solver')
+
+        # Case A: Neither is compiled
+        if not has_amesos1 and not has_amesos2:
+            raise Exception('Trying to use Amesos-solver, which was disabled at compile time with "TRILINOS_EXCLUDE_AMESOS_SOLVER"!')
+
+        # Case B: Only Amesos1 is compiled (Warning for performance)
+        if has_amesos1 and not has_amesos2:
+            KM.Logger.PrintWarning("Trilinos-Linear-Solver-Factory", "Amesos2 not compiled but Amesos is. Recommended to compile Amesos2 for better performance.")
+            # 'basker' is strictly an Amesos2 solver, so it fails here
+            if solver_type == "basker":
+                return False
+
+        # Case C: specific internal solver check
+        # Map inputs to (required_factory, internal_trilinos_name)
+        requires_amesos2 = solver_type.endswith("2") or solver_type == "basker"
+        
+        # Check availability based on required factory
+        if requires_amesos2:
+            if not has_amesos2: 
+                return False
+            
+            # Map external name -> internal Trillinos name
+            map_amesos2 = {
+                "mumps2": "amesos2_mumps",
+                "super_lu_dist2": "amesos2_superludist",
+                "klu2": "amesos2_klu2",
+                "basker": "basker"
+            }
+            # If it's a generic name like "amesos2", we assume True, otherwise check specific availability
+            internal_name = map_amesos2.get(solver_type)
+            if internal_name and not KratosTrilinos.Amesos2Solver.HasSolver(internal_name):
+                return False
+        else: # requires Amesos1
+            if not has_amesos1:
+                return False
+                
+            map_amesos1 = {
+                "mumps": "Amesos_Mumps",
+                "super_lu_dist": "Amesos_Superludist",
+                "klu": "Amesos_Klu"
+            }
+            internal_name = map_amesos1.get(solver_type)
+            if internal_name and not KratosTrilinos.AmesosSolver.HasSolver(internal_name):
+                return False
+
+    return True
 
 def ConstructSolver(configuration):
     """
@@ -112,35 +174,6 @@ def CreateFastestAvailableDirectLinearSolver():
     """
     Creates and returns the fastest available direct linear solver, based on a predefined order and availability.
 
-    TODO: A proper study of speed must be done, particularly depending of system size would be interesting
-
-    In Trilinos, the speed of direct solvers like MUMPS, SuperLU_DIST, KLU, and Basker can depend on various factors including the size and sparsity of the matrix, the architecture of the computer system, and the specific characteristics of the problem being solved. Below are some general observations about these solvers:
-
-    1. MUMPS (MUltifrontal Massively Parallel Sparse Direct Solver):
-    - Parallel solver, handles large problems well.
-    - Can be used on distributed-memory machines.
-    - May have higher memory requirements.
-
-    2. SuperLU_DIST:
-    - Parallel solver, also designed for distributed-memory machines.
-    - Often used for large, sparse linear systems.
-    - Has good performance on a wide range of problems.
-
-    3. KLU:
-    - A serial solver, typically used for smaller problems.
-    - Works well for circuit simulation problems and other problems with a similar structure.
-    - Generally not suitable for large distributed-memory parallel computations.
-
-    4. Basker:
-    - Also a serial solver, suitable for smaller problems.
-    - May not perform as well on larger problems or on distributed-memory systems.
-
-    Here are some considerations for choosing a solver:
-
-    - If you are working on a distributed-memory parallel machine and dealing with large problems, you might want to consider MUMPS or SuperLU_DIST.
-    - For smaller problems or problems with structure similar to circuit simulation problems, KLU might be a good choice.
-    - Basker might be suitable for smaller problems where other solvers are not performing well.
-
     Returns:
         ConstructSolver: The fastest available direct linear solver.
 
@@ -150,40 +183,14 @@ def CreateFastestAvailableDirectLinearSolver():
     Example:
         fast_solver = CreateFastestAvailableDirectLinearSolver()
     """
-    linear_solvers_by_speed = [
-        "mumps", # TODO: Which first?, MUMPS of SuperLUDist?
-        "super_lu_dist", 
-        "klu",
-        "basker"
-    ]
-
-    registered_names_solvers_amesos = {
-        "mumps"         : "Amesos_Mumps",
-        "super_lu_dist" : "Amesos_Superludist", 
-        "klu"           : "Amesos_Klu"
-    }
-
-    registered_names_solvers_amesos2 = {
-        "mumps"         : "amesos2_mumps",
-        "super_lu_dist" : "amesos2_superludist", 
-        "klu"           : "amesos2_klu2",
-        "basker"        : "basker"
-    }
+    linear_solvers_by_speed = KratosTrilinos.TrilinosSparseSpace.FastestDirectSolverList()
 
     # Settings
     settings = KM.Parameters("""{"solver_type" : ""}""")
     for solver_name in linear_solvers_by_speed:
-        if hasattr(KratosTrilinos, 'Amesos2Solver'):
-            registered_name = registered_names_solvers_amesos2[solver_name]
-            if KratosTrilinos.Amesos2Solver.HasSolver(registered_name):
-                settings["solver_type"].SetString("amesos2")
-                settings.AddEmptyValue("amesos2_solver_type")
-                settings["amesos2_solver_type"].SetString(registered_name)
-                return ConstructSolver(settings)
-        elif hasattr(KratosTrilinos, 'AmesosSolver'):
-            registered_name = registered_names_solvers_amesos[solver_name]
-            if KratosTrilinos.AmesosSolver.HasSolver(registered_name):
-                settings["solver_type"].SetString(solver_name)
-                return ConstructSolver(settings)
+        if _CheckIfSolverIsCompiled(solver_name):
+            KM.Logger.PrintInfo("Trilinos-Linear-Solver-Factory", 'Using "' + solver_name + '" as the fastest available direct linear solver.')
+            settings["solver_type"].SetString(solver_name)
+            return ConstructSolver(settings)
 
     raise Exception("Linear-Solver could not be constructed!")
