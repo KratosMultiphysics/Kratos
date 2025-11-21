@@ -168,6 +168,5 @@
                 }
             }
         ]
-    },
-    "analysis_stage": "KratosMultiphysics.GeoMechanicsApplication.staged_geo_mechanics_analysis"
+    }
 }
