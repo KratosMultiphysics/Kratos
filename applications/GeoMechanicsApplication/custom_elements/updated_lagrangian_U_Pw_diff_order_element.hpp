@@ -16,8 +16,6 @@
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.h"
-#include "geo_mechanics_application_variables.h"
 #include "stress_state_policy.h"
 
 namespace Kratos
@@ -119,30 +117,6 @@ public:
      */
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
 
-    /**
-     * @brief Calculate a double Variable on the Element Constitutive Law
-     * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo) override;
-
-    /**
-     * @brief Calculate a Matrix Variable on the Element Constitutive Law
-     * @param rVariable The variable we want to get
-     * @param rOutput The values obtained int the integration points
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo) override;
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                      std::vector<Vector>&    rOutput,
-                                      const ProcessInfo&      rCurrentProcessInfo) override;
-    using SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints;
-
     ///@}
     ///@name Access
     ///@{
@@ -189,22 +163,6 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    /**
-     * @brief This functions calculates both the RHS and the LHS
-     * @param rLeftHandSideMatrix The LHS
-     * @param rRightHandSideVector The RHS
-     * @param rCurrentProcessInfo The current process info instance
-     * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
-     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
-     */
-    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                      VectorType&        rRightHandSideVector,
-                      const ProcessInfo& rCurrentProcessInfo,
-                      bool               CalculateStiffnessMatrixFlag,
-                      bool               CalculateResidualVectorFlag) override;
-
-    std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>&) const override;
-
     ///@}
     ///@name Protected Operations
     ///@{
@@ -220,11 +178,6 @@ protected:
     ///@}
 
 private:
-    void CalculateAndAddGeometricStiffnessMatrix(MatrixType&   rLeftHandSideMatrix,
-                                                 const Vector& rStressVector,
-                                                 const Matrix& rDNuDx,
-                                                 const double  IntegrationCoefficient) const;
-
     ///@name Static Member Variables
     ///@{
 

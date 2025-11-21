@@ -183,6 +183,9 @@ protected:
                       bool               CalculateStiffnessMatrixFlag,
                       bool               CalculateResidualVectorFlag) override;
 
+    void CalculateAndAddGeometricStiffnessMatrix(
+        MatrixType& rLeftHandSideMatrix, const Vector& rStressVector, const Matrix& rDNuDx, double IntegrationCoefficient) const;
+
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     void InitializeNodalVariables(ElementVariables& rVariables);
@@ -247,7 +250,7 @@ protected:
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
-    [[nodiscard]] virtual std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const;
+    [[nodiscard]] virtual std::vector<double> GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors, bool ConsiderGeometricStiffness) const;
 
     [[nodiscard]] SizeType GetNumberOfDOF() const override;
 

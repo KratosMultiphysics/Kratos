@@ -411,7 +411,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
     rOutput.resize(number_of_integration_points);
 
-    if (rVariable == VON_MISES_STRESS) {
+    if (rVariable == REFERENCE_DEFORMATION_GRADIENT_DETERMINANT) {
+        rOutput = GeoMechanicsMathUtilities::CalculateDeterminants(this->CalculateDeformationGradients());
+    } else if (rVariable == VON_MISES_STRESS) {
         for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
             rOutput[GPoint] = StressStrainUtilities::CalculateVonMisesStress(mStressVector[GPoint]);
         }
@@ -705,6 +707,10 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         rOutput                          = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector,
             Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+        // std::transform(deformation_gradients.begin(), deformation_gradients.end(), rOutput.begin(),
+        //                [this](const Matrix& rDeformationGradient) {
+        //     return this->CalculateGreenLagrangeStrain(rDeformationGradient);
+        // });
     } else {
         for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
             rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
@@ -721,7 +727,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
 
     rOutput.resize(GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod()));
 
-    if (rVariable == CAUCHY_STRESS_TENSOR) {
+    if (rVariable == REFERENCE_DEFORMATION_GRADIENT) {
+        rOutput = this->CalculateDeformationGradients();
+    } else if (rVariable == CAUCHY_STRESS_TENSOR) {
         std::vector<Vector> StressVector;
         this->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 
@@ -802,7 +810,7 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
 
     auto relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
         mRetentionLawVector, this->GetProperties(), fluid_pressures);
-    const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+    const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors, Variables.ConsiderGeometricStiffness);
     std::ranges::transform(permeability_update_factors, relative_permeability_values,
                            relative_permeability_values.begin(), std::multiplies<>{});
     const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
@@ -956,32 +964,37 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
     auto relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
         mRetentionLawVector, this->GetProperties(), fluid_pressures);
-    const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors);
+    const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors, Variables.ConsiderGeometricStiffness);
     std::ranges::transform(permeability_update_factors, relative_permeability_values,
                            relative_permeability_values.begin(), std::multiplies<>{});
 
     const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
 
     if (CalculateStiffnessMatrixFlag) {
-        for (unsigned int GPoint = 0; GPoint < r_integration_points.size(); ++GPoint) {
-            this->ExtractShapeFunctionDataAtIntegrationPoint(Variables, GPoint);
-            Variables.B                  = b_matrices[GPoint];
-            Variables.F                  = deformation_gradients[GPoint];
-            Variables.StrainVector       = strain_vectors[GPoint];
-            Variables.ConstitutiveMatrix = constitutive_matrices[GPoint];
+        for (unsigned int integration_point = 0; integration_point < r_integration_points.size(); ++integration_point) {
+            this->ExtractShapeFunctionDataAtIntegrationPoint(Variables, integration_point);
+            Variables.B                  = b_matrices[integration_point];
+            Variables.F                  = deformation_gradients[integration_point];
+            Variables.StrainVector       = strain_vectors[integration_point];
+            Variables.ConstitutiveMatrix = constitutive_matrices[integration_point];
 
-            Variables.RelativePermeability = relative_permeability_values[GPoint];
-            Variables.BishopCoefficient    = bishop_coefficients[GPoint];
+            Variables.RelativePermeability = relative_permeability_values[integration_point];
+            Variables.BishopCoefficient    = bishop_coefficients[integration_point];
 
-            Variables.BiotCoefficient        = biot_coefficients[GPoint];
-            Variables.BiotModulusInverse     = biot_moduli_inverse[GPoint];
-            Variables.DegreeOfSaturation     = degrees_of_saturation[GPoint];
-            Variables.IntegrationCoefficient = integration_coefficients[GPoint];
+            Variables.BiotCoefficient        = biot_coefficients[integration_point];
+            Variables.BiotModulusInverse     = biot_moduli_inverse[integration_point];
+            Variables.DegreeOfSaturation     = degrees_of_saturation[integration_point];
+            Variables.IntegrationCoefficient = integration_coefficients[integration_point];
 
             Variables.IntegrationCoefficientInitialConfiguration =
-                integration_coefficients_on_initial_configuration[GPoint];
+                integration_coefficients_on_initial_configuration[integration_point];
 
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+            if (Variables.ConsiderGeometricStiffness) {
+                this->CalculateAndAddGeometricStiffnessMatrix(
+                    rLeftHandSideMatrix, this->mStressVector[integration_point],
+                    Variables.DNu_DXContainer[integration_point], Variables.IntegrationCoefficient);
+            }
         }
     }
 
@@ -998,8 +1011,29 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     KRATOS_CATCH("")
 }
 
-std::vector<double> SmallStrainUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors) const
+void SmallStrainUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(
+    MatrixType& rLeftHandSideMatrix, const Vector& rStressVector, const Matrix& rDNuDx, const double IntegrationCoefficient) const
 {
+    KRATOS_TRY
+
+    const GeometryType& r_geometry      = GetGeometry();
+    const SizeType      num_U_nodes = r_geometry.PointsNumber();
+    const SizeType      dimension   = r_geometry.WorkingSpaceDimension();
+
+    const Matrix reduced_Kg_matrix =
+        prod(rDNuDx, Matrix(prod(MathUtils<double>::StressVectorToTensor(rStressVector), trans(rDNuDx)))) *
+        IntegrationCoefficient;
+
+    Matrix geometric_stiffness_matrix = ZeroMatrix(num_U_nodes * dimension, num_U_nodes * dimension);
+    MathUtils<double>::ExpandAndAddReducedMatrix(geometric_stiffness_matrix, reduced_Kg_matrix, dimension);
+
+    GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, geometric_stiffness_matrix);
+
+    KRATOS_CATCH("")
+}
+std::vector<double> SmallStrainUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors, bool ConsiderGeometricStiffness) const
+{
+    if (ConsiderGeometricStiffness) return {};
     return GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(rStrainVectors, GetProperties());
 }
 
