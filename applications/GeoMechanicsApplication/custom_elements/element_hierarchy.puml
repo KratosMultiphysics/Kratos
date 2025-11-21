@@ -10,8 +10,6 @@ class UPwSmallStrainElement
 class TransientPwElement
 class SteadyStatePwElement
 class UPwSmallStrainFICElement
-class UPwUpdatedLagrangianFICElement
-class UPwUpdatedLagrangianElement
 
 class UPwSmallStrainInterfaceElement
 
@@ -21,17 +19,13 @@ UPwBaseElement <|-- UPwSmallStrainElement
 UPwSmallStrainElement <|-- TransientPwElement
 TransientPwElement <|-- SteadyStatePwElement
 UPwSmallStrainElement <|-- UPwSmallStrainFICElement
-UPwSmallStrainFICElement <|-- UPwUpdatedLagrangianFICElement
-UPwSmallStrainElement <|-- UPwUpdatedLagrangianElement
 
 '
 '
 'Diff Order
 class SmallStrainUPwDiffOrderElement
-class UpdatedLagrangianUPwDiffOrderElement
 
 UPwBaseElement <|-- SmallStrainUPwDiffOrderElement
-SmallStrainUPwDiffOrderElement <|-- UpdatedLagrangianUPwDiffOrderElement
 
 UPwBaseElement <|-- UPwSmallStrainInterfaceElement
 
