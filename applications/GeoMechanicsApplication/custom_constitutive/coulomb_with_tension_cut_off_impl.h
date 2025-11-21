@@ -31,8 +31,8 @@ public:
     explicit CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties);
 
     [[nodiscard]] bool   IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
-    [[nodiscard]] Vector DoReturnMapping(const Vector& rTrialSigmaTau,
-                                         CoulombYieldSurface::CoulombAveragingType AveragingType) const;
+    [[nodiscard]] Vector DoReturnMapping(const Vector&                             rTrialSigmaTau,
+                                         CoulombYieldSurface::CoulombAveragingType AveragingType);
 
 private:
     CoulombYieldSurface mCoulombYieldSurface;
