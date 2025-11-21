@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Anne van de Graaf
+//                   Richard Faasse
 //
 
 #pragma once
@@ -40,8 +41,8 @@ private:
     void FindAllNeighboursOfElements();
     void RemoveNeighboursWithoutHigherLocalDimension() const;
 
-    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
-    ModelPart&                                     mrMainModelPart;
+    std::vector<std::reference_wrapper<ModelPart>> mrInterfaceModelParts;
+    ModelPart&                                     mrModelPartWithCandidateNeighbours;
 };
 
 } // namespace Kratos

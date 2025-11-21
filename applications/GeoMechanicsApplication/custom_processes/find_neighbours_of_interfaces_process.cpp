@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Anne van de Graaf
+//                   Richard Faasse
 //
 
 #include "find_neighbours_of_interfaces_process.h"
@@ -23,9 +24,9 @@ using namespace std::string_literals;
 namespace Kratos
 {
 FindNeighboursOfInterfacesProcess::FindNeighboursOfInterfacesProcess(Model& rModel, const Parameters& rProcessSettings)
-    : mrModelParts{ProcessUtilities::GetModelPartsFromSettings(
+    : mrInterfaceModelParts{ProcessUtilities::GetModelPartsFromSettings(
           rModel, rProcessSettings, FindNeighboursOfInterfacesProcess::Info())},
-      mrMainModelPart(
+      mrModelPartWithCandidateNeighbours(
           rModel.GetModelPart(rProcessSettings["model_part_name_for_neighbouring_elements"].GetString()))
 {
 }
@@ -44,21 +45,23 @@ void FindNeighboursOfInterfacesProcess::FindAllNeighboursOfElements()
     boundary_generator_by_local_dim[std::size_t{1}] = std::make_unique<EdgesGenerator>();
     boundary_generator_by_local_dim[std::size_t{2}] = std::make_unique<FacesGenerator>();
 
-    for (const auto& r_model_part : mrModelParts) {
-        element_finder.FindEntityNeighbours(r_model_part.get().Elements(), mrMainModelPart.Elements(),
+    for (const auto& r_interface_model_part : mrInterfaceModelParts) {
+        element_finder.FindEntityNeighbours(r_interface_model_part.get().Elements(),
+                                            mrModelPartWithCandidateNeighbours.Elements(),
                                             boundary_generator_by_local_dim);
     }
 }
 
 void FindNeighboursOfInterfacesProcess::RemoveNeighboursWithoutHigherLocalDimension() const
 {
-    for (const auto& r_model_part : mrModelParts) {
-        for (auto& r_element : r_model_part.get().Elements()) {
-            auto&      r_neighbour_elements    = r_element.GetValue(NEIGHBOUR_ELEMENTS);
-            const auto element_local_dimension = r_element.GetGeometry().LocalSpaceDimension();
-            auto       is_neighbour_without_higher_local_dimension =
-                [element_local_dimension](const Element& rNeighbourElement) {
-                return rNeighbourElement.GetGeometry().LocalSpaceDimension() <= element_local_dimension;
+    for (const auto& r_interface_model_part : mrInterfaceModelParts) {
+        for (auto& r_interface_element : r_interface_model_part.get().Elements()) {
+            auto&      r_neighbour_elements = r_interface_element.GetValue(NEIGHBOUR_ELEMENTS);
+            const auto interface_element_local_dimension =
+                r_interface_element.GetGeometry().LocalSpaceDimension();
+            auto is_neighbour_without_higher_local_dimension =
+                [interface_element_local_dimension](const Element& rNeighbourElement) {
+                return rNeighbourElement.GetGeometry().LocalSpaceDimension() <= interface_element_local_dimension;
             };
             r_neighbour_elements.erase(
                 std::remove_if(r_neighbour_elements.begin(), r_neighbour_elements.end(),
@@ -70,9 +73,9 @@ void FindNeighboursOfInterfacesProcess::RemoveNeighboursWithoutHigherLocalDimens
 
 void FindNeighboursOfInterfacesProcess::ExecuteFinalize()
 {
-    for (const auto& r_model_part : mrModelParts) {
-        for (auto& r_element : r_model_part.get().Elements()) {
-            r_element.GetValue(NEIGHBOUR_ELEMENTS).clear();
+    for (const auto& r_interface_model_part : mrInterfaceModelParts) {
+        for (auto& r_interface_element : r_interface_model_part.get().Elements()) {
+            r_interface_element.GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
     }
 }
