@@ -416,8 +416,6 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
     FICElementVariables FICVariables;
     this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer, Geom, Prop, CurrentProcessInfo);
 
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
@@ -474,6 +472,11 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
             // Contributions to the left hand side
             this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
             this->CalculateAndAddLHSStabilization(rLeftHandSideMatrix, Variables, FICVariables);
+
+            if (Variables.ConsiderGeometricStiffness)
+                this->CalculateAndAddGeometricStiffnessMatrix(
+                    rLeftHandSideMatrix, this->mStressVector[GPoint], Variables.GradNpT,
+                    Variables.IntegrationCoefficient);
         }
 
         if (CalculateResidualVectorFlag) {

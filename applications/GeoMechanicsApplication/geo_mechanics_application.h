@@ -86,7 +86,6 @@
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "custom_elements/calculation_contribution.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_elements/interface_element.h"
@@ -571,16 +570,16 @@ private:
         0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const UPwUpdatedLagrangianFICElement<2, 3> mUPwUpdatedLagrangianFICElement2D3N{
+    const UPwSmallStrainFICElement<2, 3> mUPwUpdatedLagrangianFICElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
         std::make_unique<PlaneStrainStressState>()};
-    const UPwUpdatedLagrangianFICElement<2, 4> mUPwUpdatedLagrangianFICElement2D4N{
+    const UPwSmallStrainFICElement<2, 4> mUPwUpdatedLagrangianFICElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<PlaneStrainStressState>()};
-    const UPwUpdatedLagrangianFICElement<3, 4> mUPwUpdatedLagrangianFICElement3D4N{
+    const UPwSmallStrainFICElement<3, 4> mUPwUpdatedLagrangianFICElement3D4N{
         0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<ThreeDimensionalStressState>()};
-    const UPwUpdatedLagrangianFICElement<3, 8> mUPwUpdatedLagrangianFICElement3D8N{
+    const UPwSmallStrainFICElement<3, 8> mUPwUpdatedLagrangianFICElement3D8N{
         0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
@@ -660,11 +659,11 @@ private:
         std::make_unique<AxisymmetricStressState>(),
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
 
-    const UPwUpdatedLagrangianFICElement<2, 3> mUPwUpdatedLagrangianAxisymmetricFICElement2D3N{
+    const UPwSmallStrainFICElement<2, 3> mUPwUpdatedLagrangianAxisymmetricFICElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
         std::make_unique<AxisymmetricStressState>(),
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
-    const UPwUpdatedLagrangianFICElement<2, 4> mUPwUpdatedLagrangianAxisymmetricFICElement2D4N{
+    const UPwSmallStrainFICElement<2, 4> mUPwUpdatedLagrangianAxisymmetricFICElement2D4N{
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<AxisymmetricStressState>(),
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
