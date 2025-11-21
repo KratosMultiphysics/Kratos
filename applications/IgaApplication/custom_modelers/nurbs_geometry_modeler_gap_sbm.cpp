@@ -155,6 +155,10 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddInt("number_initial_points_if_importing_nurbs", mParameters["number_initial_points_if_importing_nurbs"].GetInt());
     if (mParameters.Has("gap_approximation_order"))
         snake_parameters.AddInt("gap_approximation_order", mParameters["gap_approximation_order"].GetInt());
+    if (mParameters.Has("polynomial_order"))
+        snake_parameters.AddVector("polynomial_order", mParameters["polynomial_order"].GetVector());
+    if (mParameters.Has("use_for_multipatch"))
+        snake_parameters.AddBool("use_for_multipatch", mParameters["use_for_multipatch"].GetBool());
 
 
     // Create the surrogate_sub_model_part for inner and outer
@@ -332,7 +336,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "gap_approximation_order": 0,
         "gap_element_name": "",
         "gap_interface_condition_name": "",
-        "gap_sbm_type": "default"
+        "gap_sbm_type": "default",
+        "use_for_multipatch": false
     })");
 }
 
@@ -359,7 +364,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "skin_model_part_name": "r_skin_model_part",
         "gap_element_name": "",
         "gap_interface_condition_name": "",
-        "gap_sbm_type": "default"
+        "gap_sbm_type": "default",
+        "use_for_multipatch": false
     })");
 }
 

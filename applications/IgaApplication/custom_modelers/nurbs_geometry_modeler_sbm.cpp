@@ -103,9 +103,14 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
     }
 
     // Create the surrogate sub model parts inner and outer
-    ModelPart& surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");
-    ModelPart& surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");
-    
+    ModelPart& surrogate_sub_model_part_inner = r_iga_model_part.HasSubModelPart("surrogate_inner")
+        ? r_iga_model_part.GetSubModelPart("surrogate_inner")
+        : r_iga_model_part.CreateSubModelPart("surrogate_inner");
+
+    ModelPart& surrogate_sub_model_part_outer = r_iga_model_part.HasSubModelPart("surrogate_outer")
+        ? r_iga_model_part.GetSubModelPart("surrogate_outer")
+        : r_iga_model_part.CreateSubModelPart("surrogate_outer");
+
     if (mParameters.Has("skin_model_part_name"))
         skin_model_part_name = mParameters["skin_model_part_name"].GetString();
     else
@@ -120,10 +125,21 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
         ? mpModel->GetModelPart(skin_model_part_outer_initial_name)
         : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
     
-    // Skin model part refined after Snake Process
-    ModelPart& skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
-    skin_model_part.CreateSubModelPart("inner");
-    skin_model_part.CreateSubModelPart("outer");
+    // Skin model part refined after Snake Process — get or create
+    ModelPart& skin_model_part = mpModel->HasModelPart(skin_model_part_name)
+        ? mpModel->GetModelPart(skin_model_part_name)
+        : mpModel->CreateModelPart(skin_model_part_name);
+
+    // Ensure "inner" submodel part exists
+    ModelPart& skin_inner = skin_model_part.HasSubModelPart("inner")
+        ? skin_model_part.GetSubModelPart("inner")
+        : skin_model_part.CreateSubModelPart("inner");
+
+    // Ensure "outer" submodel part exists
+    ModelPart& skin_outer = skin_model_part.HasSubModelPart("outer")
+        ? skin_model_part.GetSubModelPart("outer")
+        : skin_model_part.CreateSubModelPart("outer");
+
 
     // Create the parameters for the SnakeSbmProcess
     Kratos::Parameters snake_parameters;
@@ -140,6 +156,8 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
     if (mParameters.Has("number_initial_points_if_importing_nurbs"))
         snake_parameters.AddInt("number_initial_points_if_importing_nurbs", mParameters["number_initial_points_if_importing_nurbs"].GetInt());
+    if (mParameters.Has("create_surr_outer_from_surr_inner"))
+        snake_parameters.AddBool("create_surr_outer_from_surr_inner", mParameters["create_surr_outer_from_surr_inner"].GetBool());
 
     // Create the surrogate_sub_model_part for inner and outer
     SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
@@ -301,6 +319,7 @@ const Parameters NurbsGeometryModelerSbm::GetDefaultParameters() const
         "upper_point_uvw": [1.0, 1.0, 0.0],
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [10, 10],
+        "create_surr_outer_from_surr_inner": false,
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0
@@ -319,10 +338,11 @@ const Parameters NurbsGeometryModelerSbm::GetValidParameters() const
         "upper_point_uvw": [1.0, 1.0, 0.0],
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [10, 10],
+        "create_surr_outer_from_surr_inner": false,
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0,
-        "number_initial_points_if_importing_nurbs": 5000,
+        "number_initial_points_if_importing_nurbs": 1,
         "skin_model_part_inner_initial_name": "skin_model_part_inner_initial",
         "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
         "skin_model_part_name": "skin_model_part"

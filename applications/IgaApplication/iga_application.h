@@ -26,6 +26,7 @@
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_element.h"
+#include "custom_elements/gap_sbm_laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
 #include "custom_elements/navier_stokes_element.h"
@@ -49,6 +50,7 @@
 #include "custom_conditions/support_laplacian_condition.h"
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
+#include "custom_conditions/gap_sbm_laplacian_condition.h"
 #include "custom_conditions/support_fluid_condition.h"
 #include "custom_conditions/support_pressure_condition.h"
 #include "custom_conditions/sbm_fluid_condition_dirichlet.h"
@@ -61,6 +63,7 @@
 #include "custom_conditions/gap_sbm_solid_condition.h"
 // Gap-SBM solid interface condition
 #include "custom_conditions/gap_sbm_solid_interface_condition.h"
+#include "custom_conditions/gap_sbm_laplacian_interface_condition.h"
 
 
 //modelers
@@ -155,10 +158,11 @@ private:
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const LaplacianElement mLaplacianElement;
+    const GapSbmLaplacianElement mGapSbmLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
-    const GapSbmSolidElement mGapSbmSolidElement;
     const NavierStokesElement mNavierStokesElement;
+    const GapSbmSolidElement mGapSbmSolidElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -174,6 +178,7 @@ private:
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportLaplacianCondition mSupportLaplacianCondition;
     const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
+    const GapSbmLaplacianCondition mGapSbmLaplacianCondition;
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
     const SupportFluidCondition mSupportFluidCondition;
     const SupportPressureCondition mSupportPressureCondition;
@@ -184,6 +189,7 @@ private:
     const SbmLoadSolidCondition mSbmLoadSolidCondition;
     const GapSbmSolidCondition mGapSbmSolidCondition;
     const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
+    const GapSbmLaplacianInterfaceCondition mGapSbmLaplacianInterfaceCondition;
 
 
     // Modelers

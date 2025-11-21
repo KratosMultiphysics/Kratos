@@ -89,11 +89,16 @@ void MultipatchModeler::SetupModelPart()
 
     // Select coupling type from project parameters: "body-fitted" (default) or "gap-sbm"
     bool body_fitted_coupling = true; // default
+    bool no_inner_loop = false;
     if (mParameters.Has("coupling_type") && mParameters["coupling_type"].IsString()) {
         const std::string coupling_type = mParameters["coupling_type"].GetString();
         if (coupling_type == "gap-sbm" || coupling_type == "gap_sbm" || coupling_type == "gapsbm") {
             body_fitted_coupling = false;
-        } else {
+        } else if (coupling_type == "solo-gap-sbm" || coupling_type == "solo_gap_sbm" || coupling_type == "sologapsbm") {
+            body_fitted_coupling = false;
+            no_inner_loop = true;
+        }
+        else {
             body_fitted_coupling = true;
         }
     }
@@ -121,6 +126,42 @@ void MultipatchModeler::SetupModelPart()
                 patch_geometry_refinement_patch.RemoveValue(key);
             }
         }
+
+        // With inner loop this must be true
+        if (patch_geometry_refinement_patch.Has("create_surr_outer_from_surr_inner")) {
+            patch_geometry_refinement_patch["create_surr_outer_from_surr_inner"].SetBool(true);
+        } else {
+            patch_geometry_refinement_patch.AddEmptyValue("create_surr_outer_from_surr_inner").SetBool(true);
+        }
+
+        // for only coupling (STUPID)
+        if (no_inner_loop) {
+            if (patch_geometry_refinement_patch.Has("skin_model_part_inner_initial_name")) {
+                patch_geometry_refinement_patch.RemoveValue("skin_model_part_inner_initial_name");
+            }
+            if (patch_geometry_refinement_patch.Has("create_surr_outer_from_surr_inner")) {
+                patch_geometry_refinement_patch["create_surr_outer_from_surr_inner"].SetBool(false);
+            } else {
+                patch_geometry_refinement_patch.AddEmptyValue("create_surr_outer_from_surr_inner").SetBool(false);
+            }
+            // Ensure initial outer skin model part matches the inner one
+            const std::string inner_initial_mp_name = "initial_skin_model_part_in";
+            const std::string outer_initial_mp_name = "initial_skin_model_part_out";
+            if (mpModel->HasModelPart(inner_initial_mp_name)) {
+                ModelPart& r_inner_initial = mpModel->GetModelPart(inner_initial_mp_name);
+                ModelPart& r_outer_initial = mpModel->HasModelPart(outer_initial_mp_name)
+                    ? mpModel->GetModelPart(outer_initial_mp_name)
+                    : mpModel->CreateModelPart(outer_initial_mp_name);
+
+                r_outer_initial.Geometries().clear();
+
+                r_outer_initial.AddGeometries(
+                    r_inner_initial.GeometriesBegin(),
+                    r_inner_initial.GeometriesEnd());
+            }
+            
+        } 
+
         // Call NurbsGeometryModelerSbm for the refinement patch 
         if (mSubdomains.size() > 1) {
             const auto& ref_rect = mSubdomains[1];
@@ -603,17 +644,17 @@ void MultipatchModeler::ProcessRefPatch(
         r_patch_model_part.SetValue(PATCH_PARAMETER_SPACE_CORNERS, patch_parameter_corners_matrix);
     }
 
-    // Add parameter to create surrounding outer from surrounding inner
-    if (patch_geometry.Has("create_surr_outer_from_surr_inner")) {
-        patch_geometry["create_surr_outer_from_surr_inner"].SetBool(true);
-    } else {
-        patch_geometry.AddEmptyValue("create_surr_outer_from_surr_inner").SetBool(true);
-    }
+    // // Add parameter to create surrounding outer from surrounding inner
+    // if (patch_geometry.Has("create_surr_outer_from_surr_inner")) {
+    //     patch_geometry["create_surr_outer_from_surr_inner"].SetBool(true);
+    // } else {
+    //     patch_geometry.AddEmptyValue("create_surr_outer_from_surr_inner").SetBool(true);
+    // }
 
 
 
     // KRATOS_WATCH("nurbs Geom Modeler for ref patch")
-    KRATOS_WATCH(patch_geometry)
+    // KRATOS_WATCH(patch_geometry)
 
     // Create geometry
     {
@@ -623,7 +664,7 @@ void MultipatchModeler::ProcessRefPatch(
         geometry_modeler.SetupModelPart();
     }
 
-    KRATOS_WATCH("nurbs Geom Modeler for ref patch END!!")
+    // KRATOS_WATCH("nurbs Geom Modeler for ref patch END!!")
 
     // Analysis: elements only by default; if SBM, append sbm-conditions for inner hole
     if (analysis_base.Has("analysis_model_part_name")) {
@@ -997,8 +1038,14 @@ MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometr
     } else {
         gap_params.AddEmptyValue("number_initial_points_if_importing_nurbs").SetInt(2);
     }
+    // Add parameter "use_for_multipatch" and set it to true
+    if (gap_params.Has("use_for_multipatch")) {
+        gap_params["use_for_multipatch"].SetBool(true);
+    } else {
+        gap_params.AddEmptyValue("use_for_multipatch").SetBool(true);
+    }
     
-    KRATOS_WATCH("start NurbsGeometryModelerGapSbm")
+    // KRATOS_WATCH("start NurbsGeometryModelerGapSbm")
 
     // KRATOS_WATCH(gap_params)
     // exit(0);
@@ -1010,7 +1057,7 @@ MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometr
         geometry_modeler.SetupModelPart();
     }
 
-    KRATOS_WATCH("end NurbsGeometryModelerGapSbm")
+    // KRATOS_WATCH("end NurbsGeometryModelerGapSbm")
 
     return prep;
 }

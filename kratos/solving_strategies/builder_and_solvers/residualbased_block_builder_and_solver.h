@@ -37,6 +37,9 @@
 #include "utilities/atomic_utilities.h"
 #include "spaces/ublas_space.h"
 
+#include "utilities/condition_number_utility.h"
+#include "../applications/LinearSolversApplication/custom_utilities/compute_div_sigma_utility.h"
+
 namespace Kratos
 {
 
@@ -253,6 +256,22 @@ public:
                 }
             }
         }
+
+        // CONDITION NUMBER
+        ConditionNumberUtility mpConditionNumberUtility;
+        const double condition_number = mpConditionNumberUtility.GetConditionNumber(A);
+        const double minimum_eigenvalue = mpConditionNumberUtility.GetMinimumEigenvalue(A);
+
+        std::ofstream outputFile("txt_files/Condition_numbers.txt", std::ios::app);
+        outputFile << minimum_eigenvalue << "  " << condition_number << "\n";
+        outputFile.close();
+        KRATOS_WATCH(minimum_eigenvalue)
+        KRATOS_WATCH(condition_number)
+
+        std::ofstream outputFile2("time_txt_files/dofs.txt", std::ios::app);
+        outputFile2 << std::scientific << std::setprecision(20); // Set precision to 10^-14
+        outputFile2 << A.size1()  <<"\n";
+        outputFile2.close();
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer << std::endl;
 
