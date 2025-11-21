@@ -38,7 +38,7 @@ public:
 
 private:
     void FindAllNeighboursOfElements();
-    void FilterOutNeighboursWhichDoNotHaveHigherLocalDimension() const;
+    void RemoveNeighboursWithoutHigherLocalDimension() const;
 
     std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
     ModelPart&                                     mrMainModelPart;

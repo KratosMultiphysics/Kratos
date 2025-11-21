@@ -33,7 +33,7 @@ FindNeighboursOfInterfacesProcess::FindNeighboursOfInterfacesProcess(Model& rMod
 void FindNeighboursOfInterfacesProcess::ExecuteInitialize()
 {
     FindAllNeighboursOfElements();
-    FilterOutNeighboursWhichDoNotHaveHigherLocalDimension();
+    RemoveNeighboursWithoutHigherLocalDimension();
 }
 
 void FindNeighboursOfInterfacesProcess::FindAllNeighboursOfElements()
@@ -50,18 +50,19 @@ void FindNeighboursOfInterfacesProcess::FindAllNeighboursOfElements()
     }
 }
 
-void FindNeighboursOfInterfacesProcess::FilterOutNeighboursWhichDoNotHaveHigherLocalDimension() const
+void FindNeighboursOfInterfacesProcess::RemoveNeighboursWithoutHigherLocalDimension() const
 {
     for (const auto& r_model_part : mrModelParts) {
         for (auto& r_element : r_model_part.get().Elements()) {
-            auto& r_neighbour_elements = r_element.GetValue(NEIGHBOUR_ELEMENTS);
-            auto neighbour_does_not_have_higher_local_dimension = [&r_element](const Element& rNeighbourElement) {
-                return rNeighbourElement.GetGeometry().LocalSpaceDimension() <=
-                       r_element.GetGeometry().LocalSpaceDimension();
+            auto&      r_neighbour_elements    = r_element.GetValue(NEIGHBOUR_ELEMENTS);
+            const auto element_local_dimension = r_element.GetGeometry().LocalSpaceDimension();
+            auto       is_neighbour_without_higher_local_dimension =
+                [element_local_dimension](const Element& rNeighbourElement) {
+                return rNeighbourElement.GetGeometry().LocalSpaceDimension() <= element_local_dimension;
             };
             r_neighbour_elements.erase(
                 std::remove_if(r_neighbour_elements.begin(), r_neighbour_elements.end(),
-                               neighbour_does_not_have_higher_local_dimension),
+                               is_neighbour_without_higher_local_dimension),
                 r_neighbour_elements.end());
         }
     }

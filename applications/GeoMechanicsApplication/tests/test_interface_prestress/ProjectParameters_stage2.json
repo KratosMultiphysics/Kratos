@@ -40,7 +40,7 @@
         "calculate_reactions": true,
         "rotation_dofs": false,
         "problem_domain_sub_model_part_list": ["Soil", "Interface"],
-        "processes_sub_model_part_list": ["Bottom_Fixed", "Side_Rollers", "Top_Load", "Interface", "Master_side", "Slave_side"],
+        "processes_sub_model_part_list": ["Bottom", "Side_Rollers", "Top", "Interface"],
         "body_domain_sub_model_part_list": ["Soil", "Interface"],
         "linear_solver_settings": {
             "solver_type": "skyline_lu_factorization",
@@ -67,7 +67,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Bottom_Fixed",
+                    "model_part_name": "PorousDomain.Bottom",
                     "variable_name": "DISPLACEMENT",
                     "active": [true, true, false],
                     "is_fixed": [true, true, false],
@@ -108,7 +108,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Top_Load",
+                    "model_part_name": "PorousDomain.Top",
                     "variable_name": "LINE_LOAD",
                     "active": [true, true, true],
                     "value": [0.0, -1000.0, 0.0],
@@ -164,7 +164,7 @@
                             "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
                         }
                     },
-                    "output_name": "gid_output/interface_prestress_test_Stage_2"
+                    "output_name": "interface_prestress_test_Stage_2"
                 }
             }
         ]

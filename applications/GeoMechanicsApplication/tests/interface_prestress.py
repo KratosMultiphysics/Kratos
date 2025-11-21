@@ -119,7 +119,6 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         output_data_of_stage_2 = reader.read_output_from(
             os.path.join(
                 self.test_path,
-                "gid_output",
                 "interface_prestress_test_Stage_2.post.res",
             )
         )

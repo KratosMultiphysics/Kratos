@@ -197,14 +197,14 @@ Example usage for a case with 3D elements in a ProjectParameters.json file:
 
 ## Find Neighbours Of Interfaces
 
-This process finds the neighbouring elements of interface elements in a model part. These neighbours are then used to apply a prestress to the interfaces based on the stress state of the neighbouring elements. Typically, this process is used in a multi-stage analysis, where in a specific stage the interfaces are installed (along with a structural element, like a sheet pile). To avoid deformations due to differences in stress between already existing soil elements and the newly added interface elements, an equilibrium is created by prestressing the interfaces using the stresses of the surrounding soil.
+This process finds the neighbouring elements of interface elements in a model part. These neighbours are then used to calculate and apply a prestress to the interfaces based on the stress state of the neighbouring elements. Typically, this process is used in a multi-stage analysis, where in a specific stage the interfaces are installed (along with a structural element that models, for instance, a sheet pile wall). To avoid deformations due to differences in stress between already existing soil elements and the newly added interface elements, equilibrium is ensured by prestressing the interfaces using the stresses of the surrounding soil.
 
 The process of applying prestress to the interfaces consists of the following steps:
-- The neighbouring elements of the interface elements are found using this process.
-- The stresses at the integration points of the neighbouring elements are extrapolated to their respective nodes.
-- The nodal stresses are interpolated to the integration points of the interface elements.
+1. The neighbouring elements of the interface elements are found using this process.
+2. The stresses at the integration points of the neighbouring elements are extrapolated to their respective nodes.
+3. The nodal stresses are interpolated to the integration points of the interface elements.
 
-The process only finds neighbouring elements with a higher local dimension than the interface elements, to avoid prestressing the element with stresses of non-continuum elements (e.g. sheet piles or other interfaces). 
+Note that steps 2 and 3 are not part of `FindNeighboursOfInterfacesProcess`, but they are taken care of by the interface element itself when neighbours are known. The process only finds neighbouring elements with a higher local dimension than the interface elements, to avoid prestressing the element with stresses of non-continuum elements (e.g. structural elements or other interface elements). 
 
 Example usage for a case in a ProjectParameters.json file:
 
