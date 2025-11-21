@@ -406,7 +406,6 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
 
         // We perform the integration through the thickness
         for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
             weight = weights[i_layer];
             z_coord = coordinates[i_layer];
@@ -425,7 +424,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
             rValues.SetDeformationGradientF(F);
             
             // This fills stress and D
-            p_law->CalculateMaterialResponseCauchy(rValues);
+            mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(rValues);
 
             if (flag_compute_stress) {
                 generalized_stress_vector[0] += r_stress_vector[0] * weight; // membrane xx
@@ -548,16 +547,10 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseCauc
     KRATOS_TRY
 
     if (RequiresInitializeMaterialResponse()) {
-       // Get Values to compute the constitutive law:
-        Flags& r_flags = rValues.GetOptions();
         const auto& r_material_properties = rValues.GetMaterialProperties();
         const IndexType number_of_laws = mConstitutiveLaws.size();
         const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
         const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
-
-        // Previous flags saved
-        const bool flag_compute_constitutive_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-        const bool flag_compute_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
         std::vector<double> coordinates;
         std::vector<double> weights;
@@ -659,15 +652,10 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::FinalizeMaterialResponseCauchy
     if (RequiresFinalizeMaterialResponse()) {
 
         // Get Values to compute the constitutive law:
-        Flags& r_flags = rValues.GetOptions();
         const auto& r_material_properties = rValues.GetMaterialProperties();
         const IndexType number_of_laws = mConstitutiveLaws.size();
         const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
         const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
-
-        // Previous flags saved
-        const bool flag_compute_constitutive_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-        const bool flag_compute_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
         std::vector<double> coordinates;
         std::vector<double> weights;
@@ -740,9 +728,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::ResetMaterial(
     // We perform the reset in each layer
     const auto& r_sub_prop = *(rMaterialProperties.GetSubProperties().begin());
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->ResetMaterial(r_sub_prop, rElementGeometry, rShapeFunctionsValues);
+        mConstitutiveLaws[i_layer]->ResetMaterial(r_sub_prop, rElementGeometry, rShapeFunctionsValues);
     }
 }
 
@@ -778,8 +764,7 @@ int ThicknessIntegratedIsotropicConstitutiveLaw::Check(
     Properties& r_subprop = *(rMaterialProperties.GetSubProperties().begin());
     // We perform the check in each layer
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        aux_out += p_law->Check(r_subprop, rElementGeometry, rCurrentProcessInfo);
+        aux_out += mConstitutiveLaws[i_layer]->Check(r_subprop, rElementGeometry, rCurrentProcessInfo);
     }
 
     return aux_out;
