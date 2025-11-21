@@ -107,7 +107,7 @@ Begin SubModelPart Top_Load
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Master_side_1
+Begin SubModelPart Master_side
   Begin SubModelPartNodes
     16
     14
@@ -115,7 +115,7 @@ Begin SubModelPart Master_side_1
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Slave_side_1
+Begin SubModelPart Slave_side
   Begin SubModelPartNodes
     8
     4
