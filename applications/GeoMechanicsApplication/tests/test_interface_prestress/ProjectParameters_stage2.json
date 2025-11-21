@@ -48,6 +48,19 @@
         }
     },
     "processes": {
+        "json_output": [
+            {
+                "python_module": "json_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "JsonOutputProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Interface",
+                    "output_file_name": "stage_2_interface_output.json",
+                    "gauss_points_output_variables": ["CAUCHY_STRESS_VECTOR", "STRAIN"],
+                    "time_frequency": 0.9999999999
+                }
+            }
+        ],
         "constraints_process_list": [
             {
                 "python_module": "apply_vector_constraint_table_process",
