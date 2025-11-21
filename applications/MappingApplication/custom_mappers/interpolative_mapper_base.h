@@ -333,6 +333,24 @@ protected:
         return mrModelPartDestination;
     }
 
+    /**
+     * @brief This function return the interface vector container of the origin model part
+     * @return The origin model part
+    */
+    InterfaceVectorContainerType* pGetInterfaceVectorContainerOrigin()
+    {
+        return mpInterfaceVectorContainerOrigin.get();
+    }
+
+    /**
+     * @brief This function return the interface vector container of the destination model part
+     * @return The destination model part
+    */
+    InterfaceVectorContainerType* pGetInterfaceVectorContainerDestination()
+    {
+        return mpInterfaceVectorContainerDestination.get();
+    }
+
     ///@}
     
 private:
