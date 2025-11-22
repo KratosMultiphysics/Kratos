@@ -1,180 +1,43 @@
 import KratosMultiphysics as KM
+import KratosMultiphysics.LinearSolversApplication as LSA
 import KratosMultiphysics.MappingApplication # registering the mappers
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics import ParallelEnvironment, IsDistributedRun
 import basic_mapper_tests
-import blade_mapping_test
-import quadratic_mapper_tests
-from pathlib import Path
+data_comm = KM.Testing.GetDefaultDataCommunicator()
+if data_comm.IsDistributed():
+    from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+
+# Additional imports
+import mapper_test_case
+import os
+from pathlib import Path
+
 
 def GetFilePath(file_name):
     return Path(__file__).resolve().parent / "mdpa_files" / file_name
-
-class BasicTestsLine(basic_mapper_tests.BasicMapperTests):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "line_tri",
-            "interface_submodel_part_destination": "line_quad",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params)
-
-class BasicTestsLineInitialConfig(basic_mapper_tests.BasicMapperTests):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "line_tri",
-            "interface_submodel_part_destination": "line_quad",
-            "use_initial_configuration" : true,
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params)
-        for node in cls.model_part_origin.Nodes:
-            node.X = node.X + 111.1
-            node.Y = node.Y - 693.1
-            node.Z = node.Z + 15698
-
-    def _GetFileName(self, file_appendix):
-        file_name = super()._GetFileName(file_appendix)
-        return file_name.replace("InitialConfig", "")
-
-class BasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTests):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "line_quad",
-            "interface_submodel_part_destination": "line_tri",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params, switch_sides=True)
-
-class BasicTestsSurface(basic_mapper_tests.BasicMapperTests):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "surface_tri",
-            "interface_submodel_part_destination": "surface_quad",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params)
-
-class BasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapperTests):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "surface_quad",
-            "interface_submodel_part_destination": "surface_tri",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params, switch_sides=True)
-
-class BasicTestsVolume(basic_mapper_tests.BasicMapperTests):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "volume_tri",
-            "interface_submodel_part_destination": "volume_quad",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params)
-
-class BasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTests):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "volume_quad",
-            "interface_submodel_part_destination": "volume_tri",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params, switch_sides=True)
-
-class BladeMapping(blade_mapping_test.BladeMappingTests):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params)
-        cls.print_output = False
-
-class BladeMappingSerialModelPart(blade_mapping_test.BladeMappingTestsSerialModelPart):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params)
-        cls.print_output = False
-
-class BladeMappingAllRanksExceptLast(blade_mapping_test.BladeMappingTestsAllRanksExceptLast):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params)
-        cls.print_output = False
-
-class BladeMappingAllRanksExceptFirst(blade_mapping_test.BladeMappingTestsAllRanksExceptFirst):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params)
-        cls.print_output = False
-
-class BladeMappingUnevenRanks(blade_mapping_test.BladeMappingTestsUnevenRanks):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params)
-        cls.print_output = False
-
-class QuadraticMapperTests(quadratic_mapper_tests.QuadraticMapperTests):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params)
-
-class QuadraticMapperTestsSwitchedSides(quadratic_mapper_tests.QuadraticMapperTests):
-    @classmethod
-    def setUpClass(cls):
-        mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "echo_level" : 0
-        }""")
-        super().setUpMapper(mapper_params, switch_sides=True)
 
 class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         if not CheckIfApplicationsAvailable("IgaApplication"):
             raise KratosUnittest.SkipTest("The IgaApplication is not available!")
+        if not LSA.HasMKL():
+            raise KratosUnittest.SkipTest("Intel MKL is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "neumann_boundary_iga",
-            "interface_submodel_part_destination": "dirichlet_boundary_fem",
-            "echo_level" : 0
+                    "mapper_type": "radial_basis_function",
+                    "additional_polynomial_degree": 0,
+                    "origin_is_iga"             : true,
+                    "destination_is_iga"             : false,
+					"echo_level" : 0,
+                    "radial_basis_function_type" : "thin_plate_spline",
+                    "search_settings" : {
+                        "use_all_rbf_support_points": true, 
+                        "required_rbf_support_points": 10,
+                        "max_num_search_iterations"     : 10
+                    }
         }""")
         cls.setUpMapper(mapper_params)
 
@@ -226,6 +89,7 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
         cls.model_part_destination.ProcessInfo[KM.TIME] = 0.0 # needed for the check-processes
         cls.model_part_origin.ProcessInfo[KM.DELTA_TIME] = 1.0 # needed for the check-processes
         cls.model_part_destination.ProcessInfo[KM.DELTA_TIME] = 1.0 # needed for the check-processes
+
         cls.ReadModelParts()
 
     @classmethod
@@ -308,17 +172,19 @@ class BasicTestsLineMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     def test_Map_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
         self.skipTest("Not implemented for this mapper")
 
-@KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")
 class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         if not CheckIfApplicationsAvailable("IgaApplication"):
-            raise KratosUnittest.SkipTest("The IgaApplication is not available!")
+           raise KratosUnittest.SkipTest("The IgaApplication is not available!")
+        if not LSA.HasMKL():
+           raise KratosUnittest.SkipTest("Intel MKL is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "nearest_neighbor_iga",
             "interface_submodel_part_origin": "neumann_boundary_iga",
             "interface_submodel_part_destination": "dirichlet_boundary_fem",
+            "is_origin_iga": true,
             "echo_level" : 0
         }""")
         cls.setUpMapper(mapper_params)
@@ -453,6 +319,19 @@ class BasicTestsSurfaceMappingIGAFEM(basic_mapper_tests.BasicMapperTests):
     
     def test_Map_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
         self.skipTest("Not implemented for this mapper")
+
+def SetHistoricalNonUniformSolutionScalar(conditions, variable):
+    for condition in conditions:
+        geometry = condition.GetGeometry()
+        val = 12*sin(geometry.Center().X) + geometry.Center().Y*15 + 22*geometry.Center().Z
+        condition.SetSolutionStepValue(variable, val)
+
+def SetHistoricalNonUniformSolutionVector(nodes, variable):
+    for node in nodes:
+        val_1 = 12*sin(node.X0) + node.Y0*15
+        val_2 = 33*cos(node.X0) + node.Y0*5
+        val_3 = 12*sin(node.Y0) + 22*node.X0
+        node.SetSolutionStepValue(variable, KM.Vector([val_1, val_2, val_3]))
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)

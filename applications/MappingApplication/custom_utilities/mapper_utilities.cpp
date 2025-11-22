@@ -51,6 +51,26 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
     rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
 
+void AssignInterfaceEquationIdsOnConditions(Communicator& rModelPartCommunicator)
+{
+    if (rModelPartCommunicator.GetDataCommunicator().IsNullOnThisRank()) {
+        return;
+    }
+
+    const int num_conditions_local = rModelPartCommunicator.LocalMesh().NumberOfConditions();
+    int num_conditions_accumulated = rModelPartCommunicator.GetDataCommunicator().ScanSum(num_conditions_local);
+    const int start_equation_id = num_conditions_accumulated - num_conditions_local;
+    const auto conditions_begin = rModelPartCommunicator.LocalMesh().ConditionsBegin();
+
+    IndexPartition<unsigned int>(num_conditions_local).for_each(
+        [conditions_begin, start_equation_id](unsigned int i){
+            (conditions_begin + i)->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
+        }
+    );
+
+    rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
+}
+
 template <typename TContainer>
 double ComputeMaxEdgeLengthLocal(const TContainer& rEntityContainer)
 {

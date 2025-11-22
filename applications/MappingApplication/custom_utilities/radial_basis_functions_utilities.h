@@ -81,7 +81,7 @@ struct WendlandC2 {
     }
 };
 
-double KRATOS_API(MAPPING_APPLICATION) CalculateWendlandC2SupportRadius(const Matrix& rPoints, const double k);
+double KRATOS_API(MAPPING_APPLICATION) CalculateWendlandC2SupportRadius(const Matrix& rPoints, const double k = 2.5);
 
 }  // namespace RadialBasisFunctionsUtilities.
 
