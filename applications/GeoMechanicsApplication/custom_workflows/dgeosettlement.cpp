@@ -301,7 +301,7 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart& rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
 
-LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const
+LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& rKratosLogBuffer)
 {
     auto logger_output = std::make_shared<LoggerOutput>(rKratosLogBuffer);
     Logger::AddOutput(logger_output);
@@ -310,10 +310,10 @@ LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream
 
 void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback,
                                              LoggerOutput::Pointer                   pLoggerOutput,
-                                             const std::stringstream& rKratosLogBuffer) const
+                                             const std::stringstream& rKratosLogBuffer)
 {
     rLogCallback(rKratosLogBuffer.str().c_str());
-    Logger::RemoveOutput(pLoggerOutput);
+    Logger::RemoveOutput(std::move(pLoggerOutput));
 }
 
 const InputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const
