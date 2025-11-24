@@ -551,6 +551,7 @@ Note: These formulations will be extended for more physics-based form.
 ```
 ```math
     \phi_{n+1} = \phi(\kappa_{n+1})
+```
 ```math
     \psi_{n+1} = \psi(\kappa_{n+1})
 ```
