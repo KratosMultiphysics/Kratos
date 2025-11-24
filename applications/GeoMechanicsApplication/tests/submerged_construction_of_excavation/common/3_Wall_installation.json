@@ -312,6 +312,22 @@
                     "table":           [0,0,0]
                 }
             }
+        ],
+        "auxiliary_process_list": [
+            {
+                "python_module": "find_neighbours_of_interfaces_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "FindNeighboursOfInterfacesProcess",
+                "Parameters": {
+                    "model_part_name_list": ["PorousDomain.Wall_Clay_Interface_Left",
+                                             "PorousDomain.Wall_Clay_Interface_Upper_Right",
+                                             "PorousDomain.Wall_Clay_Interface_Middle_Right",
+                                             "PorousDomain.Wall_Clay_Interface_Lower_Right",
+                                             "PorousDomain.Wall_Sand_Interface_Left",
+                                             "PorousDomain.Wall_Sand_Interface_Right"],
+                    "model_part_name_for_neighbouring_elements": "PorousDomain.porous_computational_model_part"
+                }
+            }
         ]
     },
     "output_processes": {

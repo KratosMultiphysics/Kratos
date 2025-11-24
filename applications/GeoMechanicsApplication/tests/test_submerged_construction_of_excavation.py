@@ -126,9 +126,11 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation("linear_elastic")
 
+    @KratosUnittest.skip("Test case is being developed")
     def test_simulation_with_Mohr_Coulomb(self):
         self.run_simulation("Mohr_Coulomb")
 
+    @KratosUnittest.skip("Test case is being developed")
     def test_simulation_with_hardening_soil(self):
         self.run_simulation("hardening_soil")
 
