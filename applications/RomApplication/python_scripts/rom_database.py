@@ -3,6 +3,9 @@ import hashlib
 import json
 from pathlib import Path
 import numpy as np
+
+import KratosMultiphysics
+
 try:
     import pandas as pd
     from xlsxwriter import Workbook
@@ -72,6 +75,8 @@ class RomDatabase(object):
                         (id INTEGER PRIMARY KEY, tol_sol REAL, using_non_converged_sols INTEGER,  file_name TEXT)''',
             "SingularValues_Solution":'''CREATE TABLE IF NOT EXISTS SingularValues_Solution
                         (id INTEGER PRIMARY KEY, tol_sol REAL, using_non_converged_sols INTEGER, file_name TEXT)''',
+            "Fixity": '''CREATE TABLE IF NOT EXISTS Fixity
+                        (id INTEGER PRIMARY KEY, parameters TEXT, file_name TEXT)''',
             "LeftBasis": '''CREATE TABLE IF NOT EXISTS LeftBasis
                         (id INTEGER PRIMARY KEY, tol_sol REAL, type_of_projection TEXT, type_of_decoder TEXT, using_non_converged_sols REAL, basis_strategy TEXT, include_phi INTEGER, tol_pg REAL, solving_technique TEXT, monotonicity_preserving INTEGER , file_name TEXT)''',
             "PetrovGalerkinSnapshots": '''CREATE TABLE IF NOT EXISTS PetrovGalerkinSnapshots
@@ -164,6 +169,8 @@ class RomDatabase(object):
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool,table_name)
         elif table_name == 'SingularValues_Residuals':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, tol_res, projection_type, decoder_type, non_converged_fom_14_bool,table_name)
+        elif table_name == 'Fixity':
+            hash_mu = self.hash_parameters(serialized_mu, table_name)
         elif table_name == 'PetrovGalerkinSnapshots':
             hash_mu = self.hash_parameters(serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, pg_data1_str,pg_data2_bool,pg_data3_double,pg_data4_str,pg_data5_bool,table_name)
         elif table_name == 'RightBasis':
@@ -271,6 +278,7 @@ class RomDatabase(object):
             'NonconvergedHROM': 'INSERT INTO {table} (parameters, tol_sol , tol_res , type_of_projection, type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
             'ResidualsProjected': 'INSERT INTO {table} (parameters, type_of_projection, tol_sol , tol_res , type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
             'SingularValues_Residuals': 'INSERT INTO {table} (parameters, type_of_projection, tol_sol , tol_res , type_of_decoder, using_non_converged_sols, file_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            'Fixity': 'INSERT INTO {table} (parameters, file_name) VALUES (?, ?)',
             'PetrovGalerkinSnapshots': 'INSERT INTO {table} (parameters, tol_sol , type_of_projection, type_of_decoder, using_non_converged_sols, basis_strategy, include_phi, tol_pg, solving_technique, monotonicity_preserving, file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             'RightBasis': 'INSERT INTO {table} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',
             'SingularValues_Solution': 'INSERT INTO {table} (tol_sol, using_non_converged_sols, file_name) VALUES (?, ?, ?)',
@@ -292,7 +300,7 @@ class RomDatabase(object):
         with sqlite3.connect(self.database_name) as conn:
             cursor = conn.cursor()
 
-            if table_name in ['FOM', 'NonconvergedFOM']:
+            if table_name in ['FOM', 'NonconvergedFOM', 'Fixity']:
                 cursor.execute(query, (serialized_mu, file_name))
             elif table_name in ['ROM', 'NonconvergedROM']:
                 cursor.execute(query, (serialized_mu, tol_sol, projection_type, decoder_type, non_converged_fom_14_bool, file_name))
@@ -458,6 +466,48 @@ class RomDatabase(object):
             print(f"Retrieved snapshots matrix for {table_name} does not contain {len(unavailable_cases)} cases: {unavailable_cases}")
 
         return np.block(SnapshotsMatrix) if SnapshotsMatrix else None
+    
+
+    def check_constant_fixity_and_get_list(self, mu_list):
+        """
+        Check that the fixities for all cases in mu_list are the same. Then retrieve it as a list.
+
+        Args:
+            mu_list: List of parameter sets.
+
+        Returns:
+            list: list of fixed DoF IDs.
+        """
+        if mu_list == [None]: #this happens when no mu is passed, the simulation run is the one in the ProjectParameters.json
+            mu_list_unique = mu_list
+        else:
+            unique_tuples = set(tuple(item) for item in mu_list)
+            mu_list_unique = [list(item) for item in unique_tuples] #unique members in mu_list
+        FixityMatrix = []
+        unavailable_cases = []
+        with sqlite3.connect(self.database_name) as conn:
+            cursor = conn.cursor()
+            for mu in mu_list_unique:
+                hash_mu, _ = self.get_hashed_file_name_for_table("Fixity", mu)
+                cursor.execute(f"SELECT file_name FROM Fixity WHERE file_name = ?", (hash_mu,))
+                result = cursor.fetchone()
+                if result:
+                    file_name = result[0]
+                    FixityMatrix.append(self.get_single_numpy_from_database(file_name))
+                else:
+                    print(f"No entry found for hash {hash_mu}")
+                    unavailable_cases.append(mu)
+
+        if unavailable_cases:
+            KratosMultiphysics.Logger.PrintInfo(f"Retrieved fixity matrix does not contain {len(unavailable_cases)} cases: {unavailable_cases}")
+            raise KeyError
+
+        FixityMatrix = np.vstack(FixityMatrix)
+        if not np.all(np.all(FixityMatrix==FixityMatrix[0],axis=1)):
+            KratosMultiphysics.Logger.PrintInfo("Different fixities found among different cases. Consider running with 'remove_fixed_dofs': false")
+            raise ValueError
+
+        return FixityMatrix[0].tolist()
 
 
 
