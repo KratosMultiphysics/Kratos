@@ -110,7 +110,7 @@ class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(
 class LagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(MPMTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/lagrange_self_weight_load_2D_quad_test"
 
-class LagrangeCenterImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(MPMTestFactory):
+class LagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest(MPMTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/lagrange_center_self_weight_load_2D_quad_test"
 
 ### Perturbed Lagrange Imposition Tests
