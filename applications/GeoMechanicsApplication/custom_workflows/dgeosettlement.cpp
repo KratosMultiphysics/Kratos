@@ -313,7 +313,7 @@ void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char
                                              const std::stringstream& rKratosLogBuffer)
 {
     rLogCallback(rKratosLogBuffer.str().c_str());
-    Logger::RemoveOutput(pLoggerOutput);
+    Logger::RemoveOutput(std::move(pLoggerOutput));
 }
 
 const InputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const

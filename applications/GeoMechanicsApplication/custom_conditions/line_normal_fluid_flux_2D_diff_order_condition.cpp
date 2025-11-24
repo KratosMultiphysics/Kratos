@@ -30,14 +30,14 @@ LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition
 // Constructor 1
 LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition(IndexType NewId,
                                                                                  GeometryType::Pointer pGeometry)
-    : LineLoad2DDiffOrderCondition(NewId, pGeometry)
+    : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
 // Constructor 2
 LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : LineLoad2DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 

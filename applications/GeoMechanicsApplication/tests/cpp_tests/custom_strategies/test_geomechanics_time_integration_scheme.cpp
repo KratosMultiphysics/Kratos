@@ -170,12 +170,12 @@ public:
 
     void AddComponent(ModelPart::ElementType::Pointer element)
     {
-        GetModelPart().AddElement(element);
+        GetModelPart().AddElement(std::move(element));
     }
 
     void AddComponent(ModelPart::ConditionType::Pointer condition)
     {
-        GetModelPart().AddCondition(condition);
+        GetModelPart().AddCondition(std::move(condition));
     }
 
     ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
