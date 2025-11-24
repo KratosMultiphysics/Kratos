@@ -100,7 +100,7 @@ public:
 
     void CreateInterface(pybind11::module& m, std::string ContainerName)
     {
-        auto bindings = py::class_<TContainerType, typename TContainerType::Pointer  >(m,ContainerName.c_str())
+        py::class_<TContainerType, typename TContainerType::Pointer  >(m,ContainerName.c_str())
         .def(py::init<>())
         .def("__len__",      [](TContainerType& self){return self.size();} )
         .def("__contains__", [](TContainerType& self, const typename TContainerType::value_type& value){return (self.find(value.Id()) != self.end());} )
