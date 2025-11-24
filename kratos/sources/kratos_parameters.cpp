@@ -723,6 +723,45 @@ Vector Parameters::GetVector() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::vector<Vector> Parameters::GetVectorArray() const
+{
+    KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Argument must be an array of arrays (a json list of lists)" << std::endl;
+
+    const SizeType n_vectors = mpValue->size();
+    if (n_vectors == 0) {
+        return {};
+    }
+
+    // Check the size of the first vector
+    const auto& first_row = (*mpValue)[0];
+    KRATOS_ERROR_IF_NOT(first_row.is_array()) << "Entry 0 is not an array!" << std::endl;
+    const SizeType n_components = first_row.size();
+
+    std::vector<Vector> aux_VA;
+    aux_VA.reserve(n_vectors);
+
+    for (IndexType i = 0; i < n_vectors; ++i) {
+        const auto& row = (*mpValue)[i];
+        KRATOS_ERROR_IF_NOT(row.is_array()) << "Entry " << i << " is not an array!" << std::endl;
+        KRATOS_ERROR_IF_NOT(row.size() == n_components)
+            << "All inner arrays must have the same size. Entry 0 has size " << n_components
+            << ", but entry " << i << " has size " << row.size() << std::endl;
+
+        Vector v(n_components);
+        for (IndexType j = 0; j < n_components; ++j) {
+            KRATOS_ERROR_IF_NOT(row[j].is_number()) << "Entry (" << i << "," << j << ") is not a number!" << std::endl;
+            v(j) = row[j].get<double>();
+        }
+        aux_VA.push_back(std::move(v));
+    }
+
+    return aux_VA;
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Matrix Parameters::GetMatrix() const
 {
     KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Argument must be a Matrix (a json list of lists)" << std::endl;
