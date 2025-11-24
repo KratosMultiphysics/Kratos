@@ -208,25 +208,28 @@ namespace Kratos {
 
             //***************************************************************************
             //***************************************************************************
-
-            /**
-             * initializes time step solution
-             * only for reasons if the time step solution is restarted
-             * @param r_model_part
-             * @param A	LHS matrix
-             * @param Dx incremental update of primary variables
-             * @param b RHS Vector
+                /**
+             * @brief Performing the prediction of the solution
+             * @details It predicts the solution for the current step x = xold + vold * Dt
+             * @param rModelPart The model of the problem to solve
+             * @param rDofSet set of all primary variables
+             * @param rA LHS matrix
+             * @param rDx Incremental update of primary variables
+             * @param rb RHS Vector
              */
-            void InitializeSolutionStep(
-                ModelPart& r_model_part,
-                TSystemMatrixType& A,
-                TSystemVectorType& Dx,
-                TSystemVectorType& b) override
+            void Predict(
+                ModelPart& rModelPart,
+                DofsArrayType& rDofSet,
+                TSystemMatrixType& rA,
+                TSystemVectorType& rDx,
+                TSystemVectorType& rb) override
             {
                 KRATOS_TRY
 
-                const ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
-                BaseType::InitializeSolutionStep(r_model_part, A, Dx, b);
+                const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+                const auto &r_elements_array = rModelPart.Elements();
+                const std::size_t n_elems = r_elements_array.size();
+                
                 #pragma omp parallel for
                 for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
                 {
@@ -265,7 +268,15 @@ namespace Kratos {
                 }
 
                 // Extrapolate from Material Point Elements and Conditions
-                Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
+                // const auto &r_elements_array = rModelPart.Elements();
+                // const std::size_t n_elems = r_elements_array.size();
+                IndexPartition<std::size_t>(n_elems).for_each([&](std::size_t i_elem) {
+                    auto it_elem = r_elements_array.begin() + i_elem;
+
+                    it_elem->AddExplicitContribution(rCurrentProcessInfo);
+                });
+                
+
 
                 // If we are updating stress before momenta update (USF and central difference),
                 if (rCurrentProcessInfo.GetValue(EXPLICIT_STRESS_UPDATE_OPTION) == 0 ||
@@ -275,15 +286,32 @@ namespace Kratos {
                     calculateGridVelocityAndApplyDirichletBC(rCurrentProcessInfo,true);
 
                     // calculate stresses
-                    const auto it_elem_begin = r_model_part.ElementsBegin();
+                    const auto it_elem_begin = rModelPart.ElementsBegin();
                     #pragma omp parallel for
-                    for (int i = 0; i < static_cast<int>(r_model_part.Elements().size()); ++i) {
+                    for (int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i) {
                         auto it_elem = it_elem_begin + i;
                         std::vector<bool> dummy;
                         it_elem->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
                     }
                 }
                 KRATOS_CATCH("")
+            }
+            /**
+             * initializes time step solution
+             * only for reasons if the time step solution is restarted
+             * @param r_model_part
+             * @param A	LHS matrix
+             * @param Dx incremental update of primary variables
+             * @param b RHS Vector
+             */
+            void InitializeSolutionStep(
+                ModelPart& rModelPart,
+                TSystemMatrixType& rA,
+                TSystemVectorType& rDx,
+                TSystemVectorType& rb) override
+            {
+                BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+                // Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, rA, rDx, rb);
             }
 
             /// Apply Dirichlet BCs to nodal velocity field
