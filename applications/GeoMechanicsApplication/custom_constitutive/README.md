@@ -300,7 +300,7 @@ Then
 
 This zone is defined in the region below this function and above the axial region (above the shear at intersection).
 ```math
-    g \ge 0 , \tau_{trial} > \tau_{corner}
+    g \ge 0 \qquad , \qquad \tau_{trial} > \tau_{corner}
 ```
 
 Then
@@ -317,7 +317,7 @@ They are the corrected principal stresses. They need to be rotated back to the e
 #### Zone of regular failure
 This zone is associated with the region above the yield function and above the function g derived in the previous section.
 ```math
-    F_{MC} > 0, g < 0
+    F_{MC} > 0 \qquad , \qquad g < 0
 ```
 
 We can use the derivative of the flow function to define the direction and find the return point on the yield surface.
