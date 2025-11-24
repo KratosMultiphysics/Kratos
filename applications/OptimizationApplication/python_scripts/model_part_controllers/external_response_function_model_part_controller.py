@@ -87,7 +87,7 @@ class ExternalResponseFunctionModelPartController(ModelPartController):
         design_point_type = design_point_settings["type"].GetString()
         if design_point_type == "location_agnostic_design_points":
             self.design_point_creation_method = LocationAgnosticDesignPoints(self.model_part, design_point_settings)
-        elif design_point_settings == "csv_based_design_points":
+        elif design_point_type == "csv_based_design_points":
             self.design_point_creation_method = CSVBasedDesignPoints(self.model_part, design_point_settings)
         else:
             raise RuntimeError(f"Unsupported design point creation method type = \"{design_point_type}\". Followings are supported:\n\tlocation_agnostic_design_points\n\tcsv_based_design_points")
