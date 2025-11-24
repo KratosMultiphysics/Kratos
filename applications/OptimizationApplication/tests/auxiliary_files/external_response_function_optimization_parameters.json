@@ -8,7 +8,10 @@
             "type": "external_response_function_model_part_controller",
             "settings": {
                 "model_part_name": "CustomMP",
-                "number_of_design_points": 4
+                "design_point_settings": {
+                    "type": "location_agnostic_design_points",
+                    "number_of_design_points": 4
+                }
             }
         }
     ],
@@ -45,7 +48,6 @@
                 "gradient_scaling": "inf_norm"
             },
             "conv_settings": {
-                "type": "max_iter",
                 "max_iter": 10
             }
         },

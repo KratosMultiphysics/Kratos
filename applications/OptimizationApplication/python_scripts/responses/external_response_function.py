@@ -48,20 +48,23 @@ class ExternalResponseFunction(ResponseFunction):
     def GetInfluencingModelPart(self) -> Kratos.ModelPart:
         return self.model_part
 
-    def _GetDesignVariableValues(self) -> numpy.ndarray:
+    def _GetDesignVariableValues(self) -> 'dict[str, numpy.ndarray]':
         # get the values from the model part nodal non-historical container
-        exp = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(exp, KratosOA.CUSTOM_DESIGN_VARIABLE, False)
+        result: 'dict[str, numpy.ndarray]' = {}
+        for mp_name in self.model_part_operation.list_of_operation_model_part_full_names:
+            exp = Kratos.Expression.NodalExpression(self.model[mp_name])
+            Kratos.Expression.VariableExpressionIO.Read(exp, KratosOA.CUSTOM_DESIGN_VARIABLE, False)
+            result[mp_name] = exp.Evaluate()
 
-        # convert to numpy
-        return exp.Evaluate()
+        return result
 
-    def _UpdateGradientsFromNumpy(self, numpy_values: numpy.ndarray, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
-        # assign the sensitivities to the physical_variable_collective_expressions
-        Kratos.Expression.CArrayExpressionIO.Read(physical_variable_collective_expressions[KratosOA.CUSTOM_DESIGN_VARIABLE].GetContainerExpressions()[0], numpy_values)
+    def _UpdateGradientsFromNumpy(self, numpy_values_map: 'dict[str, numpy.ndarray]', physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+        for i, mp_name in enumerate(self.model_part_operation.list_of_operation_model_part_full_names):
+            # assign the sensitivities to the physical_variable_collective_expressions
+            Kratos.Expression.CArrayExpressionIO.Read(physical_variable_collective_expressions[KratosOA.CUSTOM_DESIGN_VARIABLE].GetContainerExpressions()[i], numpy_values_map[mp_name])
 
     def CalculateValue(self) -> float:
-        numpy_values = self._GetDesignVariableValues()
+        numpy_values = self._GetDesignVariableValues()[self.model_part_operation.list_of_operation_model_part_full_names[0]]
 
         # do the update of the model here with the new values.
         # there after compute the new response value.
@@ -69,7 +72,7 @@ class ExternalResponseFunction(ResponseFunction):
         return float((numpy_values[0]-2) ** 2 + (numpy_values[1]-3) ** 2 + (numpy_values[2]-4) ** 2 + (numpy_values[3]-5))**2
 
     def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
-        numpy_values = self._GetDesignVariableValues()
+        numpy_values = self._GetDesignVariableValues()[self.model_part_operation.list_of_operation_model_part_full_names[0]]
 
         # compute the gradients
         df_dx0 = 2 * (numpy_values[0]-2)
@@ -78,6 +81,6 @@ class ExternalResponseFunction(ResponseFunction):
         df_dx3 = 2 * (numpy_values[3]-5)
 
         # create the numpy array of sensitivities
-        numpy_exp = numpy.array([df_dx0, df_dx1, df_dx2, df_dx3])
+        numpy_exp_map = {self.model_part_operation.list_of_operation_model_part_full_names[0]: numpy.array([df_dx0, df_dx1, df_dx2, df_dx3])}
 
-        self._UpdateGradientsFromNumpy(numpy_exp, physical_variable_collective_expressions)
+        self._UpdateGradientsFromNumpy(numpy_exp_map, physical_variable_collective_expressions)

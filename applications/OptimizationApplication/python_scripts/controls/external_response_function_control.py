@@ -53,6 +53,8 @@ class ExternalResponseFunctionControl(Control):
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
 
+        ComponentDataView(self, self.optimization_problem).SetDataBuffer(1)
+
         # initialize the filter
         if self.filter:
             self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
@@ -112,6 +114,11 @@ class ExternalResponseFunctionControl(Control):
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
+
+        # add the values of the control to the optimization problem.
+        component_data_view = ComponentDataView(self, self.optimization_problem)
+        for i, v in enumerate(new_control_field.Evaluate()):
+            component_data_view.GetBufferedData().SetValue(f"{self.model_part.FullName()}_point_{i+1}", v)
 
         update = new_control_field - self.control_phi_field
         if Kratos.Expression.Utils.NormL2(update) > 1e-15:
