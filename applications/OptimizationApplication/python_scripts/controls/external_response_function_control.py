@@ -115,11 +115,6 @@ class ExternalResponseFunctionControl(Control):
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
 
-        # add the values of the control to the optimization problem.
-        component_data_view = ComponentDataView(self, self.optimization_problem)
-        for i, v in enumerate(new_control_field.Evaluate()):
-            component_data_view.GetBufferedData().SetValue(f"{self.model_part.FullName()}_point_{i+1}", v)
-
         update = new_control_field - self.control_phi_field
         if Kratos.Expression.Utils.NormL2(update) > 1e-15:
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
@@ -142,6 +137,11 @@ class ExternalResponseFunctionControl(Control):
 
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_update)
         self.__WriteExpression(self.physical_phi_field, self.design_variable)
+
+        # add the values of the control to the optimization problem.
+        component_data_view = ComponentDataView(self, self.optimization_problem)
+        for i, v in enumerate(self.physical_phi_field.Evaluate()):
+            component_data_view.GetBufferedData().SetValue(f"{self.model_part.FullName()}_point_{i+1}", float(v))
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
