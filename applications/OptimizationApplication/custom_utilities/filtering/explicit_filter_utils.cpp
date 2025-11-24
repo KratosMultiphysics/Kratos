@@ -68,17 +68,27 @@ Expression::ConstPointer GetNodalDomainSizeExpression(
 template<class TEntityType>
 double GetDomainSize(
     const EntityPoint<TEntityType>& rPoint,
-    Expression const * const pExpression)
+    Expression const * const pExpression,
+    const bool NodeCloudMesh)
 {
+    if (NodeCloudMesh == true){
+        KRATOS_ERROR << "NodeCloudMesh == true can be used only with ModelPart::NodeType." << std::endl;
+    }
     return rPoint.GetEntity().GetGeometry().DomainSize();
 }
 
 template<>
 double GetDomainSize(
     const EntityPoint<ModelPart::NodeType>& rPoint,
-    Expression const * const pExpression)
+    Expression const * const pExpression,
+    const bool NodeCloudMesh)
 {
-    return pExpression->Evaluate(rPoint.Id(), rPoint.Id(), 0);
+    if (NodeCloudMesh == true){
+        return 1.0;
+    }
+    else{
+        return pExpression->Evaluate(rPoint.Id(), rPoint.Id(), 0);
+    }
 }
 
 struct MeshIndependentType
@@ -111,10 +121,11 @@ void ComputeWeightForAllNeighbors(
     const std::vector<typename EntityPoint<TEntityType>::Pointer>& rNeighbourNodes,
     const std::vector<double>& rSquaredDistances,
     const IndexType NumberOfNeighbours,
-    Expression const * const pExpression)
+    Expression const * const pExpression,
+    const bool NodeCloudMesh)
 {
     for (IndexType i = 0; i < NumberOfNeighbours; ++i) {
-        const double domain_size = GetDomainSize(*rNeighbourNodes[i], pExpression);
+        const double domain_size = GetDomainSize(*rNeighbourNodes[i], pExpression, NodeCloudMesh);
         const double filter_weight = rFilterFunction.ComputeWeight(Radius, std::sqrt(rSquaredDistances[i])) * domain_size;
         rListOfWeights[i] = filter_weight;
         rSumOfWeights += filter_weight;
@@ -128,10 +139,12 @@ ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils(
     const ModelPart& rModelPart,
     const std::string& rKernelFunctionType,
     const IndexType MaxNumberOfNeighbours,
-    const IndexType EchoLevel)
+    const IndexType EchoLevel,
+    const bool NodeCloudMesh)
     : mrModelPart(rModelPart),
       mMaxNumberOfNeighbors(MaxNumberOfNeighbours),
-      mEchoLevel(EchoLevel)
+      mEchoLevel(EchoLevel),
+      mNodeCloudMesh(NodeCloudMesh)
 {
     mpKernelFunction = Kratos::make_unique<FilterFunction>(rKernelFunctionType);
 }
@@ -270,7 +283,7 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Forward
         double sum_of_weights = 0.0;
         ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors(
             sum_of_weights, rTLS.mListOfWeights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get(), mNodeCloudMesh);
 
         mpDamping->Apply(rTLS.mListOfDampedWeights, rTLS.mListOfWeights, Index, number_of_neighbors, rTLS.mNeighbourEntityPoints);
 
@@ -339,12 +352,12 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
         double sum_of_weights = 0.0;
         ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors(
             sum_of_weights, rTLS.mListOfWeights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get(), mNodeCloudMesh);
 
         mpDamping->Apply(rTLS.mListOfDampedWeights, rTLS.mListOfWeights, Index, number_of_neighbors, rTLS.mNeighbourEntityPoints);
 
         const IndexType current_data_begin = Index * stride;
-        const double domain_size = ExplicitFilterUtilsHelperUtilities::GetDomainSize(entity_point, mpNodalDomainSizeExpression.get());
+        const double domain_size = ExplicitFilterUtilsHelperUtilities::GetDomainSize(entity_point, mpNodalDomainSizeExpression.get(), mNodeCloudMesh);
 
         for (IndexType j = 0; j < stride; ++j) {
             const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
@@ -394,7 +407,7 @@ void ExplicitFilterUtils<TContainerType>::GetIntegrationWeights(ContainerExpress
 
     IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index){
         const EntityPoint<EntityType> entity(*(r_container.begin() + Index), Index);
-        const auto integration_weight = ExplicitFilterUtilsHelperUtilities::GetDomainSize(entity, this->mpNodalDomainSizeExpression.get());
+        const auto integration_weight = ExplicitFilterUtilsHelperUtilities::GetDomainSize(entity, this->mpNodalDomainSizeExpression.get(), mNodeCloudMesh);
         const IndexType current_data_begin = Index * stride;
         for (IndexType j = 0; j < stride; ++j) {
             double& current_index_value = *(p_expression->begin() + current_data_begin + j);
@@ -458,7 +471,7 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
         double sum_of_weights = 0.0;
         ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors(
             sum_of_weights, list_of_weights, *mpKernelFunction, radius,
-            *mEntityPointVector[Index], rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            *mEntityPointVector[Index], rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get(), mNodeCloudMesh);
 
         double* data_begin = (rOutput.data().begin() + Index * number_of_entities);
 
