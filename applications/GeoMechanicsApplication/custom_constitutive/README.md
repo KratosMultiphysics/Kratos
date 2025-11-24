@@ -171,7 +171,7 @@ Any trial stress which falls below this line is then belong to this region. It i
 ```math
     \tau^{trial} - \sigma^{trial} + t_c < 0
 ```
-If a point falls in this zone, it will be mapped back to the root point of the tension-cutoff line, namely to point $`\sigma = t_c$ and $\tau = 0`$. Then update the principal stresses based on the mapper values.
+If a point falls in this zone, it will be mapped back to the root point of the tension-cutoff line, namely to point $`\sigma = t_c`$ and $`\tau = 0`$. Then update the principal stresses based on the mapper values.
 ```math
     \sigma_1 = \sigma + \tau
 ```
@@ -375,7 +375,7 @@ Normalizing the vectors, it results in rotation matrix
 ### Reordering
 It can happen that, after mapping, the role of the principal stress change, and the condition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is no longer valid. In such a case, we apply averaging to the principal stresses and their associated mapping directions.
 
-- Case $`\sigma_1 < \sigma_2$`: Then we use averaging on the initial principle trial stresses (principal trial stresses before mapping) as follows:
+- Case $`\sigma_1 < \sigma_2`$: Then we use averaging on the initial principle trial stresses (principal trial stresses before mapping) as follows:
 ```math
     \sigma_1 = \sigma_2 = \frac{\sigma_1 + \sigma_2}{2}
 ```
@@ -401,7 +401,7 @@ Then the averaging leads to:
     \frac{\partial G}{\partial \sigma_3} = - \frac{1}{2} \left( 1 - \sin⁡{\psi} \right)
 ```
 
-As we solve our mapping based on $`\sigma$ and $\tau`$, we need to convert this to:
+As we solve our mapping based on $`\sigma`$ and $`\tau`$, we need to convert this to:
 ```math
     \frac{\partial G}{\partial \sigma} = - \frac{1}{4} \left( 1 - 3 \sin⁡{\psi} \right)
 ```
