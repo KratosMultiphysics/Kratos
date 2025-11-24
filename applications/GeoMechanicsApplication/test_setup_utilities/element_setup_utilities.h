@@ -38,7 +38,12 @@ public:
 
     static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
+    static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties,
+                                              std::size_t                Id);
     static Element::Pointer Create2D3NElement();
+    static Element::Pointer Create2D3NLineElement(const PointerVector<Node>& rNodes,
+                                                  const Properties::Pointer& rProperties);
     static Element::Pointer Create2D2NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
 
@@ -79,6 +84,10 @@ public:
     static Element::Pointer Create3D12NInterfaceElement(const PointerVector<Node>& rNodes,
                                                         const Properties::Pointer& rProperties);
 
+    static Element::Pointer Create3D8NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                       const Properties::Pointer& rProperties,
+                                                       std::size_t                Id);
+
     static Element::Pointer Create3D4NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
 
@@ -87,6 +96,9 @@ public:
     static Element::Pointer Create3D10NElement();
     static Element::Pointer Create3D8NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
+    static Element::Pointer Create3D8NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties,
+                                              std::size_t                Id);
     static Element::Pointer Create3D20NElement(const PointerVector<Node>& rNodes,
                                                const Properties::Pointer& rProperties);
 
