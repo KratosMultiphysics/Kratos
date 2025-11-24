@@ -267,9 +267,7 @@ namespace Kratos {
                     }
                 }
 
-                // Extrapolate from Material Point Elements and Conditions
-                // const auto &r_elements_array = rModelPart.Elements();
-                // const std::size_t n_elems = r_elements_array.size();
+                // Extrapolate from Material Point Elements and Conditions (P2G Mapping)
                 IndexPartition<std::size_t>(n_elems).for_each([&](std::size_t i_elem) {
                     auto it_elem = r_elements_array.begin() + i_elem;
 
@@ -311,7 +309,6 @@ namespace Kratos {
                 TSystemVectorType& rb) override
             {
                 BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-                // Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, rA, rDx, rb);
             }
 
             /// Apply Dirichlet BCs to nodal velocity field

@@ -158,22 +158,13 @@ namespace Kratos
 
         void Predict() override
         {
-            DofsArrayType dummy_r_dof_set = DofsArrayType(); // strategy does not have/call builder and solver? even for RHS?
+            DofsArrayType dummy_r_dof_set = DofsArrayType();
             TSystemMatrixType dummyA = TSystemMatrixType();
             TSystemVectorType dummyDx = TSystemVectorType();
             TSystemVectorType dummyb = TSystemVectorType();
 
             GetScheme()->Predict(BaseType::GetModelPart(), dummy_r_dof_set, dummyA, dummyDx, dummyb);
         }
-
-        // /**
-        //  * @brief Get method for the builder and solver
-        //  * @return mpBuilderAndSolver: The pointer to the builder and solver considered
-        //  */
-        // typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
-        // {
-        //     return mpBuilderAndSolver;
-        // };
 
         void InitializeSolutionStep() override
         {

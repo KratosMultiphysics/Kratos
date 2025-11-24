@@ -220,6 +220,7 @@ public:
         KRATOS_TRY;
 
         // Start of TEMP: These are moved here to comply to pr #13432
+        // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)        
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
 
@@ -277,16 +278,7 @@ public:
             }
 		});
 
-        // Extrapolate from Material Point Elements and Conditions
-        // ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
-        // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)
-        // EntitiesUtilities::InitializeSolutionStepEntities<Element>(rModelPart);
-        // block_for_each(rModelPart.Elements(), [&r_current_process_info](Element& rElement)
-        // {
-        //     std::vector<bool> dummy_value;
-        //     rElement.AddExplicitContribution(MP_CALCULATE_PARTICLE_TO_GRID_MAPPING, dummy_value, r_current_process_info);
-        // });
-        
+        // Extrapolate from Material Point Elements and Conditions (P2G Mapping)
         const auto &r_elements_array = rModelPart.Elements();
         const std::size_t n_elems = r_elements_array.size();
         IndexPartition<std::size_t>(n_elems).for_each([&](std::size_t i_elem) {
@@ -294,12 +286,6 @@ public:
 
             it_elem->AddExplicitContribution(r_current_process_info);
         });
-        // for(auto& rElement : rModelPart.Elements())
-        // {
-        //     std::vector<bool> dummy_value;
-        //     rElement.CalculateOnIntegrationPoints(MP_CALCULATE_PARTICLE_TO_GRID_MAPPING, dummy_value, r_current_process_info);
-        // }
-        
 
         // Assign nodal variables after extrapolation
         block_for_each(rModelPart.Nodes(), [&](Node& rNode)
@@ -456,8 +442,6 @@ public:
         KRATOS_TRY
         
         // Particle to Grid mapping for elements is moved to predict because it needs the velocity field (PR #13432)
-        // EntitiesUtilities::InitializeSolutionStepEntities<Element>(rModelPart);
-        // EntitiesUtilities::InitializeSolutionStepEntities<Condition>(rModelPart);
         ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();

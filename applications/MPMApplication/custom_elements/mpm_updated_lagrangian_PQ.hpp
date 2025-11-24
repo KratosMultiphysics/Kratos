@@ -109,7 +109,6 @@ public:
     /**
      * Performs the particle to grid mapping
      */
-    // void ParticleToGridMapping(const ProcessInfo& rCurrentProcessInfo) override;
     void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
 
 
