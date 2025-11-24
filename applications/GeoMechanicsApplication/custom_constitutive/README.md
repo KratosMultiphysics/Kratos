@@ -128,7 +128,7 @@ This mapping is based on a new Mohr-Coulomb diagram with modified zones, based o
 6. Rotate the mapped stress vector back, by appying the rotation matrix.
 
 ### Detailed formulations
-We define the Coulomb yield surface $F_{MC}$ and the tensile cutoff surface $F_{tc}$ based on $\sigma-\tau$ coordinates. as:
+We define the Coulomb yield surface $`F_{MC}`$ and the tensile cutoff surface $`F_{tc}`$ based on $\sigma-\tau$ coordinates. as:
 
 ```math
     F_{MC} = \tau + \sigma \sin{\phi} - C \cos{\phi} = 0
@@ -146,19 +146,19 @@ Where
 ```
 
 #### Elastic region: 
-This condition occurs when $F_{MC} \le 0$ and $F_{tc} \le 0$. Here, the stress vector stays unchanged and no need any return mapping.
+This condition occurs when $`F_{MC} \le 0`$ and $`F_{tc} \le 0`$. Here, the stress vector stays unchanged and no need any return mapping.
 
 
 #### Tensile apex return zone
 
-First need to find whether there is intersection between the Yield and cutoff functions at the region of $\tau \ge 0$.
+First need to find whether there is intersection between the Yield and cutoff functions at the region of $`\tau \ge 0`$.
 
-Find the root of $F_{MC}$ (apex).
+Find the root of $`F_{MC}`$ (apex).
 ```math
     \sigma_{MC} = \frac{C}{\tan{\phi}}
 ```
 
-If $t_c < \sigma_{MC}$ we find a line perpendicular to the tensile-cutoff curve passing through the apex point. The equation for the tension-cutoff is:
+If $`t_c < \sigma_{MC}`$ we find a line perpendicular to the tensile-cutoff curve passing through the apex point. The equation for the tension-cutoff is:
 ```math
     \tau = - \sigma + t_c
 ```
@@ -171,7 +171,7 @@ Any trial stress which falls below this line is then belong to this region. It i
 ```math
     \tau^{trial} - \sigma^{trial} + t_c < 0
 ```
-If a point falls in this zone, it will be mapped back to the root point of the tension-cutoff line, namely to point $\sigma = t_c$ and $\tau = 0$. Then update the principal stresses based on the mapper values.
+If a point falls in this zone, it will be mapped back to the root point of the tension-cutoff line, namely to point $`\sigma = t_c$ and $\tau = 0`$. Then update the principal stresses based on the mapper values.
 ```math
     \sigma_1 = \sigma + \tau
 ```
@@ -201,7 +201,7 @@ Where
 
 #### Tensile cutoff return zone
 
-We need to find the shear at the intersection point. Setting  $\sigma_1 = t_c$ in the yield function (if $t_c < \sigma_{MC}$):
+We need to find the shear at the intersection point. Setting  $`\sigma_1 = t_c`$ in the yield function (if $`t_c < \sigma_{MC}`$):
 ```math
     -\sigma + t + \sigma \sin{\phi} - C \cos{\phi} = 0
 ```
@@ -280,12 +280,12 @@ The flow function is:
     \tau =- \sigma \sin{\psi}
 ```
 
-The slope of this line is $-\sin⁡{\psi}$. The slope of a line perpendicular is then
+The slope of this line is $`-\sin⁡{\psi}`$. The slope of a line perpendicular is then
 ```math
     m = \frac{1}{\sin{\psi}}
 ```
 
-If we consider a line as $\tau = m \sigma + B$, and substituting the intersection point
+If we consider a line as $`\tau = m \sigma + B`$, and substituting the intersection point
 ```math
     \tau_{corner} =m \sigma_{corner} + B
 ```
@@ -354,7 +354,7 @@ Solving this 3 equations:
     \dot{\lambda} = \frac{C_2 - \sigma^{trial} C_1 - \tau^{trial}}{n_1 C_1 + n_3}
 ```
 
-Where $C_1 = \sin{\phi}$ and $C_2 = C \cos{\phi} $. Then
+Where $`C_1 = \sin{\phi}`$ and $`C_2 = C \cos{\phi}`$. Then
 ```math
     \sigma_1 = \dot{\lambda} \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} + \sigma_1^{trial}
 ```
@@ -373,9 +373,9 @@ Normalizing the vectors, it results in rotation matrix
 ```
 
 ### Reordering
-It can happen that, after mapping, the role of the principal stress change, and the condition $\sigma_1 \ge \sigma_2 \ge \sigma_3$ is no longer valid. In such a case, we apply averaging to the principal stresses and their associated mapping directions.
+It can happen that, after mapping, the role of the principal stress change, and the condition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is no longer valid. In such a case, we apply averaging to the principal stresses and their associated mapping directions.
 
-- Case $\sigma_1 < \sigma_2$: Then we use averaging on the initial principle trial stresses (principal trial stresses before mapping) as follows:
+- Case $`\sigma_1 < \sigma_2$`: Then we use averaging on the initial principle trial stresses (principal trial stresses before mapping) as follows:
 ```math
     \sigma_1 = \sigma_2 = \frac{\sigma_1 + \sigma_2}{2}
 ```
@@ -383,7 +383,7 @@ It can happen that, after mapping, the role of the principal stress change, and 
     \frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left(\frac{\partial G}{\partial \sigma_1} + \frac{\partial G}{\partial \sigma_2} \right)
 ```
 
-Where $G$ is the flow function. For Mohr-Coulomb, the derivative of flow function is:
+Where $`G`$ is the flow function. For Mohr-Coulomb, the derivative of flow function is:
 ```math
     \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} =
     \begin{bmatrix}
@@ -401,7 +401,7 @@ Then the averaging leads to:
     \frac{\partial G}{\partial \sigma_3} = - \frac{1}{2} \left( 1 - \sin⁡{\psi} \right)
 ```
 
-As we solve our mapping based on $\sigma$ and $\tau$, we need to convert this to:
+As we solve our mapping based on $`\sigma$ and $\tau`$, we need to convert this to:
 ```math
     \frac{\partial G}{\partial \sigma} = - \frac{1}{4} \left( 1 - 3 \sin⁡{\psi} \right)
 ```
@@ -409,7 +409,7 @@ As we solve our mapping based on $\sigma$ and $\tau$, we need to convert this to
     \frac{\partial G}{\partial \tau} = \frac{1}{4} \left( 3 - \sin{\psi} \right)
 ```
 
-- Case $\sigma_1 < \sigma_2$: Then we use averaging on the initial principle trial stresses (principal trial stresses before mapping) as follows:
+- Case $`\sigma_1 < \sigma_2`$: Then we use averaging on the initial principle trial stresses (principal trial stresses before mapping) as follows:
 ```math
     \sigma_1 = \sigma_2 = \frac{\sigma_1 + \sigma_2}{2}
 ```
@@ -425,7 +425,7 @@ Then the averaging of the mapping direction leads to:
     \frac{\partial G}{\partial \sigma_1} = \frac{1}{2} \left( 1 + \sin⁡{\psi} \right)
 ```
 
-And based on $\sigma$ and $\tau$:
+And based on $`\sigma$ and $\tau`$:
 ```math
     \frac{\partial G}{\partial \sigma} = \frac{1}{4} \left( 1 + 3 \sin⁡{\psi} \right)
 ```
@@ -451,7 +451,7 @@ Where:
     \Delta \epsilon^p = \dot{\lambda} \frac{\partial G}{\partial \boldsymbol{\sigma}}
 ```
 
-As the current implementation is based on $\sigma-\tau$, we must map that 2-vector back to a 3×3 (or Voigt) flow tensor. We use chain rule to get derivatives of $G$ to the principal stresses:
+As the current implementation is based on $`\sigma-\tau`$, we must map that 2-vector back to a 3×3 (or Voigt) flow tensor. We use chain rule to get derivatives of $G$ to the principal stresses:
 ```math
     \frac{\partial G}{\partial \sigma_1} = 
     \frac{\partial G}{\partial \sigma} \frac{\partial \sigma}{\partial \sigma_1}
@@ -465,12 +465,12 @@ As the current implementation is based on $\sigma-\tau$, we must map that 2-vect
     \frac{\partial G}{\partial \sigma_2} = 0
 ```
 
-Denote these principal derivatives $g_1$, $g_2$ and $g_3$:
+Denote these principal derivatives $`g_1`$, $g_2$ and $`g_3`$:
 ```math
     g_1 = \frac{\partial G}{\partial \sigma_1},\qquad g_2 = 0,\qquad  g_3 = \frac{\partial G}{\partial \sigma_3}
 ```
 
-We build the flow tensor $\boldsymbol{m}$ in principal frame.
+We build the flow tensor $`\boldsymbol{m}`$ in principal frame.
 ```math
     \boldsymbol{m} = 
     \begin{bmatrix}
@@ -500,7 +500,7 @@ If the accumulated hardening variable is the usual equivalent plastic strain
     \kappa = \epsilon_p, \qquad \dot{\epsilon_p} = \sqrt{\frac{2}{3} \dot{\epsilon^p}:\dot{\epsilon^p}}
 ```
 
-As $\Delta \epsilon^p = \dot{\lambda} \boldsymbol{m}$
+As $`\Delta \epsilon^p = \dot{\lambda} \boldsymbol{m}`$
 ```math
     \Delta \kappa = \dot{\lambda} \sqrt{\frac{2}{3} \boldsymbol{m:m}}
 ```
@@ -510,7 +510,7 @@ The Cohesion, friction angle, dilation angle and tangential cutoff become all fu
 We start from the most simple formulations for hardening and softening. It is namely linear hardening.
 
 #### Linear hardening:
-As it is mentioned above, in hardening process, the material properties for Coulomb yield surface are functions of $\kappa$. Here we use the most simple hardening model, namely linear. 
+As it is mentioned above, in hardening process, the material properties for Coulomb yield surface are functions of $`\kappa`$. Here we use the most simple hardening model, namely linear. 
 ```math
     \phi(\kappa) = \phi_0 + H_\phi \kappa
 ```
@@ -521,7 +521,7 @@ As it is mentioned above, in hardening process, the material properties for Coul
     \psi(\kappa) = \psi_0 + H_\psi \kappa
 ```
 
-Where $H_\phi$, $H_C$ and $H_\psi$ are hardening modulus for the friction angle, cohession and dilatation angle, respectively.
+Where $`H_\phi`$, $`H_C`$ and $`H_\psi`$ are hardening modulus for the friction angle, cohession and dilatation angle, respectively.
 
 Note: These formulations will be extended for more physics-based form.
 
@@ -533,7 +533,7 @@ Note: These formulations will be extended for more physics-based form.
     F_{MC}(\boldsymbol{\sigma}, \kappa_n) = \tau + \sigma \sin{\phi(\kappa_n)} - C(\kappa_n) \cos{\phi(\kappa_n)} = 0
 ```
 
-2. Compute plastic multiplier increment $\dot{\lambda}$
+2. Compute plastic multiplier increment $`\dot{\lambda}`$
 
 3. Update plastic strain:
 ```math
