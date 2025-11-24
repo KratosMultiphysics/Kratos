@@ -20,6 +20,8 @@ template <class TSparseSpace, class TDenseSpace>
 class LoadSteppingScheme : public GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>
 {
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(LoadSteppingScheme);
+
     using TSystemVectorType =
         typename GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::TSystemVectorType;
     using TSystemMatrixType =
@@ -68,8 +70,9 @@ public:
                                       Element::EquationIdVectorType& rEquationId,
                                       const ProcessInfo&             rCurrentProcessInfo) override
     {
-        this->CalculateLHSContribution(rCurrentCondition, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
-        CalculateRHSContribution(rCurrentCondition, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::CalculateSystemContributions(
+            rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
+        rRHS_Contribution *= CalculateLoadFraction(rCurrentProcessInfo);
     }
 
     void CalculateRHSContribution(Condition&                     rCurrentCondition,
@@ -77,7 +80,7 @@ public:
                                   Element::EquationIdVectorType& rEquationId,
                                   const ProcessInfo&             rCurrentProcessInfo) override
     {
-        GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution(
+        GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution(
             rCurrentCondition, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
 
         rRHS_Contribution *= CalculateLoadFraction(rCurrentProcessInfo);
@@ -97,6 +100,13 @@ public:
 
             mIsInitialized = true;
         }
+    }
+
+    void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
+    {
+        GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+        KRATOS_INFO("Load stepping")
+            << "Fraction of unbalance: " << CalculateLoadFraction(rModelPart.GetProcessInfo()) << "\n";
     }
 
 private:

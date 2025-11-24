@@ -51,4 +51,9 @@ void FixWaterPressuresAbovePhreaticLineProcess::ExecuteInitializeSolutionStep()
     });
 }
 
+std::string FixWaterPressuresAbovePhreaticLineProcess::Info() const
+{
+    return "FixWaterPressuresAbovePhreaticLineProcess";
+}
+
 } // namespace Kratos
