@@ -64,6 +64,8 @@ kratos/scripts/wheels/README.md
 # VTK post files
 *.vtk
 *.vtu
+*.pvd
+*.pvtu
 
 # HDF5 files
 *.h5

@@ -357,7 +357,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
         "GEO_COHESION does not exist in the property with Id 3.")
     properties.SetValue(GEO_COHESION, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_COHESION in the property with Id 3 has an invalid value: -1 is out of the range [0; -).")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_COHESION in the property with Id 3 has an invalid value: -1 is out of the range [0, -).")
     properties.SetValue(GEO_COHESION, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -365,7 +365,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
         "GEO_FRICTION_ANGLE does not exist in the property with Id 3.")
     properties.SetValue(GEO_FRICTION_ANGLE, -30.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_FRICTION_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range (0; 90.000000).")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_FRICTION_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range (0, 90).")
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -373,10 +373,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
         "GEO_DILATANCY_ANGLE does not exist in the property with Id 3.")
     properties.SetValue(GEO_DILATANCY_ANGLE, -30.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_DILATANCY_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range [0; 30.000000].")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_DILATANCY_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range [0, 30].")
     properties.SetValue(GEO_DILATANCY_ANGLE, 40.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_DILATANCY_ANGLE in the property with Id 3 has an invalid value: 40 is out of the range [0; 30.000000].")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_DILATANCY_ANGLE in the property with Id 3 has an invalid value: 40 is out of the range [0, 30].")
     properties.SetValue(GEO_DILATANCY_ANGLE, 30.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -384,10 +384,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
         "GEO_TENSILE_STRENGTH does not exist in the property with Id 3.")
     properties.SetValue(GEO_TENSILE_STRENGTH, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: -1 is out of the range [0; 1.732051].")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: -1 is out of the range [0, 1.73205].")
     properties.SetValue(GEO_TENSILE_STRENGTH, 2.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: 2 is out of the range [0; 1.732051].")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: 2 is out of the range [0, 1.73205].")
     properties.SetValue(GEO_TENSILE_STRENGTH, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -395,7 +395,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
         "INTERFACE_NORMAL_STIFFNESS does not exist in the property with Id 3.")
     properties.SetValue(INTERFACE_NORMAL_STIFFNESS, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "INTERFACE_NORMAL_STIFFNESS in the property with Id 3 has an invalid value: -1 is out of the range [0; -).")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "INTERFACE_NORMAL_STIFFNESS in the property with Id 3 has an invalid value: -1 is out of the range [0, -).")
     properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -403,7 +403,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
         "INTERFACE_SHEAR_STIFFNESS does not exist in the property with Id 3.")
     properties.SetValue(INTERFACE_SHEAR_STIFFNESS, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "INTERFACE_SHEAR_STIFFNESS in the property with Id 3 has an invalid value: -1 is out of the range [0; -).")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "INTERFACE_SHEAR_STIFFNESS in the property with Id 3 has an invalid value: -1 is out of the range [0, -).")
     properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 1.0);
 
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
@@ -413,9 +413,12 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateConstitutiv
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = Properties{};
-    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 1.0E8);
-    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 5.0E7);
+    auto properties                        = Properties{};
+    properties[INTERFACE_NORMAL_STIFFNESS] = 1.0E8;
+    properties[INTERFACE_SHEAR_STIFFNESS]  = 5.0E7;
+    properties[GEO_FRICTION_ANGLE]         = 0.0;
+    properties[GEO_COHESION]               = 0.0;
+    properties[GEO_DILATANCY_ANGLE]        = 0.0;
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);

@@ -15,6 +15,7 @@
 
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
+#include "containers/model.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -48,6 +49,7 @@
 #include "custom_processes/calculate_total_motion_process.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.h"
+#include "custom_processes/find_neighbours_of_interfaces_process.h"
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
 #include "custom_processes/set_multiple_moving_loads.h"
@@ -126,7 +128,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyExcavationProcess, ApplyExcavationProcess::Pointer, Process>(
         m, "ApplyExcavationProcess")
-        .def(py::init<ModelPart&, const Parameters&>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<ApplyWriteScalarProcess, ApplyWriteScalarProcess::Pointer, Process>(
         m, "ApplyWriteScalarProcess")
@@ -134,7 +136,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyK0ProcedureProcess, ApplyK0ProcedureProcess::Pointer, Process>(
         m, "ApplyK0ProcedureProcess")
-        .def(py::init<ModelPart&, Parameters&>());
+        .def(py::init<Model&, Parameters>());
 
     py::class_<FindNeighbourElementsOfConditionsProcess, FindNeighbourElementsOfConditionsProcess::Pointer, Process>(
         m, "FindNeighbourElementsOfConditionsProcess")
@@ -174,7 +176,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyCPhiReductionProcess, ApplyCPhiReductionProcess::Pointer, Process>(
         m, "ApplyCPhiReductionProcess")
-        .def(py::init<ModelPart&, const Parameters>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<CalculateIncrementalMotionProcess, CalculateIncrementalMotionProcess::Pointer, Process>(
         m, "CalculateIncrementalMotionProcess")
@@ -186,11 +188,15 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyFinalStressesOfPreviousStageToInitialState, ApplyFinalStressesOfPreviousStageToInitialState::Pointer, Process>(
         m, "ApplyFinalStressesOfPreviousStageToInitialState")
-        .def(py::init<ModelPart&, const Parameters&>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<ApplyInitialUniformStressField, ApplyInitialUniformStressField::Pointer, Process>(
         m, "ApplyInitialUniformStressField")
         .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<FindNeighboursOfInterfacesProcess, FindNeighboursOfInterfacesProcess::Pointer, Process>(
+        m, "FindNeighboursOfInterfacesProcess")
+        .def(py::init<Model&, const Parameters&>());
 }
 
 } // Namespace Kratos::Python.

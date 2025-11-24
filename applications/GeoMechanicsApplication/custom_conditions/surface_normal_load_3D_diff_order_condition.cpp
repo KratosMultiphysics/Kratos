@@ -32,7 +32,7 @@ SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition()
 // Constructor 1
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
                                                                              GeometryType::Pointer pGeometry)
-    : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry)
+    : SurfaceLoad3DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
@@ -40,7 +40,7 @@ SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(Ind
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
                                                                              GeometryType::Pointer pGeometry,
                                                                              PropertiesType::Pointer pProperties)
-    : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : SurfaceLoad3DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
