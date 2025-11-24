@@ -224,6 +224,8 @@ public:
         const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Initializing Bossak constants
+        // This is not related to our change, but related to Bossak temporary fix.
+        // Bossak scheme  
         mBossak.c0 = ( 1.0 / (mBossak.beta * delta_time * delta_time) );
         mBossak.c1 = ( mBossak.gamma / (mBossak.beta * delta_time) );
         mBossak.c2 = ( 1.0 / (mBossak.beta * delta_time) );
@@ -276,7 +278,28 @@ public:
 		});
 
         // Extrapolate from Material Point Elements and Conditions
-        ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
+        // ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
+        // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)
+        // EntitiesUtilities::InitializeSolutionStepEntities<Element>(rModelPart);
+        // block_for_each(rModelPart.Elements(), [&r_current_process_info](Element& rElement)
+        // {
+        //     std::vector<bool> dummy_value;
+        //     rElement.AddExplicitContribution(MP_CALCULATE_PARTICLE_TO_GRID_MAPPING, dummy_value, r_current_process_info);
+        // });
+        
+        const auto &r_elements_array = rModelPart.Elements();
+        const std::size_t n_elems = r_elements_array.size();
+        IndexPartition<std::size_t>(n_elems).for_each([&](std::size_t i_elem) {
+            auto it_elem = r_elements_array.begin() + i_elem;
+
+            it_elem->AddExplicitContribution(r_current_process_info);
+        });
+        // for(auto& rElement : rModelPart.Elements())
+        // {
+        //     std::vector<bool> dummy_value;
+        //     rElement.CalculateOnIntegrationPoints(MP_CALCULATE_PARTICLE_TO_GRID_MAPPING, dummy_value, r_current_process_info);
+        // }
+        
 
         // Assign nodal variables after extrapolation
         block_for_each(rModelPart.Nodes(), [&](Node& rNode)
@@ -431,6 +454,11 @@ public:
         TSystemVectorType& rb) override
     {
         KRATOS_TRY
+        
+        // Particle to Grid mapping for elements is moved to predict because it needs the velocity field (PR #13432)
+        // EntitiesUtilities::InitializeSolutionStepEntities<Element>(rModelPart);
+        // EntitiesUtilities::InitializeSolutionStepEntities<Condition>(rModelPart);
+        ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];

@@ -107,9 +107,10 @@ public:
     //************* STARTING - ENDING  METHODS
 
     /**
-     * Called at the beginning of each solution step
+     * Performs the particle to grid mapping
      */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    // void ParticleToGridMapping(const ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
