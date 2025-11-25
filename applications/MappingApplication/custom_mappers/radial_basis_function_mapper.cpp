@@ -460,7 +460,6 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateDestinationRBFM
     }
 }
 
-
 template<class TSparseSpace, class TDenseSpace>
 std::unique_ptr<typename RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::TMappingMatrixType>
 RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIga(
@@ -468,47 +467,90 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIga(
     const std::vector<Condition::Pointer>& rOriginIntegrationPoints,
     const ModelPart& rOriginModelPart) const
 {
-    // Determine sizes
-    const IndexType n_gp = rOriginIntegrationPoints.size();
-    const IndexType n_nodes = rOriginModelPart.GetRootModelPart().NumberOfNodes();
+    // Number of integration points
+    const IndexType n_ip = rOriginIntegrationPoints.size();
 
-    // Build full N matrix (GP x nodes)
-    SparseMatrixType N = ZeroMatrix(n_gp, n_nodes);
-    for (IndexType i_gp = 0; i_gp < n_gp; ++i_gp) {
-        auto p_geometry = rOriginIntegrationPoints[i_gp]->pGetGeometry();
+    // --- 1) Build full N over root model part ---------------------------------
+    const ModelPart& r_root_model_part = rOriginModelPart.GetRootModelPart();
+    const IndexType n_root_nodes = r_root_model_part.NumberOfNodes();
+
+    // NodeId (root) -> column index [0 .. n_root_nodes-1]
+    std::unordered_map<IndexType, IndexType> root_id_to_col;
+    root_id_to_col.reserve(n_root_nodes);
+
+    {
+        IndexType col = 0;
+        for (const auto& rNode : r_root_model_part.Nodes()) {
+            root_id_to_col.emplace(rNode.Id(), col++);
+        }
+    }
+
+    // N : (n_ip x n_root_nodes)
+    SparseMatrixType N(n_ip, n_root_nodes); // sparse, default zero
+
+    for (IndexType i_ip = 0; i_ip < n_ip; ++i_ip) {
+        auto p_geometry = rOriginIntegrationPoints[i_ip]->pGetGeometry();
         const auto& shape_functions_values = p_geometry->ShapeFunctionsValues();
 
+        // If each Condition has a single GP, row 0 is fine:
         for (IndexType j = 0; j < p_geometry->size(); ++j) {
-            IndexType node_id = (*p_geometry)[j].Id() - 1; // Convert 1-based ID to 0-based
-            N(i_gp, node_id) = shape_functions_values(0, j);
+            const IndexType node_id = (*p_geometry)[j].Id();
+
+            auto it = root_id_to_col.find(node_id);
+            if (it != root_id_to_col.end()) {
+                const IndexType col_idx = it->second;
+                N(i_ip, col_idx) = shape_functions_values(0, j);
+            }
         }
     }
 
-    // Determine valid columns corresponding to nodes in the origin model part
-    std::unordered_set<IndexType> existing_node_ids;
-    for (const auto& node : rOriginModelPart.Nodes()) {
-        existing_node_ids.insert(node.Id());
-    }
+    // --- 2) Select only columns belonging to the coupling interface (CPs) ------
 
     std::vector<IndexType> valid_columns;
-    valid_columns.reserve(n_nodes);
-    for (IndexType j = 0; j < n_nodes; ++j) {
-        if (existing_node_ids.count(j + 1)) {
-            valid_columns.push_back(j);
+    valid_columns.reserve(rOriginModelPart.NumberOfNodes());
+
+    for (const auto& rNode : rOriginModelPart.Nodes()) {
+        auto it = root_id_to_col.find(rNode.Id());
+        if (it != root_id_to_col.end()) {
+            valid_columns.push_back(it->second);
         }
     }
 
-    // Build reduced N matrix with just the control points belonging to the coupling interface 
-    SparseMatrixType N_reduced(n_gp, valid_columns.size());
-    for (IndexType i = 0; i < n_gp; ++i) {
-        for (IndexType j = 0; j < valid_columns.size(); ++j) {
-            N_reduced(i, j) = N(i, valid_columns[j]);
+    std::sort(valid_columns.begin(), valid_columns.end());
+    valid_columns.erase(std::unique(valid_columns.begin(), valid_columns.end()), valid_columns.end());
+
+    const IndexType n_interface_cps = valid_columns.size();
+
+    // N_reduced : (n_ip x n_interface_cps)
+    SparseMatrixType N_reduced(n_ip, n_interface_cps);
+
+    for (IndexType i = 0; i < n_ip; ++i) {
+        for (IndexType j = 0; j < n_interface_cps; ++j) {
+            const IndexType col_root = valid_columns[j];
+            const double value = N(i, col_root);
+            if (value != 0.0) {
+                N_reduced(i, j) = value;
+            }
         }
     }
 
+    // --- 3) Dimension checks for the matrix product ----------------------------
 
-    // Compute final mapping: H = H_tilde @ N_reduced
-    auto pMappingMatrix = Kratos::make_unique<TMappingMatrixType>(rMappingMatrixGP.size1(), N_reduced.size2());
+    // rMappingMatrixGP: typically (#origin_dofs or #dest_dofs) x n_ip
+    KRATOS_DEBUG_ERROR_IF(rMappingMatrixGP.size2() != n_ip)
+        << "ComputeMappingMatrixIga: Incompatible dimensions for multiplication.\n"
+        << "rMappingMatrixGP is (" << rMappingMatrixGP.size1()
+        << " x " << rMappingMatrixGP.size2() << "), but N_reduced is ("
+        << N_reduced.size1() << " x " << N_reduced.size2() << "). "
+        << "Expected rMappingMatrixGP.size2() == n_ip == N_reduced.size1()."
+        << std::endl;
+
+    const IndexType result_rows = rMappingMatrixGP.size1();   // e.g. #destination DOFs
+    const IndexType result_cols = N_reduced.size2();          // #CPs on interface == n_interface_cps
+
+    // --- 4) Final mapping: H = H_tilde @ N_reduced --------------------------------
+
+    auto pMappingMatrix = Kratos::make_unique<TMappingMatrixType>(result_rows, result_cols);
     noalias(*pMappingMatrix) = prod(rMappingMatrixGP, N_reduced);
 
     return pMappingMatrix;
