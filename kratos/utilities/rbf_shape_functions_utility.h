@@ -49,6 +49,13 @@ public:
     /// Kratos core QR decomposition type
     using KratosCoreQRType = DenseHouseholderQRDecomposition<DenseSpace>;
 
+    enum class RBFType {
+        InverseMultiquadric,
+        Gaussian,
+        ThinPlateSpline,
+        WendlandC2
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -70,7 +77,8 @@ public:
      */
     static double EvaluateRBF(
         const double x,
-        const double h);
+        const double h,
+        RBFType rbf_type);
 
     /**
      * @brief Calculates the RBF shape function values
@@ -119,14 +127,16 @@ public:
         Vector& rN,
         Vector& rY);
 
+    static double CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints);
+
+    static double CalculateWendlandC2SupportRadius(const Matrix& rPoints, const double k);
+
     ///@}
 private:
     ///@name Unaccessible methods
     ///@{
 
     RBFShapeFunctionsUtility(){};
-
-    static double CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints);
 
     ///@}
 };

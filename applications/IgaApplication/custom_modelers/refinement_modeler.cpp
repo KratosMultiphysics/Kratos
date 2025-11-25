@@ -92,10 +92,7 @@ namespace Kratos
                             PointsRefined, KnotsURefined, WeightsRefined);
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
-                        VariableUtils().SetFlag(TO_ERASE, true, r_model_part.Nodes());
-                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
-                        IndexType node_id = 1;
-
+                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -136,10 +133,7 @@ namespace Kratos
                             PointsRefined, KnotsVRefined, WeightsRefined);
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
-                        VariableUtils().SetFlag(TO_ERASE, true, r_model_part.Nodes());
-                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
-                        IndexType node_id = 1;
-
+                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -188,10 +182,7 @@ namespace Kratos
                             PointsRefined, KnotsURefined, WeightsRefined);
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
-                        VariableUtils().SetFlag(TO_ERASE, true, r_model_part.Nodes());
-                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
-                        IndexType node_id = 1;
-                        
+                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -240,10 +231,7 @@ namespace Kratos
                         PointsRefined, KnotsVRefined, WeightsRefined);
 
                     // Recreate nodes in model part to ensure correct assignment of dofs
-                    VariableUtils().SetFlag(TO_ERASE, true, r_model_part.Nodes());
-                    r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
-                    IndexType node_id = 1;
-
+                    IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
                     for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                         if (PointsRefined(i)->Id() == 0) {
                             PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
