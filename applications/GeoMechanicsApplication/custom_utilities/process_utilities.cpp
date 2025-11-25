@@ -18,19 +18,19 @@
 
 namespace
 {
-std::set<std::string> ExtractModelPartNames(const auto& rProcessList, std::string_view RootName, std::string_view Prefix)
+std::set<std::string, std::less<>> ExtractModelPartNames(const auto&      rProcessList,
+                                                         std::string_view RootName,
+                                                         std::string_view Prefix)
 {
-    std::set<std::string> result;
+    std::set<std::string, std::less<>> result;
     for (const auto& r_process : rProcessList) {
         std::set<std::string> model_part_names;
-        if (r_process.Has("Parameters")) {
-            if (r_process["Parameters"].Has("model_part_name")) {
-                model_part_names.insert(r_process["Parameters"]["model_part_name"].GetString());
-            } else if (r_process["Parameters"].Has("model_part_name_list")) {
-                for (const auto& name : r_process["Parameters"]["model_part_name_list"].GetStringArray()) {
-                    model_part_names.insert(name);
-                }
-            }
+        if (!r_process.Has("Parameters")) continue;
+        if (r_process["Parameters"].Has("model_part_name")) {
+            model_part_names.insert(r_process["Parameters"]["model_part_name"].GetString());
+        } else if (r_process["Parameters"].Has("model_part_name_list")) {
+            const auto names = r_process["Parameters"]["model_part_name_list"].GetStringArray();
+            model_part_names.insert(names.begin(), names.end());
         }
         for (auto model_part_name : model_part_names) {
             if (model_part_name == RootName) continue;
@@ -74,9 +74,9 @@ std::vector<std::reference_wrapper<ModelPart>> ProcessUtilities::GetModelPartsFr
 void ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(const Parameters& rProjectParameters,
                                                                     Parameters& rSolverSettings)
 {
-    std::set<std::string> domain_condition_names;
-    const auto            root_name = rSolverSettings["model_part_name"].GetString();
-    const auto            prefix    = root_name + ".";
+    std::set<std::string, std::less<>> domain_condition_names;
+    const auto                         root_name = rSolverSettings["model_part_name"].GetString();
+    const auto                         prefix    = root_name + ".";
 
     if (rProjectParameters.Has("processes")) {
         for (const auto& r_process : rProjectParameters["processes"]) {
