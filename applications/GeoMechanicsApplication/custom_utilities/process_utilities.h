@@ -30,6 +30,7 @@ public:
     static std::vector<std::reference_wrapper<ModelPart>> GetModelPartsFromSettings(
         Model& rModel, const Parameters& rProcessSettings, const std::string& rProcessInfo);
 
-    static void AddProcessesSubModelPartList(const Parameters& rProjectParameters, Parameters& rSolverSettings);
+    static void AddProcessesSubModelPartListToSolverSettings(const Parameters& rProjectParameters,
+                                                             Parameters&       rSolverSettings);
 };
 }; // namespace Kratos

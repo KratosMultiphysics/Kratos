@@ -36,6 +36,6 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
 
 def CreateSolver(model, custom_settings):
     solver_settings = custom_settings["solver_settings"]
-    KratosGeo.ProcessUtilities.AddProcessesSubModelPartList(custom_settings, solver_settings)
+    KratosGeo.ProcessUtilities.AddProcessesSubModelPartListToSolverSettings(custom_settings, solver_settings)
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
     return CreateSolverByParameters(model, solver_settings, parallelism)

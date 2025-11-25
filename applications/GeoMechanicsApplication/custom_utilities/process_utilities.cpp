@@ -18,29 +18,27 @@
 
 namespace
 {
-struct StringHash {
-    using is_transparent = void; // Enables heterogeneous operations.
-
-    std::size_t operator()(std::string_view sv) const
-    {
-        std::hash<std::string_view> hasher;
-        return hasher(sv);
-    }
-};
-
-void ExtractModelPartNames(const auto& rProcessList,
-                           std::unordered_set<std::string, StringHash, std::equal_to<>>& rDomainConditionNames,
-                           std::string_view RootName,
-                           std::string_view Prefix)
+std::set<std::string> ExtractModelPartNames(const auto& rProcessList, std::string_view RootName, std::string_view Prefix)
 {
+    std::set<std::string> result;
     for (const auto& r_process : rProcessList) {
-        if (r_process.Has("Parameters") && r_process["Parameters"].Has("model_part_name")) {
-            auto model_part_name = r_process["Parameters"]["model_part_name"].GetString();
+        std::set<std::string> model_part_names;
+        if (r_process.Has("Parameters")) {
+            if (r_process["Parameters"].Has("model_part_name")) {
+                model_part_names.insert(r_process["Parameters"]["model_part_name"].GetString());
+            } else if (r_process["Parameters"].Has("model_part_name_list")) {
+                for (const auto& name : r_process["Parameters"]["model_part_name_list"].GetStringArray()) {
+                    model_part_names.insert(name);
+                }
+            }
+        }
+        for (auto model_part_name : model_part_names) {
             if (model_part_name == RootName) continue;
-            if (model_part_name.rfind(Prefix, 0) == 0) model_part_name.erase(0, Prefix.size());
-            rDomainConditionNames.insert(model_part_name);
+            if (model_part_name.starts_with(Prefix)) model_part_name.erase(0, Prefix.size());
+            result.insert(model_part_name);
         }
     }
+    return result;
 };
 } // namespace
 
@@ -73,29 +71,30 @@ std::vector<std::reference_wrapper<ModelPart>> ProcessUtilities::GetModelPartsFr
     return result;
 }
 
-void ProcessUtilities::AddProcessesSubModelPartList(const Parameters& rProjectParameters, Parameters& rSolverSettings)
+void ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(const Parameters& rProjectParameters,
+                                                                    Parameters& rSolverSettings)
 {
-    std::unordered_set<std::string, StringHash, std::equal_to<>> domain_condition_names;
-    const auto root_name = rSolverSettings["model_part_name"].GetString();
-    const auto prefix    = root_name + ".";
+    std::set<std::string> domain_condition_names;
+    const auto            root_name = rSolverSettings["model_part_name"].GetString();
+    const auto            prefix    = root_name + ".";
 
-    const std::vector<std::string> process_lists_to_be_checked = {
-        "constraints_process_list", "loads_process_list", "auxiliary_process_list"};
     if (rProjectParameters.Has("processes")) {
-        const auto processes = rProjectParameters["processes"];
-        for (const auto& r_process_list_name : process_lists_to_be_checked) {
-            if (processes.Has(r_process_list_name))
-                ExtractModelPartNames(processes[r_process_list_name], domain_condition_names, root_name, prefix);
+        for (const auto& r_process : rProjectParameters["processes"]) {
+            const auto modelpart_names = ExtractModelPartNames(r_process, root_name, prefix);
+            domain_condition_names.insert(modelpart_names.begin(), modelpart_names.end());
         }
     }
     if (rSolverSettings.Has("processes_sub_model_part_list")) {
-        KRATOS_INFO("ProcessUtilities") << "processes_sub_model_part_list is deprecated" << std::endl;
+        KRATOS_WARNING("ProcessUtilities")
+            << "'processes_sub_model_part_list' is deprecated. This list is built automatically "
+               "from the model parts used in all processes."
+            << std::endl;
         rSolverSettings.RemoveValue("processes_sub_model_part_list");
     }
     rSolverSettings.AddEmptyArray("processes_sub_model_part_list");
 
     for (const auto& r_name : domain_condition_names) {
-        rSolverSettings["processes_sub_model_part_list"].Append(Kratos::Parameters("\"" + r_name + "\""));
+        rSolverSettings["processes_sub_model_part_list"].Append(r_name);
     }
 }
 

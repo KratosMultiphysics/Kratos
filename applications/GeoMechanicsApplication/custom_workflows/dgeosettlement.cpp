@@ -186,26 +186,24 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         KRATOS_INFO("KratosGeoSettlement")
             << "Parsed project parameters file " << project_parameters_file_path << std::endl;
 
-        mModelPartName = project_parameters["solver_settings"]["model_part_name"].GetString();
-        if (const auto model_part_name = project_parameters["solver_settings"]["model_part_name"].GetString();
+        auto solver_settings = project_parameters["solver_settings"];
+        mModelPartName       = solver_settings["model_part_name"].GetString();
+        if (const auto model_part_name = solver_settings["model_part_name"].GetString();
             !mModel.HasModelPart(model_part_name)) {
             auto&      model_part = AddNewModelPart(model_part_name);
             const auto mesh_file_name =
-                project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString();
+                solver_settings["model_import_settings"]["input_filename"].GetString();
             mpInputUtility->ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
             AddDegreesOfFreedomTo(model_part);
             KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
         }
 
-        auto solver_settings = project_parameters["solver_settings"];
-        ProcessUtilities::AddProcessesSubModelPartList(project_parameters, solver_settings);
+        ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(project_parameters, solver_settings);
         PrepareModelPart(solver_settings);
 
-        if (project_parameters["solver_settings"].Has("material_import_settings")) {
+        if (solver_settings.Has("material_import_settings")) {
             const auto material_file_name =
-                project_parameters["solver_settings"]["material_import_settings"]
-                                  ["materials_filename"]
-                                      .GetString();
+                solver_settings["material_import_settings"]["materials_filename"].GetString();
             const auto material_file_path = rWorkingDirectory / material_file_name;
             mpInputUtility->AddMaterialsFromFile(material_file_path.generic_string(), mModel);
             KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
@@ -409,9 +407,8 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     }
 
     auto collect_ids_from_entity = [](auto& rContainer, auto& rIdSet) {
-        for (const auto& r_item : rContainer) {
-            rIdSet.insert(r_item.Id());
-        }
+        std::ranges::transform(rContainer, std::inserter(rIdSet, rIdSet.end()),
+                               [](const auto& rItem) { return rItem.Id(); });
     };
 
     std::set<Node::IndexType> node_id_set;

@@ -28,7 +28,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleModelPart, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Set
+    // Arrange
     Model model;
     model.CreateModelPart("Main");
 
@@ -47,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleModelPart, KratosGeoMe
 
 KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Set
+    // Arrange
     Model model;
     model.CreateModelPart("Part1");
     model.CreateModelPart("Part2");
@@ -150,9 +150,10 @@ static const std::vector<NamedFactory> ProcessesAndOperations = {
 
 INSTANTIATE_TEST_SUITE_P(ProcessAndOperationUtilitiesTests, ModelPartsTest, ::testing::ValuesIn(ProcessesAndOperations));
 
-KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsEmptyList, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsEmptyListWhenThereAreNoProcesses,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Set
+    // Arrange
     const auto project_parameters = Parameters{};
     Parameters solver_settings(R"(
         {
@@ -160,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsEmptyList, KratosGeoM
         })");
 
     // Act
-    ProcessUtilities::AddProcessesSubModelPartList(project_parameters, solver_settings);
+    ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(project_parameters, solver_settings);
 
     // Assert
     KRATOS_EXPECT_TRUE(solver_settings.Has("processes_sub_model_part_list"))
@@ -168,9 +169,10 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsEmptyList, KratosGeoM
     KRATOS_EXPECT_TRUE(solver_settings["processes_sub_model_part_list"].size() == 0)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledList, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnConstraintsLoadsAndAuxiliaryProcessesOnly,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Set
+    // Arrange
     const Parameters project_parameters(R"(
       {
          "processes":
@@ -182,21 +184,13 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledList, KratosGeo
                 }
             },{
                 "Parameters":    {
-                    "model_part_name": "PorousDomain.BottomFixed"
-                }
-            },{
-                "Parameters":    {
-                   "model_part_name": "PorousDomain.TopLoad"
+                    "model_part_name_list": ["PorousDomain.BottomFixed", "PorousDomain.TopLoad"]
                 }
             }],
             "loads_process_list": [
             {
                 "Parameters":    {
                     "model_part_name": "PorousDomain.Soil"
-                }
-            },{
-                "Parameters":    {
-                   "model_part_name": "PorousDomain"
                 }
             }],
             "auxiliary_process_list": [{
@@ -206,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledList, KratosGeo
             }],
             "arbitrary_process_list": [{
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Domain"
+                    "model_part_name": "PorousDomain"
                 }
             }]
          },
@@ -218,26 +212,19 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledList, KratosGeo
 
     auto solver_settings = project_parameters["solver_settings"];
 
-    std::stringstream buffer;
-    std::streambuf*   old = std::cout.rdbuf(buffer.rdbuf()); // NOSONAR
-
     // Act
-    ProcessUtilities::AddProcessesSubModelPartList(project_parameters, solver_settings);
+    ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(project_parameters, solver_settings);
 
     // Assert
-    std::cout.rdbuf(old); // NOSONAR
-    std::string output = buffer.str();
-    EXPECT_NE(output.find("processes_sub_model_part_list is deprecated"), std::string::npos);
-
     const auto& r_list = solver_settings["processes_sub_model_part_list"];
     KRATOS_EXPECT_EQ(r_list.size(), 4);
 
-    std::set<std::string, std::less<>> actual_modelpart_names;
-    for (const auto& r_name : r_list) {
-        actual_modelpart_names.insert(r_name.GetString());
-    }
-    const std::set<std::string, std::less<>> expected_modelpart_names = {"Sides", "BottomFixed",
-                                                                         "TopLoad", "Soil"};
+    std::vector<std::string> actual_modelpart_names;
+    std::transform(r_list.begin(), r_list.end(),
+                   std::inserter(actual_modelpart_names, actual_modelpart_names.end()),
+                   [](const auto& r_name) { return r_name.GetString(); });
+
+    const std::vector<std::string> expected_modelpart_names = {"BottomFixed", "Sides", "Soil", "TopLoad"};
     EXPECT_EQ(actual_modelpart_names, expected_modelpart_names);
 }
 

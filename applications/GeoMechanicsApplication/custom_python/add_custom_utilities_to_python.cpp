@@ -46,8 +46,9 @@ void AddCustomUtilitiesToPython(const pybind11::module& rModule)
                             std::function<void(const char*)>, std::function<bool()>>());
 
     pybind11::class_<ProcessUtilities>(rModule, "ProcessUtilities")
-        .def_static("AddProcessesSubModelPartList", &ProcessUtilities::AddProcessesSubModelPartList,
-                    pybind11::arg("custom_settings"), pybind11::arg("solver_settings"));
+        .def_static("AddProcessesSubModelPartListToSolverSettings",
+                    &ProcessUtilities::AddProcessesSubModelPartListToSolverSettings,
+                    pybind11::arg("project_parameters"), pybind11::arg("solver_settings"));
 }
 
 } // Namespace Kratos::Python.
