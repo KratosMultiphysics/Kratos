@@ -341,6 +341,15 @@
                 }
             },
             {
+                "python_module": "apply_excavation_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "apply_excavation_process",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Strut",
+                    "deactivate_soil_part": false
+                }
+            },
+            {
                 "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
                 "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
@@ -387,6 +396,7 @@
                             "gauss_point_results": [
                                 "CAUCHY_STRESS_TENSOR",
                                 "TOTAL_STRESS_TENSOR",
+                                "ENGINEERING_STRAIN_TENSOR",
                                 "AXIAL_FORCE",
                                 "BENDING_MOMENT",
                                 "SHEAR_FORCE"

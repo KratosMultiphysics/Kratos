@@ -405,6 +405,7 @@
                             "gauss_point_results": [
                                 "CAUCHY_STRESS_TENSOR",
                                 "TOTAL_STRESS_TENSOR",
+                                "ENGINEERING_STRAIN_TENSOR",
                                 "AXIAL_FORCE",
                                 "BENDING_MOMENT",
                                 "SHEAR_FORCE"

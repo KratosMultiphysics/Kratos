@@ -301,6 +301,22 @@
         ],
         "auxiliary_process_list": [
             {
+                "python_module": "apply_excavation_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "apply_excavation_process",
+                "Parameters": {
+                    "model_part_name_list": [ "PorousDomain.Wall_Clay_Interface_Left",
+                        "PorousDomain.Wall_Clay_Interface_Upper_Right",
+                        "PorousDomain.Wall_Clay_Interface_Middle_Right",
+                        "PorousDomain.Wall_Clay_Interface_Lower_Right",
+                        "PorousDomain.Wall_Sand_Interface_Left",
+                        "PorousDomain.Wall_Sand_Interface_Right",
+                        "PorousDomain.Diaphragm_Wall",
+                        "PorousDomain.Strut"],
+                    "deactivate_soil_part": true
+                }
+            },
+            {
                 "python_module": "apply_k0_procedure_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "apply_k0_procedure_process",
@@ -349,7 +365,8 @@
                             ],
                             "gauss_point_results": [
                                 "CAUCHY_STRESS_TENSOR",
-                                "TOTAL_STRESS_TENSOR"
+                                "TOTAL_STRESS_TENSOR",
+                                "ENGINEERING_STRAIN_TENSOR"
                             ]
                         }
                     },
