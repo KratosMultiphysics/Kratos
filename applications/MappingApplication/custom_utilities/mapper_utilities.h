@@ -173,10 +173,6 @@ void UpdateSystemVectorFromGeometricalEntities(
     const std::size_t n_entities = rContainer.size();
     auto it_begin = rContainer.begin();
 
-    KRATOS_ERROR_IF(rVector.size() < n_entities)
-        << "UpdateSystemVectorFromEntities: vector size (" << rVector.size()
-        << ") is smaller than number of entities (" << n_entities << ")!" << std::endl;
-
     const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
     IndexPartition<std::size_t>(n_entities, num_threads).for_each([&](const std::size_t i){
@@ -322,10 +318,6 @@ void UpdateGeometricalEntitiesFromSystemVector(
 
     const std::size_t n_entities = rContainer.size();
     auto it_begin = rContainer.begin();
-
-    KRATOS_ERROR_IF(rVector.size() < n_entities)
-        << "UpdateGeometricalObjectsFromSystemVector: vector size (" << rVector.size()
-        << ") is smaller than number of entities (" << n_entities << ")!" << std::endl;
 
     const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
