@@ -1,0 +1,165 @@
+{
+    "problem_data": {
+        "problem_name": "interface_prestress_test",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0.0,
+        "end_time": 1.0
+    },
+    "solver_settings": {
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "solver_type": "U_Pw",
+        "solution_type": "static",
+        "strategy_type": "newton_raphson",
+        "model_part_name": "PorousDomain",
+        "domain_size": 2,
+        "echo_level": 0,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "test_model"
+        },
+        "material_import_settings": {
+            "materials_filename": "MaterialParameters.json"
+        },
+        "buffer_size": 2,
+        "clear_storage": false,
+        "compute_reactions": true,
+        "move_mesh_flag": false,
+        "reform_dofs_at_each_step": false,
+        "block_builder": true,
+        "reset_displacements": false,
+        "convergence_criterion": "residual_criterion",
+        "residual_relative_tolerance": 0.0001,
+        "residual_absolute_tolerance": 1e-09,
+        "min_iterations": 6,
+        "max_iterations": 15,
+        "number_cycles": 1,
+        "reduction_factor": 0.5,
+        "increase_factor": 2.0,
+        "calculate_reactions": true,
+        "rotation_dofs": false,
+        "problem_domain_sub_model_part_list": ["Soil", "Interface"],
+        "processes_sub_model_part_list": ["Bottom", "Side_Rollers", "Top", "Interface", "Master_Side", "Slave_Side"],
+        "body_domain_sub_model_part_list": ["Soil", "Interface"],
+        "linear_solver_settings": {
+            "solver_type": "skyline_lu_factorization",
+            "scaling": true
+        }
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Bottom",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [true, true, false],
+                    "is_fixed": [true, true, false],
+                    "value": [0.0, 0.0, 0.0],
+                    "table": [0, 0, 0]
+                }
+            },
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Side_Rollers",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [true, false, false],
+                    "is_fixed": [true, false, false],
+                    "value": [0.0, 0.0, 0.0],
+                    "table": [0, 0, 0]
+                }
+            },
+            {
+                "python_module": "apply_scalar_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name":  "ApplyScalarConstraintTableProcess",
+                "Parameters":    {
+                    "model_part_name": "PorousDomain.Soil",
+                    "variable_name":   "WATER_PRESSURE",
+                    "active":          true,
+                    "is_fixed":        true,
+                    "value":           0.0,
+                    "table":           0
+                }
+            },
+            {
+                "python_module": "assign_master_slave_constraints_to_neighbours_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignMasterSlaveConstraintsToNeighboursUtility",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.porous_computational_model_part",
+                    "variable_names": ["DISPLACEMENT", "WATER_PRESSURE"],
+                    "minimum_number_of_neighbouring_nodes": 2,
+                    "reform_constraints_at_each_step": true,
+                    "master_model_part_name": "PorousDomain.Master_Side",
+                    "slave_model_part_name": "PorousDomain.Slave_Side",
+                    "search_radius": 0.05
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Top",
+                    "variable_name": "LINE_LOAD",
+                    "active": [false, true, false],
+                    "value": [0.0, 0.0, 0.0],
+                    "table": [0, 1, 0]
+                }
+            }
+        ],
+        "auxiliary_process_list": [
+            {
+                "python_module": "apply_excavation_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "apply_excavation_process",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Interface",
+                    "variable_name": "EXCAVATION",
+                    "deactivate_soil_part": true
+                }
+            }
+        ]
+    },
+    "output_processes": {
+        "gid_output": [
+            {
+                "python_module": "gid_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.porous_computational_model_part",
+                    "postprocess_parameters": {
+                        "result_file_configuration": {
+                            "gidpost_flags": {
+                                "GiDPostMode": "GiD_PostAscii",
+                                "WriteDeformedMeshFlag": "WriteDeformed",
+                                "WriteConditionsFlag": "WriteConditions",
+                                "MultiFileFlag": "SingleFile"
+                            },
+                            "file_label": "step",
+                            "output_control_type": "step",
+                            "output_interval": 1,
+                            "body_output": true,
+                            "node_output": false,
+                            "skin_output": false,
+                            "nodal_results": ["DISPLACEMENT", "WATER_PRESSURE"],
+                            "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
+                        }
+                    },
+                    "output_name": "interface_prestress_test_Stage_1"
+                }
+            }
+        ]
+    }
+}

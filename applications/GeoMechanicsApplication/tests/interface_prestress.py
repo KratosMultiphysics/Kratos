@@ -143,6 +143,12 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
             expected_relative_shear_displacement=0.0,
         )
 
+    def test_model_with_increasing_line_load(self):
+        self.test_path = test_helper.get_file_path(os.path.join("test_interface_prestress", "with_increasing_line_load"))
+
+        number_of_stages = 2
+        run_multiple_stages.run_stages(self.test_path, number_of_stages)
+
 
 if __name__ == "__main__":
     KratosUnittest.main()

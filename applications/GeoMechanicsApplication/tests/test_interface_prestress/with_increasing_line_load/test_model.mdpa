@@ -1,0 +1,216 @@
+Begin Properties 0
+End Properties
+
+Begin Table 1 X LINE_LOAD_Y
+   0.0  -1000.0
+   3.0  -4000.0
+End Table
+
+Begin Nodes
+  1  0.0000000000 0.0000000000 0.0000000000
+  2  1.0000000000 0.0000000000 0.0000000000
+  3  2.0000000000 0.0000000000 0.0000000000
+  4  3.0000000000 0.0000000000 0.0000000000
+  5  0.0000000000 1.0000000000 0.0000000000
+  6  1.0000000000 1.0000000000 0.0000000000
+  7  2.0000000000 1.0000000000 0.0000000000
+  8  3.0000000000 1.0000000000 0.0000000000
+  9  0.5000000000 0.0000000000 0.0000000000
+ 10  1.5000000000 0.0000000000 0.0000000000
+ 11  2.5000000000 0.0000000000 0.0000000000
+ 12  0.0000000000 0.5000000000 0.0000000000
+ 13  1.0000000000 0.5000000000 0.0000000000
+ 14  2.0000000000 0.5000000000 0.0000000000
+ 15  3.0000000000 0.5000000000 0.0000000000
+ 16  0.5000000000 1.0000000000 0.0000000000
+ 17  1.5000000000 1.0000000000 0.0000000000
+ 18  2.5000000000 1.0000000000 0.0000000000
+ 19  0.0000000000 1.0000000000 0.0000000000
+ 20  1.0000000000 1.0000000000 0.0000000000
+ 21  2.0000000000 1.0000000000 0.0000000000
+ 22  3.0000000000 1.0000000000 0.0000000000
+ 23  0.0000000000 2.0000000000 0.0000000000
+ 24  1.0000000000 2.0000000000 0.0000000000
+ 25  2.0000000000 2.0000000000 0.0000000000
+ 26  3.0000000000 2.0000000000 0.0000000000
+ 27  0.5000000000 1.0000000000 0.0000000000
+ 28  1.5000000000 1.0000000000 0.0000000000
+ 29  2.5000000000 1.0000000000 0.0000000000
+ 30  0.0000000000 1.5000000000 0.0000000000
+ 31  1.0000000000 1.5000000000 0.0000000000
+ 32  2.0000000000 1.5000000000 0.0000000000
+ 33  3.0000000000 1.5000000000 0.0000000000
+ 34  0.5000000000 2.0000000000 0.0000000000
+ 35  1.5000000000 2.0000000000 0.0000000000
+ 36  2.5000000000 2.0000000000 0.0000000000
+End Nodes
+
+Begin Elements SmallStrainUPwDiffOrderElement2D8N
+  1  0   1  2  6  5  9 13 16 12
+  2  0   2  3  7  6 10 14 17 13
+  3  0   3  4  8  7 11 15 18 14
+  4  0  19 20 24 23 27 31 34 30
+  5  0  20 21 25 24 28 32 35 31
+  6  0  21 22 26 25 29 33 36 32
+End Elements
+
+Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N
+  7  0  5  6 16 19 20 27
+  8  0  6  7 17 20 21 28
+  9  0  7  8 18 21 22 29
+End Elements
+
+Begin Conditions LineLoadDiffOrderCondition2D3N
+  1  0  24 23 34
+  2  0  25 24 35
+  3  0  26 25 36
+End Conditions
+
+
+Begin SubModelPart Soil
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+    3
+    4
+    5
+    6
+  End SubModelPartElements
+End SubModelPart
+
+
+Begin SubModelPart Bottom
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    9
+    10
+    11
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart Side_Rollers
+  Begin SubModelPartNodes
+    1
+    4
+    5
+    8
+    12
+    15
+    19
+    22
+    23
+    26
+    30
+    33
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart Interface
+  Begin SubModelPartNodes
+    5
+    6
+    7
+    8
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    27
+    28
+    29
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    7
+    8
+    9
+  End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart Top
+  Begin SubModelPartNodes
+    23
+    24
+    25
+    26
+    34
+    35
+    36
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+    1
+    2
+    3
+  End SubModelPartConditions
+  Begin SubModelPartTables
+    1
+  End SubModelPartTables
+End SubModelPart
+
+Begin SubModelPart Master_Side
+  Begin SubModelPartNodes
+    5
+    6
+    7
+    8
+    16
+    17
+    18
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart Slave_Side
+  Begin SubModelPartNodes
+    19
+    20
+    21
+    22
+    27
+    28
+    29
+  End SubModelPartNodes
+End SubModelPart
+
