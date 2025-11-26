@@ -62,7 +62,8 @@ public:
                 // Works for vector/deque
                 rIds.push_back(id);
             } else {
-                static_assert(false, "OutputContainerType does not support insert or push_back.");
+                static_assert(!std::is_same_v<IdsType, IdsType>,
+                              "OutputContainerType does not support insert or push_back.");
             }
         }
     }
