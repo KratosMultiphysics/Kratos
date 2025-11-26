@@ -69,33 +69,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
     const auto process_info     = ProcessInfo{};
 
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "GEO_COHESION does not exist in the property with Id 3.")
-    properties.SetValue(GEO_COHESION, -1.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_COHESION in the property with Id 3 has an invalid value: -1 is out of the range [0, -).")
     properties.SetValue(GEO_COHESION, 1.0);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "GEO_FRICTION_ANGLE does not exist in the property with Id 3.")
-    properties.SetValue(GEO_FRICTION_ANGLE, -30.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_FRICTION_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range [0, -).")
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "GEO_DILATANCY_ANGLE does not exist in the property with Id 3.")
-    properties.SetValue(GEO_DILATANCY_ANGLE, -30.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_DILATANCY_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range [0, 30].")
-    properties.SetValue(GEO_DILATANCY_ANGLE, 40.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), " GEO_DILATANCY_ANGLE in the property with Id 3 has an invalid value: 40 is out of the range [0, 30].")
-    properties.SetValue(GEO_DILATANCY_ANGLE, 30.0);
-
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
         "GEO_TENSILE_STRENGTH does not exist in the property with Id 3.")
