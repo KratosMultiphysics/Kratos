@@ -16,6 +16,7 @@
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/three_dimensional.h"
 #include "custom_elements/interface_element.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/interface_geometry.h"
@@ -1303,6 +1304,10 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, -1.0, 0.0));
@@ -1325,7 +1330,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     stress_vector <<= 3.0, 8.0 / 3.0, 4.0, 1.0;
     r_stress_vectors.emplace_back(stress_vector);
 
-    p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
+    p_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
 
     nodes.clear();
     nodes.push_back(r_model_part.pGetNode(1));
@@ -1368,8 +1373,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     r_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
     r_stress_vectors.emplace_back(stress_vector);
-    p_other_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors,
-                                                            dummy_process_info);
+    p_other_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
 
     GlobalPointersVector<Element> other_neighbours{p_other_neighbour_element};
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, other_neighbours);
@@ -1392,6 +1396,10 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(1, 0.5, -1.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.5, -0.5, 0.0));
@@ -1404,7 +1412,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
     // properties for neighbour elements
     const auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
-                                                 std::make_unique<PlaneStrain>()));
+                                                 std::make_unique<ThreeDimensional>()));
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
     // create a hexagonal neighbour element
@@ -1424,7 +1432,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
     r_stress_vectors.emplace_back(stress_vector);
     r_stress_vectors.emplace_back(stress_vector);
     r_stress_vectors.emplace_back(stress_vector);
-    p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
+    p_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
 
     nodes.clear();
     nodes.push_back(r_model_part.pGetNode(2));
@@ -1484,8 +1492,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
     r_stress_vectors.emplace_back(stress_vector);
     r_stress_vectors.emplace_back(stress_vector);
     r_stress_vectors.emplace_back(stress_vector);
-    p_other_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, r_stress_vectors,
-                                                            dummy_process_info);
+    p_other_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
 
     GlobalPointersVector<Element> other_neighbours{p_other_neighbour_element};
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, other_neighbours);
