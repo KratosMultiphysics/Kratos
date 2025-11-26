@@ -56,6 +56,7 @@ public:
 
 private:
     void InitializeKappaDependentFunctions();
+    void CheckMaterialProperties();
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

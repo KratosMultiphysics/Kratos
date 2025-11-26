@@ -16,6 +16,7 @@
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
+#include "custom_utilities/check_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <cmath>
@@ -106,6 +107,8 @@ CoulombYieldSurface::CoulombYieldSurface()
 CoulombYieldSurface::CoulombYieldSurface(const Properties& rMaterialProperties)
     : mMaterialProperties{rMaterialProperties}
 {
+    this->CheckMaterialProperties();
+
     // For backward compatibility, if no hardening type is given, we assume no hardening at all
     if (!mMaterialProperties.Has(GEO_COULOMB_HARDENING_TYPE)) {
         mMaterialProperties[GEO_COULOMB_HARDENING_TYPE] = "None";
@@ -195,6 +198,40 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Vect
                            [mean](auto sigma) { return sigma - mean; });
     return -std::sqrt(2.0 / 3.0) * MathUtils<>::Norm(deviatoric_principle_stress_vector) *
            CalculatePlasticMultiplier(rSigmaTau, DerivativeOfFlowFunction(rSigmaTau, AveragingType));
+}
+
+void CoulombYieldSurface::CheckMaterialProperties() 
+{
+    const CheckProperties check_properties(mMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
+    check_properties.Check(GEO_COHESION);
+    check_properties.Check(GEO_FRICTION_ANGLE);
+    check_properties.Check(GEO_DILATANCY_ANGLE, mMaterialProperties[GEO_FRICTION_ANGLE]);
+
+    if (GetCoulombHardeningTypeFrom(mMaterialProperties) != "none") {
+        check_properties.CheckAvailability(GEO_COHESION_FUNCTION_COEFFICIENTS);
+        const auto& cohesion_vec = mMaterialProperties[GEO_COHESION_FUNCTION_COEFFICIENTS];
+        for (unsigned int i = 0; i < cohesion_vec.size(); ++i) {
+            KRATOS_ERROR_IF(cohesion_vec[i] < 0.0)
+                << "Entry " << i << " in " << GEO_COHESION_FUNCTION_COEFFICIENTS.Name()
+                << " out of range. Value: " << cohesion_vec[i];
+        }
+
+        check_properties.CheckAvailability(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS);
+        const auto& friction_vec = mMaterialProperties[GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS];
+        for (unsigned int i = 0; i < friction_vec.size(); ++i) {
+            KRATOS_ERROR_IF(friction_vec[i] < 0.0)
+                << "Entry " << i << " in " << GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS.Name()
+                << " out of range. Value: " << friction_vec[i];
+        }
+
+        check_properties.CheckAvailability(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS);
+        const auto& dilatancy_vec = mMaterialProperties[GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS];
+        for (unsigned int i = 0; i < dilatancy_vec.size(); ++i) {
+            KRATOS_ERROR_IF(dilatancy_vec[i] < 0.0)
+                << "Entry " << i << " in " << GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS.Name()
+                << " out of range. Value: " << dilatancy_vec[i];
+        }
+    }
 }
 
 void CoulombYieldSurface::save(Serializer& rSerializer) const
