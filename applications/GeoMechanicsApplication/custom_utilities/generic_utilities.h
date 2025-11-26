@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Mohamed Nabi
+//                   Gennady Markelov
 //
 
 #pragma once
@@ -45,6 +46,35 @@ public:
                 result(i, j) = rMatrix(i, rIndices[j]);
             }
         }
+        return result;
+    }
+
+    template <class ContainerType, class IdsType>
+    static void CollectIdsFromEntity(const ContainerType& rContainer, IdsType& rIds)
+    {
+        for (const auto& r_item : rContainer) {
+            const auto id = r_item.Id();
+
+            if constexpr (requires { rIds.insert(id); }) {
+                // Works for set/unordered_set
+                rIds.insert(id);
+            } else if constexpr (requires { rIds.push_back(id); }) {
+                // Works for vector/deque
+                rIds.push_back(id);
+            } else {
+                static_assert(false, "OutputContainerType does not support insert or push_back.");
+            }
+        }
+    }
+
+    template <class ContainerType>
+    static auto CollectIdsFromEntity(const ContainerType& rContainer)
+    {
+        using ItemRef = decltype(*std::begin(rContainer));
+        using Item    = std::remove_cv_t<std::remove_reference_t<ItemRef>>;
+        using IdType  = decltype(std::declval<Item>().Id());
+        std::vector<IdType> result;
+        CollectIdsFromEntity(rContainer, result);
         return result;
     }
 

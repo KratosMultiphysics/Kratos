@@ -31,6 +31,7 @@
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.h"
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
+#include "custom_utilities/generic_utilities.h"
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_info_parser.h"
 #include "custom_utilities/process_utilities.h"
@@ -406,15 +407,10 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         domain_part_names.emplace_back(sub_model_part.GetString());
     }
 
-    auto collect_ids_from_entity = [](auto& rContainer, auto& rIdSet) {
-        std::ranges::transform(rContainer, std::inserter(rIdSet, rIdSet.end()),
-                               [](const auto& rItem) { return rItem.Id(); });
-    };
-
     std::set<Node::IndexType> node_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        collect_ids_from_entity(domain_part.Nodes(), node_id_set);
+        GenericUtilities::CollectIdsFromEntity(domain_part.Nodes(), node_id_set);
     }
     GetComputationalModelPart().AddNodes(
         std::vector<Node::IndexType>{node_id_set.begin(), node_id_set.end()});
@@ -422,7 +418,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::set<IndexedObject::IndexType> element_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        collect_ids_from_entity(domain_part.Elements(), element_id_set);
+        GenericUtilities::CollectIdsFromEntity(domain_part.Elements(), element_id_set);
     }
     GetComputationalModelPart().AddElements(
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
@@ -435,7 +431,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::set<IndexedObject::IndexType> condition_id_set;
     for (const auto& name : domain_condition_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        collect_ids_from_entity(domain_part.Conditions(), condition_id_set);
+        GenericUtilities::CollectIdsFromEntity(domain_part.Conditions(), condition_id_set);
     }
     GetComputationalModelPart().Conditions().clear();
     GetComputationalModelPart().AddConditions(

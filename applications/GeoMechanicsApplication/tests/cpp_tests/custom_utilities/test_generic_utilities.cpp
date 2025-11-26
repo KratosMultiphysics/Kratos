@@ -9,6 +9,8 @@
 //
 //  Main authors:    Mohamed Nabi
 //                   Wijtze Pieter Kikstra
+//                   Richard Faasse
+//                   Gennady Markelov
 //
 
 #include "custom_utilities/generic_utilities.h"
@@ -54,6 +56,37 @@ KRATOS_TEST_CASE_IN_SUITE(CheckMatrixPermutation, KratosGeoMechanicsFastSuiteWit
                         1.0, 0.0, 0.0, 0.0;
     // clang-format on
     KRATOS_EXPECT_MATRIX_EQ(GenericUtilities::MatrixWithPermutedColumns(matrix, indices), expected_result);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CollectIdsFromEntity_ReturnsEmptyListForEmptyGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto node_ids = GenericUtilities::CollectIdsFromEntity(Geometry<Node>{});
+
+    KRATOS_EXPECT_TRUE(node_ids.empty())
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CollectIdsFromEntity_ReturnsCorrectNodeIds, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arange
+    PointerVector<Node> nodes;
+    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(42, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(314, 0.0, 0.0, 0.0));
+    const Geometry geometry(1, nodes);
+
+    // Act
+    const auto node_ids_vector = GenericUtilities::CollectIdsFromEntity(geometry);
+
+    std::set<Node::IndexType> node_ids_set;
+    GenericUtilities::CollectIdsFromEntity(geometry, node_ids_set);
+
+    // Assert
+    const std::vector<Node::IndexType> expected_ids_vec = {1, 3, 42, 314};
+    const std::set<Node::IndexType> expected_ids_set(expected_ids_vec.begin(), expected_ids_vec.end());
+
+    KRATOS_EXPECT_VECTOR_EQ(node_ids_vector, expected_ids_vec);
+    EXPECT_EQ(node_ids_set, expected_ids_set);
 }
 
 } // namespace Kratos::Testing
