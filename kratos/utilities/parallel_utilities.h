@@ -94,6 +94,12 @@ public:
      */
     [[nodiscard]] static int GetNumProcs();
 
+    /**
+     * @brief Wrapper for omp_in_parallel()
+     * @return Maximum number of OpenMP threads that will be used in parallel regions.
+     */
+    [[nodiscard]] static int IsInParallel();
+
     ///@}
 
     /** @brief Returns the global lock
