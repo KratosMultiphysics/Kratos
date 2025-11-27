@@ -123,6 +123,9 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.assertAlmostEqual(self.total_reaction_y_from_output_data(output_data, time, bottom_node_ids),
                                expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
 
+        if test_helper.want_test_plots():
+            print("Plotting is not implemented for this test case.")
+
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation("linear_elastic")
 
