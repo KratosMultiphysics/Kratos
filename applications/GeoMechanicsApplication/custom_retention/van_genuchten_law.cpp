@@ -30,7 +30,6 @@ RetentionLaw::Pointer VanGenuchtenLaw::Clone() const
 double VanGenuchtenLaw::CalculateSaturation(Parameters& rParameters) const
 {
     KRATOS_TRY
-
     const auto  p                     = rParameters.GetFluidPressure();
     const auto& r_material_properties = rParameters.GetMaterialProperties();
 

@@ -141,13 +141,18 @@ void IgaModelerSbm::GetGeometryList(
                     << "::[IgaModelerSbm]:: The surrogate_model_part_inner has zero elements (no inner loop/boundary defined)."
                     << "Something might be missing in the NurbsModelerSbm." << std::endl;
 
-                for (IndexType iel = 1; iel < surrogate_model_part_inner.NumberOfElements()+1; iel++) { //loop over the number of inner loops
+                for (const auto& rElem : surrogate_model_part_inner.Elements()) {
                     /*
                     Each element in the surrogate_model_part_inner represents a surrogate boundary loop. First "node.Id()" is the id of the first condition and
                         the second "node.Id()" is the last condition of that loop. (Essential for multiple inner loops)
                     */
-                    IndexType first_condition_id = surrogate_model_part_inner.pGetElement(iel)->GetGeometry()[0].Id();
-                    IndexType last_condition_id = surrogate_model_part_inner.pGetElement(iel)->GetGeometry()[1].Id();
+                    const auto& r_geometry = rElem.GetGeometry();
+                    KRATOS_ERROR_IF(r_geometry.PointsNumber() != 2)
+                        << "Surrogate loop element " << rElem.Id() << " must have 2 geometry points." << std::endl;
+
+                    // First/last condition IDs encoded as the first two geometry nodes
+                    const IndexType first_condition_id = r_geometry[0].Id();
+                    const IndexType last_condition_id  = r_geometry[1].Id();
 
                     SizeType size_surrogate_loop = last_condition_id - first_condition_id + 1;
 
@@ -697,14 +702,17 @@ void IgaModelerSbm::CreateElements(
     SizeType num_elements = std::distance(rGeometriesBegin, rGeometriesEnd);
     new_element_list.reserve(num_elements);
 
+    int count = 0;
     for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
     {
         new_element_list.push_back(
             rReferenceElement.Create(rIdCounter, (*it), pProperties));
+
         for (SizeType i = 0; i < (*it)->size(); ++i) {
             rModelPart.Nodes().push_back((*it)->pGetPoint(i));
         }
         rIdCounter++;
+        count++;
     }
 
     rModelPart.AddElements(new_element_list.begin(), new_element_list.end());

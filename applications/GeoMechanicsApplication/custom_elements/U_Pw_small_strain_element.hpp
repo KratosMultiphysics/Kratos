@@ -189,10 +189,6 @@ protected:
         Matrix UVoigtMatrix;
     };
 
-    void SaveGPStress(Matrix& rStressContainer, const Vector& rStressVector, unsigned int GPoint);
-
-    void ExtrapolateGPValues(const Matrix& rStressContainer);
-
     void CalculateMaterialStiffnessMatrix(MatrixType&        rStiffnessMatrix,
                                           const ProcessInfo& CurrentProcessInfo) override;
 
@@ -255,8 +251,6 @@ protected:
     void InitializeNodalVolumeAccelerationVariables(ElementVariables& rVariables);
 
     void InitializeProperties(ElementVariables& rVariables);
-    std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
-                                                             const ProcessInfo& rCurrentProcessInfo);
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
@@ -275,8 +269,6 @@ protected:
                                         std::vector<Vector>& rStrainVectors,
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
-
-    void CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix);
 
     void ResetHydraulicDischarge();
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
@@ -300,14 +292,6 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
-    }
-
-    template <class TValueType>
-    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
-    {
-        rNode.SetLock();
-        rNode.FastGetSolutionStepValue(Var) = Value;
-        rNode.UnSetLock();
     }
 };
 

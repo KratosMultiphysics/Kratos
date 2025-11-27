@@ -56,11 +56,6 @@ ProcessInfo& GetProcessInfo(ModelPart& rModelPart)
     return rModelPart.GetProcessInfo();
 }
 
-void SetProcessInfo(ModelPart& rModelPart, ProcessInfo& NewProcessInfo)
-{
-    rModelPart.SetProcessInfo(NewProcessInfo);
-}
-
 ModelPart::MeshType::Pointer ModelPartGetMesh(ModelPart& rModelPart)
 {
     return rModelPart.pGetMesh();

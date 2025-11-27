@@ -237,8 +237,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart; /// The model part to check
-    Flags mOptions;         /// The flags controlling the process behavior
+    ModelPart& mrModelPart;                    /// The model part to check
+    Flags mOptions;                            /// The flags controlling the process behavior
+    int mNumberOfInvertedEntitiesToPrint = 20; /// The maximum number of inverted entities to print in detailed messages (-1 for unlimited)
 
     ///@}
     ///@name Private Operations

@@ -21,7 +21,6 @@
 // Application includes
 #include "boost/range/adaptor/filtered.hpp"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
@@ -95,13 +94,6 @@ public:
         if (piping_elements.empty()) {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
                 << "No Pipe Elements -> Finalizing Solution " << std::endl;
-            this->BaseClassFinalizeSolutionStep();
-            return;
-        }
-
-        if (const auto piping_interface_elements =
-                TryDownCastToPipingElement<SteadyStatePwPipingElement<2, 4>>(piping_elements)) {
-            this->DetermineOpenPipingElements(piping_interface_elements.value());
             this->BaseClassFinalizeSolutionStep();
             return;
         }

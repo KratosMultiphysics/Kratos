@@ -1160,6 +1160,10 @@ void File::ReadDataSetImpl(
             KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, pData)
             KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
         }
+
+        #else
+        KRATOS_ERROR << "The HDF5Application was compiled without MPI support, but a distributed communicator was provided.";
+        #endif
     }
 
     KRATOS_HDF5_CALL(H5Dclose, dset_id)
@@ -1170,10 +1174,6 @@ void File::ReadDataSetImpl(
         << "read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
 
     KRATOS_CATCH("Path: \"" + rPath + "\".");
-
-    #else
-    KRATOS_ERROR << "The HDF5Application was compiled without MPI support, but a distributed communicator was provided.";
-    #endif
 }
 
 template<class TDataType, File::DataTransferMode TDataTransferMode>

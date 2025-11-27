@@ -10,7 +10,7 @@
 },
 "stages" : {
     "stage_2" : {
-		"stage_settings" : {
+        "stage_settings" : {
             "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
             "problem_data": {
             "problem_name":         "test",
@@ -40,7 +40,6 @@
             "compute_reactions":                  true,
             "move_mesh_flag":                     false,
             "reform_dofs_at_each_step":           false,
-            "nodal_smoothing":                    false,
             "block_builder":                      true,
             "solution_type":                      "Quasi-Static",
             "scheme_type":                        "Backward_Euler",
