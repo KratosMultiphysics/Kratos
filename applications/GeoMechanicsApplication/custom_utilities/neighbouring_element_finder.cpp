@@ -60,7 +60,7 @@ void NeighbouringElementFinder::AddNeighbouringElementsBasedOnBoundaryGeometry(E
                                                                                const Geometry<Node>& rBoundaryGeometry,
                                                                                bool ReverseSearch)
 {
-    auto element_boundary_node_ids = GenericUtilities::CollectIdsFromEntity(rBoundaryGeometry);
+    auto element_boundary_node_ids = GenericUtilities::GetIdsFromEntityContents(rBoundaryGeometry);
     if (ReverseSearch) {
         GeometryUtilities::ReverseNodes(element_boundary_node_ids, rBoundaryGeometry.GetGeometryFamily(),
                                         rBoundaryGeometry.GetGeometryOrderType());

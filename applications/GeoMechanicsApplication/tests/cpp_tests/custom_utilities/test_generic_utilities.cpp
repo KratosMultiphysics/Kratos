@@ -58,14 +58,14 @@ KRATOS_TEST_CASE_IN_SUITE(CheckMatrixPermutation, KratosGeoMechanicsFastSuiteWit
     KRATOS_EXPECT_MATRIX_EQ(GenericUtilities::MatrixWithPermutedColumns(matrix, indices), expected_result);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CollectIdsFromEntity_ReturnsEmptyListForEmptyGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GetIdsFromEntityContents_ReturnsEmptyListForEmptyGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto node_ids = GenericUtilities::CollectIdsFromEntity(Geometry<Node>{});
+    const auto node_ids = GenericUtilities::GetIdsFromEntityContents(Geometry<Node>{});
 
     KRATOS_EXPECT_TRUE(node_ids.empty())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CollectIdsFromEntity_ReturnsCorrectNodeIds, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GetIdsFromEntityContents_ReturnsCorrectNodeIds, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arange
     PointerVector<Node> nodes;
@@ -76,16 +76,16 @@ KRATOS_TEST_CASE_IN_SUITE(CollectIdsFromEntity_ReturnsCorrectNodeIds, KratosGeoM
     const Geometry geometry(1, nodes);
 
     // Act
-    const auto node_ids_vector = GenericUtilities::CollectIdsFromEntity(geometry);
+    const auto node_ids_vector = GenericUtilities::GetIdsFromEntityContents(geometry);
 
     std::set<Node::IndexType> node_ids_set;
-    GenericUtilities::CollectIdsFromEntity(geometry, node_ids_set);
+    GenericUtilities::GetIdsFromEntityContents(geometry, node_ids_set);
 
     // Assert
     const std::vector<Node::IndexType> expected_ids_vec = {1, 3, 42, 314};
     const std::set<Node::IndexType> expected_ids_set(expected_ids_vec.begin(), expected_ids_vec.end());
 
-    KRATOS_EXPECT_VECTOR_EQ(node_ids_vector, expected_ids_vec);
+    EXPECT_EQ(node_ids_vector, expected_ids_vec);
     EXPECT_EQ(node_ids_set, expected_ids_set);
 }
 

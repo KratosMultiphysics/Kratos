@@ -47,7 +47,7 @@ std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalVectors
     const std::vector<Vector>&      rVectorsAtIntegrationPoints,
     size_t                          ElementId)
 {
-    const auto element_node_ids = GenericUtilities::CollectIdsFromEntity(rGeometry);
+    const auto element_node_ids = GenericUtilities::GetIdsFromEntityContents(rGeometry);
     const auto extrapolation_matrix = CalculateExtrapolationMatrix(rGeometry, IntegrationMethod, ElementId);
 
     KRATOS_ERROR_IF_NOT(extrapolation_matrix.size2() == rVectorsAtIntegrationPoints.size())

@@ -88,7 +88,7 @@ public:
 
                 for (const auto& r_boundary_geometry : r_boundary_generator(r_entity.GetGeometry())) {
                     mGeometryNodeIdsToEntities.insert(
-                        {GenericUtilities::CollectIdsFromEntity(r_boundary_geometry), {&r_entity}});
+                        {GenericUtilities::GetIdsFromEntityContents(r_boundary_geometry), {&r_entity}});
                 }
             }
 

@@ -216,11 +216,7 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnCons
     const auto& r_list = solver_settings["processes_sub_model_part_list"];
     KRATOS_EXPECT_EQ(r_list.size(), 4);
 
-    std::vector<std::string> actual_modelpart_names;
-    std::transform(r_list.begin(), r_list.end(),
-                   std::inserter(actual_modelpart_names, actual_modelpart_names.end()),
-                   [](const auto& r_name) { return r_name.GetString(); });
-
+    const auto actual_modelpart_names = solver_settings["processes_sub_model_part_list"].GetStringArray();
     const std::vector<std::string> expected_modelpart_names = {"BottomFixed", "Sides", "Soil", "TopLoad"};
     EXPECT_EQ(actual_modelpart_names, expected_modelpart_names);
 }

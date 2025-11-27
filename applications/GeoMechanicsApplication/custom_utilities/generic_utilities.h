@@ -50,7 +50,7 @@ public:
     }
 
     template <class ContainerType, class IdsType>
-    static void CollectIdsFromEntity(const ContainerType& rContainer, IdsType& rIds)
+    static void GetIdsFromEntityContents(const ContainerType& rContainer, IdsType& rIds)
     {
         for (const auto& r_item : rContainer) {
             const auto id = r_item.Id();
@@ -69,10 +69,10 @@ public:
     }
 
     template <class ContainerType>
-    static auto CollectIdsFromEntity(const ContainerType& rContainer)
+    static auto GetIdsFromEntityContents(const ContainerType& rContainer)
     {
         std::vector<std::size_t> result;
-        CollectIdsFromEntity(rContainer, result);
+        GetIdsFromEntityContents(rContainer, result);
         return result;
     }
 

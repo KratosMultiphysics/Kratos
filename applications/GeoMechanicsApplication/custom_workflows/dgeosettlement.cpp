@@ -410,7 +410,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::set<Node::IndexType> node_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        GenericUtilities::CollectIdsFromEntity(domain_part.Nodes(), node_id_set);
+        GenericUtilities::GetIdsFromEntityContents(domain_part.Nodes(), node_id_set);
     }
     GetComputationalModelPart().AddNodes(
         std::vector<Node::IndexType>{node_id_set.begin(), node_id_set.end()});
@@ -418,7 +418,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::set<IndexedObject::IndexType> element_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        GenericUtilities::CollectIdsFromEntity(domain_part.Elements(), element_id_set);
+        GenericUtilities::GetIdsFromEntityContents(domain_part.Elements(), element_id_set);
     }
     GetComputationalModelPart().AddElements(
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
@@ -431,7 +431,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::set<IndexedObject::IndexType> condition_id_set;
     for (const auto& name : domain_condition_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        GenericUtilities::CollectIdsFromEntity(domain_part.Conditions(), condition_id_set);
+        GenericUtilities::GetIdsFromEntityContents(domain_part.Conditions(), condition_id_set);
     }
     GetComputationalModelPart().Conditions().clear();
     GetComputationalModelPart().AddConditions(

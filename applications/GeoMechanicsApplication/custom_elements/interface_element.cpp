@@ -195,7 +195,7 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         // interface element can at maximum have 2 neighbours
         KRATOS_DEBUG_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() > 2)
             << "Too many neighbour elements for interface element " << this->Id() << std::endl;
-        const auto interface_node_ids = GenericUtilities::CollectIdsFromEntity(GetGeometry());
+        const auto interface_node_ids = GenericUtilities::GetIdsFromEntityContents(GetGeometry());
         std::vector<std::optional<Vector>> interface_nodal_cauchy_stresses(interface_node_ids.size());
         auto&               r_neighbour_element = this->GetValue(NEIGHBOUR_ELEMENTS).front();
         std::vector<Vector> neighbour_cauchy_stresses;
