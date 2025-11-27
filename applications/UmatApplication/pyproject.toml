@@ -35,7 +35,8 @@
 # Wheel (py and stubs)
 [tool.hatch.build.targets.wheel]
     include = [
-        "KratosMultiphysics/UmatApplication/**/*.py*"
+        "KratosMultiphysics/UmatApplication/**/*.py",
+        "KratosMultiphysics/UmatApplication/**/*.pyi"
     ]
 
 # # Hook to Build Properties
@@ -49,7 +50,8 @@
 # Editable (py and stubs)
 [tool.hatch.build.targets.editable]
     include = [
-        "KratosMultiphyscis/UmatApplication/**/*.py*"
+        "KratosMultiphysics/UmatApplication/**/*.py",
+        "KratosMultiphysics/UmatApplication/**/*.pyi"
     ]
 
 # Editable (dll, so, binary dependencies)

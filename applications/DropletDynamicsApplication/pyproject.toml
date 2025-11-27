@@ -49,7 +49,7 @@
 # Editable (py and stubs)
 [tool.hatch.build.targets.editable]
     include = [
-        "KratosMultiphyscis/DropletDynamicsApplication/**/*.py*"
+        "KratosMultiphysics/DropletDynamicsApplication/**/*.py*"
     ]
 
 # Editable (dll, so, binary dependencies)

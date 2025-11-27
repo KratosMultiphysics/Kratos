@@ -50,7 +50,7 @@
 # Editable (py and stubs)
 [tool.hatch.build.targets.editable]
     include = [
-        "KratosMultiphyscis/PoromechanicsApplication/**/*.py*"
+        "KratosMultiphysics/PoromechanicsApplication/**/*.py*"
     ]
 
 # Editable (dll, so, binary dependencies)

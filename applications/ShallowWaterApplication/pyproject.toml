@@ -51,7 +51,7 @@ title = "KratosMultiphysics FluidDynamicsApplication"
 # Editable (py and stubs)
 [tool.hatch.build.targets.editable]
     include = [
-        "KratosMultiphyscis/ShallowWaterApplication/**/*.py*"
+        "KratosMultiphysics/ShallowWaterApplication/**/*.py*"
     ]
 
 # Editable (dll, so, binary dependencies)

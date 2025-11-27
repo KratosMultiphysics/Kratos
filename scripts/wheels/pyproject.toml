@@ -25,9 +25,9 @@ title = "KratosMultiphysics"
 [tool.hatch.build.targets.wheel]
     include = [
         # Python Interface
-        "KratosMultiphyscis/**/*.py",
+        "KratosMultiphysics/**/*.py",
         # Hinting
-        "KratosMultiphyscis/**/*.pyi"
+        "KratosMultiphysics/**/*.pyi"
     ]    
 
 # Hook to Build Properties
@@ -39,8 +39,8 @@ title = "KratosMultiphysics"
 
 [tool.hatch.build.targets.editable]
     include = [
-        "KratosMultiphyscis/**/*.py",
-        "KratosMultiphyscis/**/*.pyi"
+        "KratosMultiphysics/**/*.py",
+        "KratosMultiphysics/**/*.pyi"
     ]
 
 [tool.hatch.build.targets.editable.force-include]

@@ -53,7 +53,7 @@
 # Editable (py and stubs)
 [tool.hatch.build.targets.editable]
     include = [
-        "KratosMultiphyscis/FSIApplication/**/*.py*"
+        "KratosMultiphysics/FSIApplication/**/*.py*"
     ]
 
 # Editable (dll, so, binary dependencies)
