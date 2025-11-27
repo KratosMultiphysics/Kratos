@@ -312,6 +312,74 @@ Matrix ExpectedLeftHandSideForTriangleElement()
     return expected_left_hand_side;
 }
 
+class MockElementWithTotalStressVectors : public Element
+{
+public:
+    MockElementWithTotalStressVectors(std::size_t                     ElementId,
+                                      std::shared_ptr<Geometry<Node>> pGeometry,
+                                      Properties::Pointer             pProperties);
+
+    void SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
+                                      const std::vector<Vector>& rValues,
+                                      const ProcessInfo&) override;
+    using Element::SetValuesOnIntegrationPoints;
+
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      std::vector<Vector>&    rOutput,
+                                      const ProcessInfo&) override;
+    using Element::CalculateOnIntegrationPoints;
+
+    IntegrationMethod GetIntegrationMethod() const override;
+    void              SetIntegrationMethod(IntegrationMethod CustomIntegrationMethod);
+
+private:
+    std::vector<Vector>              mTotalStressVectors;
+    std::optional<IntegrationMethod> mOptionalCustomIntegrationMethod;
+};
+
+MockElementWithTotalStressVectors::MockElementWithTotalStressVectors(std::size_t ElementId,
+                                                                     std::shared_ptr<Geometry<Node>> pGeometry,
+                                                                     Properties::Pointer pProperties)
+    : Element{ElementId, std::move(pGeometry), std::move(pProperties)}
+{
+}
+
+void MockElementWithTotalStressVectors::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                     const std::vector<Vector>& rValues,
+                                                                     const ProcessInfo&)
+{
+    KRATOS_DEBUG_ERROR_IF_NOT(rVariable == TOTAL_STRESS_VECTOR)
+        << "This mock element can only set total stress vectors\n";
+
+    mTotalStressVectors = rValues;
+}
+
+void MockElementWithTotalStressVectors::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                     std::vector<Vector>& rOutput,
+                                                                     const ProcessInfo&)
+{
+    KRATOS_DEBUG_ERROR_IF_NOT(rVariable == TOTAL_STRESS_VECTOR)
+        << "This mock element can only calculate total stress vectors\n";
+
+    rOutput = mTotalStressVectors;
+}
+
+GeometryData::IntegrationMethod MockElementWithTotalStressVectors::GetIntegrationMethod() const
+{
+    return mOptionalCustomIntegrationMethod.value_or(GetGeometry().GetDefaultIntegrationMethod());
+}
+
+void MockElementWithTotalStressVectors::SetIntegrationMethod(IntegrationMethod CustomIntegrationMethod)
+{
+    mOptionalCustomIntegrationMethod = CustomIntegrationMethod;
+}
+
+auto MakeElementGlobalPtrContainerWith(const auto& rpElement)
+{
+    auto p_element = Element::Pointer{rpElement};
+    return GlobalPointersVector{{GlobalPointer{p_element}}};
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -1304,10 +1372,6 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
-    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, -1.0, 0.0));
@@ -1319,18 +1383,20 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
     // create a triangle neighbour element
-    auto p_neighbour_element = ElementSetupUtilities::Create2D3NElement(nodes, p_properties, 2);
+    auto p_neighbour_element = make_intrusive<MockElementWithTotalStressVectors>(
+        2, std::make_shared<Triangle2D3<Node>>(nodes), p_properties);
+    p_neighbour_element->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_2);
     ProcessInfo dummy_process_info;
     p_neighbour_element->Initialize(dummy_process_info);
-    std::vector<ConstitutiveLaw::StressVectorType> r_stress_vectors;
+    std::vector<ConstitutiveLaw::StressVectorType> total_stress_vectors;
     ConstitutiveLaw::StressVectorType              stress_vector(4);
     stress_vector <<= 3.0, 13.0 / 6.0, 4.0, 1.0;
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 3.0, 8.0 / 3.0, 4.0, 1.0;
-    r_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
 
-    p_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
+    p_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
 
     nodes.clear();
     nodes.push_back(r_model_part.pGetNode(1));
@@ -1343,8 +1409,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
     auto interface_element = CreateInterfaceElementWithUDofs<Interface2D>(p_interface_properties, p_geometry);
-    GlobalPointersVector<Element> neighbours{p_neighbour_element};
-    interface_element.SetValue(NEIGHBOUR_ELEMENTS, neighbours);
+    interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_neighbour_element));
 
     // Act
     interface_element.Initialize(dummy_process_info);
@@ -1364,19 +1429,20 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     nodes.push_back(r_model_part.pGetNode(4));
     nodes.push_back(r_model_part.pGetNode(5));
     nodes.push_back(r_model_part.CreateNewNode(6, 0.0, 2.0, 0.0));
-    auto p_other_neighbour_element = ElementSetupUtilities::Create2D3NElement(nodes, p_properties, 3);
+    auto p_other_neighbour_element = make_intrusive<MockElementWithTotalStressVectors>(
+        3, std::make_shared<Triangle2D3<Node>>(nodes), p_properties);
+    p_other_neighbour_element->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_2);
     p_other_neighbour_element->Initialize(dummy_process_info);
-    r_stress_vectors.clear();
+    total_stress_vectors.clear();
     stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
-    r_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 7.0, 4.0, 11.0, 10.0 / 3.0;
-    r_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
-    r_stress_vectors.emplace_back(stress_vector);
-    p_other_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
-
-    GlobalPointersVector<Element> other_neighbours{p_other_neighbour_element};
-    interface_element.SetValue(NEIGHBOUR_ELEMENTS, other_neighbours);
+    total_stress_vectors.emplace_back(stress_vector);
+    p_other_neighbour_element->SetValuesOnIntegrationPoints(
+        TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
+    interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_other_neighbour_element));
 
     // Act
     interface_element.Initialize(dummy_process_info);
@@ -1396,10 +1462,6 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
-    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    r_model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
-    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(1, 0.5, -1.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.5, -0.5, 0.0));
@@ -1416,23 +1478,25 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
     // create a hexagonal neighbour element
-    auto p_neighbour_element = ElementSetupUtilities::Create3D8NElement(nodes, p_properties, 2);
+    auto p_neighbour_element = make_intrusive<MockElementWithTotalStressVectors>(
+        2, std::make_shared<Hexahedra3D8<Node>>(nodes), p_properties);
+    p_neighbour_element->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     ProcessInfo dummy_process_info;
     p_neighbour_element->Initialize(dummy_process_info);
-    std::vector<ConstitutiveLaw::StressVectorType> r_stress_vectors;
+    std::vector<ConstitutiveLaw::StressVectorType> total_stress_vectors;
     ConstitutiveLaw::StressVectorType              stress_vector(6);
     stress_vector <<= 3.0, (std::sqrt(3.0) - 1.0) / (2.0 * std::sqrt(3.0)), 4.0, 1.0, 2.0, 4.0;
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 3.0, (std::sqrt(3.0) + 1.0) / (2.0 * std::sqrt(3.0)), 4.0, 1.0, 2.0, 4.0;
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
-    p_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    p_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
 
     nodes.clear();
     nodes.push_back(r_model_part.pGetNode(2));
@@ -1449,8 +1513,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
     auto interface_element = CreateInterfaceElementWithUDofs<Interface3D>(p_interface_properties, p_geometry);
-    GlobalPointersVector<Element> neighbours{p_neighbour_element};
-    interface_element.SetValue(NEIGHBOUR_ELEMENTS, neighbours);
+    interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_neighbour_element));
 
     // Act
     interface_element.Initialize(dummy_process_info);
@@ -1479,23 +1542,25 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
     nodes.push_back(r_model_part.CreateNewNode(16, 0.5, 1.5, 1.0));
     nodes.push_back(r_model_part.CreateNewNode(17, -0.5, 1.5, 1.0));
     nodes.push_back(r_model_part.pGetNode(18));
-    auto p_other_neighbour_element = ElementSetupUtilities::Create3D8NElement(nodes, p_properties, 3);
+    auto p_other_neighbour_element = make_intrusive<MockElementWithTotalStressVectors>(
+        3, std::make_shared<Hexahedra3D8<Node>>(nodes), p_properties);
+    p_neighbour_element->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_2);
     p_other_neighbour_element->Initialize(dummy_process_info);
-    r_stress_vectors.clear();
+    total_stress_vectors.clear();
     stress_vector <<= 3.0, 4.0, 1.0, 2.0, (std::sqrt(3.0) - 1.0) / (2.0 * std::sqrt(3.0)), 4.0;
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 3.0, 4.0, 1.0, 2.0, (std::sqrt(3.0) + 1.0) / (2.0 * std::sqrt(3.0)), 4.0;
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
-    r_stress_vectors.emplace_back(stress_vector);
-    p_other_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, r_stress_vectors, dummy_process_info);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    total_stress_vectors.emplace_back(stress_vector);
+    p_other_neighbour_element->SetValuesOnIntegrationPoints(
+        TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
 
-    GlobalPointersVector<Element> other_neighbours{p_other_neighbour_element};
-    interface_element.SetValue(NEIGHBOUR_ELEMENTS, other_neighbours);
+    interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_other_neighbour_element));
 
     // Act
     interface_element.Initialize(dummy_process_info);
