@@ -7,11 +7,9 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Andi Katili, Nicolò Crescenzio 
 //
 
-// #if !defined(KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SCHEME_H )
-// #define  KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SCHEME_H
 #pragma once
 /* System includes */
 
@@ -41,14 +39,11 @@ namespace Kratos
 ///@{
 
 /**
- * @class ResidualBasedIncrementalUpdateStaticScheme
- * @ingroup KratosCore
- * @brief This class provides the implementation of a static scheme
- * @details The only operation done in this  scheme is the update of the database, no predict is done
+ * @class MPMResidualBasedIncrementalUpdateStaticScheme
+ * @brief This class provides the implementation of a static scheme for MPM
+ * @details The only additional operation done in this scheme is predict is done, since P2G mapping is moved to predict
  * @tparam TSparseSpace The sparse space considered
  * @tparam TDenseSpace The dense space considered
- * @see Scheme
- * @author Riccardo Rossi
  */
 template<class TSparseSpace, class TDenseSpace>
 class MPMResidualBasedIncrementalUpdateStaticScheme
@@ -64,27 +59,10 @@ public:
     // The current class definition
     typedef MPMResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> ClassType;
 
-    /// DoF array type definition
-    typedef typename BaseType::DofsArrayType                                  DofsArrayType;
-
-    /// Data type definition
-    typedef typename BaseType::TDataType                                          TDataType;
     /// Matrix type definition
     typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
     /// Vector type definition
     typedef typename BaseType::TSystemVectorType                          TSystemVectorType;
-    /// Local system matrix type definition
-    typedef typename BaseType::LocalSystemVectorType                  LocalSystemVectorType;
-    /// Local system vector type definition
-    typedef typename BaseType::LocalSystemMatrixType                  LocalSystemMatrixType;
-
-    /// Elements containers definition
-    typedef ModelPart::ElementsContainerType                              ElementsArrayType;
-    /// Conditions containers definition
-    typedef ModelPart::ConditionsContainerType                          ConditionsArrayType;
-
-    /// The definition of the vector containing the equation ids
-    typedef Element::EquationIdVectorType                              EquationIdVectorType;
 
 
     /**
@@ -119,5 +97,3 @@ public:
 
 }; // Class ResidualBasedIncrementalUpdateStaticScheme
 }  // namespace Kratos
-
-// #endif /* KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SCHEME_H  defined */
