@@ -32,7 +32,8 @@ public:
 
     [[nodiscard]] bool   IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
     [[nodiscard]] Vector DoReturnMapping(const Vector&                             rTrialSigmaTau,
-                                         CoulombYieldSurface::CoulombAveragingType AveragingType);
+                                         CoulombYieldSurface::CoulombAveragingType AveragingType,
+                                         double&                                   kappa_start);
 
 private:
     CoulombYieldSurface mCoulombYieldSurface;

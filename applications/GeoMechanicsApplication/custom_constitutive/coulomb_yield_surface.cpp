@@ -12,11 +12,11 @@
 //
 
 #include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
-#include "custom_utilities/check_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <cmath>
@@ -199,7 +199,7 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Vect
            CalculatePlasticMultiplier(rSigmaTau, DerivativeOfFlowFunction(rSigmaTau, AveragingType));
 }
 
-void CoulombYieldSurface::CheckMaterialProperties() 
+void CoulombYieldSurface::CheckMaterialProperties()
 {
     const CheckProperties check_properties(mMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
     check_properties.Check(GEO_COHESION);

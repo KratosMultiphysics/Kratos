@@ -138,8 +138,9 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
     trial_sigma_tau[1]  = std::abs(trial_sigma_tau[1]);
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
-        mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
+        double kappa_start = -1.0;
+        mapped_sigma_tau   = mCoulombWithTensionCutOffImpl.DoReturnMapping(
+            trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING, kappa_start);
         if (negative) mapped_sigma_tau[1] *= -1.0;
     }
 
