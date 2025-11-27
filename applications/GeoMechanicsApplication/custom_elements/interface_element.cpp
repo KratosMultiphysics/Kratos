@@ -198,8 +198,11 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         std::vector<std::optional<Vector>> interface_nodal_cauchy_stresses(interface_node_ids.size());
         auto&               r_neighbour_element = this->GetValue(NEIGHBOUR_ELEMENTS).front();
         std::vector<Vector> neighbour_cauchy_stresses;
+        // Note that the interface elements don't account for water pressures yet. Consequently,
+        // we need to consider the total stresses rather than the effective stresses to calculate
+        // the appropriate prestresses to be applied.
         r_neighbour_element.CalculateOnIntegrationPoints(
-            CAUCHY_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
+            TOTAL_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
         interface_nodal_cauchy_stresses = ExtrapolationUtilities::CalculateNodalVectors(
             interface_node_ids, r_neighbour_element.GetGeometry(), r_neighbour_element.GetIntegrationMethod(),
             neighbour_cauchy_stresses, r_neighbour_element.Id());
