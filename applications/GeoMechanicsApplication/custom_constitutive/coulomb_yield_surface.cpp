@@ -80,10 +80,10 @@ namespace Kratos
 
 CoulombYieldSurface::CoulombYieldSurface()
 {
-    mMaterialProperties[GEO_COULOMB_HARDENING_TYPE] = "None";
-    mMaterialProperties[GEO_FRICTION_ANGLE]         = 0.0;
-    mMaterialProperties[GEO_COHESION]               = 0.0;
-    mMaterialProperties[GEO_DILATANCY_ANGLE]        = 0.0;
+    mMaterialProperties.SetValue(GEO_COULOMB_HARDENING_TYPE, "None");
+    mMaterialProperties.SetValue(GEO_FRICTION_ANGLE, 0.0);
+    mMaterialProperties.SetValue(GEO_COHESION, 0.0);
+    mMaterialProperties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
 
     InitializeKappaDependentFunctions();
 }
@@ -93,7 +93,7 @@ CoulombYieldSurface::CoulombYieldSurface(const Properties& rMaterialProperties)
 {
     // For backward compatibility, if no hardening type is given, we assume no hardening at all
     if (!mMaterialProperties.Has(GEO_COULOMB_HARDENING_TYPE)) {
-        mMaterialProperties[GEO_COULOMB_HARDENING_TYPE] = "None";
+        mMaterialProperties.SetValue(GEO_COULOMB_HARDENING_TYPE, "None");
     }
 
     InitializeKappaDependentFunctions();
