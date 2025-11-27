@@ -18,20 +18,32 @@
 
 namespace
 {
+
+std::vector<std::string> GetProcessModelPartNames(const Kratos::Parameters& rProcessSettings,
+                                                  const std::string&        rProcessInfo)
+{
+    KRATOS_ERROR_IF_NOT(rProcessSettings.Has("model_part_name") ||
+                        rProcessSettings.Has("model_part_name_list"))
+        << "Please specify 'model_part_name' or 'model_part_name_list' for " << rProcessInfo;
+
+    KRATOS_ERROR_IF(rProcessSettings.Has("model_part_name") &&
+                    rProcessSettings.Has("model_part_name_list"))
+        << "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for "
+        << rProcessInfo;
+
+    return rProcessSettings.Has("model_part_name_list")
+               ? rProcessSettings["model_part_name_list"].GetStringArray()
+               : std::vector{rProcessSettings["model_part_name"].GetString()};
+}
+
 std::set<std::string, std::less<>> ExtractModelPartNames(const auto&      rProcessList,
                                                          std::string_view RootName,
                                                          std::string_view Prefix)
 {
     std::set<std::string, std::less<>> result;
     for (const auto& r_process : rProcessList) {
-        std::set<std::string> model_part_names;
         if (!r_process.Has("Parameters")) continue;
-        if (r_process["Parameters"].Has("model_part_name")) {
-            model_part_names.insert(r_process["Parameters"]["model_part_name"].GetString());
-        } else if (r_process["Parameters"].Has("model_part_name_list")) {
-            const auto names = r_process["Parameters"]["model_part_name_list"].GetStringArray();
-            model_part_names.insert(names.begin(), names.end());
-        }
+        const auto model_part_names = GetProcessModelPartNames(r_process["Parameters"], {});
         for (auto model_part_name : model_part_names) {
             if (model_part_name == RootName) continue;
             if (model_part_name.starts_with(Prefix)) model_part_name.erase(0, Prefix.size());
@@ -47,18 +59,7 @@ namespace Kratos
 std::vector<std::reference_wrapper<ModelPart>> ProcessUtilities::GetModelPartsFromSettings(
     Model& rModel, const Parameters& rProcessSettings, const std::string& rProcessInfo)
 {
-    KRATOS_ERROR_IF_NOT(rProcessSettings.Has("model_part_name") ||
-                        rProcessSettings.Has("model_part_name_list"))
-        << "Please specify 'model_part_name' or 'model_part_name_list' for " << rProcessInfo;
-
-    KRATOS_ERROR_IF(rProcessSettings.Has("model_part_name") &&
-                    rProcessSettings.Has("model_part_name_list"))
-        << "The parameters 'model_part_name' and 'model_part_name_list' are mutually exclusive for "
-        << rProcessInfo;
-
-    const auto model_part_names = rProcessSettings.Has("model_part_name_list")
-                                      ? rProcessSettings["model_part_name_list"].GetStringArray()
-                                      : std::vector{rProcessSettings["model_part_name"].GetString()};
+    const auto model_part_names = GetProcessModelPartNames(rProcessSettings, rProcessInfo);
     KRATOS_ERROR_IF(model_part_names.empty()) << "The parameters 'model_part_name_list' needs "
                                                  "to contain at least one model part name for "
                                               << rProcessInfo;

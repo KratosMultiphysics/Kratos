@@ -20,9 +20,6 @@
 #include "testing/testing.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
-#include <iostream>
-#include <sstream>
-
 namespace Kratos::Testing
 {
 

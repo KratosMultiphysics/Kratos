@@ -71,10 +71,7 @@ public:
     template <class ContainerType>
     static auto CollectIdsFromEntity(const ContainerType& rContainer)
     {
-        using ItemRef = decltype(*std::begin(rContainer));
-        using Item    = std::remove_cv_t<std::remove_reference_t<ItemRef>>;
-        using IdType  = decltype(std::declval<Item>().Id());
-        std::vector<IdType> result;
+        std::vector<std::size_t> result;
         CollectIdsFromEntity(rContainer, result);
         return result;
     }
