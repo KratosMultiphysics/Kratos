@@ -374,10 +374,11 @@ void MockElementWithTotalStressVectors::SetIntegrationMethod(IntegrationMethod C
     mOptionalCustomIntegrationMethod = CustomIntegrationMethod;
 }
 
-auto MakeElementGlobalPtrContainerWith(const auto& rpElement)
+template <typename DerivedElementPtrType>
+GlobalPointersVector<Element> MakeElementGlobalPtrContainerWith(const DerivedElementPtrType& rpElement)
 {
     auto p_element = Element::Pointer{rpElement};
-    return GlobalPointersVector{{GlobalPointer{p_element}}};
+    return {{GlobalPointer<Element>{p_element}}};
 }
 
 } // namespace
