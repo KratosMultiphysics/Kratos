@@ -28,6 +28,8 @@ class CSVBasedDesignPoints:
         default_settings = Kratos.Parameters("""{
             "type"                              : "csv_based_design_points",
             "csv_file_name"                     : "",
+            "initialize_values_with_csv_data"   : false,
+            "value_column_header"               : "",
             "location_column_headers"           : [""]
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -35,6 +37,9 @@ class CSVBasedDesignPoints:
 
         self.csv_file_name = parameters["csv_file_name"].GetString()
         self.location_column_headers = parameters["location_column_headers"].GetStringArray()
+
+        self.initialize_values_with_csv_data = parameters["initialize_values_with_csv_data"].GetBool()
+        self.value_column_header = parameters["value_column_header"].GetString()
 
         if len(self.location_column_headers) > 3:
             raise RuntimeError("Number of location column headers cannot exceed 3.")
@@ -47,12 +52,18 @@ class CSVBasedDesignPoints:
             raise RuntimeError(f"The provided csv file = \"{self.csv_file_name}\" is empty.")
 
         headers = lines[0].split(",")
-        location_column_indices = [-1, -1, -1]
+        location_column_indices = [-1, -1, -1, -1]
 
         for j, location_header in enumerate(self.location_column_headers):
             for i, header in enumerate(headers):
                 if header.strip() == location_header:
                     location_column_indices[j] = i
+                    break
+
+        if self.initialize_values_with_csv_data:
+            for i, header in enumerate(headers):
+                if header.strip() == self.value_column_header:
+                    location_column_indices[3] = i
                     break
 
         for i, line in enumerate(lines[1:]):
@@ -63,7 +74,7 @@ class CSVBasedDesignPoints:
                 data[location_column_indices[2]] if location_column_indices[2] != -1 else 0.0
             ]
             node: Kratos.Node = self.model_part.CreateNewNode(i + 1, location[0], location[1], location[2])
-            node.SetValue(KratosOA.CUSTOM_DESIGN_VARIABLE, 0.0)
+            node.SetValue(KratosOA.CUSTOM_DESIGN_VARIABLE, data[location_column_indices[3]] if location_column_indices[3] != -1 else 0.0)
 
 class ExternalResponseFunctionModelPartController(ModelPartController):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
