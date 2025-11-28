@@ -41,7 +41,7 @@ RUN powershell.exe -Command \
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://archives.boost.io/release/1.74.0/source/boost_1_74_0.zip -OutFile c:\TEMP\boost.zip; \
+    wget https://archives.boost.io/release/1.87.0/source/boost_1_87_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
     7z x c:\TEMP\boost.zip -o"c:\boost"
 
@@ -100,6 +100,15 @@ RUN powershell.exe -Command \
     Start-Process c:\temp\python313.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\313' -Wait; \
     c:\python\313\python.exe -m pip install --upgrade pip; \
     c:\python\313\python.exe -m pip install --upgrade setuptools wheel
+
+#Install python 3.14
+# RUN powershell.exe -Command \
+#     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+#     wget https://www.python.org/ftp/python/3.14.0/python-3.14.0-amd64.exe -OutFile c:\temp\python314.exe; \
+#     mkdir c:\python\314; \
+#     Start-Process c:\temp\python314.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\314' -Wait; \
+#     c:\python\314\python.exe -m pip install --upgrade pip; \
+#     c:\python\314\python.exe -m pip install --upgrade setuptools wheel
 
 # Download and extract hdf5
 RUN powershell.exe -Command \

@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "calculate_moving_load_on_beam",
         "start_time": 0.0,
-        "end_time": 1.0,
+        "end_time": 1.5,
         "echo_level": 1,
         "parallel_type": "OpenMP",
         "number_of_threads": 2
@@ -30,7 +30,6 @@
         "compute_reactions": false,
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
-        "nodal_smoothing": true,
         "block_builder": true,
         "rebuild_level": 2,
         "prebuild_dynamics": false,
@@ -95,7 +94,9 @@
               "plane_output": [],
               "nodal_results": [
                 "DISPLACEMENT",
-                "ROTATION"
+                "ROTATION",
+                "TOTAL_ROTATION",
+                "INCREMENTAL_ROTATION"
               ],
               "gauss_point_results": [
                 "FORCE"
@@ -142,7 +143,7 @@
                 "kratos_module": "StructuralMechanicsApplication",
                 "process_name": "SetMovingLoadProcess",
                 "Parameters": {
-                    "load": ["0.0", "-10000*t", "0.0"],
+                    "load": ["0.0", "-10000", "0.0"],
                     "direction": [1, 0, 0],
                     "velocity": 1.0,
                     "origin": [0.0, 0.0, 0.0],

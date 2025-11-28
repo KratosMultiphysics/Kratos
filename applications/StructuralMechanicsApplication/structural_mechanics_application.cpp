@@ -78,6 +78,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mLinearTimoshenkoBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mLinearTimoshenkoBeamElement2D3N(0, Element::GeometryType::Pointer(new Line2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mLinearTimoshenkoCurvedBeamElement2D3N(0, Element::GeometryType::Pointer(new Line2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mLinearTimoshenkoCurvedBeamElement3D3N(0, Element::GeometryType::Pointer(new Line3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       // Adding the shells elements
       mIsotropicShellElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThickElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
@@ -138,10 +139,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
 
-      mSmallDisplacementMixedStrainDisplacementElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-      mSmallDisplacementMixedStrainDisplacementElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
-      mSmallDisplacementMixedStrainDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
-      mSmallDisplacementMixedStrainDisplacementElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
+      mSmallDisplacementMixedStrainElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mSmallDisplacementMixedStrainElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedStrainElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mSmallDisplacementMixedStrainElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
 
 
       mTotalLagrangianMixedVolumetricStrainElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
@@ -211,7 +212,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAxisymUpdatedLagrangian2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mAxisymUpdatedLagrangian2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<NodeType >(Element::GeometryType::PointsArrayType(9)))),
       // Adding the bushing element
-      mBushingElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),      
+      mBushingElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       // Adding the spring damper element
       mSpringDamperElement2D(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mSpringDamperElement3D(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
@@ -496,7 +497,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOVING_LOAD)
     KRATOS_REGISTER_VARIABLE(MOVING_LOAD_LOCAL_DISTANCE)
-
+    KRATOS_REGISTER_VARIABLE(MOTION_TYPE)
+    
     // Condition load variables
     KRATOS_REGISTER_VARIABLE(POINT_LOADS_VECTOR)
     KRATOS_REGISTER_VARIABLE(LINE_LOADS_VECTOR)
@@ -569,6 +571,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoBeamElement3D2N", mLinearTimoshenkoBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoBeamElement2D3N", mLinearTimoshenkoBeamElement2D3N)
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoCurvedBeamElement2D3N", mLinearTimoshenkoCurvedBeamElement2D3N)
+    KRATOS_REGISTER_ELEMENT("LinearTimoshenkoCurvedBeamElement3D3N", mLinearTimoshenkoCurvedBeamElement3D3N)
 
     //Register the shells elements
     KRATOS_REGISTER_ELEMENT("IsotropicShellElement3D3N", mIsotropicShellElement3D3N)
@@ -633,10 +636,10 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N", mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N)
     KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N", mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N)
 
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedStrainDisplacementElement2D3N", mSmallDisplacementMixedStrainDisplacementElement2D3N)
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedStrainDisplacementElement2D4N", mSmallDisplacementMixedStrainDisplacementElement2D4N)
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedStrainDisplacementElement3D4N", mSmallDisplacementMixedStrainDisplacementElement3D4N)
-    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedStrainDisplacementElement3D8N", mSmallDisplacementMixedStrainDisplacementElement3D8N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedStrainElement2D3N", mSmallDisplacementMixedStrainElement2D3N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedStrainElement2D4N", mSmallDisplacementMixedStrainElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedStrainElement3D4N", mSmallDisplacementMixedStrainElement3D4N)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementMixedStrainElement3D8N", mSmallDisplacementMixedStrainElement3D8N)
 
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedVolumetricStrainElement2D3N", mTotalLagrangianMixedVolumetricStrainElement2D3N)
     KRATOS_REGISTER_ELEMENT("TotalLagrangianMixedVolumetricStrainElement3D4N", mTotalLagrangianMixedVolumetricStrainElement3D4N)
@@ -712,7 +715,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D9N", mAxisymUpdatedLagrangian2D9N)
 
     // Register the bushing element
-    KRATOS_REGISTER_ELEMENT("BushingElement3D2N", mBushingElement3D2N);    
+    KRATOS_REGISTER_ELEMENT("BushingElement3D2N", mBushingElement3D2N);
 
     // Register the spring damper element
     KRATOS_REGISTER_ELEMENT("SpringDamperElement2D", mSpringDamperElement2D);

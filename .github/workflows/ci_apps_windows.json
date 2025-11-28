@@ -8,6 +8,7 @@
     "MeshMovingApplication",
     "LinearSolversApplication",
     "StructuralMechanicsApplication",
+    "ContactStructuralMechanicsApplication",
     "DEMApplication",
     "ChimeraApplication",
     "IgaApplication",

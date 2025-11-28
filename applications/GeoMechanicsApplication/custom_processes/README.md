@@ -8,6 +8,7 @@ Documented processes:
 - [ApplyFinalStressesOfPreviousStageToInitialState](#apply-final-stresses-of-previous-stage-to-initial-state-process)
 - [$K_0$ procedure process](#K_0-procedure-process)
 - [ApplyInitialUniformStress](#apply-initial-uniform-stress)
+- [FindNeighboursOfInterfaces](#find-neighbours-of-interfaces)
 
 ## $c-\phi$ reduction process
 For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
@@ -122,13 +123,29 @@ The process is defined as follows in "ProjectParameters.json" (also found in som
       "process_name": "ApplyK0ProcedureProcess",
       "Parameters": {
         "model_part_name": "PorousDomain.porous_computational_model_part",
-        "variable_name": "CAUCHY_STRESS_TENSOR",
         "use_standard_procedure": true
       }
     }
   ]
 }
 ```
+Next to specifying a single model part, it is also possible to provide a list:
+```json
+{
+  "auxiliary_process_list": [
+    {
+      "python_module": "apply_k0_procedure_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "ApplyK0ProcedureProcess",
+      "Parameters": {
+        "model_part_name_list": ["PorousDomain.Clay", "PorousDomain.Sand"],
+        "use_standard_procedure": true
+      }
+    }
+  ]
+}
+```
+
 The "apply_k0_procedure_process" needs the following material parameter input to be added in the "MaterialParameters.json".
 ```json
 {
@@ -177,5 +194,49 @@ Example usage for a case with 3D elements in a ProjectParameters.json file:
 }
 ```
 
+
+## Find Neighbours Of Interfaces
+
+This process finds the neighbouring elements of interface elements in a model part. These neighbours are then used to calculate and apply a prestress to the interfaces based on the stress state of the neighbouring elements. Typically, this process is used in a multi-stage analysis, where in a specific stage the interfaces are installed (along with a structural element that models, for instance, a sheet pile wall). To avoid deformations due to differences in stress between already existing soil elements and the newly added interface elements, equilibrium is ensured by prestressing the interfaces using the stresses of the surrounding soil.
+
+The process of applying prestress to the interfaces consists of the following steps:
+1. The neighbouring elements of the interface elements are found using this process.
+2. The stresses at the integration points of the neighbouring elements are extrapolated to their respective nodes.
+3. The nodal stresses are interpolated to the integration points of the interface elements.
+
+Note that steps 2 and 3 are not part of `FindNeighboursOfInterfacesProcess`, but they are taken care of by the interface element itself when neighbours are known. The process only finds neighbouring elements with a higher local dimension than the interface elements, to avoid prestressing the element with stresses of non-continuum elements (e.g. structural elements or other interface elements). 
+
+Example usage for a case in a ProjectParameters.json file:
+
+```json
+{
+  "python_module": "find_neighbours_of_interfaces_process",
+  "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+  "process_name": "FindNeighboursOfInterfacesProcess",
+  "Parameters": {
+    "model_part_name": "PorousDomain.Interface",
+    "model_part_name_for_neighbouring_elements": "PorousDomain.porous_computational_model_part"
+  }
+}
+```
+
+The `model_part_name_for_neighbouring_elements` is used to specify the model part that contains the elements which can be neighbours to the interface elements. Typically, this is the entire computational domain.
+
+Next to specifying a single model part, it is also possible to provide a list of model parts containing interface elements:
+```json
+{
+  "auxiliary_process_list": [
+    {
+      "python_module": "find_neighbours_of_interfaces_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "FindNeighboursOfInterfacesProcess",
+      "Parameters": {
+        "model_part_name_list": ["Interfaces_Left", "Interfaces_Right"],
+        "model_part_name_for_neighbouring_elements": "PorousDomain.porous_computational_model_part"
+      }
+    }
+  ]
+}
+```
 ## References
 <a id="1">[1]</a> Brinkgreve, R.B.J., Bakker, H.L., 1991. Non-linear finite element analysis of safety factors, Computer Methods and Advances in Geomechanics, Beer, Booker & Carterr (eds), Balkema, Rotterdam.
