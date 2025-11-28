@@ -170,7 +170,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    indexStress3D getIndex3D(indexStress2DInterface index2D) const;
+    static indexStress3D getIndex3D(indexStress2DInterface index2D);
 
     ///@}
     ///@name Member Variables

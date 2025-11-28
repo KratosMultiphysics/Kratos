@@ -441,10 +441,13 @@ class GeoMechanicalSolver(PythonSolver):
         return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
     def _BaseConstructScheme(self):
-        if (self.settings["solution_type"].GetString().lower() == "static"):
+
+        if self.settings["solution_type"].GetString().lower() == "static":
+            if self.settings["scheme_type"].GetString().lower() == "load_stepping":
+                return GeoMechanicsApplication.GeoLoadSteppingScheme()
             return GeoMechanicsApplication.GeoStaticScheme()
-        else:
-            return self._ConstructScheme(self.settings["scheme_type"].GetString(),
+
+        return self._ConstructScheme(self.settings["scheme_type"].GetString(),
                                          self.settings["solution_type"].GetString())
 
 

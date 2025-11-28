@@ -2,7 +2,7 @@
   "properties": [
     {
       "properties_id": 0,
-      "model_part_name": "PorousDomain.Soil-0",
+      "model_part_name": "PorousDomain.Soil",
       "Material": {
         "constitutive_law": {
           "name": "GeoLinearElasticPlaneStrain2DLaw"

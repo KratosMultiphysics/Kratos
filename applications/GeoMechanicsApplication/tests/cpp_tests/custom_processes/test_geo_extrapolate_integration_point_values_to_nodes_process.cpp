@@ -29,7 +29,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElementForNodalExtrapolationTest);
 
     StubElementForNodalExtrapolationTest(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
+        : Element(NewId, std::move(pGeometry))
     {
     }
 
@@ -366,6 +366,22 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
         KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], 1e-6)
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_empty_model_part = model.CreateModelPart("foo");
+    auto  parameters         = Parameters(R"(
+     {
+         "model_part_name"            : "MainModelPart",
+         "list_of_variables"          : ["FLUID_FLUX_VECTOR"]
+     })");
+    const GeoExtrapolateIntegrationPointValuesToNodesProcess process(r_empty_model_part, parameters);
+
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "GeoExtrapolateIntegrationPointValuesToNodesProcess");
 }
 
 } // namespace Kratos::Testing

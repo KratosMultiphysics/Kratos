@@ -27,6 +27,7 @@
 
 // Tensor adaptors
 #include "tensor_adaptors/tensor_adaptor.h"
+#include "tensor_adaptors/combined_tensor_adaptor.h"
 #include "tensor_adaptors/historical_variable_tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
 #include "tensor_adaptors/flags_tensor_adaptor.h"
@@ -76,6 +77,20 @@ void AddBaseTensorAdaptor(
     ;
 }
 
+template<class TDataType>
+void AddCombinedTensorAdaptor(
+    pybind11::module& rModule,
+    const std::string& rName)
+{
+    using combined_ta_type = CombinedTensorAdaptor<TDataType>;
+    pybind11::class_<combined_ta_type, typename combined_ta_type::Pointer, typename combined_ta_type::BaseType>(rModule, rName.c_str())
+        .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType&, const bool, const bool>(), pybind11::arg("list_of_tensor_adaptors"), pybind11::arg("perform_collect_data_recursively") = true, pybind11::arg("perform_store_data_recursively") = true) // reveling ctor
+        .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType&, const unsigned int, const bool, const bool>(), pybind11::arg("list_of_tensor_adaptors"), pybind11::arg("axis"), pybind11::arg("perform_collect_data_recursively") = true, pybind11::arg("perform_store_data_recursively") = true) // axis based ctor
+        .def(pybind11::init<const combined_ta_type&, const bool, const bool, const bool>(), pybind11::arg("list_of_tensor_adaptors"), pybind11::arg("perform_collect_data_recursively") = true, pybind11::arg("perform_store_data_recursively") = true, pybind11::arg("copy") = true)
+        .def("GetTensorAdaptors", &combined_ta_type::GetTensorAdaptors)
+        ;
+}
+
 } // namespace Detail
 
 void AddTensorAdaptorsToPython(pybind11::module& m)
@@ -86,6 +101,10 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
     Detail::AddBaseTensorAdaptor<bool>(tensor_adaptor_sub_module, "BoolTensor");
     Detail::AddBaseTensorAdaptor<int>(tensor_adaptor_sub_module, "IntTensor");
     Detail::AddBaseTensorAdaptor<double>(tensor_adaptor_sub_module, "DoubleTensor");
+
+    Detail::AddCombinedTensorAdaptor<bool>(tensor_adaptor_sub_module, "BoolCombinedTensorAdaptor");
+    Detail::AddCombinedTensorAdaptor<int>(tensor_adaptor_sub_module, "IntCombinedTensorAdaptor");
+    Detail::AddCombinedTensorAdaptor<double>(tensor_adaptor_sub_module, "DoubleCombinedTensorAdaptor");
 
     py::class_<HistoricalVariableTensorAdaptor, HistoricalVariableTensorAdaptor::Pointer, HistoricalVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "HistoricalVariableTensorAdaptor")
         .def(py::init<ModelPart::NodesContainerType::Pointer, HistoricalVariableTensorAdaptor::VariablePointerType, const int>(), py::arg("container"), py::arg("variable"), py::arg("step_index") = 0)

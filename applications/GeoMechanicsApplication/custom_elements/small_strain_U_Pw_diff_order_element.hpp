@@ -193,12 +193,12 @@ protected:
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
+    static void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
 
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
-                                              const ElementVariables& rVariables) const;
+    static void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                                     const ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
                                        const ElementVariables& rVariables,
@@ -208,11 +208,12 @@ protected:
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
-                                            const ElementVariables& rVariables) const;
+    static void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
+                                                   const ElementVariables& rVariables);
 
     [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
+    static void CalculateAndAddPermeabilityFlow(VectorType&             rRightHandSideVector,
+                                                const ElementVariables& rVariables);
 
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
@@ -270,22 +271,21 @@ private:
 
     void load(Serializer& rSerializer) override;
 
+    Vector CalculateInternalForces(ElementVariables&          rVariables,
+                                   const std::vector<Matrix>& rBMatrices,
+                                   const std::vector<double>& rIntegrationCoefficients,
+                                   const std::vector<double>& rBiotCoefficients,
+                                   const std::vector<double>& rDegreesOfSaturation,
+                                   const std::vector<double>& rBiotModuliInverse,
+                                   const std::vector<double>& rRelativePermeabilityValues,
+                                   const std::vector<double>& rBishopCoefficients) const;
 
-    Vector CalculateInternalForces(ElementVariables&          Variables,
-                                   const std::vector<Matrix>& b_matrices,
-                                   const std::vector<double>& integration_coefficients,
-                                   const std::vector<double>& biot_coefficients,
-                                   const std::vector<double>& degrees_of_saturation,
-                                   const std::vector<double>& biot_moduli_inverse,
-                                   const std::vector<double>& relative_permeability_values,
-                                   const std::vector<double>& bishop_coefficients) const;
-
-    Vector CalculateExternalForces(ElementVariables&          Variables,
-                                   const std::vector<double>& integration_coefficients,
-                                   const std::vector<double>& integration_coefficients_on_initial_configuration,
-                                   const std::vector<double>& degrees_of_saturation,
-                                   const std::vector<double>& relative_permeability_values,
-                                   const std::vector<double>& bishop_coefficients) const;
+    Vector CalculateExternalForces(ElementVariables&          rVariables,
+                                   const std::vector<double>& rIntegrationCoefficients,
+                                   const std::vector<double>& rIntegrationCoefficientsOnInitialConfiguration,
+                                   const std::vector<double>& rDegreesOfSaturation,
+                                   const std::vector<double>& rRelativePermeabilityValues,
+                                   const std::vector<double>& rBishopCoefficients) const;
 }; // Class SmallStrainUPwDiffOrderElement
 
 } // namespace Kratos

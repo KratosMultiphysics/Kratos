@@ -2,6 +2,7 @@ import os
 
 import KratosMultiphysics                as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
@@ -390,7 +391,7 @@ class KratosGeoMechanicsK0ProcedureProcessTests(KratosUnittest.TestCase):
         n_stages = 2
         run_multiple_stages.run_stages(project_path, n_stages)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
 
         # compare first stage cauchy_stress_xx = k0_nc * cauchy_stress_yy, cauchy_stress_xy = 0.
         # k0_nc = 1 - sin( 30 degrees )
