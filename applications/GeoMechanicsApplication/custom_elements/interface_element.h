@@ -66,6 +66,8 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    Geo::IntegrationPointVectorType GetIntegrationPoints() const;
+
 private:
     InterfaceElement() = default;
 

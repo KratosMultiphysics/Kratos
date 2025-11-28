@@ -13,6 +13,7 @@
 
 #include "linear_nodal_extrapolator.h"
 
+#include "element_utilities.hpp"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
@@ -31,8 +32,10 @@ Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Elemen
     const auto p_lower_order_geometry = CreateLowerOrderGeometry(r_geometry);
     const GeometryType& p_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : r_geometry;
 
+    const auto integration_points = GeoElementUtilities::GetIntegrationPointsOf(rElement);
+
     Matrix extrapolation_matrix = CalculateExtrapolationMatrixForCornerNodes(
-        r_geometry, rElement.GetIntegrationMethod(), p_corner_geometry);
+        r_geometry, rElement.GetIntegrationMethod(), integration_points, p_corner_geometry);
 
     if (p_lower_order_geometry) {
         AddRowsForMidsideNodes(r_geometry, extrapolation_matrix);
@@ -41,17 +44,18 @@ Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Elemen
     return extrapolation_matrix;
 }
 
-Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,
-                                                                           const GeometryData::IntegrationMethod& rIntegrationMethod,
-                                                                           const GeometryType& rCornerGeometry)
+Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(
+    const GeometryType&                    rGeometry,
+    const GeometryData::IntegrationMethod& rIntegrationMethod,
+    const Geo::IntegrationPointVectorType& rIntegrationPoints,
+    const GeometryType&                    rCornerGeometry)
 {
     const SizeType number_of_corner_nodes = rCornerGeometry.PointsNumber();
 
-    Matrix      quasi_mass_mat     = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
-    const auto& integration_points = rGeometry.IntegrationPoints(rIntegrationMethod);
-    const auto  number_of_integration_points = integration_points.size();
-    Matrix      node_coefficients(number_of_corner_nodes, number_of_integration_points);
-    Vector      determinants_of_jacobian;
+    Matrix     quasi_mass_mat = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
+    const auto number_of_integration_points = rIntegrationPoints.size();
+    Matrix     node_coefficients(number_of_corner_nodes, number_of_integration_points);
+    Vector     determinants_of_jacobian;
     rGeometry.DeterminantOfJacobian(determinants_of_jacobian, rIntegrationMethod);
 
     const Matrix& shape_functions_values_at_integration_points =
@@ -59,8 +63,8 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
 
     for (IndexType i = 0; i < number_of_integration_points; ++i) {
         const Vector N = row(shape_functions_values_at_integration_points, i);
-        quasi_mass_mat += outer_prod(N, N) * determinants_of_jacobian[i] * integration_points[i].Weight();
-        column(node_coefficients, i) = N * determinants_of_jacobian[i] * integration_points[i].Weight();
+        quasi_mass_mat += outer_prod(N, N) * determinants_of_jacobian[i] * rIntegrationPoints[i].Weight();
+        column(node_coefficients, i) = N * determinants_of_jacobian[i] * rIntegrationPoints[i].Weight();
     }
 
     double metric_determinant;

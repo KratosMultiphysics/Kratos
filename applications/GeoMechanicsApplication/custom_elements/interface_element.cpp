@@ -237,6 +237,11 @@ int InterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     return 0;
 }
 
+Geo::IntegrationPointVectorType InterfaceElement::GetIntegrationPoints() const
+{
+    return mIntegrationScheme->GetIntegrationPoints();
+}
+
 Element::DofsVectorType InterfaceElement::GetDofs() const
 {
     const auto no_Pw_geometry_yet = Geometry<Node>{};

@@ -12,6 +12,8 @@
 
 #include "element_utilities.hpp"
 
+#include "custom_elements/interface_element.h"
+
 #include <cstddef>
 
 namespace Kratos
@@ -140,6 +142,14 @@ Vector GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(const 
         }
     }
     return nodal_hydraulic_heads;
+}
+
+Geo::IntegrationPointVectorType GeoElementUtilities::GetIntegrationPointsOf(const Element& rElement)
+{
+    auto p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    return p_interface_element
+               ? p_interface_element->GetIntegrationPoints()
+               : rElement.GetGeometry().IntegrationPoints(rElement.GetIntegrationMethod());
 }
 
 std::vector<Vector> GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
