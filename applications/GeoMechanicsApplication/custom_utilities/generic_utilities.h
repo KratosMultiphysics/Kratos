@@ -49,30 +49,19 @@ public:
         return result;
     }
 
-    template <class ContainerType, class IdsType>
-    static void GetIdsFromEntityContents(const ContainerType& rContainer, IdsType& rIds)
+    template <class ContainerType, class OutputIt>
+    static void GetIdsFromEntityContents(const ContainerType& rContainer, OutputIt Out)
     {
-        for (const auto& r_item : rContainer) {
-            const auto id = r_item.Id();
-
-            if constexpr (requires { rIds.insert(id); }) {
-                // Works for set/unordered_set
-                rIds.insert(id);
-            } else if constexpr (requires { rIds.push_back(id); }) {
-                // Works for vector/deque
-                rIds.push_back(id);
-            } else {
-                static_assert(!std::is_same_v<IdsType, IdsType>,
-                              "OutputContainerType does not support insert or push_back.");
-            }
-        }
+        std::transform(std::begin(rContainer), std::end(rContainer), Out,
+                       [](const auto& rItem) { return rItem.Id(); });
     }
 
     template <class ContainerType>
     static auto GetIdsFromEntityContents(const ContainerType& rContainer)
     {
         std::vector<std::size_t> result;
-        GetIdsFromEntityContents(rContainer, result);
+        result.reserve(rContainer.size());
+        GetIdsFromEntityContents(rContainer, std::back_inserter(result));
         return result;
     }
 

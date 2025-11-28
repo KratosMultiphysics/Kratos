@@ -79,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetIdsFromEntityContents_ReturnsCorrectNodeIds, Kratos
     const auto node_ids_vector = GenericUtilities::GetIdsFromEntityContents(geometry);
 
     std::set<Node::IndexType> node_ids_set;
-    GenericUtilities::GetIdsFromEntityContents(geometry, node_ids_set);
+    GenericUtilities::GetIdsFromEntityContents(geometry, std::inserter(node_ids_set, node_ids_set.end()));
 
     // Assert
     const std::vector<Node::IndexType> expected_ids_vec = {1, 3, 42, 314};
