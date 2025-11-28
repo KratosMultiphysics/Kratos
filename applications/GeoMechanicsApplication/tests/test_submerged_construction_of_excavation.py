@@ -346,35 +346,35 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             axial_forces = GiDOutputFileReader.nodal_values_at_time("AXIAL_FORCE", time, output_data_wall, node_ids=node_ids)
             data_series_collection.append(plot_utils.DataSeries(
                 zip(axial_forces, y_coords, strict=True),
-                r"$\sigma_{\mathrm{eff, yy}}$ [Kratos]",
-                line_style=":",
-                marker="+",
+                "Axial force [Kratos]",
+                line_style="-",
+                marker="",
             ))
 
-            plot_utils.make_stress_over_y_plot(data_series_collection, pathlib.Path(project_path) / "axial_forces.svg")
+            plot_utils.make_force_over_y_plot(data_series_collection, pathlib.Path(project_path) / "axial_forces.svg")
 
             y_coords = [coord[1] for coord in coordinates]
             bending_moment = GiDOutputFileReader.nodal_values_at_time("BENDING_MOMENT", time, output_data_wall, node_ids=node_ids)
             data_series_collection.clear()
             data_series_collection.append(plot_utils.DataSeries(
                 zip(bending_moment, y_coords, strict=True),
-                r"$\sigma_{\mathrm{eff, yy}}$ [Kratos]",
-                line_style=":",
-                marker="+",
+                "Bending moment [Kratos]",
+                line_style="-",
+                marker="",
             ))
 
-            plot_utils.make_stress_over_y_plot(data_series_collection, pathlib.Path(project_path) / "bending_moment.svg")
+            plot_utils.make_moment_over_y_plot(data_series_collection, pathlib.Path(project_path) / "bending_moment.svg")
 
             shear_force = GiDOutputFileReader.nodal_values_at_time("SHEAR_FORCE", time, output_data_wall, node_ids=node_ids)
             data_series_collection.clear()
             data_series_collection.append(plot_utils.DataSeries(
                 zip(shear_force, y_coords, strict=True),
-                r"$\sigma_{\mathrm{eff, yy}}$ [Kratos]",
-                line_style=":",
-                marker="+",
+                "Shear force [Kratos]",
+                line_style="-",
+                marker="",
             ))
 
-            plot_utils.make_stress_over_y_plot(data_series_collection, pathlib.Path(project_path) / "shear_force.svg")
+            plot_utils.make_force_over_y_plot(data_series_collection, pathlib.Path(project_path) / "shear_force.svg")
 
         # Check vertical reaction forces after the first excavation
         output_data = output_reader.read_output_from(os.path.join(project_path, "4_First_excavation.post.res"))
