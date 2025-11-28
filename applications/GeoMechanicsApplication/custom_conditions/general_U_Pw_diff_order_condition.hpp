@@ -88,7 +88,7 @@ protected:
 
     void InitializeConditionVariables(ConditionVariables& rVariables);
 
-    void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber) const;
+    static void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber);
 
     virtual void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber);
 

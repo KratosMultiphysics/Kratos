@@ -29,6 +29,50 @@ CoulombYieldSurface::KappaDependentFunction MakeConstantFunction(double Value)
     return [Value](double /* unused kappa */) { return Value; };
 }
 
+std::string GetCoulombHardeningTypeFrom(const Properties& rMaterialProperties)
+{
+    auto result   = rMaterialProperties[GEO_COULOMB_HARDENING_TYPE];
+    auto to_lower = [](auto character) { return std::tolower(character); };
+    std::ranges::transform(result, result.begin(), to_lower);
+    return result;
+}
+
+CoulombYieldSurface::KappaDependentFunction MakeFrictionAngleCalculator(const Properties& rMaterialProperties)
+{
+    const auto hardening_type = GetCoulombHardeningTypeFrom(rMaterialProperties);
+
+    if (hardening_type == "none") {
+        return MakeConstantFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties));
+    }
+
+    KRATOS_ERROR << "Cannot create a kappa-dependent function for the friction angle of material "
+                 << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
+}
+
+CoulombYieldSurface::KappaDependentFunction MakeCohesionCalculator(const Properties& rMaterialProperties)
+{
+    const auto hardening_type = GetCoulombHardeningTypeFrom(rMaterialProperties);
+
+    if (hardening_type == "none") {
+        return MakeConstantFunction(ConstitutiveLawUtilities::GetCohesion(rMaterialProperties));
+    }
+
+    KRATOS_ERROR << "Cannot create a kappa-dependent function for the cohesion of material "
+                 << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
+}
+
+CoulombYieldSurface::KappaDependentFunction MakeDilatancyAngleCalculator(const Properties& rMaterialProperties)
+{
+    const auto hardening_type = GetCoulombHardeningTypeFrom(rMaterialProperties);
+
+    if (hardening_type == "none") {
+        return MakeConstantFunction(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]));
+    }
+
+    KRATOS_ERROR << "Cannot create a kappa-dependent function for the dilatancy angle of material "
+                 << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
+}
+
 } // namespace
 
 namespace Kratos
@@ -36,16 +80,22 @@ namespace Kratos
 
 CoulombYieldSurface::CoulombYieldSurface()
 {
-    mMaterialProperties[GEO_FRICTION_ANGLE]  = 0.0;
-    mMaterialProperties[GEO_COHESION]        = 0.0;
-    mMaterialProperties[GEO_DILATANCY_ANGLE] = 0.0;
+    mMaterialProperties.SetValue(GEO_COULOMB_HARDENING_TYPE, "None");
+    mMaterialProperties.SetValue(GEO_FRICTION_ANGLE, 0.0);
+    mMaterialProperties.SetValue(GEO_COHESION, 0.0);
+    mMaterialProperties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
 
     InitializeKappaDependentFunctions();
 }
 
-CoulombYieldSurface::CoulombYieldSurface(Properties MaterialProperties)
-    : mMaterialProperties{std::move(MaterialProperties)}
+CoulombYieldSurface::CoulombYieldSurface(const Properties& rMaterialProperties)
+    : mMaterialProperties{rMaterialProperties}
 {
+    // For backward compatibility, if no hardening type is given, we assume no hardening at all
+    if (!mMaterialProperties.Has(GEO_COULOMB_HARDENING_TYPE)) {
+        mMaterialProperties.SetValue(GEO_COULOMB_HARDENING_TYPE, "None");
+    }
+
     InitializeKappaDependentFunctions();
 }
 
@@ -95,12 +145,9 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAvera
 
 void CoulombYieldSurface::InitializeKappaDependentFunctions()
 {
-    // At present, we only support properties that are independent of kappa
-    mFrictionAngleCalculator =
-        MakeConstantFunction(ConstitutiveLawUtilities::GetFrictionAngleInRadians(mMaterialProperties));
-    mCohesionCalculator = MakeConstantFunction(ConstitutiveLawUtilities::GetCohesion(mMaterialProperties));
-    mDilatancyAngleCalculator =
-        MakeConstantFunction(MathUtils<>::DegreesToRadians(mMaterialProperties[GEO_DILATANCY_ANGLE]));
+    mFrictionAngleCalculator  = MakeFrictionAngleCalculator(mMaterialProperties);
+    mCohesionCalculator       = MakeCohesionCalculator(mMaterialProperties);
+    mDilatancyAngleCalculator = MakeDilatancyAngleCalculator(mMaterialProperties);
 }
 
 void CoulombYieldSurface::save(Serializer& rSerializer) const
