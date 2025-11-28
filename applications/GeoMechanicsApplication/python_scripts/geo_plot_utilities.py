@@ -64,11 +64,11 @@ def make_stress_over_y_plot(data_series_collection, plot_file_path):
 
 def make_force_over_y_plot(data_series_collection, plot_file_path):
     _make_plot(
-        data_series_collection, plot_file_path, xlabel="Force [N]", ylabel=r"$y$ [m]"
+        data_series_collection, plot_file_path, xlabel="Force [kN]", ylabel=r"$y$ [m]"
     )
 
 def make_moment_over_y_plot(data_series_collection, plot_file_path):
     _make_plot(
-        data_series_collection, plot_file_path, xlabel="Moment [Nm]", ylabel=r"$y$ [m]"
+        data_series_collection, plot_file_path, xlabel="Moment [kNm]", ylabel=r"$y$ [m]"
     )
 

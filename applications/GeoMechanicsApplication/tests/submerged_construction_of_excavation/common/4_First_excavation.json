@@ -336,6 +336,15 @@
                                              "PorousDomain.Wall_Clay_Interface_Lower_Right",
                                              "PorousDomain.Wall_Sand_Interface_Right"]
                 }
+            },
+            {
+                "python_module"            : "geo_extrapolate_integration_point_values_to_nodes_process",
+                "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name"             : "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+                "Parameters": {
+                    "model_part_name"        : "PorousDomain.Diaphragm_Wall",
+                    "list_of_variables"      : ["AXIAL_FORCE","BENDING_MOMENT","SHEAR_FORCE"]
+                }
             }
         ]
     },
@@ -379,6 +388,37 @@
                         }
                     },
                     "output_name": "4_First_excavation"
+                }
+            },
+            {
+                "python_module": "gid_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Diaphragm_Wall",
+                    "postprocess_parameters": {
+                        "result_file_configuration": {
+                            "gidpost_flags": {
+                                "GiDPostMode": "GiD_PostAscii",
+                                "WriteDeformedMeshFlag": "WriteDeformed",
+                                "WriteConditionsFlag": "WriteConditions",
+                                "MultiFileFlag": "SingleFile"
+                            },
+                            "file_label": "step",
+                            "output_control_type": "step",
+                            "output_interval": 1,
+                            "body_output": true,
+                            "node_output": false,
+                            "skin_output": false,
+                            "nodal_results": [
+                                "AXIAL_FORCE",
+                                "BENDING_MOMENT",
+                                "SHEAR_FORCE"
+                            ],
+                            "gauss_point_results": []
+                        }
+                    },
+                    "output_name": "4_First_excavation_wall"
                 }
             }
         ]
