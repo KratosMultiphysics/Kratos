@@ -88,7 +88,6 @@ def AssembleTestSuites():
 
     # Create an array with the selected tests (Small tests):
     small_test_cases = [
-                        KratosGeoMechanicsSubmergedConstructionOfExcavation,
                         KratosGeoMechanicsExcavationTests,
                         KratosGeoMechanicsResetDisplacementTests,
                         KratosGeoMechanicsSoilStructureInteractionTests,
@@ -147,6 +146,7 @@ def AssembleTestSuites():
                         KratosGeoMechanics1DConsolidation,
                         KratosGeoMechanics1DConsolidationCppRoute,
                         KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine,
+                        KratosGeoMechanicsSubmergedConstructionOfExcavation,
                         ]
     night_test_cases.extend(small_test_cases)
 
