@@ -253,6 +253,14 @@ def get_wall_node_ids():
             8979,
             8988]
 
+def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1):
+    words = line.split('\t')
+    return (-1.0 * float(words[index_of_x]), float(words[index_of_y]))
+
+
+def extract_y_and_moment_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=11, index_of_y=4)
+
 class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
@@ -340,7 +348,16 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
         if test_helper.want_test_plots():
             wall_res_file = "3_Wall_installation_wall"
-            self.make_wall_plots(output_reader, project_path, time, wall_res_file)
+            comparison_data_points = test_helper.get_data_points_from_file(
+                os.path.join(project_path, "3_Wall_installation_comparison.txt"), extract_y_and_moment_from_line
+            )
+            print (f"Comparison data points: {comparison_data_points}")
+            data_series_collection = []
+            data_series_collection.append(
+                plot_utils.DataSeries(comparison_data_points, "Bending moment [Comparison]", marker="1")
+            )
+
+            self.make_wall_plots(output_reader, project_path, time, wall_res_file, data_series_collection)
 
         # Check vertical reaction forces after the first excavation
         output_data = output_reader.read_output_from(os.path.join(project_path, "4_First_excavation.post.res"))
@@ -383,7 +400,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             self.make_wall_plots(output_reader, project_path, time, stage_name)
 
     def make_wall_plots(self, output_reader: GiDOutputFileReader, project_path,
-                        time, stage_name):
+                        time, stage_name, comparison_data=None):
         output_data_wall = output_reader.read_output_from(os.path.join(project_path, f"{stage_name}.post.res"))
         data_series_collection = []
         node_ids = get_wall_node_ids()
@@ -414,7 +431,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             line_style="-",
             marker=".",
         ))
-
+        if comparison_data:
+            data_series_collection.extend(comparison_data)
         plot_utils.make_moment_over_y_plot(data_series_collection,
                                            pathlib.Path(project_path) / f"bending_moment_{stage_name}.svg")
 
