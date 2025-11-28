@@ -20,6 +20,7 @@ namespace Kratos
 {
 class NodalExtrapolator;
 class Node;
+class Element;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ExtrapolationUtilities
 {
@@ -29,11 +30,7 @@ public:
                                                              size_t ElementId);
 
     [[nodiscard]] static std::vector<std::optional<Vector>> CalculateNodalVectors(
-        const std::vector<std::size_t>& rNodeIds,
-        const Geometry<Node>&           rGeometry,
-        GeometryData::IntegrationMethod IntegrationMethod,
-        const std::vector<Vector>&      rVectorsAtIntegrationPoints,
-        size_t                          ElementId);
+        const std::vector<std::size_t>& rNodeIds, const Element& rElement, const std::vector<Vector>& rVectorsAtIntegrationPoints);
 };
 
 } // namespace Kratos

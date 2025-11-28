@@ -15,6 +15,7 @@
 
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "geometry_utilities.h"
+#include "includes/element.h"
 #include "includes/node.h"
 
 namespace Kratos
@@ -41,21 +42,21 @@ Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Geometry<Node>
 }
 
 std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalVectors(
-    const std::vector<std::size_t>& rNodeIds,
-    const Geometry<Node>&           rGeometry,
-    GeometryData::IntegrationMethod IntegrationMethod,
-    const std::vector<Vector>&      rVectorsAtIntegrationPoints,
-    size_t                          ElementId)
+    const std::vector<std::size_t>& rNodeIds, const Element& rElement, const std::vector<Vector>& rVectorsAtIntegrationPoints)
 {
-    const auto element_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(rGeometry);
-    const auto extrapolation_matrix = CalculateExtrapolationMatrix(rGeometry, IntegrationMethod, ElementId);
+    const auto& r_geometry         = rElement.GetGeometry();
+    const auto  integration_method = rElement.GetIntegrationMethod();
+    const auto  element_id         = rElement.Id();
+
+    const auto element_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(r_geometry);
+    const auto extrapolation_matrix = CalculateExtrapolationMatrix(r_geometry, integration_method, element_id);
 
     KRATOS_ERROR_IF_NOT(extrapolation_matrix.size2() == rVectorsAtIntegrationPoints.size())
         << "An extrapolation matrix size " << extrapolation_matrix.size2()
         << " is not equal to given stress vectors size " << rVectorsAtIntegrationPoints.size()
-        << " for element Id " << ElementId << std::endl;
+        << " for element Id " << element_id << std::endl;
 
-    const auto          number_of_nodes = rGeometry.size();
+    const auto          number_of_nodes = r_geometry.PointsNumber();
     std::vector<Vector> extrapolated_vectors_at_nodes(
         number_of_nodes, ZeroVector(rVectorsAtIntegrationPoints[0].size()));
     for (unsigned int node_index = 0; node_index < number_of_nodes; ++node_index) {
