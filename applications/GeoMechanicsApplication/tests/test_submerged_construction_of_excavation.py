@@ -353,7 +353,6 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
             plot_utils.make_force_over_y_plot(data_series_collection, pathlib.Path(project_path) / "axial_forces.svg")
 
-            y_coords = [coord[1] for coord in coordinates]
             bending_moment = GiDOutputFileReader.nodal_values_at_time("BENDING_MOMENT", time, output_data_wall, node_ids=node_ids)
             data_series_collection.clear()
             data_series_collection.append(plot_utils.DataSeries(
