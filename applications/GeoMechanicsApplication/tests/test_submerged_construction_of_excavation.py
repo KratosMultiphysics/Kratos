@@ -261,6 +261,13 @@ def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1):
 def extract_y_and_moment_from_line(line):
     return _extract_x_and_y_from_line(line, index_of_x=11, index_of_y=4)
 
+def extract_y_and_axial_force_from_line(line):
+    words = line.split('\t')
+    return (float(words[5]), float(words[4]))
+
+def extract_y_and_shear_force_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=8, index_of_y=4)
+
 class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
@@ -348,13 +355,26 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
         if test_helper.want_test_plots():
             wall_res_file = "3_Wall_installation_wall"
-            comparison_data_points = test_helper.get_data_points_from_file(
-                os.path.join(project_path, "3_Wall_installation_comparison.txt"), extract_y_and_moment_from_line
+            comparison_axial_force = test_helper.get_data_points_from_file(
+                os.path.join(project_path, "3_Wall_installation_comparison.txt"), extract_y_and_axial_force_from_line
             )
-            print (f"Comparison data points: {comparison_data_points}")
             data_series_collection = []
             data_series_collection.append(
-                plot_utils.DataSeries(comparison_data_points, "Bending moment [Comparison]", marker="1")
+                plot_utils.DataSeries(comparison_axial_force, "Bending moment [Comparison]", marker="1")
+            )
+
+            comparison_bending_moment = test_helper.get_data_points_from_file(
+                os.path.join(project_path, "3_Wall_installation_comparison.txt"), extract_y_and_moment_from_line
+            )
+            data_series_collection.append(
+                plot_utils.DataSeries(comparison_bending_moment, "Bending moment [Comparison]", marker="1")
+            )
+
+            comparison_shear_force = test_helper.get_data_points_from_file(
+                os.path.join(project_path, "3_Wall_installation_comparison.txt"), extract_y_and_shear_force_from_line
+            )
+            data_series_collection.append(
+                plot_utils.DataSeries(comparison_shear_force, "Bending moment [Comparison]", marker="1")
             )
 
             self.make_wall_plots(output_reader, project_path, time, wall_res_file, data_series_collection)
@@ -417,6 +437,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             line_style="-",
             marker=".",
         ))
+        if comparison_data:
+            data_series_collection.append(comparison_data[0])
 
         plot_utils.make_force_over_y_plot(data_series_collection,
                                           pathlib.Path(project_path) / f"axial_forces_{stage_name}.svg")
@@ -432,7 +454,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             marker=".",
         ))
         if comparison_data:
-            data_series_collection.extend(comparison_data)
+            data_series_collection.append(comparison_data[1])
         plot_utils.make_moment_over_y_plot(data_series_collection,
                                            pathlib.Path(project_path) / f"bending_moment_{stage_name}.svg")
 
@@ -445,7 +467,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             line_style="-",
             marker=".",
         ))
-
+        if comparison_data:
+            data_series_collection.append(comparison_data[2])
         plot_utils.make_force_over_y_plot(data_series_collection,
                                           pathlib.Path(project_path) / f"shear_force_{stage_name}.svg")
 
