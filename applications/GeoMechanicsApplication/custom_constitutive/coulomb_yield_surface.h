@@ -22,6 +22,8 @@
 namespace Kratos
 {
 
+class CheckProperties;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSurface
 {
 public:
@@ -56,7 +58,9 @@ public:
 
 private:
     void InitializeKappaDependentFunctions();
-    void CheckMaterialProperties();
+    void CheckMaterialProperties() const;
+    void CheckHardeningCoefficients(const Variable<Vector>& rCoefficientsVariable,
+                                    const CheckProperties&  rChecker) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

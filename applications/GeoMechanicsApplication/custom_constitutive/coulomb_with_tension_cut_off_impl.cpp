@@ -85,18 +85,15 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
 
 Vector CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
 {
-    // Check whether the tension cut-off lies beyond the apex
-    auto result                 = Vector{ZeroVector(2)};
-    result[0]                   = mCoulombYieldSurface.CalculateApex();
     const auto tensile_strength = mTensionCutOff.GetTensileStrength();
-    if (tensile_strength > result[0]) return result;
+    if (const auto apex = mCoulombYieldSurface.CalculateApex(); tensile_strength > apex)
+        return UblasUtilities::CreateVector({apex, 0.0});
 
     const auto cohesion = mCoulombYieldSurface.GetCohesion();
     const auto sin_phi  = std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians());
     const auto cos_phi  = std::cos(mCoulombYieldSurface.GetFrictionAngleInRadians());
-    result[0]           = (tensile_strength - cohesion * cos_phi) / (1.0 - sin_phi);
-    result[1]           = (cohesion * cos_phi - tensile_strength * sin_phi) / (1.0 - sin_phi);
-    return result;
+    return UblasUtilities::CreateVector({(tensile_strength - cohesion * cos_phi) / (1.0 - sin_phi),
+                                         (cohesion * cos_phi - tensile_strength * sin_phi) / (1.0 - sin_phi)});
 }
 
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau) const

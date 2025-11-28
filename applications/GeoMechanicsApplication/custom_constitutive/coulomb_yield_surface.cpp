@@ -190,8 +190,8 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Vect
     const auto derivative              = DerivativeOfFlowFunction(rSigmaTau, AveragingType);
     const auto principal_stress_vector = UblasUtilities::CreateVector(
         {(derivative[0] + derivative[1]) / 2.0, 0.0, (derivative[0] - derivative[1]) / 2.0});
-    const auto mean =
-        std::accumulate(principal_stress_vector.begin(), principal_stress_vector.end(), 0.0) / 3.0;
+    const auto mean = std::accumulate(principal_stress_vector.begin(), principal_stress_vector.end(), 0.0) /
+                      static_cast<double>(principal_stress_vector.size());
     auto deviatoric_principle_stress_vector = Vector{3};
     std::ranges::transform(principal_stress_vector, deviatoric_principle_stress_vector.begin(),
                            [mean](auto sigma) { return sigma - mean; });
@@ -199,7 +199,7 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Vect
            CalculatePlasticMultiplier(rSigmaTau, DerivativeOfFlowFunction(rSigmaTau, AveragingType));
 }
 
-void CoulombYieldSurface::CheckMaterialProperties()
+void CoulombYieldSurface::CheckMaterialProperties() const
 {
     const CheckProperties check_properties(mMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
     check_properties.Check(GEO_COHESION);
@@ -207,29 +207,21 @@ void CoulombYieldSurface::CheckMaterialProperties()
     check_properties.Check(GEO_DILATANCY_ANGLE, mMaterialProperties[GEO_FRICTION_ANGLE]);
 
     if (GetCoulombHardeningTypeFrom(mMaterialProperties) != "none") {
-        check_properties.CheckAvailability(GEO_COHESION_FUNCTION_COEFFICIENTS);
-        const auto& cohesion_vec = mMaterialProperties[GEO_COHESION_FUNCTION_COEFFICIENTS];
-        for (unsigned int i = 0; i < cohesion_vec.size(); ++i) {
-            KRATOS_ERROR_IF(cohesion_vec[i] < 0.0)
-                << "Entry " << i << " in " << GEO_COHESION_FUNCTION_COEFFICIENTS.Name()
-                << " out of range. Value: " << cohesion_vec[i];
-        }
+        CheckHardeningCoefficients(GEO_COHESION_FUNCTION_COEFFICIENTS, check_properties);
+        CheckHardeningCoefficients(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, check_properties);
+        CheckHardeningCoefficients(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS, check_properties);
+    }
+}
 
-        check_properties.CheckAvailability(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS);
-        const auto& friction_vec = mMaterialProperties[GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS];
-        for (unsigned int i = 0; i < friction_vec.size(); ++i) {
-            KRATOS_ERROR_IF(friction_vec[i] < 0.0)
-                << "Entry " << i << " in " << GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS.Name()
-                << " out of range. Value: " << friction_vec[i];
-        }
+void CoulombYieldSurface::CheckHardeningCoefficients(const Variable<Vector>& rCoefficientsVariable,
+                                                     const CheckProperties&  rChecker) const
+{
+    rChecker.CheckAvailability(rCoefficientsVariable);
 
-        check_properties.CheckAvailability(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS);
-        const auto& dilatancy_vec = mMaterialProperties[GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS];
-        for (unsigned int i = 0; i < dilatancy_vec.size(); ++i) {
-            KRATOS_ERROR_IF(dilatancy_vec[i] < 0.0)
-                << "Entry " << i << " in " << GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS.Name()
-                << " out of range. Value: " << dilatancy_vec[i];
-        }
+    const auto& coefficients = mMaterialProperties[rCoefficientsVariable];
+    for (auto i = std::size_t{0}; i < coefficients.size(); ++i) {
+        KRATOS_ERROR_IF(coefficients[i] < 0.0) << "Entry " << i << " in " << rCoefficientsVariable.Name()
+                                               << " out of range. Value: " << coefficients[i];
     }
 }
 
