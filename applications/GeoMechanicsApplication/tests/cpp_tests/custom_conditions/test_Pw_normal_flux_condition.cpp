@@ -16,11 +16,12 @@
 #include "containers/model.h"
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "geometries/line_2d_2.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(CalculateHorizontalNormalFlux, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateHorizontalNormalFlux)
 {
     // initialize modelpart
     Model current_model;
@@ -76,11 +77,11 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateHorizontalNormalFlux, KratosGeoMechanicsFastS
     expected_vector[1]     = -50;
 
     for (unsigned int i = 0; i < conditionSize; ++i) {
-        KRATOS_EXPECT_NEAR(rRightHandSideVector[i], expected_vector[i], 1.0e-6);
+        EXPECT_NEAR(rRightHandSideVector[i], expected_vector[i], 1.0e-6);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateInclinedNormalFlux, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateInclinedNormalFlux)
 {
     // initialize modelpart
     Model current_model;
@@ -134,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateInclinedNormalFlux, KratosGeoMechanicsFastSui
     expected_vector[1]     = -250;
 
     for (unsigned int i = 0; i < conditionSize; ++i) {
-        KRATOS_EXPECT_NEAR(rRightHandSideVector[i], expected_vector[i], 1.0e-6);
+        EXPECT_NEAR(rRightHandSideVector[i], expected_vector[i], 1.0e-6);
     }
 }
 } // namespace Kratos::Testing
