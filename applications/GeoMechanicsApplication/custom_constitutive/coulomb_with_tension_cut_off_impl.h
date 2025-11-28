@@ -32,12 +32,15 @@ public:
 
     [[nodiscard]] bool   IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
     [[nodiscard]] Vector DoReturnMapping(const Vector&                             rTrialSigmaTau,
-                                         CoulombYieldSurface::CoulombAveragingType AveragingType,
-                                         double&                                   kappa_start);
+                                         CoulombYieldSurface::CoulombAveragingType AveragingType);
+
+    void SaveKappaOfCoulombYieldSurface();
+    void RestoreKappaOfCoulombYieldSurface();
 
 private:
     CoulombYieldSurface mCoulombYieldSurface;
     TensionCutoff       mTensionCutOff;
+    double              mSavedKappaOfCoulombYieldSurface{0.0};
     double              mAbsoluteYieldFunctionValueTolerance{1.0e-8};
     std::size_t         mMaxNumberOfPlasticIterations{100};
 

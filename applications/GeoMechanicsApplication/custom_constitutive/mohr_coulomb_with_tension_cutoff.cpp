@@ -205,9 +205,9 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         mStressVector = trial_stress_vector;
     } else {
-        double kappa_start      = -1.0;
-        auto   mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING, kappa_start);
+        mCoulombWithTensionCutOffImpl.SaveKappaOfCoulombYieldSurface();
+        auto mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
+            trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
         auto mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
             mapped_sigma_tau, principal_trial_stress_vector);
 
@@ -219,8 +219,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
                 AveragePrincipalStressComponents(principal_trial_stress_vector, averaging_type);
             trial_sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(
                 averaged_principal_trial_stress_vector);
-            mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-                trial_sigma_tau, averaging_type, kappa_start);
+            mCoulombWithTensionCutOffImpl.RestoreKappaOfCoulombYieldSurface();
+            mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(trial_sigma_tau, averaging_type);
             mapped_principal_stress_vector = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
                 mapped_sigma_tau, averaged_principal_trial_stress_vector);
             mapped_principal_stress_vector[1] =

@@ -46,17 +46,11 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigm
 }
 
 Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTau,
-                                                     CoulombYieldSurface::CoulombAveragingType AveragingType,
-                                                     double& kappa_start)
+                                                     CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
     Vector result = ZeroVector(2);
 
-    if (kappa_start < 0.0) {
-        kappa_start = mCoulombYieldSurface.GetKappa();
-    } else {
-        mCoulombYieldSurface.SetKappa(kappa_start);
-    }
-
+    auto kappa_start = mCoulombYieldSurface.GetKappa();
     for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
         if (IsStressAtTensionApexReturnZone(rTrialSigmaTau)) {
             return ReturnStressAtTensionApexReturnZone();
@@ -81,6 +75,16 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
         }
     }
     return result;
+}
+
+void CoulombWithTensionCutOffImpl::SaveKappaOfCoulombYieldSurface()
+{
+    mSavedKappaOfCoulombYieldSurface = mCoulombYieldSurface.GetKappa();
+}
+
+void CoulombWithTensionCutOffImpl::RestoreKappaOfCoulombYieldSurface()
+{
+    mCoulombYieldSurface.SetKappa(mSavedKappaOfCoulombYieldSurface);
 }
 
 Vector CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
