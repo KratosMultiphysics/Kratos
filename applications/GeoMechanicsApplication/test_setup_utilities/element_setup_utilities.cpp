@@ -35,23 +35,6 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 
-namespace
-{
-
-using namespace Kratos;
-
-PointerVector<Node> GenerateNodes(const std::vector<Point>& rPoints)
-{
-    PointerVector<Node> nodes;
-    nodes.reserve(rPoints.size());
-    for (const auto& r_point : rPoints) {
-        nodes.push_back(make_intrusive<Node>(nodes.size() + 1, r_point.X(), r_point.Y(), r_point.Z()));
-    }
-    return nodes;
-}
-
-} // namespace
-
 namespace Kratos::Testing
 {
 
@@ -122,6 +105,16 @@ std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor3D6NInterfaceEl
 {
     return {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0},
             {0.0, 0.0, 0.1}, {1.0, 0.0, 0.1}, {0.0, 1.0, 0.1}};
+}
+
+PointerVector<Node> ElementSetupUtilities::GenerateNodes(const std::vector<Point>& rPoints)
+{
+    PointerVector<Node> result;
+    result.reserve(rPoints.size());
+    for (const auto& r_point : rPoints) {
+        result.push_back(make_intrusive<Node>(result.size() + 1, r_point.X(), r_point.Y(), r_point.Z()));
+    }
+    return result;
 }
 
 std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor2D15NElement()

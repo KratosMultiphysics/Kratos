@@ -36,6 +36,8 @@ public:
     static std::vector<Point> CreatePointsFor3D20NElement();
     static std::vector<Point> CreatePointsFor3D6NInterfaceElement();
 
+    static PointerVector<Node> GenerateNodes(const std::vector<Point>& rPoints);
+
     static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
     static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
