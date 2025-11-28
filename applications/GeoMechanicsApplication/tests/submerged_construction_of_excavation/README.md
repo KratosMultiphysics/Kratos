@@ -138,7 +138,7 @@ The excavation is modeled in seven stages:
 
 2. **Null step:**
 
-- The material models change from linear elastic to Mohr-Coulomb model. This triggers a stiffness redistribution, and hence a stress redistribution.
+- This stage is reserved for future test cases, when material models change from linear elastic to, for example, Mohr-Coulomb model. This triggers a stiffness redistribution, and hence a stress redistribution. Currently, the linear elastic model is used for all stages. 
 
 3. **Diaphragm wall installation and applying the external load:**
 
