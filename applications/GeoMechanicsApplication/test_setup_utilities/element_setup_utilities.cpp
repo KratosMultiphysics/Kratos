@@ -27,6 +27,8 @@
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/point_3d.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/tetrahedra_3d_10.h"
@@ -154,6 +156,22 @@ Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<No
 Element::Pointer ElementSetupUtilities::Create2D3NElement()
 {
     return Create2D3NElement(GenerateNodes(CreatePointsFor2D3NElement()), std::make_shared<Properties>(0));
+}
+
+Element::Pointer ElementSetupUtilities::Create2D4NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<2, 4>>(
+        1, std::make_shared<Quadrilateral2D4<Node>>(rNodes), rProperties,
+        std::make_unique<PlaneStrainStressState>(), nullptr);
+}
+
+Element::Pointer ElementSetupUtilities::Create2D8NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<2, 8>>(
+        1, std::make_shared<Quadrilateral2D8<Node>>(rNodes), rProperties,
+        std::make_unique<PlaneStrainStressState>(), nullptr);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D3NLineElement(const PointerVector<Node>& rNodes,

@@ -12,11 +12,9 @@
 //
 
 #include "custom_utilities/linear_nodal_extrapolator.h"
-#include "geometries/quadrilateral_2d_4.h"
-#include "geometries/quadrilateral_2d_8.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_2d_6.h"
+#include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos::Testing
@@ -25,15 +23,12 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NTriangle,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Kratos::Triangle2D3<Node> geometry(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0),
-                                       Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
-                                       Kratos::make_intrusive<Node>(3, 0.0, 1.0, 0.0));
+    auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}});
+    auto p_element = ElementSetupUtilities::Create2D3NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-
-    constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto           extrapolation_matrix =
-        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        p_element->GetGeometry(), p_element->GetIntegrationMethod());
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(3, 3);
@@ -48,16 +43,13 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D6NTriangle,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Kratos::Triangle2D6<Node> geometry(
-        Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
-        Kratos::make_intrusive<Node>(3, 0.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.5, 0.0, 0.0),
-        Kratos::make_intrusive<Node>(5, 0.5, 0.5, 0.0), Kratos::make_intrusive<Node>(6, 0.0, 0.5, 0.0));
+    auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.5, 0.0}, {0.0, 0.5, 0.0}});
+    auto p_element = ElementSetupUtilities::Create2D6NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-
-    constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto           extrapolation_matrix =
-        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        p_element->GetGeometry(), p_element->GetIntegrationMethod());
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(6, 3);
@@ -75,15 +67,13 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D4NQuadrilateral,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Kratos::Quadrilateral2D4<Node> geometry(
-        Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
-        Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0));
+    auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.0, 1.0, 0.0}});
+    auto p_element = ElementSetupUtilities::Create2D4NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-
-    constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto           extrapolation_matrix =
-        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        p_element->GetGeometry(), p_element->GetIntegrationMethod());
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(4, 4);
@@ -99,17 +89,19 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D8NQuadrilateral,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Kratos::Quadrilateral2D8<Node> geometry(
-        Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
-        Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0),
-        Kratos::make_intrusive<Node>(5, 0.5, 0.0, 0.0), Kratos::make_intrusive<Node>(6, 1.0, 0.5, 0.0),
-        Kratos::make_intrusive<Node>(7, 0.5, 1.0, 0.0), Kratos::make_intrusive<Node>(8, 0.0, 0.5, 0.0));
+    auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                       {1.0, 0.0, 0.0},
+                                                       {1.0, 1.0, 0.0},
+                                                       {0.0, 1.0, 0.0},
+                                                       {0.5, 0.0, 0.0},
+                                                       {1.0, 0.5, 0.0},
+                                                       {0.5, 1.0, 0.0},
+                                                       {0.0, 0.5, 0.0}});
+    auto p_element = ElementSetupUtilities::Create2D8NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-
-    constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto           extrapolation_matrix =
-        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        p_element->GetGeometry(), p_element->GetIntegrationMethod());
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(8, 4);
@@ -129,15 +121,13 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D4NKratos_Tetrahedra,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Kratos::Tetrahedra3D4<Node> geometry(
-        Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
-        Kratos::make_intrusive<Node>(3, 0.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 0.0, 1.0));
+    auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
+    auto p_element = ElementSetupUtilities::Create3D4NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-
-    constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto           extrapolation_matrix =
-        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        p_element->GetGeometry(), p_element->GetIntegrationMethod());
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(4, 4);
@@ -153,18 +143,21 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D10NKratos_Tetrahedra,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Kratos::Tetrahedra3D10<Node> geometry(
-        Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
-        Kratos::make_intrusive<Node>(3, 0.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 0.0, 1.0),
-        Kratos::make_intrusive<Node>(5, 0.5, 0.0, 0.0), Kratos::make_intrusive<Node>(6, 0.5, 0.5, 0.0),
-        Kratos::make_intrusive<Node>(7, 0.0, 0.5, 0.0), Kratos::make_intrusive<Node>(8, 0.0, 0.0, 0.5),
-        Kratos::make_intrusive<Node>(9, 0.5, 0.0, 0.5), Kratos::make_intrusive<Node>(10, 0.0, 0.5, 0.5));
+    auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                       {1.0, 0.0, 0.0},
+                                                       {0.0, 1.0, 0.0},
+                                                       {0.0, 0.0, 1.0},
+                                                       {0.5, 0.0, 0.0},
+                                                       {0.5, 0.5, 0.0},
+                                                       {0.0, 0.5, 0.0},
+                                                       {0.0, 0.0, 0.5},
+                                                       {0.5, 0.0, 0.5},
+                                                       {0.0, 0.5, 0.5}});
+    auto p_element = ElementSetupUtilities::Create3D10NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-
-    constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto           extrapolation_matrix =
-        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        p_element->GetGeometry(), p_element->GetIntegrationMethod());
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(10, 4);
@@ -187,17 +180,19 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D8NKratos_Hexahedra,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Kratos::Hexahedra3D8<Node> geometry(
-        Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
-        Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0),
-        Kratos::make_intrusive<Node>(5, 0.0, 0.0, 1.0), Kratos::make_intrusive<Node>(6, 1.0, 0.0, 1.0),
-        Kratos::make_intrusive<Node>(7, 1.0, 1.0, 1.0), Kratos::make_intrusive<Node>(8, 0.0, 1.0, 1.0));
+    auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                       {1.0, 0.0, 0.0},
+                                                       {1.0, 1.0, 0.0},
+                                                       {0.0, 1.0, 0.0},
+                                                       {0.0, 0.0, 1.0},
+                                                       {1.0, 0.0, 1.0},
+                                                       {1.0, 1.0, 1.0},
+                                                       {0.0, 1.0, 1.0}});
+    auto p_element = ElementSetupUtilities::Create3D8NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-
-    constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto           extrapolation_matrix =
-        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        p_element->GetGeometry(), p_element->GetIntegrationMethod());
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(8, 8);
@@ -217,26 +212,16 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D20NKratos_Hexahedra,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Kratos::Hexahedra3D20<Node> geometry(
-        Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
-        Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0),
-        Kratos::make_intrusive<Node>(5, 0.0, 0.0, 1.0), Kratos::make_intrusive<Node>(6, 1.0, 0.0, 1.0),
-        Kratos::make_intrusive<Node>(7, 1.0, 1.0, 1.0), Kratos::make_intrusive<Node>(8, 0.0, 1.0, 1.0),
-
-        Kratos::make_intrusive<Node>(9, 0.5, 0.0, 0.0), Kratos::make_intrusive<Node>(10, 1.0, 0.5, 0.0),
-        Kratos::make_intrusive<Node>(11, 0.5, 1.0, 0.0), Kratos::make_intrusive<Node>(12, 0.0, 0.5, 0.0),
-
-        Kratos::make_intrusive<Node>(13, 0.0, 0.0, 0.5), Kratos::make_intrusive<Node>(14, 1.0, 0.0, 0.5),
-        Kratos::make_intrusive<Node>(15, 1.0, 1.0, 0.5), Kratos::make_intrusive<Node>(16, 0.5, 1.0, 1.0),
-
-        Kratos::make_intrusive<Node>(17, 0.5, 0.0, 1.0), Kratos::make_intrusive<Node>(18, 1.0, 0.5, 1.0),
-        Kratos::make_intrusive<Node>(19, 0.5, 1.0, 1.0), Kratos::make_intrusive<Node>(20, 0.0, 0.5, 1.0));
+    auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
+         {1.0, 0.0, 1.0}, {1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}, {0.5, 0.0, 0.0}, {1.0, 0.5, 0.0},
+         {0.5, 1.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5}, {1.0, 0.0, 0.5}, {1.0, 1.0, 0.5},
+         {0.0, 1.0, 0.5}, {0.5, 0.0, 1.0}, {1.0, 0.5, 1.0}, {0.5, 1.0, 1.0}, {0.0, 0.5, 1.0}});
+    auto p_element = ElementSetupUtilities::Create3D20NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-
-    constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    auto           extrapolation_matrix =
-        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        p_element->GetGeometry(), p_element->GetIntegrationMethod());
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(20, 8);
