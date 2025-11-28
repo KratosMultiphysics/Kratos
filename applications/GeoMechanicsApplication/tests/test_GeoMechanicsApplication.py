@@ -71,6 +71,7 @@ from test_surface_interface_elements import KratosGeoMechanicsSurfaceInterfaceEl
 from test_dsettlement_validation import  KratosGeoMechanicsDSettlementValidationTests
 from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
 from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
+from test_submerged_construction_of_excavation import KratosGeoMechanicsSubmergedConstructionOfExcavation
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -145,6 +146,7 @@ def AssembleTestSuites():
                         KratosGeoMechanics1DConsolidation,
                         KratosGeoMechanics1DConsolidationCppRoute,
                         KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine,
+                        KratosGeoMechanicsSubmergedConstructionOfExcavation,
                         ]
     night_test_cases.extend(small_test_cases)
 
