@@ -11,21 +11,21 @@ RUN dnf -y install gcc-toolset-11
 # TODO: /etc/bashrc is never executed so this line does not fulfill its purpose => fix it.
 RUN echo "source /opt/rh/gcc-toolset-11/enable" >> /etc/bashrc
 
-# Install python3.8.10
+# Install python3.10.18
 RUN dnf update -y && \
     dnf groupinstall "Development Tools" -y && \
     dnf install -y wget openssl-devel bzip2-devel libffi-devel && \
-    wget https://www.python.org/ftp/python/3.8.10/Python-3.8.10.tgz && \
-    tar xzf Python-3.8.10.tgz && \
-    cd Python-3.8.10 && \
+    wget https://www.python.org/ftp/python/3.10.18/Python-3.10.18.tgz && \
+    tar xzf Python-3.10.18.tgz && \
+    cd Python-3.10.18 && \
     ./configure --enable-optimizations && \
     make altinstall && \
     cd .. && \
-    rm -rf Python-3.8.10 Python-3.8.10.tgz
+    rm -rf Python-3.10.18 Python-3.10.18.tgz
 
-ENV PYTHON_EXECUTABLE /usr/local/bin/python3.8
+ENV PYTHON_EXECUTABLE /usr/local/bin/python3.10
 
-RUN python3.8 -m pip install numpy sympy scipy parameterized
+RUN python3.10 -m pip install numpy sympy scipy parameterized
 
 # Install build utils
 RUN dnf update -y && dnf install -y \
