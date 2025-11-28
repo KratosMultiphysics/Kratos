@@ -254,7 +254,7 @@ def get_wall_node_ids():
             8988]
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1):
-    words = line.split('\t')
+    words = line.split(',')
     return (-1.0 * float(words[index_of_x]), float(words[index_of_y]))
 
 
@@ -262,7 +262,7 @@ def extract_y_and_moment_from_line(line):
     return _extract_x_and_y_from_line(line, index_of_x=11, index_of_y=4)
 
 def extract_y_and_axial_force_from_line(line):
-    words = line.split('\t')
+    words = line.split(',')
     return (float(words[5]), float(words[4]))
 
 def extract_y_and_shear_force_from_line(line):
@@ -354,30 +354,9 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                                expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
 
         if test_helper.want_test_plots():
-            wall_res_file = "3_Wall_installation_wall"
-            comparison_axial_force = test_helper.get_data_points_from_file(
-                os.path.join(project_path, "3_Wall_installation_comparison.txt"), extract_y_and_axial_force_from_line
-            )
-            data_series_collection = []
-            data_series_collection.append(
-                plot_utils.DataSeries(comparison_axial_force, "Bending moment [Comparison]", marker="1")
-            )
-
-            comparison_bending_moment = test_helper.get_data_points_from_file(
-                os.path.join(project_path, "3_Wall_installation_comparison.txt"), extract_y_and_moment_from_line
-            )
-            data_series_collection.append(
-                plot_utils.DataSeries(comparison_bending_moment, "Bending moment [Comparison]", marker="1")
-            )
-
-            comparison_shear_force = test_helper.get_data_points_from_file(
-                os.path.join(project_path, "3_Wall_installation_comparison.txt"), extract_y_and_shear_force_from_line
-            )
-            data_series_collection.append(
-                plot_utils.DataSeries(comparison_shear_force, "Bending moment [Comparison]", marker="1")
-            )
-
-            self.make_wall_plots(output_reader, project_path, time, wall_res_file, data_series_collection)
+            stage_name = "3_Wall_installation_wall"
+            data_series_collection = self.read_comparison_data(project_path, stage_name)
+            self.make_wall_plots(output_reader, project_path, time, stage_name, data_series_collection)
 
         # Check vertical reaction forces after the first excavation
         output_data = output_reader.read_output_from(os.path.join(project_path, "4_First_excavation.post.res"))
@@ -388,7 +367,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                                expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
         if test_helper.want_test_plots():
             stage_name = "4_First_excavation_wall"
-            self.make_wall_plots(output_reader, project_path, time, stage_name)
+            data_series_collection = self.read_comparison_data(project_path, stage_name)
+            self.make_wall_plots(output_reader, project_path, time, stage_name, data_series_collection)
 
         # Check vertical reaction forces after strut installation (no changes with respect to the previous stage)
         output_data = output_reader.read_output_from(os.path.join(project_path, "5_Strut_installation.post.res"))
@@ -397,7 +377,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                                expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
         if test_helper.want_test_plots():
             stage_name = "5_Strut_installation_wall"
-            self.make_wall_plots(output_reader, project_path, time, stage_name)
+            data_series_collection = self.read_comparison_data(project_path, stage_name)
+            self.make_wall_plots(output_reader, project_path, time, stage_name, data_series_collection)
         # Check vertical reaction forces after the second excavation
         output_data = output_reader.read_output_from(os.path.join(project_path, "6_Second_excavation.post.res"))
         time = 4.0
@@ -407,7 +388,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                                expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
         if test_helper.want_test_plots():
             stage_name = "6_Second_excavation_wall"
-            self.make_wall_plots(output_reader, project_path, time, stage_name)
+            data_series_collection = self.read_comparison_data(project_path, stage_name)
+            self.make_wall_plots(output_reader, project_path, time, stage_name, data_series_collection)
         # Check vertical reaction forces after the third excavation
         output_data = output_reader.read_output_from(os.path.join(project_path, "7_Third_excavation.post.res"))
         time = 5.0
@@ -417,7 +399,32 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                                expected_total_vertical_reaction, places=None, delta=rel_tolerance*expected_total_vertical_reaction)
         if test_helper.want_test_plots():
             stage_name = "7_Third_excavation_wall"
-            self.make_wall_plots(output_reader, project_path, time, stage_name)
+            data_series_collection = self.read_comparison_data(project_path, stage_name)
+            self.make_wall_plots(output_reader, project_path, time, stage_name, data_series_collection)
+
+    def read_comparison_data(self, project_path, wall_res_file):
+        comparison_axial_force = test_helper.get_data_points_from_file(
+            os.path.join(project_path, f"{wall_res_file}_comparison.csv"), extract_y_and_axial_force_from_line
+        )
+        data_series_collection = []
+        data_series_collection.append(
+            plot_utils.DataSeries(comparison_axial_force, "Bending moment [Comparison]", marker="1")
+        )
+
+        comparison_bending_moment = test_helper.get_data_points_from_file(
+            os.path.join(project_path, f"{wall_res_file}_comparison.csv"), extract_y_and_moment_from_line
+        )
+        data_series_collection.append(
+            plot_utils.DataSeries(comparison_bending_moment, "Bending moment [Comparison]", marker="1")
+        )
+
+        comparison_shear_force = test_helper.get_data_points_from_file(
+            os.path.join(project_path, f"{wall_res_file}_comparison.csv"), extract_y_and_shear_force_from_line
+        )
+        data_series_collection.append(
+            plot_utils.DataSeries(comparison_shear_force, "Bending moment [Comparison]", marker="1")
+        )
+        return data_series_collection
 
     def make_wall_plots(self, output_reader: GiDOutputFileReader, project_path,
                         time, stage_name, comparison_data=None):
