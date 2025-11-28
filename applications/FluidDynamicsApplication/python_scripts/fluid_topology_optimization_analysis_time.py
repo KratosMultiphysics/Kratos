@@ -1065,6 +1065,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         self._EvaluateVolumeConstraintAndDerivative()
         if (self.use_other_constraints):
             self._EvaluateOtherConstraintsAndDerivatives()
+        self._UpdateVolumeConstraintDerivativesVariable()
 
     def _EvaluateOtherConstraintsAndDerivatives(self):
         if (self.use_wss_constraint):
@@ -2325,6 +2326,14 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         for node in self._GetLocalMeshNodes():
             node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[self.nodes_ids_global_to_local_partition_dictionary[node.Id]][0])
 
+    def _UpdateConstraintsDerivativesVariable(self):
+        self._UpdateVolumeConstraintDerivativesVariable()
+    
+    def _UpdateVolumeConstraintDerivativesVariable(self):
+        # for node in self._GetLocalMeshNodes():
+        #     node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[self.nodes_ids_global_to_local_partition_dictionary[node.Id]][0])
+        pass
+    
     def MpiSumLocalValues(self, local_value):
         """
         Performs a global sum reduction of the provided local value across all MPI ranks.

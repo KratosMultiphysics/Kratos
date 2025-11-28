@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
+from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 from KratosMultiphysics import assign_vector_by_direction_process
 
 def Factory(settings, Model):
@@ -20,7 +21,9 @@ class ApplyFluidTopologyOptimizationInletProcess(KratosMultiphysics.Process):
                 "velocity_modulus"         : "0.0",
                 "adjoint_velocity_modulus" : "0.0",
                 "direction"       : "automatic_inwards_normal",
-                "interval"        : [0.0,"End"]
+                "interval"        : [0.0,"End"],
+                "use_time_dependent_velocity_peak_from_csv_file" : false,
+                "time_dependent_velocity_peak_from_csv_file_settings" : {}
             }
             """)
 
@@ -79,9 +82,24 @@ class ApplyFluidTopologyOptimizationInletProcess(KratosMultiphysics.Process):
         self.aux_process         = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, velocity_settings)
         self.aux_process_adjoint = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, adjoint_velocity_settings)
 
+        self.HandleCsvTableImport(Model, settings)
+
+    def HandleCsvTableImport(self, Model, settings):
+        if settings["use_time_dependent_velocity_peak_from_csv_file"].GetBool():
+            self.use_time_dependent_velocity_peak_from_csv_file = True
+            model_part = Model[settings["model_part_name"].GetString()]
+            self.csv_table_utility = ReadCsvTableUtility(settings["time_dependent_velocity_peak_from_csv_file_settings"]).Read(model_part)
+        else:
+            self.use_time_dependent_velocity_peak_from_csv_file = False
+
+    def SetTimeDependentVelocityPeakFromCsvTable(self):
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
     def ExecuteInitializeSolutionStep(self):
         # Call the base process ExecuteInitializeSolutionStep()
         if self.IsPhysicsStage():
+            if self.use_time_dependent_velocity_peak_from_csv_file:
+                self.SetTimeDependentVelocityPeakFromCsvTable()
             self.aux_process.ExecuteInitializeSolutionStep()
         elif self.IsAdjointStage():
             self.aux_process_adjoint.ExecuteInitializeSolutionStep()
