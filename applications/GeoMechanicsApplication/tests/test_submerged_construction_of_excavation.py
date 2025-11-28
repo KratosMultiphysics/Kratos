@@ -408,7 +408,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         )
         data_series_collection = []
         data_series_collection.append(
-            plot_utils.DataSeries(comparison_axial_force, "Bending moment [Comparison]", marker="1")
+            plot_utils.DataSeries(comparison_axial_force, "Axial force [Comparison]", marker="1")
         )
 
         comparison_bending_moment = test_helper.get_data_points_from_file(
@@ -422,7 +422,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             os.path.join(project_path, f"{wall_res_file}_comparison.csv"), extract_y_and_shear_force_from_line
         )
         data_series_collection.append(
-            plot_utils.DataSeries(comparison_shear_force, "Bending moment [Comparison]", marker="1")
+            plot_utils.DataSeries(comparison_shear_force, "Shear force [Comparison]", marker="1")
         )
         return data_series_collection
 
