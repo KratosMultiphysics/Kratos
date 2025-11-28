@@ -6,7 +6,6 @@ from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.KratosUnittest import TestCase
 from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
-from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os, csv
@@ -70,7 +69,7 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
     TestCase().assertAlmostEqual(resulting_constraint, 8.24270E-05, 3)
 
 # # write json output
-# output_process = JsonOutputProcess(model, KM.Parameters(
+# output_process = KM.JsonOutputProcess(model, KM.Parameters(
 #     """{
 #         "output_variables" : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
 #         "output_file_name" : "shape_change_results.json",

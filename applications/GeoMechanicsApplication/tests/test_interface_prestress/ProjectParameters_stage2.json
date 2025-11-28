@@ -50,10 +50,8 @@
     "processes": {
         "json_output": [
             {
-                "python_module": "json_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "JsonOutputProcess",
-                "Parameters": {
+                "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
+                "Parameters" : {
                     "model_part_name": "PorousDomain.Interface",
                     "output_file_name": "stage_2_interface_output.json",
                     "gauss_points_output_variables": ["CAUCHY_STRESS_VECTOR", "STRAIN"],
