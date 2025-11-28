@@ -88,6 +88,7 @@ namespace Kratos{
         double mDamageReal = 0.0;
         bool mDebugPrintingOption = false;
         double mInitialIndentationForBondedPart = 0.0;
+        double mAccumulatedBondedTangentialLocalDisplacement[2] = {0.0};
     
     protected:
 
