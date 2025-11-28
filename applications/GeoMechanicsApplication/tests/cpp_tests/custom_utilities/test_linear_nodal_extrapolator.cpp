@@ -27,8 +27,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     auto p_element = ElementSetupUtilities::Create2D3NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        p_element->GetGeometry(), p_element->GetIntegrationMethod());
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(3, 3);
@@ -48,8 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     auto p_element = ElementSetupUtilities::Create2D6NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        p_element->GetGeometry(), p_element->GetIntegrationMethod());
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(6, 3);
@@ -72,8 +70,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     auto p_element = ElementSetupUtilities::Create2D4NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        p_element->GetGeometry(), p_element->GetIntegrationMethod());
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(4, 4);
@@ -100,8 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     auto p_element = ElementSetupUtilities::Create2D8NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        p_element->GetGeometry(), p_element->GetIntegrationMethod());
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(8, 4);
@@ -126,8 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     auto p_element = ElementSetupUtilities::Create3D4NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        p_element->GetGeometry(), p_element->GetIntegrationMethod());
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(4, 4);
@@ -156,8 +151,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     auto p_element = ElementSetupUtilities::Create3D10NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        p_element->GetGeometry(), p_element->GetIntegrationMethod());
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(10, 4);
@@ -191,8 +185,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     auto p_element = ElementSetupUtilities::Create3D8NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        p_element->GetGeometry(), p_element->GetIntegrationMethod());
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(8, 8);
@@ -220,8 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     auto p_element = ElementSetupUtilities::Create3D20NElement(nodes, std::make_shared<Properties>());
 
     const LinearNodalExtrapolator nodal_extrapolator;
-    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
-        p_element->GetGeometry(), p_element->GetIntegrationMethod());
+    auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(20, 8);

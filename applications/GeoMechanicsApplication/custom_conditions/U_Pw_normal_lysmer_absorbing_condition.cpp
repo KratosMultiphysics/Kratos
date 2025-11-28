@@ -259,9 +259,8 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateNodalStiffnessMatrix
 template <unsigned int TDim, unsigned int TNumNodes>
 Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateExtrapolationMatrixNeighbour(const Element& rNeighbourElement)
 {
-    LinearNodalExtrapolator extrapolator;
-    return extrapolator.CalculateElementExtrapolationMatrix(
-        rNeighbourElement.GetGeometry(), rNeighbourElement.GetIntegrationMethod());
+    const auto extrapolator = LinearNodalExtrapolator{};
+    return extrapolator.CalculateElementExtrapolationMatrix(rNeighbourElement);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

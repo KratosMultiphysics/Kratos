@@ -144,9 +144,7 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatri
     // write to the same cache at the same time.
     for (const auto& rElement : mrModelPart.Elements()) {
         if (!ExtrapolationMatrixIsCachedFor(rElement)) {
-            CacheExtrapolationMatrixFor(
-                rElement, mpExtrapolator->CalculateElementExtrapolationMatrix(
-                              rElement.GetGeometry(), rElement.GetIntegrationMethod()));
+            CacheExtrapolationMatrixFor(rElement, mpExtrapolator->CalculateElementExtrapolationMatrix(rElement));
         }
     }
 }

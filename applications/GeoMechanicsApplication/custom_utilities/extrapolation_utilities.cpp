@@ -21,22 +21,24 @@
 namespace Kratos
 {
 
-Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Geometry<Node>& rGeometry,
-                                                            GeometryData::IntegrationMethod IntegrationMethod,
-                                                            size_t ElementId)
+Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Element& rElement)
 {
-    LinearNodalExtrapolator extrapolator;
-    const auto result = extrapolator.CalculateElementExtrapolationMatrix(rGeometry, IntegrationMethod);
+    const auto& r_geometry         = rElement.GetGeometry();
+    const auto  integration_method = rElement.GetIntegrationMethod();
+    const auto  element_id         = rElement.Id();
 
-    KRATOS_ERROR_IF_NOT(result.size1() == rGeometry.size())
+    const auto extrapolator = LinearNodalExtrapolator{};
+    const auto result       = extrapolator.CalculateElementExtrapolationMatrix(rElement);
+
+    KRATOS_ERROR_IF_NOT(result.size1() == r_geometry.PointsNumber())
         << "A number of extrapolation matrix rows " << result.size1() << " is not equal to a number of nodes "
-        << rGeometry.size() << " for element id " << ElementId << std::endl;
+        << r_geometry.PointsNumber() << " for element id " << element_id << std::endl;
 
-    KRATOS_ERROR_IF_NOT(result.size2() == rGeometry.IntegrationPoints(IntegrationMethod).size())
+    KRATOS_ERROR_IF_NOT(result.size2() == r_geometry.IntegrationPointsNumber(integration_method))
         << "A number of extrapolation matrix columns " << result.size2()
         << " is not equal to a number of integration points "
-        << rGeometry.IntegrationPoints(IntegrationMethod).size() << " for element id " << ElementId
-        << std::endl;
+        << r_geometry.IntegrationPointsNumber(integration_method) << " for element id "
+        << element_id << std::endl;
 
     return result;
 }
@@ -44,12 +46,11 @@ Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Geometry<Node>
 std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalVectors(
     const std::vector<std::size_t>& rNodeIds, const Element& rElement, const std::vector<Vector>& rVectorsAtIntegrationPoints)
 {
-    const auto& r_geometry         = rElement.GetGeometry();
-    const auto  integration_method = rElement.GetIntegrationMethod();
-    const auto  element_id         = rElement.Id();
+    const auto& r_geometry = rElement.GetGeometry();
+    const auto  element_id = rElement.Id();
 
-    const auto element_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(r_geometry);
-    const auto extrapolation_matrix = CalculateExtrapolationMatrix(r_geometry, integration_method, element_id);
+    const auto element_node_ids     = GeometryUtilities::GetNodeIdsFromGeometry(r_geometry);
+    const auto extrapolation_matrix = CalculateExtrapolationMatrix(rElement);
 
     KRATOS_ERROR_IF_NOT(extrapolation_matrix.size2() == rVectorsAtIntegrationPoints.size())
         << "An extrapolation matrix size " << extrapolation_matrix.size2()

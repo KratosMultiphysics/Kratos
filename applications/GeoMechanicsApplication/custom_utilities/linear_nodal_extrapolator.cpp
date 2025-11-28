@@ -17,24 +17,25 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_3.h"
+#include "includes/element.h"
 #include "node_utilities.h"
 
 namespace Kratos
 {
 
-Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const GeometryType& rGeometry,
-                                                                    const GeometryData::IntegrationMethod& rIntegrationMethod) const
+Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Element& rElement) const
 {
-    CheckIfGeometryIsSupported(rGeometry);
+    const auto& r_geometry = rElement.GetGeometry();
+    CheckIfGeometryIsSupported(r_geometry);
 
-    const auto p_lower_order_geometry = CreateLowerOrderGeometry(rGeometry);
-    const GeometryType& p_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : rGeometry;
+    const auto p_lower_order_geometry = CreateLowerOrderGeometry(r_geometry);
+    const GeometryType& p_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : r_geometry;
 
-    Matrix extrapolation_matrix =
-        CalculateExtrapolationMatrixForCornerNodes(rGeometry, rIntegrationMethod, p_corner_geometry);
+    Matrix extrapolation_matrix = CalculateExtrapolationMatrixForCornerNodes(
+        r_geometry, rElement.GetIntegrationMethod(), p_corner_geometry);
 
     if (p_lower_order_geometry) {
-        AddRowsForMidsideNodes(rGeometry, extrapolation_matrix);
+        AddRowsForMidsideNodes(r_geometry, extrapolation_matrix);
     }
 
     return extrapolation_matrix;

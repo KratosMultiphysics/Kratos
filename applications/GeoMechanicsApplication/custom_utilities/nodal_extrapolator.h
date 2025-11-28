@@ -18,13 +18,14 @@
 namespace Kratos
 {
 
+class Element;
+
 class NodalExtrapolator
 {
 public:
     using GeometryType = Geometry<Node>;
 
-    [[nodiscard]] virtual Matrix CalculateElementExtrapolationMatrix(
-        const GeometryType& rGeometry, const GeometryData::IntegrationMethod& rIntegrationMethod) const = 0;
+    [[nodiscard]] virtual Matrix CalculateElementExtrapolationMatrix(const Element& rElement) const = 0;
     virtual ~NodalExtrapolator() = default;
 };
 

@@ -20,6 +20,8 @@
 namespace Kratos
 {
 
+class Element;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearNodalExtrapolator : public NodalExtrapolator
 {
 public:
@@ -27,8 +29,7 @@ public:
     using SizeType  = std::size_t;
     using IndexType = std::size_t;
 
-    [[nodiscard]] Matrix CalculateElementExtrapolationMatrix(
-        const GeometryType& rGeometry, const GeometryData::IntegrationMethod& rIntegrationMethod) const override;
+    [[nodiscard]] Matrix CalculateElementExtrapolationMatrix(const Element& rElement) const override;
 
 private:
     void static CheckIfGeometryIsSupported(const GeometryType& rGeometry);
