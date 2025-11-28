@@ -46,7 +46,7 @@ o---o---o
 Next to the aforementioned elements and top load, the following constraints are applied:
 - The bottom nodes of the continuum elements are fixed in all directions.
 - The side nodes are fixed in the horizontal direction.
-- The water pressure is kept at zero in the entire domain.
+- The water pressure is kept at -250.0 Pa in the entire domain (to verify that the effect it has on the prestress calculation is properly taken into account).
 
 A linear elastic material is used for both the continuum and the interface elements.
 
@@ -54,5 +54,5 @@ A linear elastic material is used for both the continuum and the interface eleme
 
 The following assertions are done to validate the prestress functionality:
 - In the second stage, all stage displacements of the nodes are checked to be zero (within a small tolerance). This would not be the case if the interfaces were not prestressed based on the first stage stresses in the continuum elements.
-- The stresses at the integration points of the interface elements are checked to be equal to the expected stresses at the integration points of the neighbouring continuum element. These are expected to be 1 kPa in the normal direction (following from the vertical equilibrium) and zero in the shear direction.
+- The traction components at the integration points of the interface elements are checked to be equal to the corresponding stress components at the integration points of the neighbouring continuum element. These are expected to be 1 kPa in the normal direction (following from the vertical equilibrium) and zero in the shear direction.
 - The relative (normal and shear) displacements of the interface elements are checked to be zero (within a small tolerance).
