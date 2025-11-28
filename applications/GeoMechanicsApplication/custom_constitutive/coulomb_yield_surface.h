@@ -22,6 +22,8 @@
 namespace Kratos
 {
 
+class CheckProperties;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSurface
 {
 public:
@@ -41,13 +43,24 @@ public:
     [[nodiscard]] double GetFrictionAngleInRadians() const;
     [[nodiscard]] double GetCohesion() const;
     [[nodiscard]] double GetDilatancyAngleInRadians() const;
+    [[nodiscard]] double GetKappa() const;
+    void                 SetKappa(double kappa);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;
 
+    [[nodiscard]] double CalculateApex() const;
+    [[nodiscard]] double CalculatePlasticMultiplier(const Vector& rSigmaTau,
+                                                    const Vector& rDerivativeOfFlowFunction) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Vector& rSigmaTau,
+                                                                   CoulombAveragingType AveragingType) const;
+
 private:
     void InitializeKappaDependentFunctions();
+    void CheckMaterialProperties() const;
+    void CheckHardeningCoefficients(const Variable<Vector>& rCoefficientsVariable,
+                                    const CheckProperties&  rChecker) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
