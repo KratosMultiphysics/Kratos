@@ -10,15 +10,14 @@
 //  Main authors:    Anne van de Graaf
 //
 #include "containers/variables_list.h"
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
 #include "custom_utilities/registration_utilities.h"
 #include "geo_aliases.h"
-#include "geo_mechanics_application.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "includes/stream_serializer.h"
 #include "test_setup_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <string>
 
@@ -27,7 +26,7 @@ using namespace std::string_literals;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(LineLoad2DDiffOrderCondition_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineLoad2DDiffOrderCondition_CanBeSavedAndLoaded)
 {
     // Arrange
     const auto registration = ScopedSerializerRegistration(
@@ -64,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineLoad2DDiffOrderCondition_CanBeSavedAndLoaded, Krat
         std::cref(WATER_PRESSURE), std::cref(WATER_PRESSURE)};
     ASSERT_EQ(dofs.size(), expected_dof_variables.size());
     for (auto i = std::size_t{0}; i < dofs.size(); ++i) {
-        KRATOS_EXPECT_EQ(dofs[i]->GetVariable(), expected_dof_variables[i].get());
+        EXPECT_EQ(dofs[i]->GetVariable(), expected_dof_variables[i].get());
     }
 }
 
