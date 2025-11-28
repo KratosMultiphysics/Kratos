@@ -87,9 +87,9 @@ int ParallelUtilities::GetNumProcs()
 int ParallelUtilities::IsInParallel()
 {
 #ifdef KRATOS_SMP_OPENMP
-    return omp_in_parallel();
+    return static_cast<bool>(omp_in_parallel());
 #else
-    return 0;
+    return false;
 #endif
 }
 

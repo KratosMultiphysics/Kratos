@@ -95,10 +95,10 @@ public:
     [[nodiscard]] static int GetNumProcs();
 
     /**
-     * @brief Wrapper for omp_in_parallel()
-     * @return Maximum number of OpenMP threads that will be used in parallel regions.
+     * @brief Wrapper for omp_in_parallel(), returns false otherwise.
+     * @return True if the execution is performed in a parallel loop, false otherwise.
      */
-    [[nodiscard]] static int IsInParallel();
+    [[nodiscard]] static bool IsInParallel();
 
     ///@}
 
