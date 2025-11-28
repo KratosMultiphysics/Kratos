@@ -222,13 +222,13 @@ int KratosExecute::MainExecution(ModelPart& rModelPart,
         Time += DeltaTime;
         rModelPart.CloneTimeStep(Time);
         rpSolvingStrategy->Initialize();
+        rpSolvingStrategy->Predict();
         rpSolvingStrategy->InitializeSolutionStep();
 
         for (const auto& process : mProcesses) {
             process->ExecuteInitializeSolutionStep();
         }
 
-        rpSolvingStrategy->Predict();
         rpSolvingStrategy->SolveSolutionStep();
 
         for (const auto& process : mProcesses) {

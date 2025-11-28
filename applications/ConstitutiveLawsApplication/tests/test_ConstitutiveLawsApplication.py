@@ -28,6 +28,7 @@ from test_factory import PlasticDamageTest
 from test_factory import AutomatedInitialDamageTest
 from test_factory import TractionSeparationLawTest
 from test_factory import CurveByPointsPlasticityTest
+from test_factory import ThicknessIntegratedShellConstitutiveLawTest
 from test_factory import PlaneStressJ2Plasticity
 
 
@@ -66,6 +67,7 @@ def AssembleTestSuites():
     smallSuite.addTest(AutomatedInitialDamageTest('test_execution'))
     smallSuite.addTest(TractionSeparationLawTest('test_execution'))
     smallSuite.addTest(CurveByPointsPlasticityTest('test_execution'))
+    smallSuite.addTest(ThicknessIntegratedShellConstitutiveLawTest('test_execution'))
     smallSuite.addTest(PlaneStressJ2Plasticity('test_execution'))
 
 
