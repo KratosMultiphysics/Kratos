@@ -348,7 +348,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 zip(axial_forces, y_coords, strict=True),
                 "Axial force [Kratos]",
                 line_style="-",
-                marker="",
+                marker=".",
             ))
 
             plot_utils.make_force_over_y_plot(data_series_collection, pathlib.Path(project_path) / "axial_forces.svg")
@@ -360,7 +360,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 zip(bending_moment, y_coords, strict=True),
                 "Bending moment [Kratos]",
                 line_style="-",
-                marker="",
+                marker=".",
             ))
 
             plot_utils.make_moment_over_y_plot(data_series_collection, pathlib.Path(project_path) / "bending_moment.svg")
@@ -371,7 +371,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 zip(shear_force, y_coords, strict=True),
                 "Shear force [Kratos]",
                 line_style="-",
-                marker="",
+                marker=".",
             ))
 
             plot_utils.make_force_over_y_plot(data_series_collection, pathlib.Path(project_path) / "shear_force.svg")
