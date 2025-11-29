@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Mohamed Nabi
+//                   Gennady Markelov
 //
 
 #pragma once
@@ -45,6 +46,21 @@ public:
                 result(i, j) = rMatrix(i, rIndices[j]);
             }
         }
+        return result;
+    }
+
+    template <class ContainerType, class OutputIt>
+    static void GetIdsFromEntityContents(const ContainerType& rContainer, OutputIt Out)
+    {
+        std::ranges::transform(rContainer, Out, [](const auto& rItem) { return rItem.Id(); });
+    }
+
+    template <class ContainerType>
+    static auto GetIdsFromEntityContents(const ContainerType& rContainer)
+    {
+        std::vector<std::size_t> result;
+        result.reserve(rContainer.size());
+        GetIdsFromEntityContents(rContainer, std::back_inserter(result));
         return result;
     }
 

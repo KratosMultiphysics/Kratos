@@ -63,7 +63,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["BottomFixed","TopLoad","Soil"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {

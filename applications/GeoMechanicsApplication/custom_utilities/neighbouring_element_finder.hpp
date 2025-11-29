@@ -13,7 +13,7 @@
 #pragma once
 
 #include "boundary_generators.h"
-#include "geometry_utilities.h"
+#include "generic_utilities.h"
 #include "includes/geometrical_object.h"
 #include "includes/key_hash.h"
 #include "includes/kratos_export_api.h"
@@ -88,7 +88,7 @@ public:
 
                 for (const auto& r_boundary_geometry : r_boundary_generator(r_entity.GetGeometry())) {
                     mGeometryNodeIdsToEntities.insert(
-                        {GeometryUtilities::GetNodeIdsFromGeometry(r_boundary_geometry), {&r_entity}});
+                        {GenericUtilities::GetIdsFromEntityContents(r_boundary_geometry), {&r_entity}});
                 }
             }
 

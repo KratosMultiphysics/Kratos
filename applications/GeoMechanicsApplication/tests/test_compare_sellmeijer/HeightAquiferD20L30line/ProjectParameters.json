@@ -69,11 +69,6 @@
             "Embankment",
             "Pipe"
         ],
-        "processes_sub_model_part_list": [
-            "Right_head",
-            "Left_head",
-            "gravity"
-        ],
         "body_domain_sub_model_part_list": [
             "Soil",
             "Embankment"

@@ -50,7 +50,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil_drained-auto-1"],
-        "processes_sub_model_part_list":      ["bottom","sides","Line_Disp"],
         "body_domain_sub_model_part_list":    ["Soil_drained-auto-1"]
     },
     "output_processes": {
