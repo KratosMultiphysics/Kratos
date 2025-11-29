@@ -52,8 +52,7 @@ public:
     template <class ContainerType, class OutputIt>
     static void GetIdsFromEntityContents(const ContainerType& rContainer, OutputIt Out)
     {
-        std::transform(std::begin(rContainer), std::end(rContainer), Out,
-                       [](const auto& rItem) { return rItem.Id(); });
+        std::ranges::transform(rContainer, Out, [](const auto& rItem) { return rItem.Id(); });
     }
 
     template <class ContainerType>
