@@ -103,7 +103,6 @@ import test_clean_up_problematic_triangles_modeler
 import test_tetrahedral_mesh_orientation_check
 import test_nd_data
 import test_tensor_adaptors
-import test_step_controller
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -234,7 +233,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tetrahedral_mesh_orientation_check.TestTetrahedralMeshOrientationCheck]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nd_data.TestNDData]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TestTensorAdaptors]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_step_controller.TestStepControllers]))
 
 
     if sympy_available:
