@@ -75,7 +75,9 @@ InterfaceCommunicator::InterfaceCommunicator(
         "max_num_search_iterations"     : 0,
         "print_bounding_boxes_to_file"  : false,
         "bounding_boxes_file_path"      : "",
-        "echo_level"                    : 0
+        "echo_level"                    : 0,
+        "required_rbf_support_points"  : 0,
+        "use_all_rbf_support_points": true
     })");
     // deliberately only validating defaults, but not assigning, since computing the defaults is expensive
     // see "ExchangeInterfaceData"
