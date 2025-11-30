@@ -34,9 +34,9 @@ template<class TContainerPointerType>
 FlagsTensorAdaptor::FlagsTensorAdaptor(
     TContainerPointerType pContainer,
     const Flags& rFlags)
-    : mFlags(rFlags)
+    : BaseType(pContainer,  Kratos::make_shared<Storage>(DenseVector<unsigned int>(1, pContainer->size()))),
+      mFlags(rFlags)
 {
-    this->mpStorage = Kratos::make_intrusive<Storage>(pContainer, DenseVector<unsigned int>(1, pContainer->size()));
 }
 
 FlagsTensorAdaptor::FlagsTensorAdaptor(
@@ -78,7 +78,7 @@ void FlagsTensorAdaptor::Check() const
                 << "Size mismatch [ Container size = " << pContainer->size()
                 << ", data span size = " << this->Size() << " ].\n";
         }
-    }, this->mpStorage->GetContainer());
+    }, this->GetContainer());
 
     KRATOS_CATCH("");
 }
@@ -102,7 +102,7 @@ void FlagsTensorAdaptor::CollectData()
                     rValue = (rEntity.IsDefined(this->mFlags) ? rEntity.Is(this->mFlags) : -1);
                 });
         }
-    }, this->mpStorage->GetContainer());
+    }, this->GetContainer());
 }
 
 void FlagsTensorAdaptor::StoreData()
@@ -138,14 +138,14 @@ void FlagsTensorAdaptor::StoreData()
                 }
             });
         }
-    }, this->mpStorage->GetContainer());
+    }, this->GetContainer());
 }
 
 std::string FlagsTensorAdaptor::Info() const
 {
     std::stringstream info;
     info << "FlagsTensorAdaptor:";
-    info << " " << this->mpStorage->Info();
+    info << " " << BaseType::Info();
     return info.str();
 }
 

@@ -86,19 +86,6 @@ double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rPr
     return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
 }
 
-void ConstitutiveLawUtilities::CheckProperty(const Properties&       rMaterialProperties,
-                                             const Variable<double>& rVariable,
-                                             std::optional<double>   MaxValue)
-{
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(rVariable))
-        << rVariable.Name() << " is not defined for property " << rMaterialProperties.Id() << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[rVariable] < 0.0 ||
-                    (MaxValue.has_value() && rMaterialProperties[rVariable] > MaxValue.value()))
-        << "value of " << rVariable.Name() << " for property " << rMaterialProperties.Id()
-        << " is out of range: " << rMaterialProperties[rVariable] << " is not in [0.0, "
-        << (MaxValue ? std::to_string(*MaxValue) + "]" : "->") << std::endl;
-}
-
 Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
                                                                  double      ShearStiffness,
                                                                  std::size_t TractionSize,
@@ -110,6 +97,29 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
     for (auto i = NumberOfNormalComponents; i < TractionSize; ++i)
         result(i, i) = ShearStiffness;
     return result;
+}
+
+void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId)
+{
+    const std::size_t strain_size = rProperties[CONSTITUTIVE_LAW]->GetStrainSize();
+    KRATOS_ERROR_IF_NOT(strain_size == ExpectedSize)
+        << "Wrong constitutive law is used: strain size is " << strain_size << " when it is expected to be "
+        << ExpectedSize << " at element Id = " << ElementId << "." << std::endl;
+}
+
+void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId)
+{
+    ConstitutiveLaw::Features LawFeatures;
+    rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
+    const auto correct_strain_measure = std::any_of(
+        LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
+        return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
+    });
+
+    KRATOS_ERROR_IF_NOT(correct_strain_measure)
+        << "Constitutive law is not compatible with the strain type "
+           "StrainMeasure_Infinitesimal at element "
+        << ElementId << "." << std::endl;
 }
 
 } // namespace Kratos

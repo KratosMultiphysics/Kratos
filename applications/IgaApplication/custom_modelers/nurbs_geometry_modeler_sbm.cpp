@@ -138,6 +138,8 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
     if (mParameters.Has("number_of_inner_loops"))
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
+    if (mParameters.Has("number_initial_points_if_importing_nurbs"))
+        snake_parameters.AddInt("number_initial_points_if_importing_nurbs", mParameters["number_initial_points_if_importing_nurbs"].GetInt());
 
     // Create the surrogate_sub_model_part for inner and outer
     SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
@@ -255,6 +257,8 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid3D(
         snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
     if (mParameters.Has("number_of_inner_loops"))
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
+    if (mParameters.Has("number_initial_points_if_importing_nurbs"))
+        snake_parameters.AddInt("number_initial_points_if_importing_nurbs", mParameters["number_initial_points_if_importing_nurbs"].GetInt());
     
     KRATOS_ERROR << "The NurbsGeometryModelerSbm is not yet implemented for 3D. " 
         << "Please use the 2D version or implement the 3D version." << std::endl;
@@ -304,6 +308,7 @@ const Parameters NurbsGeometryModelerSbm::GetValidParameters() const
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0,
+        "number_initial_points_if_importing_nurbs": 5000,
         "skin_model_part_inner_initial_name": "skin_model_part_inner_initial",
         "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
         "skin_model_part_name": "skin_model_part"

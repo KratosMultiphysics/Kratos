@@ -15,6 +15,7 @@
 
 #include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/small_strain_udsm_law.h"
+#include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
@@ -217,18 +218,10 @@ int SmallStrainUDSMLaw::Check(const Properties&   rMaterialProperties,
 {
     KRATOS_TRY
 
-    // Verify Properties variables
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(UDSM_NAME) || rMaterialProperties[UDSM_NAME].empty())
-        << "UDSM_NAME has Key zero, is not defined or has an invalid value for property"
-        << rMaterialProperties.Id() << std::endl;
-
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(UDSM_NUMBER) || rMaterialProperties[UDSM_NUMBER] <= 0)
-        << "UDSM_NUMBER has Key zero, is not defined or has an invalid value for property"
-        << rMaterialProperties.Id() << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(IS_FORTRAN_UDSM))
-        << "IS_FORTRAN_UDSM has Key zero, is not defined or has an invalid value for property"
-        << rMaterialProperties.Id() << std::endl;
+    const CheckProperties check_properties(rMaterialProperties, "property", CheckProperties::Bounds::AllExclusive);
+    check_properties.CheckAvailabilityAndNotEmpty(UDSM_NAME);
+    check_properties.Check(UDSM_NUMBER);
+    check_properties.CheckAvailability(IS_FORTRAN_UDSM);
 
     return 0;
     KRATOS_CATCH("")
@@ -927,6 +920,11 @@ void SmallStrainUDSMLaw::SetValue(const Variable<Vector>& rVariable, const Vecto
             << " components, but got one with " << rValue.size() << "components\n";
         std::copy(rValue.begin(), rValue.end(), mSig0.begin());
     }
+}
+
+bool SmallStrainUDSMLaw::Has(const Variable<Vector>& rThisVariable)
+{
+    return rThisVariable == STATE_VARIABLES || rThisVariable == CAUCHY_STRESS_VECTOR;
 }
 
 std::string SmallStrainUDSMLaw::Info() const { return "SmallStrainUDSMLaw"; }

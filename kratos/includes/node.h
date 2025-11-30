@@ -203,11 +203,24 @@ public:
         CreateSolutionStepData();
     }
 
-    /**
-     * @brief Deleted copy constructor to prevent copying.
-     * @param rOtherNode The node to copy from (deleted).
-     */
-    Node(Node const& rOtherNode) = delete;
+    /** Copy constructor. Initialize this node with given node.*/
+    explicit Node(const Node& rOtherNode)
+        : BaseType(rOtherNode)
+        , Flags(rOtherNode)
+        , mNodalData(rOtherNode.Id())
+        , mData(rOtherNode.mData)
+        , mInitialPosition(rOtherNode.mInitialPosition)
+        , mNodeLock()
+    {
+        // Deep copying the nodal data
+        this->mNodalData = rOtherNode.mNodalData;
+
+        // Deep copying the dofs
+        for (const auto& it_dof : rOtherNode.mDofs) {
+            mDofs.push_back(Kratos::make_unique<DofType>(*it_dof));
+            mDofs.back()->SetNodalData(&mNodalData);
+        }
+    }
 
     /**
      * @brief Constructor using coordinates stored in a vector expression.
@@ -269,26 +282,16 @@ public:
      }
 
     /**
-     * @brief Creates a clone of the current node.
-     * @details This function creates a new node with the same ID and coordinates as
-     * the current node, copies its nodal data, DOFs, and flags.
-     * @return Pointer to the cloned node.
+     * @brief Creates a clone of the current node with a new ID.
+     * @details This method creates a new node that is a copy of the current node,
+     * but with a different ID specified by the user.
+     * @param NewId The ID to be assigned to the new node.
+     * @return Node::Pointer A pointer to the newly created node.
      */
-    typename Node::Pointer Clone()
+    typename Node::Pointer Clone(IndexType NewId)
     {
-        Node::Pointer p_new_node = Kratos::make_intrusive<Node >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
-        p_new_node->mNodalData = this->mNodalData;
-
-        Node::DofsContainerType& my_dofs = (this)->GetDofs();
-        for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++) {
-            p_new_node->pAddDof(**it_dof);
-        }
-
-        p_new_node->mData = this->mData;
-        p_new_node->mInitialPosition = this->mInitialPosition;
-
-        p_new_node->Set(Flags(*this));
-
+        Node::Pointer p_new_node = Kratos::make_intrusive<Node>(*this);
+        p_new_node->SetId(NewId);
         return p_new_node;
     }
 

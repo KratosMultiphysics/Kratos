@@ -89,6 +89,10 @@ public:
      */
     double& CalculateValue(Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) const;
 
+    static std::vector<double> CalculateRelativePermeabilityValues(const std::vector<Pointer>& rRetentionLawVector,
+                                                                   const Properties& rProperties,
+                                                                   const std::vector<double>& rFluidPressures);
+
     virtual double CalculateSaturation(Parameters& rParameters) const = 0;
 
     virtual double CalculateEffectiveSaturation(Parameters& rParameters) const = 0;
@@ -108,6 +112,15 @@ public:
      * @return
      */
     virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) = 0;
+
+    static int Check(const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
+                     const Properties&                         rProperties,
+                     const ProcessInfo&                        rCurrentProcessInfo)
+    {
+        KRATOS_ERROR_IF(rRetentionLawVector.empty()) << "A retention law has to be provided." << std::endl;
+
+        return rRetentionLawVector[0]->Check(rProperties, rCurrentProcessInfo);
+    }
 
     /**
      * @brief This method is used to check that two Retention Laws are the same type (references)

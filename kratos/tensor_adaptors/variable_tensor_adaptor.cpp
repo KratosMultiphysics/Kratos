@@ -27,9 +27,11 @@ VariableTensorAdaptor::VariableTensorAdaptor(
     VariablePointerType pVariable)
     : mpVariable(pVariable)
 {
+    this->mpContainer = pContainer;
+
     std::visit([this, pContainer](auto pVariable) {
-        this->mpStorage = Kratos::make_intrusive<Storage>(
-                                pContainer, TensorAdaptorUtils::GetTensorShape(
+        this->mpStorage = Kratos::make_shared<Storage>(
+                                TensorAdaptorUtils::GetTensorShape(
                                                 *pContainer, *pVariable,
                                                 [pVariable](auto& rValue, const auto& rEntity) {
                                                     rValue = rEntity.GetValue(*pVariable);
@@ -44,9 +46,11 @@ VariableTensorAdaptor::VariableTensorAdaptor(
     const std::vector<unsigned int>& rDataShape)
     : mpVariable(pVariable)
 {
+    this->mpContainer = pContainer;
+
     std::visit([&rDataShape, this, pContainer](auto pVariable) {
-        this->mpStorage = Kratos::make_intrusive<Storage>(
-                                pContainer, TensorAdaptorUtils::GetTensorShape(
+        this->mpStorage = Kratos::make_shared<Storage>(
+                                TensorAdaptorUtils::GetTensorShape(
                                 *pContainer, *pVariable, rDataShape.data(),
                                 rDataShape.data() + rDataShape.size()));
     }, mpVariable);
@@ -74,7 +78,7 @@ VariableTensorAdaptor::VariableTensorAdaptor(
     // now check whether the given storage is compatible with the variable.
     std::visit([this, &rOther](auto pVariable) {
         using data_type = typename BareType<decltype(*pVariable)>::Type;
-        const auto& r_data_shape = this->mpStorage->DataShape();
+        const auto& r_data_shape = this->DataShape();
         KRATOS_ERROR_IF_NOT(DataTypeTraits<data_type>::IsValidShape(r_data_shape.data().begin(), r_data_shape.data().begin() + r_data_shape.size()))
             << "The data storage within the tensor data is not compatible with the " << pVariable->Name()
             << " [ origin data shape = " << rOther.DataShape() << ", tensor adaptor = " << *this << " ].\n";
@@ -106,7 +110,7 @@ void VariableTensorAdaptor::Check() const
                     << "The entity with id = " << rEntity.Id() << " does not have the variable " << pVariable->Name() << ".\n";
             });
         }
-    }, this->mpStorage->GetContainer(), mpVariable);
+    }, this->GetContainer(), mpVariable);
 
     KRATOS_CATCH("");
 }
@@ -131,7 +135,7 @@ void VariableTensorAdaptor::CollectData()
 
             KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
+                << this->Info() << ", container size = " << pContainer->size() << " ].\n";
 
             ContainerIOUtils::CopyToContiguousArray<data_type>(
                 *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
@@ -140,7 +144,7 @@ void VariableTensorAdaptor::CollectData()
                     rValue = rEntity.GetValue(*pVariable);
                 });
         }
-    }, this->mpStorage->GetContainer(), mpVariable);
+    }, this->GetContainer(), mpVariable);
 }
 
 void VariableTensorAdaptor::StoreData()
@@ -163,7 +167,7 @@ void VariableTensorAdaptor::StoreData()
 
             KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
+                << this->Info() << ", container size = " << pContainer->size() << " ].\n";
 
             if constexpr(DataTypeTraits<data_type>::IsDynamic) {
                 // this zero value may be different from the Variable::Zero()
@@ -250,7 +254,7 @@ void VariableTensorAdaptor::StoreData()
                     });
             }
         }
-    }, this->mpStorage->GetContainer(), mpVariable);
+    }, this->GetContainer(), mpVariable);
 }
 
 std::string VariableTensorAdaptor::Info() const
@@ -260,7 +264,7 @@ std::string VariableTensorAdaptor::Info() const
     std::visit([&info](auto pVariable) {
         info << " Variable = " << pVariable->Name();
     }, this->mpVariable);
-    info << ", " << this->mpStorage->Info();
+    info << ", " << BaseType::Info();
     return info.str();
 }
 

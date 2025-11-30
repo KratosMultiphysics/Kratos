@@ -57,7 +57,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GaussPointVariableTensorAdaptor);
+    KRATOS_CLASS_POINTER_DEFINITION(GaussPointVariableTensorAdaptor);
 
     using BaseType = TensorAdaptor<double>;
 

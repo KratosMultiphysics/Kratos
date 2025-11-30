@@ -79,7 +79,7 @@ if (APPLE)
   cmake_policy(SET CMP0042 NEW)
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
 else()
-  set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif()
 
 # If no test policy enable by default
@@ -393,6 +393,11 @@ endif(KRATOS_BUILD_BENCHMARK MATCHES ON)
 if(DEFINED ENV{PYTHON_EXECUTABLE})
   set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
 endif(DEFINED ENV{PYTHON_EXECUTABLE})
+
+# Try to use python library from env variable
+if(DEFINED ENV{PYTHON_LIBRARY})
+  set(PYTHON_LIBRARY $ENV{PYTHON_LIBRARY})
+endif(DEFINED ENV{PYTHON_LIBRARY})
 
 include(pybind11Tools)
 
@@ -717,12 +722,6 @@ endforeach()
 message("\n***********************************************************************\n")
 
 message("\nList of upcoming API-breaking and behavior changes:")
-message("\t Geometry 'Dimension' removed: https://github.com/KratosMultiphysics/Kratos/pull/10977")
-message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
-message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
-message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
-message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
-message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 message("\t Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK")
 message("\t Removal of misused EXTENDED_GAUSS integration rules and unification across geometries: https://github.com/KratosMultiphysics/Kratos/pull/13444")
 
@@ -754,6 +753,7 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+install(FILES ${KRATOS_SOURCE_DIR}/kratos/pyproject.toml DESTINATION .)
 
 # Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
 add_subdirectory("scripts/post_install")

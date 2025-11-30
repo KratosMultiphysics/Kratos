@@ -100,8 +100,8 @@ MKLILUSmootherBase<TSparse,TDense>::MKLILUSmootherBase(Parameters Settings)
 {
     KRATOS_TRY
     Settings.AddMissingParameters(this->GetDefaultParameters());
-    mpImpl->mIterations = Settings["iterations"].Get<int>();
-    mpImpl->mRelaxation = Settings["relaxation"].Get<double>();
+    mpImpl->mIterations = Settings["iterations"].GetInt();
+    mpImpl->mRelaxation = Settings["relaxation"].GetDouble();
     KRATOS_CATCH("")
 
     std::fill(mpImpl->ipar.begin(), mpImpl->ipar.end(), static_cast<MKL_INT>(0));
@@ -336,8 +336,8 @@ MKLILUTSmoother<TSparse,TDense>::MKLILUTSmoother(Parameters Settings)
 {
     KRATOS_TRY
     Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
-    mFactorizationTolerance = Settings["factorization_tolerance"].Get<double>();
-    mFillFactor = Settings["fill_factor"].Get<int>();
+    mFactorizationTolerance = Settings["factorization_tolerance"].GetDouble();
+    mFillFactor = Settings["fill_factor"].GetInt();
     KRATOS_CATCH("")
 }
 

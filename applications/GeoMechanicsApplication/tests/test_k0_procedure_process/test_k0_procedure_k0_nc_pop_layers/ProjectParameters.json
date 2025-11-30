@@ -152,7 +152,6 @@
     "newmark_beta":                       0.25,
     "newmark_gamma":                      0.5,
     "newmark_theta":                      0.5,
-    "nodal_smoothing":                    false,
     "number_cycles":                      100,
     "problem_domain_sub_model_part_list": ["Soil1", "Soil2", "Soil3"],
     "processes_sub_model_part_list":      ["Main", "All_Nodes", "Side_Nodes", "Base_Nodes"],
