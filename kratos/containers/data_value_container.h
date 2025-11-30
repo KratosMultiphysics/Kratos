@@ -330,16 +330,11 @@ public:
         if (i != mData.end()) {
             return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
         } else {
-            if (rThisVariable.IsNotComponent()) {
-                auto& r_new_value = mData.emplace_back(&rThisVariable, rThisVariable.Clone(&rInitValue));
-                return *(static_cast<TDataType*>(r_new_value.second));
-            } else {
-                auto p_source_variable = &rThisVariable.GetSourceVariable();
-                auto& r_new_value = mData.emplace_back(p_source_variable, p_source_variable->Clone(p_source_variable->pZero()));
-                auto p_value = static_cast<TDataType*>(r_new_value.second) + rThisVariable.GetComponentIndex();
-                *p_value = rInitValue;
-                return *p_value;
-            }
+            auto p_source_variable = &rThisVariable.GetSourceVariable();
+            auto& r_new_value = mData.emplace_back(p_source_variable, p_source_variable->Clone(p_source_variable->pZero()));
+            auto p_value = static_cast<TDataType*>(r_new_value.second) + rThisVariable.GetComponentIndex();
+            *p_value = rInitValue;
+            return *p_value;
         }
     }
 
