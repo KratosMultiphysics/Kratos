@@ -63,7 +63,8 @@ public:
         const ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
         const IndexType MaxNumberOfNeighbours,
-        const IndexType EchoLevel);
+        const IndexType EchoLevel,
+        const bool NodeCloudMesh);
 
     ///@}
     ///@name Public operations
@@ -159,6 +160,8 @@ private:
     IndexType mEchoLevel;
 
     typename KDTree::Pointer mpSearchTree;
+
+    bool mNodeCloudMesh;
 
     ///@}
     ///@name Private operations
