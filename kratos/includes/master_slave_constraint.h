@@ -567,8 +567,8 @@ public:
      *          database. If the @p rThisVariable is not found, then a new value is created using
      *          @p rThisVariable::Zero() method and then reference to new value is returned.
      *
-     * @warning Use it with care when calling this within a parallelized loop. If the parallelization
-     *          is not done on the database, then this method is safe to use.
+     * @warning Multiple Emplace functions can be run concurrently OVER DIFFERENT DATABASES.
+     *          Concurrent Emplaces onto the same database ARE NOT THREADSAFE.
      *
      * @param rThisVariable     Variable representing the value.
      * @return TDataType&       Reference to the value.
@@ -589,8 +589,8 @@ public:
      *          the source variable is created with @p Zero() method, and then @p rInitValue
      *          is used to initialize the component referred by @p rThisVariable.
      *
-     * @warning Use it with care when calling this within a parallelized loop. If the parallelization
-     *          is not done on the database, then this method is safe to use.
+     * @warning Multiple Emplace functions can be run concurrently OVER DIFFERENT DATABASES.
+     *          Concurrent Emplaces onto the same database ARE NOT THREADSAFE.
      *
      * @param rThisVariable     Variable representing the value.
      * @param rInitValue        Initialization value in case the @p rThisVariable is not found in the database.
