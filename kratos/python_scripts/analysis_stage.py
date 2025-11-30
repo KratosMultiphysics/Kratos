@@ -3,8 +3,6 @@ import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
-from KratosMultiphysics.step_controller import Factory as StepControllerFactory
-from KratosMultiphysics.step_controller import StepController, DefaultStepController
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -61,107 +59,11 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-
-        list_of_step_controllers: 'list[tuple[KratosMultiphysics.IntervalUtility, StepController]]' = []
-
-        default_step_controller_settings = KratosMultiphysics.Parameters("""{
-            "interval": [0, "End"],
-            "settings":{}
-        }""")
-
-        if self.project_parameters.Has("list_of_step_controllers"):
-            for step_controller_settings in self.project_parameters["list_of_step_controllers"].values():
-                step_controller_settings.ValidateAndAssignDefaults(default_step_controller_settings)
-                list_of_step_controllers.append((KratosMultiphysics.IntervalUtility(step_controller_settings), self._CreateStepController(step_controller_settings["settings"])))
-
-        if len(list_of_step_controllers) == 0:
-            list_of_step_controllers.append((KratosMultiphysics.IntervalUtility(KratosMultiphysics.Parameters("""{"interval":[0.0, "End"]}""")), DefaultStepController(KratosMultiphysics.Parameters("""{}"""))))
-
-        computing_mp: KratosMultiphysics.ModelPart = self._GetSolver().GetComputingModelPart()
-
-        is_converged = False
         while self.KeepAdvancingSolutionLoop():
-            time_begin = self.time # current step lower bound
-            # current step upper bound.
-            #   - This also clones a new time step
-            #   - This sets the DELTA_TIME (time_end - time_begin)
-            time_end = self._AdvanceTime()
-
-            # find the appropriate step controller for the given time frame
-            step_controller = None
-            for interval_utility, step_controller in reversed(list_of_step_controllers):
-                if interval_utility.IsInInterval(time_end):
-                    break
-
-            if step_controller is None:
-                raise RuntimeError(f"No step controller is found for the time period [{time_begin}, {time_end}].")
-
-            step_controller.Initialize(time_begin, time_end)
-
-            self.time = time_end
-
-            # store the positions of the nodes first, because Predict may move the mesh as well, therefore, we
-            # need to collect node positions before moving
-            # this will add a cost for the existing behavior, hence this is guarded by the following if block to
-            # not to have additional cost of collecting data if no stepping is used.
-            if not isinstance(step_controller, DefaultStepController):
-                ta_position = KratosMultiphysics.TensorAdaptors.NodePositionTensorAdaptor(computing_mp.Nodes, KratosMultiphysics.Configuration.Current)
-                ta_position.CollectData()
-
-            # first try to solve for the final time.
+            self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
-
-            if not is_converged:
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Did not converge for time = {self.time}.")
-
-            current_step_controller_time = time_begin
-            while not step_controller.IsCompleted(current_step_controller_time, is_converged):
-                if is_converged:
-                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Step at time = [{time_begin}, {self.time}] converged.")
-                    # so the sub-step converged.
-
-                    # first finalize the success full step
-                    self.FinalizeSolutionStep()
-                    self.OutputSolutionStep()
-
-                    # make the next step ready for solving
-                    computing_mp.ProcessInfo[KratosMultiphysics.STEP] += 1
-
-                    # here we will correctly set TIME and DELTA_TIME
-                    # and put current values in the previous time step
-                    time_begin = self.time
-                    self.time = step_controller.GetNextStep(self.time, is_converged)
-                    computing_mp.CloneTimeStep(self.time)
-
-                    # now collect the nodes positions, which may have moved
-                    # can be used at a later time to reset the nodal positions.
-                    ta_position.CollectData()
-                else:
-                    KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, f"Step at time = {self.time} did not converge.")
-                    # sub_step did not converge
-                    # do not advance in step. get a new sub-step
-                    self.time = step_controller.GetNextStep(time_begin, is_converged)
-                    computing_mp.ProcessInfo[KratosMultiphysics.TIME] = self.time
-                    computing_mp.ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.time - time_begin
-
-                    # here we need to reset the coordinates of the mesh, if someone has used the move_mesh_flag = true
-                    # reset the mesh coordinates
-                    ta_position.StoreData()
-
-                    # here we reset the solution step data of each node to the previous time step values
-                    # so the Predict can does a better prediction again with the new step
-                    computing_mp.OverwriteSolutionStepData(1, 0)
-
-                self.InitializeSolutionStep()
-                self._GetSolver().Predict()
-                is_converged = self._GetSolver().SolveSolutionStep()
-
-                current_step_controller_time = self.time
-
-            # we need the last finalize solution step, because once the Solver solves, and converges, and
-            # [t_begin, t_end] is reached, it will no longer go in to the stepping while loop.
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -491,9 +393,6 @@ class AnalysisStage(object):
                 msg += "Please, define it as an 'output_processes' in the ProjectParameters."
                 IssueDeprecationWarning("AnalysisStage", msg.format(process.__class__.__name__))
         return deprecated_output_processes
-
-    def _CreateStepController(self, step_controller_parameters: KratosMultiphysics.Parameters) -> StepController:
-        return StepControllerFactory(step_controller_parameters)
 
     def _GetSimulationName(self):
         """Returns the name of the Simulation
