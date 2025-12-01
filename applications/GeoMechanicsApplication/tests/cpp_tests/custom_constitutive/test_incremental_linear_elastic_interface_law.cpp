@@ -19,10 +19,12 @@
 #include "geometries/line_2d_2.h"
 #include "includes/checks.h"
 #include "includes/serializer.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include "custom_utilities/registration_utilities.h"
+#include "includes/expect.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 #include <sstream>
 #include <string>
@@ -84,7 +86,7 @@ void TestStrainAndStress(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_HasCorrectWorkingSpace, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LinearElasticLawForInterfaces_HasCorrectWorkingSpace)
 {
     auto law_2D = CreateLaw2D();
     KRATOS_EXPECT_EQ(law_2D.WorkingSpaceDimension(), 2);
@@ -93,7 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_HasCorrectWorkingSpace, 
     KRATOS_EXPECT_EQ(law_3D.WorkingSpaceDimension(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_HasCorrectStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LinearElasticLawForInterfaces_HasCorrectStrainSize)
 {
     const auto law_2D = CreateLaw2D();
     KRATOS_EXPECT_EQ(law_2D.GetStrainSize(), 2);
@@ -102,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_HasCorrectStrainSize, Kr
     KRATOS_EXPECT_EQ(law_3D.GetStrainSize(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_UsesCauchyStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LinearElasticLawForInterfaces_UsesCauchyStressMeasure)
 {
     auto law_2D = CreateLaw2D();
     KRATOS_EXPECT_EQ(law_2D.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
@@ -111,7 +113,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_UsesCauchyStressMeasure,
     KRATOS_EXPECT_EQ(law_3D.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_IsIncremental, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LinearElasticLawForInterfaces_IsIncremental)
 {
     auto law_2D = CreateLaw2D();
     KRATOS_EXPECT_TRUE(law_2D.IsIncremental())
@@ -120,8 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_IsIncremental, KratosGeo
     KRATOS_EXPECT_TRUE(law_3D.IsIncremental())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CloneOfLinearElasticLawForInterfaces_IsIndependentOfOriginal,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CloneOfLinearElasticLawForInterfaces_IsIndependentOfOriginal)
 {
     const auto original_law = CreateLaw2D();
     auto       p_cloned_law = original_law.Clone();
@@ -131,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(CloneOfLinearElasticLawForInterfaces_IsIndependentOfOr
     KRATOS_EXPECT_NE(dynamic_cast<const GeoIncrementalLinearElasticInterfaceLaw*>(p_cloned_law.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CloneOfLinearElasticLawForInterfaces_HasCorrectStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CloneOfLinearElasticLawForInterfaces_HasCorrectStrainSize)
 {
     const auto original_law_2D = CreateLaw2D();
     const auto p_cloned_law_2D = original_law_2D.Clone();
@@ -144,7 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(CloneOfLinearElasticLawForInterfaces_HasCorrectStrainS
     KRATOS_EXPECT_EQ(p_cloned_law_3D->GetStrainSize(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_MovedLawHasCorrectStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LinearElasticLawForInterfaces_MovedLawHasCorrectStrainSize)
 {
     auto       original_law_2D = CreateLaw2D();
     const auto moved_law_2D(std::move(original_law_2D));
@@ -155,15 +156,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_MovedLawHasCorrectStrain
     KRATOS_EXPECT_EQ(moved_law_3D.GetStrainSize(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_DoesNotRequireInitializationOfMaterialResponse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LinearElasticLawForInterfaces_DoesNotRequireInitializationOfMaterialResponse)
 {
     auto law = CreateLaw2D();
     KRATOS_EXPECT_FALSE(law.RequiresInitializeMaterialResponse())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_ChecksForCorrectMaterialProperties,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LinearElasticLawForInterfaces_ChecksForCorrectMaterialProperties)
 {
     const auto law          = CreateLaw2D();
     auto       properties   = Properties{};
@@ -207,8 +206,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_ChecksForCorrectMaterial
     KRATOS_EXPECT_EQ(law.Check(properties, geometry, process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContainingNormalAndShearStiffnessValues,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       TheCalculatedConstitutiveMatrixIsADiagonalMatrixContainingNormalAndShearStiffnessValues)
 {
     // Arrange
     auto properties                        = Properties{};
@@ -252,8 +251,7 @@ KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContai
                                        Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TryingToCalculateTheValueOfAnUnsupportedMatrixVariableRaisesAnError,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TryingToCalculateTheValueOfAnUnsupportedMatrixVariableRaisesAnError)
 {
     auto        law                                = CreateLaw2D();
     const auto& r_some_unsupported_matrix_variable = ENGINEERING_STRAIN_TENSOR;
@@ -265,8 +263,7 @@ KRATOS_TEST_CASE_IN_SUITE(TryingToCalculateTheValueOfAnUnsupportedMatrixVariable
         "Can't calculate value of ENGINEERING_STRAIN_TENSOR: unsupported variable")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TryingToGetTheValueOfAnUnsupportedVectorVariableRaisesAnError,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TryingToGetTheValueOfAnUnsupportedVectorVariableRaisesAnError)
 {
     auto        law                                = CreateLaw2D();
     const auto& r_some_unsupported_vector_variable = GREEN_LAGRANGE_STRAIN_VECTOR;
@@ -277,8 +274,7 @@ KRATOS_TEST_CASE_IN_SUITE(TryingToGetTheValueOfAnUnsupportedVectorVariableRaises
         "Can't get value of GREEN_LAGRANGE_STRAIN_VECTOR: unsupported variable")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTraction,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, WhenNoInitialStateIsGivenStartWithZeroRelativeDisplacementAndZeroTraction)
 {
     auto law_2D = CreateLaw2D();
     InitializeLawMaterial(law_2D);
@@ -291,8 +287,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplace
     TestStrainAndStress(law_3D, Vector{ZeroVector{3}}, Vector{ZeroVector{3}});
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialInitialization,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, WhenAnInitialStateIsGivenStartFromThereAfterMaterialInitialization)
 {
     auto       law_2D                        = CreateLaw2D();
     const auto initial_relative_displacement = Vector{ScalarVector{2, 0.5}};
@@ -311,8 +306,8 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     TestStrainAndStress(law_3D, initial_relative_displacement_3D, initial_traction_3D);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness)
 {
     // Arange
     auto properties                        = Properties{};
@@ -351,7 +346,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncrement, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ComputedTractionIsSumOfPreviousTractionAndTractionIncrement)
 {
     auto properties                        = Properties{};
     properties[INTERFACE_NORMAL_STIFFNESS] = 20.0;
@@ -417,8 +412,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
                                        expected_relative_displacement, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFromASerializer,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LinearElasticLawForInterfacesCanBeSavedToAndLoadedFromASerializer)
 {
     auto       law_2D                        = CreateLaw2D();
     const auto initial_relative_displacement = Vector{ScalarVector{2, 0.5}};
