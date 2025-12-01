@@ -459,30 +459,25 @@ Where:
 
 As the current implementation is based on $`\sigma-\tau`$, we must map that 2-vector back to a 3×3 stress tensor. We use chain rule to get derivatives of $G$ to the principal stresses:
 ```math
-    \frac{\partial G}{\partial \sigma_1} = 
+    G,_{\sigma_1} = \frac{\partial G}{\partial \sigma_1} = 
     \frac{\partial G}{\partial \sigma} \frac{\partial \sigma}{\partial \sigma_1}
     + \frac{\partial G}{\partial \tau} \frac{\partial \tau}{\partial \sigma_1} 
     = \frac{1}{2} \frac{\partial G}{\partial \sigma} + \frac{1}{2} \frac{\partial G}{\partial \tau}
 ```
 ```math
-    \frac{\partial G}{\partial \sigma_3} = \frac{1}{2} \frac{\partial G}{\partial \sigma} - \frac{1}{2} \frac{\partial G}{\partial \tau}
+    G,_{\sigma_3} = \frac{\partial G}{\partial \sigma_3} = \frac{1}{2} \frac{\partial G}{\partial \sigma} - \frac{1}{2} \frac{\partial G}{\partial \tau}
 ```
 ```math
-    \frac{\partial G}{\partial \sigma_2} = 0
-```
-
-Denote these principal derivatives $`g_1`$, $g_2$ and $`g_3`$:
-```math
-    g_1 = \frac{\partial G}{\partial \sigma_1},\qquad g_2 = 0,\qquad  g_3 = \frac{\partial G}{\partial \sigma_3}
+    G,_{\sigma_2} = \frac{\partial G}{\partial \sigma_2} = 0
 ```
 
 We build the flow tensor $`\boldsymbol{m}`$ in principal frame.
 ```math
     \boldsymbol{m} = 
     \begin{bmatrix}
-    g_1 & 0 & 0 \\
-    0 & g_2 & 0 \\
-    0 & 0 & g_3
+    G,_{\sigma_1} & 0            & 0           \\
+    0            & G,_{\sigma_2} & 0           \\
+    0            & 0            & G,_{\sigma_3}
     \end{bmatrix}
 ```
 
@@ -493,12 +488,12 @@ The deviatoric is then calculated:
 
 In principal components (diagonal), the mean value is
 ```math
-    \bar{m} = \frac{1}{3} \left( g_1 + g_2 + g_3 \right)
+    \bar{m} = \frac{1}{3} \left( G,_{\sigma_1} + G,_{\sigma_2} + G,_{\sigma_3} \right)
 ```
 
 Then
 ```math
-    \lVert \boldsymbol{m_dev} \rVert = \sqrt{(g_1 - \bar{m})^2 + (g_2 - \bar{m})^2 + (g_3 - \bar{m})^2}
+    \lVert \boldsymbol{m_dev} \rVert = \sqrt{(G,_{\sigma_1} - \bar{m})^2 + (G,_{\sigma_2} - \bar{m})^2 + (G,_{\sigma_3} - \bar{m})^2}
 ```
 
 If the accumulated hardening variable is the usual equivalent plastic strain
