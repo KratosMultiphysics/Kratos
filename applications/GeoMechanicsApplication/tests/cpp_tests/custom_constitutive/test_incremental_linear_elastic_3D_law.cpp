@@ -13,7 +13,8 @@
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/three_dimensional.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -57,42 +58,40 @@ GeoIncrementalLinearElasticLaw CreateIncrementalLinearElastic3DLaw()
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedLawFeatures, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoIncrementalLinearElastic3DLawReturnsExpectedLawFeatures)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
 
     ConstitutiveLaw::Features law_features;
     law.GetLawFeatures(law_features);
 
-    KRATOS_EXPECT_TRUE(law_features.mOptions.Is(ConstitutiveLaw::THREE_DIMENSIONAL_LAW))
-    KRATOS_EXPECT_TRUE(law_features.mOptions.Is(ConstitutiveLaw::INFINITESIMAL_STRAINS))
-    KRATOS_EXPECT_TRUE(law_features.mOptions.Is(ConstitutiveLaw::ISOTROPIC))
+    EXPECT_TRUE(law_features.mOptions.Is(ConstitutiveLaw::THREE_DIMENSIONAL_LAW));
+    EXPECT_TRUE(law_features.mOptions.Is(ConstitutiveLaw::INFINITESIMAL_STRAINS));
+    EXPECT_TRUE(law_features.mOptions.Is(ConstitutiveLaw::ISOTROPIC));
 
     const auto& strain_measures = law_features.mStrainMeasures;
-    KRATOS_EXPECT_NE(std::find(strain_measures.begin(), strain_measures.end(), ConstitutiveLaw::StrainMeasure_Infinitesimal),
-                     strain_measures.end());
-    KRATOS_EXPECT_NE(std::find(strain_measures.begin(), strain_measures.end(),
-                               ConstitutiveLaw::StrainMeasure_Deformation_Gradient),
-                     strain_measures.end());
+    EXPECT_NE(std::find(strain_measures.begin(), strain_measures.end(), ConstitutiveLaw::StrainMeasure_Infinitesimal),
+              strain_measures.end());
+    EXPECT_NE(std::find(strain_measures.begin(), strain_measures.end(), ConstitutiveLaw::StrainMeasure_Deformation_Gradient),
+              strain_measures.end());
 
-    KRATOS_EXPECT_EQ(law_features.mStrainSize, 6);
-    KRATOS_EXPECT_EQ(law_features.mSpaceDimension, 3);
+    EXPECT_EQ(law_features.mStrainSize, 6);
+    EXPECT_EQ(law_features.mSpaceDimension, 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoIncrementalLinearElastic3DLawReturnsExpectedStrainSize)
 {
     const auto law = CreateIncrementalLinearElastic3DLaw();
-    KRATOS_EXPECT_EQ(law.GetStrainSize(), 6);
+    EXPECT_EQ(law.GetStrainSize(), 6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedWorkingSpaceDimension,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoIncrementalLinearElastic3DLawReturnsExpectedWorkingSpaceDimension)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
-    KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 3);
+    EXPECT_EQ(law.WorkingSpaceDimension(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoIncrementalLinearElastic3DLawReturnsExpectedStress)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
 
@@ -103,8 +102,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress,
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_WhenOnlyDiagonalEntriesAreConsidered,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeoIncrementalLinearElastic3DLawReturnsExpectedStress_WhenOnlyDiagonalEntriesAreConsidered)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
     law.SetConsiderDiagonalEntriesOnlyAndNoShear(true);
@@ -116,8 +115,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_WithInitialStressAndStrain,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeoIncrementalLinearElastic3DLawReturnsExpectedStress_WithInitialStressAndStrain)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
 
@@ -135,8 +134,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_AfterFinalizeMaterialResponse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeoIncrementalLinearElastic3DLawReturnsExpectedStress_AfterFinalizeMaterialResponse)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
 
@@ -160,8 +159,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_AfterFinalizeMaterialResponseAndReset,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeoIncrementalLinearElastic3DLawReturnsExpectedStress_AfterFinalizeMaterialResponseAndReset)
 {
     auto law = CreateIncrementalLinearElastic3DLaw();
 
@@ -185,8 +184,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawRaisesADebugError_WhenElementProvidedStrainIsSetToFalse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeoIncrementalLinearElastic3DLawRaisesADebugError_WhenElementProvidedStrainIsSetToFalse)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
