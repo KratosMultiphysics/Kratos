@@ -98,11 +98,12 @@ public:
 
     void Predict(
         ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
         SystemMatrixType& rA,
         SystemVectorType& rDx,
         SystemVectorType& rb) override
     {
-        BaseType::Predict(rModelPart, rA, rDx, rb);
+        BaseType::Predict(rModelPart, rDofSet, rA, rDx, rb);
 
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
