@@ -187,16 +187,17 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 
+    // LOWEST_PRINCIPAL_STRESSES as averaging type
     cauchy_stress_vector <<= 12.0, 10.0, -16.0, 0.0;
     expected_cauchy_stress_vector <<= 7.806379130008, 7.806379130008, -9.61275826001616129, 0.0;
-    constexpr auto tolerance = 2.0e-10;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
-                              expected_cauchy_stress_vector, tolerance);
+                              expected_cauchy_stress_vector, Defaults::absolute_tolerance * 2.0e2);
 
+    // HIGHEST_PRINCIPAL_STRESSES as averaging type
     cauchy_stress_vector <<= 12.0, -12.0, -16.0, 0.0;
     expected_cauchy_stress_vector <<= 6.78245195822, -13.3912259791, -13.3912259791, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
-                              expected_cauchy_stress_vector, tolerance);
+                              expected_cauchy_stress_vector, Defaults::absolute_tolerance * 1.0e2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone,
