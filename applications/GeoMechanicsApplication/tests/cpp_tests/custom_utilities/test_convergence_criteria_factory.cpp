@@ -11,8 +11,9 @@
 //
 
 #include "custom_utilities/convergence_criteria_factory.hpp"
+#include "includes/expect.h"
 #include "spaces/ublas_space.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 using namespace Kratos;
 using SparseSpaceType                = UblasSpace<double, CompressedMatrix, Vector>;
@@ -22,7 +23,7 @@ using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceTyp
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplacement, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Create_ReturnsCorrectConvergenceCriteria_ForDisplacement)
 {
     const std::string valid_parameters = R"(
     {
@@ -39,7 +40,7 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplaceme
     KRATOS_EXPECT_NE(displacement_criterion, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForResidual, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Create_ReturnsCorrectConvergenceCriteria_ForResidual)
 {
     const std::string valid_parameters = R"(
     {
@@ -55,12 +56,11 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForResidual, 
     KRATOS_EXPECT_NE(residual_criterion, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist,
-                          KratosGeoMechanicsFastSuiteWithoutKernel){
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Create_Throws_WhenConvergenceCriterionDoesNotExist){
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConvergenceCriteriaFactoryType::Create(Parameters{"{}"}),
                                       "No convergence_criterion is defined, aborting.")}
 
-KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionIsUnknown, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Create_Throws_WhenConvergenceCriterionIsUnknown)
 {
     const auto invalid_parameters = Parameters{R"({"convergence_criterion" : "something_unknown" })"};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConvergenceCriteriaFactoryType::Create(invalid_parameters),
