@@ -11,10 +11,15 @@
 //                   Richard Faasse
 //
 
+#include "containers/model.h"
 #include "custom_utilities/check_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/triangle_2d_3.h"
 #include "includes/checks.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
 
 using namespace Kratos;
@@ -45,7 +50,7 @@ Line2D2<Node> CreatLineGeometryWithVariables()
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckDomainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckDomainSize)
 {
     // Arrange
     constexpr std::size_t id = 1;
@@ -72,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckDomainSize, KratosGeoMechanicsFast
         "DomainSize (0) is smaller than 1e-15 for element 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckNodalVariables)
 {
     // Arrange
     auto line_geometry = CreatLineGeometryWithoutVariables();
@@ -93,7 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalVariables, KratosGeoMechanics
         "Missing variable VOLUME_ACCELERATION on nodes 0 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalDof, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckNodalDof)
 {
     // Arrange
     auto line_geometry = CreatLineGeometryWithoutVariables();
@@ -116,7 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckNodalDof, KratosGeoMechanicsFastSu
         "Missing the DoF for the variable VOLUME_ACCELERATION on nodes 0 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsPropertyId, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckPropertiesThatPrintsPropertyId)
 {
     // Arrange
     auto properties = Properties{};
@@ -152,7 +157,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsPropertyId, Kr
         "DENSITY in the property with Id 0 has an invalid value: 0 is out of the range (0, -).")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsElementId, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckPropertiesThatPrintsElementId)
 {
     // Arrange
     auto                  properties = Properties{};
@@ -175,7 +180,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPropertiesThatPrintsElementId, Kra
         "IS_FORTRAN_UDSM does not exist in the property with Id 0 at element with Id 1.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckIntegerProperty, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckIntegerProperty)
 {
     // Arrange
     auto properties = Properties{};
@@ -195,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckIntegerProperty, KratosGeoMechanic
         "UDSM_NUMBER in the property with Id 0 has an invalid value: 3 is out of the range (1, 3).")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckAvailabilityAndEquality, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckAvailabilityAndEquality)
 {
     // Arrange
     auto properties = Properties{};
@@ -213,8 +218,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckAvailabilityAndEquality, KratosGeo
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "VanGenuchtenLaw"), "RETENTION_LAW has a value of \"SaturatedLaw\" instead of \"VanGenuchtenLaw\" in the property with Id 0.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesThrowsErrorsForWrongProperties,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckPermeabilityPropertiesThrowsErrorsForWrongProperties)
 {
     Properties properties(2);
     const CheckProperties check_properties(properties, "properties", CheckProperties::Bounds::AllExclusive);
@@ -246,8 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesThrowsErrors
                                       "value: -10 is out of the range [0, -).")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesDoesNotThrowsErrors,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckPermeabilityPropertiesDoesNotThrowsErrors)
 {
     Properties properties(2);
     const CheckProperties check_properties(properties, "properties", CheckProperties::Bounds::AllExclusive);
@@ -265,7 +268,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckPermeabilityPropertiesDoesNotThrow
     EXPECT_NO_THROW(check_properties.CheckPermeabilityProperties(3));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckForNonZeroZCoordinateIn2D, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckForNonZeroZCoordinateIn2D)
 {
     // Arrange
     auto line_geometry = CreatLineGeometryWithVariables();
@@ -281,7 +284,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckForNonZeroZCoordinateIn2D, KratosG
                                       "Node with Id: 0 has non-zero Z coordinate.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckAvailabilityAndSpecified, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckUtilities_CheckAvailabilityAndSpecified)
 {
     // Arrange
     Properties properties(1);
