@@ -14,15 +14,15 @@
 
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
 #include "geo_mechanics_application_variables.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 using namespace Kratos;
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveYoungsModulus,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveYoungsModulus)
 {
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     const auto properties   = Properties{};
@@ -34,7 +34,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveYoung
         "Error: No YOUNGS_MODULUS found")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveStrains, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveStrains)
 {
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     auto       properties   = Properties{};
@@ -47,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveStrai
         "Error: No STRAINS_OF_PIECEWISE_LINEAR_LAW found")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveStresses)
 {
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     auto       properties   = Properties{};
@@ -61,8 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenPropertiesDoesNotHaveStres
         "Error: No STRESSES_OF_PIECEWISE_LINEAR_LAW found")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenStressesAndStrainsHaveDifferentSizes,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckOfBackboneLawThrowsWhenStressesAndStrainsHaveDifferentSizes)
 {
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     auto       properties   = Properties{};
@@ -77,7 +76,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenStressesAndStrainsHaveDiff
         "Error: The number of strain components does not match the number of stress components")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenStrainsIsEmpty, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckOfBackboneLawThrowsWhenStrainsIsEmpty)
 {
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     auto       properties   = Properties{};
@@ -92,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenStrainsIsEmpty, KratosGeoM
         "Error: STRAINS_OF_PIECEWISE_LINEAR_LAW is empty")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenStrainsAreNotAscending, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckOfBackboneLawThrowsWhenStrainsAreNotAscending)
 {
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     auto       properties   = Properties{};
@@ -107,8 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenStrainsAreNotAscending, Kr
     KRATOS_EXPECT_EXCEPTION_IS_THROWN([[maybe_unused]] const auto rv = backbone_law.Check(properties, geometry, process_info), "Error: Values in STRAINS_OF_PIECEWISE_LINEAR_LAW are not ascending: 0.02 (at index 3) does not exceed 0.03 (at index 2)")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfBackboneLawThrowsWhenYoungsModulusIsSmallerThanAnyOfBackboneStiffnesses,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckOfBackboneLawThrowsWhenYoungsModulusIsSmallerThanAnyOfBackboneStiffnesses)
 {
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     auto       properties   = Properties{};
