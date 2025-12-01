@@ -61,7 +61,6 @@
             "solver_type":     "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["sand","dike"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Excavation-auto-1","Body_sand","Body_Dike"],
         "body_domain_sub_model_part_list":    ["sand","dike"]
     },
     "output_processes": {

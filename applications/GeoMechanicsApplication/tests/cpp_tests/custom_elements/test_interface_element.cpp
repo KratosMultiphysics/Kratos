@@ -378,7 +378,7 @@ template <typename DerivedElementPtrType>
 GlobalPointersVector<Element> MakeElementGlobalPtrContainerWith(const DerivedElementPtrType& rpElement)
 {
     auto p_element = Element::Pointer{rpElement};
-    return {{GlobalPointer<Element>{p_element}}};
+    return {GlobalPointer<Element>{p_element}};
 }
 
 } // namespace
