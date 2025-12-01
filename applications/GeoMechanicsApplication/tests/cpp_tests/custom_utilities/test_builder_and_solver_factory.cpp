@@ -11,9 +11,10 @@
 //
 
 #include "custom_utilities/builder_and_solver_factory.hpp"
+#include "includes/expect.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 using namespace Kratos;
 using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
@@ -24,8 +25,7 @@ using BuilderAndSolverFactoryType = BuilderAndSolverFactory<SparseSpaceType, Loc
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBuilderIsTrue,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBuilderIsTrue)
 {
     const std::string validBlockParameters = R"(
     {
@@ -40,11 +40,10 @@ KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBui
     const auto block_builder =
         dynamic_cast<const ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>*>(
             builder_and_solver.get());
-    KRATOS_EXPECT_NE(block_builder, nullptr);
+    EXPECT_NE(block_builder, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBuilderIsFalse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBuilderIsFalse)
 {
     const std::string validBlockParameters = R"(
     {
@@ -58,10 +57,10 @@ KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBui
     const auto elimination_builder =
         dynamic_cast<const ResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>*>(
             builder_and_solver.get());
-    KRATOS_EXPECT_NE(elimination_builder, nullptr);
+    EXPECT_NE(elimination_builder, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_Throws_WhenBlockBuilderIsUndefined, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CreateBuilderAndSolver_Throws_WhenBlockBuilderIsUndefined)
 {
     const auto solver = std::make_shared<LinearSolverType>();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
