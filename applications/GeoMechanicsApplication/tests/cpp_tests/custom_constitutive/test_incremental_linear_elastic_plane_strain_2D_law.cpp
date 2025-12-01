@@ -12,7 +12,8 @@
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -56,7 +57,7 @@ GeoIncrementalLinearElasticLaw CreateLinearElasticPlaneStrainLaw()
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsCloneOfCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoLinearElasticPlaneStrain2DLawReturnsCloneOfCorrectType)
 {
     const auto law         = CreateLinearElasticPlaneStrainLaw();
     const auto p_law_clone = law.Clone();
@@ -64,25 +65,25 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsCloneOfCorrectT
     KRATOS_EXPECT_NE(dynamic_cast<const GeoIncrementalLinearElasticLaw*>(p_law_clone.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRequiresInitializeResponse, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoLinearElasticPlaneStrain2DLawRequiresInitializeResponse)
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
     KRATOS_EXPECT_TRUE(law.RequiresInitializeMaterialResponse())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRequiresFinalizeResponse, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoLinearElasticPlaneStrain2DLawRequiresFinalizeResponse)
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
     KRATOS_EXPECT_TRUE(law.RequiresFinalizeMaterialResponse())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawIsIncremental, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoLinearElasticPlaneStrain2DLawIsIncremental)
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
     KRATOS_EXPECT_TRUE(law.IsIncremental())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedLawFeatures, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoLinearElasticPlaneStrain2DLawReturnsExpectedLawFeatures)
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
 
@@ -104,20 +105,19 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedLawFeat
     KRATOS_EXPECT_EQ(law_features.mSpaceDimension, 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoLinearElasticPlaneStrain2DLawReturnsExpectedStrainSize)
 {
     const auto law = CreateLinearElasticPlaneStrainLaw();
     KRATOS_EXPECT_EQ(law.GetStrainSize(), 4);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedWorkingSpaceDimension,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoLinearElasticPlaneStrain2DLawReturnsExpectedWorkingSpaceDimension)
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress)
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
 
@@ -128,8 +128,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress,
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_WhenOnlyDiagonalEntriesAreConsidered,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_WhenOnlyDiagonalEntriesAreConsidered)
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
     law.SetConsiderDiagonalEntriesOnlyAndNoShear(true);
@@ -141,8 +141,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_WithInitialStressAndStrain,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_WithInitialStressAndStrain)
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
 
@@ -160,8 +160,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_AfterFinalizeMaterialResponse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_AfterFinalizeMaterialResponse)
 {
     auto law = CreateLinearElasticPlaneStrainLaw();
 
@@ -185,8 +185,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRaisesADebugError_WhenElementProvidedStrainIsSetToFalse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeoLinearElasticPlaneStrain2DLawRaisesADebugError_WhenElementProvidedStrainIsSetToFalse)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
@@ -201,8 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawRaisesADebugError_When
                                       "The GeoLinearElasticLaw needs an element provided strain");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawChecksYoungModulusAndPoissonRatio,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoLinearElasticPlaneStrain2DLawChecksYoungModulusAndPoissonRatio)
 {
     auto                        law = CreateLinearElasticPlaneStrainLaw();
     ConstitutiveLaw::Parameters parameters;
