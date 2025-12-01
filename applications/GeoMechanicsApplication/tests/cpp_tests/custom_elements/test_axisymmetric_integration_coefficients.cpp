@@ -13,8 +13,9 @@
 //
 
 #include "custom_elements/integration_coefficient_modifier_for_axisymmetric_element.h"
+#include "includes/expect.h"
 #include "test_setup_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 using namespace Kratos;
@@ -22,8 +23,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficientsCalculator_ReturnsCorrectValue,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AxisymmetricIntegrationCoefficientsCalculator_ReturnsCorrectValue)
 {
     // Set
     const auto axisymmetric_integration_coefficient_calculator = IntegrationCoefficientsCalculator{
@@ -45,8 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficientsCalculator_ReturnsC
     KRATOS_EXPECT_RELATIVE_NEAR(calculated_coefficients[0], 5.02655, Defaults::relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AxisymmetricIntegrationCoefficientsCalculator_CloneReturnsNotNullptr,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AxisymmetricIntegrationCoefficientsCalculator_CloneReturnsNotNullptr)
 {
     // Set
     const auto axisymmetric_integration_coefficient_calculator = IntegrationCoefficientsCalculator{

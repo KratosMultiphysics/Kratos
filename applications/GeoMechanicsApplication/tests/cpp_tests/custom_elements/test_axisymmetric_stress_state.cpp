@@ -17,9 +17,10 @@
 #include "custom_utilities/registration_utilities.h"
 #include "geometries/geometry.h"
 #include "includes/checks.h"
+#include "includes/expect.h"
 #include "includes/stream_serializer.h"
 #include "test_setup_utilities/model_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -32,7 +33,7 @@ using namespace std::string_literals;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateBMatrixWithValidGeometryReturnsCorrectResults)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<AxisymmetricStressState>();
@@ -61,7 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AxisymmetricStressState_CannotBeCopiedButItCanBeMoved)
 {
     EXPECT_FALSE(std::is_copy_constructible_v<AxisymmetricStressState>);
     EXPECT_FALSE(std::is_copy_assignable_v<AxisymmetricStressState>);
@@ -69,7 +70,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CannotBeCopiedButItCanBeMoved,
     EXPECT_TRUE(std::is_move_assignable_v<AxisymmetricStressState>);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestCloneReturnsCorrectType)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<AxisymmetricStressState>();
@@ -79,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSui
     KRATOS_EXPECT_NE(p_cloned_stress_state_policy.get(), p_stress_state_policy.get());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestCalculateGreenLagrangeStrainThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestCalculateGreenLagrangeStrainThrows)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<AxisymmetricStressState>();
@@ -93,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCalculateGreenLagrangeStrainThrows, KratosGeoMecha
                                       "not implemented for axisymmetric configurations.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_GivesCorrectVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AxisymmetricStressState_GivesCorrectVoigtVector)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<AxisymmetricStressState>();
@@ -104,21 +105,21 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_GivesCorrectVoigtVector, Krato
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_GivesCorrectVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AxisymmetricStressState_GivesCorrectVoigtSize)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<AxisymmetricStressState>();
     KRATOS_EXPECT_EQ(p_stress_state_policy->GetVoigtSize(), VOIGT_SIZE_2D_PLANE_STRAIN);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_GivesCorrectStressTensorSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AxisymmetricStressState_GivesCorrectStressTensorSize)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<AxisymmetricStressState>();
     KRATOS_EXPECT_EQ(p_stress_state_policy->GetStressTensorSize(), STRESS_TENSOR_SIZE_2D);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AxisymmetricStressState_CanBeSavedAndLoadedThroughInterface)
 {
     // Arrange
     const auto scoped_registration =
