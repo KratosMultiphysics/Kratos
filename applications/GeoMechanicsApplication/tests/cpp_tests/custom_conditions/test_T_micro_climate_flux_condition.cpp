@@ -12,9 +12,17 @@
 
 #include "containers/model.h"
 #include "custom_conditions/T_microclimate_flux_condition.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
 #include "geometries/line_2d_4.h"
 #include "geometries/line_2d_5.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
+#include "geometries/quadrilateral_3d_9.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -191,7 +199,7 @@ constexpr auto absolute_tolerance = 1.0e-3;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(NoThrowWhenInitializingThermalMicroClimateCondition, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoThrowWhenInitializingThermalMicroClimateCondition)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -213,8 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoThrowWhenInitializingThermalMicroClimateCondition, K
     KRATOS_EXPECT_FALSE(has_thrown)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D2N,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D2N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -231,8 +238,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D3N,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D3N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -249,8 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D4N,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D4N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -267,8 +272,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D5N,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition2D5N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -285,8 +289,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D3N,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D3N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -303,8 +306,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D6N,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D6N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -321,8 +323,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D4N,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D4N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -338,8 +339,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D8N,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D8N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -355,8 +355,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D9N,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoErrorWhenInitializingSolutionStepOnThermalMicroClimateCondition3D9N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -372,7 +371,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoErrorWhenInitializingSolutionStepOnThermalMicroClima
     KRATOS_EXPECT_STREQ(error_text.data(), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateLocalSystemForThermalMicroClimateCondition2D3N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -403,7 +402,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateLocalSystemForThermalMicroClimateCondition3D6N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
@@ -438,7 +437,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6
     KRATOS_EXPECT_VECTOR_NEAR(expected_rhs_vector, rhs_vector, absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateLocalSystemForThermalMicroClimateCondition3D8N)
 {
     Model test_model;
     auto  create_nodes_func = [](ModelPart& rModelPart) {
