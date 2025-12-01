@@ -12,13 +12,14 @@
 
 #include "custom_constitutive/thermal_dispersion_law.h"
 #include "geo_mechanics_application.h"
+#include "includes/expect.h"
 #include "includes/ublas_interface.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateThermalDispersionMatrix2D)
 {
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
@@ -53,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanics
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateThermalDispersionMatrix3D)
 {
     Model current_model;
     auto& r_model_part = current_model.CreateModelPart("ModelPart");
@@ -96,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestDispersionLawThrowsWhenDimensionInvalid, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestDispersionLawThrowsWhenDimensionInvalid)
 {
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(GeoThermalDispersionLaw law{0},
                                       "Got invalid number of dimensions: 0")
