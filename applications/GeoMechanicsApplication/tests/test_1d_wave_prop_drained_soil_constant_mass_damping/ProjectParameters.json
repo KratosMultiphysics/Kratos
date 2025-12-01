@@ -56,7 +56,6 @@
             "scaling":       false
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["sides","bottom","load"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "processes": {
