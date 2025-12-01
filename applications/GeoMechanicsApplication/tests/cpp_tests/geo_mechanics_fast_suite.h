@@ -13,8 +13,8 @@
 
 #pragma once
 
-#include "testing/testing.h"
 #include "geo_mechanics_fast_suite_without_kernel.h"
+#include "testing/testing.h"
 
 namespace Kratos
 {

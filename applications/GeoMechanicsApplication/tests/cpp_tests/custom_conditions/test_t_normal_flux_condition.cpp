@@ -13,10 +13,16 @@
 #include "containers/model.h"
 #include "custom_conditions/T_normal_flux_condition.h"
 #include "geo_mechanics_application_variables.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
 #include "geometries/line_2d_4.h"
 #include "geometries/line_2d_5.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
+#include "geometries/quadrilateral_3d_9.h"
+#include "geometries/triangle_3d_6.h"
 #include "includes/condition.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 using namespace Kratos;
 
@@ -45,7 +51,7 @@ void TestGeoTnormalFluxCondition(ModelPart& rModelPart, const std::vector<double
 
     // Check the EquationIdVector values
     for (unsigned int i = 0; i < equation_id_vector.size(); i++) {
-        KRATOS_EXPECT_EQ(equation_id_vector[i], i);
+        EXPECT_EQ(equation_id_vector[i], i);
     }
 
     Matrix left_hand_side_matrix  = ZeroMatrix(1, 1);
@@ -54,7 +60,7 @@ void TestGeoTnormalFluxCondition(ModelPart& rModelPart, const std::vector<double
     p_condition->CalculateLocalSystem(left_hand_side_matrix, right_hand_side_vector, r_current_process_info);
 
     for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-        KRATOS_EXPECT_NEAR(right_hand_side_vector[i], rExpectedRightHandSide[i], 1.0e-4);
+        EXPECT_NEAR(right_hand_side_vector[i], rExpectedRightHandSide[i], 1.0e-4);
     }
 }
 
@@ -83,7 +89,7 @@ void GenerateGeoTnormalFluxCondition2D2N(ModelPart& rModelPart)
     rModelPart.AddCondition(condition);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D2N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoTNormalFluxCondition2D2N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -112,7 +118,7 @@ void GenerateGeoTnormalFluxCondition2D3N(ModelPart& rModelPart)
     rModelPart.AddCondition(condition);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D3N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoTNormalFluxCondition2D3N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -142,7 +148,7 @@ void GenerateGeoTnormalFluxCondition2D4N(ModelPart& rModelPart)
     rModelPart.AddCondition(condition);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D4N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoTNormalFluxCondition2D4N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -173,7 +179,7 @@ void GenerateGeoTnormalFluxCondition2D5N(ModelPart& rModelPart)
     rModelPart.AddCondition(condition);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition2D5N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoTNormalFluxCondition2D5N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -203,7 +209,7 @@ void GenerateGeoTnormalFluxCondition3D4N(ModelPart& rModelPart)
     rModelPart.AddCondition(condition);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D4N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoTNormalFluxCondition3D4N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -235,7 +241,7 @@ void GenerateGeoTnormalFluxCondition3D6N(ModelPart& rModelPart)
     rModelPart.AddCondition(condition);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D6N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoTNormalFluxCondition3D6N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -270,7 +276,7 @@ void GenerateGeoTnormalFluxCondition3D8N(ModelPart& rModelPart)
     rModelPart.AddCondition(condition);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D8N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoTNormalFluxCondition3D8N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -306,7 +312,7 @@ void GenerateGeoTnormalFluxCondition3D9N(ModelPart& rModelPart)
     rModelPart.AddCondition(condition);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoTNormalFluxCondition3D9N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoTNormalFluxCondition3D9N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
