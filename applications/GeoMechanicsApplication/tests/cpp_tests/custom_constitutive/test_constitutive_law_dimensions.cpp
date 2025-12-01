@@ -14,7 +14,7 @@
 #include "custom_utilities/registration_utilities.h"
 #include "includes/constitutive_law.h"
 #include "includes/stream_serializer.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <string>
 
@@ -23,8 +23,7 @@ using namespace std::string_literals;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawDimensionPlaneStrain_CanBeSavedAndLoadedThroughInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ConstitutiveLawDimensionPlaneStrain_CanBeSavedAndLoadedThroughInterface)
 {
     // Arrange
     const auto scoped_registration =
@@ -39,11 +38,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawDimensionPlaneStrain_CanBeSavedAndLoade
 
     // Assert
     ASSERT_NE(p_loaded_dimension, nullptr);
-    KRATOS_EXPECT_EQ(p_loaded_dimension->GetSpatialType(), ConstitutiveLaw::PLANE_STRAIN_LAW);
+    EXPECT_EQ(p_loaded_dimension->GetSpatialType(), ConstitutiveLaw::PLANE_STRAIN_LAW);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawDimensionThreeDimensional_CanBeSavedAndLoadedThroughInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ConstitutiveLawDimensionThreeDimensional_CanBeSavedAndLoadedThroughInterface)
 {
     // Arrange
     const auto scoped_registration =
@@ -59,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawDimensionThreeDimensional_CanBeSavedAnd
 
     // Assert
     ASSERT_NE(p_loaded_dimension, nullptr);
-    KRATOS_EXPECT_EQ(p_loaded_dimension->GetSpatialType(), ConstitutiveLaw::THREE_DIMENSIONAL_LAW);
+    EXPECT_EQ(p_loaded_dimension->GetSpatialType(), ConstitutiveLaw::THREE_DIMENSIONAL_LAW);
 }
 
 } // namespace Kratos::Testing
