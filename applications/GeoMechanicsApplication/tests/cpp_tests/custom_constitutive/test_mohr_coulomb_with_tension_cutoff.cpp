@@ -16,7 +16,8 @@
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -43,7 +44,7 @@ Vector CalculateMappedStressVector(Vector&                       rCauchyStressVe
     return result;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Clone, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_Clone)
 {
     // Arrange
     const auto original_law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -57,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Clone, KratosGeoMechanics
     KRATOS_EXPECT_NE(dynamic_cast<const MohrCoulombWithTensionCutOff*>(p_cloned_law.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_Check)
 {
     // Arrange
     auto                        law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -128,8 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanics
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -158,8 +158,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                             expected_cauchy_stress_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZone,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZone)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -194,8 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -230,8 +229,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionCutoffReturnZone,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionCutoffReturnZone)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -266,8 +265,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -297,8 +296,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyWithLargeTensileStrength,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyWithLargeTensileStrength)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -323,7 +322,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_Serialization)
 {
     // Arrange
     auto p_law = std::unique_ptr<ConstitutiveLaw>{
@@ -379,7 +378,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_cauchy_stress_vector, calculated_cauchy_stress_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_CalculateConstitutiveMatrix)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -419,15 +418,15 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
     KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, 1.E6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_WorkingSpaceDimensionDependsOnConstitutiveLawDimension,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_WorkingSpaceDimensionDependsOnConstitutiveLawDimension)
 {
     KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.WorkingSpaceDimension(), 2);
     KRATOS_EXPECT_EQ(
         MohrCoulombWithTensionCutOff{std::make_unique<ThreeDimensional>()}.WorkingSpaceDimension(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StressMeasureIsAlwaysCauchy, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_StressMeasureIsAlwaysCauchy)
 {
     KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.GetStressMeasure(),
                      ConstitutiveLaw::StressMeasure_Cauchy);
@@ -435,15 +434,13 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StressMeasureIsAlwaysCauc
                      ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StrainSizeDependsOnConstitutiveLawDimension,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_StrainSizeDependsOnConstitutiveLawDimension)
 {
     KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.GetStrainSize(), 4);
     KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<ThreeDimensional>()}.GetStrainSize(), 6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StrainMeasureIsAlwaysInfinitesimal,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_StrainMeasureIsAlwaysInfinitesimal)
 {
     KRATOS_EXPECT_EQ(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.GetStrainMeasure(),
                      ConstitutiveLaw::StrainMeasure_Infinitesimal);
@@ -451,20 +448,19 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StrainMeasureIsAlwaysInfi
                      ConstitutiveLaw::StrainMeasure_Infinitesimal);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_HasIncrementalFormulation, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_HasIncrementalFormulation)
 {
     EXPECT_TRUE(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.IsIncremental());
     EXPECT_TRUE(MohrCoulombWithTensionCutOff{std::make_unique<ThreeDimensional>()}.IsIncremental());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_RequiresInitializeMaterialResponse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_RequiresInitializeMaterialResponse)
 {
     EXPECT_TRUE(MohrCoulombWithTensionCutOff{std::make_unique<PlaneStrain>()}.RequiresInitializeMaterialResponse());
     EXPECT_TRUE(MohrCoulombWithTensionCutOff{std::make_unique<ThreeDimensional>()}.RequiresInitializeMaterialResponse());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetPlaneStrainLawFeatures, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_GetPlaneStrainLawFeatures)
 {
     // Arrange & act
     ConstitutiveLaw::Features features;
@@ -479,7 +475,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetPlaneStrainLawFeatures
     KRATOS_EXPECT_EQ(features.GetSpaceDimension(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Get3DLawFeatures, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MohrCoulombWithTensionCutOff_Get3DLawFeatures)
 {
     // Arrange & act
     ConstitutiveLaw::Features features;
@@ -494,8 +490,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Get3DLawFeatures, KratosG
     KRATOS_EXPECT_EQ(features.GetSpaceDimension(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZoneInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZoneInterface)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -521,8 +517,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZoneInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZoneInterface)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -546,8 +542,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionCutoffReturnZoneInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionCutoffReturnZoneInterface)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -571,8 +567,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZoneInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZoneInterface)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -596,8 +592,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZoneInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZoneInterface)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
