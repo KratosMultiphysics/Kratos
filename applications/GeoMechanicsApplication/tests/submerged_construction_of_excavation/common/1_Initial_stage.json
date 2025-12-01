@@ -7,7 +7,6 @@
         "end_time": -1.0
     },
     "solver_settings": {
-		
         "time_stepping": {
             "time_step": 1.0,
             "max_delta_time_factor": 1000.0
