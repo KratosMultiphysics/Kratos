@@ -7,6 +7,7 @@
         "end_time": -1.0
     },
     "solver_settings": {
+		
         "time_stepping": {
             "time_step": 1.0,
             "max_delta_time_factor": 1000.0
@@ -52,16 +53,6 @@
             "Clay_Lower_Right",
             "Sand_Left",
             "Sand_Right"
-        ],
-        "processes_sub_model_part_list": [
-            "Bottom_Edge",
-            "Left_Side",
-            "Right_Side_Of_Clay_Upper_Right",
-            "Right_Side_Of_Clay_Middle_Right",
-            "Right_Side_Of_Clay_Lower_Right",
-            "Right_Side_Of_Sand_Right",
-            "Master_side_1",
-            "Slave_side_1"
         ],
         "body_domain_sub_model_part_list": [
             "Clay_Left",
