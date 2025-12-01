@@ -13,17 +13,13 @@
 //
 //
 
-#if !defined(KRATOS_VARIABLE_H_INCLUDED )
-#define  KRATOS_VARIABLE_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/registry.h"
 #include "variable_data.h"
 #include "utilities/stl_vector_io.h"
@@ -69,13 +65,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Variable);
 
     /// type of this variable
-    typedef TDataType Type;
+    using Type = TDataType;
 
     // Type used for key values which defined in VariableData
-    typedef VariableData::KeyType KeyType;
+    using KeyType = VariableData::KeyType;
 
     // Type of this varible with given TDataType
-    typedef Variable<TDataType> VariableType;
+    using VariableType = Variable<TDataType>;
 
     ///@}
     ///@name Life Cycle
@@ -555,5 +551,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_VARIABLE_H_INCLUDED  defined
