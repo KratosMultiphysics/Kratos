@@ -3,39 +3,46 @@
 
 ## Incremental linear elastic interface law
 
-This constitutive law for an interface element linearly relates increments of tractions $\Delta \tau$ to increments of relative displacement $\Delta \Delta u$.
+This constitutive law for an interface element linearly relates increments of tractions $`\Delta \tau`$ to increments of relative displacement $`\Delta \Delta u`$.
 Relative displacement for interface element is the differential motion between the two sides of the interface. As a
-consequence the relative displacement has unit of length $[\mathrm{L}]$ and the stiffness has unit of force over cubic length $[\mathrm{F/L^3}]$.
+consequence the relative displacement has unit of length $`[\mathrm{L}]`$ and the stiffness has unit of force over cubic length $`[\mathrm{F/L^3}]`$.
 Currently, this law is implemented for 2D and 3D cases. The constitutive matrix is
-$$K = \begin{bmatrix} k_n \quad 0 \quad 0 \\ 0 \quad k_t \quad 0 \\ 0 \quad 0 \quad k_s \end{bmatrix}$$  
-where $k_n$ is normal, $k_t$ and $k_s$ are tangential components. The current implementation uses $k_s=k_t$.  
+
+```math
+    K = \begin{bmatrix} k_n \quad 0 \quad 0 \\ 0 \quad k_t \quad 0 \\ 0 \quad 0 \quad k_s \end{bmatrix}
+```
+where $`k_n`$ is normal, $`k_t`$ and $`k_s`$ are tangential components. The current implementation uses $`k_s=k_t`$.  
 
 ### Relative displacement and traction
-In 2D plane strain $y$ is the opening/closing direction of the interface, while differential motion in the tangential direction
+In 2D plane strain $`y`$ is the opening/closing direction of the interface, while differential motion in the tangential direction
 gives shear. Similar to the continuum, the normal behavior is placed first in the relative displacement and traction vectors. The shear behavior
 follows after the normal motion or traction in these vectors.
 
-$$ \Delta u = \begin{bmatrix} \Delta u_y \\ \Delta u_x \end{bmatrix} $$
-
-$$ \tau = \begin{bmatrix} \tau_{yy} \\ \tau_{xy} \end{bmatrix} $$
+```math
+    \Delta u = \begin{bmatrix} \Delta u_y \\ \Delta u_x \end{bmatrix}
+```
+```math
+    \tau = \begin{bmatrix} \tau_{yy} \\ \tau_{xy} \end{bmatrix}
+```
 
 Where:
-* $\Delta u_y$: Relative displacement in the $y$-direction (normal to the interface).
-* $\Delta u_x$: Relative displacement in the $x$-direction (tangential to the interface).
-* $\tau_{yy}$: Traction in the $y$-direction (normal to the interface).
-* $\tau_{xy}$: Shear traction in the $x$-direction (tangential to the interface).
+* $`\Delta u_y`$: Relative displacement in the $y$-direction (normal to the interface).
+* $`\Delta u_x`$: Relative displacement in the $x$-direction (tangential to the interface).
+* $`\tau_{yy}`$: Traction in the $y$-direction (normal to the interface).
+* $`\tau_{xy}`$: Shear traction in the $x$-direction (tangential to the interface).
 
 ### 2D Elastic constitutive tensor
 
-The elastic behavior of the interface is characterized by the 2D elastic constitutive tensor $C$, which relates the traction and relative displacement vectors. The constitutive tensor in 2D is expressed as:
-
-$$ C = \begin{bmatrix} C_{yy} & 0     \\
-                       0     & C_{xy} \end{bmatrix}$$
+The elastic behavior of the interface is characterized by the 2D elastic constitutive tensor $`C`$, which relates the traction and relative displacement vectors. The constitutive tensor in 2D is expressed as:
+```math
+    C = \begin{bmatrix} C_{yy} & 0     \\
+                         0     & C_{xy} \end{bmatrix}
+```
 
 Where:
-* $C$: Represents the 2D elastic constitutive tensor.
-* $C_{yy}$: Represents the `INTERFACE_NORMAL_STIFFNESS`, which characterizes the stiffness in the normal direction.
-* $C_{xy}$: Represents the `INTERFACE_SHEAR_STIFFNESS`, which characterizes the stiffness in the tangential direction.
+* $`C`$: Represents the 2D elastic constitutive tensor.
+* $`C_{yy}`$: Represents the `INTERFACE_NORMAL_STIFFNESS`, which characterizes the stiffness in the normal direction.
+* $`C_{xy}`$: Represents the `INTERFACE_SHEAR_STIFFNESS`, which characterizes the stiffness in the tangential direction.
 
 Both stiffness values have dimension $\mathrm{F/L^3}$.
 
@@ -43,13 +50,15 @@ Both stiffness values have dimension $\mathrm{F/L^3}$.
 
 The relation between the traction and the relative displacement for a given time increment is given by the following incremental equation:
 
-$$ \tau_{t + \Delta t} = \tau_t + C \cdot \Delta \Delta u $$
+```math
+    \tau_{t + \Delta t} = \tau_t + C \cdot \Delta \Delta u
+```
 
 Where:
-* $\tau_{t + \Delta t}$: The traction at the updated time $t + \Delta t$.
-* $\tau_t$: The traction at the current time $t$.
-* $C$: The elastic constitutive tensor.
-* $\Delta \Delta u$: The incremental relative displacement vector.
+* $`\tau_{t + \Delta t}`$: The traction at the updated time $t + \Delta t$.
+* $`\tau_t`$: The traction at the current time $`t`$.
+* $`C`$: The elastic constitutive tensor.
+* $`\Delta \Delta u`$: The incremental relative displacement vector.
 
 
 ## Mohr-Coulomb with tensile cutoff
@@ -125,7 +134,7 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 ```
 This mapping is based on a new Mohr-Coulomb diagram with modified zones, based on the averaged of the derivatives of flow functions $`\frac{\partial G}{\partial \boldsymbol{\sigma}}`$.
 
-6. Rotate the mapped stress vector back, by appying the rotation matrix.
+6. Rotate the mapped stress vector back, by applying the rotation matrix.
 
 ### Detailed formulations
 We define the Coulomb yield surface $`F_{MC}`$ and the tensile cutoff surface $`F_{tc}`$ based on $\sigma-\tau$ coordinates. as:
@@ -145,8 +154,8 @@ Where
     \tau = \frac{\sigma_1 - \sigma_3}{2}
 ```
 
-#### Elastic region: 
-This condition occurs when $`F_{MC} \le 0`$ and $`F_{tc} \le 0`$. Here, the stress vector stays unchanged and no need any return mapping.
+#### Elastic zone: 
+This condition occurs when $`F_{MC} \le 0`$ and $`F_{tc} \le 0`$. Here, the stress state does not violate the MC yieldsurface, nor the tension cut off. The stress vector stays unchanged and there is no need for return mapping.
 
 
 #### Tensile apex return zone
@@ -158,7 +167,7 @@ Find the root of $`F_{MC}`$ (apex).
     \sigma_{MC} = \frac{C}{\tan{\phi}}
 ```
 
-If $`t_c < \sigma_{MC}`$ we find a line perpendicular to the tensile-cutoff curve passing through the apex point. The equation for the tension-cutoff is:
+If $`t_c < \sigma_{MC}`$ we find a line perpendicular to the tension-cutoff curve passing through the apex point. The equation for the tension-cutoff is:
 ```math
     \tau = - \sigma + t_c
 ```
@@ -167,11 +176,11 @@ Then the perpendicular line passing from the apex point is:
 ```math
     \tau - \sigma + t_c = 0
 ```
-Any trial stress which falls below this line is then belong to this region. It is namely:
+Any trial stress which falls below this line then belongs to this region. It is namely:
 ```math
     \tau^{trial} - \sigma^{trial} + t_c < 0
 ```
-If a point falls in this zone, it will be mapped back to the root point of the tension-cutoff line, namely to point $`\sigma = t_c`$ and $`\tau = 0`$. Then update the principal stresses based on the mapper values.
+If a point falls in this zone, it will be mapped back to the root point of the tension-cutoff line, namely to point $`\sigma = t_c`$ and $`\tau = 0`$. Then update the principal stresses based on the mapped values.
 ```math
     \sigma_1 = \sigma + \tau
 ```
@@ -214,7 +223,7 @@ Then
     \sigma_{corner} = \frac{t_c - C \cos⁡{\phi}}{1 - \sin⁡{ϕ}}
 ```
 
-A perpendicular to the tension-cutoff curve, passing from the corner point is:
+A perpendicular to the tension-cutoff curve, passing through the corner point is:
 ```math
     \tau - \tau_{corner} = \sigma - \sigma_{corner}
 ```
@@ -224,12 +233,12 @@ Then the condition is:
     \left(\tau^{trial} - \tau_{corner}) - (\sigma^{trial} - \sigma_{corner} \right) < 0
 ```
 
-Each point which is outside the previous region (tensile-apex region) and follows this condition, then we need to map the trial stresses to the tension-cutoff curve. It means:
+Each trial stress  which is outside the tensile-apex region and follows this condition, needs to map back to the tension-cutoff curve. It means:
 ```math
     \sigma + \tau = t_c
 ```
 
-We move perpendicular to the tension-cutoff surface. We use here the derivative of the flow function related to the tension cutoff surface.
+We move perpendicular to the tension-cutoff surface by using the derivative of the flow function related to the tension cutoff surface.
 ```math
     \dot{\lambda} = \frac{\sigma + \tau - t_c}{\partial G_t / \partial \boldsymbol{\sigma}}
 ```
@@ -242,17 +251,17 @@ We move perpendicular to the tension-cutoff surface. We use here the derivative 
 ```math
     \sigma^{map} = \sigma^{trial} + \dot{\lambda} \frac{\partial G_t}{\partial \sigma}
 ```
-They are the corrected principal stresses. They need to be rotated back to the element axes system.
+Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system.
 
 
 #### Zone of tensile corner return
 
 This zone is located under the line which is perpendicular to the flow function and passes through the intersection point of yield function and tension cutoff. 
 
-First we find the intersection point. The intersection point is related whether the tension-cutoff crosses the yield function. 
+First we find the intersection point. The intersection point is related whether the tension-cutoff intersects the yield function. 
 
-- The tension-cut-off crosses the yield function:
-In this case of crossing the shear can be found like the previous region:
+- The tension-cut-off intersects the yield function:
+In this case of intersecting the shear can be found like the previous region:
 ```math
     \tau_{corner} = \frac{C \cos{\phi} - t_c \sin{\phi}}{1 - \sin{\phi}}
 ```
@@ -298,29 +307,29 @@ Then
     g = (\tau - \tau_{corner}) - \frac{1}{\sin{\psi}} (\sigma - \sigma_{corner}) = 0
 ```
 
-This zone is defined in the region below this function and above the axial region (above the shear at intersection).
+This zone is defined in the region below this function and above the tension cutoff zone (above the shear at intersection).
 ```math
     g \ge 0 \qquad , \qquad \tau_{trial} > \tau_{corner}
 ```
 
 Then
 ```math
-    \tau = \tau_{corner}
+    \tau^{map} = \tau_{corner}
 ```
 ```math
-    \sigma = \sigma_{corner}
+    \sigma^{map} = \sigma_{corner}
 ```
 
-They are the corrected principal stresses. They need to be rotated back to the element axes system. We need to use the rotation matrix, similar as done above for other regions. 
+Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system. We need to use the rotation matrix, similar as done above for other regions. 
 
 
 #### Zone of regular failure
-This zone is associated with the region above the yield function and above the function g derived in the previous section.
+This zone is associated with the region above the Mohr-Coulomb yield surface and above the function g derived in the previous section.
 ```math
     F_{MC} > 0 \qquad , \qquad g < 0
 ```
 
-We can use the derivative of the flow function to define the direction and find the return point on the yield surface.
+We use the derivative of the flow function to define the direction and find the return point on the yield surface.
 ```math
     \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} = 
     \begin{bmatrix}
@@ -335,10 +344,7 @@ We can use the derivative of the flow function to define the direction and find 
 
 Then a parametrized line can be defined by:
 ```math
-    \sigma = \sigma^{trial} + \dot{\lambda} n_1
-```
-```math
-    \tau = \tau^{trial} + \dot{\lambda} n_2
+    \boldsymbol{\sigma} = \boldsymbol{\sigma}^{trial} + \dot{\lambda} \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}}
 ```
 
 At yield function,
@@ -351,15 +357,15 @@ At yield function,
 
 Solving this 3 equations:
 ```math
-    \dot{\lambda} = \frac{C_2 - \sigma^{trial} C_1 - \tau^{trial}}{n_1 C_1 + n_3}
+    \dot{\lambda} = \frac{C \cos{\phi} - \sigma^{trial} \sin{\phi} - \tau^{trial}}{n_1 C_1 + n_2}
 ```
 
-Where $`C_1 = \sin{\phi}`$ and $`C_2 = C \cos{\phi}`$. Then
+Then
 ```math
-    \sigma_1 = \dot{\lambda} \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} + \sigma_1^{trial}
+    \sigma^{map} = \dot{\lambda} \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} + \sigma^{trial}
 ```
 
-They are the corrected principal stresses. They need to be rotated back to the element axes system.
+Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system.
 
 ### Rotation matrix
 The rotation matrix is derived from the eigenvectors of the Cauchy stresses. Having three eigenvectors related to the principal stresses
@@ -373,7 +379,7 @@ Normalizing the vectors, it results in rotation matrix
 ```
 
 ### Reordering
-It can happen that, after mapping, the role of the principal stress change, and the condition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is no longer valid. In such a case, we apply averaging to the principal stresses and their associated mapping directions.
+It can happen that, after mapping, the roles of the principal stresses change, and the condition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is no longer valid. In such a case, we apply averaging to the principal stresses and their associated mapping directions.
 
 - Case $`\sigma_1 < \sigma_2`$: Then we use averaging on the initial principle trial stresses (principal trial stresses before mapping) as follows:
 ```math
@@ -425,7 +431,7 @@ Then the averaging of the mapping direction leads to:
     \frac{\partial G}{\partial \sigma_1} = \frac{1}{2} \left( 1 + \sin⁡{\psi} \right)
 ```
 
-And based on $`\sigma$ and $\tau`$:
+And based on $`\sigma`$ and $`\tau`$:
 ```math
     \frac{\partial G}{\partial \sigma} = \frac{1}{4} \left( 1 + 3 \sin⁡{\psi} \right)
 ```
@@ -438,7 +444,7 @@ The mapping direction for tension cutoff stays unchanged because applying such a
 
 
 ### Hardening and softening
-In the hardening/softening process, the yield parameters are a not constant anymore, but they will be a function of shear plastic strain $\kappa$. The increment of equivalent shear plastic strain is defined by:
+During hardening or softening of a yield surface, the yield parameters are a not constant anymore, but they will be a function of equivalent plastic strain $`\kappa`$. The increment of equivalent plastic strain is defined by:
 ```math
     \Delta \kappa = \sqrt{2/3} \lVert \Delta \epsilon^p \rVert
 ```
@@ -451,7 +457,7 @@ Where:
     \Delta \epsilon^p = \dot{\lambda} \frac{\partial G}{\partial \boldsymbol{\sigma}}
 ```
 
-As the current implementation is based on $`\sigma-\tau`$, we must map that 2-vector back to a 3×3 (or Voigt) flow tensor. We use chain rule to get derivatives of $G$ to the principal stresses:
+As the current implementation is based on $`\sigma-\tau`$, we must map that 2-vector back to a 3×3 stress tensor. We use chain rule to get derivatives of $G$ to the principal stresses:
 ```math
     \frac{\partial G}{\partial \sigma_1} = 
     \frac{\partial G}{\partial \sigma} \frac{\partial \sigma}{\partial \sigma_1}
@@ -569,3 +575,5 @@ The convergence criterion is defined as:
 ```
 
 Where $\epsilon$ is a tolerance.
+
+<img src="documentation_data/hardening_flowchart.svg" alt="Hardening flowchart" title="Hardening flowchart" width="800">
