@@ -158,6 +158,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerGetOrCreateValue, KratosCoreFastSuit
     const double viscosity_2 = 2e-3;
     const array_1d<double, 3> velocity{0.1, 0.2, 0.3};
 
+    const Vector vec_1 = Vector(5, 0.1);
+
     container.SetValue(DENSITY, density);
     container.SetValue(VISCOSITY, viscosity_1);
     container.SetValue(VISCOSITY, viscosity_2);
@@ -180,6 +182,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerGetOrCreateValue, KratosCoreFastSuit
     KRATOS_EXPECT_EQ(container.Emplace(DISPLACEMENT_Z, 0.7), 0.7);
     KRATOS_EXPECT_EQ(container.Emplace(DISPLACEMENT_X, 0.7), 0.0);
     KRATOS_EXPECT_EQ(container.Emplace(DISPLACEMENT_Y, 0.7), 0.0);
+
+    KRATOS_EXPECT_FALSE(container.Has(CONSTRAINT_LABELS))
+    KRATOS_EXPECT_VECTOR_EQ(container.Emplace(CONSTRAINT_LABELS), vec_1);
+    KRATOS_EXPECT_TRUE(container.Has(CONSTRAINT_LABELS))
 }
 }
 } // namespace Kratos.
