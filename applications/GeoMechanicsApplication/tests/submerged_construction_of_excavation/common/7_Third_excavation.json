@@ -60,24 +60,6 @@
             "Diaphragm_Wall",
             "Strut"
         ],
-        "processes_sub_model_part_list": [
-            "Bottom_Edge",
-            "Left_Side",
-            "Right_Side_Of_Clay_Upper_Right",
-            "Right_Side_Of_Clay_Middle_Right",
-            "Right_Side_Of_Clay_Lower_Right",
-            "Right_Side_Of_Sand_Right",
-            "Wall_Clay_Interface_Left",
-            "Wall_Clay_Interface_Upper_Right",
-            "Wall_Clay_Interface_Middle_Right",
-            "Wall_Clay_Interface_Lower_Right",
-            "Wall_Sand_Interface_Left",
-            "Wall_Sand_Interface_Right",
-            "Diaphragm_Wall",
-            "Loaded_Edge",
-            "Strut_Support_At_Symmetry_Line",
-            "Water_Pressure_Boundary_After_Third_Excavation"
-        ],
         "body_domain_sub_model_part_list": [
             "Clay_Left",
             "Clay_Upper_Right",
