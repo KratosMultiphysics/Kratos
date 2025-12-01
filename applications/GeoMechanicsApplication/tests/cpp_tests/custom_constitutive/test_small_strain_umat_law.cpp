@@ -12,7 +12,8 @@
 
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/three_dimensional.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+
+#include <gtest/gtest.h>
 
 namespace Kratos::Testing
 {
@@ -28,7 +29,7 @@ TEST_P(ParametrizedUMATLawTests, SmallStrainUMATLaw_HasReturnsCorrectBoolValueFo
     auto umat_law = SmallStrainUMAT2DPlaneStrainLaw{std::make_unique<ThreeDimensional>()};
 
     // Act & Assert
-    KRATOS_EXPECT_EQ(umat_law.Has(vector_variable), expected_state);
+    EXPECT_EQ(umat_law.Has(vector_variable), expected_state);
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
