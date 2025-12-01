@@ -76,5 +76,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
 -DBOOST_ROOT="/workspace/boost/boost_1_87_0"                           \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
+-DHDF5_ROOT="/workspace/hdf5/bin"                                      \
+-DMED_ROOT="/workspace/med/bin"                                        \
 -DKRATOS_BUILD_TESTING=OFF                                             \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
