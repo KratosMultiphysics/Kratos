@@ -13,8 +13,9 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
+#include "includes/expect.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -23,7 +24,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(SetSixConstitutiveParametersCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SetSixConstitutiveParametersCorrectResults)
 {
     ConstitutiveLaw::Parameters ConstitutiveParameters;
 
@@ -53,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(SetSixConstitutiveParametersCorrectResults, KratosGeoM
     KRATOS_CHECK_NEAR(ConstitutiveParameters.GetDeterminantF(), determinant_of_F, 1e-12);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromGeoCohesionProperty, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CohesionCanBeFetchedFromGeoCohesionProperty)
 {
     auto properties = Properties{};
     properties.SetValue(GEO_COHESION, 2.0);
@@ -61,7 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromGeoCohesionProperty, KratosGeo
     KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetCohesion(properties), 2.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CohesionCanBeFetchedFromUMatParameters)
 {
     auto properties      = Properties{};
     auto umat_parameters = Vector{2};
@@ -81,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMecha
                                       "Material 0 does not have UMAT_PARAMETERS");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty)
 {
     auto properties = Properties{};
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
@@ -89,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty,
     KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), 30.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FrictionAngleCanBeFetchedFromUMatParameters)
 {
     auto properties      = Properties{};
     auto umat_parameters = Vector{2};
@@ -109,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeo
                                       "Material 0 does not have UMAT_PARAMETERS");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
@@ -131,14 +132,14 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds
         "Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 3 is not in range [1, 2]");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetStateVariableIndex, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ConstitutiveLawUtilities_GetStateVariableIndex)
 {
     // Act and Assert
     constexpr auto expected_index = 1;
     KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::GetStateVariableIndex(STATE_VARIABLE_2), expected_index);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ConstitutiveLawUtilities_CheckStrainSize)
 {
     // Arrange
     auto properties                       = Properties{};
@@ -153,7 +154,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMec
     EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckStrainSize(properties, expected_size, element_id));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ConstitutiveLawUtilities_CheckStrainMeasures)
 {
     // Arrange
     auto properties                       = Properties{};
