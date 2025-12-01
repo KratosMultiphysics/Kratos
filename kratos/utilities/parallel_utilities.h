@@ -94,12 +94,6 @@ public:
      */
     [[nodiscard]] static int GetNumProcs();
 
-    /**
-     * @brief Wrapper for omp_in_parallel(), returns false otherwise.
-     * @return True if the execution is performed in a parallel loop, false otherwise.
-     */
-    [[nodiscard]] static bool IsInParallel();
-
     ///@}
 
     /** @brief Returns the global lock

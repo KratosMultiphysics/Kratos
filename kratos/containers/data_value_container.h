@@ -22,10 +22,6 @@
 #include "includes/kratos_components.h"
 #include "includes/exception.h"
 
-#ifdef KRATOS_DEBUG
-#include "utilities/parallel_utilities.h"
-#endif
-
 namespace Kratos
 {
 
@@ -270,7 +266,9 @@ public:
             return *(static_cast<TDataType*>(i->second) + rThisVariable.GetComponentIndex());
         }
 
-        KRATOS_DEBUG_ERROR_IF(ParallelUtilities::IsInParallel()) << "Attempting to do a GetValue for: " << rThisVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
+    #ifdef KRATOS_SMP_OPENMP
+        KRATOS_DEBUG_ERROR_IF(static_cast<bool>(omp_in_parallel())) << "Attempting to do a GetValue for: " << rThisVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
+    #endif
 
         auto p_source_variable = &rThisVariable.GetSourceVariable();
         mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
