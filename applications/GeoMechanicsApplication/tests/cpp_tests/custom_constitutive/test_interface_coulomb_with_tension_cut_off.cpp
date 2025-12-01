@@ -14,8 +14,9 @@
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
 #include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/expect.h"
 #include "includes/stream_serializer.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -40,7 +41,7 @@ void InitializeLawMaterial(ConstitutiveLaw& rLaw, const Properties& rProperties)
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Clone, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_Clone)
 {
     // Arrange
     const auto original_law = InterfaceCoulombWithTensionCutOff{};
@@ -54,8 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Clone, KratosGeoMech
     KRATOS_EXPECT_NE(dynamic_cast<const InterfaceCoulombWithTensionCutOff*>(p_cloned_law.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone)
 {
     // Arrange: set elastic compressive state
     auto properties = Properties{};
@@ -110,8 +110,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), traction_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone)
 {
     // Arrange
     auto properties = Properties{};
@@ -147,8 +147,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionCutoffReturnZone,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionCutoffReturnZone)
 {
     // Arrange
     auto properties = Properties{};
@@ -184,8 +184,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone)
 {
     // Arrange
     auto properties = Properties{};
@@ -221,8 +221,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZone,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZone)
 {
     // Arrange
     auto properties = Properties{};
@@ -258,7 +258,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_Serialization)
 {
     // Arrange
     auto properties = Properties{};
@@ -307,41 +307,38 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
     KRATOS_EXPECT_VECTOR_EQ(parameters.GetStressVector(), calculated_traction_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Has2DWorkingSpaceDimension,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_Has2DWorkingSpaceDimension)
 {
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.WorkingSpaceDimension(), N_DIM_2D);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasCauchyStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_HasCauchyStressMeasure)
 {
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_StrainSizeEqualsTwo, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_StrainSizeEqualsTwo)
 {
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.GetStrainSize(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasInfinitesimalStrainMeasure,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_HasInfinitesimalStrainMeasure)
 {
     KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.GetStrainMeasure(),
                      ConstitutiveLaw::StrainMeasure_Infinitesimal);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasIncrementalFormulation, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_HasIncrementalFormulation)
 {
     EXPECT_TRUE(InterfaceCoulombWithTensionCutOff{}.IsIncremental());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_RequiresInitializeMaterialResponse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_RequiresInitializeMaterialResponse)
 {
     EXPECT_TRUE(InterfaceCoulombWithTensionCutOff{}.RequiresInitializeMaterialResponse());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_Check)
 {
     // Arrange
     auto                        law = InterfaceCoulombWithTensionCutOff{};
@@ -409,8 +406,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateConstitutiveMatrix,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceCoulombWithTensionCutOff_CalculateConstitutiveMatrix)
 {
     // Arrange
     auto properties                        = Properties{};
