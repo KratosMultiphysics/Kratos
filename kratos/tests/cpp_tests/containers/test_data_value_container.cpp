@@ -150,7 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerMergeOverride, KratosCoreFastSuite) 
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataValueContainerGetOrCreateValue, KratosCoreFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerEmplace, KratosCoreFastSuite) {
     DataValueContainer container;
 
     const double density = 1000.0;
@@ -184,8 +184,13 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerGetOrCreateValue, KratosCoreFastSuit
     KRATOS_EXPECT_EQ(container.Emplace(DISPLACEMENT_Y, 0.7), 0.0);
 
     KRATOS_EXPECT_FALSE(container.Has(CONSTRAINT_LABELS))
-    KRATOS_EXPECT_VECTOR_EQ(container.Emplace(CONSTRAINT_LABELS), vec_1);
+    KRATOS_EXPECT_VECTOR_EQ(container.Emplace(CONSTRAINT_LABELS, vec_1), vec_1);
     KRATOS_EXPECT_TRUE(container.Has(CONSTRAINT_LABELS))
+
+    container.Emplace(CONSTRAINT_LABELS)[2] = 0.2;
+    Vector vec_2 = Vector(5, 0.1);
+    vec_2[2] = 0.2;
+    KRATOS_EXPECT_VECTOR_EQ(container.GetValue(CONSTRAINT_LABELS), vec_2);
 }
 }
 } // namespace Kratos.
