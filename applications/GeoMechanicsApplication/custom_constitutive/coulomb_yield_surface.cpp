@@ -33,7 +33,7 @@ CoulombYieldSurface::KappaDependentFunction MakeConstantFunction(double Value)
 
 CoulombYieldSurface::KappaDependentFunction MakeLinearFunction(double Value, double Coefficient)
 {
-    return [Value, Coefficient](double kappa) { return Value + Coefficient * kappa; };
+    return [Value, Coefficient](double Kappa) { return Value + Coefficient * Kappa; };
 }
 
 std::string GetCoulombHardeningTypeFrom(const Properties& rMaterialProperties)
@@ -112,7 +112,7 @@ CoulombYieldSurface::CoulombYieldSurface(const Properties& rMaterialProperties)
         mMaterialProperties[GEO_COULOMB_HARDENING_TYPE] = "None";
     }
 
-    this->CheckMaterialProperties();
+    CheckMaterialProperties();
     InitializeKappaDependentFunctions();
 }
 
