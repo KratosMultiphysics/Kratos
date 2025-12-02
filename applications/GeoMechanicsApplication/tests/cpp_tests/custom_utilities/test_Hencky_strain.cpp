@@ -12,14 +12,14 @@
 
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 using namespace Kratos;
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainIncompressibleUniaxialElongation, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckHenckyStrainIncompressibleUniaxialElongation)
 {
     const double stretch = 2.0;
     Matrix       Fmatrix = ZeroMatrix(3, 3);
@@ -29,15 +29,15 @@ KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainIncompressibleUniaxialElongation, Kra
 
     const Vector Evector = StressStrainUtilities::CalculateHenckyStrain(Fmatrix, 6);
     // E = 0.5 ln(C) = 0.5 ln(F^T F)
-    KRATOS_EXPECT_DOUBLE_EQ(0.5 * std::log(stretch * stretch), Evector[0]);
-    KRATOS_EXPECT_DOUBLE_EQ(0.5 * std::log(1. / stretch), Evector[1]);
-    KRATOS_EXPECT_DOUBLE_EQ(0.5 * std::log(1. / stretch), Evector[2]);
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[3]);
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[4]);
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[5]);
+    EXPECT_DOUBLE_EQ(0.5 * std::log(stretch * stretch), Evector[0]);
+    EXPECT_DOUBLE_EQ(0.5 * std::log(1. / stretch), Evector[1]);
+    EXPECT_DOUBLE_EQ(0.5 * std::log(1. / stretch), Evector[2]);
+    EXPECT_DOUBLE_EQ(0.0, Evector[3]);
+    EXPECT_DOUBLE_EQ(0.0, Evector[4]);
+    EXPECT_DOUBLE_EQ(0.0, Evector[5]);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainRigidRotation, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckHenckyStrainRigidRotation)
 {
     const double RotationAngle = 1.0;
     Matrix       Fmatrix(2, 2);
@@ -48,13 +48,13 @@ KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainRigidRotation, KratosGeoMechanicsFast
 
     // Plane strain has VoigtSize 4, rigid rotation results in all zero strain components
     const Vector Evector = StressStrainUtilities::CalculateHenckyStrain(Fmatrix, 4);
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[0]);
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[1]);
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[2]);
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[3]);
+    EXPECT_DOUBLE_EQ(0.0, Evector[0]);
+    EXPECT_DOUBLE_EQ(0.0, Evector[1]);
+    EXPECT_DOUBLE_EQ(0.0, Evector[2]);
+    EXPECT_DOUBLE_EQ(0.0, Evector[3]);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainPureShear, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckHenckyStrainPureShear)
 {
     const double gamma   = 0.5;
     Matrix       Fmatrix = IdentityMatrix(2, 2);
@@ -91,10 +91,10 @@ KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainPureShear, KratosGeoMechanicsFastSuit
     const Matrix Eaux              = prod(eigV12, EHenckyPrincipal);
     const Matrix EHenckyAnalytical = prod(Eaux, trans(eigV12));
 
-    KRATOS_EXPECT_DOUBLE_EQ(EHenckyAnalytical(0, 0), Evector(0));
-    KRATOS_EXPECT_DOUBLE_EQ(EHenckyAnalytical(1, 1), Evector(1));
-    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector(2));
-    KRATOS_EXPECT_DOUBLE_EQ(2.0 * EHenckyAnalytical(1, 0), Evector(3));
+    EXPECT_DOUBLE_EQ(EHenckyAnalytical(0, 0), Evector(0));
+    EXPECT_DOUBLE_EQ(EHenckyAnalytical(1, 1), Evector(1));
+    EXPECT_DOUBLE_EQ(0.0, Evector(2));
+    EXPECT_DOUBLE_EQ(2.0 * EHenckyAnalytical(1, 0), Evector(3));
 }
 
 } // namespace Kratos::Testing
