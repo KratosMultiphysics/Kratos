@@ -14,7 +14,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "geometries/line_2d_2.h"
 #include "includes/node.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -23,8 +23,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsValuesAtIntegrationPoints,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ElementUtilities_ReturnsCorrectListOfShapeFunctionsValuesAtIntegrationPoints)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -43,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsVal
     shape_function_values_2 <<= 0.0, 1.0;
     const std::vector<Vector> expected_shape_function_values{shape_function_values_1, shape_function_values_2};
 
-    KRATOS_EXPECT_EQ(expected_shape_function_values.size(), shape_function_values.size());
+    EXPECT_EQ(expected_shape_function_values.size(), shape_function_values.size());
     for (std::size_t i = 0; i < expected_shape_function_values.size(); ++i) {
         KRATOS_CHECK_VECTOR_NEAR(expected_shape_function_values[i], shape_function_values[i], 1e-6);
     }
