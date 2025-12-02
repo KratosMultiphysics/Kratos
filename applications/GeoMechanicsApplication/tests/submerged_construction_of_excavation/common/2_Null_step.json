@@ -202,8 +202,8 @@
                     ],
                     "minimum_number_of_neighbouring_nodes": 2,
                     "reform_constraints_at_each_step"     : true,
-                    "master_model_part_name"              : "PorousDomain.Master_side_1",
-                    "slave_model_part_name"               : "PorousDomain.Slave_side_1",
+                    "master_model_part_name"              : "PorousDomain.Master_side",
+                    "slave_model_part_name"               : "PorousDomain.Slave_side",
                     "search_radius"                       : 0.01
                 }
             }

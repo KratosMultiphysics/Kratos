@@ -9,13 +9,13 @@ The picture shows the modelling set-up.
 The geometry is 2D, with a vertical symmetry line at the center of the excavated area, allowing only half of the domain to be modeled. The excavated area is shown as a shaded region.
 
 - Excavation dimensions: total width $`30~m`$, final depth $`20~m`$.
-- Structural components: the vertical diaphragm wall extends $`30~m`$ into the ground, with a strut 1 m below the top. The wall and strut are depicted in red and green, respectively.
-- Phreatic line: it is a horizontal line at a distance of 2 m below the ground surface. It is shown with a blue dashed line in the picture. 
-- Constraints: the domain bottom is fully fixed when domain sides are fixed only in the horizontal direction.
-- External load: distributed load of $`5~kN/m^2/m`$ near the wall (orange in the figure).
+- Structural components: the vertical diaphragm wall extends $`30~m`$ into the ground, with a strut $`1~m`$ below the top. The wall and strut are depicted in red and green, respectively.
+- Phreatic line: it is a horizontal line at a distance of $`2~m`$ below the ground surface. It is shown with a blue dashed line in the picture. 
+- Constraints: the domain bottom is fully fixed, whereas the domain left and right sides are fixed only in the horizontal direction.
+- External load: distributed load of $`5~kPa`$ near the wall (orange in the figure).
 
 The ground consists of two homogeneous layers:
-1. Top 20 m: clay
+1. Top $`20~m`$: clay
 2. Bottom: sand 
 
 Both layers have homogenous properties, which are listed in [Material properties section](#material-properties).
@@ -28,25 +28,7 @@ The mesh is generated in GiD and shown below:
 
 ![Mesh](mesh.png)
 
-It is refined near the walls and the interface between the two soil layers. The mesh structure has been adapted for this analysis in the following way. 
-
-1. Assigned unique element IDs for interface elements
-- Prepended left-side interface element IDs with 1 and right-side IDs with 2.
-- Updated sub-model part element IDs accordingly.
-2. Converted line elements to interface elements
-3. Created master-slave constraints
-4. Adjusted truss elements  
-GiD generates 3-noded trusses. They are converted to 2-noded by removing the final node and setting the type to LinearTrussElement2D2N.
-
-5. Updated line load conditions  
-For the line load condition (that is being used for the surface load),
-- changed its type from `LineLoadCondition2D3N` to `LineLoadDiffOrderCondition2D3N`.
-- Swaped the end nodes of these conditions  to ensure proper orientation. Prior to swapping, the process that finds neighboring elements would not work, because of the reversed orientations.
-
-6. Adjusted water pressure conditions
-
-- Replaced the corner node of the clay bottom next to the diaphragm wall with the duplicated node.
-
+It is refined near the diaphragm wall and the interfaces that connect the wall to the adjacent soil.
 
 ## Material properties
 
@@ -88,12 +70,12 @@ The following table lists the material properties of the diaphragm wall that hav
 
 The following table lists the material properties of the strut that have been adopted by the Kratos model.
 
-| Property                  | Kratos input parameter | Strut              | Unit                           |
-|---------------------------|------------------------|--------------------|--------------------------------|
-| Young's modulus $`E`$     | `YOUNG_MODULUS`        | $`2.0 \cdot 10^6`$ | $`\mathrm{kN} / \mathrm{m}^2`$ |
-| Density $`\rho`$          | `DENSITY`              | 0.0                | $`\mathrm{kg} / \mathrm{m}^3`$ |
-| Cross-sectional area $`A` | `CROSS_SECTIONAL_AREA` | $`0.2`$            | $`[m^2]`$                      |
-| Truss pre-stress PK2      | `TRUSS_PRESTRESS_PK2`  | 0.0                | $`\mathrm{kN} / \mathrm{m}^3`$ |
+| Property                   | Kratos input parameter | Strut              | Unit                           |
+|----------------------------|------------------------|--------------------|--------------------------------|
+| Young's modulus $`E`$      | `YOUNG_MODULUS`        | $`2.0 \cdot 10^6`$ | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| Density $`\rho`$           | `DENSITY`              | 0.0                | $`\mathrm{kg} / \mathrm{m}^3`$ |
+| Cross-sectional area $`A`$ | `CROSS_SECTIONAL_AREA` | $`0.2`$            | $`[m^2]`$                      |
+| Truss pre-stress PK2       | `TRUSS_PRESTRESS_PK2`  | 0.0                | $`\mathrm{kN} / \mathrm{m}^3`$ |
 
 
 ## Staged analysis

@@ -9750,7 +9750,6 @@ Begin Nodes
   9746 50.0 -2.875 0.0
   9747 50.0 -6.25 0.0
   9748 50.0 -2.75 0.0
-  9749 50.0 -10.0 0.0
   9750 50.0 -6.125 0.0
   9751 50.0 -2.625 0.0
   9752 50.0 -9.875 0.0
@@ -13782,10 +13781,10 @@ Begin Elements SmallStrainUPwDiffOrderElement2D6N
   1802 0 9740 9736 5254 9738 5211 5225
   1803 0 9774 9767 5988 9770 5944 5960
   1804 0 9759 9753 5399 9756 5354 5371
-  1805 0 9754 9749 4847 9752 4805 4823
+  1805 0 9754 9508 4847 9752 4805 4823
   1806 0 9730 9803 5691 9806 5646 5664
   1807 0 9799 9794 5121 9796 5071 5084
-  1808 0 9749 4741 4839 4755 4786 4797
+  1808 0 9508 4741 4839 4755 4786 4797
   1809 0 5635 9797 5610 5600 5588 5623
   1810 0 5635 5610 5727 5623 5667 5679
   1811 0 4885 9754 4847 4841 4823 4868
@@ -13800,7 +13799,7 @@ Begin Elements SmallStrainUPwDiffOrderElement2D6N
   1820 0 6087 6040 6119 6062 6076 6103
   1821 0 5610 9790 5583 5565 5552 5593
   1822 0 5610 5583 5727 5593 5653 5667
-  1823 0 4847 9749 4839 4805 4797 4843
+  1823 0 4847 9508 4839 4805 4797 4843
   1824 0 4847 4839 4961 4843 4901 4903
   1825 0 5880 9748 5824 5831 5804 5852
   1826 0 5880 5824 5920 5852 5870 5902
@@ -14650,7 +14649,7 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N
   24663 0 4896 4863 4878 9771 9765 9768
   24664 0 4863 4830 4845 9765 9760 9762
   24665 0 4830 4794 4811 9760 9754 9757
-  24666 0 4794 4768 4782 9754 9749 9752
+  24666 0 4794 4768 4782 9754 9508 9752
 End Elements
 
 Begin Elements LinearTimoshenkoCurvedBeamElement2D3N
@@ -27639,7 +27638,7 @@ Begin SubModelPart Sand_Right
     4755
     4757
     4758
-    9749
+    9508
     4771
     4772
     4773
@@ -30712,7 +30711,7 @@ Begin SubModelPart Wall_Sand_Interface_Right
     9746
     9747
     9748
-    9749
+    9508
     9750
     9751
     9752
@@ -31700,7 +31699,7 @@ Begin SubModelPart Water_Pressure_Boundary_After_Third_Excavation
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Master_side_1
+Begin SubModelPart Master_side
   Begin SubModelPartNodes
     9328
     9329
@@ -31882,7 +31881,6 @@ Begin SubModelPart Master_side_1
     9505
     9506
     9507
-    9508
     9509
     9510
     9511
@@ -31946,7 +31944,7 @@ Begin SubModelPart Master_side_1
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Slave_side_1
+Begin SubModelPart Slave_side
   Begin SubModelPartNodes
     9728
     9729
@@ -31969,7 +31967,6 @@ Begin SubModelPart Slave_side_1
     9746
     9747
     9748
-    9749
     9750
     9751
     9752
