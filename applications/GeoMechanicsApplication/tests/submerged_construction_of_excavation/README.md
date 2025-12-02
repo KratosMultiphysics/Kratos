@@ -6,7 +6,7 @@ This document describes excavation modeling test.
 The picture shows the modelling set-up.
 ![Set up](setup.svg)
 
-The geometry is 2D, with a vertical symmetry line at the center of the excavated area, allowing only half of the domain to be modeled. The excavated area is shown as a shaded region.
+The geometry is 2D, in a plane strain stress state, with a vertical symmetry line at the center of the excavated area, allowing only half of the domain to be modeled. The excavated area is shown as a shaded region.
 
 - Excavation dimensions: total width $`30~m`$, final depth $`20~m`$.
 - Structural components: the vertical diaphragm wall extends $`30~m`$ into the ground, with a strut $`1~m`$ below the top. The wall and strut are depicted in red and green, respectively.
@@ -53,10 +53,10 @@ The following table lists the material properties of the soil layers that have b
 
 The following table lists the material properties of the interfaces that have been adopted by the Kratos model.
 
-| Property                                 | Kratos input parameter | Clay      | Sand    | Unit                           |
-|------------------------------------------|------------------------|-----------|---------|--------------------------------|
-| Normal stiffness $`k_{\mathrm{n}}`$      | `NORMAL_STIFFNESS`     | 48000     | 480000  | $`\mathrm{kN} / \mathrm{m}^3`$ |
-| Shear stiffness $`k_{\mathrm{s}}`$       | `SHEAR_STIFFNESS`      | 20869.565 | 200000  | $`\mathrm{kN} / \mathrm{m}^3`$ |
+| Property                                 | Kratos input parameter | Clay      | Sand     | Unit                           |
+|------------------------------------------|------------------------|-----------|----------|--------------------------------|
+| Normal stiffness $`k_{\mathrm{n}}`$      | `NORMAL_STIFFNESS`     | 48000.0   | 480000.0 | $`\mathrm{kN} / \mathrm{m}^3`$ |
+| Shear stiffness $`k_{\mathrm{s}}`$       | `SHEAR_STIFFNESS`      | 20869.565 | 200000.0 | $`\mathrm{kN} / \mathrm{m}^3`$ |
 
 The following table lists the material properties of the diaphragm wall that have been adopted by the Kratos model.
 
@@ -67,6 +67,8 @@ The following table lists the material properties of the diaphragm wall that hav
 | Thickness $`t`$                                | `THICKNESS`             | 1.265               | $`[m]`$                        |
 | Effective shear thickness y $`t_{\mathrm{y}}`$ | `THICKNESS_EFFECTIVE_Y` | 0.025               | $`[m]`$                        |
 | Density $`\rho`$                               | `DENSITY`               | 805.82              | $`\mathrm{kg} / \mathrm{m}^3`$ |
+
+**Note**, it is assumed here that the diaphragm wall is a a flat geometry when it is a profile. Therefore, there is a large difference in values of  `THICKNESS` and `THICKNESS_EFFECTIVE_Y`. The latter is used for the shear component calculation.
 
 The following table lists the material properties of the strut that have been adopted by the Kratos model.
 
@@ -84,7 +86,7 @@ The excavation is modeled in seven stages:
 
 1. **Initial stage:**
 
-- Entire soil domain is active, the strut, the diaphragm wall as well the interfaces at both sides of it are inactive.
+- The entire soil domain is active, the strut, the diaphragm wall as well the interfaces at both sides of it are inactive.
 - Master-slave constraints are applied where the soil will later be separated by the diaphragm wall. This ensures continuity of the displacement field in this early stage of analysis.  
 - The only load that is being applied is self-weight.  
 - At the end of the stage, a $`K_0`$ procedure is performed to initialize the horizontal stress field.  **Note**, the $`K_0`$ procedure requires the use of linear elastic materials for all soil parts.
@@ -98,7 +100,7 @@ The excavation is modeled in seven stages:
 3. **Diaphragm wall installation and applying the external load:**
 
 - Activation of the diaphragm wall and the interfaces that are attached to its left and right sides.
-- Deactivate the master-slave constraints, since there is no need in the continuous displacement field across the entire domain.
+- Deactivate the master-slave constraints, the interface elements will represent the discontinuity in the displacement at the diaphragm wall location.
 - Apply a surface load to a part of the top of the soil on the left hand side.
 
 ![Stage 3](stage_3.svg)
@@ -121,7 +123,7 @@ The excavation is modeled in seven stages:
 
 - Excavate the next top portion of clay to the right of the wall.
 - Deactivate corresponding model parts and interface elements.
-- Apply a normal contact stress to the exposed part of the diaphragm wall as well as the bottom of the excavation pit.
+- Apply a normal contact stress to the exposed part of the diaphragm wall as well as the bottom of the excavation pit, representing the water in the pit.
 
 ![Stage 6](stage_6.svg)
 
@@ -129,6 +131,6 @@ The excavation is modeled in seven stages:
 
 - Excavate the final top portion of clay to the right of the wall.
 - Deactivate corresponding model parts and interface elements.
-- Apply a normal contact stress to the exposed part of the diaphragm wall as well as the bottom of the excavation pit.
+- Apply a normal contact stress to the exposed part of the diaphragm wall as well as the bottom of the excavation pit, representing the water in the pit.
 
 ![Stage 7](stage_7.svg)
