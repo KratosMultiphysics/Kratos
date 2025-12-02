@@ -59,6 +59,8 @@ public:
     // The current class definition
     typedef MPMResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace> ClassType;
 
+    /// DoF array type definition
+    typedef typename BaseType::DofsArrayType                                  DofsArrayType;
     /// Matrix type definition
     typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
     /// Vector type definition
