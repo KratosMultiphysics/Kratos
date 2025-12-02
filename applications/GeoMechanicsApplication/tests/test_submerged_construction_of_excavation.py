@@ -11,7 +11,7 @@ import os
 
 
 class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCase):
-    STAGE = {
+    stage_info = {
         "initial_stage": {"time": -1.0, "name": "1_Initial_stage"},
         "null_step": {"time": 0.0, "name": "2_Null_step"},
         "wall_installation": {"time": 1.0, "name": "3_Wall_installation"},
@@ -52,47 +52,47 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
     def calculate_weight_of_all_soil(self):
         return self.model_width * (
-            self.unsaturated_clay_layer_thickness * self.unsaturated_unit_weight_of_clay
-            + self.saturated_clay_layer_thickness * self.saturated_unit_weight_of_clay
-            + self.saturated_sand_layer_thickness * self.saturated_unit_weight_of_sand
+                self.unsaturated_clay_layer_thickness * self.unsaturated_unit_weight_of_clay
+                + self.saturated_clay_layer_thickness * self.saturated_unit_weight_of_clay
+                + self.saturated_sand_layer_thickness * self.saturated_unit_weight_of_sand
         )
 
     def calculate_weight_of_excavated_clay_upper_right(self):
         return (
-            self.unsaturated_clay_layer_thickness
-            * self.excavation_width
-            * self.unsaturated_unit_weight_of_clay
+                self.unsaturated_clay_layer_thickness
+                * self.excavation_width
+                * self.unsaturated_unit_weight_of_clay
         )
 
     def calculate_weight_of_excavated_clay_middle_right(self):
         return (
-            self.excavated_middle_clay_layer_thickness
-            * self.excavation_width
-            * self.saturated_unit_weight_of_clay
+                self.excavated_middle_clay_layer_thickness
+                * self.excavation_width
+                * self.saturated_unit_weight_of_clay
         )
 
     def calculate_weight_of_excavated_clay_lower_right(self):
         return (
-            self.excavated_lower_clay_layer_thickness
-            * self.excavation_width
-            * self.saturated_unit_weight_of_clay
+                self.excavated_lower_clay_layer_thickness
+                * self.excavation_width
+                * self.saturated_unit_weight_of_clay
         )
 
     def calculate_weight_of_water_after_second_excavation(self):
         return (
-            self.excavated_middle_clay_layer_thickness
-            * self.excavation_width
-            * self.unit_weight_of_water
+                self.excavated_middle_clay_layer_thickness
+                * self.excavation_width
+                * self.unit_weight_of_water
         )
 
     def calculate_weight_of_water_after_third_excavation(self):
         return (
-            (
-                self.excavated_middle_clay_layer_thickness
-                + self.excavated_lower_clay_layer_thickness
-            )
-            * self.excavation_width
-            * self.unit_weight_of_water
+                (
+                        self.excavated_middle_clay_layer_thickness
+                        + self.excavated_lower_clay_layer_thickness
+                )
+                * self.excavation_width
+                * self.unit_weight_of_water
         )
 
     def calculate_weight_of_diaphragm_wall(self):
@@ -116,14 +116,14 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             delta=rel_tolerance * expected,
         )
 
-    def run_simulation(self, sub_directory_name):
+    def run_simulation_and_checks(self, sub_directory_name):
         project_path = test_helper.get_file_path(
             os.path.join("submerged_construction_of_excavation", sub_directory_name)
         )
 
         with context_managers.set_cwd_to(project_path):
             model = Kratos.Model()
-            for stage in self.STAGE.values():
+            for stage in self.stage_info.values():
                 param_file = os.path.join("..", "common", f"{stage['name']}.json")
                 with open(param_file, "r") as f:
                     stage_parameters = Kratos.Parameters(f.read())
@@ -134,71 +134,72 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.check_vertical_reaction(
             output_reader,
             project_path,
-            self.STAGE["initial_stage"],
+            self.stage_info["initial_stage"],
             expected_total_weight,
         )
 
         self.check_vertical_reaction(
-            output_reader, project_path, self.STAGE["null_step"], expected_total_weight
+            output_reader, project_path, self.stage_info["null_step"], expected_total_weight
         )
 
         expected_total_weight += self.calculate_weight_of_diaphragm_wall()
         expected_total_vertical_reaction = (
-            expected_total_weight + self.calculate_total_vertical_surface_load()
+                expected_total_weight + self.calculate_total_vertical_surface_load()
         )
         self.check_vertical_reaction(
             output_reader,
             project_path,
-            self.STAGE["wall_installation"],
+            self.stage_info["wall_installation"],
             expected_total_vertical_reaction,
         )
 
         expected_total_weight -= self.calculate_weight_of_excavated_clay_upper_right()
         expected_total_vertical_reaction = (
-            expected_total_weight + self.calculate_total_vertical_surface_load()
+                expected_total_weight + self.calculate_total_vertical_surface_load()
         )
         self.check_vertical_reaction(
             output_reader,
             project_path,
-            self.STAGE["first_excavation"],
+            self.stage_info["first_excavation"],
             expected_total_vertical_reaction,
         )
 
         self.check_vertical_reaction(
             output_reader,
             project_path,
-            self.STAGE["strut_installation"],
+            self.stage_info["strut_installation"],
             expected_total_vertical_reaction,
         )
 
         expected_total_weight -= self.calculate_weight_of_excavated_clay_middle_right()
         expected_total_vertical_reaction = (
-            expected_total_weight
-            + self.calculate_total_vertical_surface_load()
-            + self.calculate_weight_of_water_after_second_excavation()
+                expected_total_weight
+                + self.calculate_total_vertical_surface_load()
+                + self.calculate_weight_of_water_after_second_excavation()
         )
         self.check_vertical_reaction(
             output_reader,
             project_path,
-            self.STAGE["second_excavation"],
+            self.stage_info["second_excavation"],
             expected_total_vertical_reaction,
         )
 
         expected_total_weight -= self.calculate_weight_of_excavated_clay_lower_right()
         expected_total_vertical_reaction = (
-            expected_total_weight
-            + self.calculate_total_vertical_surface_load()
-            + self.calculate_weight_of_water_after_third_excavation()
+                expected_total_weight
+                + self.calculate_total_vertical_surface_load()
+                + self.calculate_weight_of_water_after_third_excavation()
         )
         self.check_vertical_reaction(
             output_reader,
             project_path,
-            self.STAGE["third_excavation"],
+            self.stage_info["third_excavation"],
             expected_total_vertical_reaction,
         )
 
     def test_simulation_with_linear_elastic_materials(self):
-        self.run_simulation("linear_elastic")
+        self.run_simulation_and_checks("linear_elastic")
+
 
 if __name__ == "__main__":
     KratosUnittest.main()

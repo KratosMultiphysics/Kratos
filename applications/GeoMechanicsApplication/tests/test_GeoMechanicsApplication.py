@@ -146,7 +146,6 @@ def AssembleTestSuites():
                         KratosGeoMechanics1DConsolidation,
                         KratosGeoMechanics1DConsolidationCppRoute,
                         KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine,
-                        KratosGeoMechanicsSubmergedConstructionOfExcavation,
                         ]
     night_test_cases.extend(small_test_cases)
 
@@ -162,6 +161,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsThreeDimensionalPipingValidation,
                         KratosGeoMechanicsTransientThermalValidationTests,
                         KratosGeoMechanicsDSettlementValidationTests,
+                        KratosGeoMechanicsSubmergedConstructionOfExcavation,
                         ]
 
     # Create an array that contains all the tests from every testCase

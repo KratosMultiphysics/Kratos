@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   width="1860px"
-   height="874px"
-   viewBox="0 0 1860 874"
+   width="838.03595"
+   height="585.15424"
+   viewBox="0 0 838.03595 585.15424"
    version="1.1"
    id="svg294"
-   sodipodi:docname="geometry2.svg"
+   sodipodi:docname="setup.svg"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -23,15 +23,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="0.92334095"
-     inkscape:cx="933.02479"
-     inkscape:cy="419.67163"
+     inkscape:zoom="5.2232052"
+     inkscape:cx="73.805257"
+     inkscape:cy="86.249723"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg294" />
+     inkscape:current-layer="g294" />
   <title
      id="title1">D:/Checkouts2/KratosProjects/beta/applications/GeoMechanicsApplication/tests/submerged_construction_of_excavation/submerged_excavation_gid_project</title>
   <desc
@@ -185,34 +185,35 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </defs>
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="M 1264.9442,179.02122 1264.5613,140.922"
+     d="m 746.27627,50.183757 -0.3829,-38.09922"
      id="path8-11" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 1110.1843,179.63831 -0.3829,-38.09922"
+     d="m 591.51637,50.800847 -0.3829,-38.09922"
      id="path8-1" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="M 1089.9659,179.90752 1089.583,141.8083"
+     d="m 571.29797,51.070057 -0.3829,-38.09922"
      id="path8-5" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 1038.289,180.14761 -0.3829,-38.09922"
+     d="m 519.62107,51.310147 -0.3829,-38.09922"
      id="path8-2" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 594.15056,694.35378 c -23.82652,0 -47.65303,0 -71.47955,0"
+     d="m 75.482632,565.51632 c -23.82652,0 -47.65303,0 -71.4795504,0"
      id="path2-8" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 594.38731,385.70256 c -23.82652,0 -47.65303,0 -71.47955,0"
+     d="m 75.719382,256.8651 c -23.82652,0 -47.65303,0 -71.4795504,0"
      id="path2-9" />
   <g
      shape-rendering="crispEdges"
-     id="g294">
+     id="g294"
+     transform="translate(-518.66793,-128.83746)">
     <circle
        fill="#000000"
-       cx="595.115"
+       cx="595.11499"
        cy="179.396"
        r="1.5"
        id="circle1" />
@@ -230,13 +231,13 @@ CreationDate: Wed Nov 26 16:01:51 2025
        id="circle3" />
     <circle
        fill="#000000"
-       cx="595.115"
+       cx="595.11499"
        cy="694.604"
        r="1.5"
        id="circle4" />
     <circle
        fill="#000000"
-       cx="595.115"
+       cx="595.11499"
        cy="385.479"
        r="1.5"
        id="circle5" />
@@ -248,25 +249,25 @@ CreationDate: Wed Nov 26 16:01:51 2025
        id="circle6" />
     <circle
        fill="#000000"
-       cx="1110.32"
+       cx="1110.3199"
        cy="179.396"
        r="1.5"
        id="circle7" />
     <circle
        fill="#000000"
-       cx="1110.32"
+       cx="1110.3199"
        cy="488.521"
        r="1.5"
        id="circle8" />
     <circle
        fill="#000000"
-       cx="1110.32"
+       cx="1110.3199"
        cy="385.479"
        r="1.5"
        id="circle9" />
     <circle
        fill="#000000"
-       cx="1038.19"
+       cx="1038.1899"
        cy="179.396"
        r="1.5"
        id="circle10" />
@@ -278,14 +279,14 @@ CreationDate: Wed Nov 26 16:01:51 2025
        id="circle11" />
     <circle
        fill="#000000"
-       cx="1110.32"
+       cx="1110.3199"
        cy="200.004"
        r="1.5"
        id="circle12" />
     <circle
        fill="#000000"
-       cx="1110.32"
-       cy="282.438"
+       cx="1110.3199"
+       cy="282.43799"
        r="1.5"
        id="circle13" />
     <circle
@@ -297,24 +298,24 @@ CreationDate: Wed Nov 26 16:01:51 2025
     <circle
        fill="#000000"
        cx="1264.89"
-       cy="282.438"
+       cy="282.43799"
        r="1.5"
        id="circle15" />
     <circle
        fill="#000000"
-       cx="1110.32"
+       cx="1110.3199"
        cy="189.7"
        r="1.5"
        id="circle16" />
     <circle
        fill="#000000"
-       cx="1110.32"
+       cx="1110.3199"
        cy="694.604"
        r="1.5"
        id="circle17" />
     <circle
        fill="#000000"
-       cx="595.115"
+       cx="595.11499"
        cy="200.004"
        r="1.5"
        id="circle18" />
@@ -332,7 +333,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1110.32,694.604 1264.89,694.604"
        id="polyline100"
-       style="stroke-width:2;stroke-dasharray:none;stroke:#000000;stroke-opacity:1" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -341,7 +342,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1110.32,189.7 1264.89,189.7"
        id="polyline103"
-       style="stroke-width:4;stroke-dasharray:none" />
+       style="stroke-width:4;stroke-dasharray:none;stroke:#00ff00;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -350,7 +351,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1089.71,179.396 1110.32,179.396"
        id="polyline107"
-       style="stroke:#000000;stroke-opacity:1;stroke-width:2;stroke-dasharray:none" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -359,7 +360,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="595.115,694.604 1110.32,694.604"
        id="polyline118"
-       style="stroke-width:2;stroke-dasharray:none;stroke:#000000;stroke-opacity:1" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -368,7 +369,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1038.19,179.396 1089.71,179.396"
        id="polyline130"
-       style="stroke-width:2;stroke-dasharray:none;stroke:#ff6600;stroke-opacity:1" />
+       style="stroke:#ff6600;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -377,7 +378,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="595.115,179.396 1038.19,179.396"
        id="polyline131"
-       style="stroke:#000000;stroke-opacity:1;stroke-width:2;stroke-dasharray:none" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -386,7 +387,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1110.32,189.7 1110.32,200.004"
        id="polyline132"
-       style="stroke:#e10000;stroke-opacity:1;stroke-width:4;stroke-dasharray:none" />
+       style="stroke:#e10000;stroke-width:4;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -395,7 +396,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1110.32,179.396 1110.32,189.7"
        id="polyline133"
-       style="stroke-width:4;stroke-dasharray:none;stroke:#e10000;stroke-opacity:1" />
+       style="stroke:#e10000;stroke-width:4;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -404,7 +405,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1110.32,179.396 1264.89,179.396"
        id="polyline134"
-       style="stroke:#000000;stroke-opacity:1;stroke-width:2;stroke-dasharray:none" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -413,7 +414,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1264.89,385.479 1110.32,385.479"
        id="polyline135"
-       style="stroke-width:2;stroke-dasharray:12, 12;stroke-dashoffset:0;stroke:#000000;stroke-opacity:1" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:12, 12;stroke-dashoffset:0;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -422,7 +423,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1264.89,282.438 1264.89,385.479"
        id="polyline138"
-       style="stroke:#000000;stroke-opacity:1;stroke-width:2;stroke-dasharray:none" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -431,7 +432,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1264.89,200.004 1264.89,282.438"
        id="polyline139"
-       style="stroke:#000000;stroke-opacity:1;stroke-width:2;stroke-dasharray:none" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -440,7 +441,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1110.32,385.479 1110.32,488.521"
        id="polyline140"
-       style="stroke:#e10000;stroke-opacity:1;stroke-width:4;stroke-dasharray:none" />
+       style="stroke:#e10000;stroke-width:4;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -449,7 +450,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1264.89,179.396 1264.89,200.004"
        id="polyline141"
-       style="stroke:#000000;stroke-opacity:1;stroke-width:2;stroke-dasharray:none" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -458,7 +459,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1264.89,694.604 1264.89,385.479"
        id="polyline142"
-       style="stroke:#000000;stroke-opacity:1;stroke-width:2;stroke-dasharray:none" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -467,7 +468,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1110.32,282.438 1110.32,385.479"
        id="polyline143"
-       style="stroke-width:4;stroke-dasharray:none;stroke:#e10000;stroke-opacity:1" />
+       style="stroke:#e10000;stroke-width:4;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -476,7 +477,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1110.32,200.004 1110.32,282.438"
        id="polyline144"
-       style="stroke-width:4;stroke-dasharray:none;stroke:#e10000;stroke-opacity:1" />
+       style="stroke:#e10000;stroke-width:4;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -485,7 +486,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="595.115,385.479 595.115,179.396"
        id="polyline145"
-       style="stroke:#000000;stroke-opacity:1;stroke-width:2;stroke-dasharray:none" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -494,7 +495,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="595.115,694.604 595.115,385.479"
        id="polyline146"
-       style="stroke:#000000;stroke-opacity:1;stroke-width:2;stroke-dasharray:none" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -503,7 +504,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="595.115,385.479 1110.32,385.479"
        id="polyline148"
-       style="stroke-width:2;stroke-dasharray:12, 12;stroke-dashoffset:0;stroke:#000000;stroke-opacity:1" />
+       style="stroke:#000000;stroke-width:2;stroke-dasharray:12, 12;stroke-dashoffset:0;stroke-opacity:1" />
     <g
        id="g29">
       <path
@@ -539,6 +540,28 @@ CreationDate: Wed Nov 26 16:01:51 2025
          id="path26"
          sodipodi:nodetypes="cc" />
     </g>
+    <path
+       style="fill:#ffffff;stroke:#0000ff;stroke-width:2;stroke-dasharray:8, 2;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 595.17969,199.87405 668.22551,3.24907"
+       id="path27" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 594.10054,199.67519 -35.99323,0.19145"
+       id="path28" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#marker12);marker-end:url(#marker12)"
+       d="m 568.44579,179.18968 -0.19145,19.91115"
+       id="path29" />
+    <text
+       xml:space="preserve"
+       style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       x="542.21667"
+       y="193.54868"
+       id="text30"><tspan
+         sodipodi:role="line"
+         id="tspan30"
+         x="542.21667"
+         y="193.54868">2m </tspan></text>
   </g>
   <metadata
      id="metadata294">
@@ -551,147 +574,147 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </metadata>
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 594.57993,179.0818 c -23.82652,0 -47.65303,0 -71.47955,0"
+     d="m 75.912002,50.244337 c -23.82652,0 -47.65303,0 -71.4795504,0"
      id="path2" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none;marker-start:url(#ArrowWide);marker-end:url(#marker5)"
-     d="m 522.01255,179.20031 0.76581,206.00378"
+     d="m 3.3446216,50.362847 0.76581,206.003783"
      id="path4" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none;marker-start:url(#marker7);marker-end:url(#marker7)"
-     d="m 523.22414,386.73572 0.76582,307.09113"
+     d="m 4.5562116,257.89826 0.76582,307.09113"
      id="path6" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 595.00409,178.24305 -0.38291,-38.09922"
+     d="m 76.336162,49.405587 -0.38291,-38.09922"
      id="path8" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none;marker-start:url(#marker12);marker-end:url(#marker12)"
-     d="m 593.49691,147.2912 442.95659,-1.08302"
+     d="M 74.828982,18.453737 517.78557,17.370717"
      id="path11" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none;marker-start:url(#marker12);marker-end:url(#marker12)"
-     d="m 1037.8685,146.07889 51.5966,-0.38291"
+     d="m 519.20057,17.241427 51.5966,-0.38291"
      id="path13" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none;marker-start:url(#marker12);marker-end:url(#marker12)"
-     d="m 1110.4293,145.50453 153.5456,0.76581"
+     d="m 591.76137,16.667067 153.5456,0.76581"
      id="path14" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 1089.9278,145.53129 h 19.2237"
+     d="m 571.25987,16.693827 h 19.2237"
      id="path15" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 1265.315,179.20031 27.5693,-0.19145"
+     d="m 746.64707,50.362847 27.5693,-0.19145"
      id="path16" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:0.697969;stroke-dasharray:none"
-     d="m 1265.0927,189.2199 39.6926,0.0634"
+     d="m 746.42477,60.382437 39.6926,0.0634"
      id="path17" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 1110.6407,488.44362 h 184.6555"
+     d="m 591.97277,359.60616 h 184.6555"
      id="path18" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none;marker-start:url(#marker12);marker-end:url(#marker12)"
-     d="m 1299.4922,179.2404 v 9.2057"
+     d="m 780.82427,50.402937 v 9.2057"
      id="path19" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 1292.0162,178.90862 54.7584,-0.0867"
+     d="m 773.34827,50.071157 54.7584,-0.0867"
      id="path20" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none;marker-start:url(#marker12);marker-end:url(#marker12)"
-     d="m 1345.4278,180.32979 2.2975,307.85695"
+     d="m 826.75987,51.492327 2.2975,307.856953"
      id="path21" />
   <path
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     d="m 1294.4044,488.45441 62.2975,0.24918"
+     d="m 775.73647,359.61695 62.2975,0.24918"
      id="path22" />
   <text
      xml:space="preserve"
      style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     x="812.8092"
-     y="138.62701"
+     x="294.14127"
+     y="9.7895508"
      id="text22"><tspan
        sodipodi:role="line"
        id="tspan22"
-       x="812.8092"
-       y="138.62701">43 m</tspan></text>
+       x="294.14127"
+       y="9.7895508">43 m</tspan></text>
   <text
      xml:space="preserve"
      style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     x="1052.1573"
-     y="139.71004"
+     x="533.48944"
+     y="10.872574"
      id="text23"><tspan
        sodipodi:role="line"
        id="tspan23"
-       x="1052.1573"
-       y="139.71004">5 m</tspan></text>
+       x="533.48944"
+       y="10.872574">5 m</tspan></text>
   <text
      xml:space="preserve"
      style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     x="1089.5217"
-     y="138.62701"
+     x="570.85382"
+     y="9.7895508"
      id="text24"><tspan
        sodipodi:role="line"
        id="tspan24"
-       x="1089.5217"
-       y="138.62701">2m</tspan></text>
+       x="570.85382"
+       y="9.7895508">2m</tspan></text>
   <text
      xml:space="preserve"
      style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     x="1169.6655"
-     y="138.08551"
+     x="650.99762"
+     y="9.2480469"
      id="text25"><tspan
        sodipodi:role="line"
        id="tspan25"
-       x="1169.6655"
-       y="138.08551">15m</tspan></text>
+       x="650.99762"
+       y="9.2480469">15m</tspan></text>
   <text
      xml:space="preserve"
      style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     x="530.14001"
-     y="303.78812"
+     x="11.472086"
+     y="174.95065"
      id="text26"><tspan
        sodipodi:role="line"
        id="tspan26"
-       x="530.14001"
-       y="303.78812">20 m</tspan></text>
+       x="11.472086"
+       y="174.95065">20 m</tspan></text>
   <text
      xml:space="preserve"
      style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     x="527.04388"
-     y="546.83118"
+     x="8.3759556"
+     y="417.99371"
      id="text27"><tspan
        sodipodi:role="line"
        id="tspan27"
-       x="527.04388"
-       y="546.83118">30 m</tspan></text>
+       x="8.3759556"
+       y="417.99371">30 m</tspan></text>
   <text
      xml:space="preserve"
      style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     x="1308.834"
-     y="343.31845"
+     x="790.16608"
+     y="214.48099"
      id="text28"><tspan
        sodipodi:role="line"
        id="tspan28"
-       x="1308.834"
-       y="343.31845">30 m</tspan></text>
+       x="790.16608"
+       y="214.48099">30 m</tspan></text>
   <text
      xml:space="preserve"
      style="text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-dasharray:none"
-     x="1308.0316"
-     y="189.74875"
+     x="789.36371"
+     y="60.911285"
      id="text29"><tspan
        sodipodi:role="line"
        id="tspan29"
-       x="1308.0316"
-       y="189.74875">1m</tspan></text>
+       x="789.36371"
+       y="60.911285">1m</tspan></text>
   <g
      id="g4-0"
-     transform="matrix(0,-1.8406299,1.8406299,0,1108.158,820.30356)"
+     transform="matrix(0,-1.8406299,1.8406299,0,589.49007,691.4661)"
      inkscape:label="Fixed-single direction">
     <ellipse
        style="fill:none;stroke:#919191;stroke-width:1.26242;stroke-opacity:1"
@@ -729,7 +752,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <g
      id="g4-0-4"
-     transform="matrix(0,-1.8406299,1.8406299,0,1107.9052,422.72239)"
+     transform="matrix(0,-1.8406299,1.8406299,0,589.23727,293.88493)"
      inkscape:label="Fixed-single direction">
     <ellipse
        style="fill:none;stroke:#919191;stroke-width:1.26242;stroke-opacity:1"
@@ -767,7 +790,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <g
      id="g4"
-     transform="matrix(0,1.8406299,-1.8406299,0,753.22476,475.28821)"
+     transform="matrix(0,1.8406299,-1.8406299,0,234.55683,346.45075)"
      inkscape:label="Fixed-single direction">
     <ellipse
        style="fill:none;stroke:#919191;stroke-width:1.26242;stroke-opacity:1"
@@ -805,7 +828,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <g
      id="g4-1"
-     transform="matrix(0,1.8406299,-1.8406299,0,752.39081,88.231204)"
+     transform="matrix(0,1.8406299,-1.8406299,0,233.72288,-40.606259)"
      inkscape:label="Fixed-single direction">
     <ellipse
        style="fill:none;stroke:#919191;stroke-width:1.26242;stroke-opacity:1"
@@ -843,7 +866,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <g
      id="g6"
-     transform="matrix(2.4130345,0,0,2.6101948,550.85679,558.40856)"
+     transform="matrix(2.4130345,0,0,2.6101948,32.188862,429.5711)"
      inkscape:label="FixedBeam">
     <path
        style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
@@ -876,7 +899,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <g
      id="g6-6"
-     transform="matrix(2.4130345,0,0,2.6101948,638.57179,558.53495)"
+     transform="matrix(2.4130345,0,0,2.6101948,119.90386,429.69749)"
      inkscape:label="FixedBeam">
     <path
        style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
@@ -909,7 +932,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <g
      id="g6-8"
-     transform="matrix(2.4130345,0,0,2.6101948,726.07736,558.61798)"
+     transform="matrix(2.4130345,0,0,2.6101948,207.40943,429.78052)"
      inkscape:label="FixedBeam">
     <path
        style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
@@ -942,7 +965,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <g
      id="g6-5"
-     transform="matrix(2.4130345,0,0,2.6101948,814.50735,558.4953)"
+     transform="matrix(2.4130345,0,0,2.6101948,295.83942,429.65784)"
      inkscape:label="FixedBeam">
     <path
        style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
@@ -975,7 +998,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <g
      id="g6-1"
-     transform="matrix(2.4130345,0,0,2.6101948,903.7242,558.48786)"
+     transform="matrix(2.4130345,0,0,2.6101948,385.05627,429.6504)"
      inkscape:label="FixedBeam">
     <path
        style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
@@ -1008,7 +1031,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <g
      id="g6-19"
-     transform="matrix(2.4130345,0,0,2.6101948,991.48262,558.3974)"
+     transform="matrix(2.4130345,0,0,2.6101948,472.81469,429.55994)"
      inkscape:label="FixedBeam">
     <path
        style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
@@ -1041,7 +1064,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <g
      id="g6-4"
-     transform="matrix(2.4130345,0,0,2.6101948,1079.7391,558.23135)"
+     transform="matrix(2.4130345,0,0,2.6101948,561.07117,429.39389)"
      inkscape:label="FixedBeam">
     <path
        style="fill:none;stroke:#919191;stroke-width:1.05833;stroke-opacity:1"
@@ -1074,28 +1097,28 @@ CreationDate: Wed Nov 26 16:01:51 2025
   </g>
   <path
      style="fill:none;stroke:#919191;stroke-width:2.65607;stroke-opacity:1"
-     d="m 1223.954,695.90208 -11.4192,17.3598"
+     d="m 705.28607,567.06462 -11.4192,17.3598"
      id="path2-07-89" />
   <path
      style="fill:none;stroke:#919191;stroke-width:2.65607;stroke-opacity:1"
-     d="m 1238.2714,695.54933 -11.4192,17.3598"
+     d="m 719.60347,566.71187 -11.4192,17.3598"
      id="path2-3-4-34" />
   <path
      style="fill:none;stroke:#919191;stroke-width:2.65607;stroke-opacity:1"
-     d="m 1253.5229,695.57226 -11.4191,17.3598"
+     d="m 734.85497,566.7348 -11.4191,17.3598"
      id="path2-8-6-4" />
   <path
      style="fill:none;stroke:#ff6600;stroke-width:1;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle)"
-     d="m 1078.9411,177.80837 0.066,-22.48463"
+     d="m 560.27317,48.970907 0.066,-22.48463"
      id="path4-9"
      sodipodi:nodetypes="cc" />
   <path
      style="fill:none;stroke:#ff6600;stroke-width:1;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-1)"
-     d="m 1065.2428,177.88629 0.066,-22.48464"
+     d="m 546.57487,49.048827 0.066,-22.48464"
      id="path4-8"
      sodipodi:nodetypes="cc" />
   <path
      style="fill:#808080;fill-opacity:1;stroke:#ff6600;stroke-width:1;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-1-0)"
-     d="m 1049.9902,177.99852 0.066,-22.48463"
+     d="m 531.32227,49.161057 0.066,-22.48463"
      id="path4-8-0" />
 </svg>
