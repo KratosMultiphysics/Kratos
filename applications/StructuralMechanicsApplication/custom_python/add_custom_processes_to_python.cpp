@@ -29,6 +29,7 @@
 #include "custom_processes/spr_error_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
 #include "custom_processes/impose_z_strain_process.h"
+#include "custom_processes/insert_pretension_process.hpp"
 #include "custom_processes/distribute_load_on_surface_process.h"
 #include "custom_processes/set_moving_load_process.h"
 #include "custom_processes/set_cartesian_local_axes_process.h"
@@ -99,6 +100,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init< ModelPart&, Parameters >())
         ;
 
+    py::class_<InsertPretensionProcess, InsertPretensionProcess::Pointer, Process>(m, "InsertPretensionProcess")
+        .def(py::init<Model&, Parameters>())
+        ;
+
     py::class_<DistributeLoadOnSurfaceProcess, DistributeLoadOnSurfaceProcess::Pointer, Process>(m,"DistributeLoadOnSurfaceProcess")
         .def(py::init<ModelPart&, Parameters>());
 
@@ -113,7 +118,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SetSphericalLocalAxesProcess, SetSphericalLocalAxesProcess::Pointer, Process>(m,"SetSphericalLocalAxesProcess")
         .def(py::init<ModelPart&, Parameters>());
-        
+
     py::class_<SetAutomatedInitialVariableProcess, SetAutomatedInitialVariableProcess::Pointer, Process>(m,"SetAutomatedInitialVariableProcess")
     .def(py::init<ModelPart&, Parameters>());
 }
