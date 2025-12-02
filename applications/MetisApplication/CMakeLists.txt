@@ -83,7 +83,7 @@ foreach(LIB_FILE ${METIS_LIBRARIES})
     file(GLOB SYMLINKS "${LIB_DIR}/${LIB_NAME}*")
     
     install(FILES "${LIB_REAL}" DESTINATION libs)
-    install(FILES "${SYMLINKS}" DESTINATION libs)
+    install(FILES ${SYMLINKS} DESTINATION libs)
 endforeach()
 
 # Clean up any potential duplicates
