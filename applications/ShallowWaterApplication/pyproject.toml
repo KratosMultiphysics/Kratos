@@ -1,11 +1,11 @@
-title = "KratosMultiphysics FluidDynamicsApplication"
+title = "KratosMultiphysics ShallowWaterApplication"
 
 [build-system]
     requires = ["hatchling"]
     build-backend = "hatchling.build"
 
 [project]
-    name = "KratosFluidDynamicsApplication"
+    name = "KratosShallowWaterApplication"
     description = """
         KRATOS Multiphysics ("Kratos") is a framework for building parallel,
         multi-disciplinary simulation software, aiming at modularity,
