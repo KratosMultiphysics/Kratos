@@ -10,11 +10,13 @@
 //  Main authors:    Gennady Markelov
 //
 
+#include "containers/model.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/expect.h"
 #include "test_setup_utilities/model_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -24,7 +26,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateMassMatrix2D6NDiffOrderGivesCorrectResults)
 {
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
@@ -69,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     KRATOS_CHECK_MATRIX_NEAR(mass_matrix, expected_mass_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateMassMatrix3D4NGivesCorrectResults)
 {
     Model      model;
     const auto nodal_variables =
@@ -121,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     KRATOS_CHECK_MATRIX_NEAR(mass_matrix, expected_mass_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateDampingMatrixGivesCorrectResults)
 {
     constexpr std::size_t n = 10;
 
@@ -160,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDampingMatrixGivesCorrectResults, KratosGeoMe
     KRATOS_CHECK_MATRIX_NEAR(damping_matrix, expected_damping_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateStiffnessMatrixGivesCorrectResults)
 {
     constexpr std::size_t voigt_size = 4;
     constexpr std::size_t n          = 3;
@@ -185,7 +187,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateStiffnessMatrixGivesCorrectResults, KratosGeo
     KRATOS_CHECK_MATRIX_NEAR(stiffness_matrix, expected_stiffness_matrix, 1e-4)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TheInternalForceVectorIsTheIntegralOfBTransposedTimesSigma, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TheInternalForceVectorIsTheIntegralOfBTransposedTimesSigma)
 {
     const auto b_matrix                 = Matrix{ScalarMatrix{2, 8, 1.0}};
     const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
@@ -199,8 +201,8 @@ KRATOS_TEST_CASE_IN_SUITE(TheInternalForceVectorIsTheIntegralOfBTransposedTimesS
                                        expected_internal_force_vector, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenTheInputVectorsHaveDifferentSizes,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       CalculatingTheInternalForceVectorRaisesADebugErrorWhenTheInputVectorsHaveDifferentSizes)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
@@ -217,8 +219,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhen
         "Cannot calculate the internal force vector: input vectors have different sizes")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenAllInputVectorsAreEmpty,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculatingTheInternalForceVectorRaisesADebugErrorWhenAllInputVectorsAreEmpty)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
@@ -233,8 +234,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhen
         "Cannot calculate the internal force vector: input vectors are empty")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenBMatricesHaveDifferentSizes,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       CalculatingTheInternalForceVectorRaisesADebugErrorWhenBMatricesHaveDifferentSizes)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
@@ -250,8 +251,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhen
         "Cannot calculate the internal force vector: B-matrices have different sizes")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenStressVectorsHaveDifferentSizes,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       CalculatingTheInternalForceVectorRaisesADebugErrorWhenStressVectorsHaveDifferentSizes)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
@@ -267,8 +268,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhen
         "Cannot calculate the internal force vector: stress vectors have different sizes")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenTheMatrixVectorProductCantBeComputed,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       CalculatingTheInternalForceVectorRaisesADebugErrorWhenTheMatrixVectorProductCantBeComputed)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
