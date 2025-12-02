@@ -60,15 +60,6 @@
       "Soil-3",
       "Soil-6"
     ],
-    "processes_sub_model_part_list": [
-      "Displacement_Geometry",
-      "Gravity_Loading-Initial_saturated",
-      "Gravity_Loading-Overburden_1_unsaturated",
-      "Base_Displacement_Fixed",
-      "Fluid_Pressure-Initial_saturated",
-      "Fluid_Pressure-Overburden_1_unsaturated",
-      "Lower_Drainage_Fluid_Pressure"
-    ],
     "body_domain_sub_model_part_list": [
       "Soil-3",
       "Soil-6"

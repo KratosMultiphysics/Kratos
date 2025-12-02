@@ -280,4 +280,20 @@ Tetrahedra3D4<Node> ModelSetupUtilities::Create3D4NTetrahedraGeometry()
     return {node_1, node_2, node_3, node_4};
 }
 
+void ModelSetupUtilities::CreateNumberOfNewNodes(ModelPart& rModelPart, std::size_t NumberOfNodes)
+{
+    for (std::size_t i = 0; i < NumberOfNodes; ++i) {
+        rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0);
+    }
+}
+
+PointerVector<Node> ModelSetupUtilities::GetNodesFromIds(ModelPart&                      rModelPart,
+                                                         const std::vector<std::size_t>& rNodeIds)
+{
+    PointerVector<Node> result(rNodeIds.size());
+    std::ranges::transform(rNodeIds, result.ptr_begin(),
+                           [&rModelPart](auto Id) { return rModelPart.pGetNode(Id); });
+    return result;
+}
+
 } // namespace Kratos::Testing
