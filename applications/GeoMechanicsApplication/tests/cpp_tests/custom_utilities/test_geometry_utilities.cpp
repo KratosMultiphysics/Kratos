@@ -13,15 +13,18 @@
 #include "custom_geometries/interface_geometry.h"
 #include "custom_utilities/geometry_utilities.h"
 #include "geometries/geometry_data.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForHorizontal2Plus2LineInterfaceIsIdentityMatrix,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeometryUtilities_RotationMatrixForHorizontal2Plus2LineInterfaceIsIdentityMatrix)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -38,8 +41,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForHorizontal2Plus2Lin
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForInclinedInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeometryUtilities_ReturnsCorrectRotationMatrixForInclinedInterface)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -60,8 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForIncli
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForInclinedInterface2,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeometryUtilities_ReturnsCorrectRotationMatrixForInclinedInterface2)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, -0.5, 0.5 * std::sqrt(3), 0.0));
@@ -84,8 +85,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForIncli
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForInclinedInterface_WithNonUnitLength,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeometryUtilities_ReturnsCorrectRotationMatrixForInclinedInterface_WithNonUnitLength)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, -0.5 * std::sqrt(3), 0.5, 0.0));
@@ -106,8 +107,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForIncli
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForVerticalElement_WithNonUnitLength,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeometryUtilities_ReturnsCorrectRotationMatrixForVerticalElement_WithNonUnitLength)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, -7.0, 0.0));
@@ -128,8 +129,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForVerti
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForHorizontal3Plus3LineInterfaceIsIdentityMatrix,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeometryUtilities_RotationMatrixForHorizontal3Plus3LineInterfaceIsIdentityMatrix)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -147,8 +148,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForHorizontal3Plus3Lin
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_UnityRotationForCenterOfCurved3Plus3NodedInterface_WithNonUnitLength,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeometryUtilities_UnityRotationForCenterOfCurved3Plus3NodedInterface_WithNonUnitLength)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -166,8 +167,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_UnityRotationForCenterOfCurved3Plus3
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationForInclinedCurved3Plus3NodedInterface_WithNonUnitLength,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeometryUtilities_ReturnsCorrectRotationForInclinedCurved3Plus3NodedInterface_WithNonUnitLength)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 2.0, 0.0));
@@ -190,8 +191,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationForInclinedCur
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationAtEdgeOfQuadraticElement_WithNonUnitLength,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeometryUtilities_ReturnsCorrectRotationAtEdgeOfQuadraticElement_WithNonUnitLength)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, -1.0, 1.0, 0.0));
@@ -215,8 +216,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationAtEdgeOfQuadra
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-3)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationAtArbitraryXiForQuadraticElement_WithNonUnitLength,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeometryUtilities_ReturnsCorrectRotationAtArbitraryXiForQuadraticElement_WithNonUnitLength)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, -1.0, 1.0, 0.0));
@@ -239,8 +240,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationAtArbitraryXiF
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-3)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForOpenHorizontalInterfaceIsIdentityMatrix,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeometryUtilities_RotationMatrixForOpenHorizontalInterfaceIsIdentityMatrix)
 {
     PointerVector<Node> nodes;
     // Make sure the two sides of the interface are separated by a distance of 2
@@ -257,14 +257,14 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForOpenHorizontalInter
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsEmptyListForEmptyGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeometryUtilities_ReturnsEmptyListForEmptyGeometry)
 {
     const auto node_ids = GeometryUtilities::GetNodeIdsFromGeometry(Geometry<Node>{});
 
     KRATOS_EXPECT_TRUE(node_ids.empty())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectNodeIds, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeometryUtilities_ReturnsCorrectNodeIds)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
