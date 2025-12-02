@@ -168,4 +168,15 @@ std::vector<Vector> GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoin
     return result;
 }
 
+Vector GeoElementUtilities::EvaluateDeterminantsOfJacobiansAtIntegrationPoints(
+    const Geo::IntegrationPointVectorType& rIntegrationPoints, const Geometry<Node>& rGeometry)
+{
+    auto result                           = Vector{rIntegrationPoints.size()};
+    auto evaluate_determinant_of_jacobian = [&rGeometry](const auto& rIntegrationPoint) {
+        return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
+    };
+    std::ranges::transform(rIntegrationPoints, result.begin(), evaluate_determinant_of_jacobian);
+    return result;
+}
+
 } // namespace Kratos

@@ -55,8 +55,8 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(
     Matrix     quasi_mass_mat = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
     const auto number_of_integration_points = rIntegrationPoints.size();
     Matrix     node_coefficients(number_of_corner_nodes, number_of_integration_points);
-    Vector     determinants_of_jacobian;
-    rGeometry.DeterminantOfJacobian(determinants_of_jacobian, rIntegrationMethod);
+    const auto determinants_of_jacobian =
+        GeoElementUtilities::EvaluateDeterminantsOfJacobiansAtIntegrationPoints(rIntegrationPoints, rGeometry);
 
     const auto shape_functions_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(rIntegrationPoints, rCornerGeometry);
