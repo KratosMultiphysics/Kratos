@@ -12,18 +12,21 @@
 //
 
 #include "custom_utilities/linear_nodal_extrapolator.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
+#include "geometries/tetrahedra_3d_10.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NTriangle,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NTriangle)
 {
     Kratos::Triangle2D3<Node> geometry(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0),
                                        Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
@@ -45,8 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D6NTriangle,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D6NTriangle)
 {
     Kratos::Triangle2D6<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
@@ -72,8 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D4NQuadrilateral,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D4NQuadrilateral)
 {
     Kratos::Quadrilateral2D4<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
@@ -96,8 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D8NQuadrilateral,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D8NQuadrilateral)
 {
     Kratos::Quadrilateral2D8<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
@@ -126,8 +126,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D4NKratos_Tetrahedra,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D4NKratos_Tetrahedra)
 {
     Kratos::Tetrahedra3D4<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
@@ -150,10 +149,9 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D10NKratos_Tetrahedra,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D10NKratos_Tetrahedra)
 {
-    Kratos::Tetrahedra3D10<Node> geometry(
+    Tetrahedra3D10<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
         Kratos::make_intrusive<Node>(3, 0.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 0.0, 1.0),
         Kratos::make_intrusive<Node>(5, 0.5, 0.0, 0.0), Kratos::make_intrusive<Node>(6, 0.5, 0.5, 0.0),
@@ -184,10 +182,9 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D8NKratos_Hexahedra,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D8NKratos_Hexahedra)
 {
-    Kratos::Hexahedra3D8<Node> geometry(
+    Hexahedra3D8<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
         Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0),
         Kratos::make_intrusive<Node>(5, 0.0, 0.0, 1.0), Kratos::make_intrusive<Node>(6, 1.0, 0.0, 1.0),
@@ -214,10 +211,9 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D20NKratos_Hexahedra,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D20NKratos_Hexahedra)
 {
-    Kratos::Hexahedra3D20<Node> geometry(
+    Hexahedra3D20<Node> geometry(
         Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0), Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
         Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0), Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0),
         Kratos::make_intrusive<Node>(5, 0.0, 0.0, 1.0), Kratos::make_intrusive<Node>(6, 1.0, 0.0, 1.0),
