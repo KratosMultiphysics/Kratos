@@ -31,6 +31,34 @@ RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /workspace/m
     rm -r /workspace/mmg_5_5_1 && \
     cd /
 
+# Install Hdf5
+RUN mkdir /workspace/hdf5; \
+    mkdir /workspace/hdf5/build; \
+    mkdir /workspace/hdf5/bin; \
+    mkdir /workspace/hdf5/source; \
+    cd /workspace/hdf5; \
+    curl -L -O -H "User-Agent: Mozilla/5.0" "https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF5/HDF5_1_12_2/source/hdf5-1.12.2.zip"; \
+    cd /; \
+    unzip /workspace/hdf5/hdf5-1.12.2.zip -d /workspace/hdf5/source; \
+    cmake -H"/workspace/hdf5/source/hdf5-1.12.2" -B"/workspace/hdf5/build"  -DCMAKE_INSTALL_PREFIX="/workspace/hdf5/bin" -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON; \
+    cmake --build "/workspace/hdf5/build" -j24 --target install; \
+    rm -r /workspace/hdf5/source; \
+    rm -r /workspace/hdf5/build
+
+# Install Med
+RUN mkdir /workspace/med; \
+    mkdir /workspace/med/build; \
+    mkdir /workspace/med/bin; \
+    mkdir /workspace/med/source; \
+    cd /workspace/med; \
+    curl -L -O -H "User-Agent: Mozilla/5.0" "https://files.salome-platform.org/Salome/medfile/med-5.0.0.tar.bz2"; \
+    cd /; \
+    tar -C /workspace/med/source -xvf /workspace/med/med-5.0.0.tar.bz2; \
+    cmake -H"/workspace/med/source/med-5.0.0" -B"/workspace/med/build"  -DCMAKE_INSTALL_PREFIX="/workspace/med/bin" -DMEDFILE_BUILD_TESTS=OFF -DMEDFILE_BUILD_SHARED_LIBS=ON -DHDF5_ROOT="/workspace/hdf5/bin"; \
+    cmake --build "/workspace/med/build" -j24 --target install; \
+    rm -r /workspace/med/source; \
+    rm -r /workspace/med/build
+
 # Install setuptools
 # 3.8
 RUN /opt/python/cp38-cp38/bin/python -m pip install --upgrade pip
