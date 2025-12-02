@@ -12,14 +12,17 @@
 
 #include "custom_utilities/math_utilities.h"
 #include "includes/checks.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
+#include "utilities/math_utils.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateDeterminants_ReturnsCorrectResults)
 {
     const std::vector<Matrix> matrices = {ScalarMatrix(1, 1, 3.0), ZeroMatrix(3, 3), IdentityMatrix(3) * 2.0};
 
@@ -29,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsCorrectResults, KratosGeo
     KRATOS_CHECK_VECTOR_NEAR(results, expected_results, 1.0e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsEmptyVectorForEmptyInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateDeterminants_ReturnsEmptyVectorForEmptyInput)
 {
     const std::vector<Matrix> matrices = {};
 
@@ -38,21 +41,21 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsEmptyVectorForEmptyInput,
     KRATOS_EXPECT_TRUE(results.empty())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Normalized_ReturnsNormalizedVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Normalized_ReturnsNormalizedVector)
 {
     const auto vector = Vector{ScalarVector(3, 2.0)};
     KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::Normalized(vector),
                               Vector{ScalarVector(3, 1 / std::sqrt(3))}, 1.0e-6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Normalized_ReturnsNormalizedVector_ForAllNegativeVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Normalized_ReturnsNormalizedVector_ForAllNegativeVector)
 {
     const auto vector = Vector{ScalarVector(3, -2.0)};
     KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::Normalized(vector),
                               Vector{ScalarVector(3, -1 / std::sqrt(3))}, 1.0e-6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Normalized_Throws_WhenInputtingZeroVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Normalized_Throws_WhenInputtingZeroVector)
 {
     const auto vector = Vector{ZeroVector(3)};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -60,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(Normalized_Throws_WhenInputtingZeroVector, KratosGeoMe
         "A zero vector cannot be normalized")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckRotateTensor, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckRotateTensor)
 {
     // Arrange
     Matrix stress_tensor = ZeroMatrix(3, 3);
@@ -89,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckRotateTensor, KratosGeoMechanicsFastSuiteWithoutK
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckVectorToDiagonalMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckVectorToDiagonalMatrix)
 {
     // Arrange
     auto vector = Vector(4);
@@ -106,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckVectorToDiagonalMatrix, KratosGeoMechanicsFastSui
     KRATOS_EXPECT_MATRIX_EQ(GeoMechanicsMathUtilities::VectorToDiagonalMatrix(vector), expected_result);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckDiagonalMatrixToVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckDiagonalMatrixToVector)
 {
     // Arrange
     auto matrix = Matrix(3, 3);
@@ -124,4 +127,5 @@ KRATOS_TEST_CASE_IN_SUITE(CheckDiagonalMatrixToVector, KratosGeoMechanicsFastSui
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = GeoMechanicsMathUtilities::DiagonalOfMatrixToVector(Matrix(3, 2)), "Error: Attempting to convert diagonal of matrix to vector, but matrix has fewer columns than rows");
 }
+
 } // namespace Kratos::Testing
