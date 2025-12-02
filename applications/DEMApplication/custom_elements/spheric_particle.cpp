@@ -870,7 +870,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
                                                             data_buffer.mIndentation,
                                                             ViscoDampingLocalContactForce,
                                                             cohesive_force,
-                                                            data_buffer.mpOtherParticle,
+                                                            data_buffer.mpOtherParticle,  //TODO: those parameters can be obtained from the data_buffer, why explictly passing them?
                                                             sliding,
                                                             data_buffer.mLocalCoordSystem,
                                                             data_buffer.mOldLocalCoordSystem,
