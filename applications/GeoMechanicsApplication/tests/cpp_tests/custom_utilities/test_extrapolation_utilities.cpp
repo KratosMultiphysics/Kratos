@@ -15,8 +15,9 @@
 #include "custom_utilities/nodal_extrapolator.h"
 #include "geometries/triangle_2d_10.h"
 #include "includes/checks.h"
+#include "includes/expect.h"
 #include "test_setup_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -25,7 +26,7 @@ using namespace Kratos;
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectors, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtrapolationUtilities_CalculateNodalVectors)
 {
     // Arrange
     const auto p_element = ElementSetupUtilities::Create2D3NElement();
@@ -93,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectors, KratosGe
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectorsForTriangle2D6, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtrapolationUtilities_CalculateNodalVectorsForTriangle2D6)
 {
     const auto p_element = ElementSetupUtilities::Create2D6NElement();
 
