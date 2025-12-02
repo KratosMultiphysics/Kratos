@@ -37,11 +37,9 @@ private:
     void static CheckIfGeometryIsSupported(const GeometryType& rGeometry);
     [[nodiscard]] static std::unique_ptr<GeometryType> CreateLowerOrderGeometry(const GeometryType& rGeometry);
     static void AddRowsForMidsideNodes(const GeometryType& rGeometry, Matrix& rExtrapolationMatrix);
-    [[nodiscard]] static Matrix CalculateExtrapolationMatrixForCornerNodes(
-        const GeometryType&                    rGeometry,
-        const GeometryData::IntegrationMethod& rIntegrationMethod,
-        const Geo::IntegrationPointVectorType& rIntegrationPoints,
-        const GeometryType&                    rCornerGeometry);
+    [[nodiscard]] static Matrix CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,
+                                                                           const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                                                                           const GeometryType& rCornerGeometry);
 };
 
 } // namespace Kratos

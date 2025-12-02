@@ -34,8 +34,8 @@ Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Elemen
 
     const auto integration_points = GeoElementUtilities::GetIntegrationPointsOf(rElement);
 
-    Matrix extrapolation_matrix = CalculateExtrapolationMatrixForCornerNodes(
-        r_geometry, rElement.GetIntegrationMethod(), integration_points, p_corner_geometry);
+    Matrix extrapolation_matrix =
+        CalculateExtrapolationMatrixForCornerNodes(r_geometry, integration_points, p_corner_geometry);
 
     if (p_lower_order_geometry) {
         AddRowsForMidsideNodes(r_geometry, extrapolation_matrix);
@@ -44,11 +44,9 @@ Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Elemen
     return extrapolation_matrix;
 }
 
-Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(
-    const GeometryType&                    rGeometry,
-    const GeometryData::IntegrationMethod& rIntegrationMethod,
-    const Geo::IntegrationPointVectorType& rIntegrationPoints,
-    const GeometryType&                    rCornerGeometry)
+Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,
+                                                                           const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                                                                           const GeometryType& rCornerGeometry)
 {
     const SizeType number_of_corner_nodes = rCornerGeometry.PointsNumber();
 
