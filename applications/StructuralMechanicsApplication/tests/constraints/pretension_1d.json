@@ -1,0 +1,92 @@
+{
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis",
+    "problem_data": {
+        "problem_name": "test_pretension_1d",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0,
+        "end_time": 1
+    },
+    "solver_settings": {
+        "time_stepping": {
+            "time_step": 0.5
+        },
+        "solver_type": "Static",
+        "model_part_name": "root",
+        "domain_size": 2,
+        "echo_level": 0,
+        "analysis_type": "linear",
+        "move_mesh_flag" : false,
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename" : "pretension_1d"
+        },
+        "material_import_settings": {
+            "materials_filename": "pretension_1d_materials.json"
+        },
+        "convergence_criterion": "displacement_criterion",
+        "displacement_relative_tolerance": 1e-4,
+        "displacement_absolute_tolerance": 1e-9,
+        "rotation_dofs" : true
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "root.dirichlet",
+                    "variable_name": "DISPLACEMENT",
+                    "interval": [0, "End"],
+                    "constrained": [true, true, false],
+                    "value": [0, 0, 0]
+                }
+            },
+            {
+                "python_module" : "insert_pretension_process",
+                "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+                "Parameters" : {
+                    "model_part_name" : "root.pretension_surface",
+                    "pretension_value" : 5e-1
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionToConditionProcess",
+                "Parameters": {
+                    "model_part_name": "root.neumann",
+                    "variable_name": "POINT_LOAD",
+                    "interval": [
+                        0, "End"
+                    ],
+                    "modulus": 0.0,
+                    "direction": [-2, 7, 0]
+                }
+            }
+        ]
+    },
+    "output_processes": {
+    "vtk_output": [
+      {
+        "Parameters": {
+          "folder_name": "vtk",
+          "model_part_name": "root",
+          "nodal_data_value_variables": [],
+          "nodal_solution_step_data_variables": [
+            "DISPLACEMENT",
+            "REACTION"
+          ],
+          "output_sub_model_parts": false,
+          "save_output_files_in_folder": true
+        },
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "VTKOutputProcess",
+        "python_module": "vtk_output_process"
+      }
+    ]
+  }
+}

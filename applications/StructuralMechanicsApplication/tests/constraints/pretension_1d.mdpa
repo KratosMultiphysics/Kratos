@@ -1,0 +1,46 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    1 0 0 0
+    2 1 0 0
+    3 2 0 0
+    4 0 2 0
+    5 1 2 0
+    6 2 2 0
+    7 1 1 0
+End Nodes
+
+Begin Elements CrBeamElement2D2N
+    1 0 1 2
+    2 0 2 3
+    3 0 4 5
+    4 0 5 6
+    5 0 2 7
+    6 0 7 5
+End Elements
+
+Begin Conditions PointLoadCondition2D1N
+    1 0 7
+End Conditions
+
+Begin SubModelPart neumann
+    Begin SubModelPartConditions
+        1
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart dirichlet
+    Begin SubModelPartNodes
+        1
+        3
+        4
+        6
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart pretension_surface
+    Begin SubModelPartConditions
+        1
+    End SubModelPartConditions
+End SubModelPart

@@ -1,0 +1,20 @@
+{
+    "properties": [
+        {
+            "model_part_name": "root",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "BeamConstitutiveLaw"
+                },
+                "Variables": {
+                    "DENSITY": 1e0,
+                    "YOUNG_MODULUS": 1e0,
+                    "POISSON_RATIO": 3e-1,
+                    "CROSS_AREA": 1e-3,
+                    "I33": 1e-5
+                }
+            }
+        }
+    ]
+}
