@@ -30,7 +30,7 @@
 # List of binaries for this application 
 # (This is a Kratos build script extension and will not work with python build)
 [kratos]
-    libs = ["KratosMetisApplication.*", "KratosMetisCore.*", "libKratosMetisCore.*"]
+    libs = ["KratosMetisApplication.*", "KratosMetisCore.*", "libKratosMetisCore.*", "libmetis.*"]
 
 # Wheel (py and stubs)
 [tool.hatch.build.targets.wheel]
