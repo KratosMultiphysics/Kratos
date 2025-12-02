@@ -37,18 +37,18 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                 "output_interval"             : 1,
                 "model_part_name"             : "",
 
-                "flip_sign"                   : true,       // if true, multiplies phi by -1 before processing
+                "flip_sign"                   : false,      // default: φ>0 is inside; set true only if your φ is opposite
                 "zero_tol"                    : 1e-12,      // classification stabilizer for phi≈0
                 "min_triangle_area"           : 0.0,        // absolute area threshold for sliver filtering
 
                 // Debug for capping
-                "debug_caps"                  : false,
-                "debug_first_n_caps"          : 1400,
+                "debug_caps"                  : true,
+                "debug_first_n_caps"          : 10,
 
                 // Debug for interior
-                "debug_interior"              : false,
-                "debug_first_n_interior"      : 300,
-                "debug_elem_ids"              : [],
+                "debug_interior"              : true,
+                "debug_first_n_interior"      : 10,
+                "debug_elem_ids"              : [1385, 1405],
 
                 // Optional lookup-table files (txt or json). If not given/found, tables are generated programmatically
                 "mc_edge_table_path"          : "",
@@ -129,11 +129,13 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         mp.CreateNewProperties(2)
 
         # Reset per-call registries
+        self._next_node_id = mp.NumberOfNodes() + 1
         self.created_nodes_by_coord.clear()
         self.created_nodes_by_edge.clear()
         self._caps_debug_count = 0
         self._dbg_interior_count = 0
         self._face_pairing_by_elem = {}  # (elem_id, face_idx) -> "consecutive" | "across"
+        self._face_edge_hits = {}  # key: (elem_id, face_idx) -> list[(nid, point3d)]
 
         # Build surfaces: interior MC + boundary caps
         self._build_interface_surfaces(mp)
@@ -209,6 +211,12 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             (3,  8,  7, 11),   # face 5: (3,0,4,7)  -> e3,e8,e7,e11
         ]
 
+        # edge -> list of face indices that contain this edge (for quick routing)
+        EDGE_TO_FACES = {e: [] for e in range(12)}
+        for f_idx, fedges in enumerate(FACE_EDGES):
+            for e in fedges:
+                EDGE_TO_FACES[e].append(f_idx)
+
         # Build a quick lookup: is (elem_id, face_idx) a boundary face?
         boundary_face_set = set()
         for _elem_b, _fidx_b, _ in self._collect_boundary_faces_hex8():
@@ -241,29 +249,48 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             return 0.5 * float(np.linalg.norm(np.cross(b - a, c - a)))
 
         def get_or_create_edge_node(edge_key: Tuple[int, int], p: np.ndarray) -> int:
-            """Deduplicate by mesh edge id; also register by rounded coordinate so caps can reuse."""
+            """Deduplicate by mesh edge id and by coordinate; allocate node IDs monotonically."""
+            # normalize key order
             if edge_key[0] > edge_key[1]:
                 edge_key = (edge_key[1], edge_key[0])
+
+            # 1) already have a node for this edge?
             nid = self.created_nodes_by_edge.get(edge_key)
             if nid is not None:
                 return nid
-            nid = len(self.created_nodes_by_coord) + 1
+
+            # 2) does a node with the same coordinates already exist?
+            key_p = tuple(np.round(np.asarray(p, float), 12))
+            nid = self.created_nodes_by_coord.get(key_p)
+            if nid is not None:
+                # reuse coordinate node; just map this edge to it
+                self.created_nodes_by_edge[edge_key] = nid
+                return nid
+
+            # 3) truly new node -> allocate a fresh, unique id
+            nid = self._next_node_id
+            self._next_node_id += 1
             mp_interface.CreateNewNode(nid, float(p[0]), float(p[1]), float(p[2]))
+
+            # register in both maps
             self.created_nodes_by_edge[edge_key] = nid
-            key_p = tuple(np.round(p, 12))
-            if key_p not in self.created_nodes_by_coord:
-                self.created_nodes_by_coord[key_p] = nid
+            self.created_nodes_by_coord[key_p] = nid
             return nid
 
+
         def get_or_create_point_node(p: np.ndarray) -> int:
-            key = tuple(np.round(p, 12))
+            """Create/reuse a point node by coordinate; allocate node IDs monotonically."""
+            key = tuple(np.round(np.asarray(p, float), 12))
             nid = self.created_nodes_by_coord.get(key)
             if nid is not None:
                 return nid
-            nid = len(self.created_nodes_by_coord) + 1
+
+            nid = self._next_node_id
+            self._next_node_id += 1
             mp_interface.CreateNewNode(nid, float(p[0]), float(p[1]), float(p[2]))
             self.created_nodes_by_coord[key] = nid
             return nid
+
 
         def interp_zero(p0, p1, f0, f1) -> np.ndarray:
             """Robust interpolation of the φ=0 point on segment (p0, p1)."""
@@ -315,7 +342,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
 
             cubeindex = 0
             for i in range(8):
-                if phi_cls[i] < 0.0:
+                if phi_cls[i] > 0.0:
                     cubeindex |= (1 << i)
 
             edge_mask = int(self._MC_EDGE_TABLE[cubeindex])
@@ -346,18 +373,31 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                     nid = get_or_create_edge_node((min(g0, g1), max(g0, g1)), p)
                     edge_node_ids[e] = nid
 
+                # Record this edge intersection for any boundary face that owns the edge
+                nid_e = edge_node_ids[e]
+                pt_e  = edge_points[e]
+                if nid_e is not None and pt_e is not None:
+                    for f_idx_hit in EDGE_TO_FACES[e]:
+                        if (elem.Id, f_idx_hit) in boundary_face_set:
+                            key = (elem.Id, f_idx_hit)
+                            lst = self._face_edge_hits.setdefault(key, [])
+                            # de-dup by nid
+                            if not any(nid_e == _nid for _nid, _ in lst):
+                                lst.append((nid_e, pt_e.copy()))
+
+
             # ---- Emit triangles WITHOUT TRI_TABLE (Lewiner-style, with face-labeled adjacency) ----
             def asymptotic_inside_face(f00, f10, f01, f11, eps_dec=1e-30) -> bool:
                 a = f00 - f01 - f10 + f11
                 if abs(a) < eps_dec:
-                    return (0.25 * (f00 + f10 + f01 + f11) < 0.0)
+                    return (0.25 * (f00 + f10 + f01 + f11) > 0.0)
                 u = (f00 - f01) / a
                 v = (f00 - f10) / a
                 if 0.0 <= u <= 1.0 and 0.0 <= v <= 1.0:
                     val = a * u * v + (f10 - f00) * u + (f01 - f00) * v + f00
                 else:
                     val = 0.25 * (f00 + f10 + f01 + f11)
-                return (val < 0.0)
+                return (val > 0.0)
 
             # adjacency: edge -> list of (neighbor_edge, face_id)
             neighbors: Dict[int, List[Tuple[int, int]]] = {e: [] for e in range(12) if (edge_mask & (1 << e))}
@@ -532,12 +572,12 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             # 4 local vertex indices in cyclic order for this face
             local_face = FACE_NODES[face_idx]
 
-            # Coordinates and phi (signed)
+            # Coordinates and phi on the 4 face nodes + full 8 for bias / edge φ
             P4 = np.array([[geom[i].X, geom[i].Y, geom[i].Z] for i in local_face], dtype=float)
             F4 = np.array([self.control_field[geom[i].Id - 1] for i in local_face], dtype=float)
-            F8 = np.array([self.control_field[n.Id - 1] for n in geom], dtype=float)  # for bias + edge φ
+            F8 = np.array([self.control_field[n.Id - 1] for n in geom], dtype=float)
 
-            # element size for snapping tol
+            # Element size for snapping tolerance
             all_xyz = np.array([[n.X, n.Y, n.Z] for n in geom], dtype=float)
             h = np.max(np.linalg.norm(all_xyz - all_xyz.mean(axis=0), axis=1))
             snap_tol = max(1e-12, 1e-8 * h)
@@ -545,14 +585,16 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
             # Element-wide bias sign to resolve near-zero faces consistently (info only)
             bias_sign = -1.0 if np.sum(F8) < 0.0 else 1.0
 
-            # build cap + get debug payload
+            # Build cap + get debug payload
             pairing = self._face_pairing_by_elem.get((elem.Id, face_idx))  # "consecutive" | "across" | None
-            cap_tris, dbg = self._cap_face_from_edges(P4, F4, bias_sign, return_debug=True, pairing_override=pairing)
+            cap_tris, dbg = self._cap_face_from_edges(
+                P4, F4, bias_sign, return_debug=True, pairing_override=pairing
+            )
 
             if not cap_tris:
                 continue
 
-            if self.debug_caps and (self.debug_first_n_caps == 0 or self._caps_debug_count < self.debug_first_n_caps):
+            if self.debug_caps and (elem.Id in self.debug_elem_ids):
                 face_globals = [geom[i].Id for i in local_face]
                 Kratos.Logger.PrintInfo(
                     "CapFace",
@@ -587,6 +629,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                     nid_edge = self.created_nodes_by_edge.get(key_edge)
                     if nid_edge is None:
                         continue
+
                     # expected intersection on this edge using element φ
                     p0 = np.array([geom[v0].X, geom[v0].Y, geom[v0].Z], dtype=float)
                     p1 = np.array([geom[v1].X, geom[v1].Y, geom[v1].Z], dtype=float)
@@ -600,31 +643,120 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
                         p_expected = p1
                     else:
                         p_expected = p0 + (f0 / (f0 - f1)) * (p1 - p0)
+
                     if np.linalg.norm(pt - p_expected) <= snap_tol:
                         return nid_edge
+
                 return None
 
+            # Per-face de-dup of triangles (sorted node-id triples)
+            emitted: set[tuple[int, int, int]] = set()
+
+            # Local cap graph: vertices + edges on this face
+            cap_vtx: Dict[int, np.ndarray] = {}      # nid -> point
+            cap_edges: set[tuple[int, int]] = set()  # (a,b) with a<b
+
+            def _add_edge(a: int, b: int):
+                cap_edges.add((a, b) if a < b else (b, a))
+
+            def _emit_face_tri(ids: list[int], P0: np.ndarray, P1: np.ndarray, P2: np.ndarray) -> bool:
+                """Emit a triangle on this face, de-duplicated by node ids, and
+                build a tiny adjacency graph (cap_vtx + cap_edges)."""
+                key = tuple(sorted(ids))
+                if key in emitted:
+                    return False
+
+                mp_interface.CreateNewCondition("SurfaceCondition3D3N", cond_id, ids, prop)
+                emitted.add(key)
+
+                # update graph
+                cap_vtx.setdefault(ids[0], np.asarray(P0, float))
+                cap_vtx.setdefault(ids[1], np.asarray(P1, float))
+                cap_vtx.setdefault(ids[2], np.asarray(P2, float))
+                _add_edge(ids[0], ids[1])
+                _add_edge(ids[1], ids[2])
+                _add_edge(ids[2], ids[0])
+                return True
+
+            # 1) emit the cap tris, with de-dup
             for t_idx, tri in enumerate(cap_tris):
                 p0, p1, p2 = tri[0], tri[1], tri[2]
                 if self.min_triangle_area > 0.0 and tri_area(p0, p1, p2) <= self.min_triangle_area:
                     continue
-                ids = []
+
+                ids: list[int] = []
                 for p in (p0, p1, p2):
                     nid = snap_point_to_edge_node(p)
                     if nid is None:
                         nid = get_or_create_point_node(p)
                     ids.append(nid)
-                mp_interface.CreateNewCondition("SurfaceCondition3D3N", cond_id, ids, prop)
 
-                if self.debug_caps and (self.debug_first_n_caps == 0 or self._caps_debug_count < self.debug_first_n_caps):
-                    Kratos.Logger.PrintInfo(
-                        "CapFace",
-                        f"  tri{t_idx}: node_ids={ids} "
-                        f"coords={np.round(p0,12).tolist()} | {np.round(p1,12).tolist()} | {np.round(p2,12).tolist()}"
-                    )
-                cond_id += 1
+                if _emit_face_tri(ids, p0, p1, p2):
+                    if self.debug_caps and (elem.Id in self.debug_elem_ids):
+                        Kratos.Logger.PrintInfo(
+                            "CapFace",
+                            f"  tri{t_idx}: node_ids={ids} "
+                            f"coords={np.round(p0,12).tolist()} | "
+                            f"{np.round(p1,12).tolist()} | {np.round(p2,12).tolist()}"
+                        )
+                    cond_id += 1
 
-            if self.debug_caps and (self.debug_first_n_caps == 0 or self._caps_debug_count < self.debug_first_n_caps):
+            # 2) stitch any interior MC edge hits that lie on THIS face
+            hits = self._face_edge_hits.get((elem.Id, face_idx), [])
+            if hits and cap_edges:
+                # local distance + area helpers
+                def _dist_point_segment(P, A, B):
+                    AP = P - A
+                    AB = B - A
+                    ab2 = float(AB @ AB)
+                    if ab2 <= 1e-30:
+                        return float(np.linalg.norm(AP)), 0.0
+                    t = float((AP @ AB) / ab2)
+                    t = 0.0 if t < 0.0 else (1.0 if t > 1.0 else t)
+                    Q = A + t * AB
+                    return float(np.linalg.norm(P - Q)), t
+
+                # small local floor to avoid needle-like stitches
+                L = float(np.linalg.norm(P4.max(axis=0) - P4.min(axis=0)))
+                area_floor = max(self.min_triangle_area, 1e-14 * L * L)
+
+                for (nid, P) in hits:
+                    # If this nid was already used by the cap on this face, nothing to do
+                    if nid in cap_vtx:
+                        continue
+
+                    # Find nearest cap edge on this face
+                    best = None
+                    best_ab = None
+                    for (a, b) in cap_edges:
+                        A = cap_vtx.get(a)
+                        B = cap_vtx.get(b)
+                        if A is None or B is None:
+                            continue
+                        d, _ = _dist_point_segment(P, A, B)
+                        if best is None or d < best:
+                            best = d
+                            best_ab = (a, b, A, B)
+
+                    if best_ab is None:
+                        continue
+
+                    a, b, A, B = best_ab
+                    # Area check
+                    area = 0.5 * float(np.linalg.norm(np.cross(A - P, B - P)))
+                    if area <= area_floor:
+                        continue
+
+                    # Emit stitched triangle (nid, a, b) if not already present
+                    if _emit_face_tri([nid, a, b], P, A, B):
+                        if self.debug_caps and (elem.Id in self.debug_elem_ids):
+                            Kratos.Logger.PrintInfo(
+                                "CapFaceStitch",
+                                f"elem={elem.Id} face_idx={face_idx} tri=[{nid},{a},{b}]"
+                            )
+                        cond_id += 1
+
+            if self.debug_caps and (elem.Id in self.debug_elem_ids):
                 self._caps_debug_count += 1
 
     # ---------------------------------------------------------------------
@@ -710,7 +842,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         if bias_sign == 0.0:
             bias_sign = 1.0
         Gcls[np.abs(Gcls) < eps] = eps * (-1.0 if bias_sign < 0.0 else 1.0)
-        inside = (Gcls < 0.0) | np.isclose(Gcls, 0.0)
+        inside = (Gcls > 0.0) | np.isclose(Gcls, 0.0)
         b0, b1, b2, b3 = [int(x) for x in inside]
         case = (b0) | (b1 << 1) | (b2 << 2) | (b3 << 3)
 
@@ -734,7 +866,7 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
 
         for e, (i, j) in enumerate(pairs):
             gi, gj = float(Gz[i]), float(Gz[j])
-            if (gi < 0.0) != (gj < 0.0) or gi == 0.0 or gj == 0.0:
+            if (gi > 0.0) != (gj > 0.0) or gi == 0.0 or gj == 0.0:
                 cut_flags[e] = True
                 cut[e] = edge_point(i, j, gi, gj)
 
@@ -742,14 +874,14 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
         def asymptotic_inside(f00, f10, f01, f11) -> bool:
             a = f00 - f01 - f10 + f11
             if abs(a) < 1e-30:
-                return (0.25 * (f00 + f10 + f01 + f11) < 0.0)
+                return (0.25 * (f00 + f10 + f01 + f11) > 0.0)
             u = (f00 - f01) / a
             v = (f00 - f10) / a
             if 0.0 <= u <= 1.0 and 0.0 <= v <= 1.0:
                 val = a * u * v + (f10 - f00) * u + (f01 - f00) * v + f00
             else:
                 val = 0.25 * (f00 + f10 + f01 + f11)
-            return (val < 0.0)
+            return (val > 0.0)
 
         f00, f10, f01, f11 = float(G[0]), float(G[1]), float(G[3]), float(G[2])
         center_inside = asymptotic_inside(f00, f10, f01, f11)
@@ -1074,67 +1206,6 @@ class MarchingCubesInterfaceOutputProcess2(Kratos.OutputProcess):
 
         return EDGE_TABLE, TRI_TABLE
 
-    # ---------------------------------------------------------------------
-    # Helper: interpolation and clipping
-    # ---------------------------------------------------------------------
-    def _interp_on_edge(self, p0: np.ndarray, p1: np.ndarray, f0: float, f1: float) -> np.ndarray:
-        """Robust linear interpolation of the φ=0 point on segment (p0,p1)."""
-        p0 = np.asarray(p0, float)
-        p1 = np.asarray(p1, float)
-        eps = 1e-30
-        if abs(f0) < eps and abs(f1) < eps:
-            return 0.5 * (p0 + p1)
-        if abs(f0) < eps:
-            return p0
-        if abs(f1) < eps:
-            return p1
-        denom = (f0 - f1)
-        t = 0.5 if abs(denom) < eps else (f0 / denom)
-        # clamp tiny overshoots from FP noise
-        if t < -1e-12:
-            t = 0.0
-        if t > 1.0 + 1e-12:
-            t = 1.0
-        return p0 + t * (p1 - p0)
-
-    def _clip_triangle_phi_le_zero(self, P3x3: np.ndarray, F3: np.ndarray) -> list:
-        """
-        Clip a single triangle (3x3 points P3x3 with scalar values F3 at the vertices)
-        against the half-space φ <= 0 (using self.zero_tol). Returns list of triangles.
-        """
-        P = np.asarray(P3x3, float)
-        F = np.asarray(F3, float)
-        tol = float(self.zero_tol)
-
-        inside = [F[i] <= tol for i in range(3)]
-        idx_in = [i for i, s in enumerate(inside) if s]
-        idx_out = [i for i, s in enumerate(inside) if not s]
-
-        # all in / all out
-        if len(idx_in) == 3:
-            return [P.copy()]
-        if len(idx_in) == 0:
-            return []
-
-        # 1 inside, 2 outside -> one clipped triangle
-        if len(idx_in) == 1:
-            i = idx_in[0]
-            j, k = idx_out
-            A = self._interp_on_edge(P[i], P[j], F[i], F[j])
-            B = self._interp_on_edge(P[i], P[k], F[i], F[k])
-            return [np.array([P[i], A, B], dtype=float)]
-
-        # 2 inside, 1 outside -> quad -> two triangles
-        if len(idx_in) == 2:
-            i, j = idx_in
-            k = idx_out[0]
-            A = self._interp_on_edge(P[i], P[k], F[i], F[k])
-            B = self._interp_on_edge(P[j], P[k], F[j], F[k])
-            # Fan triangulation of polygon [Pi, Pj, B, A]
-            return [
-                np.array([P[i], P[j], B], dtype=float),
-                np.array([P[i], B, A], dtype=float),
-            ]
 
     # ---------------------------------------------------------------------
     # Triangulation of a 3D polygon

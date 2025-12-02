@@ -36,8 +36,19 @@ class LevelSetControlShape(Control):
             "density"                           : 1.0,
             "young_modulus"                     : 1.0,
             "k"                                 : 400.0,
+            "init_mode"                         : "SDF",
             "initial_phi_value"                 : 0.0,
-            "mininum_modulus"                   : 1000000,
+            "min_dirac"                         : 0.1,
+            "perforated_plate"                  : {"n_holes_x": 3,
+                                                   "n_holes_y": 3,
+                                                   "radius": 0.1,
+                                                   "margin_x": 0.0,
+                                                   "margin_y": 0.0,
+                                                   "min_dirac": 0.1,
+                                                   "pattern": "rectangular",
+                                                   "staggered_shift": 0.5 
+                                                    },
+            "mininum_modulus"                   : 1e-6,
             "reinit_interval"                   : 20
         }""")
 
@@ -51,7 +62,7 @@ class LevelSetControlShape(Control):
         self.density = parameters["density"].GetDouble()
         self.young_modulus = parameters["young_modulus"].GetDouble()
         self.k = parameters["k"].GetDouble()
-        self.initial_phi = parameters["initial_phi_value"].GetDouble()
+        self.init_mode = parameters["init_mode"].GetString()
         self.epsilon = parameters["mininum_modulus"].GetDouble()
         self.reinit_interval = parameters["reinit_interval"].GetInt()
 
@@ -98,11 +109,32 @@ class LevelSetControlShape(Control):
 
 
         # # get the control field
-        # self.control_phi = self.GetEmptyField()
-        # Kratos.Expression.LiteralExpressionIO.SetData(self.control_phi, self.initial_phi)
-        # initialize as SDF
-        self.physical_phi = self._InitializeSignedDistanceKDTree(min_dirac=0.1)
-        self.control_phi = self.filter.UnfilterField(self.physical_phi)
+        if self.init_mode == "const":
+            self.initial_phi = self.parameters["initial_phi_value"].GetDouble()
+            self.physical_phi = self.GetEmptyField()
+            Kratos.Expression.LiteralExpressionIO.SetData(self.physical_phi, self.initial_phi)
+            self.control_phi = self.filter.UnfilterField(self.physical_phi)
+        elif self.init_mode == "SDF":
+            min_dirac = self.parameters["min_dirac"].GetDouble()
+            self.physical_phi = self._InitializeSignedDistanceKDTree(min_dirac)
+            self.control_phi = self.filter.UnfilterField(self.physical_phi)
+        elif self.init_mode == "perforated_plate":
+            perforated_plate = self.parameters["perforated_plate"]
+            holes_x = perforated_plate["n_holes_x"].GetInt()
+            holes_y = perforated_plate["n_holes_y"].GetInt()
+            radius = perforated_plate["radius"].GetDouble()
+            margin_x = perforated_plate["margin_x"].GetDouble()
+            margin_y = perforated_plate["margin_y"].GetDouble()
+            min_dirac = perforated_plate["min_dirac"].GetDouble()
+            pattern = perforated_plate["pattern"].GetString()
+            staggered_shift = perforated_plate["staggered_shift"].GetDouble()
+            self.physical_phi = self._InitializePerforatedPlate(holes_x, holes_y, radius, margin_x, margin_y, min_dirac, pattern, staggered_shift)
+            self.control_phi = self.filter.UnfilterField(self.physical_phi)
+        else:
+            raise RuntimeError(f"Initialization mode does not match the existing options. Modes:\n\
+                               \"const\": whole domain is initialized with a constant value. Requires \"initial_phi\".\n\
+                               \"SDF\": domain is initialized by signed distance function. Requires \"min_dirac\".\n\
+                               \"perforated_plate\": domain is initialized as preforated plates with signed distance function. Requires \"perforated_plate\"")
 
         # get element sizes (no remeshing)
         self.element_len = self._GetElementLength()
@@ -111,7 +143,7 @@ class LevelSetControlShape(Control):
         self._UpdateAndOutputFields(self.GetEmptyField())
 
     # Build a signed distance function φ using a KDTree for unstructured FEM nodes.
-    def _InitializeSignedDistanceKDTree(self, interface_points=None, min_dirac=0.1) -> ContainerExpressionTypes:
+    def _InitializeSignedDistanceKDTree(self, min_dirac) -> ContainerExpressionTypes:
         interface_points = np.array([[node.X, node.Y, node.Z] for node in self.model_part.GetSubModelPart("BOUNDARY_NODES").Nodes])
         nodes = np.array([[node.X, node.Y, node.Z] for node in self.model_part.Nodes])
 
@@ -144,6 +176,126 @@ class LevelSetControlShape(Control):
 
         print(f"Initialized signed distance φ in range: [{phi_values.min():.3f}, {phi_values.max():.3f}]")
 
+        np.savetxt("SDF.txt", phi_exp.Evaluate())
+
+        return phi_exp
+
+
+    def _InitializePerforatedPlate(self,
+                                n_holes_x: int,
+                                n_holes_y: int,
+                                radius: float,
+                                margin_x: float = 0.0,
+                                margin_y: float = 0.0,
+                                min_dirac: float = 0.1,
+                                pattern: str = "staggered",  # "rectangular" or "staggered"
+                                staggered_shift: float = 0.5,      # fraction of dx for stagger
+                                add_left_boundary_holes: bool = True,
+                                add_right_boundary_holes: bool = False):
+        """
+        Initialize φ as a signed-distance field for a plate with a grid of circular holes.
+
+        φ > 0 : material (matrix)
+        φ < 0 : holes (void)
+
+        pattern:
+        - "rectangular": standard aligned grid
+        - "staggered": every second row shifted in x by staggered * dx
+
+        add_left_boundary_holes / add_right_boundary_holes:
+        - if True, extend the pattern by one column to the left/right (i = -1 or i = n_holes_x)
+            but only if that extra circle intersects the domain.
+        """
+
+        # --- collect node coordinates (2D pattern, extruded in Z) ---
+        node_list = list(self.model_part.Nodes)
+        node_coords = np.array([[node.X, node.Y] for node in node_list], dtype=float)  # (N, 2)
+
+        # --- domain bounds in X and Y ---
+        x_min, y_min = node_coords.min(axis=0)
+        x_max, y_max = node_coords.max(axis=0)
+
+        # inner region for *interior* hole centers
+        x_min_holes = x_min + margin_x
+        x_max_holes = x_max - margin_x
+        y_min_holes = y_min + margin_y
+        y_max_holes = y_max - margin_y
+
+        # --- vertical (row) positions ---
+        if n_holes_y == 1:
+            hY = np.array([(y_min_holes + y_max_holes) * 0.5])
+        else:
+            hY = np.linspace(y_min_holes, y_max_holes, n_holes_y)
+
+        centers = []
+
+        if n_holes_x == 1:
+            # single column: just use mid-x for all rows (no staggered support here)
+            x_mid = 0.5 * (x_min_holes + x_max_holes)
+            for y in hY:
+                centers.append([x_mid, y])
+        else:
+            # base spacing
+            dx = (x_max_holes - x_min_holes) / (n_holes_x - 1)
+
+            for j, y in enumerate(hY):
+                # stagger every second row if staggered
+                if pattern.lower() == "staggered" and (j % 2 == 1):
+                    shift = staggered_shift * dx
+                else:
+                    shift = 0.0
+
+                # optional extra hole to the LEFT (i = -1)
+                if add_left_boundary_holes:
+                    x_left = x_min_holes - dx + shift
+                    # distance from this center to left boundary
+                    dist_left = x_min - x_left
+                    if dist_left < radius:
+                        centers.append([x_left, y])
+
+                # interior holes i = 0..n_holes_x-1
+                for i in range(n_holes_x):
+                    x = x_min_holes + i * dx + shift
+                    centers.append([x, y])
+
+                # optional extra hole to the RIGHT (i = n_holes_x)
+                if add_right_boundary_holes:
+                    x_right = x_max_holes + dx + shift
+                    # distance from this center to right boundary
+                    dist_right = x_right - x_max
+                    if dist_right < radius:
+                        centers.append([x_right, y])
+
+        centers = np.asarray(centers, dtype=float)  # (N_holes_total, 2)
+
+        # --- vectorized signed distance to nearest hole ---
+        d = node_coords[:, np.newaxis, :] - centers[np.newaxis, :, :]  # (N_nodes, N_holes, 2)
+        dist = np.linalg.norm(d, axis=2)                               # (N_nodes, N_holes)
+        phi_values = np.min(dist - radius, axis=1)                     # (N_nodes,)
+
+        # --- scale & clip as before ---
+        self.max_phi = 1.0 / (2.0 * self.k) * np.log(
+            (self.k - min_dirac + np.sqrt(self.k * (self.k - min_dirac))) / (2.0 * min_dirac)
+        )
+
+        max_abs = np.max(np.abs(phi_values))
+        if max_abs > 0.0:
+            phi_values /= max_abs  # normalize to [-1, 1]
+
+        phi_values *= self.max_phi
+        phi_values = np.clip(phi_values, -self.max_phi, self.max_phi)
+
+        phi_exp = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.CArrayExpressionIO.Read(phi_exp, phi_values)
+
+        print(
+            f"Initialized perforated plate φ in range: "
+            f"[{phi_values.min():.3f}, {phi_values.max():.3f}] "
+            f"with {n_holes_x}×{n_holes_y} interior holes, r = {radius}, "
+            f"pattern = {pattern}, margins = ({margin_x}, {margin_y})"
+        )
+        np.savetxt("perforated_plate.txt", phi_exp.Evaluate())
+
         return phi_exp
 
 
@@ -168,7 +320,7 @@ class LevelSetControlShape(Control):
             # |∇φ|
             grad_phi_elem = Kratos.Expression.ElementExpression(self.model_part)
             KratosOA.ExpressionUtils.GetGradientExpression(
-                grad_phi_elem, self.physical_phi, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+                grad_phi_elem, self.control_phi, self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
             )
             grad_norm = np.linalg.norm(grad_phi_elem.Evaluate(), axis=1)
             grad_norm_exp = Kratos.Expression.ElementExpression(self.model_part)
@@ -184,16 +336,16 @@ class LevelSetControlShape(Control):
 
             # Explicit update
             update = -sign_phi_exp * (grad_norm_nodal - 1.0)
-            self.physical_phi += update * dtau
-            self.physical_phi = Kratos.Expression.Utils.Collapse(self.physical_phi)
+            self.control_phi += update * dtau
+            self.control_phi = Kratos.Expression.Utils.Collapse(self.control_phi)
 
             # Soft normalization to keep phi within [-a, a]
-            phi_np = self.physical_phi.Evaluate()
+            phi_np = self.control_phi.Evaluate()
             # max_abs = np.max(np.abs(phi_np))
             phi_np /= np.max(np.abs(phi_np))  # normalize to [-1, 1]
             phi_np *= self.max_phi                  # rescale to [-phi_max, phi_max]
-            Kratos.Expression.CArrayExpressionIO.Read(self.physical_phi, phi_np)
-            self.physical_phi = self.filter.ForwardFilterField(self.physical_phi)
+            Kratos.Expression.CArrayExpressionIO.Read(self.control_phi, phi_np)
+            self.physical_phi = self.filter.ForwardFilterField(self.control_phi)
 
             if self.echo_level > 0 and it % 5 == 0:
                 print(f"[Reinit] Iter {it}/{num_iterations} | mean(|∇φ|-1) = {np.mean(np.abs(grad_norm - 1)):.3e}")
@@ -283,11 +435,12 @@ class LevelSetControlShape(Control):
             self.control_phi += new_update
             self.control_phi = Kratos.Expression.Utils.Collapse(self.control_phi)
 
-            # Reinitialize the LSF as Signed Distance Function
-            # if self.optimization_problem.GetStep() % self.reinit_interval == 0:
-            #     self._ReinitializePhiSussman(num_iterations=15)
-
             self._UpdateAndOutputFields(new_update)
+
+            # Reinitialize the LSF as Signed Distance Function
+            if self.optimization_problem.GetStep() % self.reinit_interval == 0:
+                self._ReinitializePhiSussman(num_iterations=15)
+
             self.filter.Update()
             return True
 
@@ -361,7 +514,7 @@ class LevelSetControlShape(Control):
         elemental_velocity = Kratos.Expression.ElementExpression(self.model_part)
         KratosOA.ExpressionUtils.ProjectNodalToElementalViaShapeFunctions(elemental_velocity, design_velocity)
         time = self.element_len / Kratos.Expression.Utils.Abs(elemental_velocity)
-        return min(time.Evaluate()) #* 0.1    
+        return min(time.Evaluate()) * 0.1    
 
     @staticmethod
     def ComputeHeavisideValue(phi: ContainerExpressionTypes, k: float) -> ContainerExpressionTypes:  
