@@ -252,8 +252,9 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
         with self.subTest('All ranks (MPI_COMM_WORLD)'):
             self._RunParametrized(params_string)
 
-        with self.subTest('SubComm'):
-            self._RunParametrizedWithSubComm(params_string)
+        # NOTE: SuperLUDist apparently is not compatible with subcommunicators
+        # with self.subTest('SubComm'):
+        #     self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos2_mumps(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_mumps") ):
