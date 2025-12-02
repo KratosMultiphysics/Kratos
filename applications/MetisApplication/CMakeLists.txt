@@ -77,12 +77,13 @@ install(TARGETS KratosMetisApplication DESTINATION libs )
 
 # Install Metis with libs with sonames
 foreach(LIB_FILE ${METIS_LIBRARIES})
+    get_filename_component(LIB_NAME "${LIB_FILE}" NAME)
     get_filename_component(LIB_REAL "${LIB_FILE}" REALPATH)
     get_filename_component(LIB_DIR  "${LIB_FILE}" DIRECTORY)
-    file(GLOB SYMLINKS "${LIB_DIR}/$(basename ${LIB_REAL})*")
+    file(GLOB SYMLINKS "${LIB_DIR}/${LIB_NAME}*")
     
-    install(FILES "${LIB_REAL}" DESTINATION lib)
-    install(FILES "${SYMLINKS}" DESTINATION lib)
+    install(FILES "${LIB_REAL}" DESTINATION libs)
+    install(FILES "${SYMLINKS}" DESTINATION libs)
 endforeach()
 
 # Clean up any potential duplicates
