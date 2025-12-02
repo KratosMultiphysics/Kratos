@@ -258,8 +258,6 @@
                 "process_name" : "ApplyExcavationProcess",
                 "Parameters"   : {
                     "model_part_name_list": [
-                        "PorousDomain.Clay_Upper_Right", "PorousDomain.Wall_Clay_Interface_Upper_Right",
-                        "PorousDomain.Clay_Middle_Right", "PorousDomain.Wall_Clay_Interface_Middle_Right",
                         "PorousDomain.Clay_Lower_Right", "PorousDomain.Wall_Clay_Interface_Lower_Right"
                     ],
                     "deactivate_soil_part": true

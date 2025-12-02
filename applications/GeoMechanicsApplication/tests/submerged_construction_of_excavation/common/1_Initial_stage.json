@@ -252,7 +252,6 @@
                         "PorousDomain.Clay_Left", "PorousDomain.Clay_Upper_Right", "PorousDomain.Clay_Middle_Right",
                         "PorousDomain.Clay_Lower_Right", "PorousDomain.Sand_Left", "PorousDomain.Sand_Right"
                     ],
-                    "variable_name"         : "CAUCHY_STRESS_TENSOR",
                     "use_standard_procedure": true
                 }
             }
