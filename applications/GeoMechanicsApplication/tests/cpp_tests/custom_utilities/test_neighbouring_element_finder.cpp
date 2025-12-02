@@ -10,16 +10,16 @@
 //  Main authors:    Richard Faasse
 //
 
+#include "containers/model.h"
 #include "custom_utilities/neighbouring_element_finder.hpp"
 #include "test_setup_utilities/element_setup_utilities.h"
 #include "test_setup_utilities/model_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsEmptyListWhenNoNeighbouringElements,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NeighbouringElementFinder_ReturnsEmptyListWhenNoNeighbouringElements)
 {
     Model model;
     auto& r_model_part_for_neighbouring_elements = model.CreateModelPart("empty");
@@ -37,8 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsEmptyListWhenNoNeighb
     EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsCorrectNeighbouringElementOfElement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NeighbouringElementFinder_ReturnsCorrectNeighbouringElementOfElement)
 {
     Model model;
 
@@ -64,8 +63,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsCorrectNeighbouringEl
     EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 42);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsCorrectNeighbouringElementOfElement_WhenRunningSearchTwice,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       NeighbouringElementFinder_ReturnsCorrectNeighbouringElementOfElement_WhenRunningSearchTwice)
 {
     Model model;
 
@@ -97,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_ReturnsCorrectNeighbouringEl
     EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 42);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_NeverRefersToItselfAsNeighbour, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NeighbouringElementFinder_NeverRefersToItselfAsNeighbour)
 {
     Model model;
 
@@ -113,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_NeverRefersToItselfAsNeighbo
     EXPECT_EQ(r_model_part_for_entities_for_finding.GetElement(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenTwoContinua, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NeighbouringElementFinder_FindsNeighboursBetweenTwoContinua)
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
@@ -144,8 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenTwoCon
     EXPECT_EQ(p_element_2->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenInterfaceAndContinuum,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NeighbouringElementFinder_FindsNeighboursBetweenInterfaceAndContinuum)
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
@@ -177,8 +175,7 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenInterf
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenQuadraticInterfaceAndContinuum,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NeighbouringElementFinder_FindsNeighboursBetweenQuadraticInterfaceAndContinuum)
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
@@ -210,8 +207,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenQuadra
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenQuadraticSurfaceInterfaceAnd3DContinuum,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       NeighbouringElementFinder_FindsNeighboursBetweenQuadraticSurfaceInterfaceAnd3DContinuum)
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
