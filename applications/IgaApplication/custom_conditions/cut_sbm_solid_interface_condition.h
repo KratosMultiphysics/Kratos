@@ -261,6 +261,8 @@ void CalculateB(
     Matrix& rB,
     Matrix& r_DN_DX) const;
 
+double GetCharacteristicGeometryLengthScalar() const;
+
 /**
  * @brief Compute the constitutive law response for the given strain vector.
  * 
@@ -273,7 +275,8 @@ void ApplyConstitutiveLaw(
         SizeType matSize, 
         Vector& rStrain, 
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveVariables& rConstitutiVariables);
+        ConstitutiveVariables& rConstitutiVariables,
+        ConstitutiveLaw::Pointer pConstitutiveLaw);
 
 /**
  * @brief 
@@ -330,7 +333,8 @@ double ComputeTaylorTerm3D(
 
 ///@name Protected member Variables
 ///@{
-    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+    ConstitutiveLaw::Pointer mpConstitutiveLawPlus;  /// Constitutive law for the plus surrogate
+    ConstitutiveLaw::Pointer mpConstitutiveLawMinus; /// Constitutive law for the minus surrogate
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpace;

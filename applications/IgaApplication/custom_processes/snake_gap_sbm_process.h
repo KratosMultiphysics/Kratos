@@ -318,7 +318,9 @@ private:
     std::string mGapInterfaceConditionName;
     std::size_t mInternalDivisions;
     std::size_t mGapApproximationOrder;
+    std::size_t mGapInterpolationOrder;
     std::string mGapSbmType;
+    bool mUseForMultipatch = false;
 
     /**
      * @brief Creates the gap SBM geometries for the configured model part.
@@ -1076,6 +1078,39 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> FindClos
     const Vector& rKnotSpanSizes,
     const KnotSpanIdsCSR& rSkinConditionsPerSpan,
     const Vector& rDirection);
+    
+/**
+* @brief Attaches the surrogate middle geometry to skin nodes.
+* @param rSkinSubModelPart Skin model part containing the nodes.
+* @param rSegmentProjectionIds Projection node ids for each surrogate segment node.
+* @param pSurrogateMiddleGeometry Surrogate middle brep geometry.
+* @param pProjectionNode1 First projection node on the skin.
+* @param pProjectionNode2 Second projection node on the skin.
+*/
+void AttachSurrogateMiddleGeometryToSkinNodes(
+    const ModelPart& rSkinSubModelPart,
+    const std::vector<IndexType>& rSegmentProjectionIds,
+    GeometryType::Pointer pSurrogateMiddleGeometry,
+    const NodeType::Pointer& pProjectionNode1,
+    const NodeType::Pointer& pProjectionNode2);
+
+/**
+    * @brief Synchronizes neighbour geometries of the first and last skin nodes.
+    * @param rSkinSubModelPart Skin model part whose end nodes will be updated.
+    */
+void SynchronizeEndSkinNodeNeighbourGeometries(const ModelPart& rSkinSubModelPart);
+
+/**
+    * @brief Creates multipatch coupling conditions on the inner skin.
+    * @param rSkinSubModelPart Skin model part containing the inner-loop conditions.
+    * @param rKnotSpanSizes Knot-span sizes used to scale integration data.
+    * @param pNurbsSurface Pointer to the NURBS surface hosting the SBM geometry.
+    */
+void CreateInnerSkinMultipatchCouplingConditions(
+    const ModelPart& rSkinSubModelPart,
+    const Vector& rKnotSpanSizes,
+    NurbsSurfaceType::Pointer& pNurbsSurface);
+
 
 }; // Class SnakeGapSbmProcess
 

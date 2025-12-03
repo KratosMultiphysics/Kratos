@@ -122,38 +122,6 @@ class CreateBrepsSbmUtilities : public IO
         CreateBrepCurvesOnRectangle(pSurface, rCoordsA, rCoordsB, id_brep_curve_on_surface, rModelPart);
     }
 
-    /**
-     * @brief Create a Single Brep object
-     * 
-     * @param pFirstBrepPoint 
-     * @param pSecondBrepPoint 
-     * @param rActiveRangeKnotVector 
-     * @return NurbsCurveGeometry<2, PointerVector<Point>>::Pointer 
-     */
-    static typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer CreateBrepCurve(
-        const Point::Pointer pFirstBrepPoint,
-        const Point::Pointer pSecondBrepPoint, 
-        const Vector& rActiveRangeKnotVector)
-        {
-            // Create the data for the trimming curves
-            PointerVector<Point> control_points;
-            control_points.push_back(pFirstBrepPoint);
-            control_points.push_back(pSecondBrepPoint);
-            const int polynomial_degree = 1;
-            Vector knot_vector = ZeroVector(4) ;
-            knot_vector[0] = rActiveRangeKnotVector[0] ;
-            knot_vector[1] = rActiveRangeKnotVector[0] ;
-            knot_vector[2] = rActiveRangeKnotVector[1] ;
-            knot_vector[3] = rActiveRangeKnotVector[1] ;
-            // Create the trimming curves
-            typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve(
-                new NurbsCurveGeometry<2, PointerVector<Point>>(
-                    control_points,
-                    polynomial_degree,
-                    knot_vector));   
-            return p_trimming_curve;
-        }
-
 
 private:
 
@@ -371,6 +339,38 @@ private:
             }
         }
     } 
+    
+    /**
+     * @brief Create a Single Brep object
+     * 
+     * @param pFirstBrepPoint 
+     * @param pSecondBrepPoint 
+     * @param rActiveRangeKnotVector 
+     * @return NurbsCurveGeometry<2, PointerVector<Point>>::Pointer 
+     */
+    static typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer CreateBrepCurve(
+        const Point::Pointer pFirstBrepPoint,
+        const Point::Pointer pSecondBrepPoint, 
+        const Vector& rActiveRangeKnotVector)
+        {
+            // Create the data for the trimming curves
+            PointerVector<Point> control_points;
+            control_points.push_back(pFirstBrepPoint);
+            control_points.push_back(pSecondBrepPoint);
+            const int polynomial_degree = 1;
+            Vector knot_vector = ZeroVector(4) ;
+            knot_vector[0] = rActiveRangeKnotVector[0] ;
+            knot_vector[1] = rActiveRangeKnotVector[0] ;
+            knot_vector[2] = rActiveRangeKnotVector[1] ;
+            knot_vector[3] = rActiveRangeKnotVector[1] ;
+            // Create the trimming curves
+            typename NurbsCurveGeometry<2, PointerVector<Point>>::Pointer p_trimming_curve(
+                new NurbsCurveGeometry<2, PointerVector<Point>>(
+                    control_points,
+                    polynomial_degree,
+                    knot_vector));   
+            return p_trimming_curve;
+        }
     
     /**
      * @brief Create a Brep Curves On Rectangle object

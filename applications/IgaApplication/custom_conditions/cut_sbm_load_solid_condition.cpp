@@ -276,6 +276,20 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
         }
     }
 
+    double CutSbmLoadSolidCondition::GetCharacteristicGeometryLengthScalar() const
+    {
+        KRATOS_ERROR_IF_NOT(this->Has(CHARACTERISTIC_GEOMETRY_LENGTH))
+            << "CHARACTERISTIC_GEOMETRY_LENGTH not set for condition " << this->Id() << std::endl;
+
+        const array_1d<double,3>& characteristic_length_vector = this->GetValue(CHARACTERISTIC_GEOMETRY_LENGTH);
+        const double characteristic_length = norm_2(characteristic_length_vector);
+
+        KRATOS_ERROR_IF(characteristic_length <= 0.0)
+            << "Non-positive characteristic length computed for condition " << this->Id() << std::endl;
+
+        return characteristic_length;
+    }
+
     void CutSbmLoadSolidCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                         ConstitutiveVariables& rConstitutiVariables)
     {
@@ -285,6 +299,7 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        rValues.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
         
         rValues.SetStrainVector(rStrain);
         rValues.SetStressVector(rConstitutiVariables.StressVector);
@@ -296,11 +311,6 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
 
     void CutSbmLoadSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
         //--------------------------------------------------------------------------------------------
@@ -321,6 +331,7 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
 
         // obtain the tangent constitutive matrix at the true position
         ConstitutiveLaw::Parameters values_true(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        values_true.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
         Vector old_displacement_coefficient_vector(mat_size);
         GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -329,6 +340,8 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
         const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
         ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+
+        mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Vector sigma = values_true.GetStressVector();
         Vector sigma_n = ZeroVector(3);
@@ -349,6 +362,7 @@ void CutSbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurren
     // calculate the constitutive law response
     ConstitutiveLaw::Parameters constitutive_law_parameters(
         GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
+    constitutive_law_parameters.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 

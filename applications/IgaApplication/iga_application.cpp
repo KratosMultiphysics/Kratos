@@ -140,7 +140,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModeler", mNurbsGeometryModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModelerSbm", mNurbsGeometryModelerSbm);
-    KRATOS_REGISTER_MODELER("NurbsGeometryModelerCutSbm", mNurbsGeometryModelerCutSbm);
+    KRATOS_REGISTER_MODELER("NurbsGeometryModelerGapSbm", mNurbsGeometryModelerGapSbm);
     KRATOS_REGISTER_MODELER("ImportNurbsSbmModeler", mImportNurbsSbmModeler);
 
     // VARIABLES
@@ -228,7 +228,9 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     KRATOS_REGISTER_VARIABLE(RESULTS_ON_TRUE_BOUNDARY)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
+    KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS_NORMAL)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
+    KRATOS_REGISTER_VARIABLE(BREP_ID)
 
 }
 

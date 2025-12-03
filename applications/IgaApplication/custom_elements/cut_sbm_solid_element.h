@@ -254,12 +254,23 @@ public:
         Matrix& r_DN_DX) const;
 
     /**
+     * @brief Retrieves the scalar characteristic length stored as a vector variable.
+     * @return Euclidean norm of CHARACTERISTIC_GEOMETRY_LENGTH.
+     */
+    double GetCharacteristicGeometryLengthScalar() const;
+
+    /**
      * @brief Get the solution coefficient at the previous time step in the two-dimensional case.
      * 
      * @param rValues solution coefficients at the previous time step
      */
     void GetSolutionCoefficientVector(
         Vector& rValues) const;
+
+    bool CalculateConstitutiveValue(
+        const Variable<double>& rVariable,
+        double& rValue,
+        const ProcessInfo& rCurrentProcessInfo);
 
 protected:
     ///@name Protected static Member Variables

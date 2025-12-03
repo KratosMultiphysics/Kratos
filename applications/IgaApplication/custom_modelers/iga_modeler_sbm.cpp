@@ -276,10 +276,13 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Elements().size() > 0)
                 id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+            
+            //FIXME:
+            const Vector& knot_span_sizes = rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
 
             this->CreateElements(
                 geometries.ptr_begin(), geometries.ptr_end(),
-                rModelPart, name, id, PropertiesPointerType());
+                rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
         }
         else if (type == "condition") {
             // Get the mesh sizes from the iga model part
@@ -689,7 +692,8 @@ void IgaModelerSbm::CreateElements(
     ModelPart& rModelPart,
     std::string& rElementName,
     SizeType& rIdCounter,
-    PropertiesPointerType pProperties) const
+    PropertiesPointerType pProperties,
+    const Vector& rKnotSpanSizes) const
 {
     KRATOS_ERROR_IF(!KratosComponents<Element>::Has(rElementName))
         << rElementName << " not registered." << std::endl;
@@ -705,6 +709,7 @@ void IgaModelerSbm::CreateElements(
     SizeType num_elements = std::distance(rGeometriesBegin, rGeometriesEnd);
     new_element_list.reserve(num_elements);
 
+    std::size_t count_element = 0;
     for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it)
     {
         new_element_list.push_back(
@@ -713,6 +718,9 @@ void IgaModelerSbm::CreateElements(
             rModelPart.Nodes().push_back((*it)->pGetPoint(i));
         }
         rIdCounter++;
+
+        new_element_list.GetContainer()[count_element]->SetValue(KNOT_SPAN_SIZES, rKnotSpanSizes);
+        count_element++;
     }
 
     rModelPart.AddElements(new_element_list.begin(), new_element_list.end());
@@ -985,12 +993,16 @@ void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_p
     else {
         skin_model_part_name = mParameters["skin_model_part_name"].GetString();
     }
-    ModelPart& skin_model_part_in  = mpModel->GetModelPart(skin_model_part_name + ".inner");
-    ModelPart& skin_model_part_out = mpModel->GetModelPart(skin_model_part_name + ".outer");
 
-    if (!(skin_model_part_in.Nodes().size() > 0 || skin_model_part_out.Nodes().size() > 0) ) {
-        KRATOS_ERROR << "Trying to integrate on true boundary when no skin boundary is defined" << std::endl;
-    }
+    // ModelPart& skin_model_part_in  = mpModel->GetModelPart(skin_model_part_name + ".inner");
+    // ModelPart& skin_model_part_out = mpModel->GetModelPart(skin_model_part_name + ".outer");
+
+    //FIXME:
+    ModelPart& skin_model_part_out = mpModel->GetModelPart(skin_model_part_name + ".outer.left");
+
+    // if (!(skin_model_part_in.Nodes().size() > 0 || skin_model_part_out.Nodes().size() > 0) ) {
+    //     KRATOS_ERROR << "Trying to integrate on true boundary when no skin boundary is defined" << std::endl;
+    // }
 
     for (auto i_cond : analysis_model_part.GetSubModelPart("SBM_Support_outer").Conditions()) { //FIXME:
         points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
@@ -1021,9 +1033,20 @@ void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_p
                 // First and second point of the condition
                 const CoordinateVector U_0 = i_cond.GetGeometry()[0]; 
                 const CoordinateVector U_1 = i_cond.GetGeometry()[1];
-                
+
+
+
                 CoordinateVector distance_u = U_1 - U_0;
                 const double length_u = norm_2(distance_u);
+                Vector segment_normal = ZeroVector(3);
+                if (distance_u.size() >= 2) {
+                    segment_normal[0] = distance_u[1];
+                    segment_normal[1] = -distance_u[0];
+                }
+                const double segment_normal_norm = norm_2(segment_normal);
+                if (segment_normal_norm > 1e-12) {
+                    segment_normal /= segment_normal_norm;
+                }
                 // Compue the integration points on this true segment
                 for (SizeType u = 0; u < num_points; ++u)
                 {
@@ -1056,6 +1079,10 @@ void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_p
                     std::vector<Vector> integration_point_list = analysis_model_part.GetCondition(idCond).GetValue(INTEGRATION_POINTS);
                     integration_point_list.push_back(curr_integration_point) ;
                     analysis_model_part.GetCondition(idCond).SetValue(INTEGRATION_POINTS, integration_point_list);
+
+                    std::vector<Vector> integration_normal_list = analysis_model_part.GetCondition(idCond).GetValue(INTEGRATION_POINTS_NORMAL);
+                    integration_normal_list.push_back(segment_normal);
+                    analysis_model_part.GetCondition(idCond).SetValue(INTEGRATION_POINTS_NORMAL, integration_normal_list);
 
                     std::vector<double> integration_weight_list = analysis_model_part.GetCondition(idCond).GetValue(INTEGRATION_WEIGHTS);
                     integration_weight_list.push_back(curr_integration_weight) ;

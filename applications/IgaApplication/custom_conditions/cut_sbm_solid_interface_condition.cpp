@@ -37,8 +37,12 @@ void CutSbmSolidInterfaceCondition::InitializeMaterial()
         const GeometryType& r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
         const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-        mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-        mpConstitutiveLaw->InitializeMaterial( r_properties, r_geometry, row(N_values , 0 ));
+
+        mpConstitutiveLawPlus = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mpConstitutiveLawPlus->InitializeMaterial(r_properties, r_geometry, row(N_values , 0 ));
+
+        mpConstitutiveLawMinus = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mpConstitutiveLawMinus->InitializeMaterial(r_properties, r_geometry, row(N_values , 0 ));
 
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
@@ -77,7 +81,7 @@ void CutSbmSolidInterfaceCondition::InitializeMemberVariables()
     double penalty = GetProperties()[PENALTY_FACTOR];
 
     // https://doi.org/10.1016/j.cma.2023.116301 (A penalty-free Shifted Boundary Method of arbitrary order)
-    mNitschePenalty = 1.0;   // = 1.0 -> Penalty approach
+    mNitschePenalty = -1.0;   // = 1.0 -> Penalty approach
                                     // = -1.0 -> Free-penalty approach
     if (penalty == -1.0) {
         mPenalty = 0.0;
@@ -120,18 +124,18 @@ void CutSbmSolidInterfaceCondition::InitializeSbmMemberVariables()
     mDistanceVectorMinus.resize(3);
     noalias(mDistanceVectorMinus) = r_geometry.Center().Coordinates() - r_surrogate_geometry_minus.Center().Coordinates();
 
-    // const Point&  p_true = r_geometry.Center();            // true boundary
-    // const Point&  p_sur_plus  = GetGeometryPlus().Center();
+    const Point&  p_true = r_geometry.Center();            // true boundary
+    const Point&  p_sur_plus  = GetGeometryPlus().Center();
 
-    // std::ofstream out("centers.txt", std::ios::app);       // append mode
-    // out << std::setprecision(15)                           // full precision
-    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
-    //     << p_sur_plus .X() << ' ' << p_sur_plus .Y() << ' ' << p_sur_plus .Z() << '\n';
+    std::ofstream out("centers.txt", std::ios::app);       // append mode
+    out << std::setprecision(15)                           // full precision
+        << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+        << p_sur_plus .X() << ' ' << p_sur_plus .Y() << ' ' << p_sur_plus .Z() << '\n';
 
-    // const Point&  p_sur_minus  = GetGeometryMinus().Center();
-    // out << std::setprecision(15)                           // full precision
-    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
-    //     << p_sur_minus .X() << ' ' << p_sur_minus .Y() << ' ' << p_sur_minus .Z() << '\n';
+    const Point&  p_sur_minus  = GetGeometryMinus().Center();
+    out << std::setprecision(15)                           // full precision
+        << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+        << p_sur_minus .X() << ' ' << p_sur_minus .Y() << ' ' << p_sur_minus .Z() << '\n';
 }
 
 void CutSbmSolidInterfaceCondition::CalculateLocalSystem(
@@ -221,9 +225,9 @@ void CutSbmSolidInterfaceCondition::CalculateLeftHandSide(
     Vector old_displacement_coefficient_vector_plus(mat_size_plus);
     GetSolutionCoefficientVectorPlus(old_displacement_coefficient_vector_plus);
     Vector old_strain_on_true_plus = prod(B_sum_plus, old_displacement_coefficient_vector_plus);
-    const SizeType strain_size_true_plus = mpConstitutiveLaw->GetStrainSize();
+    const SizeType strain_size_true_plus = mpConstitutiveLawPlus->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true_plus(strain_size_true_plus);
-    ApplyConstitutiveLaw(mat_size_plus, old_strain_on_true_plus, values_true_plus, this_constitutive_variables_true_plus);
+    ApplyConstitutiveLaw(mat_size_plus, old_strain_on_true_plus, values_true_plus, this_constitutive_variables_true_plus, mpConstitutiveLawPlus);
 
     const Matrix& r_D_on_true_plus = values_true_plus.GetConstitutiveMatrix();
 
@@ -232,9 +236,9 @@ void CutSbmSolidInterfaceCondition::CalculateLeftHandSide(
     Vector old_displacement_coefficient_vector_minus(mat_size_minus);
     GetSolutionCoefficientVectorMinus(old_displacement_coefficient_vector_minus);
     Vector old_strain_on_true_minus = prod(B_sum_minus, old_displacement_coefficient_vector_minus);
-    const SizeType strain_size_true_minus = mpConstitutiveLaw->GetStrainSize();
+    const SizeType strain_size_true_minus = mpConstitutiveLawMinus->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true_minus(strain_size_true_minus);
-    ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus);
+    ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus, mpConstitutiveLawMinus);
 
     const Matrix& r_D_on_true_minus = values_true_minus.GetConstitutiveMatrix();
 
@@ -327,100 +331,193 @@ void CutSbmSolidInterfaceCondition::CalculateLeftHandSide(
         }
     }
 
+    // // FIXME: NEW CONTINUITY TERMS
+    // // Differential area
+    // double penalty_integration = mPenalty * integration_weight;
 
-    // CONTINUITY TERMS
-    // Differential area
-    double penalty_integration = mPenalty * integration_weight;
+    // // ASSEMBLE
+    // //-----------------------------------------------------
+    // for (IndexType i = 0; i < number_of_control_points_plus; i++) {
+    //     for (IndexType idim = 0; idim < 2; idim++) {
+    //         const int id1 = 2*idim;
+    //         const int iglob = 2*i+idim;
 
-    // ASSEMBLE
-    //-----------------------------------------------------
-    for (IndexType i = 0; i < number_of_control_points_plus; i++) {
-        for (IndexType idim = 0; idim < 2; idim++) {
-            const int id1 = 2*idim;
-            const int iglob = 2*i+idim;
+    //         Vector Cut_sigma_w_n_plus = ZeroVector(3);
+    //         Cut_sigma_w_n_plus[0] = (DB_sum_plus(0, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(2, iglob)* mNormalPhysicalSpace[1]);
+    //         Cut_sigma_w_n_plus[1] = (DB_sum_plus(2, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(1, iglob)* mNormalPhysicalSpace[1]);
 
-            Vector Cut_sigma_w_n_plus = ZeroVector(3);
-            Cut_sigma_w_n_plus[0] = (DB_sum_plus(0, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(2, iglob)* mNormalPhysicalSpace[1]);
-            Cut_sigma_w_n_plus[1] = (DB_sum_plus(2, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(1, iglob)* mNormalPhysicalSpace[1]);
+    //         for (IndexType j = 0; j < number_of_control_points_plus; j++) {
+    //             // PENALTY TERM
+    //             rLeftHandSideMatrix(iglob, 2*j+idim) += N_sum_vec_plus(i)*N_sum_vec_plus(j)* penalty_integration;
 
-            for (IndexType j = 0; j < number_of_control_points_plus; j++) {
-                // PENALTY TERM
-                rLeftHandSideMatrix(iglob, 2*j+idim) += N_sum_vec_plus(i)*N_sum_vec_plus(j)* penalty_integration;
+    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //                 const int id2 = (id1+2)%3;
+    //                 const int jglob = 2*j+jdim;
 
-                for (IndexType jdim = 0; jdim < 2; jdim++) {
-                    const int id2 = (id1+2)%3;
-                    const int jglob = 2*j+jdim;
+    //                 // // PENALTY FREE g_n = 0
+    //                 // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+    //                 // //*********************************************** */
+    //                 rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty*N_sum_vec_plus(j)*Cut_sigma_w_n_plus[jdim] * integration_weight;
+    //             }
 
-                    // // PENALTY FREE g_n = 0
-                    // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
-                    // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*Cut_sigma_w_n_plus[jdim] * integration_weight;
-                }
+    //         }
 
-            }
+    //         // minus side
+    //         for (IndexType j = 0; j < number_of_control_points_minus; j++) {
+    //             // PENALTY TERM
+    //             rLeftHandSideMatrix(iglob, 2*j+shift_dof+idim) -= N_sum_vec_plus(i)*N_sum_vec_minus(j)* penalty_integration;
 
-            // minus side
-            for (IndexType j = 0; j < number_of_control_points_minus; j++) {
-                // PENALTY TERM
-                rLeftHandSideMatrix(iglob, 2*j+shift_dof+idim) -= N_sum_vec_plus(i)*N_sum_vec_minus(j)* penalty_integration;
+    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //                 const int id2 = (id1+2)%3;
+    //                 const int jglob = 2*j+jdim + shift_dof;
 
-                for (IndexType jdim = 0; jdim < 2; jdim++) {
-                    const int id2 = (id1+2)%3;
-                    const int jglob = 2*j+jdim + shift_dof;
+    //                 // // PENALTY FREE g_n = 0
+    //                 // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+    //                 // //*********************************************** */
+    //                 rLeftHandSideMatrix(iglob, jglob) += mNitschePenalty*N_sum_vec_minus(j)*Cut_sigma_w_n_plus[jdim] * integration_weight;
+    //             }
+    //         }
+    //     }
+    // }
 
-                    // // PENALTY FREE g_n = 0
-                    // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
-                    // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*Cut_sigma_w_n_plus[jdim] * integration_weight;
-                }
-            }
-        }
-    }
+    // // minus side
+    // for (IndexType i = 0; i < number_of_control_points_minus; i++) {
+    //     for (IndexType idim = 0; idim < 2; idim++) {
+    //         const int id1 = 2*idim;
+    //         const int iloc = 2*i+idim;
+    //         const int iglob = 2*i+idim + shift_dof;
 
-    // minus side
-    for (IndexType i = 0; i < number_of_control_points_minus; i++) {
-        for (IndexType idim = 0; idim < 2; idim++) {
-            const int id1 = 2*idim;
-            const int iloc = 2*i+idim;
-            const int iglob = 2*i+idim + shift_dof;
+    //         Vector Cut_sigma_w_n_minus = ZeroVector(3);
+    //         Cut_sigma_w_n_minus[0] = (DB_sum_minus(0, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(2, iloc)* mNormalPhysicalSpace[1]);
+    //         Cut_sigma_w_n_minus[1] = (DB_sum_minus(2, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(1, iloc)* mNormalPhysicalSpace[1]);
 
-            Vector Cut_sigma_w_n_minus = ZeroVector(3);
-            Cut_sigma_w_n_minus[0] = (DB_sum_minus(0, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(2, iloc)* mNormalPhysicalSpace[1]);
-            Cut_sigma_w_n_minus[1] = (DB_sum_minus(2, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(1, iloc)* mNormalPhysicalSpace[1]);
+    //         for (IndexType j = 0; j < number_of_control_points_plus; j++) {
+    //             // PENALTY TERM
+    //             rLeftHandSideMatrix(iglob, 2*j+idim) -= N_sum_vec_minus(i)*N_sum_vec_plus(j)* penalty_integration;
 
-            for (IndexType j = 0; j < number_of_control_points_plus; j++) {
-                // PENALTY TERM
-                rLeftHandSideMatrix(iglob, 2*j+idim) -= N_sum_vec_minus(i)*N_sum_vec_plus(j)* penalty_integration;
+    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //                 const int id2 = (id1+2)%3;
+    //                 const int jglob = 2*j+jdim;
 
-                for (IndexType jdim = 0; jdim < 2; jdim++) {
-                    const int id2 = (id1+2)%3;
-                    const int jglob = 2*j+jdim;
+    //                 // // PENALTY FREE g_n = 0
+    //                 // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+    //                 // //*********************************************** */
+    //                 rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty*N_sum_vec_plus(j)*Cut_sigma_w_n_minus[jdim] * integration_weight;
+    //             }
 
-                    // // PENALTY FREE g_n = 0
-                    // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
-                    // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*Cut_sigma_w_n_minus[jdim] * integration_weight;
-                }
+    //         }
 
-            }
+    //         // minus side
+    //         for (IndexType j = 0; j < number_of_control_points_minus; j++) {
+    //             // PENALTY TERM
+    //             rLeftHandSideMatrix(iglob, 2*j+shift_dof+idim) += N_sum_vec_minus(i)*N_sum_vec_minus(j)* penalty_integration;
 
-            // minus side
-            for (IndexType j = 0; j < number_of_control_points_minus; j++) {
-                // PENALTY TERM
-                rLeftHandSideMatrix(iglob, 2*j+shift_dof+idim) += N_sum_vec_minus(i)*N_sum_vec_minus(j)* penalty_integration;
+    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //                 const int id2 = (id1+2)%3;
+    //                 const int jglob = 2*j+jdim + shift_dof;
 
-                for (IndexType jdim = 0; jdim < 2; jdim++) {
-                    const int id2 = (id1+2)%3;
-                    const int jglob = 2*j+jdim + shift_dof;
+    //                 // // PENALTY FREE g_n = 0
+    //                 // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+    //                 // //*********************************************** */
+    //                 rLeftHandSideMatrix(iglob, jglob) += mNitschePenalty*N_sum_vec_minus(j)*Cut_sigma_w_n_minus[jdim] * integration_weight;
+    //             }
+    //         }
+    //     }
+    // }
 
-                    // // PENALTY FREE g_n = 0
-                    // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
-                    // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*Cut_sigma_w_n_minus[jdim] * integration_weight;
-                }
-            }
-        }
-    }
+    // // CONTINUITY TERMS
+    // // Differential area
+    // double penalty_integration = mPenalty * integration_weight;
+
+    // // ASSEMBLE
+    // //-----------------------------------------------------
+    // for (IndexType i = 0; i < number_of_control_points_plus; i++) {
+    //     for (IndexType idim = 0; idim < 2; idim++) {
+    //         const int id1 = 2*idim;
+    //         const int iglob = 2*i+idim;
+
+    //         Vector Cut_sigma_w_n_plus = ZeroVector(3);
+    //         Cut_sigma_w_n_plus[0] = (DB_sum_plus(0, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(2, iglob)* mNormalPhysicalSpace[1]);
+    //         Cut_sigma_w_n_plus[1] = (DB_sum_plus(2, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(1, iglob)* mNormalPhysicalSpace[1]);
+
+    //         for (IndexType j = 0; j < number_of_control_points_plus; j++) {
+    //             // PENALTY TERM
+    //             rLeftHandSideMatrix(iglob, 2*j+idim) += N_sum_vec_plus(i)*N_sum_vec_plus(j)* penalty_integration;
+
+    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //                 const int id2 = (id1+2)%3;
+    //                 const int jglob = 2*j+jdim;
+
+    //                 // // PENALTY FREE g_n = 0
+    //                 // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+    //                 // //*********************************************** */
+    //                 rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*Cut_sigma_w_n_plus[jdim] * integration_weight;
+    //             }
+
+    //         }
+
+    //         // minus side
+    //         for (IndexType j = 0; j < number_of_control_points_minus; j++) {
+    //             // PENALTY TERM
+    //             rLeftHandSideMatrix(iglob, 2*j+shift_dof+idim) -= N_sum_vec_plus(i)*N_sum_vec_minus(j)* penalty_integration;
+
+    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //                 const int id2 = (id1+2)%3;
+    //                 const int jglob = 2*j+jdim + shift_dof;
+
+    //                 // // PENALTY FREE g_n = 0
+    //                 // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+    //                 // //*********************************************** */
+    //                 rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*Cut_sigma_w_n_plus[jdim] * integration_weight;
+    //             }
+    //         }
+    //     }
+    // }
+
+    // // minus side
+    // for (IndexType i = 0; i < number_of_control_points_minus; i++) {
+    //     for (IndexType idim = 0; idim < 2; idim++) {
+    //         const int id1 = 2*idim;
+    //         const int iloc = 2*i+idim;
+    //         const int iglob = 2*i+idim + shift_dof;
+
+    //         Vector Cut_sigma_w_n_minus = ZeroVector(3);
+    //         Cut_sigma_w_n_minus[0] = (DB_sum_minus(0, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(2, iloc)* mNormalPhysicalSpace[1]);
+    //         Cut_sigma_w_n_minus[1] = (DB_sum_minus(2, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(1, iloc)* mNormalPhysicalSpace[1]);
+
+    //         for (IndexType j = 0; j < number_of_control_points_plus; j++) {
+    //             // PENALTY TERM
+    //             rLeftHandSideMatrix(iglob, 2*j+idim) -= N_sum_vec_minus(i)*N_sum_vec_plus(j)* penalty_integration;
+
+    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //                 const int id2 = (id1+2)%3;
+    //                 const int jglob = 2*j+jdim;
+
+    //                 // // PENALTY FREE g_n = 0
+    //                 // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+    //                 // //*********************************************** */
+    //                 rLeftHandSideMatrix(iglob, jglob) -= 0.5*mNitschePenalty*N_sum_vec_plus(j)*Cut_sigma_w_n_minus[jdim] * integration_weight;
+    //             }
+
+    //         }
+
+    //         // minus side
+    //         for (IndexType j = 0; j < number_of_control_points_minus; j++) {
+    //             // PENALTY TERM
+    //             rLeftHandSideMatrix(iglob, 2*j+shift_dof+idim) += N_sum_vec_minus(i)*N_sum_vec_minus(j)* penalty_integration;
+
+    //             for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //                 const int id2 = (id1+2)%3;
+    //                 const int jglob = 2*j+jdim + shift_dof;
+
+    //                 // // PENALTY FREE g_n = 0
+    //                 // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+    //                 // //*********************************************** */
+    //                 rLeftHandSideMatrix(iglob, jglob) += 0.5*mNitschePenalty*N_sum_vec_minus(j)*Cut_sigma_w_n_minus[jdim] * integration_weight;
+    //             }
+    //         }
+    //     }
+    // }
 
     KRATOS_CATCH("")
 }
@@ -481,9 +578,9 @@ void CutSbmSolidInterfaceCondition::CalculateRightHandSide(
     Vector old_displacement_coefficient_vector_plus(mat_size_plus);
     GetSolutionCoefficientVectorPlus(old_displacement_coefficient_vector_plus);
     Vector old_strain_on_true_plus = prod(B_sum_plus, old_displacement_coefficient_vector_plus);
-    const SizeType strain_size_true_plus = mpConstitutiveLaw->GetStrainSize();
+    const SizeType strain_size_true_plus = mpConstitutiveLawPlus->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true_plus(strain_size_true_plus);
-    ApplyConstitutiveLaw(mat_size_plus, old_strain_on_true_plus, values_true_plus, this_constitutive_variables_true_plus);
+    ApplyConstitutiveLaw(mat_size_plus, old_strain_on_true_plus, values_true_plus, this_constitutive_variables_true_plus, mpConstitutiveLawPlus);
 
     const Vector& r_stress_on_true_plus = values_true_plus.GetStressVector();
     const Matrix& r_D_on_true_plus = values_true_plus.GetConstitutiveMatrix();
@@ -496,9 +593,9 @@ void CutSbmSolidInterfaceCondition::CalculateRightHandSide(
     Vector old_displacement_coefficient_vector_minus(mat_size_minus);
     GetSolutionCoefficientVectorMinus(old_displacement_coefficient_vector_minus);
     Vector old_strain_on_true_minus = prod(B_sum_minus, old_displacement_coefficient_vector_minus);
-    const SizeType strain_size_true_minus = mpConstitutiveLaw->GetStrainSize();
+    const SizeType strain_size_true_minus = mpConstitutiveLawMinus->GetStrainSize();
     ConstitutiveVariables this_constitutive_variables_true_minus(strain_size_true_minus);
-    ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus);
+    ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus, mpConstitutiveLawMinus);
 
     const Vector& r_stress_on_true_minus = values_true_minus.GetStressVector();
     const Matrix& r_D_on_true_minus = values_true_minus.GetConstitutiveMatrix();
@@ -543,56 +640,108 @@ void CutSbmSolidInterfaceCondition::CalculateRightHandSide(
         }
     }
 
-    // continuity terms
-    // Differential area
-    double penalty_integration = mPenalty * integration_weight;
+    // //FIXME: NEW CONTINUITY TERMS
+    // // continuity terms
+    // // Differential area
+    // double penalty_integration = mPenalty * integration_weight;
 
-    // compute the DB product
-    Matrix DB_sum_plus = prod(r_D_on_true_plus, B_sum_plus);
-    Matrix DB_sum_minus = prod(r_D_on_true_minus, B_sum_minus);
-    // ASSEMBLE
-    //-----------------------------------------------------
-    for (IndexType i = 0; i < number_of_control_points_plus; i++) {
-        for (IndexType idim = 0; idim < 2; idim++) {
-            const int id1 = 2*idim;
-            const int iglob = 2*i+idim;
+    // // compute the DB product
+    // Matrix DB_sum_plus = prod(r_D_on_true_plus, B_sum_plus);
+    // Matrix DB_sum_minus = prod(r_D_on_true_minus, B_sum_minus);
+    // // ASSEMBLE
+    // //-----------------------------------------------------
+    // for (IndexType i = 0; i < number_of_control_points_plus; i++) {
+    //     for (IndexType idim = 0; idim < 2; idim++) {
+    //         const int id1 = 2*idim;
+    //         const int iglob = 2*i+idim;
 
-            Vector Cut_sigma_w_n_plus = ZeroVector(3);
-            Cut_sigma_w_n_plus[0] = (DB_sum_plus(0, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(2, iglob)* mNormalPhysicalSpace[1]);
-            Cut_sigma_w_n_plus[1] = (DB_sum_plus(2, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(1, iglob)* mNormalPhysicalSpace[1]);
+    //         Vector Cut_sigma_w_n_plus = ZeroVector(3);
+    //         Cut_sigma_w_n_plus[0] = (DB_sum_plus(0, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(2, iglob)* mNormalPhysicalSpace[1]);
+    //         Cut_sigma_w_n_plus[1] = (DB_sum_plus(2, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(1, iglob)* mNormalPhysicalSpace[1]);
 
-            // PENALTY RESIDUAL TERM
-            rRightHandSideVector[iglob] -= N_sum_vec_plus(i) * (old_displacement_plus-old_displacement_minus)[idim] * penalty_integration;
+    //         // PENALTY RESIDUAL TERM
+    //         rRightHandSideVector[iglob] -= N_sum_vec_plus(i) * (old_displacement_plus-old_displacement_minus)[idim] * penalty_integration;
 
-            // PENALTY FREE RESIDUAL TERM
-            for (IndexType jdim = 0; jdim < 2; jdim++) {
-                rRightHandSideVector[iglob] += 0.5*mNitschePenalty * (old_displacement_plus-old_displacement_minus)[jdim]  
-                                            * Cut_sigma_w_n_plus[jdim] * integration_weight;
-            }
-        }
-    }
+    //         // PENALTY FREE RESIDUAL TERM
+    //         for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //             rRightHandSideVector[iglob] += mNitschePenalty * (old_displacement_plus-old_displacement_minus)[jdim]  
+    //                                         * Cut_sigma_w_n_plus[jdim] * integration_weight;
+    //         }
+    //     }
+    // }
 
 
-    // minus side
-    for (IndexType i = 0; i < number_of_control_points_minus; i++) {
-        for (IndexType idim = 0; idim < 2; idim++) {
-            const int iloc = 2*i+idim;
-            const int iglob = 2*i+idim + shift_dof;
+    // // minus side
+    // for (IndexType i = 0; i < number_of_control_points_minus; i++) {
+    //     for (IndexType idim = 0; idim < 2; idim++) {
+    //         const int iloc = 2*i+idim;
+    //         const int iglob = 2*i+idim + shift_dof;
 
-            Vector Cut_sigma_w_n_minus = ZeroVector(3);
-            Cut_sigma_w_n_minus[0] = (DB_sum_minus(0, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(2, iloc)* mNormalPhysicalSpace[1]);
-            Cut_sigma_w_n_minus[1] = (DB_sum_minus(2, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(1, iloc)* mNormalPhysicalSpace[1]);
+    //         Vector Cut_sigma_w_n_minus = ZeroVector(3);
+    //         Cut_sigma_w_n_minus[0] = (DB_sum_minus(0, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(2, iloc)* mNormalPhysicalSpace[1]);
+    //         Cut_sigma_w_n_minus[1] = (DB_sum_minus(2, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(1, iloc)* mNormalPhysicalSpace[1]);
 
-            // PENALTY RESIDUAL TERM
-            rRightHandSideVector[iglob] += N_sum_vec_minus(i) * (old_displacement_plus-old_displacement_minus)[idim] * penalty_integration;
+    //         // PENALTY RESIDUAL TERM
+    //         rRightHandSideVector[iglob] += N_sum_vec_minus(i) * (old_displacement_plus-old_displacement_minus)[idim] * penalty_integration;
 
-            // PENALTY FREE RESIDUAL TERM
-            for (IndexType jdim = 0; jdim < 2; jdim++) {
-                rRightHandSideVector[iglob] += 0.5*mNitschePenalty * (old_displacement_plus-old_displacement_minus)[jdim]  
-                                            * Cut_sigma_w_n_minus[jdim] * integration_weight;
-            }
-        }
-    }
+    //         // PENALTY FREE RESIDUAL TERM
+    //         for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //             rRightHandSideVector[iglob] += mNitschePenalty * (old_displacement_plus-old_displacement_minus)[jdim]  
+    //                                         * Cut_sigma_w_n_minus[jdim] * integration_weight;
+    //         }
+    //     }
+    // }
+
+    // // continuity terms
+    // // Differential area
+    // double penalty_integration = mPenalty * integration_weight;
+
+    // // compute the DB product
+    // Matrix DB_sum_plus = prod(r_D_on_true_plus, B_sum_plus);
+    // Matrix DB_sum_minus = prod(r_D_on_true_minus, B_sum_minus);
+    // // ASSEMBLE
+    // //-----------------------------------------------------
+    // for (IndexType i = 0; i < number_of_control_points_plus; i++) {
+    //     for (IndexType idim = 0; idim < 2; idim++) {
+    //         const int id1 = 2*idim;
+    //         const int iglob = 2*i+idim;
+
+    //         Vector Cut_sigma_w_n_plus = ZeroVector(3);
+    //         Cut_sigma_w_n_plus[0] = (DB_sum_plus(0, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(2, iglob)* mNormalPhysicalSpace[1]);
+    //         Cut_sigma_w_n_plus[1] = (DB_sum_plus(2, iglob)* mNormalPhysicalSpace[0] + DB_sum_plus(1, iglob)* mNormalPhysicalSpace[1]);
+
+    //         // PENALTY RESIDUAL TERM
+    //         rRightHandSideVector[iglob] -= N_sum_vec_plus(i) * (old_displacement_plus-old_displacement_minus)[idim] * penalty_integration;
+
+    //         // PENALTY FREE RESIDUAL TERM
+    //         for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //             rRightHandSideVector[iglob] += 0.5*mNitschePenalty * (old_displacement_plus-old_displacement_minus)[jdim]  
+    //                                         * Cut_sigma_w_n_plus[jdim] * integration_weight;
+    //         }
+    //     }
+    // }
+
+
+    // // minus side
+    // for (IndexType i = 0; i < number_of_control_points_minus; i++) {
+    //     for (IndexType idim = 0; idim < 2; idim++) {
+    //         const int iloc = 2*i+idim;
+    //         const int iglob = 2*i+idim + shift_dof;
+
+    //         Vector Cut_sigma_w_n_minus = ZeroVector(3);
+    //         Cut_sigma_w_n_minus[0] = (DB_sum_minus(0, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(2, iloc)* mNormalPhysicalSpace[1]);
+    //         Cut_sigma_w_n_minus[1] = (DB_sum_minus(2, iloc)* mNormalPhysicalSpace[0] + DB_sum_minus(1, iloc)* mNormalPhysicalSpace[1]);
+
+    //         // PENALTY RESIDUAL TERM
+    //         rRightHandSideVector[iglob] += N_sum_vec_minus(i) * (old_displacement_plus-old_displacement_minus)[idim] * penalty_integration;
+
+    //         // PENALTY FREE RESIDUAL TERM
+    //         for (IndexType jdim = 0; jdim < 2; jdim++) {
+    //             rRightHandSideVector[iglob] += 0.5*mNitschePenalty * (old_displacement_plus-old_displacement_minus)[jdim]  
+    //                                         * Cut_sigma_w_n_minus[jdim] * integration_weight;
+    //         }
+    //     }
+    // }
 
     KRATOS_CATCH("")
 }
@@ -732,8 +881,23 @@ void CutSbmSolidInterfaceCondition::CalculateB(
     }
 }
 
+double CutSbmSolidInterfaceCondition::GetCharacteristicGeometryLengthScalar() const
+{
+    KRATOS_ERROR_IF_NOT(this->Has(CHARACTERISTIC_GEOMETRY_LENGTH))
+        << "CHARACTERISTIC_GEOMETRY_LENGTH not set for condition " << this->Id() << std::endl;
+
+    const array_1d<double,3>& characteristic_length_vector = this->GetValue(CHARACTERISTIC_GEOMETRY_LENGTH);
+    const double characteristic_length = norm_2(characteristic_length_vector);
+
+    KRATOS_ERROR_IF(characteristic_length <= 0.0)
+        << "Non-positive characteristic length computed for condition " << this->Id() << std::endl;
+
+    return characteristic_length;
+}
+
 void CutSbmSolidInterfaceCondition::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
-                                    ConstitutiveVariables& rConstitutiVariables)
+                                    ConstitutiveVariables& rConstitutiVariables,
+                                    ConstitutiveLaw::Pointer pConstitutiveLaw)
 {
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=rValues.GetOptions();
@@ -741,72 +905,79 @@ void CutSbmSolidInterfaceCondition::ApplyConstitutiveLaw(SizeType matSize, Vecto
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    rValues.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
     
     rValues.SetStrainVector(rStrain);
     rValues.SetStressVector(rConstitutiVariables.StressVector);
     rValues.SetConstitutiveMatrix(rConstitutiVariables.D);
 
-    mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
+    KRATOS_ERROR_IF(pConstitutiveLaw == nullptr) << "Constitutive law pointer is null in CutSbmSolidInterfaceCondition" << std::endl;
+    pConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
 }
 
 
 void CutSbmSolidInterfaceCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    const auto& r_surrogate_geometry_plus = GetGeometryPlus();
+    const auto& r_surrogate_geometry_minus = GetGeometryMinus();
+    const auto& r_true_geometry = GetGeometry();
 
-    mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    const SizeType number_of_control_points_plus = r_surrogate_geometry_plus.size();
+    const SizeType number_of_control_points_minus = r_surrogate_geometry_minus.size();
 
-    // //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
-    // //TODO: build a CalculateOnIntegrationPoints method
-    // //--------------------------------------------------------------------------------------------
-    // const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
-    // const SizeType number_of_control_points = r_surrogate_geometry.size();
-    // const SizeType mat_size = number_of_control_points * 2;
+    const SizeType mat_size_plus = number_of_control_points_plus * mDim;
+    const SizeType mat_size_minus = number_of_control_points_minus * mDim;
 
-    // Vector old_displacement(mat_size);
-    // GetSolutionCoefficientVector(old_displacement);
+    // compute Taylor expansion contribution: grad_H_sum for plus side
+    Matrix grad_N_sum_transposed_plus = ZeroMatrix(3, number_of_control_points_plus);
+    ComputeGradientTaylorExpansionContribution(r_surrogate_geometry_plus, mDistanceVectorPlus, grad_N_sum_transposed_plus);
+    Matrix grad_N_sum_plus = trans(grad_N_sum_transposed_plus);
 
-    // // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-    // Matrix grad_N_sum_transposed = ZeroMatrix(3, number_of_control_points);
-    // ComputeGradientTaylorExpansionContribution(grad_N_sum_transposed);
-    // Matrix grad_N_sum = trans(grad_N_sum_transposed);
+    Matrix grad_N_sum_transposed_minus = ZeroMatrix(3, number_of_control_points_minus);
+    ComputeGradientTaylorExpansionContribution(r_surrogate_geometry_minus, mDistanceVectorMinus, grad_N_sum_transposed_minus);
+    Matrix grad_N_sum_minus = trans(grad_N_sum_transposed_minus);
 
-    // Matrix B_sum = ZeroMatrix(mDim,mat_size);
-    // CalculateB(B_sum, grad_N_sum);
+    // compute the B matrices
+    Matrix B_sum_plus = ZeroMatrix(mDim,mat_size_plus);
+    CalculateB(r_surrogate_geometry_plus, B_sum_plus, grad_N_sum_plus);
 
-    // // obtain the tangent constitutive matrix at the true position
-    // ConstitutiveLaw::Parameters values_true(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    Matrix B_sum_minus = ZeroMatrix(mDim,mat_size_minus);
+    CalculateB(r_surrogate_geometry_minus, B_sum_minus, grad_N_sum_minus);
 
-    // Vector old_displacement_coefficient_vector(mat_size);
-    // GetSolutionCoefficientVector(old_displacement_coefficient_vector);
-    // Vector old_strain_on_true = prod(B_sum, old_displacement_coefficient_vector);
+    // obtain the constitutive response at the true position for the plus side
+    ConstitutiveLaw::Parameters values_true_plus(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    Vector old_displacement_coefficient_vector_plus(mat_size_plus);
+    GetSolutionCoefficientVectorPlus(old_displacement_coefficient_vector_plus);
+    Vector old_strain_on_true_plus = prod(B_sum_plus, old_displacement_coefficient_vector_plus);
+    const SizeType strain_size_true_plus = mpConstitutiveLawPlus->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables_true_plus(strain_size_true_plus);
+    ApplyConstitutiveLaw(mat_size_plus, old_strain_on_true_plus, values_true_plus, this_constitutive_variables_true_plus, mpConstitutiveLawPlus);
+    mpConstitutiveLawPlus->FinalizeMaterialResponse(values_true_plus, ConstitutiveLaw::StressMeasure_Cauchy);
 
-    // const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
-    // ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
-    // ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+    // obtain the constitutive response at the true position for the minus side
+    ConstitutiveLaw::Parameters values_true_minus(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    Vector old_displacement_coefficient_vector_minus(mat_size_minus);
+    GetSolutionCoefficientVectorMinus(old_displacement_coefficient_vector_minus);
+    Vector old_strain_on_true_minus = prod(B_sum_minus, old_displacement_coefficient_vector_minus);
+    const SizeType strain_size_true_minus = mpConstitutiveLawMinus->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables_true_minus(strain_size_true_minus);
+    ApplyConstitutiveLaw(mat_size_minus, old_strain_on_true_minus, values_true_minus, this_constitutive_variables_true_minus, mpConstitutiveLawMinus);
+    mpConstitutiveLawMinus->FinalizeMaterialResponse(values_true_minus, ConstitutiveLaw::StressMeasure_Cauchy);
 
-    // const Vector sigma = values_true.GetStressVector();
-    // Vector sigma_n(2);
-
-    // sigma_n[0] = sigma[0]*mNormalPhysicalSpace[0] + sigma[2]*mNormalPhysicalSpace[1];
-    // sigma_n[1] = sigma[2]*mNormalPhysicalSpace[0] + sigma[1]*mNormalPhysicalSpace[1];
-
-    // SetValue(NORMAL_STRESS, sigma_n);
-
-    // SetValue(CAUCHY_STRESS_XX, sigma[0]);
-    // SetValue(CAUCHY_STRESS_YY, sigma[1]);
-    // SetValue(CAUCHY_STRESS_XY, sigma[2]);
-    // //---------------------
 }
 
 void CutSbmSolidInterfaceCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
     //--------------------------------------------------------------------------------------------
     // calculate the constitutive law response
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
+    ConstitutiveLaw::Parameters constitutive_law_parameters_plus(
         GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    constitutive_law_parameters_plus.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
+    ConstitutiveLaw::Parameters constitutive_law_parameters_minus(
+        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    constitutive_law_parameters_minus.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
-    mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+    mpConstitutiveLawPlus->InitializeMaterialResponse(constitutive_law_parameters_plus, ConstitutiveLaw::StressMeasure_Cauchy);
+    mpConstitutiveLawMinus->InitializeMaterialResponse(constitutive_law_parameters_minus, ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
 void CutSbmSolidInterfaceCondition::ComputeTaylorExpansionContribution(

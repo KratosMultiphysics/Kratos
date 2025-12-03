@@ -43,25 +43,25 @@ public:
     /// Pointer definition of QuadraturePointGeometry
     KRATOS_CLASS_POINTER_DEFINITION(QuadraturePointCurveGeometry);
 
-    typedef QuadraturePointGeometry<TPointType, 3, 2, 1> BaseType;
-    typedef Geometry<TPointType> GeometryType;
+    using BaseType = QuadraturePointGeometry<TPointType, 3, 2, 1>;
+    using GeometryType = Geometry<TPointType>;
 
-    typedef typename GeometryType::IndexType IndexType;
-    typedef typename GeometryType::SizeType SizeType;
+    using IndexType = typename GeometryType::IndexType;
+    using SizeType = typename GeometryType::SizeType;
 
-    typedef typename GeometryType::PointsArrayType PointsArrayType;
-    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+    using PointsArrayType = typename GeometryType::PointsArrayType;
+    using CoordinatesArrayType = typename GeometryType::CoordinatesArrayType;
 
-    typedef typename GeometryType::IntegrationPointType IntegrationPointType;
-    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    using IntegrationPointType = typename GeometryType::IntegrationPointType;
+    using IntegrationPointsArrayType = typename GeometryType::IntegrationPointsArrayType;
 
-    typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    using ShapeFunctionsGradientsType = typename GeometryData::ShapeFunctionsGradientsType;
 
-    typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> GeometryShapeFunctionContainerType;
+    using GeometryShapeFunctionContainerType = GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>;
 
-    typedef typename GeometryType::IntegrationPointsContainerType IntegrationPointsContainerType;
-    typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
-    typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+    using IntegrationPointsContainerType = typename GeometryType::IntegrationPointsContainerType;
+    using ShapeFunctionsValuesContainerType = typename GeometryType::ShapeFunctionsValuesContainerType;
+    using ShapeFunctionsLocalGradientsContainerType = typename GeometryType::ShapeFunctionsLocalGradientsContainerType;
 
     /// using base class functions
     using BaseType::Jacobian;

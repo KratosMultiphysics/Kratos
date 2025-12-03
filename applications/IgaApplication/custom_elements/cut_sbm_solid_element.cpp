@@ -11,12 +11,12 @@
 //
 
 // System includes
+#include <cmath>
 
 // External includes
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/convection_diffusion_settings.h"
 
 // Application includes
 #include "custom_elements/cut_sbm_solid_element.h"
@@ -195,7 +195,8 @@ void CutSbmSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
     // obtain the tangent constitutive matrix at the true position
     
-    ConstitutiveLaw::Parameters values_true(r_surrogate_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters values_true(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    values_true.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
     Vector old_displacement_coefficient_vector(mat_size);
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -244,7 +245,8 @@ void CutSbmSolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector
 
     // obtain the tangent constitutive matrix at the true position
     
-    ConstitutiveLaw::Parameters values_true(r_surrogate_geometry, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters values_true(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    values_true.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
     Vector old_displacement_coefficient_vector(mat_size);
     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -348,10 +350,6 @@ Element::IntegrationMethod CutSbmSolidElement::GetIntegrationMethod() const
 
 void CutSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
     //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
@@ -372,7 +370,8 @@ void CutSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         CalculateB(B_sum, grad_N_sum);
 
         // obtain the tangent constitutive matrix at the true position
-        ConstitutiveLaw::Parameters values_true(GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters values_true(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        values_true.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
         Vector old_displacement_coefficient_vector(mat_size);
         GetSolutionCoefficientVector(old_displacement_coefficient_vector);
@@ -382,17 +381,43 @@ void CutSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
+        mpConstitutiveLaw->FinalizeMaterialResponse(values_true, ConstitutiveLaw::StressMeasure_Cauchy);
+
         const Vector sigma = values_true.GetStressVector();
         
         SetValue(CAUCHY_STRESS_XX, sigma[0]);
         SetValue(CAUCHY_STRESS_YY, sigma[1]);
         SetValue(CAUCHY_STRESS_XY, sigma[2]);
+        const double sigma_xx = sigma[0];
+        const double sigma_yy = sigma[1];
+        const double sigma_xy = sigma[2];
+        const double von_mises_argument = sigma_xx * sigma_xx - sigma_xx * sigma_yy + sigma_yy * sigma_yy + 3.0 * sigma_xy * sigma_xy;
+        const double von_mises_stress = von_mises_argument > 0.0 ? std::sqrt(von_mises_argument) : 0.0;
+        SetValue(VON_MISES_STRESS, von_mises_stress);
+        SetValue(VON_MISES_STRESS_IGA, von_mises_stress);
+
         // //---------------------
+
+
+        Vector N_sum_vec = ZeroVector(number_of_control_points);
+        ComputeTaylorExpansionContribution(N_sum_vec);
+
+        Matrix N_sum_matrix = ZeroMatrix(mDim, mDim * number_of_control_points);
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            for (IndexType idim = 0; idim < mDim; ++idim) {
+                N_sum_matrix(idim, mDim * i + idim) = N_sum_vec(i);
+            }
+        }
+
+        Vector displacement_true = prod(N_sum_matrix, old_displacement_coefficient_vector);
+
+        SetValue(DISPLACEMENT, displacement_true);
 }
 
 void CutSbmSolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
     ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetSurrogateGeometry(), GetProperties(), rCurrentProcessInfo);
+        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    constitutive_law_parameters.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
 
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
@@ -404,13 +429,11 @@ void CutSbmSolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProce
     // }
 }
 
-
-
 void CutSbmSolidElement::CalculateOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo
-    )
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        )
 {
     const auto& r_geometry = GetGeometry();
     const auto& r_integration_points = r_geometry.IntegrationPoints();
@@ -420,9 +443,20 @@ void CutSbmSolidElement::CalculateOnIntegrationPoints(
         rOutput.resize(r_integration_points.size());
     }
 
+    bool value_computed = false;
+
     if (mpConstitutiveLaw->Has(rVariable)) {
         mpConstitutiveLaw->GetValue(rVariable, rOutput[0]);
+        value_computed = true;
     } else {
+        double calculated_value = 0.0;
+        value_computed = CalculateConstitutiveValue(rVariable, calculated_value, rCurrentProcessInfo);
+        if (value_computed) {
+            rOutput[0] = calculated_value;
+        }
+    }
+
+    if (!value_computed) {
         KRATOS_WATCH(rVariable);
         KRATOS_WARNING("VARIABLE PRINT STILL NOT IMPLEMENTED N THE IGA FRAMEWORK");
     }
@@ -449,7 +483,6 @@ void CutSbmSolidElement::CalculateOnIntegrationPoints(
     }
 }
 
-
 void CutSbmSolidElement::CalculateB(
         Matrix& rB, 
         Matrix& r_DN_DX) const
@@ -474,6 +507,20 @@ void CutSbmSolidElement::CalculateB(
         }
     }
 
+double CutSbmSolidElement::GetCharacteristicGeometryLengthScalar() const
+{
+    KRATOS_ERROR_IF_NOT(this->Has(CHARACTERISTIC_GEOMETRY_LENGTH))
+        << "CHARACTERISTIC_GEOMETRY_LENGTH not set for element " << this->Id() << std::endl;
+
+    const array_1d<double,3>& characteristic_length_vector = this->GetValue(CHARACTERISTIC_GEOMETRY_LENGTH);
+    const double characteristic_length = norm_2(characteristic_length_vector);
+
+    KRATOS_ERROR_IF(characteristic_length <= 0.0)
+        << "Non-positive characteristic length computed for element " << this->Id() << std::endl;
+
+    return characteristic_length;
+}
+
 
 
 void CutSbmSolidElement::GetSolutionCoefficientVector(
@@ -496,6 +543,45 @@ void CutSbmSolidElement::GetSolutionCoefficientVector(
         }
     }
 
+bool CutSbmSolidElement::CalculateConstitutiveValue(
+    const Variable<double>& rVariable,
+    double& rValue,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_true_geometry = GetGeometry();
+    const auto& r_surrogate_geometry = GetSurrogateGeometry();
+    const SizeType number_of_control_points = r_surrogate_geometry.size();
+    const SizeType mat_size = number_of_control_points * mDim;
+
+    Matrix grad_N_sum_transposed = ZeroMatrix(3, number_of_control_points);
+    ComputeGradientTaylorExpansionContribution(grad_N_sum_transposed);
+    Matrix grad_N_sum = trans(grad_N_sum_transposed);
+
+    Matrix B_sum = ZeroMatrix(mDim, mat_size);
+    CalculateB(B_sum, grad_N_sum);
+
+    Vector displacement(mat_size);
+    GetSolutionCoefficientVector(displacement);
+    Vector strain = prod(B_sum, displacement);
+
+    ConstitutiveLaw::Parameters values_true(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    Flags& r_constitutive_law_options = values_true.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    values_true.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
+
+    const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables constitutive_variables(strain_size);
+    values_true.SetStrainVector(strain);
+    values_true.SetStressVector(constitutive_variables.StressVector);
+    values_true.SetConstitutiveMatrix(constitutive_variables.D);
+
+    mpConstitutiveLaw->CalculateValue(values_true, rVariable, rValue);
+    return true;
+}
+
 void CutSbmSolidElement::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
                                         ConstitutiveVariables& rConstitutiVariables)
 {
@@ -505,6 +591,7 @@ void CutSbmSolidElement::ApplyConstitutiveLaw(SizeType matSize, Vector& rStrain,
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    rValues.SetCharacteristicGeometryLength(GetCharacteristicGeometryLengthScalar());
     
     rValues.SetStrainVector(rStrain);
     rValues.SetStressVector(rConstitutiVariables.StressVector);

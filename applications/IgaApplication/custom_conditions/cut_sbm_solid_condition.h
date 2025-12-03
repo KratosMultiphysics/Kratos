@@ -258,6 +258,8 @@ void CalculateB(
     Matrix& rB,
     Matrix& r_DN_DX) const;
 
+double GetCharacteristicGeometryLengthScalar() const;
+
 /**
  * @brief Compute the constitutive law response for the given strain vector.
  * 
