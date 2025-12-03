@@ -561,4 +561,4 @@ The convergence criterion is defined as:
 
 Where $\epsilon$ is a tolerance.
 
-<img src="documentation_data/hardening_flowchart.svg" alt="Hardening flowchart" title="Hardening flowchart" width="800">
+<img src="documentation_data/hardening_flowchart.svg" alt="Hardening flowchart" title="Hardening flowchart" width="400">
