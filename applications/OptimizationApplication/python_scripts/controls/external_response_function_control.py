@@ -26,7 +26,6 @@ class ExternalResponseFunctionControl(Control):
         default_parameters = Kratos.Parameters("""{
             "controlled_model_part_names": [],
             "design_variable"            : "CUSTOM_DESIGN_VARIABLE",
-            "container_type"             : "nodal_nonhistorical",
             "use_filtering"              : false,
             "filter_settings"            : {},
             "output_all_fields"          : false
@@ -42,10 +41,8 @@ class ExternalResponseFunctionControl(Control):
         self.design_variable: SupportedSensitivityFieldVariableTypes = Kratos.KratosGlobals.GetVariable(parameters["design_variable"].GetString())
         self.output_all_fields = parameters["output_all_fields"].GetBool()
 
-        self.container_type = parameters["container_type"].GetString()
-
         if parameters["use_filtering"].GetBool():
-            self.filter: 'Optional[Filter]' = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), self.design_variable, self.__GetDataLocation(), parameters["filter_settings"])
+            self.filter: 'Optional[Filter]' = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), self.design_variable, Kratos.Globals.DataLocation.NodeNonHistorical, parameters["filter_settings"])
         else:
             self.filter = None
 
@@ -60,8 +57,8 @@ class ExternalResponseFunctionControl(Control):
             self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
             self.filter.Initialize()
 
-        self.physical_phi_field = self.__CreateExpression(self.model_part)
-        self.__ReadExpression(self.physical_phi_field, self.design_variable)
+        self.physical_phi_field = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(self.physical_phi_field, self.design_variable, False)
 
         if self.filter:
             # take the physical and control field the same
@@ -84,7 +81,7 @@ class ExternalResponseFunctionControl(Control):
         return [self.design_variable]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
-        exp = self.__CreateExpression(self.model_part)
+        exp = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetDataToZero(exp, self.design_variable)
         return exp
 
@@ -136,7 +133,7 @@ class ExternalResponseFunctionControl(Control):
             filtered_update = update.Clone()
 
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_update)
-        self.__WriteExpression(self.physical_phi_field, self.design_variable)
+        Kratos.Expression.VariableExpressionIO.Write(self.physical_phi_field, self.design_variable, False)
 
         # add the values of the control to the optimization problem.
         component_data_view = ComponentDataView(self, self.optimization_problem)
@@ -150,41 +147,3 @@ class ExternalResponseFunctionControl(Control):
             un_buffered_data.SetValue(f"{self.GetName()}_{self.design_variable.Name()}_update", update.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"{self.GetName()}_{self.design_variable.Name()}_filtered_update", filtered_update.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"{self.GetName()}_{self.design_variable.Name()}_control_phi", self.control_phi_field.Clone(), overwrite=True)
-
-    def __CreateExpression(self, model_part: Kratos.ModelPart) -> ContainerExpressionTypes:
-        exp_dict = {
-            "nodal_historical": lambda : Kratos.Expression.NodalExpression(model_part),
-            "nodal_nonhistorical": lambda : Kratos.Expression.NodalExpression(model_part),
-            "condition": lambda : Kratos.Expression.NodalExpression(model_part),
-            "element": lambda : Kratos.Expression.NodalExpression(model_part),
-        }
-        return exp_dict[self.container_type]()
-
-    def __ReadExpression(self, expression: ContainerExpressionTypes, variable: SupportedSensitivityFieldVariableTypes) -> None:
-        exp_dict = {
-            "nodal_historical": lambda : Kratos.Expression.VariableExpressionIO.Read(expression, variable, True),
-            "nodal_nonhistorical": lambda : Kratos.Expression.VariableExpressionIO.Read(expression, variable, False),
-            "condition": lambda : Kratos.Expression.VariableExpressionIO.Read(expression, variable),
-            "element": lambda :Kratos.Expression.VariableExpressionIO.Read(expression, variable),
-        }
-        return exp_dict[self.container_type]()
-
-    def __WriteExpression(self, expression: ContainerExpressionTypes, variable: SupportedSensitivityFieldVariableTypes) -> None:
-        exp_dict = {
-            "nodal_historical": lambda : Kratos.Expression.VariableExpressionIO.Write(expression, variable, True),
-            "nodal_nonhistorical": lambda : Kratos.Expression.VariableExpressionIO.Write(expression, variable, False),
-            "condition": lambda : Kratos.Expression.VariableExpressionIO.Write(expression, variable),
-            "element": lambda :Kratos.Expression.VariableExpressionIO.Write(expression, variable),
-        }
-        return exp_dict[self.container_type]()
-
-    def __GetDataLocation(self) -> Kratos.Globals.DataLocation:
-        exp_dict = {
-            "nodal_historical": Kratos.Globals.DataLocation.NodeHistorical,
-            "nodal_nonhistorical": Kratos.Globals.DataLocation.NodeNonHistorical,
-            "condition": Kratos.Globals.DataLocation.Condition,
-            "element": Kratos.Globals.DataLocation.Element
-        }
-        return exp_dict[self.container_type]
-
-
