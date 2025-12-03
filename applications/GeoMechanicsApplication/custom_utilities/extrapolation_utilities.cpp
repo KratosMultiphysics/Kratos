@@ -13,8 +13,8 @@
 
 #include "custom_utilities/extrapolation_utilities.h"
 
+#include "custom_utilities/generic_utilities.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
-#include "geometry_utilities.h"
 #include "includes/node.h"
 
 namespace Kratos
@@ -47,7 +47,7 @@ std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalVectors
     const std::vector<Vector>&      rVectorsAtIntegrationPoints,
     size_t                          ElementId)
 {
-    const auto element_node_ids = GeometryUtilities::GetNodeIdsFromGeometry(rGeometry);
+    const auto element_node_ids = GenericUtilities::GetIdsFromEntityContents(rGeometry);
     const auto extrapolation_matrix = CalculateExtrapolationMatrix(rGeometry, IntegrationMethod, ElementId);
 
     KRATOS_ERROR_IF_NOT(extrapolation_matrix.size2() == rVectorsAtIntegrationPoints.size())
