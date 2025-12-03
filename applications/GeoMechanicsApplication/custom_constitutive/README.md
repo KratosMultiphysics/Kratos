@@ -103,7 +103,7 @@ To incorporate the Mohr-Coulomb model with tension cutoff in numerical simulatio
 
 2. Extract the principal stresses $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ for the calculated trial stress, and calculate the rotation matrix.
 
-3. Calculate the values of $`F_{MC}`$ and $`F_{tC}`$ for the calculated principal stresses.
+3. Calculate the values of $`F_{MC}`$ and $`F_{tc}`$ for the calculated principal stresses.
 
 4. Evaluate the condition and mapping
   - If the trial stress falls in the elastic zone, it stays unchanged. No mapping is applied.
@@ -140,7 +140,7 @@ This mapping is based on a new Mohr-Coulomb diagram with modified zones, based o
 We define the Coulomb yield surface $`F_{MC}`$ and the tension cut off yield surface $`F_{tc}`$ based on $`(\sigma,\tau)`$ coordinates. as:
 
 ```math
-    F_{MC} = \tau + \sigma \sin{\phi} - C \cos{\phi} = 0
+    F_{MC} = \tau + \sigma \sin{\phi} - c \cos{\phi} = 0
 ```
 ```math
     F_{tc} = \sigma +\tau - t_c = 0
@@ -164,7 +164,7 @@ First need to find whether there is an intersection between the Mohr-Coulomb yie
 
 Find the root of $`F_{MC}`$ (apex).
 ```math
-    \sigma_{MC} = \frac{C}{\tan{\phi}}
+    \sigma_{MC} = \frac{c}{\tan{\phi}}
 ```
 
 If $`t_c < \sigma_{MC}`$ we find a line perpendicular to the tension-cutoff curve passing through the apex point. The equation for the tension-cutoff is:
@@ -212,15 +212,15 @@ Where
 
 We need to find the shear at the intersection point. Setting  $`\sigma_1 = t_c`$ in the yield function (if $`t_c < \sigma_{MC}`$):
 ```math
-    -\sigma + t + \sigma \sin{\phi} - C \cos{\phi} = 0
+    -\sigma + t + \sigma \sin{\phi} - c \cos{\phi} = 0
 ```
 
 Then 
 ```math
-    \tau_{corner} = \frac{C \cos⁡{\phi} - t_c \sin{\phi}⁡}{1-\sin{\phi}}
+    \tau_{corner} = \frac{c \cos⁡{\phi} - t_c \sin{\phi}⁡}{1-\sin{\phi}}
 ```
 ```math
-    \sigma_{corner} = \frac{t_c - C \cos⁡{\phi}}{1 - \sin⁡{ϕ}}
+    \sigma_{corner} = \frac{t_c - c \cos⁡{\phi}}{1 - \sin⁡{ϕ}}
 ```
 
 A perpendicular to the tension-cutoff curve, passing through the corner point is:
@@ -240,16 +240,16 @@ Each trial stress which is outside the tensile-apex region and follows this cond
 
 We move perpendicular to the tension cutoff yield surface by using the derivative of the flow function related to the tension cutoff surface.
 ```math
-    \dot{\lambda} = \frac{\sigma + \tau - t_c}{\partial G_t / \partial \boldsymbol{\sigma}}
+    \dot{\lambda} = \frac{\sigma + \tau - t_c}{\partial G_tc / \partial \boldsymbol{\sigma}}
 ```
 ```math
-    \frac{\partial G_t}{\partial \boldsymbol{\sigma}} = 
+    \frac{\partial G_tc}{\partial \boldsymbol{\sigma}} = 
     \begin{bmatrix} 1 \\
     1
     \end{bmatrix}
 ```
 ```math
-    \sigma^{map} = \sigma^{trial} + \dot{\lambda} \frac{\partial G_t}{\partial \sigma}
+    \sigma^{map} = \sigma^{trial} + \dot{\lambda} \frac{\partial G_tc}{\partial \sigma}
 ```
 Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system.
 
@@ -258,17 +258,17 @@ Then update the principal stresses based on the mapped values. They updated prin
 
 This zone is located under the line which is perpendicular to the flow function and passes through the intersection point of Mohr-Coulomb yield surface and tension cutoff yield surface. 
 
-First we find the intersection point. The intersection point is related whether the tension cutoff intersects the yield function. 
+First we find the intersection point. The intersection point is related whether the tension cutoff yield surface intersects the Mohr-Coulomb yield surface. 
 
 - The tension cutoff yield surface intersects the Mohr-Coulomb yield surface:
 In this case of intersecting the shear stress can be found like the previous region:
 ```math
-    \tau_{corner} = \frac{C \cos{\phi} - t_c \sin{\phi}}{1 - \sin{\phi}}
+    \tau_{corner} = \frac{c \cos{\phi} - t_c \sin{\phi}}{1 - \sin{\phi}}
 ```
 
 And the normal stress can be found by
 ```math
-    \sigma_{corner} = \frac{t_c - C \cos{\phi}}{1 - \sin{\phi}}
+    \sigma_{corner} = \frac{t_c - c \cos{\phi}}{1 - \sin{\phi}}
 ```
 
 - The tension cutoff is located outside the Mohr-Coulomb yield surface and thus inactive:
@@ -345,20 +345,15 @@ Then a parametrized line can be defined by:
 
 At yield function,
 ```math
-    F_{MC} = \tau + \sigma \sin{\phi} - C \cos⁡{\phi} = 0
+    F_{MC} = \tau + \sigma \sin{\phi} - c \cos⁡{\phi} = 0
 ```
 ```math
-    \sigma \sin{\phi} + \tau = C \cos{\phi}
+    \sigma \sin{\phi} + \tau = c \cos{\phi}
 ```
 
 Solving this 3 equations:
 ```math
-    \dot{\lambda} = \frac{C \cos{\phi} - \sigma^{trial} \sin{\phi} - \tau^{trial}}{\sin(\psi) C_1 + 1}
-```
-
-Then
-```math
-    \sigma^{map} = \dot{\lambda} \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} + \sigma^{trial}
+    \dot{\lambda} = \frac{c \cos{\phi} - \sigma^{trial} \sin{\phi} - \tau^{trial}}{\sin(\psi) \sin(\phi) + 1}
 ```
 
 Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system.
@@ -435,12 +430,12 @@ And based on $`\sigma`$ and $`\tau`$:
     \frac{\partial G}{\partial \tau} = \frac{1}{4} \left( 3 + \sin⁡{\psi} \right)
 ```
 
-Note that after averaging the mapping direction, we modify the Mohr-Coulomb yield surface to account for the modified mapping direction. 
+Note that after averaging the mapping direction, we modify the direction of the flow function to account for the modified mapping direction. 
 The mapping direction for tension cutoff stays unchanged because applying such averaging leads to the same form of mapping. After averaging the mapping for tension cutoff stays unchanged.
 
 
 ### Hardening and softening
-During hardening or softening of a yield surface, the yield parameters are a not constant anymore, but they will be a function of equivalent plastic strain $`\kappa`$. The increment of equivalent plastic strain is defined by:
+During hardening or softening of a yield surface, the yield surface may change in location, and it will be a function of equivalent plastic strain $`\kappa`$. The increment of equivalent plastic strain is defined by:
 ```math
     \Delta \kappa = \sqrt{2/3} \lVert \Delta \epsilon^p \rVert
 ```
@@ -453,7 +448,7 @@ Where:
     \Delta \epsilon^p = \dot{\lambda} \frac{\partial G}{\partial \boldsymbol{\sigma}}
 ```
 
-As the current implementation is based on $`\sigma-\tau`$, we must map that 2-vector back to a 3×3 stress tensor. We use chain rule to get derivatives of $G$ to the principal stresses:
+As the current implementation is based on $`\sigma-\tau`$, we must map that 2-vector back to a 3×3 stress tensor. We use the chain rule to get derivatives of $G$ to the principal stresses:
 ```math
     G,_{\sigma_1} = \frac{\partial G}{\partial \sigma_1} = 
     \frac{\partial G}{\partial \sigma} \frac{\partial \sigma}{\partial \sigma_1}
@@ -477,9 +472,9 @@ We build the flow tensor $`\boldsymbol{m}`$ in principal frame.
     \end{bmatrix}
 ```
 
-The deviatoric is then calculated:
+The deviatoric flow tensor is then calculated:
 ```math
-    \boldsymbol{m_{dev}} = \boldsymbol{m} - \frac{1}{3} \left( \mathrm{tr} \, \boldsymbol{m} \right)
+    \boldsymbol{m_{dev}} = \boldsymbol{m} - \frac{1}{3}  \mathrm{tr} \, \left( \boldsymbol{m} \right) I
 ```
 
 In principal components (diagonal), the mean value is
@@ -489,7 +484,7 @@ In principal components (diagonal), the mean value is
 
 Then
 ```math
-    \lVert \boldsymbol{m_dev} \rVert = \sqrt{(G,_{\sigma_1} - \bar{m})^2 + (G,_{\sigma_2} - \bar{m})^2 + (G,_{\sigma_3} - \bar{m})^2}
+    \lVert \boldsymbol{m_{dev}} \rVert = \sqrt{(G,_{\sigma_1} - \bar{m})^2 + (G,_{\sigma_2} - \bar{m})^2 + (G,_{\sigma_3} - \bar{m})^2}
 ```
 
 If the accumulated hardening variable is the usual equivalent plastic strain
@@ -502,7 +497,7 @@ As $`\Delta \epsilon^p = \dot{\lambda} \boldsymbol{m}`$
     \Delta \kappa = \dot{\lambda} \sqrt{\frac{2}{3} \boldsymbol{m:m}}
 ```
 
-The Cohesion, friction angle, dilation angle and tangential cutoff become all functions of $\kappa$.
+The cohesion, friction angle and dilation angle become all functions of $\kappa$.
 
 
 #### Linear hardening
@@ -511,13 +506,13 @@ As it is mentioned above, in hardening process, the material properties for Coul
     \phi(\kappa) = \phi_0 + H_\phi \kappa
 ```
 ```math
-    C(\kappa) = C_0 + H_C \kappa
+    c(\kappa) = c_0 + H_c \kappa
 ```
 ```math
     \psi(\kappa) = \psi_0 + H_\psi \kappa
 ```
 
-Where $`H_\phi`$, $`H_C`$ and $`H_\psi`$ are hardening modulus for the friction angle, cohesion and dilatancy angle, respectively.
+Where $`H_\phi`$, $`H_c`$ and $`H_\psi`$ are hardening modulus for the friction angle, cohesion and dilatancy angle, respectively.
 
 Note: These formulations will be extended for more physics-based form.
 
@@ -526,7 +521,7 @@ Note: These formulations will be extended for more physics-based form.
 
 1. Compute the yield surface and map the trial stresses:
 ```math
-    F_{MC}(\boldsymbol{\sigma}, \kappa_n) = \tau + \sigma \sin{\phi(\kappa_n)} - C(\kappa_n) \cos{\phi(\kappa_n)} = 0
+    F_{MC}(\boldsymbol{\sigma}, \kappa_n) = \tau + \sigma \sin{\phi(\kappa_n)} - c(\kappa_n) \cos{\phi(\kappa_n)} = 0
 ```
 
 2. Compute plastic multiplier increment $`\dot{\lambda}`$
@@ -543,7 +538,7 @@ Note: These formulations will be extended for more physics-based form.
 
 5. Update the material parameters:
 ```math
-    C_{n+1} = C(\kappa_{n+1})
+    c_{n+1} = c(\kappa_{n+1})
 ```
 ```math
     \phi_{n+1} = \phi(\kappa_{n+1})
@@ -554,7 +549,7 @@ Note: These formulations will be extended for more physics-based form.
 
 6. Recompute yield surface with updated parameters.
 ```math
-    F_{MC}(\boldsymbol{\sigma}, \kappa_{n+1}) = \tau + \sigma \sin{\phi(\kappa_{n+1})} - C(\kappa_{n+1}) \cos{\phi(\kappa_{n+1})} = 0
+    F_{MC}(\boldsymbol{\sigma}, \kappa_{n+1}) = \tau + \sigma \sin{\phi(\kappa_{n+1})} - c(\kappa_{n+1}) \cos{\phi(\kappa_{n+1})} = 0
 ```
 
 7.	Go to 1 until convergence.
