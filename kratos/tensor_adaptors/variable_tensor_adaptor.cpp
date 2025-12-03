@@ -179,78 +179,18 @@ void VariableTensorAdaptor::StoreData()
                 // variable in their DataValueContainer.
                 const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
 
-                // -----------------------------------------------------------------------------------------
-                // TODO: Following block of code is not required if the discussion in PR #13685 is accepted.
-                //       This is costly, which can be heavily improved with the above mentioned PR.
-                block_for_each(*pContainer, [&pVariable, &zero](auto& rEntity) {
-                    // following code will need to do two lookups, one for Has, and one for SetValue.
-                    // The PR #13685 have a mechanism to do both with one lookup, halving the cost.
-                    if (!rEntity.Has(*pVariable)) {
-                        // this variable only needs to be set, if it is not present because,
-                        // in a case where this tensor is created in the following scenario
-                        //
-                        // a = VariableTensorAdaptor(nodes, VELOCITY, data_shape = [2]) //
-                        // a.data = numpy.ndarray
-                        // a.StoreData() # here i only want to write to VELOCITY_X and VELOCITY_Y, not touching VELOCITY_Z
-                        // in order to do that, i must only set the values in the entities which are not having the variable.
-                        // This can be easily avoided if as suggested in the PR #13685 we have the Emplace method.
-                        rEntity.SetValue(*pVariable, zero);
-                    }
-                });
-                // -----------------------------------------------------------------------------------------
-
                 ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
                     *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                     r_tensor_shape.data().begin() + r_tensor_shape.size(),
-                    [pVariable](auto& rEntity) -> auto& {
-                        // -------------------------------------------------------------
-                        // with the PR #13685, we can reduce the 3 lookups per entity
-                        // to 1 lookup.
-                        return rEntity.GetValue(*pVariable);
-                        // -------------------------------------------------------------
-                        // TODO: Needs the approval of PR #13685
-                        // only dynamic data_type types require the zero
-                        // to initialize the uninitialized variables, because
-                        // they need to be correctly sized.
-                        //      return rEntity.Emplace(*pVariable, zero);
-                        // -------------------------------------------------------------
+                    [pVariable, &zero](auto& rEntity) -> auto& {
+                        return rEntity.Emplace(*pVariable, zero);
                     });
             } else {
-                // -----------------------------------------------------------------------------------------
-                // TODO: Following block of code is not required if the discussion in PR #13685 is accepted.
-                //       This is costly, which can be heavily improved with the above mentioned PR.
-                block_for_each(*pContainer, [&pVariable](auto& rEntity) {
-                    // following code will need to do two lookups, one for Has, and one for SetValue.
-                    // The PR #13685 have a mechanism to do both with one lookup, halving the cost.
-                    if (!rEntity.Has(*pVariable)) {
-                        // this variable only needs to be set, if it is not present because,
-                        // in a case where this tensor is created in the following scenario
-                        //
-                        // a = VariableTensorAdaptor(nodes, VELOCITY, data_shape = [2]) //
-                        // a.data = numpy.ndarray
-                        // a.StoreData() # here i only want to write to VELOCITY_X and VELOCITY_Y, not touching VELOCITY_Z
-                        // in order to do that, i must only set the values in the entities which are not having the variable.
-                        // This can be easily avoided if as suggested in the PR #13685 we have the Emplace method.
-                        rEntity.SetValue(*pVariable, pVariable->Zero());
-                    }
-                });
-                // -----------------------------------------------------------------------------------------
-
                 ContainerIOUtils::CopyFromContiguousDataArray<data_type>(
                     *pContainer, this->ViewData(), r_tensor_shape.data().begin(),
                     r_tensor_shape.data().begin() + r_tensor_shape.size(),
                     [pVariable](auto& rEntity) -> auto& {
-                        // -------------------------------------------------------------
-                        // with the PR #13685, we can reduce the 3 lookups per entity
-                        // to 1 lookup.
-                        return rEntity.GetValue(*pVariable);
-                        // -------------------------------------------------------------
-                        // TODO: Needs the approval of PR #13685
-                        // only dynamic data_type types require the zero
-                        // to initialize the uninitialized variables, because
-                        // they need to be correctly sized.
-                        //      return rEntity.Emplace(*pVariable);
-                        // -------------------------------------------------------------
+                        return rEntity.Emplace(*pVariable);
                     });
             }
         }
