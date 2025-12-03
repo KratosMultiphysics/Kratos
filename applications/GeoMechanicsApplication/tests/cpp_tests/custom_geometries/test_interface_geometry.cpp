@@ -157,6 +157,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointe
     KRATOS_EXPECT_EQ(geometry.PointsNumber(), 6);
     KRATOS_EXPECT_EQ(geometry.LocalSpaceDimension(), 1);
     KRATOS_EXPECT_EQ(geometry.WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(geometry.GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointersToNodesAndASurfaceGeometryType,
@@ -170,6 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointe
     KRATOS_EXPECT_EQ(geometry.PointsNumber(), 6);
     KRATOS_EXPECT_EQ(geometry.LocalSpaceDimension(), 2);
     KRATOS_EXPECT_EQ(geometry.WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_EQ(geometry.GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -189,9 +191,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectTy
     KRATOS_EXPECT_EQ(new_geometry->Id(), 0);
     KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 1);
     KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(new_geometry->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndId,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForLineMidGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto          geometry = InterfaceGeometry<Line2D2<Node>>();
@@ -210,9 +213,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
     KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 1);
     KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(new_geometry->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForSurfaceMidGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForTriangularMidGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = InterfaceGeometry<Triangle3D6<Node>>();
@@ -227,6 +231,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
     KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 2);
     KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_EQ(new_geometry->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)

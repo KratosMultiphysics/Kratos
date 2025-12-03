@@ -59,6 +59,11 @@ public:
         return std::make_shared<InterfaceGeometry>(NewGeometryId, rThisPoints);
     }
 
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return mMidGeometry->GetGeometryFamily();
+    }
+
     [[nodiscard]] double Area() const override { return mMidGeometry->Area(); }
 
     [[nodiscard]] double ShapeFunctionValue(IndexType ShapeFunctionIndex,
