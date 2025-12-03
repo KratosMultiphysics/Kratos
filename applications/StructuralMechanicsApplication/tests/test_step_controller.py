@@ -1,7 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.step_controller import DefaultStepController, GeometricStepController
+from KratosMultiphysics.StructuralMechanicsApplication.step_controller import DefaultStepController, GeometricStepController
 
 class TestStepControllers(KratosUnittest.TestCase):
     def test_DefaultStepController(self):
