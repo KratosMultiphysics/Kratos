@@ -59,9 +59,14 @@ public:
         return std::make_shared<InterfaceGeometry>(NewGeometryId, rThisPoints);
     }
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    [[nodiscard]] GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return mMidGeometry->GetGeometryFamily();
+    }
+
+    [[nodiscard]] GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return mMidGeometry->GetGeometryOrderType();
     }
 
     [[nodiscard]] double Area() const override { return mMidGeometry->Area(); }
@@ -313,8 +318,8 @@ private:
         // The second side is defined by the second half of the element nodes. However, the
         // nodes must be traversed in opposite direction.
         auto nodes_of_second_side = PointerVector<Node>{begin_of_second_side, points.ptr_end()};
-        GeometryUtilities::ReverseNodes(nodes_of_second_side, mMidGeometry->GetGeometryFamily(),
-                                        mMidGeometry->GetGeometryOrderType());
+        GeometryUtilities::ReverseNodes(nodes_of_second_side, this->GetGeometryFamily(),
+                                        this->GetGeometryOrderType());
 
         auto result = GeometriesArrayType{};
         result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_side));
