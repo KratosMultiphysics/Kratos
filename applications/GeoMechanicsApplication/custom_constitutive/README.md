@@ -61,7 +61,7 @@ Where:
 * $`\Delta \Delta u`$: The incremental relative displacement vector.
 
 
-## Mohr-Coulomb with tensile cutoff
+## Mohr-Coulomb with tension cutoff
 
 The Mohr-Coulomb failure criterion is defined as:
 
@@ -78,7 +78,7 @@ where:
 
 This criterion represents a linear envelope in the Mohr stress space, approximating the shear strength of a material under different stress states.
 
-Since the Mohr-Coulomb criterion primarily accounts for shear failure, it does not limit tensile stresses. In geomechanical applications, materials such as rocks and soils have a limited tensile strength . A tensile cutoff is imposed as:
+Since the Mohr-Coulomb criterion primarily accounts for shear failure, it does not limit tensile stresses. In geomechanical applications, materials such as rocks and soils have a limited tensile strength . A tension cutoff is imposed as:
 
 ```math
     F_{tc}(\sigma) = \sigma_1 - t_c = 0
@@ -86,14 +86,14 @@ Since the Mohr-Coulomb criterion primarily accounts for shear failure, it does n
 
 where $t_c$ is the tensile strength. If $`\sigma_1`$ exceeds $`t_c`$, failure occurs regardless of the shear strength condition.
 
-Combination of these two, it yiels to the following figure:
+The combination of these two, yiels to the following figure:
 
 <img src="documentation_data/mohr-coulomb-with-tension-cutoff-zones.svg" alt="Mohr-Coulomb with tension cutoff" title="Mohr-Coulomb with tension cutoff" width="800">
 
 
 ### Implementation
 
-To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulations, the following steps are followed:
+To incorporate the Mohr-Coulomb model with tension cutoff in numerical simulations, the following steps are followed:
 
 1. Calculate the trial stress by: 
 
@@ -108,9 +108,9 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 4. Evaluate the condition and mapping
   - If the trial stress falls in the elastic zone, it stays unchanged. No mapping is applied.
   - If the trial stress falls in the tensile apex return zone. The trial stress then needs to be mapped back to the apex.
-  - If the trial stress falls in the tensile cutoff zone. The trial stress then needs to be mapped back to the tension cutoff line.
+  - If the trial stress falls in the tension cutoff zone. The trial stress then needs to be mapped back to the tension cutoff yield surface.
   - If it falls in the tensile corner return zone, then it needs to be mapped to the corner point.
-  - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb curve along the normal direction of flow function. The flow function is defined by
+  - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb yield surface along the normal direction of flow function. The flow function is defined by
   
 ```math
     G(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\psi}
@@ -134,10 +134,10 @@ To incorporate the Mohr-Coulomb model with tensile cutoff in numerical simulatio
 ```
 This mapping is based on a new Mohr-Coulomb diagram with modified zones, based on the averaged of the derivatives of flow functions $`\frac{\partial G}{\partial \boldsymbol{\sigma}}`$.
 
-6. Rotate the mapped stress vector back, by applying the rotation matrix.
+6. Rotate the mapped stress tensor back, by applying the rotation matrix.
 
 ### Detailed formulations
-We define the Coulomb yield surface $`F_{MC}`$ and the tensile cutoff surface $`F_{tc}`$ based on $\sigma-\tau$ coordinates. as:
+We define the Coulomb yield surface $`F_{MC}`$ and the tension cut off yield surface $`F_{tc}`$ based on $`(\sigma,\tau)`$ coordinates. as:
 
 ```math
     F_{MC} = \tau + \sigma \sin{\phi} - C \cos{\phi} = 0
@@ -154,13 +154,13 @@ Where
     \tau = \frac{\sigma_1 - \sigma_3}{2}
 ```
 
-#### Elastic zone: 
-This condition occurs when $`F_{MC} \le 0`$ and $`F_{tc} \le 0`$. Here, the stress state does not violate the MC yieldsurface, nor the tension cut off. The stress vector stays unchanged and there is no need for return mapping.
+#### Elastic zone
+This condition occurs when $`F_{MC} \le 0`$ and $`F_{tc} \le 0`$. Here, the stress state does not violate the Mohr-Coulomb yield surface, nor the tension cutoff. The stress vector stays unchanged and there is no need for return mapping.
 
 
 #### Tensile apex return zone
 
-First need to find whether there is intersection between the Yield and cutoff functions at the region of $`\tau \ge 0`$.
+First need to find whether there is an intersection between the Mohr-Coulomb yield surface and the tension cutoff yield surface at the region of $`\tau \ge 0`$.
 
 Find the root of $`F_{MC}`$ (apex).
 ```math
@@ -180,14 +180,14 @@ Any trial stress which falls below this line then belongs to this region. It is 
 ```math
     \tau^{trial} - \sigma^{trial} + t_c < 0
 ```
-If a point falls in this zone, it will be mapped back to the root point of the tension-cutoff line, namely to point $`\sigma = t_c`$ and $`\tau = 0`$. Then update the principal stresses based on the mapped values.
+If a point falls in this zone, it will be mapped back to the root point of the tension cutoff yield surface, namely to point $`\sigma = t_c`$ and $`\tau = 0`$. Then update the principal stresses based on the mapped values.
 ```math
     \sigma_1 = \sigma + \tau
 ```
 ```math
     \sigma_3 = \sigma - \tau
 ```
-
+The second principal stress remains unaltered.
 They are the corrected principal stresses. They need to be rotated back to the element axes system. We need to use the rotation matrix.
 ```math
    \boldsymbol{\sigma} = \boldsymbol{R \sigma_p R^{-1}}
@@ -208,7 +208,7 @@ Where
     \end{bmatrix}
 ```
 
-#### Tensile cutoff return zone
+#### Tension cutoff return zone
 
 We need to find the shear at the intersection point. Setting  $`\sigma_1 = t_c`$ in the yield function (if $`t_c < \sigma_{MC}`$):
 ```math
@@ -233,12 +233,12 @@ Then the condition is:
     \left(\tau^{trial} - \tau_{corner}) - (\sigma^{trial} - \sigma_{corner} \right) < 0
 ```
 
-Each trial stress  which is outside the tensile-apex region and follows this condition, needs to map back to the tension-cutoff curve. It means:
+Each trial stress which is outside the tensile-apex region and follows this condition, needs to map back to the tension cutoff yield surface. It means:
 ```math
     \sigma + \tau = t_c
 ```
 
-We move perpendicular to the tension-cutoff surface by using the derivative of the flow function related to the tension cutoff surface.
+We move perpendicular to the tension cutoff yield surface by using the derivative of the flow function related to the tension cutoff surface.
 ```math
     \dot{\lambda} = \frac{\sigma + \tau - t_c}{\partial G_t / \partial \boldsymbol{\sigma}}
 ```
@@ -256,12 +256,12 @@ Then update the principal stresses based on the mapped values. They updated prin
 
 #### Zone of tensile corner return
 
-This zone is located under the line which is perpendicular to the flow function and passes through the intersection point of yield function and tension cutoff. 
+This zone is located under the line which is perpendicular to the flow function and passes through the intersection point of Mohr-Coulomb yield surface and tension cutoff yield surface. 
 
-First we find the intersection point. The intersection point is related whether the tension-cutoff intersects the yield function. 
+First we find the intersection point. The intersection point is related whether the tension cutoff intersects the yield function. 
 
-- The tension-cut-off intersects the yield function:
-In this case of intersecting the shear can be found like the previous region:
+- The tension cutoff yield surface intersects the Mohr-Coulomb yield surface:
+In this case of intersecting the shear stress can be found like the previous region:
 ```math
     \tau_{corner} = \frac{C \cos{\phi} - t_c \sin{\phi}}{1 - \sin{\phi}}
 ```
@@ -271,7 +271,7 @@ And the normal stress can be found by
     \sigma_{corner} = \frac{t_c - C \cos{\phi}}{1 - \sin{\phi}}
 ```
 
-- The tension-cutoff is located outside:
+- The tension cutoff is located outside the Mohr-Coulomb yield surface and thus inactive:
 Then this point is equal to the root, which was derived in the previous section:
 ```math
     \tau_{corner} = 0
@@ -289,7 +289,7 @@ The flow function is:
     \tau =- \sigma \sin{\psi}
 ```
 
-The slope of this line is $`-\sin⁡{\psi}`$. The slope of a line perpendicular is then
+The slope of this line is $`-\sin⁡{\psi}`$. The slope of a perpendicular line is then
 ```math
     m = \frac{1}{\sin{\psi}}
 ```
@@ -320,7 +320,7 @@ Then
     \sigma^{map} = \sigma_{corner}
 ```
 
-Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system. We need to use the rotation matrix, similar as done above for other regions. 
+Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system. We need to use the rotation matrix, similar as done above for other zones. 
 
 
 #### Zone of regular failure
@@ -335,10 +335,6 @@ We use the derivative of the flow function to define the direction and find the 
     \begin{bmatrix}
     \sin{\psi} \\
     1
-    \end{bmatrix} =
-    \begin{bmatrix}
-    n_1 \\
-    n_2
     \end{bmatrix}
 ```
 
@@ -357,7 +353,7 @@ At yield function,
 
 Solving this 3 equations:
 ```math
-    \dot{\lambda} = \frac{C \cos{\phi} - \sigma^{trial} \sin{\phi} - \tau^{trial}}{n_1 C_1 + n_2}
+    \dot{\lambda} = \frac{C \cos{\phi} - \sigma^{trial} \sin{\phi} - \tau^{trial}}{\sin(\psi) C_1 + 1}
 ```
 
 Then
@@ -439,7 +435,7 @@ And based on $`\sigma`$ and $`\tau`$:
     \frac{\partial G}{\partial \tau} = \frac{1}{4} \left( 3 + \sin⁡{\psi} \right)
 ```
 
-Note that after averaging the mapping direction, we modify the Mohr-Coulomb curve to account for the modified mapping direction. 
+Note that after averaging the mapping direction, we modify the Mohr-Coulomb yield surface to account for the modified mapping direction. 
 The mapping direction for tension cutoff stays unchanged because applying such averaging leads to the same form of mapping. After averaging the mapping for tension cutoff stays unchanged.
 
 
@@ -508,9 +504,8 @@ As $`\Delta \epsilon^p = \dot{\lambda} \boldsymbol{m}`$
 
 The Cohesion, friction angle, dilation angle and tangential cutoff become all functions of $\kappa$.
 
-We start from the most simple formulations for hardening and softening. It is namely linear hardening.
 
-#### Linear hardening:
+#### Linear hardening
 As it is mentioned above, in hardening process, the material properties for Coulomb yield surface are functions of $`\kappa`$. Here we use the most simple hardening model, namely linear. 
 ```math
     \phi(\kappa) = \phi_0 + H_\phi \kappa
@@ -522,7 +517,7 @@ As it is mentioned above, in hardening process, the material properties for Coul
     \psi(\kappa) = \psi_0 + H_\psi \kappa
 ```
 
-Where $`H_\phi`$, $`H_C`$ and $`H_\psi`$ are hardening modulus for the friction angle, cohession and dilatation angle, respectively.
+Where $`H_\phi`$, $`H_C`$ and $`H_\psi`$ are hardening modulus for the friction angle, cohesion and dilatancy angle, respectively.
 
 Note: These formulations will be extended for more physics-based form.
 
@@ -536,7 +531,7 @@ Note: These formulations will be extended for more physics-based form.
 
 2. Compute plastic multiplier increment $`\dot{\lambda}`$
 
-3. Update plastic strain:
+3. Update the plastic strain increment:
 ```math
     \Delta \boldsymbol{\epsilon^p} = \dot{λ} \frac{\partial G}{\partial \boldsymbol{\sigma}}
 ```
