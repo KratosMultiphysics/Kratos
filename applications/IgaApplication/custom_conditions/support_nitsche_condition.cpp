@@ -14,6 +14,7 @@
 
 // External includes
 #include "custom_conditions/support_nitsche_condition.h"
+#include "utilities/atomic_utilities.h"
 
 // Project includes
 
@@ -933,6 +934,53 @@ namespace Kratos
             rValues[index + 1] = displacement[1];
             rValues[index + 2] = displacement[2];
         }
+    }
+
+    void SupportNitscheCondition::AddExplicitContribution(
+        const VectorType& rRHS,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double,3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        KRATOS_TRY;
+
+        const auto& r_geometry = GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+
+        #pragma omp critical
+        {
+            if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL ) {
+                // KRATOS_WATCH(rRHS)
+
+                for(SizeType i=0; i< number_of_nodes; ++i) {
+                    SizeType index = dimension * i;
+
+                    // KRATOS_WATCH(i)
+
+                    array_1d<double, 3 >& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+                    // KRATOS_WATCH(r_force_residual)
+
+                    for(SizeType j=0; j<dimension; ++j) {
+                        AtomicAdd(r_force_residual[j], rRHS[index + j]);
+                    }
+
+                    // const array_1d<double, 3> disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+                    // KRATOS_WATCH(rRHS[index + 0])
+                    // KRATOS_WATCH(rRHS[index + 1])
+                    // KRATOS_WATCH(rRHS[index + 2])
+
+                    // KRATOS_WATCH(disp)
+
+                    // KRATOS_WATCH(r_force_residual)
+                }
+            }
+        }
+
+        KRATOS_CATCH( "" )
     }
 
     void SupportNitscheCondition::EquationIdVector(
