@@ -31,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 
     const LinearNodalExtrapolator nodal_extrapolator;
 
-    // Used the integration method found in the 2d2 Timoshenko Beam element
+    // Used the integration method found in the 2d3 Timoshenko Beam element
     constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_3;
     auto           extrapolation_matrix =
         nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
