@@ -12,6 +12,11 @@ Source is http://burtleburtle.net/bob/c/lookupa.c
 #include "lookupa.h"
 #endif
 
+#ifndef _WIN32
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif // _WIN32
+
 /*
 --------------------------------------------------------------------
 mix -- mix 3 32-bit values reversibly.
@@ -53,7 +58,7 @@ mix() was built out of 36 single-cycle latency instructions in a
 
 /*
 --------------------------------------------------------------------
-lookup() -- hash a variable-length key into a 32-bit value
+_gp_lookup() -- hash a variable-length key into a 32-bit value
   k     : the key (the unaligned variable-length array of bytes)
   len   : the length of the key, counting by bytes
   level : can be any 4-byte value
@@ -68,21 +73,22 @@ use a bitmask.  For example, if you need only 10 bits, do
 In which case, the hash table should have hashsize(10) elements.
 
 If you are hashing n strings (ub1 **)k, do it like this:
-  for (i=0, h=0; i<n; ++i) h = lookup( k[i], len[i], h);
+  for (i=0, h=0; i<n; ++i) h = _gp_lookup( k[i], len[i], h);
 
 By Bob Jenkins, 1996.  bob_jenkins@burtleburtle.net.  You may use this
 code any way you wish, private, educational, or commercial.
 
 See http://burtleburtle.net/bob/hash/evahash.html
-Use for hash table lookup, or anything where one collision in 2^32 is
+Use for hash table _gp_lookup, or anything where one collision in 2^32 is
 acceptable.  Do NOT use for cryptographic purposes.
 --------------------------------------------------------------------
 */
 
-ub4 lookup( k, length, level)
-register ub1 *k;        /* the key */
-register ub4  length;   /* the length of the key */
-register ub4  level;    /* the previous hash, or an arbitrary value */
+ub4 _gp_lookup( 
+    register ub1 *k,        /* the key */
+    register ub4  length,   /* the length of the key */
+    register ub4  level    /* the previous hash, or an arbitrary value */
+            )
 {
    register ub4 a,b,c,len;
 
@@ -147,16 +153,16 @@ Repeating mix() four times eliminates all funnels and all
 
 /*
 --------------------------------------------------------------------
-checksum() -- hash a variable-length key into a 256-bit value
+_gp_checksum() -- hash a variable-length key into a 256-bit value
   k     : the key (the unaligned variable-length array of bytes)
   len   : the length of the key, counting by bytes
   state : an array of CHECKSTATE 4-byte values (256 bits)
-The state is the checksum.  Every bit of the key affects every bit of
+The state is the _gp_checksum.  Every bit of the key affects every bit of
 the state.  There are no funnels.  About 112+6.875len instructions.
 
 If you are hashing n strings (ub1 **)k, do it like this:
   for (i=0; i<8; ++i) state[i] = 0x9e3779b9;
-  for (i=0, h=0; i<n; ++i) checksum( k[i], len[i], state);
+  for (i=0, h=0; i<n; ++i) _gp_checksum( k[i], len[i], state);
 
 (c) Bob Jenkins, 1996.  bob_jenkins@burtleburtle.net.  You may use this
 code any way you wish, private, educational, or commercial, as long
@@ -167,10 +173,10 @@ Use to detect changes between revisions of documents, assuming nobody
 is trying to cause collisions.  Do NOT use for cryptography.
 --------------------------------------------------------------------
 */
-void  checksum( k, len, state)
-register ub1 *k;
-register ub4  len;
-register ub4 *state;
+void  _gp_checksum( 
+    register ub1 *k,
+    register ub4  len,
+    register ub4 *state)
 {
    register ub4 a,b,c,d,e,f,g,h,length;
 
@@ -242,3 +248,7 @@ register ub4 *state;
    state[0]=a; state[1]=b; state[2]=c; state[3]=d;
    state[4]=e; state[5]=f; state[6]=g; state[7]=h;
 }
+
+#ifndef _WIN32
+#pragma GCC diagnostic pop
+#endif // _WIN32

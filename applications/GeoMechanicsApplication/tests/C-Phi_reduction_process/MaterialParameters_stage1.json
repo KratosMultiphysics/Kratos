@@ -21,7 +21,7 @@
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  8.90e-7,
               "INDEX_OF_UMAT_PHI_PARAMETER": 4,
-     	      "INDEX_OF_UMAT_C_PARAMETER":   3,
+              "INDEX_OF_UMAT_C_PARAMETER":   3,
               "UMAT_PARAMETERS"          :  [ 30.0E6,
                                               0.3,
                                               10000.0,
@@ -32,8 +32,7 @@
               "BIOT_COEFFICIENT"         :  1.0,
               "RETENTION_LAW"            : "SaturatedLaw",
               "SATURATED_SATURATION"     :  1.0
-         },
-         "Tables": {}
+         }
       }
    }]
 }

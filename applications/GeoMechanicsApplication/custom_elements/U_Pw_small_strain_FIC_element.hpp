@@ -97,13 +97,9 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     // Turn back information as a string.
     std::string Info() const override

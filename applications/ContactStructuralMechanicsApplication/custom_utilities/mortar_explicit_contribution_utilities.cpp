@@ -20,7 +20,7 @@
 
 namespace Kratos
 {
-template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
+template< const std::size_t TDim, const std::size_t TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const std::size_t TNumNodesMaster>
 typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::MortarConditionMatrices MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContributionOfMortarCondition(
     PairedCondition* pCondition,
     const ProcessInfo& rCurrentProcessInfo,
@@ -170,7 +170,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
+template< const std::size_t TDim, const std::size_t TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const std::size_t TNumNodesMaster>
 typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::MortarConditionMatrices MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::AddExplicitContributionOfMortarFrictionalCondition(
     PairedCondition* pCondition,
     const ProcessInfo& rCurrentProcessInfo,
@@ -357,7 +357,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
+template< const std::size_t TDim, const std::size_t TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const std::size_t TNumNodesMaster>
 void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputeNodalArea(
     PairedCondition* pCondition,
     const ProcessInfo& rCurrentProcessInfo,
@@ -374,7 +374,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
+template< const std::size_t TDim, const std::size_t TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const std::size_t TNumNodesMaster>
 bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputePreviousMortarOperators(
     PairedCondition* pCondition,
     const ProcessInfo& rCurrentProcessInfo,
@@ -495,7 +495,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
+template<std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, std::size_t TNumNodesMaster>
 bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ExplicitCalculateAe(
     const GeometryType& rSlaveGeometry,
     GeneralVariables& rVariables,
@@ -526,7 +526,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
         bool bad_shape;
         if constexpr (TDim == 2) {
             bad_shape = MortarUtilities::LengthCheck(decomp_geom, rSlaveGeometry.Length() * CheckThresholdCoefficient);
-        } else { 
+        } else {
             bad_shape = MortarUtilities::HeronCheck(decomp_geom);
         }
 
@@ -557,7 +557,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
+template<std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, std::size_t TNumNodesMaster>
 void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ExplicitCalculateKinematics(
     const PairedCondition* pCondition,
     GeneralVariables& rVariables,
@@ -591,7 +591,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
+template<std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, std::size_t TNumNodesMaster>
 void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::CalculateKinematics(
     const PairedCondition* pCondition,
     GeneralVariables& rVariables,
@@ -625,7 +625,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
+template<std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, std::size_t TNumNodesMaster>
 void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::MasterShapeFunctionValue(
     const PairedCondition* pCondition,
     GeneralVariables& rVariables,

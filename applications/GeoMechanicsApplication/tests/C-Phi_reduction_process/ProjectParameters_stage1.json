@@ -48,17 +48,8 @@
         "newmark_beta": 0.25,
         "newmark_gamma": 0.5,
         "newmark_theta": 0.5,
-        "nodal_smoothing": false,
         "number_cycles": 1,
-        "problem_domain_sub_model_part_list": [
-            "Material_1"
-        ],
-        "processes_sub_model_part_list": [
-            "Main",
-            "All_Nodes",
-            "Side_Nodes",
-            "Base_Nodes"
-        ],
+        "problem_domain_sub_model_part_list": ["Material_1"],
         "rayleigh_k": 0.0,
         "rayleigh_m": 0.0,
         "reduction_factor": 0.5,

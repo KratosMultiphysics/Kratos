@@ -15,6 +15,8 @@
 #include "strategy_wrapper.hpp"
 #include <memory>
 
+#include "custom_processes/calculate_incremental_motion_process.h"
+#include "custom_processes/calculate_total_motion_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_output_writer.h"
 #include "includes/variables.h"
@@ -104,17 +106,16 @@ public:
 
     void AccumulateTotalDisplacementField() override
     {
-        for (auto& node : mrModelPart.Nodes()) {
-            node.GetSolutionStepValue(TOTAL_DISPLACEMENT) += node.GetSolutionStepValue(INCREMENTAL_DISPLACEMENT);
-        }
+        auto process =
+            CalculateTotalMotionProcess(mrModelPart, Parameters(R"({"variable_name": "DISPLACEMENT"})"));
+        process.Execute();
     }
 
     void ComputeIncrementalDisplacementField() override
     {
-        for (auto& node : mrModelPart.Nodes()) {
-            node.GetSolutionStepValue(INCREMENTAL_DISPLACEMENT) =
-                node.GetSolutionStepValue(DISPLACEMENT, 0) - node.GetSolutionStepValue(DISPLACEMENT, 1);
-        }
+        auto process = CalculateIncrementalMotionProcess(
+            mrModelPart, Parameters(R"({"variable_name": "DISPLACEMENT"})"));
+        process.Execute();
     }
 
     void OutputProcess() override

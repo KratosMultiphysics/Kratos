@@ -5,7 +5,5 @@ def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
 
-    params = settings["Parameters"]
-    model_part = model[params["model_part_name"].GetString()]
-    return KratosGeo.ApplyExcavationProcess(model_part, params)
+    return KratosGeo.ApplyExcavationProcess(model, settings["Parameters"])
 

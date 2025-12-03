@@ -104,7 +104,17 @@ namespace Kratos
             delete mpFindIntersectedObjectsProcess;
     }
 
-
+    template<std::size_t TDim>
+    Process::Pointer ApplyRayCastingProcess<TDim>::Create(
+        Model& rModel,
+        Parameters ThisParameters)
+    {
+        return Kratos::make_shared<ApplyRayCastingProcess<TDim>>(
+            rModel.GetModelPart(ThisParameters["volume_model_part"].GetString()),
+            rModel.GetModelPart(ThisParameters["skin_model_part"].GetString()),
+            ThisParameters);
+    }
+    
     template<std::size_t TDim>
     const Parameters ApplyRayCastingProcess<TDim>::GetDefaultParameters() const
     {

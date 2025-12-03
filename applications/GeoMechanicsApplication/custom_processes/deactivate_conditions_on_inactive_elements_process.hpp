@@ -81,10 +81,8 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    std::string Info() const override { return "DeactivateConditionsOnInactiveElements"; }
+    [[nodiscard]] std::string Info() const override;
 
-    /// Print object's data.
     void PrintData(std::ostream& rOStream) const override { this->PrintInfo(rOStream); }
 
     ///@}

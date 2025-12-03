@@ -473,11 +473,15 @@ class MechanicalSolver(PythonSolver):
                 return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
             else:
                 return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        elif builder_and_solver_name == "p_multigrid":
+            parameters = self.settings["builder_and_solver_settings"]["advanced_settings"]
+            return KratosMultiphysics.PMultigridBuilderAndSolver(linear_solver, parameters)
         else:
             message: str = f"Invalid type for builder and solver '{builder_and_solver_name}'. Options are:\n"
             message += "'block'\n"
             message += "'block_lagrange'\n"
             message += "'elimination'"
+            message += "'p_multigrid'"
             raise ValueError(message)
 
     def _CreateScheme(self):

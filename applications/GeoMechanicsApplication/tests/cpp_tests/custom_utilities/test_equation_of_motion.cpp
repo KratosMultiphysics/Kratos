@@ -13,9 +13,9 @@
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -199,12 +199,13 @@ KRATOS_TEST_CASE_IN_SUITE(TheInternalForceVectorIsTheIntegralOfBTransposedTimesS
                                        expected_internal_force_vector, Defaults::relative_tolerance)
 }
 
-// The following tests only raise errors when using debug builds
-#ifdef KRATOS_DEBUG
-
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheInputVectorsHaveDifferentSizes,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenTheInputVectorsHaveDifferentSizes,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
     const auto b_matrix       = Matrix{ScalarMatrix{2, 8, 1.0}};
     const auto b_matrices     = std::vector<Matrix>{b_matrix}; // Error: missing one matrix
     const auto stress_vector  = Vector{ScalarVector{2, 1.0}};
@@ -216,9 +217,13 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheInputVect
         "Cannot calculate the internal force vector: input vectors have different sizes")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenAllInputVectorsAreEmpty,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenAllInputVectorsAreEmpty,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
     const auto b_matrices               = std::vector<Matrix>{};
     const auto stress_vectors           = std::vector<Vector>{};
     const auto integration_coefficients = std::vector<double>{};
@@ -228,9 +233,13 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenAllInputVect
         "Cannot calculate the internal force vector: input vectors are empty")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenBMatricesHaveDifferentSizes,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenBMatricesHaveDifferentSizes,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
     const auto b_matrices = std::vector<Matrix>{ScalarMatrix{2, 8, 1.0}, ScalarMatrix{1, 8, 1.0}}; // Error: matrices have different numbers of rows
     const auto stress_vector            = Vector{ScalarVector{2, 1.0}};
     const auto stress_vectors           = std::vector<Vector>{stress_vector, stress_vector};
@@ -241,9 +250,13 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenBMatricesHav
         "Cannot calculate the internal force vector: B-matrices have different sizes")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenStressVectorsHaveDifferentSizes,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenStressVectorsHaveDifferentSizes,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
     const auto b_matrix   = Matrix{ScalarMatrix{2, 8, 1.0}};
     const auto b_matrices = std::vector<Matrix>{b_matrix, b_matrix};
     const auto stress_vectors = std::vector<Vector>{ScalarVector{2, 1.0}, ScalarVector{3, 1.0}}; // Error: vectors have different sizes
@@ -254,9 +267,13 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenStressVector
         "Cannot calculate the internal force vector: stress vectors have different sizes")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheMatrixVectorProductCantBeComputed,
+KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorRaisesADebugErrorWhenTheMatrixVectorProductCantBeComputed,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
     // Error: transpose of the B-matrix has more columns (3) than the number of stress components (2)
     const auto b_matrix                 = Matrix{ScalarMatrix{3, 8, 1.0}};
     const auto b_matrices               = std::vector<Matrix>{b_matrix, b_matrix};
@@ -267,7 +284,5 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatingTheInternalForceVectorFailsWhenTheMatrixVec
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         GeoEquationOfMotionUtilities::CalculateInternalForceVector(b_matrices, stress_vectors, integration_coefficients), "Cannot calculate the internal force vector: matrix-vector product cannot be calculated due to size mismatch")
 }
-
-#endif
 
 } // namespace Kratos::Testing

@@ -130,6 +130,12 @@ public:
     ///@name Operations
     ///@{
 
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
+
     /**
      * @brief This function is designed for being called at the beginning of the computations
      * right after reading the model and the groups

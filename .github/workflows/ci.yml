@@ -255,7 +255,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: '3.8'
 
@@ -322,7 +322,7 @@ jobs:
 
     - name: CI configuration
       shell: bash
-      run: python3.8 kratos/python_scripts/testing/ci_utilities.py
+      run: python3 kratos/python_scripts/testing/ci_utilities.py
 
     - name: Build
       run: |
@@ -336,14 +336,14 @@ jobs:
         if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.8 kratos/python_scripts/testing/run_cpp_tests.py
+        python3 kratos/python_scripts/testing/run_cpp_tests.py
 
     - name: Running python tests
       run: |
         if [ -f /etc/bashrc ]; then source /etc/bashrc; fi
         export PYTHONPATH=${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.8 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3.8
+        python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
 
 
   ubuntu-core-without-unity:
@@ -471,7 +471,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: '3.8'
 
@@ -543,108 +543,6 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/testing/run_python_tests.py -l nightly -c python
-
-
-  ubuntu-intel-legacy:
-    runs-on: ubuntu-latest
-    env:
-      KRATOS_BUILD_TYPE: Custom
-      OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
-      OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
-      OMPI_ALLOW_RUN_AS_ROOT: 1 # required since for now running as root
-      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1 # required since for now running as root
-
-    container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
-      # options: --user 1001 # must run as root to install the intel compiler
-
-    steps:
-    - uses: actions/checkout@v4
-
-    # - name: Installing dependencies
-    # => must be added to the docker container to avoid reinstalling it in every CI run
-
-    - name: Install intel compiler
-      shell: bash
-      run: sudo apt-get install -y --no-install-recommends intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
-
-    - name: Build
-      shell: bash
-      run: |
-        export CC=icc
-        export CXX=icpc
-        source /opt/intel/oneapi/setvars.sh
-        cp .github/workflows/intel_configure.sh configure.sh
-        bash configure.sh
-
-    - name: Running C++ tests
-      shell: bash
-      run: |
-        source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_cpp_tests.py
-
-    - name: Running python tests
-      shell: bash
-      run: |
-        source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
-
-    - name: Running MPI C++ tests (2 Cores)
-      shell: bash
-      timeout-minutes : 10
-      run: |
-        export PYTHONPATH=
-        export LD_LIBRARY_PATH=
-        source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 2
-
-    - name: Running MPI C++ tests (3 Cores)
-      shell: bash
-      timeout-minutes : 10
-      run: |
-        source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 3
-
-    - name: Running MPI C++ tests (4 Cores)
-      shell: bash
-      timeout-minutes : 10
-      run: |
-        source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py -n 4
-
-    - name: Running Python MPI tests (2 Cores)
-      shell: bash
-      run: |
-        source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
-
-    - name: Running Python MPI tests (3 Cores)
-      shell: bash
-      run: |
-        source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
-
-    - name: Running Python MPI tests (4 Cores)
-      shell: bash
-      run: |
-        source /opt/intel/oneapi/setvars.sh
-        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
 
 
   ubuntu-intel:

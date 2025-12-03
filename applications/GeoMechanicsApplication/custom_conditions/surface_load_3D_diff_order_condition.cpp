@@ -27,7 +27,7 @@ SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition() : GeneralUPwD
 
 // Constructor 1
 SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : GeneralUPwDiffOrderCondition(NewId, pGeometry)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
@@ -35,7 +35,7 @@ SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType NewId
 SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType             NewId,
                                                                  GeometryType::Pointer pGeometry,
                                                                  PropertiesType::Pointer pProperties)
-    : GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
