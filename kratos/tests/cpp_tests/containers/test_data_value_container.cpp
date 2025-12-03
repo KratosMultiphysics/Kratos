@@ -173,10 +173,13 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerEmplace, KratosCoreFastSuite) {
 
 
     KRATOS_EXPECT_EQ(container.Emplace(DISTANCE), 0.0);
-    const array_1d<double, 3> momentum{0.9, 1.1, 1.2}, zero{};
+    const array_1d<double, 3> momentum{0.9, 1.1, 1.2};
+    const array_1d<double, 3> zero{0.0, 0.0, 0.0};
     KRATOS_EXPECT_VECTOR_EQ(container.Emplace(MOMENTUM, momentum), momentum);
 
+    KRATOS_EXPECT_FALSE(container.Has(ACCELERATION))
     KRATOS_EXPECT_VECTOR_EQ(container.Emplace(ACCELERATION), zero);
+    KRATOS_EXPECT_TRUE(container.Has(ACCELERATION))
     KRATOS_EXPECT_EQ(container.Emplace(ACCELERATION_X), 0.0);
 
     KRATOS_EXPECT_EQ(container.Emplace(DISPLACEMENT_Z, 0.7), 0.7);
