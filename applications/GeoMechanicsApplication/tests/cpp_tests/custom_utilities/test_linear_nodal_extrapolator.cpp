@@ -61,9 +61,10 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(3, 5);
-    expected_extrapolation_matrix <<= 0.873934, 0.548036,-0.426666,-0.225144, 0.229839,
-                                      0.229839,-0.225144,-0.426666, 0.548036, 0.873934,
-                                     -0.098248, 0.278248, 0.640000, 0.278248,-0.098248;
+    expected_extrapolation_matrix <<= UblasUtilities::CreateMatrix(
+        {{0.873934, 0.548036,-0.426666,-0.225144, 0.229839},
+         {0.229839,-0.225144,-0.426666, 0.548036, 0.873934},
+         {-0.098248,0.278248, 0.640000, 0.278248,-0.098248}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
