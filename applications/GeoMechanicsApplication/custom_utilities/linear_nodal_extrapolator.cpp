@@ -50,7 +50,6 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
 {
     const SizeType number_of_corner_nodes = rCornerGeometry.PointsNumber();
 
-    Matrix     quasi_mass_mat = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
     const auto number_of_integration_points = rIntegrationPoints.size();
     Matrix     node_coefficients(number_of_corner_nodes, number_of_integration_points);
     const auto determinants_of_jacobian =
@@ -59,6 +58,7 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
     const auto shape_functions_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(rIntegrationPoints, rCornerGeometry);
 
+    Matrix quasi_mass_mat = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
     for (IndexType i = 0; i < number_of_integration_points; ++i) {
         const auto& N = shape_functions_values_at_integration_points[i];
         quasi_mass_mat += outer_prod(N, N) * determinants_of_jacobian[i] * rIntegrationPoints[i].Weight();
@@ -67,7 +67,7 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
 
     double metric_determinant;
     Matrix quasi_mass_mat_inverse;
-    MathUtils<double>::InvertMatrix(quasi_mass_mat, quasi_mass_mat_inverse, metric_determinant, -1.);
+    MathUtils<>::InvertMatrix(quasi_mass_mat, quasi_mass_mat_inverse, metric_determinant, -1.);
 
     return prod(quasi_mass_mat_inverse, node_coefficients);
 }
