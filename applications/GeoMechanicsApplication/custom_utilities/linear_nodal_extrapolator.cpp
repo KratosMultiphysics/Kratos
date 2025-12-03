@@ -111,10 +111,14 @@ std::unique_ptr<LinearNodalExtrapolator::GeometryType> LinearNodalExtrapolator::
 void LinearNodalExtrapolator::CheckIfGeometryIsSupported(const GeometryType& rGeometry)
 {
     const auto number_of_nodes = rGeometry.size();
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&
+    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Linear &&
+                    rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Quadrilateral &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Hexahedra);
+
+    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear &&
+                    (number_of_nodes != 2 && number_of_nodes != 3));
 
     KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle &&
                     (number_of_nodes != 3 && number_of_nodes != 6));

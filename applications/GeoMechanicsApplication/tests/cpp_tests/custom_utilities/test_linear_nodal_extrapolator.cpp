@@ -22,6 +22,52 @@
 namespace Kratos::Testing
 {
 
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D2NLine,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Line2D2<Node> geometry(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0),
+                           Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+
+    const LinearNodalExtrapolator nodal_extrapolator;
+
+    // Used the integration method found in the 2d2 Timoshenko Beam element
+    constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_3;
+    auto           extrapolation_matrix =
+        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
+
+    // clang-format off
+    Matrix expected_extrapolation_matrix = ZeroMatrix(2, 3);
+    expected_extrapolation_matrix <<= 0.923275, 0.444444,-0.367719,
+                                     -0.367719, 0.444444, 0.923275;
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NLine,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Line2D3<Node> geometry(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0),
+                           Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0),
+                           Kratos::make_intrusive<Node>(3, 0.5, 0.0, 0.0));
+
+    const LinearNodalExtrapolator nodal_extrapolator;
+
+    // Used the integration method found in the 2d2 Timoshenko Beam element
+    constexpr auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_5;
+    auto           extrapolation_matrix =
+        nodal_extrapolator.CalculateElementExtrapolationMatrix(geometry, integration_method);
+
+    // clang-format off
+    Matrix expected_extrapolation_matrix = ZeroMatrix(3, 5);
+    expected_extrapolation_matrix <<= 0.873934, 0.548036,-0.426666,-0.225144, 0.229839,
+                                      0.229839,-0.225144,-0.426666, 0.548036, 0.873934,
+                                     -0.098248, 0.278248, 0.640000, 0.278248,-0.098248;
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
+}
+
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NTriangle,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
