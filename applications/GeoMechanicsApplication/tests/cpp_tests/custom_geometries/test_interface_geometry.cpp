@@ -252,6 +252,24 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     KRATOS_EXPECT_EQ(new_geometry->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Quadrilateral);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForQuadraticQuadrilateralMidGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto geometry = CreateEightPlusEightNoded3DSurfaceInterfaceGeometry();
+
+    constexpr auto new_geometry_id = 1;
+    const auto     new_geometry =
+        geometry.Create(new_geometry_id, CreateEightPlusEightNoded3DSurfaceInterfaceGeometry());
+
+    KRATOS_EXPECT_NE(new_geometry, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Quadrilateral3D8<Node>>*>(new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 16);
+    KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
+    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_EQ(new_geometry->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Quadrilateral);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     PointerVector<Node> nodes;
