@@ -363,10 +363,6 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         expected_total_vertical_reaction = (expected_total_weight + self.calculate_total_vertical_surface_load())
         self.check_vertical_reaction(project_path, self.stages_info["wall_installation"],
                                      expected_total_vertical_reaction, )
-        if test_helper.want_test_plots():
-            stage_name = "3_Wall_installation"
-            data_series_collection = self.read_comparison_data(project_path, stage_name)
-            self.make_wall_plots(project_path, self.stages_info["wall_installation"]["end_time"], stage_name, data_series_collection)
 
         expected_total_weight -= self.calculate_weight_of_excavated_clay_upper_right()
         expected_total_vertical_reaction = (expected_total_weight + self.calculate_total_vertical_surface_load())
@@ -389,6 +385,13 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 self.calculate_weight_of_water_after_third_excavation())
         self.check_vertical_reaction(project_path, self.stages_info["third_excavation"],
                                      expected_total_vertical_reaction, )
+
+        if test_helper.want_test_plots():
+            for stage in self.stages_info.values():
+                if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
+                    continue
+                data_series_collection = self.read_comparison_data(project_path, stage['base_name'])
+                self.make_wall_plots(project_path, stage["end_time"], stage['base_name'], data_series_collection)
 
     def read_comparison_data(self, project_path, wall_res_file):
         path_to_comparison_file = Path(project_path) / "comparison_data" / f"{wall_res_file}_comparison.csv"
