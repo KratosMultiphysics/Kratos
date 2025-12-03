@@ -26,8 +26,7 @@ KratosGeoMechanicsFastSuite::KratosGeoMechanicsFastSuite() : KratosCoreFastSuite
     this->ImportApplicationIntoKernel(mpLinearSolversApp);
 }
 
-KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite()
-    : KratosCoreFastSuite()
+KratosGeoMechanicsIntegrationSuite::KratosGeoMechanicsIntegrationSuite() : KratosCoreFastSuite()
 {
     mpGeoApp = std::make_shared<KratosGeoMechanicsApplication>();
     this->ImportApplicationIntoKernel(mpGeoApp);

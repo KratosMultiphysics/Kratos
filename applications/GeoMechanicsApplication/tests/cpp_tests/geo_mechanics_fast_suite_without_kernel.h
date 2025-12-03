@@ -24,5 +24,4 @@ public:
     KratosGeoMechanicsFastSuiteWithoutKernel();
 };
 
-
 } // namespace Kratos::Testing
