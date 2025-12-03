@@ -167,7 +167,7 @@ Find the root of $`F_{MC}`$ (apex).
     \sigma_{MC} = \frac{c}{\tan{\phi}}
 ```
 
-If $`t_c < \sigma_{MC}`$ we find a line perpendicular to the tension-cutoff curve passing through the apex point. The equation for the tension-cutoff is:
+If $`t_c < \sigma_{MC}`$ we find a line perpendicular to the tension cutoff yield surface passing through the apex point. The equation for the tension cutoff yield surface is:
 ```math
     \tau = - \sigma + t_c
 ```
@@ -195,7 +195,7 @@ They are the corrected principal stresses. They need to be rotated back to the e
 
 The rotation matrix is orthogonal
 ```math
-    \boldsymbol{R^T} = \boldsymbol{R^{-1}} \Rightarrow \boldsymbol{\sigma} = \boldsymbol{R \sigma_p R^{-1}}
+    \boldsymbol{R^T} = \boldsymbol{R^{-1}} \Rightarrow \boldsymbol{\sigma} = \boldsymbol{R \sigma_p R^T}
 ```
 
 Where
@@ -223,7 +223,7 @@ Then
     \sigma_{corner} = \frac{t_c - c \cos⁡{\phi}}{1 - \sin⁡{ϕ}}
 ```
 
-A perpendicular to the tension-cutoff curve, passing through the corner point is:
+A perpendicular to the tension cutoff yield surface, passing through the corner point is:
 ```math
     \tau - \tau_{corner} = \sigma - \sigma_{corner}
 ```
@@ -233,28 +233,28 @@ Then the condition is:
     \left(\tau^{trial} - \tau_{corner}) - (\sigma^{trial} - \sigma_{corner} \right) < 0
 ```
 
-Each trial stress which is outside the tensile-apex region and follows this condition, needs to map back to the tension cutoff yield surface. It means:
+Each trial stress which is outside the tensile-apex zone and follows this condition, needs to map back to the tension cutoff yield surface. It means:
 ```math
     \sigma + \tau = t_c
 ```
 
 We move perpendicular to the tension cutoff yield surface by using the derivative of the flow function related to the tension cutoff surface.
 ```math
-    \dot{\lambda} = \frac{\sigma + \tau - t_c}{\partial G_tc / \partial \boldsymbol{\sigma}}
+    \dot{\lambda} = \frac{\sigma + \tau - t_c}{\partial G_{tc} / \partial \boldsymbol{\sigma}}
 ```
 ```math
-    \frac{\partial G_tc}{\partial \boldsymbol{\sigma}} = 
+    \frac{\partial G_{tc}}{\partial \boldsymbol{\sigma}} = 
     \begin{bmatrix} 1 \\
     1
     \end{bmatrix}
 ```
 ```math
-    \sigma^{map} = \sigma^{trial} + \dot{\lambda} \frac{\partial G_tc}{\partial \sigma}
+    \sigma^{map} = \sigma^{trial} + \dot{\lambda} \frac{\partial G_{tc}}{\partial \sigma}
 ```
 Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system.
 
 
-#### Zone of tensile corner return
+#### Tensile corner return zone
 
 This zone is located under the line which is perpendicular to the flow function and passes through the intersection point of Mohr-Coulomb yield surface and tension cutoff yield surface. 
 
@@ -323,7 +323,7 @@ Then
 Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system. We need to use the rotation matrix, similar as done above for other zones. 
 
 
-#### Zone of regular failure
+#### Regular failure zone
 This zone is associated with the region above the Mohr-Coulomb yield surface and above the function g derived in the previous section.
 ```math
     F_{MC} > 0 \qquad , \qquad g < 0
@@ -448,7 +448,7 @@ Where:
     \Delta \epsilon^p = \dot{\lambda} \frac{\partial G}{\partial \boldsymbol{\sigma}}
 ```
 
-As the current implementation is based on $`\sigma-\tau`$, we must map that 2-vector back to a 3×3 stress tensor. We use the chain rule to get derivatives of $G$ to the principal stresses:
+As the current implementation is based on $`(\sigma,\tau)`$, we must map that 2-vector back to a 3×3 stress tensor. We use the chain rule to get derivatives of $G$ to the principal stresses:
 ```math
     G,_{\sigma_1} = \frac{\partial G}{\partial \sigma_1} = 
     \frac{\partial G}{\partial \sigma} \frac{\partial \sigma}{\partial \sigma_1}
@@ -456,10 +456,10 @@ As the current implementation is based on $`\sigma-\tau`$, we must map that 2-ve
     = \frac{1}{2} \frac{\partial G}{\partial \sigma} + \frac{1}{2} \frac{\partial G}{\partial \tau}
 ```
 ```math
-    G,_{\sigma_3} = \frac{\partial G}{\partial \sigma_3} = \frac{1}{2} \frac{\partial G}{\partial \sigma} - \frac{1}{2} \frac{\partial G}{\partial \tau}
+    G,_{\sigma_2} = \frac{\partial G}{\partial \sigma_2} = 0
 ```
 ```math
-    G,_{\sigma_2} = \frac{\partial G}{\partial \sigma_2} = 0
+    G,_{\sigma_3} = \frac{\partial G}{\partial \sigma_3} = \frac{1}{2} \frac{\partial G}{\partial \sigma} - \frac{1}{2} \frac{\partial G}{\partial \tau}
 ```
 
 We build the flow tensor $`\boldsymbol{m}`$ in principal frame.
@@ -472,14 +472,14 @@ We build the flow tensor $`\boldsymbol{m}`$ in principal frame.
     \end{bmatrix}
 ```
 
-The deviatoric flow tensor is then calculated:
-```math
-    \boldsymbol{m_{dev}} = \boldsymbol{m} - \frac{1}{3}  \mathrm{tr} \, \left( \boldsymbol{m} \right) I
-```
-
-In principal components (diagonal), the mean value is
+In principal components, the mean value of the trace is:
 ```math
     \bar{m} = \frac{1}{3} \left( G,_{\sigma_1} + G,_{\sigma_2} + G,_{\sigma_3} \right)
+```
+
+The deviatoric flow tensor is then calculated:
+```math
+    \boldsymbol{m_{dev}} = \boldsymbol{m} - \bar{m} \boldsymbol{I}
 ```
 
 Then
@@ -497,7 +497,7 @@ As $`\Delta \epsilon^p = \dot{\lambda} \boldsymbol{m}`$
     \Delta \kappa = \dot{\lambda} \sqrt{\frac{2}{3} \boldsymbol{m:m}}
 ```
 
-The cohesion, friction angle and dilation angle become all functions of $\kappa$.
+The cohesion, friction angle and dilatancy angle become all functions of $\kappa$.
 
 
 #### Linear hardening
@@ -521,7 +521,7 @@ Note: These formulations will be extended for more physics-based form.
 
 1. Compute the yield surface and map the trial stresses:
 ```math
-    F_{MC}(\boldsymbol{\sigma}, \kappa_n) = \tau + \sigma \sin{\phi(\kappa_n)} - c(\kappa_n) \cos{\phi(\kappa_n)} = 0
+    F_{MC}(\boldsymbol{\sigma}, \kappa_n) = \tau + \sigma \sin{\left( \phi(\kappa_n)\right)} - c(\kappa_n) \cos{\left( \phi(\kappa_n) \right)} = 0
 ```
 
 2. Compute plastic multiplier increment $`\dot{\lambda}`$
@@ -549,7 +549,7 @@ Note: These formulations will be extended for more physics-based form.
 
 6. Recompute yield surface with updated parameters.
 ```math
-    F_{MC}(\boldsymbol{\sigma}, \kappa_{n+1}) = \tau + \sigma \sin{\phi(\kappa_{n+1})} - c(\kappa_{n+1}) \cos{\phi(\kappa_{n+1})} = 0
+    F_{MC}(\boldsymbol{\sigma}, \kappa_{n+1}) = \tau + \sigma \sin{\left( \phi(\kappa_{n+1}) \right)} - c(\kappa_{n+1}) \cos{\left( \phi(\kappa_{n+1}) \right)} = 0
 ```
 
 7.	Go to 1 until convergence.
