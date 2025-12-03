@@ -7,6 +7,265 @@ import test_helper
 
 import os
 from pathlib import Path
+if test_helper.want_test_plots():
+    import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
+def get_wall_node_ids():
+    return [4768,
+            4782,
+            4794,
+            4811,
+            4830,
+            4845,
+            4863,
+            4878,
+            4896,
+            4912,
+            4933,
+            4946,
+            4965,
+            4981,
+            4995,
+            5011,
+            5028,
+            5039,
+            5059,
+            5074,
+            5091,
+            5113,
+            5131,
+            5147,
+            5162,
+            5184,
+            5201,
+            5220,
+            5236,
+            5253,
+            5269,
+            5286,
+            5301,
+            5322,
+            5341,
+            5362,
+            5377,
+            5395,
+            5413,
+            5432,
+            5449,
+            5467,
+            5486,
+            5499,
+            5521,
+            5540,
+            5559,
+            5579,
+            5596,
+            5613,
+            5632,
+            5654,
+            5672,
+            5688,
+            5707,
+            5732,
+            5749,
+            5766,
+            5783,
+            5803,
+            5819,
+            5837,
+            5857,
+            5877,
+            5897,
+            5916,
+            5939,
+            5957,
+            5977,
+            5991,
+            6007,
+            6029,
+            6042,
+            6060,
+            6078,
+            6096,
+            6118,
+            6128,
+            6142,
+            6161,
+            6173,
+            6193,
+            6210,
+            6223,
+            6238,
+            6249,
+            6268,
+            6289,
+            6305,
+            6317,
+            6333,
+            6356,
+            6370,
+            6390,
+            6405,
+            6425,
+            6441,
+            6456,
+            6473,
+            6488,
+            6505,
+            6524,
+            6539,
+            6559,
+            6582,
+            6600,
+            6619,
+            6635,
+            6654,
+            6675,
+            6692,
+            6712,
+            6728,
+            6748,
+            6762,
+            6778,
+            6797,
+            6821,
+            6837,
+            6851,
+            6867,
+            6887,
+            6903,
+            6922,
+            6944,
+            6961,
+            6980,
+            6993,
+            7014,
+            7037,
+            7055,
+            7075,
+            7089,
+            7105,
+            7123,
+            7139,
+            7162,
+            7175,
+            7199,
+            7218,
+            7236,
+            7252,
+            7272,
+            7289,
+            7306,
+            7327,
+            7342,
+            7364,
+            7387,
+            7402,
+            7417,
+            7434,
+            7451,
+            7469,
+            7495,
+            7510,
+            7530,
+            7549,
+            7561,
+            7578,
+            7597,
+            7617,
+            7636,
+            7653,
+            7668,
+            7687,
+            7706,
+            7721,
+            7741,
+            7764,
+            7787,
+            7807,
+            7824,
+            7849,
+            7868,
+            7886,
+            7909,
+            7928,
+            7952,
+            7971,
+            7994,
+            8006,
+            8027,
+            8044,
+            8062,
+            8082,
+            8106,
+            8121,
+            8141,
+            8157,
+            8175,
+            8188,
+            8205,
+            8230,
+            8250,
+            8268,
+            8289,
+            8305,
+            8321,
+            8334,
+            8351,
+            8378,
+            8399,
+            8419,
+            8432,
+            8448,
+            8464,
+            8479,
+            8501,
+            8522,
+            8539,
+            8552,
+            8567,
+            8585,
+            8600,
+            8616,
+            8634,
+            8655,
+            8673,
+            8687,
+            8698,
+            8713,
+            8725,
+            8749,
+            8764,
+            8778,
+            8790,
+            8806,
+            8822,
+            8836,
+            8852,
+            8869,
+            8882,
+            8898,
+            8913,
+            8928,
+            8940,
+            8956,
+            8968,
+            8979,
+            8988]
+
+def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1):
+    words = line.split(',')
+    return (-1.0 * float(words[index_of_x]), float(words[index_of_y]))
+
+
+def extract_y_and_moment_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=11, index_of_y=4)
+
+def extract_y_and_axial_force_from_line(line):
+    words = line.split(',')
+    return (float(words[5]), float(words[4]))
+
+def extract_y_and_shear_force_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=8, index_of_y=4)
 
 
 class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCase):
@@ -104,6 +363,10 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         expected_total_vertical_reaction = (expected_total_weight + self.calculate_total_vertical_surface_load())
         self.check_vertical_reaction(project_path, self.stages_info["wall_installation"],
                                      expected_total_vertical_reaction, )
+        if test_helper.want_test_plots():
+            stage_name = "3_Wall_installation"
+            data_series_collection = self.read_comparison_data(project_path, stage_name)
+            self.make_wall_plots(project_path, self.stages_info["wall_installation"]["end_time"], stage_name, data_series_collection)
 
         expected_total_weight -= self.calculate_weight_of_excavated_clay_upper_right()
         expected_total_vertical_reaction = (expected_total_weight + self.calculate_total_vertical_surface_load())
@@ -126,6 +389,83 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 self.calculate_weight_of_water_after_third_excavation())
         self.check_vertical_reaction(project_path, self.stages_info["third_excavation"],
                                      expected_total_vertical_reaction, )
+
+    def read_comparison_data(self, project_path, wall_res_file):
+        path_to_comparison_file = Path(project_path) / "comparison_data" / f"{wall_res_file}_comparison.csv"
+        comparison_axial_force = test_helper.get_data_points_from_file(
+            path_to_comparison_file,
+            extract_y_and_axial_force_from_line
+            )
+        data_series_collection = []
+        data_series_collection.append(
+            plot_utils.DataSeries(comparison_axial_force, "Axial force [Comparison]", marker="1")
+        )
+
+        comparison_bending_moment = test_helper.get_data_points_from_file(path_to_comparison_file, extract_y_and_moment_from_line
+        )
+        data_series_collection.append(
+            plot_utils.DataSeries(comparison_bending_moment, "Bending moment [Comparison]", marker="1")
+        )
+
+        comparison_shear_force = test_helper.get_data_points_from_file(path_to_comparison_file, extract_y_and_shear_force_from_line
+        )
+        data_series_collection.append(
+            plot_utils.DataSeries(comparison_shear_force, "Shear force [Comparison]", marker="1")
+        )
+        return data_series_collection
+
+    def make_wall_plots(self, project_path,
+                        time, stage_name, comparison_data=None):
+        output_data_wall = GiDOutputFileReader().read_output_from(os.path.join(project_path, f"{stage_name}.post.res"))
+        data_series_collection = []
+        node_ids = get_wall_node_ids()
+        coordinates = test_helper.read_coordinates_from_post_msh_file(
+            Path(project_path) / "3_Wall_installation.post.msh", node_ids=node_ids
+        )
+        y_coords = [coord[1] for coord in coordinates]
+        axial_forces = GiDOutputFileReader.nodal_values_at_time("AXIAL_FORCE", time, output_data_wall,
+                                                                node_ids=node_ids)
+        axial_forces = [axial_force / 1000 for axial_force in axial_forces]  # Convert to kN
+        data_series_collection.append(plot_utils.DataSeries(
+            zip(axial_forces, y_coords, strict=True),
+            "Axial force [Kratos]",
+            line_style="-",
+            marker=".",
+        ))
+        if comparison_data:
+            data_series_collection.append(comparison_data[0])
+
+        plot_utils.make_force_over_y_plot(data_series_collection,
+                                          Path(project_path) / f"axial_forces_{stage_name}.svg")
+
+        bending_moment = GiDOutputFileReader.nodal_values_at_time("BENDING_MOMENT", time, output_data_wall,
+                                                                  node_ids=node_ids)
+        bending_moment = [bm / 1000 for bm in bending_moment]  # Convert to kN.m
+        data_series_collection.clear()
+        data_series_collection.append(plot_utils.DataSeries(
+            zip(bending_moment, y_coords, strict=True),
+            "Bending moment [Kratos]",
+            line_style="-",
+            marker=".",
+        ))
+        if comparison_data:
+            data_series_collection.append(comparison_data[1])
+        plot_utils.make_moment_over_y_plot(data_series_collection,
+                                           Path(project_path) / f"bending_moment_{stage_name}.svg")
+
+        shear_force = GiDOutputFileReader.nodal_values_at_time("SHEAR_FORCE", time, output_data_wall, node_ids=node_ids)
+        shear_force = [sf / 1000 for sf in shear_force]  # Convert to kN
+        data_series_collection.clear()
+        data_series_collection.append(plot_utils.DataSeries(
+            zip(shear_force, y_coords, strict=True),
+            "Shear force [Kratos]",
+            line_style="-",
+            marker=".",
+        ))
+        if comparison_data:
+            data_series_collection.append(comparison_data[2])
+        plot_utils.make_force_over_y_plot(data_series_collection,
+                                          Path(project_path) / f"shear_force_{stage_name}.svg")
 
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation_and_checks("linear_elastic")
