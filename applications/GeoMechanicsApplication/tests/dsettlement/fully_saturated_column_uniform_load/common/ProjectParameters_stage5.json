@@ -51,13 +51,7 @@
       "scaling"                       : true
     },
     "problem_domain_sub_model_part_list": ["Soil"],
-    "processes_sub_model_part_list"   : ["Soil",
-                                         "Top",
-                                         "Bottom",
-                                         "LeftSide",
-                                         "RightSide",
-                                         "LineLoad"],
-    "body_domain_sub_model_part_list" : ["Soil"],
+    "body_domain_sub_model_part_list"   : ["Soil"],
     "move_mesh_flag": false
   },
   "output_processes": {
