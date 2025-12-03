@@ -354,6 +354,37 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                     stage_parameters = Kratos.Parameters(f.read())
                 analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
 
+        if test_helper.want_test_plots():
+            for stage in self.stages_info.values():
+                if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
+                    continue
+                data_series_collection = self.read_comparison_data(project_path, stage['base_name'])
+                self.make_wall_plots(project_path, stage["end_time"], stage['base_name'], data_series_collection)
+
+            data_series_collection = []
+            for stage in self.stages_info.values():
+                if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
+                    continue
+
+                output_data_wall = GiDOutputFileReader().read_output_from(os.path.join(project_path, f"{stage['base_name']}.post.res"))
+                node_ids = get_wall_node_ids()
+                coordinates = test_helper.read_coordinates_from_post_msh_file(
+                    Path(project_path) / "3_Wall_installation.post.msh", node_ids=node_ids
+                )
+                y_coords = [coord[1] for coord in coordinates]
+                axial_forces = GiDOutputFileReader.nodal_values_at_time("AXIAL_FORCE", stage["end_time"], output_data_wall,
+                                                                        node_ids=node_ids)
+                data_series_collection.append(plot_utils.DataSeries(
+                    zip(axial_forces, y_coords, strict=True),
+                    f"Axial force {stage['base_name']} [Kratos]",
+                    line_style="-",
+                    marker=".",
+                ))
+
+            plot_utils.make_force_over_y_plot(data_series_collection,
+                                              Path(project_path) / f"axial_forces_over_stages.svg", "Axial forces over stages")
+
+
         expected_total_weight = self.calculate_weight_of_all_soil()
         self.check_vertical_reaction(project_path, self.stages_info["initial_stage"], expected_total_weight, )
 
@@ -386,12 +417,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.check_vertical_reaction(project_path, self.stages_info["third_excavation"],
                                      expected_total_vertical_reaction, )
 
-        if test_helper.want_test_plots():
-            for stage in self.stages_info.values():
-                if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
-                    continue
-                data_series_collection = self.read_comparison_data(project_path, stage['base_name'])
-                self.make_wall_plots(project_path, stage["end_time"], stage['base_name'], data_series_collection)
+
+
 
     def read_comparison_data(self, project_path, wall_res_file):
         path_to_comparison_file = Path(project_path) / "comparison_data" / f"{wall_res_file}_comparison.csv"
@@ -431,7 +458,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         axial_forces = [axial_force / 1000 for axial_force in axial_forces]  # Convert to kN
         data_series_collection.append(plot_utils.DataSeries(
             zip(axial_forces, y_coords, strict=True),
-            "Axial force [Kratos]",
+            f"Axial force [Kratos]",
             line_style="-",
             marker=".",
         ))
