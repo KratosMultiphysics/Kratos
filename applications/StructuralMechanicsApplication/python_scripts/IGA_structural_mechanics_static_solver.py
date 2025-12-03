@@ -117,7 +117,7 @@ class IgaStructuralMechanicsStaticSolver(MechanicalSolver):
         # ax.scatter(fixed_node_x, fixed_node_y, fixed_node_z, marker='x', color='black', s=12,  label='Fixed Nodes')
         ax.scatter(free_node_x, free_node_y, marker='d', color='red',s=60, label='Free Nodes')
 
-        ax.scatter(free_node_x2, free_node_y2, marker='x', alpha=0.3, color='green',s=25, label='Free Nodes')
+        ax.scatter(free_node_x2, free_node_y2, marker='x', alpha=0.9, color='green',s=100, label='Free Nodes')
         
         # count = 0
         # for i in range(len(dof)) :
@@ -153,4 +153,4 @@ class IgaStructuralMechanicsStaticSolver(MechanicalSolver):
         # ax.grid(True, linestyle='--', linewidth=0.5)
         # ax.gca().set_aspect('equal', adjustable='box')
 
-        # plt.show()
+        plt.show()

@@ -160,6 +160,15 @@ public:
     void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
+    /**
+     * @brief Fills the delta position matrix as CurrentPosition - InitialPosition.
+     * @param rGeometry Geometry providing nodal coordinates.
+     * @param rDeltaPosition Output matrix sized [num_nodes x 3].
+     */
+    void CalculateDeltaPositionMatrix(
+        const GeometryType& rGeometry,
+        Matrix& rDeltaPosition) const;
+
     ///@}
     ///@name Check
     ///@{
@@ -265,6 +274,7 @@ void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 ///@{
 ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
 unsigned int mDim; /// The dimension of the condition 
+double mCharacteristicGeometryLength = 0.0; /// Characteristic length used by the constitutive law
 
 ///@}
 

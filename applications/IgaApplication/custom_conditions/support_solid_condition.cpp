@@ -18,9 +18,30 @@
 
 // Project includes
 #include "custom_conditions/support_solid_condition.h"
+// #define SWITCH_OFF_NISCHE  
+
+#define ANALYTICAL_TANGENT
 
 namespace Kratos
 {
+
+void SupportSolidCondition::CalculateDeltaPositionMatrix(
+    const GeometryType& rGeometry,
+    Matrix& rDeltaPosition)  
+{
+    const SizeType number_of_points = rGeometry.PointsNumber();
+    if (rDeltaPosition.size1() != number_of_points || rDeltaPosition.size2() != 3) {
+        rDeltaPosition.resize(number_of_points, 3, false);
+    }
+
+    for (IndexType i = 0; i < number_of_points; ++i) {
+        const auto& r_node = rGeometry[i];
+        rDeltaPosition(i, 0) = r_node.X() - r_node.X0();
+        rDeltaPosition(i, 1) = r_node.Y() - r_node.Y0();
+        rDeltaPosition(i, 2) = r_node.Z() - r_node.Z0();
+    }
+}
+
 
 void SupportSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -61,7 +82,9 @@ void SupportSolidCondition::InitializeMemberVariables()
     // Initialize Jacobian
     Matrix InvJ0(3,3);
     GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+    Matrix delta_position;
+    CalculateDeltaPositionMatrix(r_geometry, delta_position);
+    r_geometry.Jacobian(J0, this->GetIntegrationMethod(), delta_position);
 
     // Compute the normals
     array_1d<double, 3> tangent_parameter_space;
@@ -69,6 +92,16 @@ void SupportSolidCondition::InitializeMemberVariables()
     array_1d<double, 3> normal_parameter_space;
 
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
+    Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
+
+    const double abs_tangent_u = std::abs(tangent_parameter_space[0]);
+    const double abs_tangent_v = std::abs(tangent_parameter_space[1]);
+    mCharacteristicGeometryLength = mesh_size_uv[0];
+    if (abs_tangent_v > abs_tangent_u) {
+        mCharacteristicGeometryLength = mesh_size_uv[1];
+    }
+    mCharacteristicGeometryLength *= 0.5;
+
     double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
     
     normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
@@ -78,10 +111,10 @@ void SupportSolidCondition::InitializeMemberVariables()
     // compute complete jacobian transformation including parameter->physical space transformation
     double DetJ0;
     Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(0, 0) = J0[0](0, 0);
+    Jacobian(0, 1) = J0[0](0, 1);
+    Jacobian(1, 0) = J0[0](1, 0);
+    Jacobian(1, 1) = J0[0](1, 1);
     Jacobian(2,2) = 1.0;
 
     // Calculating inverse jacobian and jacobian determinant
@@ -154,15 +187,17 @@ void SupportSolidCondition::CalculateLeftHandSide(
 
     // Initialize Jacobian
     GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+    Matrix delta_position;
+    CalculateDeltaPositionMatrix(r_geometry, delta_position);
+    r_geometry.Jacobian(J0, this->GetIntegrationMethod(), delta_position);
 
     // compute complete jacobian transformation including parameter->physical space transformation
     double DetJ0;
     Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(0, 0) = J0[0](0, 0);
+    Jacobian(0, 1) = J0[0](0, 1);
+    Jacobian(1, 0) = J0[0](1, 0);
+    Jacobian(1, 1) = J0[0](1, 1);
     Jacobian(2,2) = 1.0;
 
     // Calculating inverse jacobian and jacobian determinant
@@ -193,7 +228,12 @@ void SupportSolidCondition::CalculateLeftHandSide(
     ConstitutiveVariables this_constitutive_variables(strain_size);
     ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
+    #ifdef ANALYTICAL_TANGENT
+    Matrix r_D = ZeroMatrix(3,3);
+    AnalyticalConstitutiveMatrix(r_D, old_strain);
+    #else
     const Matrix& r_D = Values.GetConstitutiveMatrix();
+    #endif
 
     // Differential area
     double penalty_integration = penalty * integration_weight;
@@ -247,8 +287,8 @@ void SupportSolidCondition::CalculateLeftHandSide(
                         // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                         // //*********************************************** */
                         Vector sigma_w_n = ZeroVector(3);
-                        sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
-                        sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+                        sigma_w_n[0] = (mDBOld(0, iglob)* normal_physical_space[0] + mDBOld(2, iglob)* normal_physical_space[1]);
+                        sigma_w_n[1] = (mDBOld(2, iglob)* normal_physical_space[0] + mDBOld(1, iglob)* normal_physical_space[1]);
                         
 
                         double sigma_w_n_dot_direction = inner_prod(sigma_w_n, direction);
@@ -273,8 +313,10 @@ void SupportSolidCondition::CalculateLeftHandSide(
                     rLeftHandSideMatrix(2*i+idim, 2*j+idim) += N(0,i)*N(0,j)* penalty_integration;
 
                     Vector sigma_w_n = ZeroVector(3);
-                    sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
-                    sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+                    sigma_w_n[0] = (mDBOld(0, iglob)* normal_physical_space[0] + mDBOld(2, iglob)* normal_physical_space[1]);
+                    sigma_w_n[1] = (mDBOld(2, iglob)* normal_physical_space[0] + mDBOld(1, iglob)* normal_physical_space[1]);
+
+                    #ifndef SWITCH_OFF_NISCHE
 
                     for (IndexType jdim = 0; jdim < 2; jdim++) {
                         const int id2 = (id1+2)%3;
@@ -290,6 +332,8 @@ void SupportSolidCondition::CalculateLeftHandSide(
                         // //*********************************************** */
                         rLeftHandSideMatrix(iglob, jglob) -= nitsche_penalty*N(0,j)*sigma_w_n[jdim] * integration_weight;
                     }
+
+                    #endif
 
                 }
             }
@@ -331,15 +375,17 @@ void SupportSolidCondition::CalculateRightHandSide(
 
     // Initialize Jacobian
     GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+    Matrix delta_position;
+    CalculateDeltaPositionMatrix(r_geometry, delta_position);
+    r_geometry.Jacobian(J0, this->GetIntegrationMethod(), delta_position);
 
     // compute complete jacobian transformation including parameter->physical space transformation
     double DetJ0;
     Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(0, 0) = J0[0](0, 0);
+    Jacobian(0, 1) = J0[0](0, 1);
+    Jacobian(1, 0) = J0[0](1, 0);
+    Jacobian(1, 1) = J0[0](1, 1);
     Jacobian(2,2) = 1.0;
 
     // Calculating inverse jacobian and jacobian determinant
@@ -370,8 +416,17 @@ void SupportSolidCondition::CalculateRightHandSide(
     ConstitutiveVariables this_constitutive_variables(strain_size);
     ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
 
+
+    #ifdef ANALYTICAL_TANGENT
+    Matrix r_D = ZeroMatrix(3,3);
+    AnalyticalConstitutiveMatrix(r_D, old_strain);
+
+    Vector r_stress_vector = ZeroVector(3);
+    AnalyticalStress(r_stress_vector, old_strain);
+    #else
     const Matrix& r_D = Values.GetConstitutiveMatrix();
     const Vector& r_stress_vector = Values.GetStressVector();
+    #endif
 
     // Differential area
     double penalty_integration = penalty * integration_weight;
@@ -413,8 +468,8 @@ void SupportSolidCondition::CalculateRightHandSide(
                 // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
                 // //*********************************************** */
                 Vector sigma_w_n = ZeroVector(3);
-                sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
-                sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+                sigma_w_n[0] = (mDBOld(0, iglob)* normal_physical_space[0] + mDBOld(2, iglob)* normal_physical_space[1]);
+                sigma_w_n[1] = (mDBOld(2, iglob)* normal_physical_space[0] + mDBOld(1, iglob)* normal_physical_space[1]);
 
                 double sigma_w_n_dot_direction = inner_prod(sigma_w_n, direction);
 
@@ -448,8 +503,10 @@ void SupportSolidCondition::CalculateRightHandSide(
                 rRightHandSideVector[iglob] += N(0,i)*(u_D-old_displacement)[idim]* penalty_integration;
 
                 Vector sigma_w_n = ZeroVector(3);
-                sigma_w_n[0] = (DB(0, iglob)* normal_physical_space[0] + DB(2, iglob)* normal_physical_space[1]);
-                sigma_w_n[1] = (DB(2, iglob)* normal_physical_space[0] + DB(1, iglob)* normal_physical_space[1]);
+                sigma_w_n[0] = (mDBOld(0, iglob)* normal_physical_space[0] + mDBOld(2, iglob)* normal_physical_space[1]);
+                sigma_w_n[1] = (mDBOld(2, iglob)* normal_physical_space[0] + mDBOld(1, iglob)* normal_physical_space[1]);
+
+                #ifndef SWITCH_OFF_NISCHE
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     rRightHandSideVector(iglob) -= nitsche_penalty*(u_D[jdim]-old_displacement[jdim])*sigma_w_n[jdim] * integration_weight;
@@ -462,6 +519,8 @@ void SupportSolidCondition::CalculateRightHandSide(
                 old_stress_normal[1] = r_stress_vector[2]*normal_physical_space[0] + r_stress_vector[1]*normal_physical_space[1];
 
                 rRightHandSideVector(iglob) += N(0,i) * old_stress_normal[idim] * integration_weight;
+
+                #endif
 
             }
         }
@@ -566,6 +625,10 @@ void SupportSolidCondition::CalculateRightHandSide(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        KRATOS_ERROR_IF(mCharacteristicGeometryLength <= 0.0)
+            << "Characteristic geometry length must be initialized before applying the constitutive law." << std::endl;
+        rValues.SetCharacteristicGeometryLength(mCharacteristicGeometryLength);
         
         rValues.SetStrainVector(rStrain);
         rValues.SetStressVector(rConstitutiVariables.StressVector);
@@ -577,11 +640,6 @@ void SupportSolidCondition::CalculateRightHandSide(
 
     void SupportSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
@@ -595,7 +653,9 @@ void SupportSolidCondition::CalculateRightHandSide(
         Matrix InvJ0(mDim,mDim);
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+        Matrix delta_position;
+        CalculateDeltaPositionMatrix(r_geometry, delta_position);
+        r_geometry.Jacobian(J0, this->GetIntegrationMethod(), delta_position);
         double DetJ0;
         Vector old_displacement(mat_size);
         GetSolutionCoefficientVector(old_displacement);
@@ -629,6 +689,10 @@ void SupportSolidCondition::CalculateRightHandSide(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
+        KRATOS_ERROR_IF(mCharacteristicGeometryLength <= 0.0)
+            << "Characteristic geometry length must be initialized before finalizing the solution step." << std::endl;
+        Values.SetCharacteristicGeometryLength(mCharacteristicGeometryLength);
+
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
         Vector old_strain = prod(B,old_displacement);
@@ -636,9 +700,19 @@ void SupportSolidCondition::CalculateRightHandSide(
         Values.SetStrainVector(old_strain);
         Values.SetStressVector(this_constitutive_variables.StressVector);
         Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+        // update internal variables before requesting stresses
+        mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
         mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        
 
+        #ifdef ANALYTICAL_TANGENT
+        Vector sigma = ZeroVector(3);
+        AnalyticalStress(sigma, old_strain);
+        #else
         const Vector sigma = Values.GetStressVector();
+        #endif
+
+        
         Vector sigma_n(2);
 
         sigma_n[0] = sigma[0]*normal_physical_space[0] + sigma[2]*normal_physical_space[1];
@@ -655,10 +729,80 @@ void SupportSolidCondition::CalculateRightHandSide(
     void SupportSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
         //--------------------------------------------------------------------------------------------
         // calculate the constitutive law response
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        const auto& r_geometry = GetGeometry();
+        const SizeType number_of_control_points = r_geometry.size();
+        const SizeType mat_size = number_of_control_points * 2;
 
-        mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+        // Initialize Jacobian
+        GeometryType::JacobiansType J0;
+        Matrix delta_position;
+        CalculateDeltaPositionMatrix(r_geometry, delta_position);
+        r_geometry.Jacobian(J0, this->GetIntegrationMethod(), delta_position);
+
+        // Initialize DN_DX
+        const unsigned int dimension = 2;
+        Matrix DN_DX(number_of_control_points, 2);
+        Matrix InvJ0(dimension, dimension);
+        const GeometryType::ShapeFunctionsGradientsType& DN_De =
+            r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+        double detJ0;
+
+        Matrix Jacobian = ZeroMatrix(2, 2);
+        Jacobian(0, 0) = J0[0](0, 0);
+        Jacobian(0, 1) = J0[0](0, 1);
+        Jacobian(1, 0) = J0[0](1, 0);
+        Jacobian(1, 1) = J0[0](1, 1);
+
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(Jacobian, InvJ0, detJ0);
+
+        // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = prod(DN_De[0], InvJ0);
+
+        Matrix B = ZeroMatrix(3, mat_size);
+        CalculateB(B, DN_DX);
+
+        // Prepare constitutive law parameters
+        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        Flags& r_constitutive_law_options = Values.GetOptions();
+        r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        Vector displacement_coefficient_vector(mat_size);
+        GetSolutionCoefficientVector(displacement_coefficient_vector);
+        Vector old_strain = prod(B, displacement_coefficient_vector);
+
+        Values.SetStrainVector(old_strain);
+        Values.SetStressVector(this_constitutive_variables.StressVector);
+        Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+
+        KRATOS_ERROR_IF(mCharacteristicGeometryLength <= 0.0)
+            << "Characteristic geometry length must be initialized before initializing the solution step." << std::endl;
+        Values.SetCharacteristicGeometryLength(mCharacteristicGeometryLength);
+
+        // Store D*B from the current constitutive response for reuse in assembly
+        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+
+        #ifdef ANALYTICAL_TANGENT
+        Matrix r_D = ZeroMatrix(3,3);
+        AnalyticalConstitutiveMatrix(r_D, old_strain);
+        #else
+        const Matrix& r_D = Values.GetConstitutiveMatrix();
+        #endif
+
+
+        if (mDBOld.size1() != r_D.size1() || mDBOld.size2() != B.size2()) {
+            mDBOld.resize(r_D.size1(), B.size2(), false);
+        }
+        noalias(mDBOld) = prod(r_D, B);
+
+        // update internal variables before requesting stresses
+        mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
     }
 
 } // Namespace Kratos

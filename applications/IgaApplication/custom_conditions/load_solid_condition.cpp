@@ -61,7 +61,9 @@ void LoadSolidCondition::InitializeMemberVariables()
     // Initialize Jacobian
     Matrix InvJ0(3,3);
     GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+    Matrix delta_position;
+    CalculateDeltaPositionMatrix(r_geometry, delta_position);
+    r_geometry.Jacobian(J0, this->GetIntegrationMethod(), delta_position);
 
     // Compute the normals
     array_1d<double, 3> tangent_parameter_space;
@@ -69,6 +71,16 @@ void LoadSolidCondition::InitializeMemberVariables()
     array_1d<double, 3> normal_parameter_space;
 
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space
+    Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
+
+    const double abs_tangent_u = std::abs(tangent_parameter_space[0]);
+    const double abs_tangent_v = std::abs(tangent_parameter_space[1]);
+    mCharacteristicGeometryLength = mesh_size_uv[0];
+    if (abs_tangent_v > abs_tangent_u) {
+        mCharacteristicGeometryLength = mesh_size_uv[1];
+    }
+    mCharacteristicGeometryLength *= 0.5;
+
     double magnitude = std::sqrt(tangent_parameter_space[0] * tangent_parameter_space[0] + tangent_parameter_space[1] * tangent_parameter_space[1]);
     
     normal_parameter_space[0] = + tangent_parameter_space[1] / magnitude;
@@ -175,7 +187,9 @@ void LoadSolidCondition::CalculateRightHandSide(
 
     // Initialize Jacobian
     GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+    Matrix delta_position;
+    CalculateDeltaPositionMatrix(r_geometry, delta_position);
+    r_geometry.Jacobian(J0, this->GetIntegrationMethod(), delta_position);
 
     // compute complete jacobian transformation including parameter->physical space transformation
     double DetJ0;
@@ -200,6 +214,82 @@ void LoadSolidCondition::CalculateRightHandSide(
     sub_inv_jacobian(1,1) = InvJ0(1,1);
 
     Vector g_N = this->GetValue(FORCE); 
+
+    double t = rCurrentProcessInfo[TIME];
+    const double x = r_geometry.Center().X();
+    const double y = r_geometry.Center().Y();
+
+    Vector rStressVector = ZeroVector(3);
+    // rStressVector[0] = ((std::sqrt(3*std::pow(x, 2) + 4*std::pow(2*x + y, 2))*std::fabs(t) <= 3.0/500.0) ? (
+    //     67000*t*(2*x + y)
+    //  )
+    //  : (
+    //     (268.0/3.0)*t*(2*x + y)*(250*std::sqrt(3*std::pow(x, 2) + 4*std::pow(2*x + y, 2))*std::fabs(t) + 3)/(std::sqrt(3*std::pow(x, 2) + 4*std::pow(2*x + y, 2))*std::fabs(t))
+    //  ));
+    //  rStressVector[1] = ((std::sqrt(3*std::pow(x, 2) + 4*std::pow(2*x + y, 2))*std::fabs(t) <= 3.0/500.0) ? (
+    //     0
+    //  )
+    //  : (
+    //     (134.0/3.0)*t*(2*x + y)*(500*std::sqrt(3*std::pow(x, 2) + 4*std::pow(2*x + y, 2))*std::fabs(t) - 3)/(std::sqrt(3*std::pow(x, 2) + 4*std::pow(2*x + y, 2))*std::fabs(t))
+    //  ));
+    //  rStressVector[2] = ((std::sqrt(3*std::pow(x, 2) + 4*std::pow(2*x + y, 2))*std::fabs(t) <= 3.0/500.0) ? (
+    //     33500*t*x
+    //  )
+    //  : (
+    //     201*t*x/(std::sqrt(3*std::pow(x, 2) + 4*std::pow(2*x + y, 2))*std::fabs(t))
+    //  ));
+
+    // PLASTICITY IN THE MIDDLE
+    // rStressVector[0] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::sin((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
+    //     33500*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::sin((1.0/2.0)*M_PI*y)
+    //  )
+    //  : (
+    //     (134.0/7.0)*t*(-1750*M_PI + std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::sin((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::sin((1.0/2.0)*M_PI*y)
+    //  ));
+    //  rStressVector[1] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::sin((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
+    //     -134000*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::sin((1.0/2.0)*M_PI*y)
+    //  )
+    //  : (
+    //     -67.0/7.0*t*(3500*M_PI + 3*std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::sin((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::sin((1.0/2.0)*M_PI*y)
+    //  ));
+    //  rStressVector[2] = 0;
+
+    //PLASTICITY AT THE BOUNDARY
+    // rStressVector[0] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
+    //     33500*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    //  )
+    //  : (
+    //     (134.0/7.0)*t*(-1750*M_PI + std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    //  ));
+    //  rStressVector[1] = ((std::sqrt(21)*M_PI*std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)) <= 3.0/500.0) ? (
+    //     -134000*M_PI*t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    //  )
+    //  : (
+    //     -67.0/7.0*t*(3500*M_PI + 3*std::sqrt(21)/std::fabs(t*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)))*std::sin((1.0/4.0)*M_PI*x)*std::cos((1.0/2.0)*M_PI*y)
+    //  ));
+    //  rStressVector[2] = 0;
+
+    rStressVector[0] = ((std::sqrt(3*std::pow(x, 2)*std::pow(x - 4, 2)*std::pow(y - 1, 2) + 4*std::pow(y, 2)*std::pow(x - 2, 2)*std::pow(y - 2, 2))*std::fabs(t) <= 3.0/1000.0) ? (
+        134000*t*y*(x - 2)*(y - 2)
+     )
+     : (
+        (268.0/3.0)*t*y*(x - 2)*(y - 2)*(500*std::sqrt(3*std::pow(x, 2)*std::pow(x - 4, 2)*std::pow(y - 1, 2) + 4*std::pow(y, 2)*std::pow(x - 2, 2)*std::pow(y - 2, 2))*std::fabs(t) + 3)/(std::sqrt(3*std::pow(x, 2)*std::pow(x - 4, 2)*std::pow(y - 1, 2) + 4*std::pow(y, 2)*std::pow(x - 2, 2)*std::pow(y - 2, 2))*std::fabs(t))
+     ));
+     rStressVector[1] = ((std::sqrt(3*std::pow(x, 2)*std::pow(x - 4, 2)*std::pow(y - 1, 2) + 4*std::pow(y, 2)*std::pow(x - 2, 2)*std::pow(y - 2, 2))*std::fabs(t) <= 3.0/1000.0) ? (
+        0
+     )
+     : (
+        (134.0/3.0)*t*y*(y - 2)*(-3*x + 1000*(x - 2)*std::sqrt(3*std::pow(x, 2)*std::pow(x - 4, 2)*std::pow(y - 1, 2) + 4*std::pow(y, 2)*std::pow(x - 2, 2)*std::pow(y - 2, 2))*std::fabs(t) + 6)/(std::sqrt(3*std::pow(x, 2)*std::pow(x - 4, 2)*std::pow(y - 1, 2) + 4*std::pow(y, 2)*std::pow(x - 2, 2)*std::pow(y - 2, 2))*std::fabs(t))
+     ));
+     rStressVector[2] = ((std::sqrt(3*std::pow(x, 2)*std::pow(x - 4, 2)*std::pow(y - 1, 2) + 4*std::pow(y, 2)*std::pow(x - 2, 2)*std::pow(y - 2, 2))*std::fabs(t) <= 3.0/1000.0) ? (
+        67000*t*x*(x - 4)*(y - 1)
+     )
+     : (
+        201*t*x*(x - 4)*(y - 1)/(std::sqrt(3*std::pow(x, 2)*std::pow(x - 4, 2)*std::pow(y - 1, 2) + 4*std::pow(y, 2)*std::pow(x - 2, 2)*std::pow(y - 2, 2))*std::fabs(t))
+     ));
+
+    g_N[0] = rStressVector[0]*normal_physical_space[0] + rStressVector[2]*normal_physical_space[1];
+    g_N[1] = rStressVector[2]*normal_physical_space[0] + rStressVector[1]*normal_physical_space[1];
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
         for (IndexType zdim = 0; zdim < 2; zdim++) {
@@ -307,6 +397,10 @@ void LoadSolidCondition::CalculateRightHandSide(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        KRATOS_ERROR_IF(mCharacteristicGeometryLength <= 0.0)
+            << "Characteristic geometry length must be initialized before applying the constitutive law." << std::endl;
+        rValues.SetCharacteristicGeometryLength(mCharacteristicGeometryLength);
         
         rValues.SetStrainVector(rStrain);
         rValues.SetStressVector(rConstitutiVariables.StressVector);
@@ -315,14 +409,26 @@ void LoadSolidCondition::CalculateRightHandSide(
         mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
     }
 
+    void LoadSolidCondition::CalculateDeltaPositionMatrix(
+        const GeometryType& rGeometry,
+        Matrix& rDeltaPosition) const
+    {
+        const SizeType number_of_points = rGeometry.PointsNumber();
+        if (rDeltaPosition.size1() != number_of_points || rDeltaPosition.size2() != 3) {
+            rDeltaPosition.resize(number_of_points, 3, false);
+        }
+
+        for (IndexType i = 0; i < number_of_points; ++i) {
+            const auto& r_node = rGeometry[i];
+            rDeltaPosition(i, 0) = r_node.X() - r_node.X0();
+            rDeltaPosition(i, 1) = r_node.Y() - r_node.Y0();
+            rDeltaPosition(i, 2) = r_node.Z() - r_node.Z0();
+        }
+    }
+
 
     void LoadSolidCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        mpConstitutiveLaw->FinalizeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
-
         //---------- SET STRESS VECTOR VALUE ----------------------------------------------------------------
         //TODO: build a CalculateOnIntegrationPoints method
         //--------------------------------------------------------------------------------------------
@@ -337,7 +443,9 @@ void LoadSolidCondition::CalculateRightHandSide(
         Matrix InvJ0(mDim,mDim);
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-        r_geometry.Jacobian(J0,this->GetIntegrationMethod());
+        Matrix delta_position;
+        CalculateDeltaPositionMatrix(r_geometry, delta_position);
+        r_geometry.Jacobian(J0, this->GetIntegrationMethod(), delta_position);
         double DetJ0;
         Vector old_displacement(mat_size);
         GetSolutionCoefficientVector(old_displacement);
@@ -365,8 +473,24 @@ void LoadSolidCondition::CalculateRightHandSide(
         Vector old_strain = prod(B,old_displacement);
 
         const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        KRATOS_ERROR_IF(mCharacteristicGeometryLength <= 0.0)
+            << "Characteristic geometry length must be initialized before finalizing the solution step." << std::endl;
+        Values.SetCharacteristicGeometryLength(mCharacteristicGeometryLength);
+
         ConstitutiveVariables this_constitutive_variables(strain_size);
-        ApplyConstitutiveLaw(mat_size, old_strain, Values, this_constitutive_variables);
+        Values.SetStrainVector(old_strain);
+        Values.SetStressVector(this_constitutive_variables.StressVector);
+        Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+        // update internal variables before requesting stresses
+        mpConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
 
         const Vector sigma = Values.GetStressVector();
         Vector sigma_n(2);
@@ -385,10 +509,64 @@ void LoadSolidCondition::CalculateRightHandSide(
     void LoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
         //--------------------------------------------------------------------------------------------
         // calculate the constitutive law response
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        const auto& r_geometry = GetGeometry();
+        const SizeType number_of_control_points = r_geometry.size();
+        const SizeType mat_size = number_of_control_points * 2;
 
-        mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
+        // Initialize Jacobian
+        GeometryType::JacobiansType J0;
+        Matrix delta_position;
+        CalculateDeltaPositionMatrix(r_geometry, delta_position);
+        r_geometry.Jacobian(J0, this->GetIntegrationMethod(), delta_position);
+
+        // Initialize DN_DX
+        const unsigned int dimension = 2;
+        Matrix DN_DX(number_of_control_points, 2);
+        Matrix InvJ0(dimension, dimension);
+        const GeometryType::ShapeFunctionsGradientsType& DN_De =
+            r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+        double detJ0;
+
+        Matrix Jacobian = ZeroMatrix(2, 2);
+        Jacobian(0,0) = J0[0](0,0);
+        Jacobian(0,1) = J0[0](0,1);
+        Jacobian(1,0) = J0[0](1,0);
+        Jacobian(1,1) = J0[0](1,1);
+
+        // Calculating inverse jacobian and jacobian determinant
+        MathUtils<double>::InvertMatrix(Jacobian, InvJ0, detJ0);
+
+        // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+        noalias(DN_DX) = prod(DN_De[0], InvJ0);
+
+        Matrix B = ZeroMatrix(3, mat_size);
+        CalculateB(B, DN_DX);
+
+        // Prepare constitutive law parameters
+        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+
+        const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
+        Flags& r_constitutive_law_options = Values.GetOptions();
+        r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        Vector displacement_coefficient_vector(mat_size);
+        GetSolutionCoefficientVector(displacement_coefficient_vector);
+        Vector old_strain = prod(B, displacement_coefficient_vector);
+
+        Values.SetStrainVector(old_strain);
+        Values.SetStressVector(this_constitutive_variables.StressVector);
+        Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+
+        KRATOS_ERROR_IF(mCharacteristicGeometryLength <= 0.0)
+            << "Characteristic geometry length must be initialized before initializing the solution step." << std::endl;
+        Values.SetCharacteristicGeometryLength(mCharacteristicGeometryLength);
+
+        // update internal variables before requesting stresses
+        mpConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
     }
 
 } // Namespace Kratos
