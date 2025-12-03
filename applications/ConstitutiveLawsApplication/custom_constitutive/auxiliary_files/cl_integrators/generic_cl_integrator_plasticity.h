@@ -196,7 +196,7 @@ class GenericConstitutiveLawIntegratorPlasticity
 
             F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold, rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement, rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
 
-            if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+            if (F <= std::abs(1.0e-10 * rThreshold)) { // Has converged
                 is_converged = true;
             } else {
                 iteration++;
@@ -333,7 +333,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         )
     {
         // We do an initial check
-        if (norm_2(rPredictiveStressVector) < 1.0e-8) {
+        if (norm_2(rPredictiveStressVector) < 1.0e-10) {
             rTensileIndicatorFactor = 1.0;
             rCompressionIndicatorFactor = 0.0;
             return;
