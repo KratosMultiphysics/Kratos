@@ -319,6 +319,7 @@ class DEMAnalysisStage(AnalysisStage):
                 self.bounding_box_servo_loading_option = True
         
         self.bounding_box_move_velocity = [0.0, 0.0, 0.0]
+        self.measured_global_stress_ini = [100000, 100000, 100000]
 
     def SetMaterials(self):
 
@@ -565,9 +566,19 @@ class DEMAnalysisStage(AnalysisStage):
                     if (time_step - 1) % NStepSearch == 0 and (time_step > 1):
                         #self._GetSolver().PrepareContactElementsForPrinting()
                         measured_global_stress = self.MeasureSphereForGettingGlobalStressTensor()
+                        self.measured_global_stress_ini[0] = 0.9 * self.measured_global_stress_ini[0] + 0.1 * measured_global_stress[0][0]
+                        self.measured_global_stress_ini[1] = 0.9 * self.measured_global_stress_ini[1] + 0.1 * measured_global_stress[1][1]
+                        self.measured_global_stress_ini[2] = 0.9 * self.measured_global_stress_ini[2] + 0.1 * measured_global_stress[2][2]
+                        measured_global_stress[0][0] = self.measured_global_stress_ini[0]
+                        measured_global_stress[1][1] = self.measured_global_stress_ini[1]
+                        measured_global_stress[2][2] = self.measured_global_stress_ini[2]
                         self.CalculateBoundingBoxMoveVelocity(measured_global_stress)
                         self.UpdateSearchStartegyAndCPlusPlusStrategy(self.bounding_box_move_velocity)
                         self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor, self.bounding_box_move_velocity)
+                        #TODO: TEST PRINT
+                        #with open("time_v_stress.txt", 'a') as file:
+                        #    file.write(str(self.time) + ' ' + str(measured_global_stress[0][0]) + ' ' + str(measured_global_stress[1][1]) + ' ' + str(measured_global_stress[2][2]) 
+                        #               + ' ' + str(self.bounding_box_move_velocity[0]) + ' ' + str(self.bounding_box_move_velocity[1]) + ' ' + str(self.bounding_box_move_velocity[2]) + '\n')
                 else:
                     NStepSearch = self.DEM_parameters["NeighbourSearchFrequency"].GetInt()
                     if (time_step - 1) % NStepSearch == 0 and (time_step > 1):
