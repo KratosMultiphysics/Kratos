@@ -40,10 +40,11 @@ title = "KratosMultiphysics Core"
 [kratos]
     libs = [
         "Kratos.*",
-        "KratosCore.*",
-        "KratosCore.*",
-        "KratosMPICore.*",
         "KratosMPI.*",
+        "KratosCore.*",
+        "libKratosCore.*",
+        "KratosMPICore.*",
+        "libKratosMPICore.*",
         "zlib.*",
         "libz.*"
     ]
