@@ -36,8 +36,10 @@
 #include "custom_conditions/coupling_penalty_condition.h"
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
+#include "custom_conditions/coupling_non_symmetric_nitsche_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
+#include "custom_conditions/support_non_symmetric_nitsche_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
 #include "custom_conditions/support_laplacian_condition.h"
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
@@ -150,9 +152,11 @@ private:
     const CouplingPenaltyCondition mCouplingPenaltyCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
+    const CouplingNonSymmetricNitscheCondition mCouplingNonSymmetricNitscheCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
+    const SupportNonSymmetricNitscheCondition mSupportNonSymmetricNitscheCondition;
     const SupportLaplacianCondition mSupportLaplacianCondition;
     const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
