@@ -92,4 +92,9 @@ void GeoApplyConstantScalarValueProcess::ExecuteFinalize()
     }
 }
 
+std::string GeoApplyConstantScalarValueProcess::Info() const
+{
+    return "GeoApplyConstantScalarValueProcess";
+}
+
 } // namespace Kratos
