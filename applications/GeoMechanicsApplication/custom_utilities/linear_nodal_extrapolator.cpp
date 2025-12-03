@@ -90,6 +90,8 @@ std::unique_ptr<LinearNodalExtrapolator::GeometryType> LinearNodalExtrapolator::
 
     switch (rGeometry.GetGeometryFamily()) {
         using enum GeometryData::KratosGeometryFamily;
+    case Kratos_Linear:
+        return std::make_unique<Line2D2<Node>>(rGeometry(0), rGeometry(1));
     case Kratos_Triangle:
         return std::make_unique<Triangle2D3<Node>>(rGeometry(0), rGeometry(1), rGeometry(2));
     case Kratos_Quadrilateral:
