@@ -22,4 +22,18 @@ Vector UblasUtilities::CreateVector(const std::initializer_list<double>& rInitia
     std::ranges::copy(rInitializerList, result.begin());
     return result;
 }
+
+Matrix UblasUtilities::CreateMatrix(const std::initializer_list<std::initializer_list<double>>& rInitializerList)
+{
+    if (rInitializerList.size() == 0) return {};
+
+    Matrix result(rInitializerList.size(), rInitializerList.begin()->size(), 0.0);
+    for (std::size_t i = 0; const auto& r_row : rInitializerList) {
+        std::ranges::copy(r_row, row(result, i).begin());
+        ++i;
+    }
+
+    return result;
+}
+
 } // namespace Kratos
