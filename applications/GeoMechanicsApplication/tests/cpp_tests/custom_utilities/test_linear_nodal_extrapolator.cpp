@@ -12,6 +12,7 @@
 //
 
 #include "custom_utilities/linear_nodal_extrapolator.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/triangle_2d_3.h"
@@ -37,8 +38,8 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 
     // clang-format off
     Matrix expected_extrapolation_matrix = ZeroMatrix(2, 3);
-    expected_extrapolation_matrix <<= 0.923275, 0.444444,-0.367719,
-                                     -0.367719, 0.444444, 0.923275;
+    expected_extrapolation_matrix <<= UblasUtilities::CreateMatrix({{ 0.923275, 0.444444,-0.367719},
+                                                                    {-0.367719, 0.444444, 0.923275}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)

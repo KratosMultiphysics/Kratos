@@ -19,6 +19,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UblasUtilities
 {
 public:
     static Vector CreateVector(const std::initializer_list<double>& rInitializerList);
+    static Matrix CreateMatrix(const std::initializer_list<std::initializer_list<double>>& rInitializerList);
 };
 
 } // namespace Kratos
