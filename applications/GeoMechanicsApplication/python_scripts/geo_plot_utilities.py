@@ -17,6 +17,7 @@ def _make_plot(
     ylabel=None,
     yaxis_inverted=False,
     xscale=None,
+    title=None
 ):
     figure, axes = plt.subplots(layout="constrained")
     if xscale is not None:
@@ -40,6 +41,9 @@ def _make_plot(
         axes.set_ylabel(ylabel)
     figure.legend(loc="outside center right")
 
+    if title is not None:
+        plt.title(title)
+
     if isinstance(plot_file_path, pathlib.Path):
         plot_file_path = str(plot_file_path.resolve())
     print(f"Saving plot to {plot_file_path}")
@@ -57,17 +61,17 @@ def make_settlement_history_plot(data_series_collection, plot_file_path):
     )
 
 
-def make_stress_over_y_plot(data_series_collection, plot_file_path):
+def make_stress_over_y_plot(data_series_collection, plot_file_path, title=None):
     _make_plot(
-        data_series_collection, plot_file_path, xlabel="Stress [kPa]", ylabel=r"$y$ [m]"
+        data_series_collection, plot_file_path, xlabel="Stress [kPa]", ylabel=r"$y$ [m]", title=title
     )
 
-def make_force_over_y_plot(data_series_collection, plot_file_path):
+def make_force_over_y_plot(data_series_collection, plot_file_path, title=None):
     _make_plot(
-        data_series_collection, plot_file_path, xlabel="Force [kN]", ylabel=r"$y$ [m]"
+        data_series_collection, plot_file_path, xlabel="Force [kN]", ylabel=r"$y$ [m]", title=title
     )
 
-def make_moment_over_y_plot(data_series_collection, plot_file_path):
+def make_moment_over_y_plot(data_series_collection, plot_file_path, title=None):
     _make_plot(
-        data_series_collection, plot_file_path, xlabel="Moment [kNm]", ylabel=r"$y$ [m]"
+        data_series_collection, plot_file_path, xlabel="Moment [kNm]", ylabel=r"$y$ [m]", title=title
     )

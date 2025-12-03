@@ -439,7 +439,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             data_series_collection.append(comparison_data[0])
 
         plot_utils.make_force_over_y_plot(data_series_collection,
-                                          Path(project_path) / f"axial_forces_{stage_name}.svg")
+                                          Path(project_path) / f"axial_forces_{stage_name}.svg", stage_name)
 
         bending_moment = GiDOutputFileReader.nodal_values_at_time("BENDING_MOMENT", time, output_data_wall,
                                                                   node_ids=node_ids)
@@ -454,7 +454,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         if comparison_data:
             data_series_collection.append(comparison_data[1])
         plot_utils.make_moment_over_y_plot(data_series_collection,
-                                           Path(project_path) / f"bending_moment_{stage_name}.svg")
+                                           Path(project_path) / f"bending_moment_{stage_name}.svg", stage_name)
 
         shear_force = GiDOutputFileReader.nodal_values_at_time("SHEAR_FORCE", time, output_data_wall, node_ids=node_ids)
         shear_force = [sf / 1000 for sf in shear_force]  # Convert to kN
@@ -468,7 +468,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         if comparison_data:
             data_series_collection.append(comparison_data[2])
         plot_utils.make_force_over_y_plot(data_series_collection,
-                                          Path(project_path) / f"shear_force_{stage_name}.svg")
+                                          Path(project_path) / f"shear_force_{stage_name}.svg", stage_name)
 
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation_and_checks("linear_elastic")
