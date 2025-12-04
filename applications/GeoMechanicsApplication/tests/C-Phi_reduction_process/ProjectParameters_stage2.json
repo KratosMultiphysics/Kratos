@@ -73,7 +73,7 @@
             "kratos_module": "KratosMultiphysics",
             "process_name": "GiDOutputProcess",
             "Parameters":    {
-                "model_part_name": "PorousDomain.settlement_computational_model_part",
+                "model_part_name": "PorousDomain.porous_computational_model_part",
                 "output_name": "stage2",
                 "postprocess_parameters": {
                     "result_file_configuration": {

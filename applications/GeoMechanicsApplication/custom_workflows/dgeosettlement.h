@@ -110,7 +110,7 @@ private:
     std::unique_ptr<InputUtility>              mpInputUtility;
     std::unique_ptr<ProcessInfoParser>         mpProcessInfoParser;
     std::unique_ptr<TimeLoopExecutorInterface> mpTimeLoopExecutor;
-    const std::string mComputationalSubModelPartName{"settlement_computational_model_part"};
+    const std::string mComputationalSubModelPartName{"porous_computational_model_part"};
 };
 
 } // namespace Kratos
