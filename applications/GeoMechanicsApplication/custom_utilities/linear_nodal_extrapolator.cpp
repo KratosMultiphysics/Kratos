@@ -108,27 +108,14 @@ std::unique_ptr<LinearNodalExtrapolator::GeometryType> LinearNodalExtrapolator::
 
 void LinearNodalExtrapolator::CheckIfGeometryIsSupported(const GeometryType& rGeometry)
 {
-    const auto number_of_nodes = rGeometry.size();
     KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Linear &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Quadrilateral &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Hexahedra);
 
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear &&
-                    (number_of_nodes != 2 && number_of_nodes != 3));
-
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle &&
-                    (number_of_nodes != 3 && number_of_nodes != 6));
-
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral &&
-                    (number_of_nodes != 4 && number_of_nodes != 8));
-
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra &&
-                    (number_of_nodes != 4 && number_of_nodes != 10));
-
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Hexahedra &&
-                    (number_of_nodes != 8 && number_of_nodes != 20));
+    KRATOS_ERROR_IF(rGeometry.GetGeometryOrderType() != GeometryData::KratosGeometryOrderType::Kratos_Linear_Order &&
+                    rGeometry.GetGeometryOrderType() != GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order);
 }
 
 } // namespace Kratos
