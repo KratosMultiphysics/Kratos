@@ -86,23 +86,23 @@ std::unique_ptr<LinearNodalExtrapolator::GeometryType> LinearNodalExtrapolator::
     // Creating lower order geometries is only supported for quadratic geometries.
     if (rGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) return nullptr;
 
-    switch (rGeometry.size()) {
-    case 3:
+    switch (rGeometry.GetGeometryFamily()) {
+        using enum GeometryData::KratosGeometryFamily;
+    case Kratos_Linear:
         return std::make_unique<Line2D2<Node>>(rGeometry(0), rGeometry(1));
-    case 6:
+    case Kratos_Triangle:
         return std::make_unique<Triangle2D3<Node>>(rGeometry(0), rGeometry(1), rGeometry(2));
-    case 8:
+    case Kratos_Quadrilateral:
         return std::make_unique<Quadrilateral2D4<Node>>(rGeometry(0), rGeometry(1), rGeometry(2),
                                                         rGeometry(3));
-    case 10:
+    case Kratos_Tetrahedra:
         return std::make_unique<Tetrahedra3D4<Node>>(rGeometry(0), rGeometry(1), rGeometry(2), rGeometry(3));
-
-    case 20:
+    case Kratos_Hexahedra:
         return std::make_unique<Hexahedra3D8<Node>>(rGeometry(0), rGeometry(1), rGeometry(2),
                                                     rGeometry(3), rGeometry(4), rGeometry(5),
                                                     rGeometry(6), rGeometry(7));
     default:
-        return nullptr;
+        KRATOS_ERROR << "Cannot create lower order geometry: unsupported family type\n";
     }
 }
 
