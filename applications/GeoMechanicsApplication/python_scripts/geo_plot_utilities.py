@@ -59,7 +59,8 @@ def make_sub_plots(
         xscale=None,
         titles=None
 ):
-    figure, axes = plt.subplots(1, len(data_series_collections), sharey="all", figsize=(20, 4))
+    figure, axes = plt.subplots(1, len(data_series_collections), sharey="all", figsize=(20, 6))
+    i = 0
     for ax, collection, title in zip(axes, data_series_collections, titles):
         if xscale is not None:
             ax.set_xscale(xscale)
@@ -73,6 +74,11 @@ def make_sub_plots(
                 linestyle=series.line_style,
                 marker=series.marker,
             )
+        if i == 0:
+            figure.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05))
+            if ylabel is not None:
+                ax.set_ylabel(ylabel)
+        i+=1
         ax.grid()
         ax.grid(which="minor", color="0.9")
         ax.yaxis.set_inverted(yaxis_inverted)
@@ -80,13 +86,11 @@ def make_sub_plots(
             ax.set_xlabel(xlabel)
 
         ax.set_title(title)
-        if ylabel is not None:
-            ax.set_ylabel(ylabel)
-    figure.legend(loc="outside center right")
+
     if isinstance(plot_file_path, pathlib.Path):
         plot_file_path = str(plot_file_path.resolve())
     print(f"Saving plot to {plot_file_path}")
-    plt.savefig(plot_file_path)
+    plt.savefig(plot_file_path, bbox_inches='tight')
 
 
 def make_settlement_history_plot(data_series_collection, plot_file_path):
