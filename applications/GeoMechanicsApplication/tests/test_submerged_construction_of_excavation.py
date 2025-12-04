@@ -355,11 +355,57 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
 
         if test_helper.want_test_plots():
+            axial_force_collections = []
+            for stage in self.stages_info.values():
+                if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
+                    continue
+                data_series_collection = []
+                # axial force plot
+                output_data_wall = GiDOutputFileReader().read_output_from(os.path.join(project_path, f"{stage['base_name']}.post.res"))
+                node_ids = get_wall_node_ids()
+                coordinates = test_helper.read_coordinates_from_post_msh_file(
+                    Path(project_path) / f"{stage['base_name']}.post.msh", node_ids=node_ids
+                )
+                y_coords = [coord[1] for coord in coordinates]
+                axial_forces = GiDOutputFileReader.nodal_values_at_time("AXIAL_FORCE", stage['end_time'], output_data_wall,
+                                                                        node_ids=node_ids)
+                axial_forces = [axial_force / 1000 for axial_force in axial_forces]  # Convert to kN
+
+                data = []
+                for force, y in zip(axial_forces, y_coords):
+                    data.append((force, y))
+
+                data_series_collection.append(plot_utils.DataSeries(
+                    data,
+                    f"Axial force [Kratos]",
+                    line_style="-",
+                    marker=".",
+                ))
+                path_to_comparison_file = Path(project_path) / "comparison_data" / f"{stage['base_name']}_comparison.csv"
+                comparison_axial_force = test_helper.get_data_points_from_file(
+                    path_to_comparison_file,
+                    extract_y_and_axial_force_from_line
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(comparison_axial_force, "Axial force [Comparison]", marker="1")
+                )
+                axial_force_collections.append(data_series_collection)
+
+            plot_utils.make_sub_plots(
+                axial_force_collections,
+                Path(project_path) / f"axial_forces_all_stages.svg",
+                xlabel="Axial Force [kN]",
+                ylabel="y [m]",
+                title="Axial Forces over all stages"
+            )
+
+            # Separate plots for each stage
             for stage in self.stages_info.values():
                 if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
                     continue
                 data_series_collection = self.read_comparison_data(project_path, stage['base_name'])
                 self.make_wall_plots(project_path, stage["end_time"], stage['base_name'], data_series_collection)
+
 
             data_series_collection = []
             for stage in self.stages_info.values():

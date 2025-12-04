@@ -50,6 +50,46 @@ def _make_plot(
     plt.savefig(plot_file_path)
 
 
+def make_sub_plots(
+        data_series_collections,
+        plot_file_path,
+        xlabel=None,
+        ylabel=None,
+        yaxis_inverted=False,
+        xscale=None,
+        title=None
+):
+    figure, axes = plt.subplots(1, len(data_series_collections), sharey="all", figsize=(20, 4))
+    for ax, collection in zip(axes, data_series_collections):
+        if xscale is not None:
+            ax.set_xscale(xscale)
+
+        for series in collection:
+            # Unpack the data from pairs into two lists. See
+            # https://stackoverflow.com/questions/21519203/plotting-a-list-of-x-y-coordinates for details.
+            ax.plot(
+                *zip(*series.data_points),
+                label=series.label,
+                linestyle=series.line_style,
+                marker=series.marker,
+            )
+        ax.grid()
+        ax.grid(which="minor", color="0.9")
+        ax.yaxis.set_inverted(yaxis_inverted)
+        if xlabel is not None:
+            ax.set_xlabel(xlabel)
+
+        if title is not None:
+            ax.set_title(title)
+        if ylabel is not None:
+            ax.set_ylabel(ylabel)
+    figure.legend(loc="outside center right")
+    if isinstance(plot_file_path, pathlib.Path):
+        plot_file_path = str(plot_file_path.resolve())
+    print(f"Saving plot to {plot_file_path}")
+    plt.savefig(plot_file_path)
+
+
 def make_settlement_history_plot(data_series_collection, plot_file_path):
     _make_plot(
         data_series_collection,
