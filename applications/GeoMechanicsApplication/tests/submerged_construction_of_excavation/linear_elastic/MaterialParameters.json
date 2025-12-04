@@ -256,7 +256,7 @@
                 "YOUNG_MODULUS" : 5.93e9,
                 "POISSON_RATIO" : 0.0,
                 "THICKNESS"     : 1.265,
-                "THICKNESS_EFFECTIVE_Y" : 0.025,
+                "THICKNESS_EFFECTIVE_Y" : 10.025,
                 "DENSITY"       : 805.82
             }
         }
