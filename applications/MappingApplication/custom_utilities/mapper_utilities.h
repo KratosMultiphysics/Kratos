@@ -48,14 +48,14 @@ typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPoin
 
 using BoundingBoxType = std::array<double, 6>;
 
-static void FillFunction(const NodeType& rNode,
+static void FillFunctionNodes(const NodeType& rNode,
                          const Variable<double>& rVariable,
                          double& rValue)
 {
     rValue = rNode.FastGetSolutionStepValue(rVariable);
 }
 
-static void FillFunctionNonHist(const NodeType& rNode,
+static void FillFunctionNodesNonHist(const NodeType& rNode,
                                 const Variable<double>& rVariable,
                                 double& rValue)
 {
@@ -63,14 +63,14 @@ static void FillFunctionNonHist(const NodeType& rNode,
 }
 
 static inline std::function<void(const NodeType&, const Variable<double>&, double&)>
-GetFillFunction(const Kratos::Flags& rMappingOptions)
+GetFillFunctionForNodes(const Kratos::Flags& rMappingOptions)
 {
     if (rMappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL))
-        return &FillFunctionNonHist;
-    return &FillFunction;
+        return &FillFunctionNodesNonHist;
+    return &FillFunctionNodes;
 }
 
-static void UpdateFunction(NodeType& rNode,
+static void UpdateFunctionNodes(NodeType& rNode,
                            const Variable<double>& rVariable,
                            const double Value,
                            const double Factor)
@@ -78,7 +78,7 @@ static void UpdateFunction(NodeType& rNode,
     rNode.FastGetSolutionStepValue(rVariable) = Value * Factor;
 }
 
-static void UpdateFunctionWithAdd(NodeType& rNode,
+static void UpdateFunctionNodesWithAdd(NodeType& rNode,
                             const Variable<double>& rVariable,
                             const double Value,
                             const double Factor)
@@ -86,7 +86,7 @@ static void UpdateFunctionWithAdd(NodeType& rNode,
     rNode.FastGetSolutionStepValue(rVariable) += Value * Factor;
 }
 
-static void UpdateFunctionNonHist(NodeType& rNode,
+static void UpdateFunctionNodesNonHist(NodeType& rNode,
                             const Variable<double>& rVariable,
                             const double Value,
                             const double Factor)
@@ -94,7 +94,7 @@ static void UpdateFunctionNonHist(NodeType& rNode,
     rNode.SetValue(rVariable, Value * Factor);
 }
 
-static void UpdateFunctionNonHistWithAdd(NodeType& rNode,
+static void UpdateFunctionNodesNonHistWithAdd(NodeType& rNode,
                             const Variable<double>& rVariable,
                             const double Value,
                             const double Factor)
@@ -103,19 +103,33 @@ static void UpdateFunctionNonHistWithAdd(NodeType& rNode,
 }
 
 static inline std::function<void(NodeType&, const Variable<double>&, const double, const double)>
-GetUpdateFunction(const Kratos::Flags& rMappingOptions)
+GetUpdateFunctionForNodes(const Kratos::Flags& rMappingOptions)
 {
     if (rMappingOptions.Is(MapperFlags::ADD_VALUES) && rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL))
-        return &UpdateFunctionNonHistWithAdd;
+        return &UpdateFunctionNodesNonHistWithAdd;
     if (rMappingOptions.Is(MapperFlags::ADD_VALUES))
-        return &UpdateFunctionWithAdd;
+        return &UpdateFunctionNodesWithAdd;
     if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL))
-        return &UpdateFunctionNonHist;
-    return &UpdateFunction;
+        return &UpdateFunctionNodesNonHist;
+    return &UpdateFunctionNodes;
+}
+
+template<class TEntityType>
+static inline std::function<void(TEntityType&, const Variable<double>&, double, double)>
+GetUpdateFunctionForEntities(const Kratos::Flags& rMappingOptions)
+{
+    if (rMappingOptions.Is(MapperFlags::ADD_VALUES))
+        return [](TEntityType& rEntity, const Variable<double>& rVariable, double value, double factor){
+            rEntity.SetValue(rVariable, rEntity.GetValue(rVariable) + factor * value);
+        };
+
+    return [](TEntityType& rEntity, const Variable<double>& rVariable, double value, double factor){
+        rEntity.SetValue(rVariable, factor * value);
+    };
 }
 
 template<class TVectorType, bool TParallel=true>
-void UpdateSystemVectorFromModelPart(
+void UpdateSystemVectorFromModelPartNodes(
     TVectorType& rVector,
     const ModelPart& rModelPart,
     const Variable<double>& rVariable,
@@ -127,7 +141,7 @@ void UpdateSystemVectorFromModelPart(
     if (!rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) return;
 
     // Here we construct a function pointer to not have the if all the time inside the loop
-    const auto fill_fct = MapperUtilities::GetFillFunction(rMappingOptions);
+    const auto fill_fct = MapperUtilities::GetFillFunctionForNodes(rMappingOptions);
 
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
@@ -144,8 +158,109 @@ void UpdateSystemVectorFromModelPart(
     KRATOS_CATCH("");
 }
 
+template<class TVectorType, class TContainerType>
+void UpdateSystemVectorFromGeometricalEntities(
+    TVectorType& rVector,
+    const TContainerType& rContainer,
+    const Variable<double>& rVariable,
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel = true)
+{
+    KRATOS_TRY;
+
+    using EntityType = typename TContainerType::value_type;
+
+    const std::size_t n_entities = rContainer.size();
+    auto it_begin = rContainer.begin();
+
+    const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
+
+    IndexPartition<std::size_t>(n_entities, num_threads).for_each([&](const std::size_t i){
+            const EntityType& r_entity = *(it_begin + i);
+            const double value = r_entity.GetValue(rVariable);
+            rVector[i] = value;  // <-- always assign, no add
+        });
+
+    KRATOS_CATCH("");
+}
+
 template<class TVectorType>
-void UpdateModelPartFromSystemVector(
+void UpdateSystemVectorFromModelPartGeometries(
+    TVectorType& rVector,
+    const ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel = true)
+{
+    KRATOS_TRY;
+
+    if (!rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank())
+        return;
+
+    const auto& r_geometries = rModelPart.Geometries();
+
+    UpdateSystemVectorFromGeometricalEntities(
+        rVector,
+        r_geometries,
+        rVariable,
+        rMappingOptions,
+        InParallel);
+
+    KRATOS_CATCH("");
+}
+
+template<class TVectorType>
+void UpdateSystemVectorFromModelPartConditions(
+    TVectorType& rVector,
+    const ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel = true)
+{
+    KRATOS_TRY;
+
+    if (!rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank())
+        return;
+
+    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+
+    UpdateSystemVectorFromGeometricalEntities(
+        rVector,
+        r_local_mesh.Conditions(),
+        rVariable,
+        rMappingOptions,
+        InParallel);
+
+    KRATOS_CATCH("");
+}
+
+template<class TVectorType>
+void UpdateSystemVectorFromModelPartElements(
+    TVectorType& rVector,
+    const ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel = true)
+{
+    KRATOS_TRY;
+
+    if (!rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank())
+        return;
+
+    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+
+    UpdateSystemVectorFromGeometricalEntities(
+        rVector,
+        r_local_mesh.Elements(),
+        rVariable,
+        rMappingOptions,
+        InParallel);
+
+    KRATOS_CATCH("");
+}
+
+template<class TVectorType>
+void UpdateModelPartNodesFromSystemVector(
     const TVectorType& rVector,
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
@@ -159,7 +274,7 @@ void UpdateModelPartFromSystemVector(
     const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
 
     // Here we construct a function pointer to not have the if all the time inside the loop
-    const auto update_fct = std::bind(MapperUtilities::GetUpdateFunction(rMappingOptions),
+    const auto update_fct = std::bind(MapperUtilities::GetUpdateFunctionForNodes(rMappingOptions),
                                         std::placeholders::_1,
                                         std::placeholders::_2,
                                         std::placeholders::_3,
@@ -184,6 +299,97 @@ void UpdateModelPartFromSystemVector(
 
     KRATOS_CATCH("");
 }
+
+template<class TVectorType, class TContainerType>
+void UpdateGeometricalEntitiesFromSystemVector(
+    const TVectorType& rVector,
+    TContainerType& rContainer,
+    const Variable<double>& rVariable,
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel=true)
+{
+    KRATOS_TRY;
+
+    using EntityType = typename TContainerType::value_type;
+
+    const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
+
+    const auto update_fct = MapperUtilities::GetUpdateFunctionForEntities<EntityType>(rMappingOptions);
+
+    const std::size_t n_entities = rContainer.size();
+    auto it_begin = rContainer.begin();
+
+    const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
+
+    IndexPartition<std::size_t>(n_entities, num_threads).for_each(
+        [&](const std::size_t i){
+            EntityType& r_obj = *(it_begin + i);
+            update_fct(r_obj, rVariable, rVector[i], factor);
+        });
+
+    KRATOS_CATCH("");
+}
+
+template<class TVectorType>
+void UpdateModelPartConditionsFromSystemVector(
+    const TVectorType& rVector,
+    ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel=true)
+{
+    if (!rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) return;
+    auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+
+    UpdateGeometricalEntitiesFromSystemVector(
+        rVector,
+        r_local_mesh.Conditions(),
+        rVariable,
+        rMappingOptions,
+        InParallel);
+}
+
+template<class TVectorType>
+void UpdateModelPartElementsFromSystemVector(
+    const TVectorType& rVector,
+    ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel=true)
+{
+    if (!rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) return;
+    auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+
+    UpdateGeometricalEntitiesFromSystemVector(
+        rVector,
+        r_local_mesh.Elements(),
+        rVariable,
+        rMappingOptions,
+        InParallel);
+}
+
+template<class TVectorType>
+void UpdateModelPartGeometriesFromSystemVector(
+    const TVectorType& rVector,
+    ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel = true)
+{
+    KRATOS_TRY;
+
+    auto& r_geometries = rModelPart.Geometries();
+
+    UpdateGeometricalEntitiesFromSystemVector(
+        rVector,
+        r_geometries,
+        rVariable,
+        rMappingOptions,
+        InParallel);
+
+    KRATOS_CATCH("");
+}
+
 
 /**
 * @brief Assigning INTERFACE_EQUATION_IDs to the nodes, with and without MPI
