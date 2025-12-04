@@ -10,6 +10,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from iga_test_factory import SinglePatchTest as SinglePatchTest
 # Truss tests - python based
 from truss_element_tests import TrussElementTests as TTrussElementTests
+# Beam Elements tests - python based
+from test_beam_IGA_element import BeamIGAElementTests as TBeamIGAElementTests
 # Structural Elements test - python based
 from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
 # Sbm Structural Elements test
@@ -78,6 +80,8 @@ def AssembleTestSuites():
         SinglePatchTest,
         # Truss tests
         TTrussElementTests,
+        # Beam Elements tests
+        TBeamIGAElementTests,
         # Structural Elements tests
         TSolidIGAElementTests,
         # Sbm Elements tests

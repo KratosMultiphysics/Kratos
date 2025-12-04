@@ -37,7 +37,7 @@
                 }
             }
         }]
-    },	
+    },
     "processes": {
         "auxiliary_process_list": [
             {
@@ -159,12 +159,6 @@
             "Soil1",
             "Soil2",
             "Soil3"
-        ],
-        "processes_sub_model_part_list": [
-            "Main",
-            "All_Nodes",
-            "Side_Nodes",
-            "Base_Nodes"
         ],
         "rayleigh_k": 0.0,
         "rayleigh_m": 0.0,

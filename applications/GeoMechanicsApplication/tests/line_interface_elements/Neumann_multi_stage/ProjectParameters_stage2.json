@@ -12,7 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "rest"
+            "input_type":       "use_input_model_part"
         },
         "material_import_settings":              {
             "materials_filename":       "../common/MaterialParameters.json"
@@ -48,7 +48,6 @@
             "solver_type":     "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["Interfaces"],
-        "processes_sub_model_part_list":      ["FixedNodes","AllNodes","LoadedSide"],
         "body_domain_sub_model_part_list":    ["Interfaces"]
     },
     "output_processes": {

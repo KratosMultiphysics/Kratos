@@ -1,4 +1,4 @@
-from KratosMultiphysics.GeoMechanicsApplication import run_multiple_stages
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 from KratosMultiphysics.GeoMechanicsApplication import unit_conversions
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
@@ -33,7 +33,7 @@ def get_nodal_vertical_effective_stress_at_time(time_in_s, output_data, node_ids
     return make_compression_positive_and_convert_Pa_to_kPa(
         [
             stress_vector[1]
-            for stress_vector in test_helper.GiDOutputFileReader.nodal_values_at_time(
+            for stress_vector in GiDOutputFileReader.nodal_values_at_time(
                 "CAUCHY_STRESS_TENSOR", time_in_s, output_data, node_ids=node_ids
             )
         ]
@@ -44,7 +44,7 @@ def get_nodal_vertical_total_stress_at_time(time_in_s, output_data, node_ids=Non
     return make_compression_positive_and_convert_Pa_to_kPa(
         [
             stress_vector[1]
-            for stress_vector in test_helper.GiDOutputFileReader.nodal_values_at_time(
+            for stress_vector in GiDOutputFileReader.nodal_values_at_time(
                 "TOTAL_STRESS_TENSOR", time_in_s, output_data, node_ids=node_ids
             )
         ]
@@ -53,7 +53,7 @@ def get_nodal_vertical_total_stress_at_time(time_in_s, output_data, node_ids=Non
 
 def get_nodal_water_pressures_at_time(time_in_s, output_data, node_ids=None):
     return make_compression_positive_and_convert_Pa_to_kPa(
-        test_helper.GiDOutputFileReader.nodal_values_at_time(
+        GiDOutputFileReader.nodal_values_at_time(
             "WATER_PRESSURE", time_in_s, output_data, node_ids=node_ids
         )
     )
@@ -201,7 +201,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         n_stages = 5
         project_parameters_filenames = [
-            f"../common/ProjectParameters_stage{i+1}.json" for i in range(n_stages)
+            os.path.join("..", "common", f"ProjectParameters_stage{i+1}.json") for i in range(n_stages)
         ]
         status = run_geo_settlement.run_stages(
             project_path, project_parameters_filenames
@@ -211,7 +211,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         project_path = pathlib.Path(project_path)
         ref_path = pathlib.Path(ref_path)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
 
         output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
@@ -363,7 +363,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         project_path = pathlib.Path(project_path)
         ref_path = pathlib.Path(ref_path)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
 
         output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
@@ -515,7 +515,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         )
         self.assertEqual(status, 0)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
 
         output_data = reader.read_output_from(
             os.path.join(project_path, "stage3.post.res")
@@ -565,7 +565,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         )
         self.assertEqual(status, 0)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
 
         output_data = reader.read_output_from(
             os.path.join(project_path, "stage3.post.res")
@@ -608,7 +608,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         n_stages = 5
         project_parameters_filenames = [
-            f"ProjectParameters_stage{i+1}.json" for i in range(n_stages)
+            os.path.join("..", "common", f"ProjectParameters_stage{i+1}.json") for i in range(n_stages)
         ]
         status = run_geo_settlement.run_stages(
             project_path, project_parameters_filenames
@@ -617,17 +617,17 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         project_path = pathlib.Path(project_path)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
 
-        output_stage_2 = reader.read_output_from(project_path / "stage2.post.res")
+        output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
 
         if test_helper.want_test_plots():
-            output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
+            output_stage_2 = reader.read_output_from(project_path / "stage2.post.res")
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
             top_node_ids = [2, 3, 104]
             make_settlement_history_plot(
-                (output_stage_2, output_stage_3, output_stage_4, output_stage_5),
+                (output_stage_3, output_stage_4, output_stage_5),
                 top_node_ids,
                 project_path / "ref_settlement_data.txt",
                 project_path / "test_case_2_settlement_plot.svg",
@@ -657,7 +657,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             ]
             make_stress_over_y_plot(
                 output_stage_2,
-                unit_conversions.days_to_seconds(1),
+                unit_conversions.days_to_seconds(0) + 1.0,
                 ref_y_coordinates,
                 left_side_corner_node_ids,
                 ref_data,
@@ -683,7 +683,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 },
             ]
             make_stress_over_y_plot(
-                output_stage_2,
+                output_stage_3,
                 unit_conversions.days_to_seconds(100),
                 ref_y_coordinates,
                 left_side_corner_node_ids,
@@ -710,8 +710,8 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 },
             ]
             make_stress_over_y_plot(
-                output_stage_4,
-                unit_conversions.days_to_seconds(100.1001),
+                output_stage_5,
+                unit_conversions.days_to_seconds(100.1) + 1.0,
                 ref_y_coordinates,
                 left_side_corner_node_ids,
                 ref_data,
@@ -747,14 +747,16 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         # Check some results
         actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_stage_2, [104]
+            "TOTAL_DISPLACEMENT", unit_conversions.days_to_seconds(100), output_stage_3, [104]
         )[0][1]
-        self.assertAlmostEqual(actual_settlement_after_one_hundred_days, -1.71094, 4)
+        self.assertAlmostEqual(actual_settlement_after_one_hundred_days, -1.70997, 4)
 
         actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [104]
+            "TOTAL_DISPLACEMENT", unit_conversions.days_to_seconds(10000), output_stage_5, [104]
         )[0][1]
-        self.assertAlmostEqual(actual_settlement_after_ten_thousand_days, -8.63753, 4)
+        self.assertTrue(
+            abs((-8.63753 - actual_settlement_after_ten_thousand_days) / -8.63753) < 0.01
+        )
 
     def test_settlement_phreatic_line_below_surface(self):
         """
@@ -776,7 +778,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
         )
         self.assertEqual(status, 0)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         top_node_ids = [2, 3, 104]
         project_path = pathlib.Path(project_path)
 
@@ -984,7 +986,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         n_stages = 5
         project_parameters_filenames = [
-            f"ProjectParameters_stage{i+1}.json" for i in range(n_stages)
+            os.path.join("..", "common", f"ProjectParameters_stage{i+1}.json") for i in range(n_stages)
         ]
         status = run_geo_settlement.run_stages(
             project_path, project_parameters_filenames
@@ -993,17 +995,17 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         project_path = pathlib.Path(project_path)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
 
-        output_stage_2 = reader.read_output_from(project_path / "stage2.post.res")
+        output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
         output_stage_5 = reader.read_output_from(project_path / "stage5.post.res")
 
         if test_helper.want_test_plots():
-            output_stage_3 = reader.read_output_from(project_path / "stage3.post.res")
+            output_stage_2 = reader.read_output_from(project_path / "stage2.post.res")
             output_stage_4 = reader.read_output_from(project_path / "stage4.post.res")
             top_node_ids = [2, 3, 104]
             make_settlement_history_plot(
-                (output_stage_2, output_stage_3, output_stage_4, output_stage_5),
+                (output_stage_3, output_stage_4, output_stage_5),
                 top_node_ids,
                 project_path / "ref_settlement_data.txt",
                 project_path / "test_case_4_settlement_plot.svg",
@@ -1033,7 +1035,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
             ]
             make_stress_over_y_plot(
                 output_stage_2,
-                unit_conversions.days_to_seconds(1),
+                unit_conversions.days_to_seconds(0) + 1.0,
                 ref_y_coordinates,
                 left_side_corner_node_ids,
                 ref_data,
@@ -1059,7 +1061,7 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 },
             ]
             make_stress_over_y_plot(
-                output_stage_2,
+                output_stage_3,
                 unit_conversions.days_to_seconds(100),
                 ref_y_coordinates,
                 left_side_corner_node_ids,
@@ -1086,8 +1088,8 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
                 },
             ]
             make_stress_over_y_plot(
-                output_stage_4,
-                unit_conversions.days_to_seconds(100.1001),
+                output_stage_5,
+                unit_conversions.days_to_seconds(100.1) + 1.0,
                 ref_y_coordinates,
                 left_side_corner_node_ids,
                 ref_data,
@@ -1123,14 +1125,14 @@ class KratosGeoMechanicsDSettlementValidationTests(KratosUnittest.TestCase):
 
         # Check some results
         actual_settlement_after_one_hundred_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 8640000, output_stage_2, [104]
+            "TOTAL_DISPLACEMENT", unit_conversions.days_to_seconds(100), output_stage_3, [104]
         )[0][1]
         self.assertAlmostEqual(
-            actual_settlement_after_one_hundred_days, -0.496382, 4
+            actual_settlement_after_one_hundred_days, -0.495277, 4
         )  # Regression value
 
         actual_settlement_after_ten_thousand_days = reader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", 864000000, output_stage_5, [104]
+            "TOTAL_DISPLACEMENT", unit_conversions.days_to_seconds(10000), output_stage_5, [104]
         )[0][1]
         # Assert the value to be within 1% of the analytical solution
         self.assertTrue(

@@ -61,10 +61,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("TransientPwLineElement3D3N", mTransientPwLineElement3D3N)
     KRATOS_REGISTER_ELEMENT("PwElement3D4N", PwElement3D4N)
 
-    KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement2D4N", mTransientPwInterfaceElement2D4N)
-    KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement3D6N", mTransientPwInterfaceElement3D6N)
-    KRATOS_REGISTER_ELEMENT("TransientPwInterfaceElement3D8N", mTransientPwInterfaceElement3D8N)
-
     // Steady-State one-phase flow elements:
     KRATOS_REGISTER_ELEMENT("SteadyStatePwElement2D3N", mSteadyStatePwElement2D3N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwElement2D4N", mSteadyStatePwElement2D4N)
@@ -79,10 +75,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SteadyStatePwElement3D10N", mSteadyStatePwElement3D10N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwElement3D20N", mSteadyStatePwElement3D20N)
     KRATOS_REGISTER_ELEMENT("SteadyStatePwElement3D27N", mSteadyStatePwElement3D27N)
-
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwInterfaceElement2D4N", mSteadyStatePwInterfaceElement2D4N)
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwInterfaceElement3D6N", mSteadyStatePwInterfaceElement3D6N)
-    KRATOS_REGISTER_ELEMENT("SteadyStatePwInterfaceElement3D8N", mSteadyStatePwInterfaceElement3D8N)
 
     KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement2D2N", mGeoSteadyStatePwPipingElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoSteadyStatePwPipingElement3D2N", mGeoSteadyStatePwPipingElement3D2N)
@@ -385,6 +377,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(GEO_FRICTION_ANGLE)
     KRATOS_REGISTER_VARIABLE(GEO_DILATANCY_ANGLE)
     KRATOS_REGISTER_VARIABLE(GEO_TENSILE_STRENGTH)
+    KRATOS_REGISTER_VARIABLE(GEO_COULOMB_HARDENING_TYPE)
 
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_WATER)
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_SOLID)

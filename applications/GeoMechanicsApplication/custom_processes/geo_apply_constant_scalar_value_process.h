@@ -40,11 +40,10 @@ public:
     GeoApplyConstantScalarValueProcess(ModelPart& rModelPart, const Parameters& rParameters);
     ~GeoApplyConstantScalarValueProcess() override = default;
 
-    void ExecuteInitialize() override;
-    void ExecuteInitializeSolutionStep() override;
-    void ExecuteFinalize() override;
-
-    [[nodiscard]] std::string Info() const override { return "GeoApplyConstantScalarValueProcess"; }
+    void                      ExecuteInitialize() override;
+    void                      ExecuteInitializeSolutionStep() override;
+    void                      ExecuteFinalize() override;
+    [[nodiscard]] std::string Info() const override;
 
 protected:
     ModelPart&  mrModelPart;
