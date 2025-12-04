@@ -1,18 +1,17 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Denis Demidov
 //                   Riccardo Rossi
 //
 
-#if !defined (KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED)
-#define KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED
+#pragma once
 
 #ifndef AMGCL_PARAM_UNKNOWN
 #include "input_output/logger.h"
@@ -26,7 +25,6 @@
 #include <utility>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/amgcl_solver.h"
 
@@ -56,23 +54,23 @@ public:
     /// Pointer definition of AmgclMPISolver
     KRATOS_CLASS_POINTER_DEFINITION( AmgclMPISolver );
 
-    /// The sparse matric type
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    /// The sparse matrix type
+    using SparseMatrixType = typename TSparseSpaceType::MatrixType;
 
     /// Vector type definition
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    using VectorType = typename TSparseSpaceType::VectorType;
 
     /// Dense matrix type
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
 
     /// DofArray type
-    typedef ModelPart::DofsArrayType DofsArrayType;
+    using DofsArrayType = ModelPart::DofsArrayType;
 
     /// The index type definition
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -127,5 +125,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }  // namespace Kratos.
-
-#endif // KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED defined

@@ -48,7 +48,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Clay_after_excavation","Excavated_clay"],
-        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Excavate_sloot","Second_line_load","Hydrostatic_load_in_sloot","Gravitational_load"],
         "body_domain_sub_model_part_list":    ["Clay_after_excavation","Excavated_clay"]
     },
     "output_processes": {

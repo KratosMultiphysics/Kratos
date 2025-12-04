@@ -62,7 +62,6 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Soil_drained-auto-2"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-2","Solid_Displacement-auto-1","Excavation-auto-2","Line_Load-auto-2"],
         "body_domain_sub_model_part_list":    ["Soil_drained-auto-2"]
     },
     "output_processes": {

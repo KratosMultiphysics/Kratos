@@ -12,14 +12,53 @@
 //
 
 #include "custom_utilities/linear_nodal_extrapolator.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <numbers>
 
 namespace Kratos::Testing
 {
+
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D2NLine,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}});
+    auto p_element = ElementSetupUtilities::Create2D2NElement(nodes, std::make_shared<Properties>());
+
+    const LinearNodalExtrapolator nodal_extrapolator;
+    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+
+    // clang-format off
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix(
+        {{0.5 * (1 + std::numbers::sqrt3), 0.5 * (1 - std::numbers::sqrt3)},
+         {0.5 * (1 - std::numbers::sqrt3), 0.5 * (1 + std::numbers::sqrt3)}});
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NLine,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.5, 0.0, 0.0}});
+    auto p_element = ElementSetupUtilities::Create2D3NLineElement(nodes, std::make_shared<Properties>());
+
+    const LinearNodalExtrapolator nodal_extrapolator;
+    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+
+    // clang-format off
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix(
+        {{0.5 * (1 + std::numbers::sqrt3), 0.5 * (1 - std::numbers::sqrt3)},
+         {0.5 * (1 - std::numbers::sqrt3), 0.5 * (1 + std::numbers::sqrt3)},
+         {0.5, 0.5}});
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
+}
 
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2Plus2LineInterface,
                           KratosGeoMechanicsFastSuiteWithoutKernel)

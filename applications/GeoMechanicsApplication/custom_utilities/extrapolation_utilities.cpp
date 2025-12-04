@@ -13,6 +13,7 @@
 
 #include "custom_utilities/extrapolation_utilities.h"
 
+#include "custom_utilities/generic_utilities.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "geometry_utilities.h"
 #include "includes/element.h"
@@ -49,7 +50,7 @@ std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalVectors
     const auto& r_geometry = rElement.GetGeometry();
     const auto  element_id = rElement.Id();
 
-    const auto element_node_ids     = GeometryUtilities::GetNodeIdsFromGeometry(r_geometry);
+    const auto element_node_ids     = GenericUtilities::GetIdsFromEntityContents(r_geometry);
     const auto extrapolation_matrix = CalculateExtrapolationMatrix(rElement);
 
     KRATOS_ERROR_IF_NOT(extrapolation_matrix.size2() == rVectorsAtIntegrationPoints.size())

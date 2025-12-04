@@ -96,6 +96,7 @@ void LinearNodalExtrapolator::AddRowsForMidsideNodes(const GeometryType& rGeomet
 
 std::unique_ptr<LinearNodalExtrapolator::GeometryType> LinearNodalExtrapolator::CreateLowerOrderGeometry(const GeometryType& rGeometry)
 {
+    // Creating lower order geometries is only supported for quadratic geometries.
     if (rGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) return nullptr;
 
     switch (rGeometry.GetGeometryFamily()) {
