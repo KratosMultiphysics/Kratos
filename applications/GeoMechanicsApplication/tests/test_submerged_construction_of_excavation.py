@@ -371,6 +371,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                     Path(project_path) / f"{stage['base_name']}.post.msh", node_ids=node_ids
                 )
                 y_coords = [coord[1] for coord in coordinates]
+
                 axial_forces = GiDOutputFileReader.nodal_values_at_time("AXIAL_FORCE", stage['end_time'], output_data_wall,
                                                                         node_ids=node_ids)
                 axial_forces = [axial_force / 1000 for axial_force in axial_forces]  # Convert to kN
@@ -469,38 +470,6 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 titles=titles
             )
 
-            # # Separate plots for each stage
-            # for stage in self.stages_info.values():
-            #     if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
-            #         continue
-            #     data_series_collection = self.read_comparison_data(project_path, stage['base_name'])
-            #     self.make_wall_plots(project_path, stage["end_time"], stage['base_name'], data_series_collection)
-
-
-            data_series_collection = []
-            for stage in self.stages_info.values():
-                if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
-                    continue
-
-                output_data_wall = GiDOutputFileReader().read_output_from(os.path.join(project_path, f"{stage['base_name']}.post.res"))
-                node_ids = get_wall_node_ids()
-                coordinates = test_helper.read_coordinates_from_post_msh_file(
-                    Path(project_path) / "3_Wall_installation.post.msh", node_ids=node_ids
-                )
-                y_coords = [coord[1] for coord in coordinates]
-                axial_forces = GiDOutputFileReader.nodal_values_at_time("AXIAL_FORCE", stage["end_time"], output_data_wall,
-                                                                        node_ids=node_ids)
-                data_series_collection.append(plot_utils.DataSeries(
-                    zip(axial_forces, y_coords, strict=True),
-                    f"Axial force {stage['base_name']} [Kratos]",
-                    line_style="-",
-                    marker=".",
-                ))
-
-            plot_utils.make_force_over_y_plot(data_series_collection,
-                                              Path(project_path) / f"axial_forces_over_stages.svg", "Axial forces over stages")
-
-
         expected_total_weight = self.calculate_weight_of_all_soil()
         self.check_vertical_reaction(project_path, self.stages_info["initial_stage"], expected_total_weight, )
 
@@ -533,85 +502,6 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.check_vertical_reaction(project_path, self.stages_info["third_excavation"],
                                      expected_total_vertical_reaction, )
 
-
-
-
-    def read_comparison_data(self, project_path, wall_res_file):
-        path_to_comparison_file = Path(project_path) / "comparison_data" / f"{wall_res_file}_comparison.csv"
-        comparison_axial_force = test_helper.get_data_points_from_file(
-            path_to_comparison_file,
-            extract_y_and_axial_force_from_line
-            )
-        data_series_collection = []
-        data_series_collection.append(
-            plot_utils.DataSeries(comparison_axial_force, "Axial force [Comparison]", marker="1")
-        )
-
-        comparison_bending_moment = test_helper.get_data_points_from_file(path_to_comparison_file, extract_y_and_moment_from_line
-        )
-        data_series_collection.append(
-            plot_utils.DataSeries(comparison_bending_moment, "Bending moment [Comparison]", marker="1")
-        )
-
-        comparison_shear_force = test_helper.get_data_points_from_file(path_to_comparison_file, extract_y_and_shear_force_from_line
-        )
-        data_series_collection.append(
-            plot_utils.DataSeries(comparison_shear_force, "Shear force [Comparison]", marker="1")
-        )
-        return data_series_collection
-
-    def make_wall_plots(self, project_path,
-                        time, stage_name, comparison_data=None):
-        output_data_wall = GiDOutputFileReader().read_output_from(os.path.join(project_path, f"{stage_name}.post.res"))
-        data_series_collection = []
-        node_ids = get_wall_node_ids()
-        coordinates = test_helper.read_coordinates_from_post_msh_file(
-            Path(project_path) / f"{stage_name}.post.msh", node_ids=node_ids
-        )
-        y_coords = [coord[1] for coord in coordinates]
-        axial_forces = GiDOutputFileReader.nodal_values_at_time("AXIAL_FORCE", time, output_data_wall,
-                                                                node_ids=node_ids)
-        axial_forces = [axial_force / 1000 for axial_force in axial_forces]  # Convert to kN
-        data_series_collection.append(plot_utils.DataSeries(
-            zip(axial_forces, y_coords, strict=True),
-            f"Axial force [Kratos]",
-            line_style="-",
-            marker=".",
-        ))
-        if comparison_data:
-            data_series_collection.append(comparison_data[0])
-
-        plot_utils.make_force_over_y_plot(data_series_collection,
-                                          Path(project_path) / f"axial_forces_{stage_name}.svg", stage_name)
-
-        bending_moment = GiDOutputFileReader.nodal_values_at_time("BENDING_MOMENT", time, output_data_wall,
-                                                                  node_ids=node_ids)
-        bending_moment = [bm / 1000 for bm in bending_moment]  # Convert to kN.m
-        data_series_collection.clear()
-        data_series_collection.append(plot_utils.DataSeries(
-            zip(bending_moment, y_coords, strict=True),
-            "Bending moment [Kratos]",
-            line_style="-",
-            marker=".",
-        ))
-        if comparison_data:
-            data_series_collection.append(comparison_data[1])
-        plot_utils.make_moment_over_y_plot(data_series_collection,
-                                           Path(project_path) / f"bending_moment_{stage_name}.svg", stage_name)
-
-        shear_force = GiDOutputFileReader.nodal_values_at_time("SHEAR_FORCE", time, output_data_wall, node_ids=node_ids)
-        shear_force = [sf / 1000 for sf in shear_force]  # Convert to kN
-        data_series_collection.clear()
-        data_series_collection.append(plot_utils.DataSeries(
-            zip(shear_force, y_coords, strict=True),
-            "Shear force [Kratos]",
-            line_style="-",
-            marker=".",
-        ))
-        if comparison_data:
-            data_series_collection.append(comparison_data[2])
-        plot_utils.make_force_over_y_plot(data_series_collection,
-                                          Path(project_path) / f"shear_force_{stage_name}.svg", stage_name)
 
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation_and_checks("linear_elastic")
