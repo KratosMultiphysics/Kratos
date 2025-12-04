@@ -467,12 +467,12 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 titles=titles
             )
 
-            # Separate plots for each stage
-            for stage in self.stages_info.values():
-                if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
-                    continue
-                data_series_collection = self.read_comparison_data(project_path, stage['base_name'])
-                self.make_wall_plots(project_path, stage["end_time"], stage['base_name'], data_series_collection)
+            # # Separate plots for each stage
+            # for stage in self.stages_info.values():
+            #     if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
+            #         continue
+            #     data_series_collection = self.read_comparison_data(project_path, stage['base_name'])
+            #     self.make_wall_plots(project_path, stage["end_time"], stage['base_name'], data_series_collection)
 
 
             data_series_collection = []
