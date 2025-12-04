@@ -23,16 +23,17 @@ using namespace Kratos;
 double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int>& rIndexVariable)
 {
     KRATOS_ERROR_IF_NOT(rProperties.Has(UMAT_PARAMETERS))
-        << "Material " << rProperties.Id() << " does not have UMAT_PARAMETERS\n";
+        << "There is no UMAT_PARAMETERS for material " << rProperties.Id() << "." << std::endl;
 
     KRATOS_ERROR_IF_NOT(rProperties.Has(rIndexVariable))
-        << "Material " << rProperties.Id() << " does not have " << rIndexVariable.Name() << "\n";
+        << "There is no " << rIndexVariable.Name() << " for material " << rProperties.Id() << "."
+        << std::endl;
 
     const auto index = rProperties[rIndexVariable]; // 1-based index
     KRATOS_DEBUG_ERROR_IF(index < 1 ||
                           static_cast<std::size_t>(index) > rProperties[UMAT_PARAMETERS].size())
         << "Got out-of-bounds " << rIndexVariable.Name() << " (material ID: " << rProperties.Id()
-        << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "]\n";
+        << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "].\n";
 
     return rProperties[UMAT_PARAMETERS][index - 1];
 }
@@ -70,20 +71,14 @@ void ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveLaw::Parame
 
 double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
 {
-    if (rProperties.Has(GEO_COHESION))
-        return rProperties[GEO_COHESION];
+    if (rProperties.Has(GEO_COHESION)) return rProperties[GEO_COHESION];
 
     try {
-        return GetValueOfUMatParameter(
-            rProperties,
-            INDEX_OF_UMAT_C_PARAMETER
-        );
-    }
-    catch(const std::exception& e) {
-        KRATOS_ERROR << "ConstitutiveLawUtilities::GetCohesion failed. "
-                     << "Neither GEO_COHESION nor UMAT C-parameter is available.\n"
-                     << "UMat retrieval error was:\n"
-                     << e.what() << std::endl;
+        return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_C_PARAMETER);
+    } catch (const std::exception& e) {
+        KRATOS_ERROR << "ConstitutiveLawUtilities::GetCohesion failed. There are no GEO_COHESION "
+                        "and underlying UMAT "
+                     << e.what() << "." << std::endl;
     }
 }
 
@@ -94,19 +89,11 @@ double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rPr
     }
 
     try {
-        return GetValueOfUMatParameter(
-            rProperties,
-            INDEX_OF_UMAT_PHI_PARAMETER
-        );
-    }
-    catch (const std::exception& e) {
-        KRATOS_ERROR
-            << "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed.\n"
-            << "The property 'GEO_FRICTION_ANGLE' is not defined, and the fallback\n"
-            << "UMAT parameter (index: " << INDEX_OF_UMAT_PHI_PARAMETER
-            << ") could not be retrieved.\n"
-            << "Underlying UMAT error message:\n"
-            << e.what() << std::endl;
+        return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
+    } catch (const std::exception& e) {
+        KRATOS_ERROR << "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no "
+                        "GEO_FRICTION_ANGLE and underlying UMAT "
+                     << e.what() << "." << std::endl;
     }
 }
 
