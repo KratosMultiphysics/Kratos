@@ -242,6 +242,12 @@ Geo::IntegrationPointVectorType InterfaceElement::GetIntegrationPoints() const
     return mIntegrationScheme->GetIntegrationPoints();
 }
 
+const Geometry<Node>& InterfaceElement::GetMidGeometry() const
+{
+    constexpr auto unused_part_index = std::size_t{0};
+    return GetGeometry().GetGeometryPart(unused_part_index);
+}
+
 Element::DofsVectorType InterfaceElement::GetDofs() const
 {
     const auto no_Pw_geometry_yet = Geometry<Node>{};

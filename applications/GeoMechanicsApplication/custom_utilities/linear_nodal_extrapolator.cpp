@@ -13,8 +13,10 @@
 
 #include "linear_nodal_extrapolator.h"
 
+#include "custom_elements/interface_element.h"
 #include "element_utilities.hpp"
 #include "geometries/hexahedra_3d_8.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_3.h"
@@ -26,7 +28,9 @@ namespace Kratos
 
 Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Element& rElement) const
 {
-    const auto& r_geometry = rElement.GetGeometry();
+    auto p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    const auto& r_geometry =
+        p_interface_element ? p_interface_element->GetMidGeometry() : rElement.GetGeometry();
     CheckIfGeometryIsSupported(r_geometry);
 
     const auto p_lower_order_geometry = CreateLowerOrderGeometry(r_geometry);
@@ -34,14 +38,20 @@ Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Elemen
 
     const auto integration_points = GeoElementUtilities::GetIntegrationPointsOf(rElement);
 
-    Matrix extrapolation_matrix =
-        CalculateExtrapolationMatrixForCornerNodes(r_geometry, integration_points, p_corner_geometry);
+    Matrix result = CalculateExtrapolationMatrixForCornerNodes(r_geometry, integration_points, p_corner_geometry);
 
     if (p_lower_order_geometry) {
-        AddRowsForMidsideNodes(r_geometry, extrapolation_matrix);
+        AddRowsForMidsideNodes(r_geometry, result);
     }
 
-    return extrapolation_matrix;
+    if (p_interface_element) {
+        auto tmp = Matrix{2 * result.size1(), result.size2(), 0.0};
+        GeoElementUtilities::AddMatrixAtPosition(result, tmp, 0, 0);
+        GeoElementUtilities::AddMatrixAtPosition(result, tmp, result.size1(), 0);
+        std::swap(result, tmp);
+    }
+
+    return result;
 }
 
 Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,

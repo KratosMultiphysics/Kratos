@@ -122,6 +122,11 @@ public:
         return mMidGeometry->PointsLocalCoordinates(rResult);
     }
 
+    const GeometryType::Pointer pGetGeometryPart(const IndexType) const override
+    {
+        return mMidGeometry;
+    }
+
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
     void PrintData(std::ostream& rOStream) const override { mMidGeometry->PrintData(rOStream); }
@@ -327,7 +332,7 @@ private:
         return result;
     }
 
-    std::unique_ptr<BaseType> mMidGeometry;
+    std::shared_ptr<BaseType> mMidGeometry;
 };
 
 } // namespace Kratos

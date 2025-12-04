@@ -68,6 +68,8 @@ public:
 
     Geo::IntegrationPointVectorType GetIntegrationPoints() const;
 
+    const Geometry<Node>& GetMidGeometry() const;
+
 private:
     InterfaceElement() = default;
 
