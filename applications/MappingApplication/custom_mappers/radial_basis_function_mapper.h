@@ -792,14 +792,14 @@ private:
 
     void AssignInterfaceEquationIds()
     {
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceDestination->GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceOrigin->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToNodes(mpCouplingInterfaceDestination->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToNodes(mpCouplingInterfaceOrigin->GetCommunicator());
     }
 
     void AssignInterfaceEquationIdsIga()
     {
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceDestination->GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIdsOnConditions(mpCouplingInterfaceOrigin->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToNodes(mpCouplingInterfaceDestination->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToConditions(mpCouplingInterfaceOrigin->GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,
@@ -837,6 +837,8 @@ private:
             "additional_polynomial_degree"   : 0,
             "origin_is_iga"                  : false,
             "destination_is_iga"             : false,
+            "max_support_points"  : 0,
+            "use_all_rbf_support_points": true,
             "precompute_mapping_matrix"      : true,
             "search_settings"                : {},
             "linear_solver_settings"         : {}

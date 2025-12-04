@@ -283,16 +283,16 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
 
     bool use_all_support_points = false;
     if (mMapperSettings["search_settings"].Has("use_all_rbf_support_points")) {
-        use_all_support_points = mMapperSettings["search_settings"]["use_all_rbf_support_points"].GetBool();
+        use_all_support_points = mMapperSettings["use_all_rbf_support_points"].GetBool();
     }
 
-    IndexType required_rbf_support_points = 0;
+    IndexType max_support_points = 0;
     if (!use_all_support_points) {
-        KRATOS_ERROR_IF_NOT(mMapperSettings["search_settings"].Has("required_rbf_support_points"))
-            << "Missing 'required_rbf_support_points' in search_settings when 'use_all_rbf_support_points' is false." << std::endl;
+        KRATOS_ERROR_IF_NOT(mMapperSettings.Has("max_support_points"))
+            << "Missing 'max_support_points' in search_settings when 'use_all_rbf_support_points' is false." << std::endl;
 
-        required_rbf_support_points = mMapperSettings["search_settings"]["required_rbf_support_points"].GetInt();
-        mRequiredRBFSupportPoints = required_rbf_support_points;
+        max_support_points = mMapperSettings["max_support_points"].GetInt();
+        mRequiredRBFSupportPoints = max_support_points;
     } else if (use_all_support_points && mOriginIsIga) {
         mRequiredRBFSupportPoints = num_conditions_interface_origin;
     } else {
