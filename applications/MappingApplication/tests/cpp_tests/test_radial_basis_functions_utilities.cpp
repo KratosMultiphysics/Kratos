@@ -121,4 +121,4 @@ KRATOS_TEST_CASE_IN_SUITE(RadialBasisFunctionsUtilities_WendlandC2SupportRadius,
     KRATOS_EXPECT_NEAR(support_radius, expected_radius, 1e-12);
 }
 
-} // namespace Kratos::Testing
+}
