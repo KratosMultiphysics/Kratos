@@ -133,14 +133,14 @@ class RBFSupportAccumulator {
             rSerializer.save("RequiredRBFSupportPoints", mRequiredRBFSupportPoints);
             rSerializer.save("Candidates", mCandidates);
             rSerializer.save("NeighborsNumber", mNumNeighbors);
-            rSerializer.save("Dirty", mNotOrdered);
+            rSerializer.save("NotOrdered", mNotOrdered);
         }
 
         void load(Serializer& rSerializer) {
             rSerializer.load("RequiredRBFSupportPoints", mRequiredRBFSupportPoints);
             rSerializer.load("Candidates", mCandidates);
             rSerializer.load("NeighborsNumber", mNumNeighbors);
-            rSerializer.load("Dirty", mNotOrdered);
+            rSerializer.load("NotOrdered", mNotOrdered);
         }
 };   
 
