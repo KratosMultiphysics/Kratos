@@ -127,6 +127,8 @@ public:
         VectorType& rRightHandSideVector, 
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
     void EquationIdVector(
         EquationIdVectorType& rResult, 
         const ProcessInfo& rCurrentProcessInfo) const override;

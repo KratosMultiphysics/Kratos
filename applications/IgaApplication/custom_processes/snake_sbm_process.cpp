@@ -294,7 +294,7 @@ void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
         else step_v = std::abs(knot_v[iv] - knot_v[iv - 1]);
     }
 
-    const double s = 3.0 * std::max(step_u, step_v);
+    const double s = 2.0 * std::max(step_u, step_v);
 
     std::vector<std::array<double,4>> segs;
     segs.reserve(r_inner.NumberOfConditions());

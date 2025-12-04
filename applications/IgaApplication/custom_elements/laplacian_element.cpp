@@ -187,6 +187,35 @@ void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, 
     KRATOS_CATCH("")
 }
 
+void LaplacianElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_gradient_var = r_settings.GetGradientVariable();
+
+    auto& r_geometry = const_cast<GeometryType&>(GetGeometry());
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+
+    const unsigned int number_of_points = r_geometry.size();
+    const unsigned int dim = r_DN_De[0].size2();
+
+    array_1d<double,3> grad_unknown = ZeroVector(3);
+    for (IndexType i = 0; i < number_of_points; ++i) {
+        const double value = r_geometry[i].FastGetSolutionStepValue(r_unknown_var);
+        for (unsigned int d = 0; d < dim; ++d) {
+            grad_unknown[d] += r_DN_De[0](i, d) * value;
+        }
+    }
+
+    r_geometry.SetValue(r_gradient_var, grad_unknown);
+
+    KRATOS_CATCH("")
+}
+
 void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];

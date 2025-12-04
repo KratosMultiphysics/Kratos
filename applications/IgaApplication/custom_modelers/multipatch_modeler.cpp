@@ -187,11 +187,16 @@ void MultipatchModeler::SetupModelPart()
     const std::string skin_name          = "skin_coupling_model_part";
 
     
-    // // Build inner (from refinement regions)
-    // ModelPart& r_inner_initial = CreateSkinCouplingModelPartForRefinements(inner_initial_name);
-
-    // Build inner from refinement patch surrogate outer as NURBS curves
-    ModelPart& r_inner_initial = CreateSkinInnerInitialFromRefinementSurrogateOuter(inner_initial_name);
+    // Build inner loop:
+    // - body-fitted: from refinement regions (rectangular loops)
+    // - GAP-SBM: from refinement patch surrogate outer as NURBS curves
+    ModelPart* p_inner_initial = nullptr;
+    if (body_fitted_coupling) {
+        p_inner_initial = &CreateSkinCouplingModelPartForRefinements(inner_initial_name);
+    } else {
+        p_inner_initial = &CreateSkinInnerInitialFromRefinementSurrogateOuter(inner_initial_name);
+    }
+    ModelPart& r_inner_initial = *p_inner_initial;
 
 
 
