@@ -150,8 +150,8 @@ MasterSlaveConstraintAssembler<TSparse,TDense>::~MasterSlaveConstraintAssembler(
 
 
 template <class TSparse, class TDense>
-void MasterSlaveConstraintAssembler<TSparse,TDense>::AllocateConstraints(typename Base::ConstraintArray::const_iterator itConstraintBegin,
-                                                                         typename Base::ConstraintArray::const_iterator itConstraintEnd,
+void MasterSlaveConstraintAssembler<TSparse,TDense>::AllocateConstraints(PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintBegin,
+                                                                         PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintEnd,
                                                                          const ProcessInfo& rProcessInfo,
                                                                          typename Base::DofSet::const_iterator itDofBegin,
                                                                          typename Base::DofSet::const_iterator itDofEnd)
