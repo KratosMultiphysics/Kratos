@@ -185,7 +185,7 @@ public:
 
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    const RBFSupportAccumulator& GetRBFSupportAccumulator() const override
+    const RBFSupportAccumulator& GetRBFSupportAccumulator() const 
     {
         return mRBFSupportAccumulator;
     }
@@ -256,7 +256,7 @@ public:
 
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    const RBFSupportAccumulator& GetRBFSupportAccumulator() const override
+    const RBFSupportAccumulator& GetRBFSupportAccumulator() const
     {
         return mRBFSupportAccumulator;
     }
@@ -295,31 +295,34 @@ public:
     RadialBasisFunctionMapperLocalSystem(): mpNode(nullptr), mpGeometry(nullptr), mRBFTypeEnum(), mpPolynomialEquationIds(nullptr) {}
 
     // Construct from a node and a geometry (dummy constructor needed)
-    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree,
+    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, bool OriginIsIga, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree,
                                                   const std::vector<IndexType>* pPolynomialEquationIds)
             : mpNode(pNode), 
               mpGeometry(pGeometry),
               mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
+              mOriginIsIga(OriginIsIga),
               mRBFTypeEnum(RBFTypeEnum),
               mPolynomialDegree(PolynomialDegree), 
               mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
               mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     // Construct from a node
-    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, bool BuildOriginInterpolationMatrix, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
+    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, bool BuildOriginInterpolationMatrix, bool OriginIsIga, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
              mpNode(std::move(pNode)), 
              mpGeometry(nullptr),
              mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
+             mOriginIsIga(OriginIsIga),
              mRBFTypeEnum(RBFTypeEnum),
              mPolynomialDegree(PolynomialDegree),
              mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
              mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     // Construct from a geometry (e.g. an integration-point “geometry” in IGA)
-    explicit RadialBasisFunctionMapperLocalSystem(GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
+    explicit RadialBasisFunctionMapperLocalSystem(GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, bool OriginIsIga, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
              mpNode(nullptr), 
              mpGeometry(std::move(pGeometry)),
              mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
+             mOriginIsIga(OriginIsIga),
              mRBFTypeEnum(RBFTypeEnum),
              mPolynomialDegree(PolynomialDegree),
              mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
@@ -351,13 +354,13 @@ public:
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
     {
        KRATOS_DEBUG_ERROR_IF(!pNode) << "Create(Node) received nullptr" << std::endl;
-       return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pNode, mBuildOriginInterpolationMatrix, mRBFTypeEnum, mPolynomialDegree, mpPolynomialEquationIds);
+       return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pNode, mBuildOriginInterpolationMatrix, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mpPolynomialEquationIds);
     }
 
     MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const override
     {
         KRATOS_DEBUG_ERROR_IF(!pGeometry) << "Create(Geometry) received nullptr" << std::endl;
-        return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pGeometry, mBuildOriginInterpolationMatrix, mRBFTypeEnum, mPolynomialDegree, mpPolynomialEquationIds);
+        return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pGeometry, mBuildOriginInterpolationMatrix, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mpPolynomialEquationIds);
     }
 
     void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo) override 
@@ -374,6 +377,7 @@ private:
     GeometryPointerType mpGeometry{nullptr};
 
     bool mBuildOriginInterpolationMatrix{};
+    bool mOriginIsIga = false;
 
     using RBFVariant = std::variant<
         RadialBasisFunctionsUtilities::InverseMultiquadric,
@@ -682,7 +686,6 @@ protected:
     {
         // backward compatibility
         if (mMapperSettings.Has("search_radius")) {
-            KRATOS_WARNING("Mapper") << "DEPRECATION-WARNING: \"search_radius\" should be specified under \"search_settings\"!" << std::endl;
             const double search_radius = mMapperSettings["search_radius"].GetDouble();
 
             if (mMapperSettings.Has("search_settings")) {
@@ -696,7 +699,6 @@ protected:
         }
 
         if (mMapperSettings.Has("search_iterations")) {
-            KRATOS_WARNING("Mapper") << "DEPRECATION-WARNING: \"search_iterations\" should be specified as \"max_num_search_iterations\" under \"search_settings\"!" << std::endl;
             const int search_iterations = mMapperSettings["search_iterations"].GetInt();
 
             if (mMapperSettings.Has("search_settings")) {

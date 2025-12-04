@@ -84,10 +84,13 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
     if (mInterfaceInfos.empty()) {
         ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
         return;
-    }
+    }   
+
+    const auto& rbf_support_accumulator = (mBuildOriginInterpolationMatrix && mOriginIsIga)
+            ? static_cast<const RadialBasisFunctionsMapperInterfaceInfoIGA&>(*mInterfaceInfos[0]).GetRBFSupportAccumulator()
+            : static_cast<const RadialBasisFunctionsMapperInterfaceInfoFEM&>(*mInterfaceInfos[0]).GetRBFSupportAccumulator();
     
     //  Get the support accumulator for this local system. We only have one InterfaceInfo per LocalSystem
-    const auto& rbf_support_accumulator = mInterfaceInfos[0]->GetRBFSupportAccumulator();
     const auto& rbf_support_points = rbf_support_accumulator.Candidates();
     const IndexType rbf_support_points_number = rbf_support_accumulator.NumNeighbors();
     const Matrix rbf_support_points_coordinates = rbf_support_accumulator.GetCandidateCoordinatesMatrix();
@@ -339,8 +342,8 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     }
 
     // Create dummy local systems for the origin and destination domains
-    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
-    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
 
     // Create the local systems for the origin and destination domains
     if (mOriginIsIga) {
