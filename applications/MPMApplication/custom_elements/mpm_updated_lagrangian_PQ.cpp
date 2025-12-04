@@ -100,7 +100,7 @@ void MPMUpdatedLagrangianPQ::CalculateAndAddExternalForces(
     KRATOS_CATCH( "" )
 }
 
-void MPMUpdatedLagrangianPQ::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
+void MPMUpdatedLagrangianPQ::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo )
 {
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
