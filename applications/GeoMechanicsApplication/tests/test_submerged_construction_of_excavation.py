@@ -356,11 +356,13 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
         if test_helper.want_test_plots():
             axial_force_collections = []
+            shear_force_collections = []
+            bending_moment_collections = []
+            titles = []
             for stage in self.stages_info.values():
                 if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
                     continue
                 data_series_collection = []
-                # axial force plot
                 output_data_wall = GiDOutputFileReader().read_output_from(os.path.join(project_path, f"{stage['base_name']}.post.res"))
                 node_ids = get_wall_node_ids()
                 coordinates = test_helper.read_coordinates_from_post_msh_file(
@@ -391,12 +393,78 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 )
                 axial_force_collections.append(data_series_collection)
 
+                data_series_collection = []
+
+                shear_forces = GiDOutputFileReader.nodal_values_at_time("SHEAR_FORCE", stage['end_time'], output_data_wall,
+                                                                        node_ids=node_ids)
+                shear_forces = [shear_force / 1000 for shear_force in shear_forces]  # Convert to kN
+                data = []
+                for force, y in zip(shear_forces, y_coords):
+                    data.append((force, y))
+
+                data_series_collection.append(plot_utils.DataSeries(
+                    data,
+                    f"Shear force [Kratos]",
+                    line_style="-",
+                    marker=".",
+                ))
+                comparison_shear_force = test_helper.get_data_points_from_file(
+                    path_to_comparison_file,
+                    extract_y_and_shear_force_from_line
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(comparison_shear_force, "Shear Force [Comparison]", marker="1")
+                )
+                shear_force_collections.append(data_series_collection)
+
+
+                data_series_collection = []
+
+                bending_moments = GiDOutputFileReader.nodal_values_at_time("BENDING_MOMENT", stage['end_time'], output_data_wall,
+                                                                        node_ids=node_ids)
+                bending_moments = [bending_moment / 1000 for bending_moment in bending_moments]  # Convert to kN
+                data = []
+                for force, y in zip(bending_moments, y_coords):
+                    data.append((force, y))
+
+                data_series_collection.append(plot_utils.DataSeries(
+                    data,
+                    f"Bending moment [Kratos]",
+                    line_style="-",
+                    marker=".",
+                ))
+                comparison_bending_moment = test_helper.get_data_points_from_file(
+                    path_to_comparison_file,
+                    extract_y_and_moment_from_line
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(comparison_bending_moment, "Bending moment [Comparison]", marker="1")
+                )
+                bending_moment_collections.append(data_series_collection)
+                titles.append(stage['base_name'])
+
             plot_utils.make_sub_plots(
                 axial_force_collections,
                 Path(project_path) / f"axial_forces_all_stages.svg",
                 xlabel="Axial Force [kN]",
                 ylabel="y [m]",
-                title="Axial Forces over all stages"
+                titles=titles
+            )
+
+            plot_utils.make_sub_plots(
+                shear_force_collections,
+                Path(project_path) / f"shear_forces_all_stages.svg",
+                xlabel="Shear Force [kN]",
+                ylabel="y [m]",
+                titles=titles
+            )
+
+            plot_utils.make_sub_plots(
+                bending_moment_collections,
+                Path(project_path) / f"bending_moments_all_stages.svg",
+                xlabel="Bending moment [kNm]",
+                ylabel="y [m]",
+                titles=titles
             )
 
             # Separate plots for each stage

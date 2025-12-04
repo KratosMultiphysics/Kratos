@@ -57,10 +57,10 @@ def make_sub_plots(
         ylabel=None,
         yaxis_inverted=False,
         xscale=None,
-        title=None
+        titles=None
 ):
     figure, axes = plt.subplots(1, len(data_series_collections), sharey="all", figsize=(20, 4))
-    for ax, collection in zip(axes, data_series_collections):
+    for ax, collection, title in zip(axes, data_series_collections, titles):
         if xscale is not None:
             ax.set_xscale(xscale)
 
@@ -79,8 +79,7 @@ def make_sub_plots(
         if xlabel is not None:
             ax.set_xlabel(xlabel)
 
-        if title is not None:
-            ax.set_title(title)
+        ax.set_title(title)
         if ylabel is not None:
             ax.set_ylabel(ylabel)
     figure.legend(loc="outside center right")
