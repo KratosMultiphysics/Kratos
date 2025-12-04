@@ -74,15 +74,17 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMecha
     properties.Erase(INDEX_OF_UMAT_C_PARAMETER);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ConstitutiveLawUtilities::GetCohesion(properties),
-        "ConstitutiveLawUtilities::GetCohesion failed. There are no GEO_COHESION and underlying "
-        "UMAT Error: There is no INDEX_OF_UMAT_C_PARAMETER for material 0.");
+        "Error: ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available "
+        "and attempting to get the cohesion from UMAT parameters resulted in the following Error: "
+        "There is no INDEX_OF_UMAT_C_PARAMETER for material 0.");
 
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
     properties.Erase(UMAT_PARAMETERS);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ConstitutiveLawUtilities::GetCohesion(properties),
-        "ConstitutiveLawUtilities::GetCohesion failed. There are no GEO_COHESION and underlying "
-        "UMAT Error: There is no UMAT_PARAMETERS for material 0.");
+        "ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available and "
+        "attempting to get the cohesion from UMAT parameters resulted in the following Error: "
+        "There is no UMAT_PARAMETERS for material 0.");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -104,11 +106,11 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeo
     KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), 30.0);
 
     properties.Erase(INDEX_OF_UMAT_PHI_PARAMETER);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE and underlying UMAT Error: There is no INDEX_OF_UMAT_PHI_PARAMETER for material 0.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the cohesion from UMAT parameters resulted in the following Error: There is no INDEX_OF_UMAT_PHI_PARAMETER for material 0.");
 
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
     properties.Erase(UMAT_PARAMETERS);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE and underlying UMAT Error: There is no UMAT_PARAMETERS for material 0.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the cohesion from UMAT parameters resulted in the following Error: There is no UMAT_PARAMETERS for material 0.");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -125,16 +127,16 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ConstitutiveLawUtilities::GetCohesion(properties),
-        " ConstitutiveLawUtilities::GetCohesion failed. There are no GEO_COHESION and underlying "
-        "UMAT Error: Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 0 is not in "
-        "range [1, 2].");
+        "ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available and "
+        "attempting to get the cohesion from UMAT parameters resulted in the following Error: Got "
+        "out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 0 is not in range [1, 2].");
 
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3); // 1-based index
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ConstitutiveLawUtilities::GetCohesion(properties),
-        " ConstitutiveLawUtilities::GetCohesion failed. There are no GEO_COHESION and underlying "
-        "UMAT Error: Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 3 is not in "
-        "range [1, 2].");
+        "ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available and "
+        "attempting to get the cohesion from UMAT parameters resulted in the following Error: Got "
+        "out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 3 is not in range [1, 2].");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetStateVariableIndex, KratosGeoMechanicsFastSuiteWithoutKernel)
