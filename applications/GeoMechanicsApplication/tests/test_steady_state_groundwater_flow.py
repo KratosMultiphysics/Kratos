@@ -64,7 +64,7 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
                                                 str(round(Q, 2)),
                                                 str(round(outflow_discharge, 2)),
                                                 str(round(error_outflow_discharge * 100, 2))]) +
-                                    ' \\\\ \hline \n')
+                                    ' \\\\ \\hline \n')
         output_file_for_latex.close()
 
     def test_flow_under_dam(self):
@@ -81,7 +81,7 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
                                                         str(round(Q, 2)),
                                                         str(round(outflow_discharge, 2)),
                                                         str(round(error_outflow_discharge * 100, 2))]) +
-                                            ' \\\\ \hline \n')
+                                            ' \\\\ \\hline \n')
                 output_file_for_latex.close()
 
     def test_flow_rate_heterogeneous_soil(self):
@@ -99,7 +99,7 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
                                                 str(round(analytical_solution_outflow_discharge,2)),
                                                 str(round(outflow_discharge,2)),
                                                 str(round(error_outflow_discharge*100,2))]) +
-                                                ' \\\\ \hline \n')
+                                                ' \\\\ \\hline \n')
         output_file_for_latex.close()
 
     def test_pressure_in_confined_aquifer(self):
@@ -125,12 +125,12 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         output_file_for_latex.write(' & '.join(['water pressure',
                                                 str(round(analytical_solution_water_pressure,2)),
                                                 str(round(pore_pressure_middle,2)),
-                                                str(round(error_water_pressure*100,2))]) + ' \\\\ \hline \n')
+                                                str(round(error_water_pressure*100,2))]) + ' \\\\ \\hline \n')
         output_file_for_latex.write(' & '.join(['Q',
                                                 str(round(analytical_solution_outflow_discharge,2)),
                                                 str(round(outflow_discharge,2)),
                                                 str(round(error_outflow_discharge*100,2))]) +
-                                                ' \\\\ \hline \n')
+                                                ' \\\\ \\hline \n')
         output_file_for_latex.close()
 
     def calculate_outflow_discharge(self, simulation):

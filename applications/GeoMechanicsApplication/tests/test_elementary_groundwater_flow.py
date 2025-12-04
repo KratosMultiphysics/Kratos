@@ -42,11 +42,11 @@ class LatexWriterFile:
                 if result_pair["round"]:
                     output_latex_file.write(
                         f"{result_pair['value_name']} & {round(result_pair['test_result'], 2)} & "
-                        f"{round(result_pair['kratos_results'], 2)} & {round(error, 2)}  \\\\ \hline \n")
+                        f"{round(result_pair['kratos_results'], 2)} & {round(error, 2)}  \\\\ \\hline \n")
                 else:
                     output_latex_file.write(
                         f"{result_pair['value_name']} & {result_pair['test_result']} & "
-                        f"{result_pair['kratos_results']} & {round(error, 2)}  \\\\ \hline \n")
+                        f"{result_pair['kratos_results']} & {round(error, 2)}  \\\\ \\hline \n")
         for result_pair in result_list:
             assert math.isclose(result_pair['test_result'], result_pair['kratos_results'], abs_tol=1e-7)
 
