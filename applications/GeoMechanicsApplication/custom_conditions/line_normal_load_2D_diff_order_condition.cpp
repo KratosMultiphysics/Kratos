@@ -30,7 +30,7 @@ LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition()
 
 // Constructor 1
 LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : LineLoad2DDiffOrderCondition(NewId, pGeometry)
+    : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
@@ -38,7 +38,7 @@ LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition(IndexType
 LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition(IndexType NewId,
                                                                        GeometryType::Pointer pGeometry,
                                                                        PropertiesType::Pointer pProperties)
-    : LineLoad2DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 

@@ -13,15 +13,17 @@
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/small_strain_udsm_law.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_utilities/registration_utilities.h"
 #include "includes/variables.h"
+#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/model_setup_utilities.h"
+#include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
@@ -217,9 +219,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput,
     Model model;
     auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
     SetSolutionStepValuesForGeneralCheck(p_element);
-
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
     // Act and Assert
-    KRATOS_EXPECT_EQ(p_element->Check(ProcessInfo{}), 0);
+    KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -673,4 +676,41 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateShearCapacity, KratosGe
                               Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStateParameters,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<MockConstitutiveLaw>());
+    Model      model;
+    const auto process_info = ProcessInfo{};
+    auto       p_element    = CreateUPwSmallStrainElementWithUPwDofs(model, p_properties);
+
+    // First perform a simplified 'stage'
+    p_element->Initialize(process_info);
+    p_element->FinalizeNonLinearIteration(process_info);
+
+    // Emulate the state variables have changed within the stage
+    std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+    p_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, ProcessInfo{});
+    for (const auto& rpConstitutiveLaw : constitutive_laws) {
+        rpConstitutiveLaw->SetValue(STATE_VARIABLES, Vector{ScalarVector(5, 0.3)}, ProcessInfo{});
+    }
+
+    // In the FinalizeSolutionStep, the state variables on the constitutive law are saved to the element
+    p_element->FinalizeSolutionStep(process_info);
+
+    // Act
+    p_element->Initialize(process_info); // This call should copy the state variables from the element to the new constitutive laws
+
+    // Assert
+    std::vector<ConstitutiveLaw::Pointer> new_constitutive_laws;
+    p_element->CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, new_constitutive_laws, ProcessInfo{});
+    for (const auto& rpConstitutiveLaw : new_constitutive_laws) {
+        Vector state_variables;
+        rpConstitutiveLaw->GetValue(STATE_VARIABLES, state_variables);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(state_variables, Vector{ScalarVector(5, 0.3)},
+                                           Defaults::relative_tolerance);
+    }
+}
 } // namespace Kratos::Testing

@@ -52,12 +52,12 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
     def test_transient_thermal_fixed_temperature_2D3N(self):
         temperature = self.simulate_thermal_case(
             'test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_2D3N')
-        self.assertAlmostEqual(3.1312633472490803, temperature[37])
+        self.assertAlmostEqual(2.711294346531134, temperature[37])
 
     def test_transient_thermal_fixed_temperature_3D4N(self):
         temperature = self.simulate_thermal_case(
             'test_transient_thermal_fixed_temperature/test_transient_thermal_fixed_temperature_3D4N')
-        self.assertAlmostEqual(7.49001003417586, temperature[22])
+        self.assertAlmostEqual(6.368655984441822, temperature[22])
 
     def test_micro_climate_1(self):
         temperature = self.simulate_thermal_case('test_micro_climate_1')

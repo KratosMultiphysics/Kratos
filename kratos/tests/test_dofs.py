@@ -201,6 +201,48 @@ class TestDofs(KratosUnittest.TestCase):
         # Check the obtained DOF set
         self.assertEqual(len(dofs_array), test_model_part.NumberOfNodes())
 
+    def testDofArrayUtilities(self):
+        """
+        Test the DOF array utilities
+
+        This test creates an auxiliary mesh with elements having DISTANCE as DOF
+        besides some master-slave constraints to then create the corresponding DOF arrays
+
+        """
+
+        # Set up the auxiliary model part with constraints
+        test_model = KratosMultiphysics.Model()
+        test_model_part = test_model.CreateModelPart("TestModelPart")
+        test_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        problem_domain = KratosMultiphysics.Quadrilateral2D4(
+            KratosMultiphysics.Node(1, -0.5, -0.5, 0.0),
+            KratosMultiphysics.Node(2, -0.5,  0.5, 0.0),
+            KratosMultiphysics.Node(3,  0.5,  0.5, 0.0),
+            KratosMultiphysics.Node(4,  0.5, -0.5, 0.0))
+        parameters = KratosMultiphysics.Parameters("{}")
+        parameters.AddEmptyValue("element_name").SetString("DistanceCalculationElementSimplex2D3N")
+        parameters.AddEmptyValue("condition_name").SetString("LineCondition2D2N")
+        parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
+        parameters.AddEmptyValue("number_of_divisions").SetInt(3)
+        KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, test_model_part, parameters).Execute()
+
+        KratosMultiphysics.VariableUtils().AddDofsList(["DISTANCE"], test_model_part)
+
+        test_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, test_model_part.GetNode(1), KratosMultiphysics.DISTANCE, test_model_part.GetNode(3), KratosMultiphysics.DISTANCE, 1.0, 1.0)
+        test_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, test_model_part.GetNode(4), KratosMultiphysics.DISTANCE, test_model_part.GetNode(4), KratosMultiphysics.DISTANCE, 1.0, 1.0)
+
+        # Create and fill the DOF array
+        dofs_array = KratosMultiphysics.DofsArrayType()
+        KratosMultiphysics.DofArrayUtilities.SetUpDofArray(test_model_part, dofs_array)
+
+        # Create and fill the effective DOF array and the slaves to master map
+        eff_dofs_array = KratosMultiphysics.DofsArrayType()
+        KratosMultiphysics.DofArrayUtilities.SetUpEffectiveDofArray(test_model_part, dofs_array, eff_dofs_array)
+
+        # Check results
+        self.assertEqual(len(dofs_array), 16)
+        self.assertEqual(len(eff_dofs_array), 15)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
