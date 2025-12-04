@@ -30,7 +30,17 @@
 # List of binaries for this application 
 # (This is a Kratos build script extension and will not work with python build)
 [kratos]
-    libs = ["KratosHDF5Application.*", "KratosHDF5Core.*", "libKratosHDF5Core.*", "hdf5.*", "hdf5_hl.*", "hdf5_tools.*"]
+    libs = [
+        "KratosHDF5Application.*", 
+        "KratosHDF5Core.*", 
+        "libKratosHDF5Core.*", 
+        "hdf5.*", 
+        "hdf5_hl.*", 
+        "hdf5_tools.*",
+        "libhdf5.*", 
+        "libhdf5_hl.*", 
+        "libhdf5_tools.*", 
+    ]
 
 # Wheel (py and stubs)
 [tool.hatch.build.targets.wheel]

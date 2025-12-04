@@ -31,7 +31,21 @@
 # (This is a Kratos build script extension and will not work with python build)
 # "hdf5.*", "hdf5_hl.*", "hdf5_tools.*" Check those from hdf5 app
 [kratos]
-    libs = ["KratosMedApplication.*", "KratosMedCore.*", "libKratosMedCore.*", "hdf5.*", "hdf5_hl.*", "hdf5_tools.*", "medC.*", "medimport.*"]
+    libs = [
+        "KratosMedApplication.*", 
+        "KratosMedCore.*", 
+        "libKratosMedCore.*", 
+        "hdf5.*", 
+        "hdf5_hl.*", 
+        "hdf5_tools.*", 
+        "medC.*", 
+        "medimport.*",
+        "libhdf5.*", 
+        "libhdf5_hl.*", 
+        "libhdf5_tools.*", 
+        "libmedC.*", 
+        "libmedimport.*"
+    ]
 
 # Wheel (py and stubs)
 [tool.hatch.build.targets.wheel]
