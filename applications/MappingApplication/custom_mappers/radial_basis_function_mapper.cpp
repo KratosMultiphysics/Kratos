@@ -473,18 +473,19 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternal(
             r_origin_vec, 
             r_destination_vec);
     } else {
-        // solve RBF system on the fly 
+       // solve RBF system on the fly 
         const IndexType system_size  = mpOriginInterpolationMatrix->size1();
         const IndexType n_origin_dof = r_origin_vec.size();
         const IndexType n_poly       = system_size - n_origin_dof;
 
+        Vector rhs(system_size);
+        for (IndexType i = 0; i < n_origin_dof; ++i)
+            rhs[i] = r_origin_vec[i];
         for (IndexType i = 0; i < n_poly; ++i)
-            r_origin_vec[n_origin_dof + i] = 0.0;
+            rhs[n_origin_dof + i] = 0.0;
 
         Vector solution(system_size);
-        mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, r_origin_vec);
-
-        r_destination_vec.resize(mpDestinationEvaluationMatrix->size1(), false);
+        mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
 
         TSparseSpace::Mult(
             *mpDestinationEvaluationMatrix, 
