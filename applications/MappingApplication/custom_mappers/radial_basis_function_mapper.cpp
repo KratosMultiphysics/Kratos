@@ -268,8 +268,23 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
 
     // Read the RBF type from the settings
-    mRBFType = mMapperSettings["radial_basis_function_type"].GetString();
-    std::transform(mRBFType.begin(), mRBFType.end(), mRBFType.begin(), ::tolower);
+    std::string rbf_type = mMapperSettings["radial_basis_function_type"].GetString();
+    std::transform(rbf_type.begin(), rbf_type.end(), rbf_type.begin(), ::tolower);
+
+    static const std::unordered_map<std::string, RadialBasisFunctionsUtilities::RBFType> rbf_type_map = {
+        {"inverse_multiquadric", RadialBasisFunctionsUtilities::RBFType::InverseMultiquadric},
+        {"multiquadric",         RadialBasisFunctionsUtilities::RBFType::Multiquadric},
+        {"gaussian",             RadialBasisFunctionsUtilities::RBFType::Gaussian},
+        {"thin_plate_spline",    RadialBasisFunctionsUtilities::RBFType::ThinPlateSpline},
+        {"wendland_c2",          RadialBasisFunctionsUtilities::RBFType::WendlandC2}
+    };
+
+    const auto it = rbf_type_map.find(rbf_type);
+    if (it == rbf_type_map.end()) {
+        KRATOS_ERROR << "Unrecognized RBF type: " << rbf_type << std::endl;
+    }
+
+    mRBFTypeEnum = it->second;
 
     // Obtain the polynomial degree and calculate number of polynomial terms
     mPolynomialDegree = mMapperSettings["additional_polynomial_degree"].GetInt();
@@ -324,8 +339,8 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     }
 
     // Create dummy local systems for the origin and destination domains
-    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mRBFType, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
-    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mRBFType, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
 
     // Create the local systems for the origin and destination domains
     if (mOriginIsIga) {

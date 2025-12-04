@@ -292,38 +292,35 @@ class RadialBasisFunctionMapperLocalSystem : public MapperLocalSystem
 {
 public:
     // Default constructor
-    RadialBasisFunctionMapperLocalSystem(): mpNode(nullptr), mpGeometry(nullptr), mRBFTypeString(""), mRBFTypeEnum(), mpPolynomialEquationIds(nullptr) {}
+    RadialBasisFunctionMapperLocalSystem(): mpNode(nullptr), mpGeometry(nullptr), mRBFTypeEnum(), mpPolynomialEquationIds(nullptr) {}
 
     // Construct from a node and a geometry (dummy constructor needed)
-    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, std::string RBFType, IndexType PolynomialDegree,
+    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree,
                                                   const std::vector<IndexType>* pPolynomialEquationIds)
             : mpNode(pNode), 
               mpGeometry(pGeometry),
               mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
-              mRBFTypeString(RBFType),
-              mRBFTypeEnum(ParseRBFType(RBFType)),
+              mRBFTypeEnum(RBFTypeEnum),
               mPolynomialDegree(PolynomialDegree), 
               mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
               mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     // Construct from a node
-    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, bool BuildOriginInterpolationMatrix, std::string RBFType, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
+    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, bool BuildOriginInterpolationMatrix, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
              mpNode(std::move(pNode)), 
              mpGeometry(nullptr),
              mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
-             mRBFTypeString(RBFType),
-             mRBFTypeEnum(ParseRBFType(RBFType)),
+             mRBFTypeEnum(RBFTypeEnum),
              mPolynomialDegree(PolynomialDegree),
              mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
              mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     // Construct from a geometry (e.g. an integration-point “geometry” in IGA)
-    explicit RadialBasisFunctionMapperLocalSystem(GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, std::string RBFType, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
+    explicit RadialBasisFunctionMapperLocalSystem(GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
              mpNode(nullptr), 
              mpGeometry(std::move(pGeometry)),
              mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
-             mRBFTypeString(RBFType),
-             mRBFTypeEnum(ParseRBFType(RBFType)),
+             mRBFTypeEnum(RBFTypeEnum),
              mPolynomialDegree(PolynomialDegree),
              mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
              mpPolynomialEquationIds(pPolynomialEquationIds){}
@@ -354,13 +351,13 @@ public:
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
     {
        KRATOS_DEBUG_ERROR_IF(!pNode) << "Create(Node) received nullptr" << std::endl;
-       return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pNode, mBuildOriginInterpolationMatrix, mRBFTypeString, mPolynomialDegree, mpPolynomialEquationIds);
+       return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pNode, mBuildOriginInterpolationMatrix, mRBFTypeEnum, mPolynomialDegree, mpPolynomialEquationIds);
     }
 
     MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const override
     {
         KRATOS_DEBUG_ERROR_IF(!pGeometry) << "Create(Geometry) received nullptr" << std::endl;
-        return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pGeometry, mBuildOriginInterpolationMatrix, mRBFTypeString, mPolynomialDegree, mpPolynomialEquationIds);
+        return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pGeometry, mBuildOriginInterpolationMatrix, mRBFTypeEnum, mPolynomialDegree, mpPolynomialEquationIds);
     }
 
     void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo) override 
@@ -389,30 +386,12 @@ private:
     mutable bool mIsRBFInitialized = false;
     mutable CoordinatesArrayType mCoordinates;
 
-    std::string mRBFTypeString;
     RadialBasisFunctionsUtilities::RBFType mRBFTypeEnum;
     IndexType mPolynomialDegree = 0;
     IndexType mNumberOfPolynomialTerms;
     const std::vector<IndexType>* mpPolynomialEquationIds; // reference to the polynomial ids
 
     std::vector<double> EvaluatePolynomialBasis(const CoordinatesArrayType& rCoords, unsigned int degree) const;
-
-    RadialBasisFunctionsUtilities::RBFType ParseRBFType(const std::string& rName) const
-    {
-        static const std::unordered_map<std::string, RadialBasisFunctionsUtilities::RBFType> rbf_type_map = {
-            {"inverse_multiquadric", RadialBasisFunctionsUtilities::RBFType::InverseMultiquadric},
-            {"multiquadric",         RadialBasisFunctionsUtilities::RBFType::Multiquadric},
-            {"gaussian",             RadialBasisFunctionsUtilities::RBFType::Gaussian},
-            {"thin_plate_spline",    RadialBasisFunctionsUtilities::RBFType::ThinPlateSpline},
-            {"wendland_c2",          RadialBasisFunctionsUtilities::RBFType::WendlandC2}
-        };
-
-        const auto it = rbf_type_map.find(rName);
-        if (it == rbf_type_map.end()) {
-            KRATOS_ERROR << "Unrecognized RBF type: " << rName << std::endl;
-        }
-        return it->second;
-    }
 
     void InitializeRBFKernel(const Matrix& coords) const
     {
@@ -775,7 +754,7 @@ private:
     std::vector<IndexType> mPolynomialEquationIdsOrigin;
     std::vector<IndexType> mPolynomialEquationIdsDestination;
 
-    std::string mRBFType;
+    RadialBasisFunctionsUtilities::RBFType mRBFTypeEnum;
     IndexType mPolynomialDegree;
     IndexType mNumberOfPolynomialTerms;
 
