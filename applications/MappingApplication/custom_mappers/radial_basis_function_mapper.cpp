@@ -407,16 +407,13 @@ std::vector<IndexType> RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::Ini
     // Use the local mesh nodes you already grabbed
     const auto& r_nodes = pModelPart->GetCommunicator().LocalMesh().Nodes();
 
-    IndexType max_eq_id = 0; // or std::numeric_limits<IndexType>::min() if needed
-
-    for (const auto& r_node : r_nodes) {
-        if (r_node.Has(INTERFACE_EQUATION_ID)) {
-            const IndexType eq_id = r_node.GetValue(INTERFACE_EQUATION_ID);
-            if (eq_id > max_eq_id) {
-                max_eq_id = eq_id;
+    IndexType max_eq_id = block_for_each<MaxReduction<IndexType>>(r_nodes, 
+        [](const Node& rNode){                          
+            if (rNode.Has(INTERFACE_EQUATION_ID)) {
+                return rNode.GetValue(INTERFACE_EQUATION_ID);
             }
-        }
-    }
+            return 0;
+        });
 
     // Fill polynomial_equation_ids as a simple consecutive range
     std::vector<IndexType> polynomial_equation_ids(mNumberOfPolynomialTerms);
@@ -433,16 +430,13 @@ std::vector<IndexType> RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::Ini
     // Use the local mesh nodes you already grabbed
     const auto& r_conditions = pModelPart->GetCommunicator().LocalMesh().Conditions();
 
-    IndexType max_eq_id = 0; // or std::numeric_limits<IndexType>::min() if needed
-
-    for (const auto& r_condition : r_conditions) {
-        if (r_condition.Has(INTERFACE_EQUATION_ID)) {
-            const IndexType eq_id = r_condition.GetValue(INTERFACE_EQUATION_ID);
-            if (eq_id > max_eq_id) {
-                max_eq_id = eq_id;
+    IndexType max_eq_id = block_for_each<MaxReduction<IndexType>>(r_conditions, 
+        [](const Condition& rCondition){                          
+            if (rCondition.Has(INTERFACE_EQUATION_ID)) {
+                return rCondition.GetValue(INTERFACE_EQUATION_ID);
             }
-        }
-    }
+            return 0;
+        });
 
     // Fill polynomial_equation_ids as a simple consecutive range
     std::vector<IndexType> polynomial_equation_ids(mNumberOfPolynomialTerms);
@@ -484,14 +478,11 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternal(
         const IndexType n_origin_dof = r_origin_vec.size();
         const IndexType n_poly       = system_size - n_origin_dof;
 
-        Vector rhs(system_size);
-        for (IndexType i = 0; i < n_origin_dof; ++i)
-            rhs[i] = r_origin_vec[i];
         for (IndexType i = 0; i < n_poly; ++i)
-            rhs[n_origin_dof + i] = 0.0;
+            r_origin_vec[n_origin_dof + i] = 0.0;
 
         Vector solution(system_size);
-        mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
+        mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, r_origin_vec);
 
         r_destination_vec.resize(mpDestinationEvaluationMatrix->size1(), false);
 
