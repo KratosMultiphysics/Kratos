@@ -12,6 +12,7 @@
 //
 #include "apply_vector_constraint_table_process.h"
 #include "apply_component_table_process.h"
+#include "custom_utilities/process_utilities.h"
 #include "geo_apply_constant_scalar_value_process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -19,13 +20,16 @@
 namespace Kratos
 {
 
-ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Kratos::ModelPart& rModelPart,
-                                                                     const Kratos::Parameters& rSettings)
-    : Process(Flags()), mrModelPart(rModelPart)
+ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Model& rModel, const Parameters& rSettings)
+    : Process(Flags())
 {
-    const auto parameters_list = CreateParametersForActiveComponents(rSettings);
-    for (const auto& parameters : parameters_list) {
-        mProcesses.emplace_back(MakeProcessFor(parameters));
+    mrModelParts = ProcessUtilities::GetModelPartsFromSettings(
+        rModel, rSettings, ApplyVectorConstraintTableProcess::Info());
+    for (const auto& r_model_part : mrModelParts) {
+        const auto parameters_list = CreateParametersForActiveComponents(rSettings);
+        for (const auto& parameters : parameters_list) {
+            mProcesses.emplace_back(MakeProcessFor(r_model_part, parameters));
+        }
     }
 }
 
@@ -86,13 +90,13 @@ std::size_t ApplyVectorConstraintTableProcess::ComponentToIndex(char component)
 }
 
 ApplyVectorConstraintTableProcess::ProcessUniquePointer ApplyVectorConstraintTableProcess::MakeProcessFor(
-    const Parameters& rParameters) const
+    ModelPart& rModelPart, const Parameters& rParameters) const
 {
     if (rParameters.Has("table")) {
-        return std::make_unique<ApplyComponentTableProcess>(mrModelPart, rParameters);
+        return std::make_unique<ApplyComponentTableProcess>(rModelPart, rParameters);
     }
 
-    return std::make_unique<GeoApplyConstantScalarValueProcess>(mrModelPart, rParameters);
+    return std::make_unique<GeoApplyConstantScalarValueProcess>(rModelPart, rParameters);
 }
 
 void ApplyVectorConstraintTableProcess::ExecuteInitialize()

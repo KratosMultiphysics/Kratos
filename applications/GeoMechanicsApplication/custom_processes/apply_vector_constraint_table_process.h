@@ -25,7 +25,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyVectorConstraintTableProcess : 
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyVectorConstraintTableProcess);
 
-    ApplyVectorConstraintTableProcess(ModelPart& rModelPart, const Parameters& rSettings);
+    ApplyVectorConstraintTableProcess(Model& rModel, const Parameters& rSettings);
 
     ~ApplyVectorConstraintTableProcess() override;
 
@@ -45,10 +45,10 @@ private:
     static std::vector<char>       ActiveComponents(const Parameters& rSettings);
     static Parameters    CreateParametersForComponent(const Parameters& rSettings, char component);
     static std::size_t   ComponentToIndex(char component);
-    ProcessUniquePointer MakeProcessFor(const Parameters& rParameters) const;
+    ProcessUniquePointer MakeProcessFor(ModelPart& rModelPart, const Parameters& rParameters) const;
 
-    ModelPart&                        mrModelPart;
-    std::vector<ProcessUniquePointer> mProcesses;
+    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
+    std::vector<ProcessUniquePointer>              mProcesses;
 };
 
 } // namespace Kratos
