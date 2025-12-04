@@ -450,7 +450,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         data_series_collection = []
         node_ids = get_wall_node_ids()
         coordinates = test_helper.read_coordinates_from_post_msh_file(
-            Path(project_path) / "3_Wall_installation.post.msh", node_ids=node_ids
+            Path(project_path) / f"{stage_name}.post.msh", node_ids=node_ids
         )
         y_coords = [coord[1] for coord in coordinates]
         axial_forces = GiDOutputFileReader.nodal_values_at_time("AXIAL_FORCE", time, output_data_wall,
