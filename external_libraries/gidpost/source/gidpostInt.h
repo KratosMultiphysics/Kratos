@@ -45,8 +45,8 @@ typedef enum {
   POST_S0,               /* TOP level */
   POST_MESH_S0,          /* MESH header */
   POST_MESHGROUP_S0,     /* MESHGROUP TOP level */
-  POST_MESH_COORD0,      /* inside a Coordinate block */
-  POST_MESH_COORD1,      /* after a Coordinate block but inside a MESH */
+  POST_MESH_COORD_INSIDE, /* inside a Coordinate block */
+  POST_MESH_COORD_DONE,   /* after a Coordinate block but inside a MESH */
   POST_MESH_ELEM,        /* inside an Element block */
   POST_GAUSS_S0,         /* GAUSS point block: implicit */
   POST_GAUSS_GIVEN,      /* GAUSS point block: explicit */

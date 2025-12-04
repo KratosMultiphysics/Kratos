@@ -27,14 +27,14 @@ AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiff
 // Constructor 1
 AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry)
-    : LineNormalLoad2DDiffOrderCondition(NewId, pGeometry)
+    : LineNormalLoad2DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
 // Constructor 2
 AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : LineNormalLoad2DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : LineNormalLoad2DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 

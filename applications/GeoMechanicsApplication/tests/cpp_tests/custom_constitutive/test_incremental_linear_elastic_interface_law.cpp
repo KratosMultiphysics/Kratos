@@ -170,28 +170,38 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_ChecksForCorrectMaterial
     const auto geometry     = InterfaceGeometry<Line2D2<Node>>{};
     const auto process_info = ProcessInfo{};
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "No interface normal stiffness is defined")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_NORMAL_STIFFNESS does not exist in the material properties with Id 0.")
 
     properties[INTERFACE_NORMAL_STIFFNESS] = -5.0;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "Interface normal stiffness must be positive, but got -5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_NORMAL_STIFFNESS in the material properties with Id 0 has "
+        "an invalid value: -5 is out of the range (0, -).")
 
     properties[INTERFACE_NORMAL_STIFFNESS] = 0.0;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "Interface normal stiffness must be positive, but got 0")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_NORMAL_STIFFNESS in the material properties with Id 0 has "
+        "an invalid value: 0 is out of the range (0, -).")
 
     properties[INTERFACE_NORMAL_STIFFNESS] = 5.0;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "No interface shear stiffness is defined")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_SHEAR_STIFFNESS does not exist in the material properties with Id 0.")
 
     properties[INTERFACE_SHEAR_STIFFNESS] = -2.5;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "Interface shear stiffness must be positive, but got -2.5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_SHEAR_STIFFNESS in the material properties with Id 0 has "
+        "an invalid value: -2.5 is out of the range (0, -).")
 
     properties[INTERFACE_SHEAR_STIFFNESS] = 0.0;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "Interface shear stiffness must be positive, but got 0")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_SHEAR_STIFFNESS in the material properties with Id 0 has "
+        "an invalid value: 0 is out of the range (0, -).")
 
     properties[INTERFACE_SHEAR_STIFFNESS] = 2.5;
     KRATOS_EXPECT_EQ(law.Check(properties, geometry, process_info), 0);
@@ -426,7 +436,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     law_2D.FinalizeMaterialResponseCauchy(law_parameters);
 
     const auto scoped_registration_law =
-        ScopedSerializerRegistration{"InterfacePlaneStrain"s, InterfacePlaneStrain{}};
+        ScopedSerializerRegistration{std::make_pair("InterfacePlaneStrain"s, InterfacePlaneStrain{})};
     auto       serializer = Serializer{new std::stringstream{}};
     const auto tag_2D     = "test_2D_tag"s;
     serializer.save(tag_2D, law_2D);
@@ -452,7 +462,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     law_3D.FinalizeMaterialResponseCauchy(law_parameters);
 
     const auto scoped_registration_law_3D = ScopedSerializerRegistration{
-        "InterfaceThreeDimensionalSurface"s, InterfaceThreeDimensionalSurface{}};
+        std::make_pair("InterfaceThreeDimensionalSurface"s, InterfaceThreeDimensionalSurface{})};
     const auto tag_3D = "test_tag"s;
     serializer.save(tag_3D, law_3D);
 

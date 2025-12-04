@@ -38,7 +38,8 @@
 #include "custom_utilities/piecewise_linear_random_variable.h"
 #include "custom_utilities/discrete_random_variable.h"
 #include "custom_utilities/parallel_bond_utilities.h"
-
+#include "custom_utilities/rve_utilities.h"
+#include "custom_utilities/rve_wall_boundary_2d.h"
 
 namespace Kratos {
 
@@ -435,6 +436,19 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("Sample", &DiscreteRandomVariable::Sample)
         .def("ProbabilityDensity", &DiscreteRandomVariable::ProbabilityDensity)
         .def("GetMean", &DiscreteRandomVariable::GetMean)
+        ;
+
+    py::class_<RVEUtilities, RVEUtilities::Pointer>(m, "RVEUtilities")
+        .def(py::init<>())
+        .def(py::init<int, int, std::vector<double>, std::string, double, double>())
+        ;
+    
+    py::class_<RVEWallBoundary2D, RVEWallBoundary2D::Pointer, RVEUtilities>(m, "RVEWallBoundary2D")
+        .def(py::init<>())
+        .def(py::init<int, int, std::vector<double>, std::string, double, double>())
+        .def("Initialize", &RVEWallBoundary2D::Initialize)
+        .def("FinalizeSolutionStep", &RVEWallBoundary2D::FinalizeSolutionStep)
+        .def("Finalize", &RVEWallBoundary2D::Finalize)
         ;
     }
 

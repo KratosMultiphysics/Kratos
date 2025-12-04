@@ -19,20 +19,20 @@
 static int ByteOrderCheck=0x91d;  /* Magic number */
 
 /* format to print reals to string, customizable only once at the begin*/
-static char format_real[100]={"%.9g"};
+static char G_format_real[100]={"%.9g"};
 
 GIDPOST_API int GiD_PostSetFormatReal(GP_CONST char* f){
-  strcpy(format_real,f);
+  strcpy(G_format_real,f);
   return 0;
 }
 
-GIDPOST_API GP_CONST char* GiD_PostGetFormatReal() {
-  return format_real;
+GIDPOST_API GP_CONST char *GiD_PostGetFormatReal() {
+  return G_format_real;
 }
 
 /* special format to not truncate time steps converted to string, not customizable but centralize its use*/
-GIDPOST_API GP_CONST char* GiD_PostGetFormatStep(){
-  static const char format_step[]={"%.16g"};
+GIDPOST_API GP_CONST char *GiD_PostGetFormatStep(){
+  static const char format_step[] ={ "%.16g"};
   return format_step;
 }
 

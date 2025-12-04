@@ -97,10 +97,18 @@ public:
         mpComm = &rComm;
     }
 
+    SparseGraph(SparseGraph&&) noexcept = default;
+
     /// Destructor.
     ~SparseGraph(){}
 
-    /// Copy constructor. 
+    /// Assignment operator
+    SparseGraph& operator=(SparseGraph const& rOther)=delete;
+
+    /// Move assignment operator
+    SparseGraph& operator=(SparseGraph&&) noexcept = default;
+
+    /// Copy constructor.
     SparseGraph(const SparseGraph& rOther)
     :
         mpComm(rOther.mpComm),
@@ -224,14 +232,14 @@ public:
         ExportCSRArrays(pRowIndicesData,RowIndicesDataSize,pColIndicesData,ColIndicesDataSize);
         if(rRowIndices.size() != RowIndicesDataSize)
             rRowIndices.resize(RowIndicesDataSize);
-        IndexPartition<IndexType>(RowIndicesDataSize).for_each( 
+        IndexPartition<IndexType>(RowIndicesDataSize).for_each(
             [&](IndexType i){rRowIndices[i] = pRowIndicesData[i];}
         );
-        
+
         delete [] pRowIndicesData;
         if(rColIndices.size() != ColIndicesDataSize)
             rColIndices.resize(ColIndicesDataSize);
-        IndexPartition<IndexType>(ColIndicesDataSize).for_each( 
+        IndexPartition<IndexType>(ColIndicesDataSize).for_each(
             [&](IndexType i){rColIndices[i] = pColIndicesData[i];}
         );
         delete [] pColIndicesData;
@@ -259,11 +267,11 @@ public:
         pRowIndicesData = new IndexType[nrows+1];
         rRowDataSize = nrows+1;
         Kratos::span<IndexType> row_indices(pRowIndicesData, nrows+1);
-        
+
         //set it to zero in parallel to allow first touching
         IndexPartition<IndexType>(row_indices.size()).for_each([&](IndexType i){
                     row_indices[i] = 0;
-                });            
+                });
 
         //count the entries TODO: do the loop in parallel if possible
         for(const auto& item : this->GetGraph())
@@ -281,11 +289,11 @@ public:
         rColDataSize = nnz;
         pColIndicesData = new IndexType[nnz];
         Kratos::span<IndexType> col_indices(pColIndicesData, nnz);
-        
+
         //set it to zero in parallel to allow first touching
         IndexPartition<IndexType>(col_indices.size()).for_each([&](IndexType i){
                     col_indices[i] = 0;
-                });            
+                });
 
         //count the entries TODO: do the loop in parallel if possible
         for(const auto& item : this->GetGraph()){
@@ -306,9 +314,9 @@ public:
     }
 
     //this function returns the Graph as a single vector
-    //in the form of 
-    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row 
-    //every row is pushed back one after the other 
+    //in the form of
+    //  RowIndex NumberOfEntriesInTheRow .... list of all Indices in the row
+    //every row is pushed back one after the other
     std::vector<IndexType> ExportSingleVectorRepresentation() const
     {
         std::vector< IndexType > single_vector_representation;
@@ -319,7 +327,7 @@ public:
         for(const auto& item : this->GetGraph()){
             IndexType I = item.first;
             single_vector_representation.push_back(I); //we store the index of the rows
-            single_vector_representation.push_back(item.second.size()); //the number of items in the row 
+            single_vector_representation.push_back(item.second.size()); //the number of items in the row
             for(auto J : item.second)
                 single_vector_representation.push_back(J); //the columns
         }
@@ -328,11 +336,11 @@ public:
 
     void AddFromSingleVectorRepresentation(const std::vector<IndexType>& rSingleVectorRepresentation)
     {
-        //IndexType graph_size = rSingleVectorRepresentation[0]; 
-        //we actually do not need the graph_size since it will be reconstructed, 
+        //IndexType graph_size = rSingleVectorRepresentation[0];
+        //we actually do not need the graph_size since it will be reconstructed,
         //however it is important that the graph_size is stored to make the single_vector
         //representation also compatible with the sparse_contiguous_row_graph
-        
+
         IndexType counter = 1;
         while(counter < rSingleVectorRepresentation.size())
         {
@@ -398,6 +406,7 @@ public:
     ///@name Inquiry
     ///@{
 
+    static constexpr bool IsThreadSafe = false;
 
     ///@}
     ///@name Input and output
@@ -479,7 +488,7 @@ private:
     friend class Serializer;
 
     void save(Serializer& rSerializer) const
-    {   
+    {
         std::vector< IndexType > IJ = ExportSingleVectorRepresentation();
         rSerializer.save("IJ",IJ);
     }
@@ -512,12 +521,8 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    SparseGraph& operator=(SparseGraph const& rOther) = delete;
-
 
     ///@}
-
 }; // Class SparseGraph
 
 ///@}

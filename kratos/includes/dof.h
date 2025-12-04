@@ -122,6 +122,7 @@ public:
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
+          mEffectiveEquationId(IndexType()),
           mpNodalData(pThisNodalData)
     {
         KRATOS_DEBUG_ERROR_IF_NOT(pThisNodalData->GetSolutionStepData().Has(rThisVariable))
@@ -160,6 +161,7 @@ public:
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, TReactionType>::Id),
           mEquationId(IndexType()),
+          mEffectiveEquationId(IndexType()),
           mpNodalData(pThisNodalData)
     {
         KRATOS_DEBUG_ERROR_IF_NOT(pThisNodalData->GetSolutionStepData().Has(rThisVariable))
@@ -180,6 +182,7 @@ public:
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mIndex(),
           mEquationId(IndexType()),
+          mEffectiveEquationId(IndexType()),
           mpNodalData()
     {
     }
@@ -305,11 +308,25 @@ public:
         return mEquationId;
     }
 
+    /** Return the Effective Equation Id related to this degree eof freedom.
+     */
+    EquationIdType EffectiveEquationId() const noexcept
+    {
+        return mEffectiveEquationId;
+    }
+
     /** Sets the Equation Id to the desired value
      */
     void SetEquationId(EquationIdType NewEquationId) noexcept
     {
         mEquationId = NewEquationId;
+    }
+
+    /** Sets the Effective Equation Id to the desired value
+     */
+    void SetEffectiveEquationId(EquationIdType NewEquationId) noexcept
+    {
+        mEffectiveEquationId = NewEquationId;
     }
 
     /** Fixes the Dof
@@ -397,6 +414,7 @@ public:
         else
             rOStream << "    IsFixed                : False" << std::endl;
         rOStream << "    Equation Id            : " << mEquationId << std::endl;
+        rOStream << "    Effective Equation Id            : " << mEffectiveEquationId << std::endl;
     }
 
     ///@}
@@ -426,6 +444,9 @@ private:
 
     /** Equation identificator of the degree of freedom */
     EquationIdType mEquationId : 48;
+
+    /** Equation identificator of the degree of freedom */
+    EquationIdType mEffectiveEquationId;
 
     /** A pointer to nodal data stored in node which is corresponded to this dof */
     NodalData* mpNodalData;
@@ -469,6 +490,7 @@ private:
     {
         rSerializer.save("IsFixed", static_cast<bool>(mIsFixed));
         rSerializer.save("EquationId", static_cast<EquationIdType>(mEquationId));
+        rSerializer.save("EffectiveEquationId", static_cast<EquationIdType>(mEffectiveEquationId));
         rSerializer.save("NodalData", mpNodalData);
         rSerializer.save("VariableType", static_cast<int>(mVariableType));
         rSerializer.save("ReactionType", static_cast<int>(mReactionType));
@@ -485,6 +507,9 @@ private:
         EquationIdType equation_id;
         rSerializer.load("EquationId", equation_id);
         mEquationId = equation_id;
+        EquationIdType effective_equation_id;
+        rSerializer.load("EffectiveEquationId", effective_equation_id);
+        mEffectiveEquationId = effective_equation_id;
         rSerializer.load("NodalData", mpNodalData);
 
         int variable_type;

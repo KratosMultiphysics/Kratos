@@ -78,6 +78,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mLinearTimoshenkoBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mLinearTimoshenkoBeamElement2D3N(0, Element::GeometryType::Pointer(new Line2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mLinearTimoshenkoCurvedBeamElement2D3N(0, Element::GeometryType::Pointer(new Line2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mLinearTimoshenkoCurvedBeamElement3D3N(0, Element::GeometryType::Pointer(new Line3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       // Adding the shells elements
       mIsotropicShellElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThickElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
@@ -497,7 +498,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOVING_LOAD)
     KRATOS_REGISTER_VARIABLE(MOVING_LOAD_LOCAL_DISTANCE)
-
+    KRATOS_REGISTER_VARIABLE(MOTION_TYPE)
+    
     // Condition load variables
     KRATOS_REGISTER_VARIABLE(POINT_LOADS_VECTOR)
     KRATOS_REGISTER_VARIABLE(LINE_LOADS_VECTOR)
@@ -570,6 +572,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoBeamElement3D2N", mLinearTimoshenkoBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoBeamElement2D3N", mLinearTimoshenkoBeamElement2D3N)
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoCurvedBeamElement2D3N", mLinearTimoshenkoCurvedBeamElement2D3N)
+    KRATOS_REGISTER_ELEMENT("LinearTimoshenkoCurvedBeamElement3D3N", mLinearTimoshenkoCurvedBeamElement3D3N)
 
     //Register the shells elements
     KRATOS_REGISTER_ELEMENT("IsotropicShellElement3D3N", mIsotropicShellElement3D3N)

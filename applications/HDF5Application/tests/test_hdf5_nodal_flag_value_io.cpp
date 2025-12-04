@@ -59,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5NodalFlagValueIO_WriteNodalFlags1, KratosHDF5TestS
     TestModelPartFactory::AssignNonHistoricalNodalTestData(
         r_write_model_part, variables_list);
     auto p_file = pGetTestSerialFile();
-    HDF5::ModelPartIO model_part_io(p_file, "/ModelData");
+    HDF5::ModelPartIO model_part_io(Parameters(R"({"prefix":"/ModelData"})"), p_file);
     model_part_io.WriteNodes(r_write_model_part.Nodes());
     HDF5::ContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::FlagIO, Flags> nodal_value_io(settings, p_file);
     nodal_value_io.Write(r_write_model_part.Nodes(), HDF5::Internals::FlagIO{}, Parameters("""{}"""));

@@ -69,6 +69,8 @@ from test_prebuckling_analysis import TestPrebucklingAnalysis as TTestPrebucklin
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Eigensolver with Constraints test
 from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
+# Eigensolver with mass matrix normalized eigenmodes
+from test_eigen_solver_with_mass_normalized_eigenmodes import TestEigenSolverWithMassNormalizedEigenmodes
 # Eigensolver with different dofs test
 from test_eigen_solver_different_dofs import TestEigenSolverWithDifferentDofs
 # Custom Scipy Solver test
@@ -108,6 +110,7 @@ from structural_mechanics_test_factory import TimoshenkoBeam3D2NTest as TTimoshe
 from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshenkoBeam2D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D3NTest as TTimoshenkoBeam2D3NTest
 from structural_mechanics_test_factory import TimoshenkoCurvedBeam2D3NTest as TTimoshenkoCurvedBeam2D3NTest
+from structural_mechanics_test_factory import TimoshenkoCurvedBeam3D3NTest as TTimoshenkoCurvedBeam3D3NTest
 from structural_mechanics_test_factory import AutomatedInitialVariableProcessTest as TAutomatedInitialVariableProcessTest
 from structural_mechanics_test_factory import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from structural_mechanics_test_factory import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -326,6 +329,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithDifferentDofs]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithMassNormalizedEigenmodes]))
     # Custom Scipy Solver test
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCustomScipyBaseSolver]))
     # local-axis visualization tests
@@ -365,6 +369,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TTimoshenkoBeam2D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D3NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoCurvedBeam2D3NTest('test_execution'))
+    smallSuite.addTest(TTimoshenkoCurvedBeam3D3NTest('test_execution'))
     smallSuite.addTest(TAutomatedInitialVariableProcessTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))

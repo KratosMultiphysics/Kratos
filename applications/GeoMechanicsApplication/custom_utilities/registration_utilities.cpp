@@ -14,6 +14,10 @@
 namespace Kratos
 {
 
-ScopedSerializerRegistration::~ScopedSerializerRegistration() { Serializer::Deregister(mName); }
-
+ScopedSerializerRegistration::~ScopedSerializerRegistration()
+{
+    for (const auto& r_name : mNames) {
+        Serializer::Deregister(r_name);
+    }
+}
 } // namespace Kratos

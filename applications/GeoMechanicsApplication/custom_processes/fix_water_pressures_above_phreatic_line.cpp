@@ -42,15 +42,18 @@ FixWaterPressuresAbovePhreaticLineProcess::FixWaterPressuresAbovePhreaticLinePro
 void FixWaterPressuresAbovePhreaticLineProcess::ExecuteInitializeSolutionStep()
 {
     block_for_each(mrModelPart.Nodes(), [this](Node& rNode) {
-        const auto current_coordinates =
-            rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(TOTAL_DISPLACEMENT);
-        if (current_coordinates[1] > mPhreaticLineTable(current_coordinates[0])) {
+        if (rNode.Y() >= mPhreaticLineTable.GetValue(rNode.X())) {
             rNode.Fix(WATER_PRESSURE);
             rNode.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
         } else {
             rNode.Free(WATER_PRESSURE);
         }
     });
+}
+
+std::string FixWaterPressuresAbovePhreaticLineProcess::Info() const
+{
+    return "FixWaterPressuresAbovePhreaticLineProcess";
 }
 
 } // namespace Kratos

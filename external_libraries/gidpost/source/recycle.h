@@ -1,6 +1,6 @@
 /*
 --------------------------------------------------------------------
-By Bob Jenkins, September 1996.  recycle.h
+By Bob Jenkins, September 1996.  _gp_recycle.h
 You may use this code in any way you wish, and it is free.  No warranty.
 
 This manages memory for commonly-allocated structures.
@@ -21,16 +21,16 @@ This also decreases memory fragmentation, and freeing all structures
 #define RESTART    0
 #define REMAX      32000
 
-struct recycle
+struct _gp_recycle
 {
-   struct recycle *next;
+   struct _gp_recycle *next;
 };
-typedef  struct recycle  recycle;
+typedef  struct _gp_recycle  G_recycle;
 
 struct reroot
 {
-   struct recycle *list;     /* list of malloced blocks */
-   struct recycle *trash;    /* list of deleted items */
+   struct _gp_recycle *list;     /* list of malloced blocks */
+   struct _gp_recycle *trash;    /* list of deleted items */
    size_t          size;     /* size of an item */
    size_t          logsize;  /* log_2 of number of items in a block */
    word            numleft;  /* number of bytes left in this block */
@@ -38,26 +38,26 @@ struct reroot
 typedef  struct reroot  reroot;
 
 /* make a new recycling root */
-reroot  *remkroot( size_t mysize );
+reroot  *_gp_remkroot( size_t mysize );
 
 /* free a recycling root and all the items it has made */
-void     refree( struct reroot *r );
+void     _gp_refree( struct reroot *r );
 
 /* get a new (cleared) item from the root */
-#define renew(r) ((r)->numleft ? \
-   (((char *)((r)->list+1))+((r)->numleft-=(word)(r)->size)) : renewx(r))
+#define _gp_renew(r) ((r)->numleft ? \
+   (((char *)((r)->list+1))+((r)->numleft-=(word)(r)->size)) : _gp_renewx(r))
 
-char    *renewx( struct reroot *r );
+char    *_gp_renewx( struct reroot *r );
 
-/* delete an item; let the root recycle it */
-/* void     redel(/o_ struct reroot *r, struct recycle *item _o/); */
-#define redel(root,item) { \
-   ((recycle *)item)->next=(root)->trash; \
-   (root)->trash=(recycle *)(item); \
+/* delete an item; let the root _gp_recycle it */
+/* void     _gp_redel(/o_ struct reroot *r, struct _gp_recycle *item _o/); */
+#define _gp_redel(root,item) { \
+   ((G_recycle *)item)->next=(root)->trash; \
+   (root)->trash=(G_recycle *)(item); \
 }
 
 /* malloc, but complain to stderr and exit program if no joy */
-/* use plain free() to free memory allocated by remalloc() */
-char    *remalloc( size_t len, char *purpose );
+/* use plain free() to free memory allocated by _gp_remalloc() */
+char    *_gp_remalloc( size_t len, char *purpose );
 
 #endif  /* RECYCLE */

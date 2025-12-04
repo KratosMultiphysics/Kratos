@@ -28,7 +28,7 @@
 #endif
 
 #define GP_VERSION_MAJOR 2
-#define GP_VERSION_MINOR 12
+#define GP_VERSION_MINOR 13
 
 /* build GIDPOST_VERSION by stringify-ing GP_VERSION_MAJOR and GP_VERSION_MINOR */
 #define __GP_V_STR( str)     __GP_V_STR_( str)

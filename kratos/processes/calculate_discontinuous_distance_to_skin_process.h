@@ -104,6 +104,12 @@ public:
     ///@name Operations
     ///@{
 
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
+
     /**
      * @brief Initializes discontinuous distance computation process
      * This method initializes the TO_SPLIT flag, the DISTANCE and

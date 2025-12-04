@@ -23,7 +23,6 @@ class BasicTestsLine(basic_mapper_tests.BasicMapperTests):
 class BasicTestsLineInitialConfig(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
-        import KratosMultiphysics.IgaApplication as Iga
         mapper_params = KM.Parameters("""{
             "mapper_type": "nearest_element",
             "interface_submodel_part_origin": "line_tri",

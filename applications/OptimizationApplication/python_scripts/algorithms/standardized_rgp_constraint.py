@@ -210,7 +210,9 @@ class StandardizedRGPConstraint(ResponseRoutine):
 
             if save_value:
                 if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+                if self.__buffered_data.HasValue("std_value"): del self.__buffered_data["std_value"]
                 self.__buffered_data["value"] = response_value
+                self.__buffered_data["std_value"] = standardized_response_value
 
             DictLogger("Constraint info",self.GetInfo())
 
