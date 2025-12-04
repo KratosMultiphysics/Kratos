@@ -31,44 +31,54 @@ namespace MapperUtilities {
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
-void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
+
+template<class TContainerType>
+void AssignInterfaceEquationIdsToContainer(Communicator& rModelPartCommunicator,
+                                           TContainerType& rContainer)
 {
     if (rModelPartCommunicator.GetDataCommunicator().IsNullOnThisRank()) {
         return;
     }
 
-    const int num_nodes_local = rModelPartCommunicator.LocalMesh().NumberOfNodes();
-    int num_nodes_accumulated = rModelPartCommunicator.GetDataCommunicator().ScanSum(num_nodes_local);
-    const int start_equation_id = num_nodes_accumulated - num_nodes_local;
-    const auto nodes_begin = rModelPartCommunicator.LocalMesh().NodesBegin();
+    const auto& r_data_comm = rModelPartCommunicator.GetDataCommunicator();
 
-    IndexPartition<unsigned int>(num_nodes_local).for_each(
-        [nodes_begin, start_equation_id](unsigned int i){
-            (nodes_begin + i)->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
+    const int num_entities_local = static_cast<int>(rContainer.size());
+    const int num_entities_accumulated = r_data_comm.ScanSum(num_entities_local);
+    const int start_equation_id = num_entities_accumulated - num_entities_local;
+
+    auto it_begin = rContainer.begin();
+
+    IndexPartition<unsigned int>(num_entities_local).for_each(
+        [it_begin, start_equation_id](unsigned int i){
+            (it_begin + i)->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
         }
     );
 
     rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
 
-void AssignInterfaceEquationIdsOnConditions(Communicator& rModelPartCommunicator)
+void AssignInterfaceEquationIdsToNodes(Communicator& rModelPartCommunicator)
 {
-    if (rModelPartCommunicator.GetDataCommunicator().IsNullOnThisRank()) {
-        return;
-    }
-
-    const int num_conditions_local = rModelPartCommunicator.LocalMesh().NumberOfConditions();
-    int num_conditions_accumulated = rModelPartCommunicator.GetDataCommunicator().ScanSum(num_conditions_local);
-    const int start_equation_id = num_conditions_accumulated - num_conditions_local;
-    const auto conditions_begin = rModelPartCommunicator.LocalMesh().ConditionsBegin();
-
-    IndexPartition<unsigned int>(num_conditions_local).for_each(
-        [conditions_begin, start_equation_id](unsigned int i){
-            (conditions_begin + i)->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
-        }
+    AssignInterfaceEquationIdsToContainer(
+        rModelPartCommunicator,
+        rModelPartCommunicator.LocalMesh().Nodes()
     );
+}
 
-    rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
+void AssignInterfaceEquationIdsToConditions(Communicator& rModelPartCommunicator)
+{
+    AssignInterfaceEquationIdsToContainer(
+        rModelPartCommunicator,
+        rModelPartCommunicator.LocalMesh().Conditions()
+    );
+}
+
+void AssignInterfaceEquationIdsToElements(Communicator& rModelPartCommunicator)
+{
+    AssignInterfaceEquationIdsToContainer(
+        rModelPartCommunicator,
+        rModelPartCommunicator.LocalMesh().Elements()
+    );
 }
 
 template <typename TContainer>
