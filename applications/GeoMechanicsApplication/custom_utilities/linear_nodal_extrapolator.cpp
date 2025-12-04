@@ -28,7 +28,7 @@ namespace Kratos
 
 Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Element& rElement) const
 {
-    auto p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    auto        p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
     const auto& r_geometry =
         p_interface_element ? p_interface_element->GetMidGeometry() : rElement.GetGeometry();
     CheckIfGeometryIsSupported(r_geometry);
