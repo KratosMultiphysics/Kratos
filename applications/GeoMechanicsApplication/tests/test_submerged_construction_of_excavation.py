@@ -258,7 +258,9 @@ def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1):
 
 
 def extract_y_and_moment_from_line(line):
-    return _extract_x_and_y_from_line(line, index_of_x=11, index_of_y=4)
+    words = line.split(',')
+    return (float(words[11]), float(words[4]))
+    # return _extract_x_and_y_from_line(line, index_of_x=11, index_of_y=4)
 
 def extract_y_and_axial_force_from_line(line):
     words = line.split(',')
