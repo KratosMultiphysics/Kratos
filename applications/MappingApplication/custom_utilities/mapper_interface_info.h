@@ -120,16 +120,7 @@ public:
     virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                                 const IndexType SourceLocalSystemIndex,
                                                 const IndexType SourceRank) const = 0;
-    
-    /**
-    * @brief Returning the results of the neighbour search for the RBF mapper
-    * @author Juan I. Camarotti
-    */
-    virtual const RBFSupportAccumulator& GetRBFSupportAccumulator() const
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
-
+                                                
     // needed for serialization
     virtual MapperInterfaceInfo::Pointer Create() const = 0;
 
