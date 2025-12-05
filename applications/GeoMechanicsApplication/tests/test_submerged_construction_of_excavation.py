@@ -406,13 +406,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                                                                           y_coords_per_stage,
                                                                           extract_y_and_axial_force_from_line)
 
-        plot_utils.make_sub_plots(
-            axial_force_collections,
-            Path(project_path) / f"axial_forces_all_stages.svg",
-            xlabel="Axial Force [kN]",
-            ylabel="y [m]",
-            titles=plot_titles
-        )
+        plot_utils.make_sub_plots(axial_force_collections, Path(project_path) / f"axial_forces_all_stages.svg",
+                                  titles=plot_titles, xlabel="Axial Force [kN]", ylabel="y [m]")
 
         shear_force_plot_label = "Shear force"
         shear_force_kratos_label = "SHEAR_FORCE"
@@ -421,13 +416,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                                                                           project_path, structural_stages,
                                                                           y_coords_per_stage,
                                                                           extract_y_and_shear_force_from_line)
-        plot_utils.make_sub_plots(
-            shear_force_collections,
-            Path(project_path) / f"shear_forces_all_stages.svg",
-            xlabel="Shear Force [kN]",
-            ylabel="y [m]",
-            titles=plot_titles
-        )
+        plot_utils.make_sub_plots(shear_force_collections, Path(project_path) / f"shear_forces_all_stages.svg",
+                                  titles=plot_titles, xlabel="Shear Force [kN]", ylabel="y [m]")
 
         bending_moment_plot_label = "Bending moment"
         bending_moment_kratos_label = "BENDING_MOMENT"
@@ -436,13 +426,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                                                                              project_path, structural_stages,
                                                                              y_coords_per_stage,
                                                                              extract_y_and_moment_from_line)
-        plot_utils.make_sub_plots(
-            bending_moment_collections,
-            Path(project_path) / f"bending_moments_all_stages.svg",
-            xlabel="Bending moment [kNm]",
-            ylabel="y [m]",
-            titles=plot_titles
-        )
+        plot_utils.make_sub_plots(bending_moment_collections, Path(project_path) / f"bending_moments_all_stages.svg",
+                                  titles=plot_titles, xlabel="Bending moment [kNm]", ylabel="y [m]")
 
     def get_variable_collections_per_stage(self, axial_force_kratos_label, axial_force_plot_label,
                                            project_path,
