@@ -140,10 +140,10 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryIsAGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry      = InterfaceGeometry<Line2D3<Node>>();
-    const auto base_geometry = dynamic_cast<const Geometry<Node>*>(&geometry);
+    const auto geometry        = InterfaceGeometry<Line2D3<Node>>();
+    const auto p_base_geometry = dynamic_cast<const Geometry<Node>*>(&geometry);
 
-    KRATOS_EXPECT_NE(base_geometry, nullptr);
+    KRATOS_EXPECT_NE(p_base_geometry, nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointersToNodes,
@@ -181,14 +181,14 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectTy
     nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
 
-    const auto new_geometry = geometry.Create(nodes);
+    const auto p_new_geometry = geometry.Create(nodes);
 
-    KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Line2D2<Node>>*>(new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 4);
-    KRATOS_EXPECT_EQ(new_geometry->Id(), 0);
-    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 1);
-    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_NE(p_new_geometry, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Line2D2<Node>>*>(p_new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(p_new_geometry->PointsNumber(), 4);
+    KRATOS_EXPECT_EQ(p_new_geometry->Id(), 0);
+    KRATOS_EXPECT_EQ(p_new_geometry->LocalSpaceDimension(), 1);
+    KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForLinearLineMidGeometry,
@@ -202,14 +202,14 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
 
     constexpr auto new_geometry_id = 1;
-    const auto     new_geometry    = geometry.Create(new_geometry_id, nodes);
+    const auto     p_new_geometry  = geometry.Create(new_geometry_id, nodes);
 
-    KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Line2D2<Node>>*>(new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 4);
-    KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
-    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 1);
-    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_NE(p_new_geometry, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Line2D2<Node>>*>(p_new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(p_new_geometry->PointsNumber(), 4);
+    KRATOS_EXPECT_EQ(p_new_geometry->Id(), new_geometry_id);
+    KRATOS_EXPECT_EQ(p_new_geometry->LocalSpaceDimension(), 1);
+    KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForQuadraticTriangularMidGeometry,
@@ -218,15 +218,15 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     const auto geometry = InterfaceGeometry<Triangle3D6<Node>>();
 
     constexpr auto new_geometry_id = 1;
-    const auto     new_geometry =
+    const auto     p_new_geometry =
         geometry.Create(new_geometry_id, CreateNodesForSixPlusSixNoded3DSurfaceInterface());
 
-    KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Triangle3D6<Node>>*>(new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 12);
-    KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
-    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 2);
-    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_NE(p_new_geometry, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Triangle3D6<Node>>*>(p_new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(p_new_geometry->PointsNumber(), 12);
+    KRATOS_EXPECT_EQ(p_new_geometry->Id(), new_geometry_id);
+    KRATOS_EXPECT_EQ(p_new_geometry->LocalSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForLinearQuadrilateralMidGeometry,
@@ -235,15 +235,16 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     const auto geometry = CreateFourPlusFourNoded3DSurfaceInterfaceGeometry();
 
     constexpr auto new_geometry_id = 1;
-    const auto     new_geometry =
+    const auto     p_new_geometry =
         geometry.Create(new_geometry_id, CreateFourPlusFourNoded3DSurfaceInterfaceGeometry());
 
-    KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Quadrilateral3D4<Node>>*>(new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 8);
-    KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
-    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 2);
-    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_NE(p_new_geometry, nullptr);
+    KRATOS_EXPECT_NE(
+        dynamic_cast<const InterfaceGeometry<Quadrilateral3D4<Node>>*>(p_new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(p_new_geometry->PointsNumber(), 8);
+    KRATOS_EXPECT_EQ(p_new_geometry->Id(), new_geometry_id);
+    KRATOS_EXPECT_EQ(p_new_geometry->LocalSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForQuadraticQuadrilateralMidGeometry,
@@ -252,15 +253,16 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     const auto geometry = CreateEightPlusEightNoded3DSurfaceInterfaceGeometry();
 
     constexpr auto new_geometry_id = 1;
-    const auto     new_geometry =
+    const auto     p_new_geometry =
         geometry.Create(new_geometry_id, CreateEightPlusEightNoded3DSurfaceInterfaceGeometry());
 
-    KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Quadrilateral3D8<Node>>*>(new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 16);
-    KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
-    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 2);
-    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_NE(p_new_geometry, nullptr);
+    KRATOS_EXPECT_NE(
+        dynamic_cast<const InterfaceGeometry<Quadrilateral3D8<Node>>*>(p_new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(p_new_geometry->PointsNumber(), 16);
+    KRATOS_EXPECT_EQ(p_new_geometry->Id(), new_geometry_id);
+    KRATOS_EXPECT_EQ(p_new_geometry->LocalSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
