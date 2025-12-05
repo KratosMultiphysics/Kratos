@@ -14,7 +14,7 @@
 #include "custom_workflows/strategy_wrapper.hpp"
 #include "custom_workflows/time_step_executor.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <gmock/gmock.h>
 
@@ -67,7 +67,7 @@ public:
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, RunReturnsNonConvergedWhenStrategyDoesNotConverge)
 {
     TimeStepExecutor executor;
     auto             nonconverging_strategy = std::make_shared<DummyStrategyWrapper>();
@@ -76,10 +76,10 @@ KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, Kra
 
     executor.SetSolverStrategy(nonconverging_strategy);
     constexpr auto time = 0.0;
-    KRATOS_EXPECT_TRUE(executor.Run(time).NonConverged())
+    EXPECT_TRUE(executor.Run(time).NonConverged());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, RunReturnsConvergedWhenStrategyConverged)
 {
     TimeStepExecutor executor;
     auto             converging_strategy = std::make_shared<DummyStrategyWrapper>();
@@ -87,10 +87,10 @@ KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMec
 
     executor.SetSolverStrategy(converging_strategy);
     constexpr auto time = 0.0;
-    KRATOS_EXPECT_TRUE(executor.Run(time).Converged())
+    EXPECT_TRUE(executor.Run(time).Converged());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ProcessMemberFunctionsAllCalledOnce)
 {
     TimeStepExecutor executor;
     auto             converging_strategy = std::make_shared<DummyStrategyWrapper>();
@@ -109,8 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
     executor.Run(time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptInitializeAndFinalizeCalledOnce,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SolverStrategyMemberFunctionsAllExceptInitializeAndFinalizeCalledOnce)
 {
     TimeStepExecutor executor;
     auto             converging_strategy = std::make_shared<DummyStrategyWrapper>();
@@ -127,7 +126,7 @@ KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptInitializeAndFin
     executor.Run(time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConvergingTimeStepExecutionReturnsGivenTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ConvergingTimeStepExecutionReturnsGivenTime)
 {
     TimeStepExecutor executor;
     auto             converging_strategy = std::make_shared<DummyStrategyWrapper>();
@@ -135,10 +134,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConvergingTimeStepExecutionReturnsGivenTime, KratosGeo
 
     executor.SetSolverStrategy(converging_strategy);
     constexpr auto time = 2.0;
-    KRATOS_EXPECT_DOUBLE_EQ(time, executor.Run(time).time);
+    EXPECT_DOUBLE_EQ(time, executor.Run(time).time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NonConvergingTimeStepExecutionReturnsGivenTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NonConvergingTimeStepExecutionReturnsGivenTime)
 {
     TimeStepExecutor executor;
     auto             non_converging_strategy = std::make_shared<DummyStrategyWrapper>();
@@ -147,10 +146,10 @@ KRATOS_TEST_CASE_IN_SUITE(NonConvergingTimeStepExecutionReturnsGivenTime, Kratos
 
     executor.SetSolverStrategy(non_converging_strategy);
     constexpr auto time = 2.0;
-    KRATOS_EXPECT_DOUBLE_EQ(time, executor.Run(time).time);
+    EXPECT_DOUBLE_EQ(time, executor.Run(time).time);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TimeStepExecutionReturnsNumberOfIterations, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TimeStepExecutionReturnsNumberOfIterations)
 {
     TimeStepExecutor executor;
     auto             converging_strategy = std::make_shared<DummyStrategyWrapper>();
@@ -160,7 +159,7 @@ KRATOS_TEST_CASE_IN_SUITE(TimeStepExecutionReturnsNumberOfIterations, KratosGeoM
 
     executor.SetSolverStrategy(converging_strategy);
     constexpr auto time = 2.0;
-    KRATOS_EXPECT_EQ(4, executor.Run(time).num_of_iterations);
+    EXPECT_EQ(4, executor.Run(time).num_of_iterations);
 }
 
 } // namespace Kratos::Testing
