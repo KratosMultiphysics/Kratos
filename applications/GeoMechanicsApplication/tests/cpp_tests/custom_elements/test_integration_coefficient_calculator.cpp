@@ -12,7 +12,7 @@
 //
 
 #include "custom_elements/integration_coefficients_calculator.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 using namespace Kratos;
@@ -20,8 +20,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(IntegrationCoefficientsCalculatorWithoutModifier_ReturnsCorrectValue,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, IntegrationCoefficientsCalculatorWithoutModifier_ReturnsCorrectValue)
 {
     // Set
     const auto integration_coefficient_calculator = IntegrationCoefficientsCalculator{};
@@ -35,12 +34,11 @@ KRATOS_TEST_CASE_IN_SUITE(IntegrationCoefficientsCalculatorWithoutModifier_Retur
     // Assert
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) = 1.0
-    KRATOS_EXPECT_EQ(calculated_coefficients.size(), 1);
-    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 1.0, Defaults::absolute_tolerance);
+    EXPECT_EQ(calculated_coefficients.size(), 1);
+    EXPECT_NEAR(calculated_coefficients[0], 1.0, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(IntegrationCoefficientsCalculatorWithoutModifier_CloneReturnsNullptr,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, IntegrationCoefficientsCalculatorWithoutModifier_CloneReturnsNullptr)
 {
     // Set
     const auto integration_coefficient_calculator = IntegrationCoefficientsCalculator{};
@@ -49,6 +47,6 @@ KRATOS_TEST_CASE_IN_SUITE(IntegrationCoefficientsCalculatorWithoutModifier_Clone
     const auto clone_modifier = integration_coefficient_calculator.CloneModifier();
 
     // Assert
-    KRATOS_EXPECT_EQ(clone_modifier, nullptr);
+    EXPECT_EQ(clone_modifier, nullptr);
 }
 } // namespace Kratos::Testing
