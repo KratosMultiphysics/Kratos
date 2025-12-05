@@ -11,15 +11,14 @@
 //
 
 #include "custom_utilities/transport_equation_utilities.hpp"
-#include "includes/checks.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 using namespace Kratos;
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateSoilDensityGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateSoilDensityGivesCorrectResults)
 {
     Properties properties(0);
     // Please note these are not representative values, it just ensures the values are set
@@ -30,12 +29,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateSoilDensityGivesCorrectResults, KratosGeoMech
     double degree_of_saturation = 0.0;
     auto soil_density = GeoTransportEquationUtilities::CalculateSoilDensity(degree_of_saturation, properties);
     double expected_value = 0.7 * 2500.0;
-    KRATOS_CHECK_NEAR(soil_density, expected_value, 1e-12);
+    EXPECT_NEAR(soil_density, expected_value, 1e-12);
 
     degree_of_saturation = 0.1;
     soil_density = GeoTransportEquationUtilities::CalculateSoilDensity(degree_of_saturation, properties);
     expected_value = 0.1 * 0.3 * 1000.0 + 0.7 * 2500.0;
-    KRATOS_CHECK_NEAR(soil_density, expected_value, 1e-12);
+    EXPECT_NEAR(soil_density, expected_value, 1e-12);
 }
 
 } // namespace Kratos::Testing
