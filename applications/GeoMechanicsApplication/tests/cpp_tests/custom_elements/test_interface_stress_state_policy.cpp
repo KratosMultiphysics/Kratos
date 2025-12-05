@@ -13,8 +13,11 @@
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/interface_geometry.h"
 #include "custom_utilities/registration_utilities.h"
+#include "geometries/line_2d_3.h"
+#include "geometries/triangle_3d_3.h"
+#include "includes/expect.h"
 #include "includes/stream_serializer.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -55,7 +58,7 @@ auto CreateThreePlusThreeSurfaceInterfaceGeometry()
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_CloneCreatesCorrectInstance)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<Line2DInterfaceStressState>();
@@ -65,8 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_CloneCreatesCorrectInstance
     KRATOS_EXPECT_NE(p_cloned_policy.get(), p_stress_state_policy.get());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
 
@@ -75,8 +77,8 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ThrowsWhenInputtingEmptySha
         "Shape function values are empty. Therefore, the B matrix can not be computed.\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       Line2DInterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
     const auto geometry            = CreateThreePlusThree2DLineInterfaceGeometry();
@@ -91,14 +93,14 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ThrowsWhenNumberOfShapeFunc
         "the B matrix can not be computed.\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_ReturnsExpectedVoigtSize)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
 
     KRATOS_EXPECT_EQ(stress_state_policy.GetVoigtSize(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ReturnsExpectedVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_ReturnsExpectedVoigtVector)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
 
@@ -109,8 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ReturnsExpectedVoigtVector,
     KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, r_voigt_vector, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
     const auto geometry            = CreateThreePlusThree2DLineInterfaceGeometry();
@@ -129,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_ReturnsCorrectBMatrixForThr
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_Throws_WhenAskingForStrain)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
 
@@ -139,8 +140,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_Throws_WhenAskingForStrain,
         "strain.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_Throws_WhenAskingForStressTensorSize,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_Throws_WhenAskingForStressTensorSize)
 {
     const auto stress_state_policy = Line2DInterfaceStressState{};
 
@@ -149,8 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_Throws_WhenAskingForStressT
         "For line interfaces, the stress tensor size is not implemented.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_CanBeSavedAndLoadedThroughInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_CanBeSavedAndLoadedThroughInterface)
 {
     // Arrange
     const auto scoped_registration = ScopedSerializerRegistration{
@@ -172,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_CanBeSavedAndLoadedThroughI
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SurfaceInterfaceStressState_CloneCreatesCorrectInstance)
 {
     const auto p_stress_state_policy =
         std::unique_ptr<StressStatePolicy>{std::make_unique<SurfaceInterfaceStressState>()};
@@ -182,8 +181,7 @@ KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_CloneCreatesCorrectInstanc
     KRATOS_EXPECT_NE(p_cloned_policy.get(), p_stress_state_policy.get());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SurfaceInterfaceStressState_ThrowsWhenInputtingEmptyShapeFunctionValues)
 {
     const auto stress_state_policy = SurfaceInterfaceStressState{};
 
@@ -192,8 +190,8 @@ KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ThrowsWhenInputtingEmptySh
         "Shape function values are empty. Therefore, the B matrix can not be computed.\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       SurfaceInterfaceStressState_ThrowsWhenNumberOfShapeFunctionsIsNotEqualToNumberOfNodePairs)
 {
     const auto stress_state_policy = SurfaceInterfaceStressState{};
     const auto geometry            = CreateThreePlusThreeSurfaceInterfaceGeometry();
@@ -208,14 +206,14 @@ KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ThrowsWhenNumberOfShapeFun
         "the B matrix can not be computed.\n");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ReturnsExpectedVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SurfaceInterfaceStressState_ReturnsExpectedVoigtSize)
 {
     const auto stress_state_policy = SurfaceInterfaceStressState{};
 
     KRATOS_EXPECT_EQ(stress_state_policy.GetVoigtSize(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ReturnsExpectedVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SurfaceInterfaceStressState_ReturnsExpectedVoigtVector)
 {
     const auto stress_state_policy = SurfaceInterfaceStressState{};
 
@@ -226,8 +224,8 @@ KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ReturnsExpectedVoigtVector
     KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, r_voigt_vector, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       SurfaceInterfaceStressState_ReturnsCorrectBMatrixForThreePlusThreeNodesGeometry)
 {
     const auto stress_state_policy = SurfaceInterfaceStressState{};
     const auto geometry            = CreateThreePlusThreeSurfaceInterfaceGeometry();
@@ -247,7 +245,7 @@ KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_ReturnsCorrectBMatrixForTh
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_Throws_WhenAskingForStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SurfaceInterfaceStressState_Throws_WhenAskingForStrain)
 {
     const auto stress_state_policy = SurfaceInterfaceStressState{};
 
@@ -257,8 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_Throws_WhenAskingForStrain
         "strain.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_Throws_WhenAskingForStressTensorSize,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SurfaceInterfaceStressState_Throws_WhenAskingForStressTensorSize)
 {
     const auto stress_state_policy = SurfaceInterfaceStressState{};
 
@@ -267,8 +264,7 @@ KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_Throws_WhenAskingForStress
         "For surface interfaces, the stress tensor size is not implemented.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_CanBeSavedAndLoadedThroughInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SurfaceInterfaceStressState_CanBeSavedAndLoadedThroughInterface)
 {
     // Arrange
     const auto scoped_registration = ScopedSerializerRegistration{
