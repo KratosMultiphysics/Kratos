@@ -34,8 +34,8 @@
         "KratosMeshingApplication.*",
         "KratosMeshingCore.*",
         "libKratosMeshingCore.*",
-        "mmg.*",
-        "libmmg.*"
+        "mmg*",
+        "libmmg*"
     ]
 
 # Wheel (py and stubs)
