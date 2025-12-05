@@ -53,9 +53,6 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 {
     KRATOS_TRY
 
-    KRATOS_WATCH("Calculate Local System")
-    // exit(0);
-
     // Add base Laplacian contribution
     BaseType::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
@@ -65,11 +62,8 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
         // Find the surrogate face local id
         // Note that it might happen that an interface element has no surrogate face (i.e. a unique node in the surrogate skin)
         const auto sur_bd_ids_vect = GetSurrogateFacesIds();
-        // KRATOS_WATCH(sur_bd_ids_vect.size())
 
         if (sur_bd_ids_vect.size() != 0) {
-
-            KRATOS_WATCH("I am inside")
 
             // #define OPT_1_POINT_INTEGRATION
             typename BaseType::CalculationData data(this->mpCoordinateTransformation, rCurrentProcessInfo);
@@ -77,8 +71,6 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
             data.CalculateRHS = true; //TO DO
 
             BaseType::InitializeCalculationData(data);
-
-            KRATOS_WATCH(data.gpLocations)
 
             // for (SizeType i = 0; i < 3; ++i) {
             //     data.gpIndex = i;
@@ -90,11 +82,6 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 
                 data.gpIndex = 0;
 
-                // KRATOS_WATCH(data.gpLocations)
-                // KRATOS_WATCH(data.gpIndex)
-
-                // exit(0);
-
                 // calculate the total strain displ. matrix
                 BaseType::CalculateBMatrix(data);
 
@@ -104,9 +91,6 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                 // calculate section response
                 BaseType::CalculateSectionResponse(data);
                 // #undef OPT_1_POINT_INTEGRATION
-
-                KRATOS_WATCH(data.D)
-            
                 // Get the parent geometry data
                 double dom_size_parent;
                 const auto& r_geom = this->GetGeometry();
@@ -132,10 +116,6 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                 // cons_law_values.SetStrainVector(constitutive_variables.StrainVector);
                 // cons_law_values.SetStressVector(constitutive_variables.StressVector); //additional
                 // cons_law_values.SetConstitutiveMatrix(constitutive_variables.D);
-                
-
-                // KRATOS_WATCH(constitutive_variables.D)
-
 
                 // CalculateKinematicVariables(kinematic_variables, 0, GeometryData::IntegrationMethod::GI_GAUSS_1);
                 // CalculateConstitutiveVariables(kinematic_variables, constitutive_variables, cons_law_values, 0, r_int_pts, this->GetStressMeasure(), this->IsElementRotated());
@@ -149,17 +129,10 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
                     const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
-                    KRATOS_WATCH(nodes_in_faces)
-                    KRATOS_WATCH(sur_bd_local_ids[0])
-                    KRATOS_WATCH(sur_bd_local_ids)
-                    KRATOS_WATCH(DN_DX_parent)
-
                     // Get the gradient of the node contrary to the surrogate face
                     // Note that this is used to calculate the normal as n = - DN_DX_cont_node / norm_2(DN_DX_cont_node)
                     // const BoundedVector<double,2> DN_DX_cont_node = row(DN_DX_parent, sur_bd_local_ids[0]);
                     BoundedVector<double,2> n_sur_bd = row(DN_DX_parent, sur_bd_local_ids[0]);
-
-                    KRATOS_WATCH(n_sur_bd)
 
                     const double h_sur_bd = 1.0 / norm_2(n_sur_bd);
                     n_sur_bd *= -h_sur_bd;
@@ -169,17 +142,10 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     BoundedMatrix<double,6,LocalSize> aux_CB_projection;
                     aux_CB_projection = ZeroMatrix(6, LocalSize);
 
-                    KRATOS_WATCH(n_sur_bd)
-
-
                     const auto &r_stress = data.generalizedStresses; //cons_law_values.GetStressVector();
                     const auto &r_C = data.D; //cons_law_values.GetConstitutiveMatrix();
 
-
                     // TODO!! Modify these functions to work in 3D
-
-                    KRATOS_WATCH(r_C)
-
                     B = ZeroMatrix(8, 18);
 
                     for ( IndexType i = 0; i < 3; ++i ) {
@@ -210,10 +176,6 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         B(7, initial_index + 4) = N_parent[i];
                     }
 
-
-                    KRATOS_WATCH(B)
-                    // KRATOS_WATCH(data.B)
-
                     Matrix D(8, 8);
                     noalias(D) = ZeroMatrix(6, 6);
 
@@ -228,14 +190,8 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     D(6,6) = D(5,5)*5.0/6.0;
                     D(7,7) = D(5,5)*5.0/6.0;
 
-                    // KRATOS_WATCH(D)
-                    // exit(0);
-
                     CalculateCBProjectionLinearisation(D, B, n_sur_bd, aux_CB_projection);
                     CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
-
-                    KRATOS_WATCH(aux_CB_projection) //TO DO
-                    KRATOS_WATCH(r_sur_bd_N)
     
                     // Add the surrogate boundary flux contribution
                     // Note that the local face ids. are already taken into account in the assembly
@@ -250,25 +206,12 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         aux_val = aux_w * r_sur_bd_N(0,i_node);
                         i_loc_id = sur_bd_local_ids[i_node + 1];
                         for (std::size_t d = 0; d < 6; ++d) {
-                            KRATOS_WATCH("dimension RHS")
-                            KRATOS_WATCH(i_loc_id*BlockSize+d)
                             rRightHandSideVector(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
                             for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
-                                KRATOS_WATCH("dimension LHS")
-                                KRATOS_WATCH(j_node*BlockSize+d)
                                 rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
                             }
                         }
                     }
-
-                    
-                    // exit(0);
-
-
-                    // KRATOS_WATCH(rLeftHandSideMatrix)
-                    // KRATOS_WATCH(rRightHandSideVector)
-
-                    // exit(0);
                 }
             // }
         }
@@ -545,15 +488,6 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLine
     Matrix aux_CB = ZeroMatrix(8, LocalSize);
     aux_CB = prod(rC, rB);
 
-    
-    KRATOS_WATCH(LocalSize)
-
-
-    KRATOS_WATCH(rC)
-    KRATOS_WATCH(rB)
-
-    KRATOS_WATCH(aux_CB)
-
     // if constexpr (TDim == 2) {
     
         // membrane part
@@ -576,9 +510,6 @@ void ShellThinShiftedBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLine
         for (std::size_t j = 0; j < LocalSize; ++j) {
             rAuxMat(2,j) = rUnitNormal[0]*aux_CB(7,j) + rUnitNormal[1]*aux_CB(6,j);
         }
-
-    // KRATOS_WATCH("eh")
-    // exit(0);
 
 
     // } else {

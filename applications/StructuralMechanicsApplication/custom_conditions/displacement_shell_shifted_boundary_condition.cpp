@@ -168,9 +168,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
 {
     KRATOS_TRY
 
-    KRATOS_WATCH("WEAK DBC SHELL :)")
-    // exit(0);
-
     // Get problem dimensions
     const SizeType n_dim = 6; // rCurrentProcessInfo[DOMAIN_SIZE]; //wrong, should be 6 for shells
 
@@ -178,10 +175,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     const auto& r_geometry = this->GetGeometry();
     const std::size_t n_nodes = r_geometry.PointsNumber();
     const std::size_t local_size = n_nodes * n_dim; 
-
-    // KRATOS_WATCH(r_geometry)
-    // KRATOS_WATCH(n_nodes)
-    // KRATOS_WATCH(local_size)
 
     if (rRightHandSideVector.size() != local_size) {
         rRightHandSideVector.resize(local_size, false);
@@ -201,12 +194,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     array_1d<double,3> normal = GetValue(NORMAL);
     normal /= norm_2(normal);
 
-    // KRATOS_WATCH(w)
-    // KRATOS_WATCH(r_N)
-    // KRATOS_WATCH(r_DN_DX)
-    // KRATOS_WATCH(normal)
-
-
     // Get unknown values
     Vector unknown_values = ZeroVector(local_size);
 
@@ -218,8 +205,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
             unknown_values(i_node*6 + d + 3) = r_rot[d];
         }
     }
-
-    // KRATOS_WATCH(unknown_values)
 
     // Calculate the material response to get the constitutive matrix
     const auto p_cons_law = this->GetValue(CONSTITUTIVE_LAW);
@@ -239,8 +224,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     Vector strain_vect = prod(B_mat, unknown_values);
 
     ConstitutiveLaw::Parameters cons_law_values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
-    // KRATOS_WATCH(this->GetProperties())
-    // KRATOS_WATCH(rCurrentProcessInfo)
 
     cons_law_values.SetShapeFunctionsValues(r_N);
     cons_law_values.SetStressVector(stress_vect);
@@ -255,9 +238,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
 
     p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
 
-    
-    // KRATOS_WATCH(C_mat)
-
     double thickness = this->GetProperties()[THICKNESS];
 
     for(std::size_t i = 0; i < C_mat.size1(); ++i)
@@ -266,18 +246,11 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         {
             D(i,j) = C_mat(i,j) * thickness;
             D(i + 3,j +3) = C_mat(i,j) / 12.0 * thickness * thickness * thickness;// * this->GetProperties()[THICKNESS] * this->GetProperties()[THICKNESS]; 
-            //hack for shells TODO: thickness
         }
     }
 
     D(6,6) = D(5,5)*5.0/6.0;
     D(7,7) = D(5,5)*5.0/6.0;
-
-
-    // KRATOS_WATCH(D)
-    // exit(0);
-    // KRATOS_WATCH(r_DN_DX)
-    // KRATOS_WATCH(B_mat)
 
     for ( IndexType i = 0; i < n_nodes; ++i ) {
         const IndexType initial_index = i*6;
@@ -307,9 +280,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         B_mat_shell(7, initial_index + 4) = r_N[i];
     }
 
-    // KRATOS_WATCH(B_mat_shell)
-
-
     // Get Dirichlet BC imposition data
     const double h = GetValue(ELEMENT_H);
     const auto& r_bc_val = GetValue(DISPLACEMENT);
@@ -319,11 +289,8 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         bc_values[d] = r_bc_val[d];
         bc_values[d + 3] = 0.0; //r_bc_val_rot[d];
     }
-    const double gamma = 0;//rCurrentProcessInfo[PENALTY_COEFFICIENT]; //TO DO: rCurrentProcessInfo[PENALTY_COEFFICIENT];
-
-    // KRATOS_WATCH(gamma)
-    // KRATOS_WATCH(r_bc_val)
-    // KRATOS_WATCH(h)
+    const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT]; //TO DO: rCurrentProcessInfo[PENALTY_COEFFICIENT];
+    KRATOS_WATCH(gamma)
 
     // Calculate the Nitsche BC imposition contribution
     // 1. Add Nitsche penalty term //TO DO check this
@@ -332,8 +299,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     const double rho_C = norm_frobenius(C_mat); //TODO: GS uses the spectral radius in here
     const double aux_weight = w * gamma * rho_C / h;
 
-    KRATOS_WATCH("penalty term")
-    KRATOS_WATCH(r_N)
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
         aux_1 = aux_weight * r_N[i_node];
         for (std::size_t d = 0; d < n_dim; ++d) {
@@ -347,10 +312,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
                 // {
                 //     aux_2 = 0.0;
                 // }
-
-                // KRATOS_WATCH(i_node*n_dim + d)
-                // KRATOS_WATCH(j_node*n_dim + d)
-
                 
                 rLeftHandSideMatrix(i_node*n_dim + d, j_node*n_dim + d) += aux_2;
                 rRightHandSideVector(i_node*n_dim + d) -= aux_2 * unknown_values(j_node*n_dim + d);
@@ -359,26 +320,14 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         }
     }
 
-    // exit(0);
-
-    //THIS IS ZERO
-
-    // KRATOS_WATCH(rLeftHandSideMatrix)
-
     // 2. Add Nitsche stabilization term
     Matrix aux_N(6, local_size);
     Matrix transB_C_proj = ZeroMatrix(local_size, 6); //first variation traction
     CalculateAuxShapeFunctionsMatrix(r_N, aux_N);
     CalculateBtransCProjectionLinearisation(D, B_mat_shell, normal, transB_C_proj);
-
-    // KRATOS_WATCH(aux_N)
-    // KRATOS_WATCH(transB_C_proj)
-    
     const Matrix stab_lhs = prod(transB_C_proj, aux_N); 
 
     Vector stab_rhs_bc = ZeroVector(local_size);
-
-    // KRATOS_WATCH(stab_lhs)
 
     for (IndexType i = 0; i < local_size; ++i) {
         for (IndexType d = 0; d < n_dim; ++d) {
@@ -390,16 +339,6 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
     rLeftHandSideMatrix += w * stab_lhs;
     rRightHandSideVector += w * stab_rhs_bc;
     rRightHandSideVector -= w * stab_rhs_unk;
-
-    // KRATOS_WATCH(rLeftHandSideMatrix)
-    // KRATOS_WATCH(rRightHandSideVector)
-    // exit(0);
-
-    // KRATOS_WATCH(stab_lhs)
-    // KRATOS_WATCH(w)
-    // KRATOS_WATCH(stab_rhs_bc)
-    // KRATOS_WATCH(stab_rhs_unk)
-    // exit(0);
 
     KRATOS_CATCH("")
 }
