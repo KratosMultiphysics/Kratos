@@ -395,7 +395,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         structural_stages = [stage for stage in self.stages_info.values() if
                              stage['base_name'] != "1_Initial_stage" and stage['base_name'] != "2_Null_step"
                              ]
-        titles = self.get_names_of_structural_stages(structural_stages)
+        plot_titles = self.get_names_of_structural_stages(structural_stages)
         y_coords_per_stage = self.get_y_coords_per_stage(project_path, structural_stages)
 
         axial_force_plot_label = "Axial force"
@@ -411,7 +411,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             Path(project_path) / f"axial_forces_all_stages.svg",
             xlabel="Axial Force [kN]",
             ylabel="y [m]",
-            titles=titles
+            titles=plot_titles
         )
 
         shear_force_plot_label = "Shear force"
@@ -426,7 +426,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             Path(project_path) / f"shear_forces_all_stages.svg",
             xlabel="Shear Force [kN]",
             ylabel="y [m]",
-            titles=titles
+            titles=plot_titles
         )
 
         bending_moment_plot_label = "Bending moment"
@@ -441,7 +441,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             Path(project_path) / f"bending_moments_all_stages.svg",
             xlabel="Bending moment [kNm]",
             ylabel="y [m]",
-            titles=titles
+            titles=plot_titles
         )
 
     def get_variable_collections_per_stage(self, axial_force_kratos_label, axial_force_plot_label,
